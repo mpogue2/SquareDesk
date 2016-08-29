@@ -1,0 +1,284 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3C9807BF132832E200BB0CEE /* libbass.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C23D3FB12875F7100154057 /* libbass.dylib */; };
+		3C9807C0132832E200BB0CEE /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C23D3FF12875FA800154057 /* Carbon.framework */; };
+		3C9807C1132832E200BB0CEE /* libbassmix.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9807901328324800BB0CEE /* libbassmix.dylib */; };
+		3C9807C3132832E200BB0CEE /* libbass.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3C23D3FB12875F7100154057 /* libbass.dylib */; };
+		3C9807C4132832E200BB0CEE /* libbassmix.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3C9807901328324800BB0CEE /* libbassmix.dylib */; };
+		3C9807CF132832EB00BB0CEE /* libbass.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C23D3FB12875F7100154057 /* libbass.dylib */; };
+		3C9807D0132832EB00BB0CEE /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C23D3FF12875FA800154057 /* Carbon.framework */; };
+		3C9807D1132832EB00BB0CEE /* libbassmix.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C9807901328324800BB0CEE /* libbassmix.dylib */; };
+		3C9807D3132832EB00BB0CEE /* libbass.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3C23D3FB12875F7100154057 /* libbass.dylib */; };
+		3C9807D4132832EB00BB0CEE /* libbassmix.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 3C9807901328324800BB0CEE /* libbassmix.dylib */; };
+		3CA30336144B0DEC00113078 /* multi.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA30334144B0DEC00113078 /* multi.c */; };
+		3CA30337144B0DEC00113078 /* multi.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3CA30335144B0DEC00113078 /* multi.nib */; };
+		3CA3033A144B0DFC00113078 /* speakers.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA30338144B0DFC00113078 /* speakers.c */; };
+		3CA3033B144B0DFC00113078 /* speakers.nib in Resources */ = {isa = PBXBuildFile; fileRef = 3CA30339144B0DFC00113078 /* speakers.nib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3C9807C2132832E200BB0CEE /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				3C9807C3132832E200BB0CEE /* libbass.dylib in CopyFiles */,
+				3C9807C4132832E200BB0CEE /* libbassmix.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C9807D2132832EB00BB0CEE /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 6;
+			files = (
+				3C9807D3132832EB00BB0CEE /* libbass.dylib in CopyFiles */,
+				3C9807D4132832EB00BB0CEE /* libbassmix.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		3C23D3FB12875F7100154057 /* libbass.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libbass.dylib; sourceTree = SOURCE_ROOT; };
+		3C23D3FF12875FA800154057 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		3C9807901328324800BB0CEE /* libbassmix.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libbassmix.dylib; sourceTree = SOURCE_ROOT; };
+		3C9807C7132832E200BB0CEE /* multi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = multi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C9807D7132832EB00BB0CEE /* speakers.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = speakers.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3CA30334144B0DEC00113078 /* multi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = multi.c; path = multi/multi.c; sourceTree = SOURCE_ROOT; };
+		3CA30335144B0DEC00113078 /* multi.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = multi.nib; path = multi/multi.nib; sourceTree = SOURCE_ROOT; };
+		3CA30338144B0DFC00113078 /* speakers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = speakers.c; path = speakers/speakers.c; sourceTree = SOURCE_ROOT; };
+		3CA30339144B0DFC00113078 /* speakers.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = speakers.nib; path = speakers/speakers.nib; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3C9807BE132832E200BB0CEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C9807BF132832E200BB0CEE /* libbass.dylib in Frameworks */,
+				3C9807C0132832E200BB0CEE /* Carbon.framework in Frameworks */,
+				3C9807C1132832E200BB0CEE /* libbassmix.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C9807CE132832EB00BB0CEE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3C9807CF132832EB00BB0CEE /* libbass.dylib in Frameworks */,
+				3C9807D0132832EB00BB0CEE /* Carbon.framework in Frameworks */,
+				3C9807D1132832EB00BB0CEE /* libbassmix.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3C23D3B61287572E00154057 = {
+			isa = PBXGroup;
+			children = (
+				3C9807D91328330200BB0CEE /* multi */,
+				3C9807DA1328330800BB0CEE /* speakers */,
+				3C23D3C71287577A00154057 /* Products */,
+				3C23D3FB12875F7100154057 /* libbass.dylib */,
+				3C9807901328324800BB0CEE /* libbassmix.dylib */,
+				3C23D3FF12875FA800154057 /* Carbon.framework */,
+			);
+			sourceTree = "<group>";
+		};
+		3C23D3C71287577A00154057 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3C9807C7132832E200BB0CEE /* multi.app */,
+				3C9807D7132832EB00BB0CEE /* speakers.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3C9807D91328330200BB0CEE /* multi */ = {
+			isa = PBXGroup;
+			children = (
+				3CA30334144B0DEC00113078 /* multi.c */,
+				3CA30335144B0DEC00113078 /* multi.nib */,
+			);
+			path = multi;
+			sourceTree = "<group>";
+		};
+		3C9807DA1328330800BB0CEE /* speakers */ = {
+			isa = PBXGroup;
+			children = (
+				3CA30338144B0DFC00113078 /* speakers.c */,
+				3CA30339144B0DFC00113078 /* speakers.nib */,
+			);
+			path = speakers;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3C9807B9132832E200BB0CEE /* multi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3C9807C5132832E200BB0CEE /* Build configuration list for PBXNativeTarget "multi" */;
+			buildPhases = (
+				3C9807BA132832E200BB0CEE /* Resources */,
+				3C9807BC132832E200BB0CEE /* Sources */,
+				3C9807BE132832E200BB0CEE /* Frameworks */,
+				3C9807C2132832E200BB0CEE /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = multi;
+			productName = multi;
+			productReference = 3C9807C7132832E200BB0CEE /* multi.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3C9807C9132832EB00BB0CEE /* speakers */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3C9807D5132832EB00BB0CEE /* Build configuration list for PBXNativeTarget "speakers" */;
+			buildPhases = (
+				3C9807CA132832EB00BB0CEE /* Resources */,
+				3C9807CC132832EB00BB0CEE /* Sources */,
+				3C9807CE132832EB00BB0CEE /* Frameworks */,
+				3C9807D2132832EB00BB0CEE /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = speakers;
+			productName = speakers;
+			productReference = 3C9807D7132832EB00BB0CEE /* speakers.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3C23D3B81287572E00154057 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 3C23D3BB1287572E00154057 /* Build configuration list for PBXProject "bassmix" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 3C23D3B61287572E00154057;
+			productRefGroup = 3C23D3C71287577A00154057 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3C9807B9132832E200BB0CEE /* multi */,
+				3C9807C9132832EB00BB0CEE /* speakers */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3C9807BA132832E200BB0CEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3CA30337144B0DEC00113078 /* multi.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C9807CA132832EB00BB0CEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3CA3033B144B0DFC00113078 /* speakers.nib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3C9807BC132832E200BB0CEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3CA30336144B0DEC00113078 /* multi.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C9807CC132832EB00BB0CEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3CA3033A144B0DFC00113078 /* speakers.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		3C23D3B91287572E00154057 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
+				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)";
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		3C9807C6132832E200BB0CEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		3C9807D6132832EB00BB0CEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3C23D3BB1287572E00154057 /* Build configuration list for PBXProject "bassmix" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C23D3B91287572E00154057 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		3C9807C5132832E200BB0CEE /* Build configuration list for PBXNativeTarget "multi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C9807C6132832E200BB0CEE /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		3C9807D5132832EB00BB0CEE /* Build configuration list for PBXNativeTarget "speakers" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C9807D6132832EB00BB0CEE /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3C23D3B81287572E00154057 /* Project object */;
+}

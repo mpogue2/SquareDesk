@@ -1,0 +1,107 @@
+<?xml version="1.0" standalone="yes"?>
+<object class="NSIBObjectData">
+  <object name="rootObject" class="NSCustomObject" id="1">
+  </object>
+  <array count="8" name="allObjects">
+    <object class="IBCarbonWindow" id="166">
+      <boolean name="hasCloseBox">TRUE</boolean>
+      <boolean name="hasHorizontalZoom">TRUE</boolean>
+      <boolean name="hasVerticalZoom">TRUE</boolean>
+      <boolean name="isResizable">FALSE</boolean>
+      <int name="carbonWindowClass">4</int>
+      <int name="windowPosition">1</int>
+      <string name="title">BASSmix multi example</string>
+      <object name="rootControl" class="IBCarbonRootControl" id="167">
+        <array count="2" name="subviews">
+          <object class="IBCarbonButton" id="184">
+            <int name="controlID">10</int>
+            <string name="title">click here to open a file...</string>
+            <string name="bounds">10 10 30 390 </string>
+          </object>
+          <object class="IBCarbonSlider" id="249">
+            <int name="controlID">12</int>
+            <boolean name="isLive">TRUE</boolean>
+            <int name="orientation">2</int>
+            <int name="maximumValue">0</int>
+            <string name="bounds">55 20 77 380 </string>
+          </object>
+        </array>
+        <string name="bounds">0 0 98 400 </string>
+      </object>
+      <string name="windowRect">200 200 298 600 </string>
+      <string name="ScreenRectAtEncodeTime">0 0 768 1024 </string>
+    </object>
+    <object class="IBCarbonDBListView" id="243">
+      <int name="controlID">10</int>
+      <int name="columnWidth">320</int>
+      <boolean name="variableWidthColumns">FALSE</boolean>
+      <array count="1" name="listViewColumns">
+        <object class="IBCarbonDBListViewColumn">
+          <ostype name="propertyID">blah</ostype>
+          <int name="propertyFlags">65536</int>
+          <int name="sortOrder">1</int>
+          <int name="maxWidth">320</int>
+          <int name="minWidth">320</int>
+          <int name="textAlignment">0</int>
+        </object>
+      </array>
+      <int name="hiliteStyle">1</int>
+      <int name="selectionFlags">98</int>
+      <boolean name="horzScrollBar">FALSE</boolean>
+      <int name="listViewHeaderBtnHeight">0</int>
+      <string name="viewFrame">10 10 320 70 </string>
+      <string name="bounds">10 10 80 330 </string>
+    </object>
+    <object class="IBCarbonButton" id="244">
+      <int name="controlID">1</int>
+      <ostype name="command">ok  </ostype>
+      <int name="buttonType">1</int>
+      <string name="title">OK</string>
+      <string name="viewFrame">200 88 120 20 </string>
+      <string name="bounds">88 200 108 320 </string>
+    </object>
+    <reference idRef="167"/>
+    <object class="IBCarbonRootControl" id="242">
+      <string name="viewFrame">0 0 340 120 </string>
+      <array count="2" name="subviews">
+        <reference idRef="243"/>
+        <reference idRef="244"/>
+      </array>
+      <string name="bounds">0 0 120 340 </string>
+    </object>
+    <reference idRef="249"/>
+    <reference idRef="184"/>
+    <object class="IBCarbonWindow" id="241">
+      <boolean name="hasCloseBox">TRUE</boolean>
+      <boolean name="hasHorizontalZoom">TRUE</boolean>
+      <boolean name="hasVerticalZoom">TRUE</boolean>
+      <boolean name="isResizable">FALSE</boolean>
+      <boolean name="compositing">TRUE</boolean>
+      <int name="carbonWindowClass">4</int>
+      <string name="title"></string>
+      <reference name="rootControl" idRef="242"/>
+      <string name="windowRect">218 249 338 589 </string>
+      <string name="ScreenRectAtEncodeTime">0 0 768 1024 </string>
+    </object>
+  </array>
+  <array count="8" name="allParents">
+    <reference idRef="1"/>
+    <reference idRef="242"/>
+    <reference idRef="242"/>
+    <reference idRef="166"/>
+    <reference idRef="241"/>
+    <reference idRef="167"/>
+    <reference idRef="167"/>
+    <reference idRef="1"/>
+  </array>
+  <dictionary count="3" name="nameTable">
+    <string>File&apos;s Owner</string>
+    <reference idRef="1"/>
+    <string>Selector</string>
+    <reference idRef="241"/>
+    <string>Window</string>
+    <reference idRef="166"/>
+  </dictionary>
+  <string name="targetFramework">IBCarbonFramework</string>
+  <unsigned_int name="nextObjectID">251</unsigned_int>
+</object>

@@ -1,0 +1,81 @@
+<?xml version="1.0" standalone="yes"?>
+<object class="NSIBObjectData">
+  <object name="rootObject" class="NSCustomObject" id="1">
+  </object>
+  <array count="8" name="allObjects">
+    <object class="IBCarbonWindow" id="166">
+      <boolean name="hasCloseBox">TRUE</boolean>
+      <boolean name="hasHorizontalZoom">TRUE</boolean>
+      <boolean name="hasVerticalZoom">TRUE</boolean>
+      <boolean name="isResizable">FALSE</boolean>
+      <int name="carbonWindowClass">4</int>
+      <int name="windowPosition">1</int>
+      <string name="title">BASSmix speakers example</string>
+      <object name="rootControl" class="IBCarbonRootControl" id="167">
+        <array count="6" name="subviews">
+          <object class="IBCarbonButton" id="184">
+            <int name="controlID">10</int>
+            <string name="title">click here to open a file...</string>
+            <string name="bounds">10 10 30 390 </string>
+          </object>
+          <object class="IBCarbonStaticText" id="227">
+            <string name="title">Speaker pairs:</string>
+            <string name="bounds">55 52 71 142 </string>
+          </object>
+          <object class="IBCarbonCheckBox" id="222">
+            <int name="controlID">11</int>
+            <int name="initialState">1</int>
+            <string name="title">1</string>
+            <string name="bounds">55 160 73 202 </string>
+          </object>
+          <object class="IBCarbonCheckBox" id="223">
+            <int name="controlID">12</int>
+            <int name="initialState">1</int>
+            <string name="title">2</string>
+            <string name="bounds">55 208 73 250 </string>
+          </object>
+          <object class="IBCarbonCheckBox" id="224">
+            <int name="controlID">13</int>
+            <int name="initialState">1</int>
+            <string name="title">3</string>
+            <string name="bounds">55 256 73 298 </string>
+          </object>
+          <object class="IBCarbonCheckBox" id="226">
+            <int name="controlID">14</int>
+            <int name="initialState">1</int>
+            <string name="title">4</string>
+            <string name="bounds">55 304 73 346 </string>
+          </object>
+        </array>
+        <string name="bounds">0 0 98 400 </string>
+      </object>
+      <string name="windowRect">200 200 298 600 </string>
+      <string name="ScreenRectAtEncodeTime">0 0 768 1024 </string>
+    </object>
+    <reference idRef="227"/>
+    <reference idRef="224"/>
+    <reference idRef="222"/>
+    <reference idRef="167"/>
+    <reference idRef="226"/>
+    <reference idRef="223"/>
+    <reference idRef="184"/>
+  </array>
+  <array count="8" name="allParents">
+    <reference idRef="1"/>
+    <reference idRef="167"/>
+    <reference idRef="167"/>
+    <reference idRef="167"/>
+    <reference idRef="166"/>
+    <reference idRef="167"/>
+    <reference idRef="167"/>
+    <reference idRef="167"/>
+  </array>
+  <dictionary count="2" name="nameTable">
+    <string>File&apos;s Owner</string>
+    <reference idRef="1"/>
+    <string>Window</string>
+    <reference idRef="166"/>
+  </dictionary>
+  <string name="targetFramework">IBCarbonFramework</string>
+  <unsigned_int name="nextObjectID">228</unsigned_int>
+</object>

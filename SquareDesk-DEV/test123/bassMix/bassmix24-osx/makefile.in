@@ -1,0 +1,48 @@
+BASSPATH = ..
+BASSLIB = $(BASSPATH)/libbass.dylib $(BASSPATH)/libbassmix.dylib
+FLAGS = -Os -I$(BASSPATH)
+USDK = /Developer/SDKs/MacOSX10.4u.sdk
+
+ARCHS := $(sort $(shell lipo -info $(BASSLIB) | sed 's/.*are: \(.*\)/\1/'))
+
+# the examples use Carbon which isn't supported by 64-bit OSX
+ARCHS := $(subst x86_64,,$(ARCHS))
+
+ifneq (,$(findstring i386,$(ARCHS)))
+ifneq (,$(findstring ppc,$(shell arch)))
+ifneq (,$(wildcard $(USDK)))
+FLAGS += -isysroot $(USDK)
+else
+ARCHS := $(findstring ppc,$(ARCHS))
+endif
+endif
+endif
+FLAGS += $(foreach x,$(ARCHS),-arch $(x))
+
+CC = gcc
+RM = rm -Rf
+
+define BUILDAPP
+@mkdir -p $@/Contents/MacOS/
+$(CC) $(FLAGS) $*.c $(BASSLIB) -framework Carbon -o $@/Contents/MacOS/$*
+cp -f $(BASSLIB) $@/Contents/MacOS/
+endef
+
+define COPYNIB
+@mkdir -p $@/Contents/Resources/
+cp -Rf $*.nib $@/Contents/Resources/
+endef
+
+.PHONY: all clean
+
+%: %.c $(BASSLIB)
+	$(CC) $(FLAGS) $*.c $(BASSLIB) -o $@
+
+%.app: %.c %.nib $(BASSLIB)
+	$(BUILDAPP)
+	$(COPYNIB)
+	touch $@
+
+%.app: %.c $(BASSLIB)
+	$(BUILDAPP)
+	touch $@
