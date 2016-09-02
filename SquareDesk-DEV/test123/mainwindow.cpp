@@ -1,27 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// BUG: the song timer changes length (left-justify it?)
-// --------
-// TODO: change loop from default 0.9,0.1 to read out of the file, or find the start/end points and set them with menu item
-//   must allow for fine tuning...
-// TODO: where does the "follow along" text go, for Synchronized Lyrics?
-//   If it's like SqView, the whole bottom half (table) becomes the song (when playing only!)
-// FUTURE: patter: auto turn on "random call @ <level>" during PLAYBACK ONLY
-// FUTURE: singing: auto turn on lyrics during PLAYBACK ONLY
-// FUTURE: preview mode (plays first few sec of any song you click on)
-// FUTURE: playlists?
-// FUTURE: audio level indicator (helps debug output problems)
-// FUTURE: save pitch/tempo/etc in a database with one entry for each song basename
-// FUTURE: singing call should tell me OPENER/BREAK/CLOSER/1/2/3/4 (auto switches to this mode for singing calls)
-//   Can make this approximate, just by song length (divided by 7 or so, like SqView does...)
-// FIX: rounds with split music and cues don't work the way I expected in MONO mode.  Entire mono mix moves L and R.
-//    This is because mix-to-mono is after the Mix mixer, should be before.
-// TODO: add a Favorites column, that can be used to flag songs as favorites.  Then, make
-//   favorites be the default at app open time.  Make the favorites a number, so we can sort by that number.
-//   This is a very simple one-playlist implementation.
-// TODO: Preference: font size (for people to read without their glasses)
-
 // build target is now Mac OS X 10.7:
 // http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake
 // I modified qmake.conf like this:
@@ -554,7 +533,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.4.3</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.4.4</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a> and ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>") +
@@ -1141,7 +1120,7 @@ void MainWindow::filterMusic() {
             title = s;
         }
 
-        qDebug() << "type: " << type << ", label: " << label << ", labelnum: " << labelnum << ", title: " << title;
+//        qDebug() << "type: " << type << ", label: " << label << ", labelnum: " << labelnum << ", title: " << title;
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 //        qDebug() << "now has " << ui->songTable->rowCount() << " rows.";
