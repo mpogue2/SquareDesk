@@ -57,3 +57,6 @@ macx {
 }
 
 RESOURCES += resources.qrc
+
+#DISTFILES += \
+#    README.txt
