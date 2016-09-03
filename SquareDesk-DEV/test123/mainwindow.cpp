@@ -237,6 +237,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->mixSlider->setValue(0);
     ui->currentMixLabel->setText("50% L / 50% R");
 
+    // ...and the EQ sliders, too...
+    ui->bassSlider->setEnabled(true);
+    ui->midrangeSlider->setEnabled(true);
+    ui->trebleSlider->setEnabled(true);
+
     inPreferencesDialog = false;
 }
 
@@ -812,9 +817,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->actionPitch_Down->setEnabled(true);
     ui->actionPitch_Up->setEnabled(true);
 
-    ui->bassSlider->setEnabled(true);
-    ui->midrangeSlider->setEnabled(true);
-    ui->trebleSlider->setEnabled(true);
+//    ui->bassSlider->setEnabled(true);
+//    ui->midrangeSlider->setEnabled(true);
+//    ui->trebleSlider->setEnabled(true);
+
+    ui->bassSlider->valueChanged(ui->bassSlider->value()); // force bass change, if bass slider preset before load
+    ui->midrangeSlider->valueChanged(ui->midrangeSlider->value()); // force midrange change, if midrange slider preset before load
+    ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
     ui->loopButton->setEnabled(true);
     ui->monoButton->setEnabled(true);

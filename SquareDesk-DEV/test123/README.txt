@@ -14,14 +14,19 @@ P1: Allow LEFT/RIGHT arrows when a song is loaded, not just when playing
 P1: Don't allow RIGHT ARROW to go off the end on the right hand side
 P1: remove mainToolbar that's not needed (Windows only) - Note: could not delete it in QtDesigner
 
+P1: added tick marks to the EQ sliders, and readjusted the width of the panel to match [Don Beck Suggestion]
+P1: All EQ to be changed, even without a song loaded yet [Don Beck suggestion]
+
 ===========================
 BUGS (high priority):
 
-// BUG: the song timer changes length (left-justify it?)
-// BUG: left/right arrow keys should work when a song is loaded, even though not playing
-// BUG: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
+// BUG: Windows only -- the songTable should be less tall, so window can start out smaller and will
+//        fit on most screens.  This works fine on Mac OS X, so the problem is Windows-specific.
 // BUG: Windows only -- Alt-F and Alt-M shortcuts don't work, second keys are being swallowed by HandleKeypress(), before
 //   the menus get them.
+
+// BUG: the song timer changes length (left-justify it?)
+// BUG: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
 // BUG: some songs are not tempo-detected correctly (e.g. Possum Sop Long Play).  Provide override to 100%? As menu item?
 
 ===========================
@@ -79,25 +84,26 @@ to do so):
 ===================
 Extracted from Don Beck's email suggestions:
 
-P1: Make it easy to scan patter and singing calls separately.  (I think this is already there, using the type field which is searchable)
 P1: Make it easy to get from the patter to the singing call (next tip function might do this)
 P1: checkbox for "next tip", allow sort by this field
 P1: checkbox for "favorites", allow sort by this field
-P1: frequency count of play times, allow sort by this field
+P1: frequency count of play times, allow sort by this field (I think Dan has this in the Python player)
 P1: ability to set tempo on a per song basis (should not have to adjust it each time)
       NOTE: does NOT save the last tempo, rather you have to explicitly set it
-P1: ability to set volume, tempo, pitch BEFORE a song is selected.  e.g. preset the volume level, or
-        set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
-        has a saved tempo, that would override the setting)
-P1: zero line on the EQ sliders
-already there: double click to set EQ to zero
 P1: Save EQ for each song
 P1: Ability to set loop points for each song
 P2: Fade out button would be nice (like SqView).
 P1: Singing call indicator (7 segments or equivalent)
-P1: Font resizes when window is resized
+P1: Fonts should resize to be bigger when window is resized to be bigger
 P2: Make buttons bigger (also resize when window resizes?), use keyboard instead for now?
 P2: Modify lists to include X/O for each call!  (stick these in TEXT files)
+
+P1: ALREADY THERE: Make it easy to scan patter and singing calls separately.  (I think this is already there, using the type field which is searchable)
+P1: DONE: zero line on the EQ sliders
+P1: ALREADY THERED: double click to set EQ to zero
+P1: DONE: ability to set volume, tempo, pitch BEFORE a song is selected.  e.g. preset the volume level, or
+        set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
+        has a saved tempo, that would override the setting)
 
 ===========================
 Hi Mike,

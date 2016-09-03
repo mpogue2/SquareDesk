@@ -453,9 +453,15 @@
           </item>
           <item row="2" column="5" rowspan="4">
            <widget class="QGroupBox" name="EQgroup">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>115</width>
               <height>0</height>
              </size>
             </property>
@@ -467,7 +473,7 @@
               <rect>
                <x>6</x>
                <y>23</y>
-               <width>85</width>
+               <width>107</width>
                <height>121</height>
               </rect>
              </property>
@@ -491,6 +497,12 @@
                 </property>
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBothSides</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>15</number>
                 </property>
                </widget>
               </item>
@@ -534,6 +546,12 @@
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
                 </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBothSides</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>15</number>
+                </property>
                </widget>
               </item>
               <item row="1" column="0">
@@ -565,6 +583,12 @@
                 </property>
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
+                </property>
+                <property name="tickPosition">
+                 <enum>QSlider::TicksBothSides</enum>
+                </property>
+                <property name="tickInterval">
+                 <number>15</number>
                 </property>
                </widget>
               </item>
@@ -896,7 +920,7 @@
      <x>0</x>
      <y>0</y>
      <width>970</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
