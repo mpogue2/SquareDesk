@@ -1,0 +1,22 @@
+BUILD NOTES
+
+Mac OS X ==========================================
+- OK to debug with Debug mode, but it crashes regularly in Release Mode, 
+	so, we need to distribute the Debug version.
+- Remember to update the version number in the mainwindow.cpp file!
+- After everything works, put the file PackageIt.command into the Build
+	directory (e.g. build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug).
+- Modify the PackageIt.command file to have the same version number.
+- Then, double click on it.  This will stick the Qt libs into the .app
+	file, and will create a DMG file.  Wait until the DMG window 
+	disappears.  Then, test the DMG file.
+
+- TODO: stick the docs into the DMG file in a nice way by modifying PackageIt.command.
+
+Windows 10 ==========================================
+- must compile in Release mode only (Debug will crash)
+- Inno Setup to build the installer: 
+	Process to be described
+
+Linux ==========================================
+- Dan!
