@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>731</width>
-    <height>580</height>
+    <width>970</width>
+    <height>809</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -895,13 +895,13 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>731</width>
-     <height>22</height>
+     <width>970</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionOpen_MP3_file"/>
     <addaction name="separator"/>
@@ -911,7 +911,7 @@
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
-     <string>Music</string>
+     <string>&amp;Music</string>
     </property>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
@@ -949,7 +949,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen_MP3_file">
    <property name="text">
-    <string>Open Audio file...</string>
+    <string>&amp;Open Audio file...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -965,7 +965,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Play</string>
+    <string>&amp;Play</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
@@ -976,7 +976,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Stop</string>
+    <string>&amp;Stop</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+.</string>
@@ -1064,7 +1064,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Save...</string>
+    <string>&amp;Save...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -1075,7 +1075,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Save As...</string>
+    <string>Save &amp;As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -1197,7 +1197,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Force Mono</string>
+    <string>&amp;Force Mono</string>
    </property>
   </action>
   <action name="actionClear_Search">
@@ -1205,7 +1205,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Clear Search</string>
+    <string>Clear &amp;Search</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+/</string>
@@ -1224,7 +1224,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Pitch Up</string>
+    <string>Pitch &amp;Up</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+U</string>
@@ -1235,7 +1235,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Pitch Down</string>
+    <string>Pitch &amp;Down</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>

@@ -3,14 +3,29 @@ README for SquareDeskPlayer
 This is my list of bugs and feature requests that I'd like to get to at some point.  I've
 merged in the suggestions I was keeping in the .cpp file.
 
-Mike's current TODO list:
+===========================
+FIXED RECENTLY:
+P1: Allow "=" as well as "+" so don't have to hold shift down for shortcuts
+P1: Add "&" for Windows shortcuts to Menu and subMenu items
+
+===========================
+BUGS (high priority):
 
 // BUG: the song timer changes length (left-justify it?)
-// --------
+// BUG: left/right arrow keys should work when a song is loaded, even though not playing
+// BUG: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
+// BUG: Windows only -- Alt-F and Alt-M shortcuts don't work, second keys are being swallowed by HandleKeypress(), before
+//   the menus get them.
+
+===========================
+Mike's current TODO list (lower priority):
+
 // TODO: change loop points from default 0.9,0.1 to read out of the file, or find the start/end points and set them with menu item
 //   must allow for fine tuning...  Also a Don Beck request.
 // TODO: where does the "follow along" text go, for Synchronized Lyrics?
 //   If it's like SqView, the whole bottom half (table) becomes the song (when playing only!)
+// P1: Tip Timer
+// P1: Break Timer (1 bong, 2 bongs, starts next music in playlist)
 // FUTURE: patter: auto turn on "random call @ <level>" during PLAYBACK ONLY
 // FUTURE: singing: auto turn on lyrics during PLAYBACK ONLY (like SqView)
 // FUTURE: preview mode (plays first few sec of any song you click on)
@@ -36,8 +51,6 @@ Extracted from Cal Campbells' email suggestions:
 4) P1: when adding folders under the Master folder, have a file watcher that will auto-repopulate the table
 6) P1: should pay attention to existing metadata (especially iTunes metadata), rather than filenames.
     Metadata should override the filenames (Cal uses title, artist, album, and genre)
-13) P1: Tip Timer
-14) P1: Break Timer (1 bong, 2 bongs, starts next music in playlist)
 15) P1: Combine label and label #?  Might make it simpler.
 16) P1: First time through, ask where the Music Directory should be.  (Pop up the preferences dialog?)
 17) P1: Linux version! (Dan)
@@ -77,9 +90,7 @@ P2: Fade out button would be nice (like SqView).
 P1: Singing call indicator (7 segments or equivalent)
 P1: Font resizes when window is resized
 P2: Make buttons bigger (also resize when window resizes?), use keyboard instead for now?
-P1: Allow "=" as well as "+" so don't have to hold shift down for shortcuts
 P2: Modify lists to include X/O for each call!  (stick these in TEXT files)
-
 
 ===========================
 Hi Mike,

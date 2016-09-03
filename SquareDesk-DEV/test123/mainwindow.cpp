@@ -28,45 +28,30 @@
 // 4) double click package.command file, wait for it to complete
 // 5) retest
 
-// ======================================================================
-// FINAL KEYBOARD SHORTCUTS
+// =================================================================================================
+// SquareDeskPlayer Keyboard Shortcuts:
 //
-// function                 MAC                  PC
-// ---------------------------------------------------------
+// function                 MAC                  		PC
+// -------------------------------------------------------------------------------------------------
 // FILE MENU
-// play/pause               space                space, Alt-M-P
-// rewind/stop              S, ESC, END, Cmd-.   S, ESC, END, Alt-M-S, Ctrl-.
-// rewind/play (playing)    HOME, .              HOME, .  (while playing)
-// open                     Cmd-O                Ctrl-O, Alt-F-O
-// save                     Cmd-S                Ctrl-S, Alt-F-S
-// save as                  Shft-Cmd-S           Alt-F-A
-// quit                     Cmd-Q                Ctrl-F4, Alt-F-E
-// record ts                /                    /, Alt-T-R
-//
-// TIMESTAMP MENU
-// nudge timestamp up/dn    Cmd->, Cmd-<         Ctrl->, Ctrl-<, Alt-T-E/L
-//
-// LYRICS MENU
-// insert above             Cmd-I                Ctrl-I, Alt-L-A
-// insert below             Cmd-J                Ctrl-J, Alt-L-B
-// delete row               DEL                  DEL, Alt-L-D
-// find Basic lyrics in DB  Cmd-F                Ctrl-F, Alt-L-F
-// copy Basic->Sync                              Alt-L-C
-// import Basic from TXT                         Alt-L-I-T
-// import Sync from LRC/TSV                      Alt-L-I-S
-// export Sync to LRC/TSV                        Alt-L-E
+// open                     Cmd-O                		Ctrl-O, Alt-F-O
+// save                     Cmd-S                		Ctrl-S, Alt-F-S
+// save as                  Shft-Cmd-S           		Alt-F-A
+// quit                     Cmd-Q                		Ctrl-F4, Alt-F-E
 //
 // MUSIC MENU
-// skip/back 5 sec          Cmd-RIGHT/LEFT       Ctrl-RIGHT/LEFT, Alt-M-A/Alt-M-B
-// volume up/down           Cmd-UP/DOWN          Ctrl-UP/DOWN
-// volume (playing)         mouse wheel          mouse wheel
-// mute                     Cmd-M                Ctrl-M
-// go faster                Cmd-+,+              Ctrl-+,+
-// go slower                Cmd--,-              Ctrl--,-
-// force mono                                    Alt-M-F
-// clear search             Cmd-/                Alt-M-S
-// pitch up                 Cmd-U                Alt-M-U
-// pitch down               Cmd-D                Alt-M-D
+// play/pause               space                		space, Alt-M-P
+// rewind/stop              S, ESC, END, Cmd-.   		S, ESC, END, Alt-M-S, Ctrl-.
+// rewind/play (playing)    HOME, . (while playing) 	HOME, .  (while playing)
+// skip/back 5 sec          Cmd-RIGHT/LEFT,RIGHT/LEFT   Ctrl-RIGHT/LEFT, RIGHT/LEFT, Alt-M-A/Alt-M-B
+// volume up/down           Cmd-UP/DOWN,UP/DOWN         Ctrl-UP/DOWN, UP/DOWN
+// mute                     Cmd-M, M                	Ctrl-M, M
+// go faster                Cmd-+,+,=            		Ctrl-+,+,=
+// go slower                Cmd--,-              		Ctrl--,-
+// force mono                                    		Alt-M-F
+// clear search             Cmd-/                		Alt-M-S
+// pitch up                 Cmd-U, U                	Ctrl-U, U, Alt-M-U
+// pitch down               Cmd-D, D                	Ctrl-D, D, Alt-M-D
 
 // GLOBALS:
 bass_audio cBass;
@@ -617,6 +602,7 @@ void MainWindow::handleKeypress(int key)
             break;
 
         case Qt::Key_Plus:
+        case Qt::Key_Equal:
             on_actionSpeed_Up_triggered();
             break;
         case Qt::Key_Minus:
