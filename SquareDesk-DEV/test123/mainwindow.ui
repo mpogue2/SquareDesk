@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>970</width>
-    <height>809</height>
+    <height>813</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -120,14 +120,14 @@
              </font>
             </property>
             <property name="text">
-             <string>/0:00</string>
+             <string/>
             </property>
            </widget>
           </item>
           <item row="2" column="3" colspan="2">
            <widget class="QLabel" name="currentTempoLabel">
             <property name="text">
-             <string>127 BPM</string>
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -404,7 +404,7 @@
              </font>
             </property>
             <property name="text">
-             <string>0:00</string>
+             <string/>
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -617,15 +617,15 @@
           </property>
           <widget class="QTableWidget" name="songTable">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>4</horstretch>
-             <verstretch>4</verstretch>
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>5</horstretch>
+             <verstretch>5</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>40</height>
+             <height>20</height>
             </size>
            </property>
            <property name="editTriggers">
@@ -939,6 +939,9 @@
    <addaction name="menuMusic"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>

@@ -98,6 +98,10 @@ MainWindow::MainWindow(QWidget *parent) :
     menuBar()->addAction(helpMenu->menuAction());
 #endif
 
+#if defined(Q_OS_WIN)
+    delete ui->mainToolBar; // remove toolbar on WINDOWS (not present on Mac)
+#endif
+
     // ------------
 #if defined(Q_OS_WIN)
     // NOTE: WINDOWS ONLY
@@ -219,6 +223,19 @@ MainWindow::MainWindow(QWidget *parent) :
 //    ui->songLengthLabel->setFont(font);
 ////    ui->EQgroup->setFont(font);
 ///
+
+    // Volume, Pitch, and Mix can be set before loading a music file.
+    ui->pitchSlider->setEnabled(true);
+    ui->pitchSlider->setValue(0);           // TODO: get from the file itself
+    ui->currentPitchLabel->setText("0 semitones");
+
+    ui->volumeSlider->setEnabled(true);
+    ui->volumeSlider->setValue(100);
+    ui->currentVolumeLabel->setText("Max");
+
+    ui->mixSlider->setEnabled(true);
+    ui->mixSlider->setValue(0);
+    ui->currentMixLabel->setText("50% L / 50% R");
 
     inPreferencesDialog = false;
 }
@@ -643,20 +660,21 @@ void MainWindow::on_actionSlow_Down_triggered()
 // ------------------------------------------------------------------------
 void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
 {
-    if (!cBass.bPaused) {
+//    if (!cBass.bPaused) {
         cBass.StreamGetPosition();  // update the position
-        cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 15.0, cBass.FileLength));
-    }
+        // set the position to one second before the end, so that RIGHT ARROW works as expected
+        cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 15.0, cBass.FileLength-1.0));
+//    }
     Info_Seekbar(true);
 }
 
 void MainWindow::on_actionSkip_Back_15_sec_triggered()
 {
     Info_Seekbar(true);
-    if (!cBass.bPaused) {
+//    if (!cBass.bPaused) {
         cBass.StreamGetPosition();  // update the position
         cBass.StreamSetPosition((int)fmax(cBass.Current_Position - 15.0, 0.0));
-    }
+//    }
 }
 
 // ------------------------------------------------------------------------
@@ -765,17 +783,23 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->seekBar->setEnabled(true);
 
-    ui->pitchSlider->setEnabled(true);
-    ui->pitchSlider->setValue(0);           // TODO: get from the file itself
-    ui->currentPitchLabel->setText("0 semitones");
+//    ui->pitchSlider->setEnabled(true);
+//    ui->pitchSlider->setValue(0);           // TODO: get from the file itself
+//    ui->currentPitchLabel->setText("0 semitones");
 
-    ui->volumeSlider->setEnabled(true);
-    ui->volumeSlider->setValue(100);
-    ui->currentVolumeLabel->setText("Max");
+    ui->pitchSlider->valueChanged(ui->pitchSlider->value()); // force pitch change, if pitch slider preset before load
 
-    ui->mixSlider->setEnabled(true);
-    ui->mixSlider->setValue(0);
-    ui->currentMixLabel->setText("50% L / 50% R");
+//    ui->volumeSlider->setEnabled(true);
+//    ui->volumeSlider->setValue(100);
+//    ui->currentVolumeLabel->setText("Max");
+
+    ui->volumeSlider->valueChanged(ui->volumeSlider->value()); // force vol change, if vol slider preset before load
+
+//    ui->mixSlider->setEnabled(true);
+//    ui->mixSlider->setValue(0);
+//    ui->currentMixLabel->setText("50% L / 50% R");
+
+    ui->mixSlider->valueChanged(ui->mixSlider->value()); // force mix change, if mix slider preset before load
 
     ui->actionMute->setEnabled(true);
     ui->actionLoop->setEnabled(true);

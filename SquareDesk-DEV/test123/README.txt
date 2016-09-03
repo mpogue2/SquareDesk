@@ -7,6 +7,12 @@ merged in the suggestions I was keeping in the .cpp file.
 FIXED RECENTLY:
 P1: Allow "=" as well as "+" so don't have to hold shift down for shortcuts
 P1: Add "&" for Windows shortcuts to Menu and subMenu items
+P1: Removed a Mac-specific #pragma that was no longer needed.
+
+P1: Allow Pitch, Volume, Mix to be changed, even without a song loaded yet [Don Beck suggestion]
+P1: Allow LEFT/RIGHT arrows when a song is loaded, not just when playing
+P1: Don't allow RIGHT ARROW to go off the end on the right hand side
+P1: remove mainToolbar that's not needed (Windows only) - Note: could not delete it in QtDesigner
 
 ===========================
 BUGS (high priority):
@@ -16,6 +22,7 @@ BUGS (high priority):
 // BUG: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
 // BUG: Windows only -- Alt-F and Alt-M shortcuts don't work, second keys are being swallowed by HandleKeypress(), before
 //   the menus get them.
+// BUG: some songs are not tempo-detected correctly (e.g. Possum Sop Long Play).  Provide override to 100%? As menu item?
 
 ===========================
 Mike's current TODO list (lower priority):
@@ -80,8 +87,8 @@ P1: frequency count of play times, allow sort by this field
 P1: ability to set tempo on a per song basis (should not have to adjust it each time)
       NOTE: does NOT save the last tempo, rather you have to explicitly set it
 P1: ability to set volume, tempo, pitch BEFORE a song is selected.  e.g. preset the volume level, or
-	set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
-	has a saved tempo, that would override the setting)
+        set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
+        has a saved tempo, that would override the setting)
 P1: zero line on the EQ sliders
 already there: double click to set EQ to zero
 P1: Save EQ for each song
@@ -101,7 +108,7 @@ First, a bit about how I used SqView. I didn't create playlists like many people
 
 If I had to remember the name of some music and search for it, like you require, I would have troubles. Being able to search is good, but being able to visually scan is even more important to me.
 
-What I am guessing would be the easiest way to implement this is to be able to sort by each of the columns that you have listed (by clicking on the header of the column.) 
+What I am guessing would be the easiest way to implement this is to be able to sort by each of the columns that you have listed (by clicking on the header of the column.)
 
 Add a check box to each row that you can put a P for patter or an S for singer or an R for rounds, etc. This would allow me to sort by patter/singers, etc. and would alleviate the need for a second field.
 
@@ -139,7 +146,7 @@ Here's hoping these ideas help rather than hinder your project. Again, as a Mac 
 
 Don
 
-p.s. Next I'll probably want you to modify the Callerlab lists by adding Xs or Os after each call! 
+p.s. Next I'll probably want you to modify the Callerlab lists by adding Xs or Os after each call!
 
 Don Beck
 Chilmark, MA, USA
