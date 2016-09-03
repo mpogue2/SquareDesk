@@ -256,7 +256,8 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             d[a] = d[a+1] = mono;
         }
 }
-#pragma clang diagnostic pop
+
+// #pragma clang diagnostic pop
 
 void bass_audio::SetMono(bool on) {
     if (on) {
