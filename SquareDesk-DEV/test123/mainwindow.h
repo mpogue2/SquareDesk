@@ -47,9 +47,7 @@ public:
     void handleKeypress(int key);
 
 protected:
-    //void keyPressEvent(QKeyEvent *event);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
-//    void wheelEvent(QWheelEvent *);
 
 private slots:
     void on_loopButton_toggled(bool checked);
@@ -106,13 +104,9 @@ private slots:
 
     void on_actionOpen_MP3_file_triggered();
 
-//    void on_pushButton_clicked();
-
     void on_songTable_itemDoubleClicked(QTableWidgetItem *item);
 
     void on_labelSearch_textChanged();
-
-//    void on_labelNumberSearch_textChanged();
 
     void on_typeSearch_textChanged();
 

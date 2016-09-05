@@ -1,22 +1,50 @@
 BUILD NOTES
 
 Mac OS X ==========================================
-- OK to debug with Debug mode, but it crashes regularly in Release Mode, 
-	so, we need to distribute the Debug version.
+- OK to debug with Debug mode, but it crashes regularly in Release Mode,
+        so, we need to distribute the Debug version.
 - Remember to update the version number in the mainwindow.cpp file!
 - After everything works, put the file PackageIt.command into the Build
-	directory (e.g. build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug).
+        directory (e.g. build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug).
 - Modify the PackageIt.command file to have the same version number.
 - Then, double click on it.  This will stick the Qt libs into the .app
-	file, and will create a DMG file.  Wait until the DMG window 
-	disappears.  Then, test the DMG file.
+        file, and will create a DMG file.  Wait until the DMG window
+        disappears.  Then, test the DMG file.
 
 - TODO: stick the docs into the DMG file in a nice way by modifying PackageIt.command.
 
+// build target is now Mac OS X 10.7:
+// http://stackoverflow.com/questions/24243176/how-to-specify-target-mac-os-x-version-using-qmake
+// I modified qmake.conf like this:
+//    ~/Qt/5.7/clang_64/mkspecs/macx-clang/qmake.conf
+//to:
+//#
+//# qmake configuration for Clang on OS X
+//#
+//MAKEFILE_GENERATOR      = UNIX
+//CONFIG                 += app_bundle incremental global_init_link_order lib_version_first plugin_no_soname
+//QMAKE_INCREMENTAL_STYLE = sublib
+//include(../common/macx.conf)
+//include(../common/gcc-base-mac.conf)
+//include(../common/clang.conf)
+//include(../common/clang-mac.conf)
+//#QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
+//QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
+//load(qt_config)
+//
+// TO DEPLOY:
+//
+// 1) change version number in AboutBox() below
+// 2) clean all, compile all, test
+// 3) change version in package.command file
+// 4) double click package.command file, wait for it to complete
+// 5) retest
+
+
 Windows 10 ==========================================
 - must compile in Release mode only (Debug will crash)
-- Inno Setup to build the installer: 
-	Process to be described
+- Inno Setup to build the installer:
+        Process to be described
 
 Linux ==========================================
 - Dan!

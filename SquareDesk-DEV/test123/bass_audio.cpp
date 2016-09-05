@@ -96,9 +96,6 @@ void bass_audio::StreamCreate(const char *filepath)
 {
     BASS_StreamFree(Stream);
 
-//    Stream = BASS_StreamCreateFile(false, filepath, 0, 0, 0);
-//    printf("filepath='%s'\n", filepath);
-
     // OPEN THE STREAM FOR BPM DETECTION ------------------------
     HSTREAM bpmChan;
     float bpmValue = 0;
@@ -109,12 +106,9 @@ void bass_audio::StreamCreate(const char *filepath)
     if (bpmChan) {
         bpmValue = BASS_FX_BPM_DecodeGet(bpmChan,
                                          startSec, endSec,
-//                                       0,  // min/max BPM = 29/200
                                          MAKELONG(110,140),  // min/max BPM
-//                                         BASS_FX_BPM_BKGRND|BASS_FX_BPM_MULT2|BASS_FX_FREESOURCE,
                                          BASS_FX_FREESOURCE, // free handle when done
                                          0,0);
-//                                                  (BPMPROGRESSPROC*)GetBPM_ProgressCallback, 0);
     }
     else {
         printf("ERROR: BASS_StreamCreateFile()\n");
@@ -129,7 +123,6 @@ void bass_audio::StreamCreate(const char *filepath)
 
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     Stream = BASS_StreamCreateFile(false, filepath, 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
-//    Stream = BASS_FX_TempoCreate(Stream, BASS_SAMPLE_LOOP|BASS_FX_FREESOURCE);
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)100.0/100.0f);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)0);
@@ -195,9 +188,6 @@ void bass_audio::StreamGetPosition(void)
 
 // *******************
 // http://bass.radio42.com/help/html/ee197eac-8482-1f9a-e0e1-8ec9e4feda9b.htm
-// http://useyourloaf.com/blog/disabling-clang-compiler-warnings/
-// #pragma clang diagnostic push
-// #pragma clang diagnostic ignored "-Wunused-parameter"
 void CALLBACK MySyncProc(HSYNC handle, DWORD channel, DWORD data, void *user)
 {
     Q_UNUSED(data)
@@ -207,7 +197,6 @@ void CALLBACK MySyncProc(HSYNC handle, DWORD channel, DWORD data, void *user)
         BASS_ChannelSetPosition(channel, endPoint_bytes, BASS_POS_BYTE);
     }
 }
-// #pragma clang diagnostic pop
 
 // ------------------------------------------------------------------
 void bass_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
@@ -236,9 +225,6 @@ void bass_audio::ClearLoop()
 
 HDSP mono_dsp = 0;  // DSP handle (u32)
 
-// http://useyourloaf.com/blog/disabling-clang-compiler-warnings/
-// #pragma clang diagnostic push
-// #pragma clang diagnostic ignored "-Wunused-parameter"
 void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, void *user)
 {
     Q_UNUSED(user)
@@ -257,7 +243,6 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
         }
 }
 
-// #pragma clang diagnostic pop
 
 void bass_audio::SetMono(bool on) {
     if (on) {
@@ -279,19 +264,19 @@ void bass_audio::Play(void)
     Stream_State = BASS_ChannelIsActive(Stream);
 //    qDebug() << "current state: " << Stream_State << ", curPos: " << Current_Position;
     switch (Stream_State) {
-        //Play
+        // Play
         case BASS_ACTIVE_STOPPED:
             // if stopped (initial load or reached EOS), start from
             //  wherever the currentposition is (set by the slider)
             BASS_ChannelPlay(Stream, false);
             StreamGetPosition();
             break;
-//      //Resume
+        // Resume
         case BASS_ACTIVE_PAUSED:
             BASS_ChannelPlay(Stream, false);
             StreamGetPosition();
             break;
-        //Pause
+        // Pause
         case BASS_ACTIVE_PLAYING:
             BASS_ChannelPause(Stream);
             StreamGetPosition();
