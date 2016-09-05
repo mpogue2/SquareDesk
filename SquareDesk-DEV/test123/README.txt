@@ -5,6 +5,12 @@ merged in the suggestions I was keeping in the .cpp file.
 
 ===========================
 FIXED RECENTLY:
+
+P1: When song table was stable-sorted (e.g. by clicking on Title), any attempt to use the search filters
+      would put the search back to the default (by type, by label, by title).
+P1: Combined the Label and Label # fields [Cal Campbell suggestion], and reordered them
+P1: Bad fonts sizes on list of calls tabs, but only the 2nd label on a tab (Windows only)
+
 P1: Allow "=" as well as "+" so don't have to hold shift down for shortcuts
 P1: Add "&" for Windows shortcuts to Menu and subMenu items
 P1: Removed a Mac-specific #pragma that was no longer needed.
@@ -28,6 +34,8 @@ BUGS (high priority):
 // BUG: the song timer changes length (left-justify it?)
 // BUG: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
 // BUG: some songs are not tempo-detected correctly (e.g. Possum Sop Long Play).  Provide override to 100%? As menu item?
+
+// BUG: Windows font sizes are not consistent with Mac font sizes (known problem with Qt, but fix is to set them manually)
 
 ===========================
 Mike's current TODO list (lower priority):

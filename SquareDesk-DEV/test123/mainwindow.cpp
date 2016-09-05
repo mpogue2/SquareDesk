@@ -115,6 +115,8 @@ MainWindow::MainWindow(QWidget *parent) :
     currentState = kStopped;
     currentPitch = 0;
 
+    notSorted = true;
+
     Info_Seekbar(false);
 
     // setup playback timer
@@ -154,9 +156,9 @@ MainWindow::MainWindow(QWidget *parent) :
     findMusic();  // get the filenames from the user's directories
     filterMusic(); // and filter them into the songTable
 
-    ui->songTable->setColumnWidth(0,60);
-    ui->songTable->setColumnWidth(1,60);
-    ui->songTable->setColumnWidth(2,100);
+    ui->songTable->setColumnWidth(0,96);
+    ui->songTable->setColumnWidth(1,80);
+//    ui->songTable->setColumnWidth(2,100);
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -489,12 +491,12 @@ void MainWindow::on_seekBar_valueChanged(int value)
 void MainWindow::on_clearSearchButton_clicked()
 {
     ui->labelSearch->setPlainText("");
-    ui->labelNumberSearch->setPlainText("");
+//    ui->labelNumberSearch->setPlainText("");
     ui->typeSearch->setPlainText("");
     ui->titleSearch->setPlainText("");
 
     ui->labelSearch->clearFocus();
-    ui->labelNumberSearch->clearFocus();
+//    ui->labelNumberSearch->clearFocus();
     ui->typeSearch->clearFocus();
     ui->titleSearch->clearFocus();
 }
@@ -558,7 +560,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
-        if (!(ui->labelSearch->hasFocus() || ui->labelNumberSearch->hasFocus() ||
+        if (!(ui->labelSearch->hasFocus() || // ui->labelNumberSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus())) {
             // call handleKeypress on the Applications's active window
             ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
@@ -1079,7 +1081,8 @@ void MainWindow::filterMusic() {
 //    qDebug() << "table now zeroed out.";
 
     QStringList m_TableHeader;
-    m_TableHeader<<"Label"<<"#"<<"Type" << "Title";
+//    m_TableHeader<<"Label"<<"#"<<"Type" << "Title";
+    m_TableHeader<<"Type"<<"Label" << "Title";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->songTable->horizontalHeader()->setVisible(true);
 
@@ -1155,25 +1158,25 @@ void MainWindow::filterMusic() {
             textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
         }
 
-        QTableWidgetItem *newTableItem0 = new QTableWidgetItem( label );
-        newTableItem0->setFlags(newTableItem0->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem0->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 0, newTableItem0);      // add it to column 0
-
-        QTableWidgetItem *newTableItem1 = new QTableWidgetItem( labelnum );
-        newTableItem1->setFlags(newTableItem1->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem1->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 1, newTableItem1);      // add it to column 1
+//        QTableWidgetItem *newTableItem1 = new QTableWidgetItem( labelnum );
+//        newTableItem1->setFlags(newTableItem1->flags() & ~Qt::ItemIsEditable);      // not editable
+//        newTableItem1->setTextColor(textCol);
+//        ui->songTable->setItem(ui->songTable->rowCount()-1, 1, newTableItem1);      // add it to column 1
 
         QTableWidgetItem *newTableItem2 = new QTableWidgetItem( type );
         newTableItem2->setFlags(newTableItem2->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem2->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 2, newTableItem2);      // add it to column 2
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 0, newTableItem2);      // add it to column 2
+
+        QTableWidgetItem *newTableItem0 = new QTableWidgetItem( label + " " + labelnum );
+        newTableItem0->setFlags(newTableItem0->flags() & ~Qt::ItemIsEditable);      // not editable
+        newTableItem0->setTextColor(textCol);
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 1, newTableItem0);      // add it to column 0
 
         QTableWidgetItem *newTableItem3 = new QTableWidgetItem( title );
         newTableItem3->setFlags(newTableItem3->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem3->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 3, newTableItem3);      // add it to column 3
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 2, newTableItem3);      // add it to column 3
 
 //        qDebug() << "rowcount = " << ui->songTable->rowCount() << "origPath=" << origPath;
         // keep the path around, for loading in when we double click on it
@@ -1181,13 +1184,14 @@ void MainWindow::filterMusic() {
 
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
-        if (ui->labelSearch->toPlainText() != "" && !label.contains(QString(ui->labelSearch->toPlainText()),Qt::CaseInsensitive)) {
+        QString labelPlusNumber = label + " " + labelnum;
+        if (ui->labelSearch->toPlainText() != "" && !labelPlusNumber.contains(QString(ui->labelSearch->toPlainText()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
         }
 
-        if (ui->labelNumberSearch->toPlainText() != "" && !labelnum.contains(QString(ui->labelNumberSearch->toPlainText()),Qt::CaseInsensitive)) {
-            ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
-        }
+//        if (ui->labelNumberSearch->toPlainText() != "" && !labelnum.contains(QString(ui->labelNumberSearch->toPlainText()),Qt::CaseInsensitive)) {
+//            ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
+//        }
 
         if (ui->typeSearch->toPlainText() != "" && !type.contains(QString(ui->typeSearch->toPlainText()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
@@ -1199,10 +1203,14 @@ void MainWindow::filterMusic() {
 
     }
 
-    ui->songTable->sortItems(3);  // sort third by song title
-    ui->songTable->sortItems(1);  // sort third by label number
-    ui->songTable->sortItems(0);  // sort second by label
-    ui->songTable->sortItems(2);  // sort first by type (singing vs patter)
+    if (notSorted) {
+        //    ui->songTable->sortItems(3);  // sort third by song title
+        ui->songTable->sortItems(2);  // sort third by label number
+        ui->songTable->sortItems(1);  // sort second by label
+        ui->songTable->sortItems(0);  // sort first by type (singing vs patter)
+
+        notSorted = false;
+    }
 
     ui->songTable->setSortingEnabled(true);
 
@@ -1215,10 +1223,10 @@ void MainWindow::on_labelSearch_textChanged()
     filterMusic();
 }
 
-void MainWindow::on_labelNumberSearch_textChanged()
-{
-    filterMusic();
-}
+//void MainWindow::on_labelNumberSearch_textChanged()
+//{
+//    filterMusic();
+//}
 
 void MainWindow::on_typeSearch_textChanged()
 {
@@ -1238,10 +1246,10 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     QString pathToMP3 = ui->songTable->item(row,0)->data(Qt::UserRole).toString();
 //    qDebug() << "Path: " << pathToMP3;
 
-    QString songTitle = ui->songTable->item(row,3)->text();
+    QString songTitle = ui->songTable->item(row,2)->text();
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-    QString songType = ui->songTable->item(row,2)->text();
+    QString songType = ui->songTable->item(row,0)->text();
 //    qDebug() << "Song type:" << songType;
 
     loadMP3File(pathToMP3, songTitle, songType);

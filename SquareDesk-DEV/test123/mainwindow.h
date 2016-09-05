@@ -112,7 +112,7 @@ private slots:
 
     void on_labelSearch_textChanged();
 
-    void on_labelNumberSearch_textChanged();
+//    void on_labelNumberSearch_textChanged();
 
     void on_typeSearch_textChanged();
 
@@ -130,6 +130,8 @@ private slots:
 
 private:
     QAction *closeAct;  // WINDOWS only
+
+    bool notSorted;
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
