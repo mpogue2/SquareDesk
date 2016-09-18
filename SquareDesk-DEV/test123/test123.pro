@@ -22,7 +22,8 @@ HEADERS  += mainwindow.h \
     bass_audio.h \
     myslider.h \
     bassmix.h \
-    preferencesdialog.h
+    preferencesdialog.h \
+    utility.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui
@@ -54,6 +55,11 @@ macx {
 
     ICON = $$PWD/desk1d.icns
     DISTFILES += desk1d.icns
+
+    # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
+    # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
+    #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
+    QMAKE_MAC_SDK = macosx10.12
 }
 
 RESOURCES += resources.qrc
