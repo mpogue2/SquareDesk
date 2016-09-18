@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "utility.h"
 
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
@@ -402,7 +403,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     static bool in_Info_Seekbar = false;
     if (in_Info_Seekbar)
         return;
-    in_Info_Seekbar = true;
+    RecursionGuard recursion_guard(in_Info_Seekbar);
 
     if (songLoaded) {  // FIX: this needs to pay attention to the bool
         // FIX: this code doesn't need to be executed so many times.
@@ -423,7 +424,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // avoids the problem of manual seek to max slider value causing auto-STOP
 //            qDebug() << "Reached the end of playback!";
             on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
-            in_Info_Seekbar = false;
             return;
         }
 
@@ -434,7 +434,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         ui->seekBar->setMinimum(0);
         ui->seekBar->setValue(0);
     }
-    in_Info_Seekbar = false;
 }
 
 // ----------------------------------------------------------------------
