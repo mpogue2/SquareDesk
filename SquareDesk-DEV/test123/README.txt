@@ -22,6 +22,9 @@ P1: remove mainToolbar that's not needed (Windows only) - Note: could not delete
 
 P1: added tick marks to the EQ sliders, and readjusted the width of the panel to match [Don Beck Suggestion]
 P1: All EQ to be changed, even without a song loaded yet [Don Beck suggestion]
+P1: some songs are not tempo-detected correctly (e.g. Possum Sop Long Play).
+P1: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
+P1: "=" should be allowed for "+"
 
 ===========================
 BUGS (high priority):
@@ -30,12 +33,9 @@ BUGS (high priority):
 //        fit on most screens.  This works fine on Mac OS X, so the problem is Windows-specific.
 // BUG: Windows only -- Alt-F and Alt-M shortcuts don't work, second keys are being swallowed by HandleKeypress(), before
 //   the menus get them.
+// BUG: Windows only -- font sizes are not consistent with Mac font sizes (known problem with Qt, but fix is to set them manually)
 
 // BUG: the song timer changes length (left-justify it?)
-// BUG: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
-// BUG: some songs are not tempo-detected correctly (e.g. Possum Sop Long Play).  Provide override to 100%? As menu item?
-
-// BUG: Windows font sizes are not consistent with Mac font sizes (known problem with Qt, but fix is to set them manually)
 
 ===========================
 Mike's current TODO list (lower priority):

@@ -4,7 +4,7 @@ Mac OS X ==========================================
 - OK to debug with Debug mode, but it crashes regularly in Release Mode,
         so, we need to distribute the Debug version.
 - Remember to update the version number in the mainwindow.cpp file!
-- After everything works, put the file PackageIt.command into the Build
+- After everything works, put the file PackageIt.command, Installer2.png, and SquareDeskManual.pdf into the Build
         directory (e.g. build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug).
 - Modify the PackageIt.command file to have the same version number.
 - Then, double click on it.  This will stick the Qt libs into the .app

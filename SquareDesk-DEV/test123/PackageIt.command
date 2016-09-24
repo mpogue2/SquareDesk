@@ -18,8 +18,9 @@ echo
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDeskPlayer"
-VERSION="0.4.2"
+VERSION="0.4.5"
 DMG_BACKGROUND_IMG="installer2.png"
+#MANUAL="SquareDeskManual.pdf"
 
 echo "--------------------------------------"
 echo Building version $VERSION of $APP_NAME
@@ -55,6 +56,10 @@ rm -rf "${STAGING_DIR}" "${DMG_TMP}" "${DMG_FINAL}"
 # copy over the stuff we want in the final disk image to our staging dir
 mkdir -p "${STAGING_DIR}"
 cp -rpf "${APP_NAME}.app" "${STAGING_DIR}"
+
+# copy in the SquareDesk Manual
+#cp -rpf "${MANUAL}" "${STAGING_DIR}"
+
 # ... cp anything else you want in the DMG - documentation, etc.
 
 pushd "${STAGING_DIR}"
