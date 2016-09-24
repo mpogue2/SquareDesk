@@ -1,5 +1,6 @@
 #include "bass_audio.h"
 #include "bass_fx.h"
+#include <math.h>
 #include <stdio.h>
 #include <QDebug>
 
@@ -96,31 +97,6 @@ void bass_audio::StreamCreate(const char *filepath)
 {
     BASS_StreamFree(Stream);
 
-    // OPEN THE STREAM FOR BPM DETECTION ------------------------
-    HSTREAM bpmChan;
-    float bpmValue = 0;
-    float startSec = 30.0;
-    float endSec = 60.0;
-    bpmChan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
-    // detect bpm in background and return progress in GetBPM_ProgressCallback function
-    if (bpmChan) {
-        bpmValue = BASS_FX_BPM_DecodeGet(bpmChan,
-                                         startSec, endSec,
-                                         MAKELONG(110,140),  // min/max BPM
-                                         BASS_FX_FREESOURCE, // free handle when done
-                                         0,0);
-    }
-    else {
-        printf("ERROR: BASS_StreamCreateFile()\n");
-    }
-    // free decode bpm stream and resources
-    BASS_FX_BPM_Free(bpmChan);
-
-//    printf("BPM = %5.2f\n", bpmValue);
-//    fflush(stdout);
-
-    Stream_BPM = bpmValue;
-
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     Stream = BASS_StreamCreateFile(false, filepath, 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
@@ -163,6 +139,52 @@ void bass_audio::StreamCreate(const char *filepath)
     bPaused = true;
 
     ClearLoop();
+
+    // OPEN THE STREAM FOR BPM DETECTION -------------------------------------------
+    float startSec1, endSec1;
+
+    // look at a segment from T=10 to T=30sec
+    if (FileLength > 30.0) {
+        startSec1 = 10.0;
+        endSec1 = 30.0;
+    } else {
+        // for very short songs, look at the whole song
+        startSec1 = 0.0;
+        endSec1 = FileLength;
+    }
+
+    unsigned int MINBPM = 100;
+    unsigned int MAXBPM = 150;
+
+    HSTREAM bpmChan;
+
+    float bpmValue1 = 0;
+    bpmChan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
+    // detect bpm in background and return progress in GetBPM_ProgressCallback function
+    if (bpmChan) {
+        bpmValue1 = BASS_FX_BPM_DecodeGet(bpmChan,
+                                         startSec1, endSec1,
+                                         MAKELONG(MINBPM, MAXBPM),  // min/max BPM
+                                         BASS_FX_FREESOURCE, // free handle when done
+                                         0,0);
+//        printf("DETECTED BPM = %5.2f\n", bpmValue1);
+//        fflush(stdout);
+    }
+    else {
+        bpmValue1 = 0.0;  // BPM not detectable
+        printf("ERROR: BASS_StreamCreateFile()\n");
+        fflush(stdout);
+    }
+    // free decode bpm stream and resources
+    BASS_FX_BPM_Free(bpmChan);
+
+    // ----------------------------------------------------------------
+    // Now, make a decision as to whether we really know the BPM or not
+    // NOTE: averaging from multiple places in the song doesn't work well.  It takes a while
+    //   to stream midway into the song, and it's not any more reliable than looking at a section
+    //   early in the song (which is quick, and reliable 98% of the time).
+    Stream_BPM = bpmValue1;  // save original detected BPM
+
 }
 
 // ------------------------------------------------------------------

@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     currentState = kStopped;
     currentPitch = 0;
+    tempoIsBPM = false;
 
     notSorted = true;
 
@@ -370,11 +371,19 @@ void MainWindow::on_actionMute_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
-    float baseBPM = (float)round(127);  // original song
-    float desiredBPM = (float)value;    // desired
-    int newBASStempo = (int)(round(100.0*desiredBPM/baseBPM));
-    cBass.SetTempo(newBASStempo);
-    ui->currentTempoLabel->setText(QString::number(value) + " BPM");
+    if (tempoIsBPM) {
+        float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
+        float desiredBPM = (float)value;            // desired BPM
+        int newBASStempo = (int)(round(100.0*desiredBPM/baseBPM));
+        cBass.SetTempo(newBASStempo);
+        ui->currentTempoLabel->setText(QString::number(value) + " BPM");
+    } else {
+        float basePercent = 100.0;                      // original detected percent
+        float desiredPercent = (float)value;            // desired percent
+        int newBASStempo = (int)(round(100.0*desiredPercent/basePercent));
+        cBass.SetTempo(newBASStempo);
+        ui->currentTempoLabel->setText(QString::number(value) + "%");
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -691,7 +700,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     int length_sec = cBass.FileLength;
     int songBPM = round(cBass.Stream_BPM);
 
-    if ((songBPM>=110) && (songBPM<=140)) {
+    // Intentionally compare against a narrower range here than BPM detection, because BPM detection
+    //   returns a number at the limits, when it's actually out of range.
+    // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
+    //
+    // TODO: make the types for turning off BPM detection a preference
+    if ((songBPM>=125-10) && (songBPM<=125+10) && songType != "xtras") {
+        tempoIsBPM = true;
         ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM");
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
@@ -701,10 +716,15 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
                                  ", base tempo: " + QString::number(songBPM) + " BPM");
     }
     else {
-        ui->currentTempoLabel->setText(" unknown BPM");
-        ui->tempoSlider->setEnabled(false);
+        tempoIsBPM = false;
+        // if we can't figure out a BPM, then use percent as a fallback (centered: 100%, range: +/-20%)
+        ui->currentTempoLabel->setText("100%");
+        ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
+        ui->tempoSlider->setMaximum(100+20);
+        ui->tempoSlider->setValue(100);
+        ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-                                 ", base tempo: unknown BPM");
+                                 ", base tempo: 100%");
     }
 
     fileModified = false;

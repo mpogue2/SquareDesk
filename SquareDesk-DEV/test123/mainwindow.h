@@ -136,6 +136,8 @@ private:
     unsigned short currentVolume;
     int previousVolume;
 
+    bool tempoIsBPM;
+
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);
     QString position2String(int position);
