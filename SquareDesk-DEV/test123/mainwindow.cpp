@@ -300,7 +300,7 @@ void MainWindow::on_stopButton_clicked()
     cBass.Stop();  // Stop playback, rewind to the beginning
 
     ui->seekBar->setValue(0);
-    Info_Seekbar(false);  // update just the text  FIX: is this correct?
+    Info_Seekbar(false);  // update just the text
 }
 
 // ----------------------------------------------------------------------
@@ -779,7 +779,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->loopButton->setEnabled(true);
     ui->monoButton->setEnabled(true);
 
-    cBass.Stop();  // FIX: is this still needed?
+    cBass.Stop();
 
     songLoaded = true;
     Info_Seekbar(true);
@@ -823,7 +823,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
     MySettings.setValue(DEFAULT_DIR_KEY, CurrentDir.absoluteFilePath(MP3FileName));
 
     // --------
-    qDebug() << "loading: " << MP3FileName;
+//    qDebug() << "loading: " << MP3FileName;
     loadMP3File(MP3FileName, QString(""), QString(""));  // "" means use title from the filename
 }
 
@@ -924,6 +924,24 @@ void MainWindow::findMusic()
 void MainWindow::filterMusic() {
     ui->songTable->setSortingEnabled(false);
 
+    // Need to remember the PL# mapping here, and reapply it after the filter
+    // left = path, right = number string
+    QMap<QString, QString> path2playlistNum;
+
+    // Iterate over the songTable, saving the mapping in "path2playlistNum"
+    // TODO: optimization: save this once, rather than recreating each time.
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,0);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();  // this is the full pathname
+        if (playlistIndex != " " && playlistIndex != "") {
+            // item HAS an index (that is, it is on the list, and has a place in the ordering)
+//            qDebug() << "remembering playlistIndex:" << playlistIndex << ", origPath:" << pathToMP3;
+            // TODO: reconcile int here with float elsewhere on insertion
+            path2playlistNum[pathToMP3] = playlistIndex;
+        }
+    }
+
     // clear out the table
     ui->songTable->setRowCount(0);
 
@@ -987,7 +1005,13 @@ void MainWindow::filterMusic() {
             textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
         }
 
-        QString s2(""); // FIX: no space
+        // look up origPath in the path2playlistNum map, and reset the s2 text to the user's playlist # setting (if any)
+        QString s2("");
+        if (path2playlistNum.contains(origPath)) {
+            s2 = path2playlistNum[origPath];
+        }
+//        qDebug() << "origPath:" << origPath << ", s2:" << s2;
+
         TableNumberItem *newTableItem4 = new TableNumberItem(s2);
 
         newTableItem4->setTextAlignment(Qt::AlignCenter);                           // editable by default
@@ -1181,7 +1205,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         for (int i = 0; i < ui->songTable->rowCount(); i++) {
             QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
                 QTableWidgetItem *theItem = ui->songTable->item(i,0);
-                theItem->setText("");  // FIX: no space
+                theItem->setText("");
         }
 
         QTextStream in(&inputFile);
@@ -1203,7 +1227,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 //              qDebug() << "SONG #" << songCount << "SONG PATH:" << line;
 
               bool match = false;
-              for (int i = 0; i < ui->songTable->rowCount(); i++) {
+              // exit the loop early, if we find a match
+              for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
                   QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
                   if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
                       QTableWidgetItem *theItem = ui->songTable->item(i,0);
@@ -1211,6 +1236,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                       match = true;
                   }
               }
+              // if we had no match, remember the first non-matching song path
               if (!match && firstBadSongLine == "") {
                   firstBadSongLine = line;
               }
@@ -1236,6 +1262,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
     QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
     if (firstBadSongLine != "") {
+        // if there was a non-matching path, tell the user what the first one of those was
         msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
         ui->songTable->clearSelection(); // select nothing, if error
     }
