@@ -225,6 +225,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->midrangeSlider->setEnabled(true);
     ui->trebleSlider->setEnabled(true);
 
+    // in the Designer, these have values, making it easy to visualize there
+    //   must clear those out, because a song is not loaded yet.
+    ui->currentLocLabel->setText("");
+    ui->songLengthLabel->setText("");
+
     inPreferencesDialog = false;
 }
 
