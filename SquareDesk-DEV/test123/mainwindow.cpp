@@ -1,31 +1,41 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utility.h"
+#include "tablenumberitem.h"
+#include "QMap"
+#include "QMapIterator"
 
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
 //
-// function                 MAC                  		PC
+// function                 MAC                  		PC                                SqView
 // -------------------------------------------------------------------------------------------------
 // FILE MENU
-// open                     Cmd-O                		Ctrl-O, Alt-F-O
-// save                     Cmd-S                		Ctrl-S, Alt-F-S
-// save as                  Shft-Cmd-S           		Alt-F-A
-// quit                     Cmd-Q                		Ctrl-F4, Alt-F-E
+// Open Audio file          Cmd-O                		Ctrl-O, Alt-F-O
+// Save                     Cmd-S                		Ctrl-S, Alt-F-S
+// Save as                  Shft-Cmd-S           		Alt-F-A
+// Quit                     Cmd-Q                		Ctrl-F4, Alt-F-E
+//
+// PLAYLIST MENU
+// Load Playlist
+// Save Playlist
+// Next Song                Cmd-K, K                    Ctrl-K, K                         K
+// Prev Song
 //
 // MUSIC MENU
-// play/pause               space                		space, Alt-M-P
+// play/pause               space                		space, Alt-M-P                    space
 // rewind/stop              S, ESC, END, Cmd-.   		S, ESC, END, Alt-M-S, Ctrl-.
-// rewind/play (playing)    HOME, . (while playing) 	HOME, .  (while playing)
-// skip/back 5 sec          Cmd-RIGHT/LEFT,RIGHT/LEFT   Ctrl-RIGHT/LEFT, RIGHT/LEFT, Alt-M-A/Alt-M-B
-// volume up/down           Cmd-UP/DOWN,UP/DOWN         Ctrl-UP/DOWN, UP/DOWN
+// rewind/play (playing)    HOME, . (while playing) 	HOME, .  (while playing)          .
+// skip/back 5 sec          Cmd-RIGHT/LEFT,RIGHT/LEFT   Ctrl-RIGHT/LEFT, RIGHT/LEFT,
+//                                                        Alt-M-A/Alt-M-B
+// volume up/down           Cmd-UP/DOWN,UP/DOWN         Ctrl-UP/DOWN, UP/DOWN             N/B
 // mute                     Cmd-M, M                	Ctrl-M, M
-// go faster                Cmd-+,+,=            		Ctrl-+,+,=
-// go slower                Cmd--,-              		Ctrl--,-
+// go faster                Cmd-+,+,=            		Ctrl-+,+,=                        R
+// go slower                Cmd--,-              		Ctrl--,-                          E
 // force mono                                    		Alt-M-F
 // clear search             Cmd-/                		Alt-M-S
-// pitch up                 Cmd-U, U                	Ctrl-U, U, Alt-M-U
-// pitch down               Cmd-D, D                	Ctrl-D, D, Alt-M-D
+// pitch up                 Cmd-U, U                	Ctrl-U, U, Alt-M-U                F
+// pitch down               Cmd-D, D                	Ctrl-D, D, Alt-M-D                D
 
 // GLOBALS:
 bass_audio cBass;
@@ -125,8 +135,9 @@ MainWindow::MainWindow(QWidget *parent) :
     findMusic();  // get the filenames from the user's directories
     filterMusic(); // and filter them into the songTable
 
-    ui->songTable->setColumnWidth(0,96);
-    ui->songTable->setColumnWidth(1,80);
+    ui->songTable->setColumnWidth(0,36);
+    ui->songTable->setColumnWidth(1,96);
+    ui->songTable->setColumnWidth(2,80);
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -469,6 +480,7 @@ void MainWindow::on_clearSearchButton_clicked()
 void MainWindow::on_actionLoop_triggered()
 {
     on_loopButton_toggled(ui->actionLoop->isChecked());
+    ui->loopButton->setChecked(ui->actionLoop->isChecked());
 }
 
 // ----------------------------------------------------------------------
@@ -518,11 +530,12 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
         if (!(ui->labelSearch->hasFocus() || // ui->labelNumberSearch->hasFocus() ||
-                ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus())) {
+                ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus() || ui->songTable->isEditing())) {
             // call handleKeypress on the Applications's active window
             ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
             return true;
         }
+
     }
     return QObject::eventFilter(Object,Event);
 }
@@ -531,7 +544,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::handleKeypress(int key)
 {
-//    qDebug() << "key =" << key << ", isPreferencesDialog =" << inPreferencesDialog;
+    qDebug() << "MainWindow::handleKeypress(), key =" << key << ", isPreferencesDialog =" << inPreferencesDialog;
     if (inPreferencesDialog) {
         return;
     }
@@ -585,6 +598,11 @@ void MainWindow::handleKeypress(int key)
         case Qt::Key_M:
             on_actionMute_triggered();
             break;
+
+//        case Qt::Key_L:
+//            qDebug() << "KEY L";
+//            on_actionLoop_triggered();
+//            break;
 
         case Qt::Key_U:
             on_actionPitch_Up_triggered();
@@ -913,7 +931,7 @@ void MainWindow::filterMusic() {
     ui->songTable->setRowCount(0);
 
     QStringList m_TableHeader;
-    m_TableHeader<<"Type"<<"Label" << "Title";
+    m_TableHeader<< "#" << "Type"<<"Label" << "Title";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->songTable->horizontalHeader()->setVisible(true);
 
@@ -972,23 +990,33 @@ void MainWindow::filterMusic() {
             textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
         }
 
+//        QTableWidgetItem *newTableItem4 = new QTableWidgetItem();
+        QString s2(" ");
+        TableNumberItem *newTableItem4 = new TableNumberItem(s2);
+//        newTableItem4->setData(Qt::EditRole, 123);
+
+        newTableItem4->setTextAlignment(Qt::AlignCenter);
+//        newTableItem4->setFlags(newTableItem4->flags() | Qt::ItemIsEditable);       // # is editable
+        newTableItem4->setTextColor(textCol);
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 0, newTableItem4);      // add it to column 0
+
         QTableWidgetItem *newTableItem2 = new QTableWidgetItem( type );
         newTableItem2->setFlags(newTableItem2->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem2->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 0, newTableItem2);      // add it to column 2
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 1, newTableItem2);      // add it to column 2
 
         QTableWidgetItem *newTableItem0 = new QTableWidgetItem( label + " " + labelnum );
         newTableItem0->setFlags(newTableItem0->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem0->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 1, newTableItem0);      // add it to column 0
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 2, newTableItem0);      // add it to column 0
 
         QTableWidgetItem *newTableItem3 = new QTableWidgetItem( title );
         newTableItem3->setFlags(newTableItem3->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem3->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 2, newTableItem3);      // add it to column 3
+        ui->songTable->setItem(ui->songTable->rowCount()-1, 3, newTableItem3);      // add it to column 3
 
         // keep the path around, for loading in when we double click on it
-        ui->songTable->item(ui->songTable->rowCount()-1, 0)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
+        ui->songTable->item(ui->songTable->rowCount()-1, 1)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
 
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
@@ -1008,9 +1036,9 @@ void MainWindow::filterMusic() {
     }
 
     if (notSorted) {
-        ui->songTable->sortItems(2);  // sort third by label number
-        ui->songTable->sortItems(1);  // sort second by label
-        ui->songTable->sortItems(0);  // sort first by type (singing vs patter)
+//        ui->songTable->sortItems(2);  // sort third by label number  (DELETE: label # is gone as a separate field)
+        ui->songTable->sortItems(2);  // sort second by label/label #
+        ui->songTable->sortItems(1);  // sort first by type (singing vs patter)
 
         notSorted = false;
     }
@@ -1041,12 +1069,12 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
 
     int row = item->row();
-    QString pathToMP3 = ui->songTable->item(row,0)->data(Qt::UserRole).toString();
+    QString pathToMP3 = ui->songTable->item(row,1)->data(Qt::UserRole).toString();
 
-    QString songTitle = ui->songTable->item(row,2)->text();
+    QString songTitle = ui->songTable->item(row,3)->text();
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-    QString songType = ui->songTable->item(row,0)->text();
+    QString songType = ui->songTable->item(row,1)->text();
 
     loadMP3File(pathToMP3, songTitle, songType);
 
@@ -1111,4 +1139,191 @@ void MainWindow::on_actionPreferences_triggered()
     }
 
     inPreferencesDialog = false;
+}
+
+// PLAYLIST MANAGEMENT ===============================================
+void MainWindow::on_actionLoad_Playlist_triggered()
+{
+    qDebug() << "on_actionLoad_Playlist_triggered";
+    on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
+
+    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+    QSettings MySettings; // Will be using application informations for correct location of your settings
+
+    QString startingPlaylistDirectory = MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
+    qDebug() << "startingPlaylistDirectory = " << startingPlaylistDirectory;
+    if (startingPlaylistDirectory.isNull()) {
+        // first time through, start at HOME
+        startingPlaylistDirectory = QDir::homePath();
+    }
+
+    QString PlaylistFileName =
+        QFileDialog::getOpenFileName(this,
+                                     tr("Load Playlist"),
+                                     startingPlaylistDirectory,
+                                     tr("Playlist Files (*.m3u)"));
+    if (PlaylistFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    // not null, so save it in Settings (File Dialog will open in same dir next time)
+    QDir CurrentDir;
+    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
+
+    // --------
+    qDebug() << "TODO: loading playlist: " << PlaylistFileName;
+
+    int lineCount = 1;
+    int songCount = 0;
+    QFile inputFile(PlaylistFileName);
+    if (inputFile.open(QIODevice::ReadOnly))  // defaults to Text mode
+    {
+       QTextStream in(&inputFile);
+       while (!in.atEnd())
+       {
+          QString line = in.readLine();
+//          qDebug() << "Line " << lineCount << ":" << line;
+
+          if (line == "#EXTM3U") {
+              // ignore, it's the first line of the M3U file
+          } else if (line == "") {
+              // ignore, it's a blank line
+          } else if (line.at( 0 ) == '#' ) {
+              // it's a comment line
+              if (line.mid(0,7) == "#EXTINF") {
+                  // it's information about the next line, ignore for now.
+              }
+          } else {
+              songCount++;  // it's a real song path
+              qDebug() << "SONG #" << songCount << "SONG PATH:" << line;
+              // TODO: match up the song paths with the items in the table,
+              //   and set column 0 accordingly.  Match up by filename.
+              // TODO: what if there is no match (e.g. song moved)?
+          }
+
+          lineCount++;
+       }
+       inputFile.close();
+    }
+
+    int songsMatched = lineCount;
+    QString msg1 = QString::number(songsMatched) + QString(" audio files in playlist.");
+    ui->statusBar->showMessage(msg1);
+}
+
+void MainWindow::on_actionSave_Playlist_triggered()
+{
+    qDebug() << "on_actionSave_Playlist_triggered";
+    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+
+    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+    QSettings MySettings; // Will be using application informations for correct location of your settings
+
+    QString startingPlaylistDirectory = MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
+    qDebug() << "startingPlaylistDirectory = " << startingPlaylistDirectory;
+    if (startingPlaylistDirectory.isNull()) {
+        // first time through, start at HOME
+        startingPlaylistDirectory = QDir::homePath();
+    }
+
+    QString PlaylistFileName =
+        QFileDialog::getSaveFileName(this,
+                                     tr("Save Playlist"),
+                                     startingPlaylistDirectory,
+                                     tr("Playlist Files (*.m3u)"));
+    if (PlaylistFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    // not null, so save it in Settings (File Dialog will open in same dir next time)
+    QDir CurrentDir;
+    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
+
+    // --------
+    qDebug() << "TODO: saving playlist: " << PlaylistFileName;
+
+    QMap<int, QString> imports;
+
+    // TODO: iterate over the songTable
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,0);
+        QString playlistIndex = theItem->text();
+        QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
+        QString songTitle = ui->songTable->item(i,3)->text();
+        if (playlistIndex != " ") {
+            // item HAS an index (that is, it is on the list, and has a place in the ordering)
+//            qDebug() << "playlistIndex:" << playlistIndex << ", MP3:" << pathToMP3 << ", Title:" << songTitle;
+            // TODO: reconcile int here with float elsewhere on insertion
+            imports[playlistIndex.toInt()] = pathToMP3;
+        }
+    }
+
+    // TODO: strip the initial part of the path off the Paths, e.g.
+    //   /Users/mpogue/__squareDanceMusic/patter/C 117 - Restless Romp (Patter).mp3
+    //   becomes
+    //   patter/C 117 - Restless Romp (Patter).mp3
+    //
+    //   So, the remaining path is relative to the root music directory.
+    //   When loading, first look at the patter and the rest
+    //     if no match, try looking at the rest only
+    //     if no match, then error (dialog?)
+    //   Then on Save Playlist, write out the NEW patter and the rest
+
+    // TODO: get rid of the single space, replace with nothing
+
+    QFile file(PlaylistFileName);
+    if (file.open(QIODevice::ReadWrite)) {
+        QTextStream stream(&file);
+        stream << "#EXTM3U" << endl << endl;
+
+        // list is auto-sorted here
+        QMapIterator<int, QString> i(imports);
+        while (i.hasNext()) {
+            i.next();
+//            qDebug() << i.key() << ": " << i.value();
+            stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
+            stream << i.value() << endl;
+        }
+        file.close();
+    }
+
+    // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
+    //   no playlist was loaded), Save Playlist... should be greyed out.
+
+    ui->statusBar->showMessage(QString("Playlist saved."));
+}
+
+void MainWindow::on_actionNext_Playlist_Item_triggered()
+{
+    // TODO: when a playlist is loaded, keep a QMap around, so that we can go from one
+    //  int to the next and previous.
+    //
+    // TODO: when we go to the next, find it in the songTable, and highlight it, as if it was double-clicked
+
+    qDebug() << "on_actionNext_Playlist_Item_triggered";
+    on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
+    qDebug() << "TODO: go to NEXT item in playlist: ";
+    // TODO: basically, just load the next file (but do not press play on it yet, unless Continuous Play is enabled).
+    // TODO: music player mode to allow playing through an entire playlist without stopping (do not play blank playIndex files).
+    // TODO: Continuous Play is disabled and OFF, unless a playlist is loaded.
+}
+
+void MainWindow::on_actionPrevious_Playlist_Item_triggered()
+{
+    qDebug() << "on_actionPrevious_Playlist_Item_triggered";
+    on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
+    qDebug() << "TODO: go to PREVIOUS item in playlist: ";
+    // TODO: basically, just load the previous file (but do not press play on it yet, unless Continuous Play is enabled).
+}
+
+void MainWindow::on_previousSongButton_clicked()
+{
+    on_actionPrevious_Playlist_Item_triggered();
+}
+
+void MainWindow::on_nextSongButton_clicked()
+{
+    on_actionNext_Playlist_Item_triggered();
 }

@@ -14,7 +14,9 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     bass_audio.cpp \
-    preferencesdialog.cpp
+    preferencesdialog.cpp \
+    mytablewidget.cpp \
+    tablenumberitem.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -23,7 +25,9 @@ HEADERS  += mainwindow.h \
     myslider.h \
     bassmix.h \
     preferencesdialog.h \
-    utility.h
+    utility.h \
+    mytablewidget.h \
+    tablenumberitem.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui

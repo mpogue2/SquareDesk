@@ -122,6 +122,18 @@ private slots:
 
     void on_actionPreferences_triggered();
 
+    void on_actionLoad_Playlist_triggered();
+
+    void on_actionSave_Playlist_triggered();
+
+    void on_actionNext_Playlist_Item_triggered();
+
+    void on_actionPrevious_Playlist_Item_triggered();
+
+    void on_previousSongButton_clicked();
+
+    void on_nextSongButton_clicked();
+
 private:
     QAction *closeAct;  // WINDOWS only
 
