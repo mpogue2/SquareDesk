@@ -17,6 +17,9 @@
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget">
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
@@ -61,6 +64,9 @@
               <height>0</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="text">
              <string>STEREO</string>
             </property>
@@ -90,6 +96,9 @@
              <font>
               <strikeout>true</strikeout>
              </font>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="text">
              <string>LOOP</string>
@@ -162,6 +171,9 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="text">
              <string>P</string>
             </property>
@@ -177,6 +189,9 @@
               <horstretch>4</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="minimum">
              <number>117</number>
@@ -244,6 +259,9 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="text">
              <string>S</string>
             </property>
@@ -279,6 +297,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="maximum">
              <number>100</number>
             </property>
@@ -306,6 +327,9 @@
               <horstretch>4</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="minimum">
              <number>-5</number>
@@ -353,6 +377,9 @@
               <horstretch>4</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="maximum">
              <number>180</number>
@@ -409,6 +436,9 @@
               <horstretch>4</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="minimum">
              <number>-100</number>
@@ -479,6 +509,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="text">
              <string>|&lt;&lt;</string>
             </property>
@@ -491,6 +524,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="text">
              <string>&gt;&gt;|</string>
@@ -534,6 +570,9 @@
                <widget class="MySlider" name="bassSlider">
                 <property name="enabled">
                  <bool>false</bool>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::NoFocus</enum>
                 </property>
                 <property name="minimum">
                  <number>-15</number>
@@ -583,6 +622,9 @@
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
+                <property name="focusPolicy">
+                 <enum>Qt::NoFocus</enum>
+                </property>
                 <property name="minimum">
                  <number>-15</number>
                 </property>
@@ -620,6 +662,9 @@
                <widget class="MySlider" name="midrangeSlider">
                 <property name="enabled">
                  <bool>false</bool>
+                </property>
+                <property name="focusPolicy">
+                 <enum>Qt::NoFocus</enum>
                 </property>
                 <property name="minimum">
                  <number>-15</number>
@@ -683,6 +728,9 @@
              <width>0</width>
              <height>20</height>
             </size>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::ClickFocus</enum>
            </property>
            <property name="editTriggers">
             <set>QAbstractItemView::SelectedClicked</set>
@@ -766,6 +814,9 @@
             <height>16777215</height>
            </size>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
           <property name="text">
            <string>Clear Search</string>
           </property>
@@ -804,6 +855,9 @@
             <height>27</height>
            </size>
           </property>
+          <property name="tabChangesFocus">
+           <bool>true</bool>
+          </property>
           <property name="placeholderText">
            <string>Type</string>
           </property>
@@ -828,6 +882,9 @@
             <italic>false</italic>
            </font>
           </property>
+          <property name="tabChangesFocus">
+           <bool>true</bool>
+          </property>
           <property name="placeholderText">
            <string>Label</string>
           </property>
@@ -846,6 +903,9 @@
             <width>16777215</width>
             <height>27</height>
            </size>
+          </property>
+          <property name="tabChangesFocus">
+           <bool>true</bool>
           </property>
           <property name="placeholderText">
            <string>Title (type to search)</string>
@@ -1418,6 +1478,28 @@
    <header location="global">mytablewidget.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>typeSearch</tabstop>
+  <tabstop>labelSearch</tabstop>
+  <tabstop>titleSearch</tabstop>
+  <tabstop>playButton</tabstop>
+  <tabstop>tempoSlider</tabstop>
+  <tabstop>stopButton</tabstop>
+  <tabstop>volumeSlider</tabstop>
+  <tabstop>pitchSlider</tabstop>
+  <tabstop>seekBar</tabstop>
+  <tabstop>mixSlider</tabstop>
+  <tabstop>previousSongButton</tabstop>
+  <tabstop>nextSongButton</tabstop>
+  <tabstop>bassSlider</tabstop>
+  <tabstop>trebleSlider</tabstop>
+  <tabstop>midrangeSlider</tabstop>
+  <tabstop>songTable</tabstop>
+  <tabstop>clearSearchButton</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>monoButton</tabstop>
+  <tabstop>loopButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

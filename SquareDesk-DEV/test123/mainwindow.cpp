@@ -7,6 +7,7 @@
 #include "QThread"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
+// BUG: Clear Search button also loses the highlighting on the current song
 
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
