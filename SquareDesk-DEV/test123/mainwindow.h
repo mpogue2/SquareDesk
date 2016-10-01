@@ -152,7 +152,7 @@ private:
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);
-    QString position2String(int position);
+    QString position2String(int position, bool pad);
 
     bool closeEventHappened;
 

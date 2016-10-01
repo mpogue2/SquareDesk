@@ -7,7 +7,8 @@
 #include "QThread"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
-// BUG: Clear Search button also loses the highlighting on the current song
+// BUG: searching then clearing search will lose selection in songTable
+// BUG: NL allowed in the search fields, makes the text disappear until DEL pressed
 
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
@@ -412,12 +413,27 @@ void MainWindow::on_mixSlider_valueChanged(int value)
 }
 
 // ----------------------------------------------------------------------
-QString MainWindow::position2String(int position)
+QString MainWindow::position2String(int position, bool pad = false)
 {
     int songMin = position/60;
     int songSec = position - 60*songMin;
     QString songSecString = QString("%1").arg(songSec, 2, 10, QChar('0')); // pad with zeros
     QString s(QString::number(songMin) + ":" + songSecString);
+
+    // pad on the left with zeros, if needed to prevent numbers shifting left and right
+    if (pad) {
+        // NOTE: don't use more than 7 chars total, or Possum Sop (long) will cause weird
+        //   shift left/right effects when the slider moves.
+        switch (s.length()) {
+        case 4: s = "   " + s; // 4 + 3 = 7 chars
+            break;
+        case 5: s = "  " + s;  // 5 + 2 = 7 chars
+            break;
+        default:
+            break;
+        }
+    }
+
     return s;
 }
 
@@ -451,8 +467,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             return;
         }
 
-        ui->currentLocLabel->setText(position2String(currentPos_i));
-        ui->songLengthLabel->setText("/ " + position2String(fileLen_i));
+        ui->currentLocLabel->setText(position2String(currentPos_i, true));  // pad on the left
+        ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
     }
     else {
         ui->seekBar->setMinimum(0);
@@ -471,13 +487,29 @@ void MainWindow::on_seekBar_valueChanged(int value)
 // ----------------------------------------------------------------------
 void MainWindow::on_clearSearchButton_clicked()
 {
+    // figure out which row is currently selected
+    QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } else {
+        // more than 1 row or no rows at all selected (BAD)
+        qDebug() << "nothing selected.";
+    }
+
     ui->labelSearch->setPlainText("");
     ui->typeSearch->setPlainText("");
     ui->titleSearch->setPlainText("");
 
-    ui->labelSearch->clearFocus();
-    ui->typeSearch->clearFocus();
-    ui->titleSearch->clearFocus();
+    if (row != -1) {
+        // if a row was selected, restore it after a clear search
+        // FIX: this works much of the time, but it doesn't handle the case where search field is typed, then cleared.  In this case,
+        //   the row isn't highlighted again.
+        ui->songTable->selectRow(row);
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -1055,6 +1087,7 @@ void MainWindow::filterMusic() {
     }
 
     if (notSorted) {
+        qDebug() << "SORTING FOR THE FIRST TIME";
         ui->songTable->sortItems(2);  // sort second by label/label #
         ui->songTable->sortItems(1);  // sort first by type (singing vs patter)
 
@@ -1357,6 +1390,7 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     // This code is similar to the row double clicked code...
     on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
 
+    // figure out which row is currently selected
     QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
     int row = -1;
