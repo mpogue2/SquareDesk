@@ -113,6 +113,41 @@ P1: DONE: ability to set volume, tempo, pitch BEFORE a song is selected.  e.g. p
         set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
         has a saved tempo, that would override the setting)
 
+Extracted from Don Beck's SECOND ROUND of email suggestions:
+P1: Stereo/Mono button is hard to tell whether it shows the mode, or what you go to when pressing it
+P1: All column heads were highlighted?  (Could be due to him being on a VERY old Mac OS release)
+P3: Black text on blue band (almost certainly the old Mac OS X release.  I don't see this on El Capitan.)
+P2: Resize of columns in songTable should also resize the search fields to match.  (Nice idea!)
+P2: I'd like to see both BPM and % for tempo.  (Preference, maybe?)
+P1: Tab between search fields (FIXED 10/1/16)
+P3: When click into a field, select text that is already there.  (Already true for the # field,
+      and double-click does this for the search fields.)
+P1: Put the fact that the search fields work together into the Manual.
+
+===========================
+from: Don Beck
+Hi Mike,
+
+I just took a quick look at the version you released a few days ago and here are some comments. I haven’t had a chance to download today’s release, so I hope I am not being redundant. I’ll try to get to the latest version soon.
+
+September 30, 2016
+
+Stereo/Mono button: It’s hard to tell, when it says Stereo, whether it means it is set to Stereo or whether you should press it to make it Stereo. Same with Loop button. This is a common interface problem with many apps.
+
+I had a condition where all of the column heads of the music field where high lighted. After clicking on one of them, to sort the column, only that header was highlighted. I haven’t been able to duplicate that, but while it was like that, I assumed they were all highlighted as a style preference. Now I see that only one is supposed to be highlighted to show which column the songs are sorted by. If I figure out how to do it again, I will let you know. I tried rebooting the app, but that didn’t do it. It could just be that your initial build has it that way, and once it is sorted on a column, you keep that state in memory. Before I noted that only one of the cells in the first row was selected, I wrote the next paragraph. Now, it only applies to the selected column.
+
+The text on the blue band at the top of the list of songs is black, and is impossible to read against the blue back ground. Make it white, White, like the text on the buttons at the top of the window.
+
+It is nice that you can resize the columns in the list of music table. It would be nice if the search fields above the columns would automatically resize at the same time.
+
+Is it possible to read the BPM of the music, and have the Tempo slider include the corrected BPM as well as the percent of original tempo?
+
+When you are in one of the search fields, and press Tab, the expected behavior is to change focus to the next field. Your fields appear to be tables with only one cell showing, and tabbing takes you to the next cell, making the display look weird. The only way that I can get out of this is to press the Right Arrow key a lot to get to the end of the tabs, and then press Delete several times to start over.
+
+It would be nice, if when you clicked [or tabbed] into a new search field, the text that was already in there would select, so you didn’t have to delete before typing a new search criteria.
+
+It is nice, that when you type into one of the search fields, you can refine your search by typing into one of the other ones. Eventually, you should include this feature in the manual.
+
 ===========================
 Hi Mike,
 
