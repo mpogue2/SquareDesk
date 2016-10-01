@@ -166,6 +166,8 @@ private:
 
     QList<QString> *pathStack;
 
+    QString removePrefix(QString prefix, QString s);
+
 };
 
 // currentState:

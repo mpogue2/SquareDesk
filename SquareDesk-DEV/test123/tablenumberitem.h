@@ -4,12 +4,13 @@
 #include <QObject>
 #include <QString>
 #include <QTableWidgetItem>
+#include <QDebug>
 
 // http://stackoverflow.com/questions/7848683/how-to-sort-datas-in-qtablewidget
 class TableNumberItem : public QTableWidgetItem
 {
 public:
-    TableNumberItem(const QString txt = QString(" "))
+    TableNumberItem(const QString txt = QString("*"))
         :QTableWidgetItem(txt)
     {
     }
@@ -19,11 +20,12 @@ public:
         QString str1 = text();
         QString str2 = other.text();
 
-        if (str1 == " ") {
+//        qDebug() << "str1: " << str1 << ", str2: " << str2;
+        if (str1 == " " || str1 == "") {
             str1 = "9999999.9";
         }
 
-        if (str2 == " ") {
+        if (str2 == " " || str2 == "") {
             str2 = "9999999.9";
         }
 
@@ -36,9 +38,14 @@ public:
 //            str1.chop(1);
 //            str2.chop(1); // this works for "N%" and for "N %" formatted strings
 //        }
-        bool ok = false;
-        double f1 = str1.toDouble(&ok);
-        double f2 = str2.toDouble(&ok);
+
+        bool ok1 = false;
+        double f1 = str1.toDouble(&ok1);
+
+        bool ok2 = false;
+        double f2 = str2.toDouble(&ok2);
+
+//        qDebug() << "result: " << f1 << f2 << ok1 << ok2 << (f1 < f2);
 
         return f1 < f2;
     }
