@@ -397,7 +397,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         float desiredBPM = (float)value;            // desired BPM
         int newBASStempo = (int)(round(100.0*desiredBPM/baseBPM));
         cBass.SetTempo(newBASStempo);
-        ui->currentTempoLabel->setText(QString::number(value) + " BPM");
+        ui->currentTempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
     } else {
         float basePercent = 100.0;                      // original detected percent
         float desiredPercent = (float)value;            // desired percent
@@ -763,7 +763,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // TODO: make the types for turning off BPM detection a preference
     if ((songBPM>=125-10) && (songBPM<=125+10) && songType != "xtras") {
         tempoIsBPM = true;
-        ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM");
+        ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
+
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
         ui->tempoSlider->setValue(songBPM);
@@ -984,7 +985,7 @@ void MainWindow::filterMusic() {
     ui->songTable->setRowCount(0);
 
     QStringList m_TableHeader;
-    m_TableHeader<< "#" << "Type"<<"Label" << "Title";
+    m_TableHeader<< "#" << "Type" << "Label" << "Title";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->songTable->horizontalHeader()->setVisible(true);
 
@@ -1016,15 +1017,6 @@ void MainWindow::filterMusic() {
         if (match_square.hasMatch()) {
             label = match_square.captured(1);   // label == "RIV 307"
             title = match_square.captured(2);   // title == "Going to Ceili (Patter)"
-
-            QRegularExpression re_labelAndLabelnum("([a-zA-Z]+) *([a-zA-Z0-9]+)");
-            QRegularExpressionMatch match_labelAndLabelnum = re_labelAndLabelnum.match(label);
-            if (match_labelAndLabelnum.hasMatch()) {
-                label = match_labelAndLabelnum.captured(1);        // label = "RIV"
-                labelnum = match_labelAndLabelnum.captured(2);     // labelNum = "307"
-            } else {
-//                    qDebug() << "FAILED TO SPLIT LABEL AND LABEL NUMBER: '" << label << "'";
-            }
         } else {
             // e.g. /Users/mpogue/__squareDanceMusic/xtras/Virginia Reel.mp3
             title = s;
@@ -1204,6 +1196,7 @@ QString MainWindow::removePrefix(QString prefix, QString s) {
 }
 
 // PLAYLIST MANAGEMENT ===============================================
+// TODO: prepend root path here
 void MainWindow::on_actionLoad_Playlist_triggered()
 {
     on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
@@ -1309,6 +1302,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
 }
 
+// TODO: strip off the root directory before saving...
 void MainWindow::on_actionSave_Playlist_triggered()
 {
     on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
