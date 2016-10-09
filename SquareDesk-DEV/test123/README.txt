@@ -26,16 +26,35 @@ P1: some songs are not tempo-detected correctly (e.g. Possum Sop Long Play).
 P1: Open File can give a really long filename (should remove the Label/Label# and " - ", like in the song list)
 P1: "=" should be allowed for "+"
 
+---
+P1: Combine label and label #?  Might make it simpler. (DONE, 10/2/2016)
+P1: Make it easy to get from the patter to the singing call (next tip function might do this) (PLAYLISTS, 10/9/2016)
+P1: checkbox for "next tip", allow sort by this field (PLAYLISTS, 10/9/2016)
+P1: checkbox for "favorites", allow sort by this field (PLAYLISTS, 10/9/2016)
+
+P1: DONE: zero line on the EQ sliders
+P1: ALREADY THERE: double click to set EQ to zero
+P1: DONE: ability to set volume, tempo, pitch BEFORE a song is selected.  e.g. preset the volume level, or
+        set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
+        has a saved tempo, that would override the setting)
+P1: ALREADY THERE: Make it easy to scan patter and singing calls separately.  (I think this is 
+		already there, using the type field which is searchable)
+P2: I'd like to see both BPM and % for tempo.  (Preference, maybe?) (FIXED 10/9/16)
+P1: Tab between search fields (FIXED 10/1/16)
+P3: When click into a field, select text that is already there.  (Already true for the # field,
+      and double-click does this for the search fields.)
+P1: FUTURE: playlists?  (DONE, 10/2/2016)
+P1: BUG: the song timer changes length (made more room and left-justified it)
+
 ===========================
 BUGS (high priority):
 
 // BUG: Windows only -- the songTable should be less tall, so window can start out smaller and will
 //        fit on most screens.  This works fine on Mac OS X, so the problem is Windows-specific.
-// BUG: Windows only -- Alt-F and Alt-M shortcuts don't work, second keys are being swallowed by HandleKeypress(), before
-//   the menus get them.
-// BUG: Windows only -- font sizes are not consistent with Mac font sizes (known problem with Qt, but fix is to set them manually)
-
-// BUG: the song timer changes length (left-justify it?)
+// BUG: Windows only -- Alt-F and Alt-M shortcuts don't work, second keys are being swallowed by 
+//        HandleKeypress(), before the menus get them.
+// BUG: Windows only -- font sizes are not consistent with Mac font sizes (known problem with Qt, but 
+//        fix is to set them manually)
 
 ===========================
 Mike's current TODO list (lower priority):
@@ -48,19 +67,20 @@ Mike's current TODO list (lower priority):
 // P1: Break Timer (1 bong, 2 bongs, starts next music in playlist)
 // FUTURE: patter: auto turn on "random call @ <level>" during PLAYBACK ONLY
 // FUTURE: singing: auto turn on lyrics during PLAYBACK ONLY (like SqView)
-// FUTURE: preview mode (plays first few sec of any song you click on)
-// FUTURE: playlists?
+// FUTURE: preview mode (plays first few sec of any song you click on, without loading it)
 // FUTURE: audio level indicator (helps debug output problems)
 // FUTURE: save pitch/tempo/etc in a database with one entry for each song basename
 //   Also a Don Beck request.
 // FUTURE: singing call should tell me OPENER/BREAK/CLOSER/1/2/3/4 (auto switches to this mode for singing calls)
 //   Can make this approximate, just by song length (divided by 7 or so, like SqView does...)
 //   Also Don Beck request.
-// FIX: rounds with split music and cues don't work the way I expected in MONO mode.  Entire mono mix moves L and R.
-//    This is because mix-to-mono is after the Mix mixer, should be before.
+// FIX: rounds with split music and cues don't work the way I expected in MONO mode.  Entire mono mix 
+//      moves L and R. This is because mix-to-mono is after the Mix mixer, should be before.
 // TODO: add a Favorites column, that can be used to flag songs as favorites.  Then, make
 //   favorites be the default at app open time.  Make the favorites a number, so we can sort by that number.
 //   This is a very simple one-playlist implementation.  (NOTE: This is what Don Beck is asking for, too)
+//   Now that playlists is in, allow a magic named playlist, called "favorites.m3u" which always
+//   is pre-loaded, if set.
 // TODO: Preference: font size (for people to read without their glasses) (also Don Beck)
 
 ====================
@@ -71,7 +91,6 @@ Extracted from Cal Campbells' email suggestions:
 4) P1: when adding folders under the Master folder, have a file watcher that will auto-repopulate the table
 6) P1: should pay attention to existing metadata (especially iTunes metadata), rather than filenames.
     Metadata should override the filenames (Cal uses title, artist, album, and genre)
-15) P1: Combine label and label #?  Might make it simpler.
 16) P1: First time through, ask where the Music Directory should be.  (Pop up the preferences dialog?)
 17) P1: Linux version! (Dan)
 
@@ -92,13 +111,11 @@ to do so):
 ===================
 Extracted from Don Beck's email suggestions:
 
-P1: Make it easy to get from the patter to the singing call (next tip function might do this)
-P1: checkbox for "next tip", allow sort by this field
-P1: checkbox for "favorites", allow sort by this field
 P1: frequency count of play times, allow sort by this field (I think Dan has this in the Python player)
 P1: ability to set tempo on a per song basis (should not have to adjust it each time)
       NOTE: does NOT save the last tempo, rather you have to explicitly set it
-P1: Save EQ for each song
+      Maybe this info could be kept in the playlist?  TempoOverride=123 in the comment?
+P1: Save EQ for each song, maybe also in the playlist?  Bass=+5,Mid=-2,Treble=+1 in the comment?
 P1: Ability to set loop points for each song
 P2: Fade out button would be nice (like SqView).
 P1: Singing call indicator (7 segments or equivalent)
@@ -106,22 +123,11 @@ P1: Fonts should resize to be bigger when window is resized to be bigger
 P2: Make buttons bigger (also resize when window resizes?), use keyboard instead for now?
 P2: Modify lists to include X/O for each call!  (stick these in TEXT files)
 
-P1: ALREADY THERE: Make it easy to scan patter and singing calls separately.  (I think this is already there, using the type field which is searchable)
-P1: DONE: zero line on the EQ sliders
-P1: ALREADY THERED: double click to set EQ to zero
-P1: DONE: ability to set volume, tempo, pitch BEFORE a song is selected.  e.g. preset the volume level, or
-        set tempo to a specific value (if I want to call everything at 122, I could preset it, but if a song
-        has a saved tempo, that would override the setting)
-
 Extracted from Don Beck's SECOND ROUND of email suggestions:
 P1: Stereo/Mono button is hard to tell whether it shows the mode, or what you go to when pressing it
 P1: All column heads were highlighted?  (Could be due to him being on a VERY old Mac OS release)
 P3: Black text on blue band (almost certainly the old Mac OS X release.  I don't see this on El Capitan.)
 P2: Resize of columns in songTable should also resize the search fields to match.  (Nice idea!)
-P2: I'd like to see both BPM and % for tempo.  (Preference, maybe?)
-P1: Tab between search fields (FIXED 10/1/16)
-P3: When click into a field, select text that is already there.  (Already true for the # field,
-      and double-click does this for the search fields.)
 P1: Put the fact that the search fields work together into the Manual.
 
 ===========================
