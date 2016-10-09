@@ -134,6 +134,8 @@ private slots:
 
     void on_nextSongButton_clicked();
 
+    void on_songTable_itemSelectionChanged();
+
 private:
     QAction *closeAct;  // WINDOWS only
 

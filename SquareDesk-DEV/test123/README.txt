@@ -45,6 +45,8 @@ P3: When click into a field, select text that is already there.  (Already true f
       and double-click does this for the search fields.)
 P1: FUTURE: playlists?  (DONE, 10/2/2016)
 P1: BUG: the song timer changes length (made more room and left-justified it)
+P1: BUG: the Next and Previous song buttons should be disabled, until a song has been selected in songTable.
+P1: BUG: Loadin an MP3 file manually should clear the songtable selection, and disable the Next/Previous buttons.
 
 ===========================
 BUGS (high priority):
@@ -55,6 +57,8 @@ BUGS (high priority):
 //        HandleKeypress(), before the menus get them.
 // BUG: Windows only -- font sizes are not consistent with Mac font sizes (known problem with Qt, but 
 //        fix is to set them manually)
+// BUG: Tempo slider should go to initial value when double-clicked (subclass from MySlider).
+//      Note: currently MySlider always goes to zero.  Need to add a member variable for initial value.
 
 ===========================
 Mike's current TODO list (lower priority):

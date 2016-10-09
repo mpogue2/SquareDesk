@@ -513,13 +513,19 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="2" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
            <widget class="QPushButton" name="previousSongButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>22</height>
+             </size>
             </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
@@ -529,13 +535,19 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
+          <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
            <widget class="QPushButton" name="nextSongButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>22</height>
+             </size>
             </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
@@ -573,7 +585,7 @@
               <rect>
                <x>6</x>
                <y>23</y>
-               <width>107</width>
+               <width>112</width>
                <height>128</height>
               </rect>
              </property>
@@ -732,13 +744,19 @@
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>5</horstretch>
-             <verstretch>5</verstretch>
+             <verstretch>1</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
             </size>
            </property>
            <property name="focusPolicy">

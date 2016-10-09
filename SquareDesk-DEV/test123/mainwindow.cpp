@@ -61,6 +61,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->playButton->setEnabled(false);
     ui->stopButton->setEnabled(false);
 
+    ui->nextSongButton->setEnabled(false);
+    ui->previousSongButton->setEnabled(false);
+
     // ============
     ui->menuFile->addSeparator();
 
@@ -502,7 +505,7 @@ void MainWindow::on_clearSearchButton_clicked()
         row = index.row();
     } else {
         // more than 1 row or no rows at all selected (BAD)
-        qDebug() << "nothing selected.";
+//        qDebug() << "nothing selected.";
     }
 
     ui->labelSearch->setPlainText("");
@@ -861,6 +864,10 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
     QDir CurrentDir;
     MySettings.setValue(DEFAULT_DIR_KEY, CurrentDir.absoluteFilePath(MP3FileName));
 
+    ui->songTable->clearSelection();  // if loaded via menu, then clear previous selection (if present)
+    ui->nextSongButton->setEnabled(false);  // and, next/previous song buttons are disabled
+    ui->previousSongButton->setEnabled(false);
+
     // --------
 //    qDebug() << "loading: " << MP3FileName;
     loadMP3File(MP3FileName, QString(""), QString(""));  // "" means use title from the filename
@@ -1084,7 +1091,7 @@ void MainWindow::filterMusic() {
     }
 
     if (notSorted) {
-        qDebug() << "SORTING FOR THE FIRST TIME";
+//        qDebug() << "SORTING FOR THE FIRST TIME";
         ui->songTable->sortItems(2);  // sort second by label/label #
         ui->songTable->sortItems(1);  // sort first by type (singing vs patter)
 
@@ -1244,6 +1251,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
        while (!in.atEnd())
        {
           QString line = in.readLine();
+//          qDebug() << "line:" << line;
 
           if (line == "#EXTM3U") {
               // ignore, it's the first line of the M3U file
@@ -1399,7 +1407,7 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
         row = index.row();
     } else {
         // more than 1 row or no rows at all selected (BAD)
-        qDebug() << "nothing selected.";
+//        qDebug() << "nothing selected.";
         return;
     }
 
@@ -1467,4 +1475,22 @@ void MainWindow::on_previousSongButton_clicked()
 void MainWindow::on_nextSongButton_clicked()
 {
     on_actionNext_Playlist_Item_triggered();
+}
+
+void MainWindow::on_songTable_itemSelectionChanged()
+{
+    // When item selection is changed, enable Next/Previous song buttons,
+    //   if at least one item in the table is selected.
+    //
+    // figure out which row is currently selected
+    QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+//    qDebug() << "songTable:itemSelectionChanged(), selected.count(): " << selected.count();
+    if (selected.count() == 1) {
+        ui->nextSongButton->setEnabled(true);
+        ui->previousSongButton->setEnabled(true);
+    } else {
+        ui->nextSongButton->setEnabled(false);
+        ui->previousSongButton->setEnabled(false);
+    }
 }
