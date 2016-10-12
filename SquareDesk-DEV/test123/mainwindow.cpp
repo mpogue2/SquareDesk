@@ -1343,13 +1343,13 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     QMap<int, QString> imports;
 
-    // TODO: iterate over the songTable
+    // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,0);
         QString playlistIndex = theItem->text();
         QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
         QString songTitle = ui->songTable->item(i,3)->text();
-        if (playlistIndex != " ") {
+        if (playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
 //            qDebug() << "playlistIndex:" << playlistIndex << ", MP3:" << pathToMP3 << ", Title:" << songTitle;
             // TODO: reconcile int here with float elsewhere on insertion
@@ -1493,4 +1493,15 @@ void MainWindow::on_songTable_itemSelectionChanged()
         ui->nextSongButton->setEnabled(false);
         ui->previousSongButton->setEnabled(false);
     }
+}
+
+void MainWindow::on_actionClear_Playlist_triggered()
+{
+    // Iterate over the songTable
+    ui->songTable->setSortingEnabled(false);  // must turn sorting off, or else sorting on # will not clear all
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,0);
+        theItem->setText(""); // clear out the current list
+    }
+    ui->songTable->setSortingEnabled(true);  // reenable sorting
 }

@@ -1135,6 +1135,8 @@
     <addaction name="actionLoad_Playlist"/>
     <addaction name="actionSave_Playlist"/>
     <addaction name="separator"/>
+    <addaction name="actionClear_Playlist"/>
+    <addaction name="separator"/>
     <addaction name="actionNext_Playlist_Item"/>
     <addaction name="actionPrevious_Playlist_Item"/>
     <addaction name="separator"/>
@@ -1492,6 +1494,11 @@
    </property>
    <property name="text">
     <string>Continuous Play</string>
+   </property>
+  </action>
+  <action name="actionClear_Playlist">
+   <property name="text">
+    <string>Clear Playlist</string>
    </property>
   </action>
  </widget>
