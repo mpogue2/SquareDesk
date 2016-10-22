@@ -5,6 +5,7 @@
 #include "QMap"
 #include "QMapIterator"
 #include "QThread"
+#include "QProcess"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -1504,4 +1505,69 @@ void MainWindow::on_actionClear_Playlist_triggered()
         theItem->setText(""); // clear out the current list
     }
     ui->songTable->setSortingEnabled(true);  // reenable sorting
+}
+
+// ---------------------------------------------------------
+void MainWindow::showInFinderOrExplorer(QString filePath)
+{
+// From: http://lynxline.com/show-in-finder-show-in-explorer/
+#if defined(Q_OS_MAC)
+    QStringList args;
+    args << "-e";
+    args << "tell application \"Finder\"";
+    args << "-e";
+    args << "activate";
+    args << "-e";
+    args << "select POSIX file \""+filePath+"\"";
+    args << "-e";
+    args << "end tell";
+    QProcess::startDetached("osascript", args);
+#endif
+
+#if defined(Q_OS_WIN)
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(filePath);
+    QProcess::startDetached("explorer", args);
+#endif
+}
+
+void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
+{
+    Q_UNUSED(pos);
+
+    // TODO: this function isn't called on Windows yet...
+
+    if (ui->songTable->selectionModel()->hasSelection()) {
+        QMenu menu(this);
+
+#if defined(Q_OS_MAC)
+        menu.addAction ( "Reveal in Finder" , this , SLOT (revealInFinder()) );
+#endif
+
+#if defined(Q_OS_WIN)
+        menu.addAction ( "Show in Explorer" , this , SLOT (revealInFinder()) );
+#endif
+
+        // TODO: Linux equivalent?
+
+        menu.popup(QCursor::pos());
+        menu.exec();
+    }
+}
+
+void MainWindow::revealInFinder() {
+    QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+
+        QString pathToMP3 = ui->songTable->item(row,1)->data(Qt::UserRole).toString();
+        showInFinderOrExplorer(pathToMP3);
+    } else {
+        // more than 1 row or no rows at all selected (BAD)
+//        qDebug() << "nothing selected.";
+    }
 }

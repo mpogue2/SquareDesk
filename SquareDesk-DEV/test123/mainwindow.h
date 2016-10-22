@@ -138,6 +138,11 @@ private slots:
 
     void on_actionClear_Playlist_triggered();
 
+    void showInFinderOrExplorer(QString s);
+
+    void on_songTable_customContextMenuRequested(const QPoint &pos);
+    void revealInFinder();
+
 private:
     QAction *closeAct;  // WINDOWS only
 
