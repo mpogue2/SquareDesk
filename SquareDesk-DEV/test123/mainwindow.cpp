@@ -1261,10 +1261,43 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         QTextStream in(&inputFile);
 
         if (PlaylistFileName.endsWith(".csv")) {
-            qDebug() << "CSV file!";
-            return;
+            // CSV FILE =================================
+            int lineCount = 1;
+
+            while (!in.atEnd())
+            {
+                QString line = in.readLine();
+//                qDebug() << "line:" << line;
+                if (line == "abspath") {
+                    // V1 of the CSV file format has exactly one field, an absolute pathname in quotes
+                } else if (line == "") {
+                    // ignore, it's a blank line
+                } else {
+                    songCount++;  // it's a real song path
+                    line.replace("\"","");  // get rid of all double quotes
+//                    qDebug() << "SONG #" << songCount << "SONG PATH:" << line;
+
+                    bool match = false;
+                    // exit the loop early, if we find a match
+                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+                        if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
+                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+                            theItem->setText(QString::number(songCount));
+                            match = true;
+                        }
+                    }
+                    // if we had no match, remember the first non-matching song path
+                    if (!match && firstBadSongLine == "") {
+                        firstBadSongLine = line;
+                    }
+
+                }
+
+                lineCount++;
+            } // while
         } else {
-            qDebug() << "M3U file!";
+            // M3U FILE =================================
             int lineCount = 1;
 
             while (!in.atEnd())
@@ -1351,11 +1384,14 @@ void MainWindow::on_actionSave_Playlist_triggered()
         startingPlaylistDirectory = QDir::homePath();
     }
 
+    QString preferred("CSV files (*.csv)");
     QString PlaylistFileName =
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
                                      startingPlaylistDirectory,
-                                     tr("Playlist Files (*.m3u)"));
+//                                     tr("Playlist Files (*.m3u *.csv)"),
+                                     tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
+                                     &preferred);  // preferred is CSV
     if (PlaylistFileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
     }
@@ -1397,25 +1433,51 @@ void MainWindow::on_actionSave_Playlist_triggered()
     // TODO: get rid of the single space, replace with nothing
 
     QFile file(PlaylistFileName);
-    if (file.open(QIODevice::ReadWrite)) {
-        QTextStream stream(&file);
-        stream << "#EXTM3U" << endl << endl;
+    if (PlaylistFileName.endsWith(".m3u")) {
+        if (file.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&file);
+            stream << "#EXTM3U" << endl << endl;
 
-        // list is auto-sorted here
-        QMapIterator<int, QString> i(imports);
-        while (i.hasNext()) {
-            i.next();
-//            qDebug() << i.key() << ": " << i.value();
-            stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
-            stream << i.value() << endl;
+            // list is auto-sorted here
+            QMapIterator<int, QString> i(imports);
+            while (i.hasNext()) {
+                i.next();
+                //            qDebug() << i.key() << ": " << i.value();
+                stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
+                stream << i.value() << endl;
+            }
+            file.close();
+        } else {
+            ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
         }
-        file.close();
+    } else if (PlaylistFileName.endsWith(".csv")) {
+        if (file.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&file);
+            stream << "abspath" << endl;
+
+            // list is auto-sorted here
+            QMapIterator<int, QString> i(imports);
+            while (i.hasNext()) {
+                i.next();
+                //            qDebug() << i.key() << ": " << i.value();
+                stream << "\"" << i.value() << "\"" << endl; // quoted absolute path
+            }
+            file.close();
+        } else {
+            ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
+        }
     }
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
 
-    ui->statusBar->showMessage(QString("Playlist items saved."));
+    if (PlaylistFileName.endsWith(".csv")) {
+        ui->statusBar->showMessage(QString("Playlist items saved as CSV file."));
+    } else if (PlaylistFileName.endsWith(".m3u")) {
+        ui->statusBar->showMessage(QString("Playlist items saved as M3U file."));
+    } else {
+        ui->statusBar->showMessage(QString("ERROR: Can't save to that format."));
+    }
 }
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
@@ -1529,6 +1591,11 @@ void MainWindow::on_actionClear_Playlist_triggered()
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         theItem->setText(""); // clear out the current list
     }
+
+    ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
+    ui->songTable->sortItems(kTypeCol);  // sort first by type (singing vs patter)
+
+    notSorted = false;
     ui->songTable->setSortingEnabled(true);  // reenable sorting
 }
 
