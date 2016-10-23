@@ -180,7 +180,7 @@
            </widget>
           </item>
           <item row="2" column="2">
-           <widget class="QSlider" name="tempoSlider">
+           <widget class="MySlider" name="tempoSlider">
             <property name="enabled">
              <bool>false</bool>
             </property>

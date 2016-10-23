@@ -773,6 +773,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
         ui->tempoSlider->setValue(songBPM);
+        ui->tempoSlider->SetOrigin(songBPM);  // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
                                  ", base tempo: " + QString::number(songBPM) + " BPM");
@@ -784,6 +785,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
         ui->tempoSlider->setMaximum(100+20);
         ui->tempoSlider->setValue(100);
+        ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
                                  ", base tempo: 100%");
@@ -876,9 +878,11 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 }
 
 // ==========================================================================================
+// TODO: Move this out into its own file: MySlider.cpp
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
 {
     drawLoopPoints = false;
+    origin = 0;
 }
 
 void MySlider::SetLoop(bool b)
@@ -887,11 +891,16 @@ void MySlider::SetLoop(bool b)
     update();
 }
 
+void MySlider::SetOrigin(int newOrigin)
+{
+    origin = newOrigin;
+}
+
 void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't work
 {
     Q_UNUSED(event)
-    setValue(0);
-    valueChanged(0);
+    setValue(origin);
+    valueChanged(origin);
 }
 
 // http://stackoverflow.com/questions/3894737/qt4-how-to-draw-inside-a-widget
