@@ -1214,7 +1214,6 @@ QString MainWindow::removePrefix(QString prefix, QString s) {
 }
 
 // PLAYLIST MANAGEMENT ===============================================
-// TODO: prepend root path here
 void MainWindow::on_actionLoad_Playlist_triggered()
 {
     on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
@@ -1234,7 +1233,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         QFileDialog::getOpenFileName(this,
                                      tr("Load Playlist"),
                                      startingPlaylistDirectory,
-                                     tr("Playlist Files (*.m3u)"));
+                                     tr("Playlist Files (*.m3u *.csv)"));
     if (PlaylistFileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
     }
@@ -1244,65 +1243,81 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
 
     // --------
-    int lineCount = 1;
-    int songCount = 0;
     QString firstBadSongLine = "";
-
+    int songCount = 0;
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly))  // defaults to Text mode
     {
+        ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+
         // first, clear all the playlist numbers that are there now.
         for (int i = 0; i < ui->songTable->rowCount(); i++) {
-            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-                QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-                theItem->setText("");
+//            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+//            qDebug() << "clearing: " << pathToMP3;
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            theItem->setText("");
         }
 
         QTextStream in(&inputFile);
-       while (!in.atEnd())
-       {
-          QString line = in.readLine();
-//          qDebug() << "line:" << line;
 
-          if (line == "#EXTM3U") {
-              // ignore, it's the first line of the M3U file
-          } else if (line == "") {
-              // ignore, it's a blank line
-          } else if (line.at( 0 ) == '#' ) {
-              // it's a comment line
-              if (line.mid(0,7) == "#EXTINF") {
-                  // it's information about the next line, ignore for now.
-              }
-          } else {
-              songCount++;  // it's a real song path
-//              qDebug() << "SONG #" << songCount << "SONG PATH:" << line;
+        if (PlaylistFileName.endsWith(".csv")) {
+            qDebug() << "CSV file!";
+            return;
+        } else {
+            qDebug() << "M3U file!";
+            int lineCount = 1;
 
-              bool match = false;
-              // exit the loop early, if we find a match
-              for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
-                  QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-                  if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
-                      QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-                      theItem->setText(QString::number(songCount));
-                      match = true;
-                  }
-              }
-              // if we had no match, remember the first non-matching song path
-              if (!match && firstBadSongLine == "") {
-                  firstBadSongLine = line;
-              }
+            while (!in.atEnd())
+            {
+                QString line = in.readLine();
+                //          qDebug() << "line:" << line;
 
-          }
+                if (line == "#EXTM3U") {
+                    // ignore, it's the first line of the M3U file
+                } else if (line == "") {
+                    // ignore, it's a blank line
+                } else if (line.at( 0 ) == '#' ) {
+                    // it's a comment line
+                    if (line.mid(0,7) == "#EXTINF") {
+                        // it's information about the next line, ignore for now.
+                    }
+                } else {
+                    songCount++;  // it's a real song path
+                    //              qDebug() << "SONG #" << songCount << "SONG PATH:" << line;
 
-          lineCount++;
-       }
-       inputFile.close();
+                    bool match = false;
+                    // exit the loop early, if we find a match
+                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+                        if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
+                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+                            theItem->setText(QString::number(songCount));
+                            match = true;
+                        }
+                    }
+                    // if we had no match, remember the first non-matching song path
+                    if (!match && firstBadSongLine == "") {
+                        firstBadSongLine = line;
+                    }
+
+                }
+
+                lineCount++;
+            }
+        }
+
+        inputFile.close();
+
+    } else {
+        // file didn't open...
+        return;
     }
 
     ui->songTable->sortItems(kTitleCol);  // sort by title as last
     ui->songTable->sortItems(kLabelCol);  // sort by label/label# as secondary
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary
     notSorted = false;
+    ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
 
     // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
     // only do this, if there were no errors in loading the playlist numbers.
