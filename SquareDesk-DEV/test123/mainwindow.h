@@ -184,6 +184,14 @@ private:
 #define kPlaying 1
 #define kPaused  2
 
+// columns in songTable
+#define kNumberCol 0
+#define kTypeCol 1
+#define kPathCol 1
+// path is stored in the userData portion of the Type column...
+#define kLabelCol 2
+#define kTitleCol 3
+
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time
 class MyProxyStyle : public QProxyStyle

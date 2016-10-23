@@ -144,9 +144,10 @@ MainWindow::MainWindow(QWidget *parent) :
     findMusic();  // get the filenames from the user's directories
     filterMusic(); // and filter them into the songTable
 
-    ui->songTable->setColumnWidth(0,36);
-    ui->songTable->setColumnWidth(1,96);
-    ui->songTable->setColumnWidth(2,80);
+    ui->songTable->setColumnWidth(kNumberCol,36);
+    ui->songTable->setColumnWidth(kTypeCol,96);
+    ui->songTable->setColumnWidth(kLabelCol,80);
+//  kTitleCol is always expandable, so don't set width here
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -978,9 +979,9 @@ void MainWindow::filterMusic() {
     // Iterate over the songTable, saving the mapping in "path2playlistNum"
     // TODO: optimization: save this once, rather than recreating each time.
     for (int i=0; i<ui->songTable->rowCount(); i++) {
-        QTableWidgetItem *theItem = ui->songTable->item(i,0);
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         QString playlistIndex = theItem->text();  // this is the playlist #
-        QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();  // this is the full pathname
+        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();  // this is the full pathname
         if (playlistIndex != " " && playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
 //            qDebug() << "remembering playlistIndex:" << playlistIndex << ", origPath:" << pathToMP3;
@@ -1054,25 +1055,25 @@ void MainWindow::filterMusic() {
 
         newTableItem4->setTextAlignment(Qt::AlignCenter);                           // editable by default
         newTableItem4->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 0, newTableItem4);      // add it to column 0
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kNumberCol, newTableItem4);      // add it to column 0
 
         QTableWidgetItem *newTableItem2 = new QTableWidgetItem( type );
         newTableItem2->setFlags(newTableItem2->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem2->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 1, newTableItem2);      // add it to column 2
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kTypeCol, newTableItem2);      // add it to column 2
 
         QTableWidgetItem *newTableItem0 = new QTableWidgetItem( label + " " + labelnum );
         newTableItem0->setFlags(newTableItem0->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem0->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 2, newTableItem0);      // add it to column 0
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kLabelCol, newTableItem0);      // add it to column 0
 
         QTableWidgetItem *newTableItem3 = new QTableWidgetItem( title );
         newTableItem3->setFlags(newTableItem3->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem3->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, 3, newTableItem3);      // add it to column 3
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kTitleCol, newTableItem3);      // add it to column 3
 
         // keep the path around, for loading in when we double click on it
-        ui->songTable->item(ui->songTable->rowCount()-1, 1)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
+        ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
 
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
@@ -1093,8 +1094,8 @@ void MainWindow::filterMusic() {
 
     if (notSorted) {
 //        qDebug() << "SORTING FOR THE FIRST TIME";
-        ui->songTable->sortItems(2);  // sort second by label/label #
-        ui->songTable->sortItems(1);  // sort first by type (singing vs patter)
+        ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
+        ui->songTable->sortItems(kTypeCol);  // sort first by type (singing vs patter)
 
         notSorted = false;
     }
@@ -1125,12 +1126,12 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
 
     int row = item->row();
-    QString pathToMP3 = ui->songTable->item(row,1)->data(Qt::UserRole).toString();
+    QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
 
-    QString songTitle = ui->songTable->item(row,3)->text();
+    QString songTitle = ui->songTable->item(row,kTitleCol)->text();
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-    QString songType = ui->songTable->item(row,1)->text();
+    QString songType = ui->songTable->item(row,kTypeCol)->text();
 
     loadMP3File(pathToMP3, songTitle, songType);
 
@@ -1243,8 +1244,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     {
         // first, clear all the playlist numbers that are there now.
         for (int i = 0; i < ui->songTable->rowCount(); i++) {
-            QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
-                QTableWidgetItem *theItem = ui->songTable->item(i,0);
+            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+                QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                 theItem->setText("");
         }
 
@@ -1270,9 +1271,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
               bool match = false;
               // exit the loop early, if we find a match
               for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
-                  QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
+                  QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
                   if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
-                      QTableWidgetItem *theItem = ui->songTable->item(i,0);
+                      QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                       theItem->setText(QString::number(songCount));
                       match = true;
                   }
@@ -1289,9 +1290,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
        inputFile.close();
     }
 
-    ui->songTable->sortItems(2);  // sort by title as last
-    ui->songTable->sortItems(1);  // sort by label/label# as secondary
-    ui->songTable->sortItems(0);  // sort by playlist # as primary
+    ui->songTable->sortItems(kTitleCol);  // sort by title as last
+    ui->songTable->sortItems(kLabelCol);  // sort by label/label# as secondary
+    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary
     notSorted = false;
 
     // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
@@ -1346,10 +1347,10 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
-        QTableWidgetItem *theItem = ui->songTable->item(i,0);
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         QString playlistIndex = theItem->text();
-        QString pathToMP3 = ui->songTable->item(i,1)->data(Qt::UserRole).toString();
-        QString songTitle = ui->songTable->item(i,3)->text();
+        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+        QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         if (playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
 //            qDebug() << "playlistIndex:" << playlistIndex << ", MP3:" << pathToMP3 << ", Title:" << songTitle;
@@ -1417,11 +1418,11 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     ui->songTable->selectRow(row); // select new row!
 
     // load all the UI fields, as if we double-clicked on the new row
-    QString pathToMP3 = ui->songTable->item(row,1)->data(Qt::UserRole).toString();
-    QString songTitle = ui->songTable->item(row,3)->text();
+    QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+    QString songTitle = ui->songTable->item(row,kTitleCol)->text();
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-    QString songType = ui->songTable->item(row,1)->text();
+    QString songType = ui->songTable->item(row,kTypeCol)->text();
 
     loadMP3File(pathToMP3, songTitle, songType);
 
@@ -1455,11 +1456,11 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
     ui->songTable->selectRow(row); // select new row!
 
     // load all the UI fields, as if we double-clicked on the new row
-    QString pathToMP3 = ui->songTable->item(row,1)->data(Qt::UserRole).toString();
-    QString songTitle = ui->songTable->item(row,3)->text();
+    QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+    QString songTitle = ui->songTable->item(row,kTitleCol)->text();
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-    QString songType = ui->songTable->item(row,1)->text();
+    QString songType = ui->songTable->item(row,kTypeCol)->text();
 
     loadMP3File(pathToMP3, songTitle, songType);
 
@@ -1501,7 +1502,7 @@ void MainWindow::on_actionClear_Playlist_triggered()
     // Iterate over the songTable
     ui->songTable->setSortingEnabled(false);  // must turn sorting off, or else sorting on # will not clear all
     for (int i=0; i<ui->songTable->rowCount(); i++) {
-        QTableWidgetItem *theItem = ui->songTable->item(i,0);
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         theItem->setText(""); // clear out the current list
     }
     ui->songTable->setSortingEnabled(true);  // reenable sorting
@@ -1564,7 +1565,7 @@ void MainWindow::revealInFinder() {
         QModelIndex index = selected.at(0);
         row = index.row();
 
-        QString pathToMP3 = ui->songTable->item(row,1)->data(Qt::UserRole).toString();
+        QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
         showInFinderOrExplorer(pathToMP3);
     } else {
         // more than 1 row or no rows at all selected (BAD)
