@@ -25,6 +25,8 @@
 #include <QVariant>
 #include <QWheelEvent>
 
+#include <QDateTime>
+
 #include "math.h"
 #include "bass_audio.h"
 #include "myslider.h"
@@ -122,6 +124,13 @@ private slots:
 
     void on_actionPreferences_triggered();
 
+    void on_pushButtonCountDownTimerStartStop_clicked();
+    void on_pushButtonCountDownTimerReset_clicked();
+    void on_pushButtonCountUpTimerStartStop_clicked();
+    void on_pushButtonCountUpTimerReset_clicked();
+    void on_pushButtonSetIntroTime_clicked();
+    void on_timerCountUp_update();
+    void on_timerCountDown_update();
 private:
     QAction *closeAct;  // WINDOWS only
 
@@ -153,6 +162,14 @@ private:
     void filterMusic();  // filter them into the songTable
 
     QList<QString> *pathStack;
+
+    QTimer *timerCountUp;
+    qint64 timeCountUpZeroMs;
+    QTimer *timerCountDown;
+    qint64 timeCountDownZeroMs;
+    
+    bool timerStopStartClick(QTimer *&timer, QPushButton *button);
+    void updateTimer(qint64 timeZero, QLabel *label);
 
 };
 

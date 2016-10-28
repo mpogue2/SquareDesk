@@ -2,6 +2,10 @@
 #include "ui_mainwindow.h"
 #include "utility.h"
 
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+using namespace std;
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
 //
@@ -33,7 +37,9 @@ bass_audio cBass;
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    timerCountUp(NULL),
+    timerCountDown(NULL)
 {
     ui->setupUi(this);
     ui->statusBar->showMessage("");
@@ -305,6 +311,142 @@ void MainWindow::on_playButton_clicked()
     }
 }
 
+
+
+bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
+{
+    if (timer)
+    {
+        button->setText("Start");
+        timer->stop();
+        delete timer;
+        timer = NULL;
+    }
+    else
+    {
+        button->setText("Stop");
+        timer = new QTimer(this);
+        timer->start(1000);
+    }
+    return NULL != timer;
+}
+
+void MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
+{
+    QDateTime now(QDateTime::currentDateTime());
+    qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
+    int seconds = (int)((timeNowEpochMs - timeZeroEpochMs) / 1000);
+    char sign = ' ';
+    
+    if (seconds < 0)
+    {
+        sign = '-';
+        seconds = -seconds;
+    }
+        
+    stringstream ss;
+    int hours = seconds / (60*60);
+    int minutes = (seconds / 60) % 60;
+
+    ss << sign;
+    if (hours)
+        ss << hours << ":" << setw(2);
+    ss << setfill('0') << minutes << ":" << setw(2) << setfill('0') << (seconds % 60);
+    string s(ss.str());
+    cout << "Setting label to " << s << " " << timeZeroEpochMs << " " << timeNowEpochMs << endl;
+    label->setText(s.c_str());
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
+{
+    if (timerStopStartClick(timerCountDown,
+                            ui->pushButtonCountDownTimerStartStop))
+    {
+        on_pushButtonCountDownTimerReset_clicked();
+        connect(timerCountDown, SIGNAL(timeout()), this, SLOT(on_timerCountDown_update()));
+    }
+}
+
+
+
+// ----------------------------------------------------------------------
+
+const qint64 timerJitter = 50;
+
+void MainWindow::on_pushButtonCountDownTimerReset_clicked()
+{
+    QString offset(ui->lineEditCountDownTimer->text());
+
+    int seconds = 0;
+    int minutes = 0;
+    bool found_colon = false;
+
+    for (int i = 0; i < offset.length(); ++i)
+    {
+        int ch = offset[i].unicode();
+        
+        if (ch >= '0' && ch <= '9')
+        {
+            if (found_colon)
+            {
+                seconds *= 10;
+                seconds += ch - '0';
+            }
+            else
+            {
+                minutes *= 10;
+                minutes += ch - '0';
+            }
+        }
+        else if (ch == ':')
+        {
+            found_colon = true;
+        }
+        cout << "Minutes: " << minutes << ":" << seconds << " " << (char)(ch) << endl;
+    }
+    timeCountDownZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
+    timeCountDownZeroMs += (qint64)(minutes * 60 + seconds) * (qint64)(1000) + timerJitter;
+    updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer);
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_pushButtonCountUpTimerStartStop_clicked()
+{
+    if (timerStopStartClick(timerCountUp,
+                            ui->pushButtonCountUpTimerStartStop))
+    {
+        on_pushButtonCountUpTimerReset_clicked();
+        connect(timerCountUp, SIGNAL(timeout()), this, SLOT(on_timerCountUp_update()));
+    }
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_pushButtonCountUpTimerReset_clicked()
+{
+    timeCountUpZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch() + timerJitter;
+    updateTimer(timeCountUpZeroMs, ui->labelCountUpTimer);
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_pushButtonSetIntroTime_clicked()
+{
+}
+
+
+// ----------------------------------------------------------------------
+void MainWindow::on_timerCountUp_update()
+{
+    updateTimer(timeCountUpZeroMs, ui->labelCountUpTimer);
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_timerCountDown_update()
+{
+    updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer);
+}
+
+
 // ----------------------------------------------------------------------
 void MainWindow::on_pitchSlider_valueChanged(int value)
 {
@@ -518,7 +660,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
         if (!(ui->labelSearch->hasFocus() || // ui->labelNumberSearch->hasFocus() ||
-                ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus())) {
+                ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()
+              || ui->lineEditCountDownTimer->hasFocus())) {
             // call handleKeypress on the Applications's active window
             ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
             return true;
