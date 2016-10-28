@@ -131,6 +131,28 @@ private slots:
     void on_pushButtonSetIntroTime_clicked();
     void on_timerCountUp_update();
     void on_timerCountDown_update();
+
+    void on_actionLoad_Playlist_triggered();
+
+    void on_actionSave_Playlist_triggered();
+
+    void on_actionNext_Playlist_Item_triggered();
+
+    void on_actionPrevious_Playlist_Item_triggered();
+
+    void on_previousSongButton_clicked();
+
+    void on_nextSongButton_clicked();
+
+    void on_songTable_itemSelectionChanged();
+
+    void on_actionClear_Playlist_triggered();
+
+    void showInFinderOrExplorer(QString s);
+
+    void on_songTable_customContextMenuRequested(const QPoint &pos);
+    void revealInFinder();
+
 private:
     QAction *closeAct;  // WINDOWS only
 
@@ -149,7 +171,7 @@ private:
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);
-    QString position2String(int position);
+    QString position2String(int position, bool pad);
 
     bool closeEventHappened;
 
@@ -171,12 +193,21 @@ private:
     bool timerStopStartClick(QTimer *&timer, QPushButton *button);
     void updateTimer(qint64 timeZero, QLabel *label);
 
+    QString removePrefix(QString prefix, QString s);
 };
 
 // currentState:
 #define kStopped 0
 #define kPlaying 1
 #define kPaused  2
+
+// columns in songTable
+#define kNumberCol 0
+#define kTypeCol 1
+#define kPathCol 1
+// path is stored in the userData portion of the Type column...
+#define kLabelCol 2
+#define kTitleCol 3
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time

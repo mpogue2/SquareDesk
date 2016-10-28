@@ -7,7 +7,8 @@ class MySlider : public QSlider
 
 public:
     MySlider(QWidget *parent = 0);
-    void SetLoop(bool b);
+    void SetLoop(bool b);           // turn on loop points
+    void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);
@@ -15,6 +16,7 @@ protected:
 
 private:
     bool drawLoopPoints;
+    int origin;  // reset to this point when double-clicked
 
 };
 
