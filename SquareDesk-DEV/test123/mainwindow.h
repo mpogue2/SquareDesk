@@ -128,9 +128,13 @@ private slots:
     void on_pushButtonCountDownTimerReset_clicked();
     void on_pushButtonCountUpTimerStartStop_clicked();
     void on_pushButtonCountUpTimerReset_clicked();
-    void on_pushButtonSetIntroTime_clicked();
-    void on_timerCountUp_update();
-    void on_timerCountDown_update();
+
+    // TODO: add these back in, when the widget/pushbutton is added...
+//    void on_pushButtonSetIntroTime_clicked();
+
+    // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
+    void timerCountUp_update();
+    void timerCountDown_update();
 
     void on_actionLoad_Playlist_triggered();
 
@@ -161,6 +165,9 @@ private:
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath;
+    bool showTimersTab;
+
+    QMap<int,QPair<QWidget*,QString> > tabmap; // keep track of experimental tabs
 
     unsigned char currentState;
     short int currentPitch;
@@ -189,7 +196,7 @@ private:
     qint64 timeCountUpZeroMs;
     QTimer *timerCountDown;
     qint64 timeCountDownZeroMs;
-    
+
     bool timerStopStartClick(QTimer *&timer, QPushButton *button);
     void updateTimer(qint64 timeZero, QLabel *label);
 

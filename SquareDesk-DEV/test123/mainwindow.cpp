@@ -57,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     timerCountUp(NULL),
     timerCountDown(NULL)
 {
+    songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
+
     ui->setupUi(this);
     ui->statusBar->showMessage("");
 
@@ -242,6 +244,18 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songLengthLabel->setText("");
 
     inPreferencesDialog = false;
+
+    // save info about the experimental timers tab
+    // experimental timers tab is tab #1 (second tab)
+    tabmap.insert(1,QPair<QWidget*,QString>(ui->tabWidget->widget(1),ui->tabWidget->tabText(1)));
+
+    const QString EXPERIMENTALTIMERS_KEY("experimentalTimersTabEnabled");  // default is not enabled
+    QString timersEnabled = MySettings.value(EXPERIMENTALTIMERS_KEY).toString();
+
+    if (timersEnabled != "true") {
+        ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
+    }
+    ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 }
 
 // ----------------------------------------------------------------------
@@ -363,13 +377,13 @@ void MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
     qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
     int seconds = (int)((timeNowEpochMs - timeZeroEpochMs) / 1000);
     char sign = ' ';
-    
+
     if (seconds < 0)
     {
         sign = '-';
         seconds = -seconds;
     }
-        
+
     stringstream ss;
     int hours = seconds / (60*60);
     int minutes = (seconds / 60) % 60;
@@ -390,7 +404,7 @@ void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
                             ui->pushButtonCountDownTimerStartStop))
     {
         on_pushButtonCountDownTimerReset_clicked();
-        connect(timerCountDown, SIGNAL(timeout()), this, SLOT(on_timerCountDown_update()));
+        connect(timerCountDown, SIGNAL(timeout()), this, SLOT(timerCountDown_update()));
     }
 }
 
@@ -411,7 +425,7 @@ void MainWindow::on_pushButtonCountDownTimerReset_clicked()
     for (int i = 0; i < offset.length(); ++i)
     {
         int ch = offset[i].unicode();
-        
+
         if (ch >= '0' && ch <= '9')
         {
             if (found_colon)
@@ -455,23 +469,22 @@ void MainWindow::on_pushButtonCountUpTimerReset_clicked()
 }
 
 // ----------------------------------------------------------------------
-void MainWindow::on_pushButtonSetIntroTime_clicked()
-{
-}
-
+// TODO: need to create the widget/pushbutton before creating a function whose signal is matched up by name
+//void MainWindow::on_pushButtonSetIntroTime_clicked()
+//{
+//}
 
 // ----------------------------------------------------------------------
-void MainWindow::on_timerCountUp_update()
+void MainWindow::timerCountUp_update()
 {
     updateTimer(timeCountUpZeroMs, ui->labelCountUpTimer);
 }
 
 // ----------------------------------------------------------------------
-void MainWindow::on_timerCountDown_update()
+void MainWindow::timerCountDown_update()
 {
     updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer);
 }
-
 
 // ----------------------------------------------------------------------
 void MainWindow::on_pitchSlider_valueChanged(int value)
@@ -1336,8 +1349,9 @@ void MainWindow::on_actionPreferences_triggered()
     if(dialogCode == QDialog::Accepted)
     {
         // OK clicked
-        // Save the new value
         QSettings MySettings;
+
+        // Save the new value for musicPath --------
         MySettings.setValue("musicPath", dialog->musicPath); // fish out the new dir from the Preferences dialog, and save it
 
         if (dialog->musicPath != musicRootPath) { // path has changed!
@@ -1346,6 +1360,18 @@ void MainWindow::on_actionPreferences_triggered()
             filterMusic();
         }
 
+        // Save the new value for experimentalTimersTabEnabled --------
+        QString tabsetting;
+        if (dialog->experimentalTimersTabEnabled == "true") {
+            tabsetting = "true";
+            showTimersTab = true;
+            ui->tabWidget->insertTab(1, tabmap.value(1).first, tabmap.value(1).second);  // bring it back now!
+        } else {
+            tabsetting = "false";
+            showTimersTab = false;
+            ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
+        }
+        MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
     }
 
     inPreferencesDialog = false;

@@ -19,9 +19,12 @@ public:
     explicit PreferencesDialog(QWidget *parent = 0);
     ~PreferencesDialog();
     QString musicPath;
+    QString experimentalTimersTabEnabled;
 
 private slots:
     void on_chooseMusicPathButton_clicked();
+
+    void on_EnableTimersTabCheckbox_toggled(bool checked);
 
 private:
     Ui::PreferencesDialog *ui;

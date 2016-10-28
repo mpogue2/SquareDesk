@@ -7,9 +7,19 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // musicPath preference -------
     QSettings MySettings;
     musicPath = MySettings.value("musicPath").toString();
     ui->musicPath->setText(musicPath);
+
+    // Timers tab (experimental) preference -------
+    experimentalTimersTabEnabled = MySettings.value("experimentalTimersTabEnabled").toString();
+    qDebug() << "preferencesDialog, expTimers = " << experimentalTimersTabEnabled;  // FIX
+    if (experimentalTimersTabEnabled == "true") {
+        ui->EnableTimersTabCheckbox->setChecked(true);
+    } else {
+        ui->EnableTimersTabCheckbox->setChecked(false);
+    }
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -33,5 +43,16 @@ void PreferencesDialog::on_chooseMusicPathButton_clicked()
 //    qDebug() << "User selected directory: " << dir;
     ui->musicPath->setText(dir);
     musicPath = dir;
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
+}
 
+void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
+{
+    if (checked) {
+        experimentalTimersTabEnabled = "true";
+    } else {
+        experimentalTimersTabEnabled = "false";
+    }
+    qDebug() << "User selected timers tab: " << experimentalTimersTabEnabled;
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
