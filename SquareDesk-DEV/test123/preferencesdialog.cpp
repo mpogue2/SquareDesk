@@ -14,7 +14,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     // Timers tab (experimental) preference -------
     experimentalTimersTabEnabled = MySettings.value("experimentalTimersTabEnabled").toString();
-    qDebug() << "preferencesDialog, expTimers = " << experimentalTimersTabEnabled;  // FIX
+//    qDebug() << "preferencesDialog, expTimers = " << experimentalTimersTabEnabled;  // FIX
     if (experimentalTimersTabEnabled == "true") {
         ui->EnableTimersTabCheckbox->setChecked(true);
     } else {
@@ -53,6 +53,6 @@ void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
     } else {
         experimentalTimersTabEnabled = "false";
     }
-    qDebug() << "User selected timers tab: " << experimentalTimersTabEnabled;
+//    qDebug() << "User selected timers tab: " << experimentalTimersTabEnabled;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
