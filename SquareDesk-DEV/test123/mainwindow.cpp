@@ -682,7 +682,32 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if (currentPos_i == fileLen_i) {  // NOTE: tricky, counts on -1 above
             // avoids the problem of manual seek to max slider value causing auto-STOP
 //            qDebug() << "Reached the end of playback!";
-            on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
+            if (!ui->actionContinuous_Play->isChecked()) {
+                on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
+            } else {
+                // figure out which row is currently selected
+                QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
+                QModelIndexList selected = selectionModel->selectedRows();
+                int row = -1;
+                if (selected.count() == 1) {
+                    // exactly 1 row was selected (good)
+                    QModelIndex index = selected.at(0);
+                    row = index.row();
+                } else {
+                    // more than 1 row or no rows at all selected (BAD)
+            //        qDebug() << "nothing selected.";
+                    return;
+                }
+
+                int maxRow = ui->songTable->rowCount() - 1;
+
+                if (row != maxRow) {
+                    on_nextSongButton_clicked(); // pretend we pressed the NEXT SONG button when EOS is reached, then:
+                    on_playButton_clicked();     // pretend we pressed the PLAY button
+                } else {
+                    on_stopButton_clicked();     // pretend we pressed the STOP button when End of Playlist is reached
+                }
+            }
             return;
         }
 
