@@ -584,7 +584,7 @@ void MainWindow::on_actionMute_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
-    qDebug() << "on_tempoSlider_valueChanged: " << value;
+//    qDebug() << "on_tempoSlider_valueChanged: " << value;
 
     if (tempoIsBPM) {
         float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
@@ -1328,7 +1328,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
         QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
         int tempoInt = tempo2.toInt();
         ui->tempoSlider->setValue(tempoInt);
-        qDebug() << "itemDoubleClicked, setting tempo slider to:" << tempoInt << ", tempo=" << tempo;
+//        qDebug() << "itemDoubleClicked, setting tempo slider to:" << tempoInt << ", tempo=" << tempo;
     }
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
