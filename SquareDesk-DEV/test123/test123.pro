@@ -16,7 +16,8 @@ SOURCES += main.cpp\
     bass_audio.cpp \
     preferencesdialog.cpp \
     mytablewidget.cpp \
-    tablenumberitem.cpp
+    tablenumberitem.cpp \
+    myslider.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \

@@ -1,6 +1,10 @@
 #ifndef MYSLIDER_H
 #define MYSLIDER_H
 
+#include <QSlider>
+#include <QPainter>
+#include <QPen>
+
 // ---------------------------------------------
 class MySlider : public QSlider
 {
