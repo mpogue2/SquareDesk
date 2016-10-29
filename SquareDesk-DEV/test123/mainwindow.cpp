@@ -156,8 +156,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kTypeCol,96);
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kPitchCol,50);
+    ui->songTable->setColumnWidth(kTempoCol,50);
 
-    ui->songTable->setColumnHidden(kPitchCol,true); // hide the pitch column
+    // FIX: this is for debugging, but I actually like being able to see the current pitch/tempo settings (sometimes).
+    //   Might want to make visibility of these columns a Preference, or a menu item (e.g. View > Show Column >> Pitch|Tempo).
+    bool pitchAndTempoHidden = false;
+
+    if (pitchAndTempoHidden) {
+        ui->songTable->setColumnHidden(kPitchCol,true); // hide the pitch column
+        ui->songTable->setColumnHidden(kTempoCol,true); // hide the tempo column
+    } else {
+        ui->songTable->setColumnWidth(kTitleCol,450);  // FIX: this is a guess, and Title no longer expands/contracts with window size
+    }
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -573,6 +584,8 @@ void MainWindow::on_actionMute_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
+    qDebug() << "on_tempoSlider_valueChanged: " << value;
+
     if (tempoIsBPM) {
         float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
         float desiredBPM = (float)value;            // desired BPM
@@ -586,6 +599,26 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         cBass.SetTempo(newBASStempo);
         ui->currentTempoLabel->setText(QString::number(value) + "%");
     }
+
+    // update the hidden tempo column
+    QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } else {
+        // FIX: more than 1 row or no rows at all selected (BAD)
+        return;
+    }
+
+    if (tempoIsBPM) {
+        ui->songTable->item(row, kTempoCol)->setText(QString::number(value));
+    } else {
+        ui->songTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
+    }
+
 }
 
 // ----------------------------------------------------------------------
@@ -953,7 +986,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
         ui->tempoSlider->setValue(songBPM);
-        ui->tempoSlider->SetOrigin(songBPM);  // when double-clicked, goes here
+        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
                                  ", base tempo: " + QString::number(songBPM) + " BPM");
@@ -965,6 +999,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
         ui->tempoSlider->setMaximum(100+20);
         ui->tempoSlider->setValue(100);
+        ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
@@ -1208,7 +1243,13 @@ void MainWindow::filterMusic() {
         QTableWidgetItem *newTableItem5 = new QTableWidgetItem("0");
         newTableItem5->setFlags(newTableItem5->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem5->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, kPitchCol, newTableItem5);      // add it to column 4 (pitch, hidden)
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kPitchCol, newTableItem5);      // add it to column 5 (pitch, hidden)
+
+        // tempo column is hidden
+        QTableWidgetItem *newTableItem6 = new QTableWidgetItem("-1");  // -1 means "unknown"
+        newTableItem6->setFlags(newTableItem6->flags() & ~Qt::ItemIsEditable);      // not editable
+        newTableItem6->setTextColor(textCol);
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kTempoCol, newTableItem6);      // add it to column 4 (tempo, hidden)
 
         // keep the path around, for loading in when we double click on it
         ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
@@ -1271,13 +1312,24 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
 
+    // these must be up here to get the correct values...
+    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+    QString tempo = ui->songTable->item(row,kTempoCol)->text();
+
     loadMP3File(pathToMP3, songTitle, songType);
 
-    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+    // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
-//    qDebug() << "itemDoubleClicked, setting pitch slider to:" << pitchInt;
     ui->pitchSlider->setValue(pitchInt);
+//    qDebug() << "itemDoubleClicked, setting pitch slider to:" << pitchInt;
 
+    if (tempo != "-1") {
+        // iff tempo is known, then update the table
+        QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
+        int tempoInt = tempo2.toInt();
+        ui->tempoSlider->setValue(tempoInt);
+        qDebug() << "itemDoubleClicked, setting tempo slider to:" << tempoInt << ", tempo=" << tempo;
+    }
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -1406,6 +1458,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
             QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);  // clear out the hidden pitches, too
             theItem2->setText("0");
+
+            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
+            theItem3->setText("-1");
         }
 
         QTextStream in(&inputFile);
@@ -1414,7 +1469,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
             // CSV FILE =================================
             int lineCount = 1;
 
-            QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch"
+            QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
 
             while (!in.atEnd())
             {
@@ -1442,6 +1497,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
                             QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
                             theItem2->setText(list1[1]);
+
+                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+                            theItem3->setText(list1[2]);
 
                             match = true;
                         }
@@ -1487,6 +1545,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
                             QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
                             theItem2->setText("0");  // M3U doesn't have pitch yet
+
+                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+                            theItem3->setText("-1");  // M3U doesn't have tempo yet
 
                             match = true;
                         }
@@ -1566,7 +1627,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
     // --------
 //    qDebug() << "TODO: saving playlist: " << PlaylistFileName;
 
-    QMap<int, QString> imports, importsPitch;
+    QMap<int, QString> imports, importsPitch, importsTempo;
 
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
@@ -1575,6 +1636,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString pitch = ui->songTable->item(i,kPitchCol)->text();
+        QString tempo = ui->songTable->item(i,kTempoCol)->text();
 
         if (playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
@@ -1582,6 +1644,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
             // TODO: reconcile int here with float elsewhere on insertion
             imports[playlistIndex.toInt()] = pathToMP3;
             importsPitch[playlistIndex.toInt()] = pitch;
+            importsTempo[playlistIndex.toInt()] = tempo;
         }
     }
 
@@ -1619,14 +1682,16 @@ void MainWindow::on_actionSave_Playlist_triggered()
     } else if (PlaylistFileName.endsWith(".csv")) {
         if (file.open(QIODevice::ReadWrite)) {
             QTextStream stream(&file);
-            stream << "abspath,pitch" << endl;
+            stream << "abspath,pitch,tempo" << endl;
 
             // list is auto-sorted here
             QMapIterator<int, QString> i(imports);
             while (i.hasNext()) {
                 i.next();
                 //            qDebug() << i.key() << ": " << i.value();
-                stream << "\"" << i.value() << "\"," << importsPitch[i.key()] << endl; // quoted absolute path, integer pitch (no quotes)
+                stream << "\"" << i.value() << "\"," <<
+                          importsPitch[i.key()] << "," <<
+                          importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or -1)
             }
             file.close();
         } else {
@@ -1676,11 +1741,21 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
 
+    // must be up here...
+    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+    QString tempo = ui->songTable->item(row,kTempoCol)->text();
+
     loadMP3File(pathToMP3, songTitle, songType);
 
-    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+    // must be down here...
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
+
+    if (tempo != "-1") {
+        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
+        int tempoInt = tempo2.toInt();
+        ui->tempoSlider->setValue(tempoInt);
+    }
 
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
@@ -1718,11 +1793,21 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
 
+    // must be up here...
+    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+    QString tempo = ui->songTable->item(row,kTempoCol)->text();
+
     loadMP3File(pathToMP3, songTitle, songType);
 
-    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+    // must be down here...
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
+
+    if (tempo != "-1") {
+        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
+        int tempoInt = tempo.toInt();
+        ui->tempoSlider->setValue(tempoInt);
+    }
 
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
@@ -1768,6 +1853,10 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the pitches.  They are persistent within a session.
 //        QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
 //        theItem2->setText("0"); // clear out the current list
+
+        // let's intentionally NOT clear the tempos.  They are persistent within a session.
+//        QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+//        theItem2->setText("100%"); // clear out the current list
     }
 
     ui->songTable->sortItems(kLabelCol);  // sort second by label/label #

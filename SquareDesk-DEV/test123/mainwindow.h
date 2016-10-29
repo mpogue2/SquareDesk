@@ -220,6 +220,7 @@ private:
 
 // hidden columns:
 #define kPitchCol 4
+#define kTempoCol 5
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time

@@ -829,6 +829,11 @@
              <string>Pitch</string>
             </property>
            </column>
+           <column>
+            <property name="text">
+             <string>Tempo</string>
+            </property>
+           </column>
           </widget>
          </widget>
         </item>
