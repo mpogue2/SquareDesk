@@ -218,6 +218,9 @@ private:
 #define kLabelCol 2
 #define kTitleCol 3
 
+// hidden columns:
+#define kPitchCol 4
+
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time
 class MyProxyStyle : public QProxyStyle

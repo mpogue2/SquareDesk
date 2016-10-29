@@ -824,6 +824,11 @@
              <string>Title</string>
             </property>
            </column>
+           <column>
+            <property name="text">
+             <string>Pitch</string>
+            </property>
+           </column>
           </widget>
          </widget>
         </item>
