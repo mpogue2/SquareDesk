@@ -157,6 +157,8 @@ private slots:
     void on_songTable_customContextMenuRequested(const QPoint &pos);
     void revealInFinder();
 
+    void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
+
 private:
     QAction *closeAct;  // WINDOWS only
 

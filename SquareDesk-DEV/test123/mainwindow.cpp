@@ -256,6 +256,9 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
+
+    connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
+            this, &MainWindow::columnHeaderResized);
 }
 
 // ----------------------------------------------------------------------
@@ -652,6 +655,8 @@ void MainWindow::on_seekBar_valueChanged(int value)
 // ----------------------------------------------------------------------
 void MainWindow::on_clearSearchButton_clicked()
 {
+    // FIX: bug when clearSearch is pressed, the order in the songTable can change.
+
     // figure out which row is currently selected
     QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -1162,6 +1167,7 @@ void MainWindow::filterMusic() {
     QStringList m_TableHeader;
     m_TableHeader<< "#" << "Type" << "Label" << "Title";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
+    ui->songTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->songTable->horizontalHeader()->setVisible(true);
 
     QListIterator<QString> iter(*pathStack);
@@ -1832,4 +1838,86 @@ void MainWindow::revealInFinder() {
         // more than 1 row or no rows at all selected (BAD)
 //        qDebug() << "nothing selected.";
     }
+}
+
+void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int newSize) {
+    int x1,y1,w1,h1;
+    int x2,y2,w2,h2;
+    int x3,y3,w3,h3;
+
+    switch (logicalIndex) {
+    case 0: // #
+        // FIX: there's a bug here if the # column width is changed.  Qt doesn't seem to keep track of
+        //  the correct size of the # column thereafter.  This is particularly visible on Win10, but it's
+        //  also present on Mac OS X (Sierra).
+        x1 = newSize + 14;
+        y1 = ui->typeSearch->y();
+        w1 = ui->songTable->columnWidth(1) - 5;
+        h1 = ui->typeSearch->height();
+        ui->typeSearch->setGeometry(x1,y1,w1,h1);
+
+        x2 = x1 + w1 + 6 - 1;
+        y2 = ui->labelSearch->y();
+        w2 = ui->songTable->columnWidth(2) - 5;
+        h2 = ui->labelSearch->height();
+        ui->labelSearch->setGeometry(x2,y2,w2,h2);
+
+        x3 = x2 + w2 + 6;
+        y3 = ui->titleSearch->y();
+        w3 = ui->songTable->width() - ui->clearSearchButton->width() - x3;
+        h3 = ui->titleSearch->height();
+        ui->titleSearch->setGeometry(x3,y3,w3,h3);
+
+        break;
+
+    case 1: // Type
+        x1 = ui->songTable->columnWidth(0) + 35;
+        y1 = ui->typeSearch->y();
+        w1 = newSize - 4;
+        h1 = ui->typeSearch->height();
+        ui->typeSearch->setGeometry(x1,y1,w1,h1);
+        ui->typeSearch->setFixedWidth(w1);
+
+        x2 = x1 + w1 + 6;
+        y2 = ui->labelSearch->y();
+//        w2 = ui->labelSearch->width();
+        w2 = ui->songTable->columnWidth(2) - 6;
+        h2 = ui->labelSearch->height();
+        ui->labelSearch->setGeometry(x2,y2,w2,h2);
+        ui->labelSearch->setFixedWidth(w2);
+
+        x3 = x2 + w2 + 6;
+        y3 = ui->titleSearch->y();
+        w3 = ui->songTable->width() - ui->clearSearchButton->width() - x3 + 17;
+        h3 = ui->titleSearch->height();
+        ui->titleSearch->setGeometry(x3,y3,w3,h3);
+        break;
+
+    case 2: // Label
+        x1 = ui->typeSearch->x();
+        y1 = ui->typeSearch->y();
+        w1 = ui->typeSearch->width();
+        h1 = ui->typeSearch->height();
+
+        x2 = x1 + w1 + 6;
+        y2 = ui->labelSearch->y();
+        w2 = newSize - 6;
+        h2 = ui->labelSearch->height();
+        ui->labelSearch->setGeometry(x2,y2,w2,h2);
+        ui->labelSearch->setFixedWidth(w2);
+
+        x3 = x2 + w2 + 6;
+        y3 = ui->titleSearch->y();
+        w3 = ui->songTable->width() - ui->clearSearchButton->width() - x3 + 17;
+        h3 = ui->titleSearch->height();
+        ui->titleSearch->setGeometry(x3,y3,w3,h3);
+        break;
+
+    case 3: // Title
+        break;
+
+    default:
+        break;
+    }
+
 }
