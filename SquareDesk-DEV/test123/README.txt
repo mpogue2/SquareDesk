@@ -5,7 +5,21 @@ merged in the suggestions I was keeping in the .cpp file.
 
 ===========================
 FIXED RECENTLY:
+BUG: Tempo slider now goes to initial value when double-clicked.
+FEATURE: Tip timers are now included (experimental feature, use Preferences to enable)
+FEATURE: Playlists now supported.  Click in the # column, then wait 2 sec, and click again to edit.
+FEATURE: Playlists can be saved in M3U or CSV format.  CSV format also saves your last pitch/tempo changes.
+FEATURE: You can make a playlist that contains your favorites (name it anything you like).  You can
+   also use Playlists to keep track of what you want to play at your next Club.  Just create a playlist
+   for each club.
+FEATURE: Resize of columns in songTable now resizes the search fields to match.
+FEATURE: Next song, Previous song buttons take you to the next item in the song list.
+FEATURE: Continuous play -- when a song reaches the end, the next song on the list will automatically
+  start, if "Continuous Play" is turned on.
+FEATURE: Double-clicking on the Tempo slider now brings you back to the original tempo (possibly
+  one that you specified).
 
+---
 P1: When song table was stable-sorted (e.g. by clicking on Title), any attempt to use the search filters
       would put the search back to the default (by type, by label, by title).
 P1: Combined the Label and Label # fields [Cal Campbell suggestion], and reordered them
@@ -57,8 +71,6 @@ BUGS (high priority):
 //        HandleKeypress(), before the menus get them.
 // BUG: Windows only -- font sizes are not consistent with Mac font sizes (known problem with Qt, but 
 //        fix is to set them manually)
-// BUG: Tempo slider should go to initial value when double-clicked (subclass from MySlider).
-//      Note: currently MySlider always goes to zero.  Need to add a member variable for initial value.
 
 ===========================
 Mike's current TODO list (lower priority):
@@ -73,8 +85,6 @@ Mike's current TODO list (lower priority):
 // FUTURE: singing: auto turn on lyrics during PLAYBACK ONLY (like SqView)
 // FUTURE: preview mode (plays first few sec of any song you click on, without loading it)
 // FUTURE: audio level indicator (helps debug output problems)
-// FUTURE: save pitch/tempo/etc in a database with one entry for each song basename
-//   Also a Don Beck request.
 // FUTURE: singing call should tell me OPENER/BREAK/CLOSER/1/2/3/4 (auto switches to this mode for singing calls)
 //   Can make this approximate, just by song length (divided by 7 or so, like SqView does...)
 //   Also Don Beck request.
@@ -116,9 +126,6 @@ to do so):
 Extracted from Don Beck's email suggestions:
 
 P1: frequency count of play times, allow sort by this field (I think Dan has this in the Python player)
-P1: ability to set tempo on a per song basis (should not have to adjust it each time)
-      NOTE: does NOT save the last tempo, rather you have to explicitly set it
-      Maybe this info could be kept in the playlist?  TempoOverride=123 in the comment?
 P1: Save EQ for each song, maybe also in the playlist?  Bass=+5,Mid=-2,Treble=+1 in the comment?
 P1: Ability to set loop points for each song
 P2: Fade out button would be nice (like SqView).
@@ -131,7 +138,6 @@ Extracted from Don Beck's SECOND ROUND of email suggestions:
 P1: Stereo/Mono button is hard to tell whether it shows the mode, or what you go to when pressing it
 P1: All column heads were highlighted?  (Could be due to him being on a VERY old Mac OS release)
 P3: Black text on blue band (almost certainly the old Mac OS X release.  I don't see this on El Capitan.)
-P2: Resize of columns in songTable should also resize the search fields to match.  (Nice idea!)
 P1: Put the fact that the search fields work together into the Manual.
 
 ===========================
