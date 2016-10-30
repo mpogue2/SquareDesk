@@ -159,16 +159,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kPitchCol,50);
     ui->songTable->setColumnWidth(kTempoCol,50);
 
-    // FIX: this is for debugging, but I actually like being able to see the current pitch/tempo settings (sometimes).
-    //   Might want to make visibility of these columns a Preference, or a menu item (e.g. View > Show Column >> Pitch|Tempo).
-    bool pitchAndTempoHidden = false;
+    // ----------
+    const QString EXPERIMENTALPITCHTEMPO_KEY("experimentalPitchTempoViewEnabled");  // default is not enabled
+    QString pitchTempoViewEnabled = MySettings.value(EXPERIMENTALPITCHTEMPO_KEY).toString();
+//    qDebug() << "pitchTempoViewEnabled" << pitchTempoViewEnabled;
+    pitchAndTempoHidden = (pitchTempoViewEnabled != "true");  // if blank (not set), will be remembered as false
 
-    if (pitchAndTempoHidden) {
-        ui->songTable->setColumnHidden(kPitchCol,true); // hide the pitch column
-        ui->songTable->setColumnHidden(kTempoCol,true); // hide the tempo column
-    } else {
-        ui->songTable->setColumnWidth(kTitleCol,450);  // FIX: this is a guess, and Title no longer expands/contracts with window size
-    }
+    updatePitchTempoView(); // update the actual view of these 2 columns in the songTable
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -262,6 +259,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // experimental timers tab is tab #1 (second tab)
     tabmap.insert(1,QPair<QWidget*,QString>(ui->tabWidget->widget(1),ui->tabWidget->tabText(1)));
 
+    // ----------
     const QString EXPERIMENTALTIMERS_KEY("experimentalTimersTabEnabled");  // default is not enabled
     QString timersEnabled = MySettings.value(EXPERIMENTALTIMERS_KEY).toString();
 
@@ -270,6 +268,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
+    // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
 }
@@ -279,6 +278,32 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+
+// ----------------------------------------------------------------------
+void MainWindow::updatePitchTempoView() {
+//    qDebug() << "updatePitchTempoView()";
+    if (pitchAndTempoHidden) {
+        ui->songTable->setColumnHidden(kPitchCol,true); // hide the pitch column
+        ui->songTable->setColumnHidden(kTempoCol,true); // hide the tempo column
+    } else {
+//        ui->songTable->setColumnWidth(kTitleCol,450);  // FIX: this is a guess, and Title no longer expands/contracts with window size
+
+        ui->songTable->setColumnHidden(kPitchCol,false); // show the pitch column
+        ui->songTable->setColumnHidden(kTempoCol,false); // show the tempo column
+
+        // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
+        QHeaderView *headerView = ui->songTable->horizontalHeader();
+        headerView->setSectionResizeMode(kNumberCol, QHeaderView::Interactive);
+        headerView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
+        headerView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
+        headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+        headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
+        headerView->setStretchLastSection(false);
+    }
+}
+
 
 // ----------------------------------------------------------------------
 void MainWindow::on_loopButton_toggled(bool checked)
@@ -1271,7 +1296,7 @@ void MainWindow::filterMusic() {
         ui->songTable->setItem(ui->songTable->rowCount()-1, kPitchCol, newTableItem5);      // add it to column 5 (pitch, hidden)
 
         // tempo column is hidden
-        QTableWidgetItem *newTableItem6 = new QTableWidgetItem("-1");  // -1 means "unknown"
+        QTableWidgetItem *newTableItem6 = new QTableWidgetItem("0");  // 0 means "use base tempo"
         newTableItem6->setFlags(newTableItem6->flags() & ~Qt::ItemIsEditable);      // not editable
         newTableItem6->setTextColor(textCol);
         ui->songTable->setItem(ui->songTable->rowCount()-1, kTempoCol, newTableItem6);      // add it to column 4 (tempo, hidden)
@@ -1348,7 +1373,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     ui->pitchSlider->setValue(pitchInt);
 //    qDebug() << "itemDoubleClicked, setting pitch slider to:" << pitchInt;
 
-    if (tempo != "-1") {
+    if (tempo != "0") {
         // iff tempo is known, then update the table
         QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
         int tempoInt = tempo2.toInt();
@@ -1418,14 +1443,32 @@ void MainWindow::on_actionPreferences_triggered()
         QString tabsetting;
         if (dialog->experimentalTimersTabEnabled == "true") {
             tabsetting = "true";
+            if (!showTimersTab) {
+                // iff the tab was NOT showing, make it show up now
+                ui->tabWidget->insertTab(1, tabmap.value(1).first, tabmap.value(1).second);  // bring it back now!
+            }
             showTimersTab = true;
-            ui->tabWidget->insertTab(1, tabmap.value(1).first, tabmap.value(1).second);  // bring it back now!
         } else {
             tabsetting = "false";
+            if (showTimersTab) {
+                // iff timers tab was showing, remove it
+                ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
+            }
             showTimersTab = false;
-            ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
         }
         MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
+
+        // Save the new value for experimentalPitchTempoViewEnabled --------
+        QString viewsetting;
+        if (dialog->experimentalPitchTempoViewEnabled == "true") {
+            viewsetting = "true";
+            pitchAndTempoHidden = false;
+        } else {
+            viewsetting = "false";
+            pitchAndTempoHidden = true;
+        }
+        MySettings.setValue("experimentalPitchTempoViewEnabled", viewsetting); // save the new experimental tab setting
+        updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
     }
 
     inPreferencesDialog = false;
@@ -1485,7 +1528,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
             theItem2->setText("0");
 
             QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
-            theItem3->setText("-1");
+            theItem3->setText("0");
         }
 
         QTextStream in(&inputFile);
@@ -1572,7 +1615,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                             theItem2->setText("0");  // M3U doesn't have pitch yet
 
                             QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-                            theItem3->setText("-1");  // M3U doesn't have tempo yet
+                            theItem3->setText("0");  // M3U doesn't have tempo yet
 
                             match = true;
                         }
@@ -1716,7 +1759,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
                 //            qDebug() << i.key() << ": " << i.value();
                 stream << "\"" << i.value() << "\"," <<
                           importsPitch[i.key()] << "," <<
-                          importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or -1)
+                          importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
             }
             file.close();
         } else {
@@ -1776,7 +1819,7 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "-1") {
+    if (tempo != "0") {
         QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
         int tempoInt = tempo2.toInt();
         ui->tempoSlider->setValue(tempoInt);
@@ -1828,7 +1871,7 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "-1") {
+    if (tempo != "0") {
         QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
         int tempoInt = tempo.toInt();
         ui->tempoSlider->setValue(tempoInt);

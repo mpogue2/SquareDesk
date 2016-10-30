@@ -20,11 +20,14 @@ public:
     ~PreferencesDialog();
     QString musicPath;
     QString experimentalTimersTabEnabled;
+    QString experimentalPitchTempoViewEnabled;
 
 private slots:
     void on_chooseMusicPathButton_clicked();
 
     void on_EnableTimersTabCheckbox_toggled(bool checked);
+
+    void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
 
 private:
     Ui::PreferencesDialog *ui;

@@ -167,7 +167,9 @@ private:
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath;
-    bool showTimersTab;
+
+    bool showTimersTab;  // EXPERIMENTAL TIMERS STUFF
+    bool pitchAndTempoHidden;  // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
 
     QMap<int,QPair<QWidget*,QString> > tabmap; // keep track of experimental tabs
 
@@ -194,6 +196,7 @@ private:
 
     QList<QString> *pathStack;
 
+    // Experimental Timer stuff
     QTimer *timerCountUp;
     qint64 timeCountUpZeroMs;
     QTimer *timerCountDown;
@@ -203,6 +206,8 @@ private:
     void updateTimer(qint64 timeZero, QLabel *label);
 
     QString removePrefix(QString prefix, QString s);
+
+    void updatePitchTempoView();
 };
 
 // currentState:
