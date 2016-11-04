@@ -2,10 +2,11 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SquareDeskPlayer"
-#define MyAppVersion "0.4.5"
+#define MyAppVersion "0.5.0"
 #define MyAppPublisher "Zenstar Software"
 #define MyAppURL "http://www.squaredesk.net"
 #define MyAppExeName "SquareDeskPlayer.exe"
+#define DeployDirectory "c:\cygwin\home\mpogue\deploySquareDesk"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -29,8 +30,10 @@ OutputBaseFilename={#MyAppName}_{#MyAppVersion}_setup
 Compression=lzma
 SolidCompression=yes
 ;SetupIconFile=Z:\_squareMike\build-FuzonMp3-Desktop_Qt_5_4_2_MSVC2013_32bit2-Release\release\desk1d.ico
-SetupIconFile=U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\desk1d.ico
-; after compile, result will be "setup.exe", so you should rename to "SquareDeskPlayer_X.Y.Z_setup.exe"
+;SetupIconFile=X:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\desk1d.ico
+SetupIconFile={#DeployDirectory}\desk1d.ico
+
+; after compile, result will be in "C:\sdesk_out\SquareDeskPlayer_X.Y.Z_setup.exe"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -40,37 +43,46 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\SquareDeskPlayer.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\bass.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\bass_fx.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\icudt54.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\icuin54.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\icuuc54.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Core.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Gui.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Multimedia.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5MultimediaWidgets.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Network.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5OpenGL.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Positioning.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5PrintSupport.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Qml.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Quick.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Sensors.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Sql.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5WebChannel.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5WebKit.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5WebKitWidgets.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\Qt5Widgets.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\tag.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
-;Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\sqView_utility.db"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\msvcp120.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\msvcr120.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\platforms\qwindows.dll"; DestDir: "{app}\platforms"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\qsqlite.dll"; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\plugins\imageformats\qico.dll"; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
-Source: "U:\SquareDeskPlayer\SquareDesk-DEV\build-test123-Desktop_Qt_5_7_0_MSVC2013_32bit-Release\release\desk1d.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\bass.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\bass_fx.dll; DestDir: "{app}"; Flags: ignoreversion
+; intentionally not deploying D3Dcompiler_47.dll
+Source: {#DeployDirectory}\desk1d.ico; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\icudt54.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\icuin54.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\icuuc54.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\libEGL.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\libGLESV2.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\msvcp120.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\msvcr120.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\msvcp140.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\vcruntime140.dll; DestDir: "{app}"; Flags: ignoreversion
+; intentionally not deploying opengl32sw.dll
+Source: {#DeployDirectory}\iconengines\qsvgicon.dll; DestDir: "{app}\iconengines"; Flags: ignoreversion
+Source: {#DeployDirectory}\platforms\qwindows.dll; DestDir: "{app}\platforms"; Flags: ignoreversion
+Source: {#DeployDirectory}\plugins\imageformats\qico.dll; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
+Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
+Source: {#DeployDirectory}\Qt5Core.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\Qt5Gui.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Multimedia.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5MultimediaWidgets.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Network.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5OpenGL.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Positioning.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5PrintSupport.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Qml.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Quick.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Sensors.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5Sql.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5WebChannel.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5WebKit.dll; DestDir: "{app}"; Flags: ignoreversion
+;Source: {#DeployDirectory}\Qt5WebKitWidgets.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\Qt5Svg.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\Qt5Widgets.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\SquareDeskPlayer.exe; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\tag.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\zlib1.dll; DestDir: "{app}"; Flags: ignoreversion
+; intentionally not deploying translations directory and contents...(yet)
+;Source: {#DeployDirectory}\sqView_utility.db; DestDir: "{app}"; Flags: ignoreversion
 
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
