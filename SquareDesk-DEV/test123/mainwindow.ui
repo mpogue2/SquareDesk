@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1050</width>
-    <height>810</height>
+    <width>697</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,16 +43,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="3" colspan="2">
-           <widget class="QLabel" name="currentPitchLabel">
-            <property name="text">
-             <string>0 semitones</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QToolButton" name="monoButton">
             <property name="enabled">
@@ -78,104 +68,6 @@
             </property>
             <property name="toolButtonStyle">
              <enum>Qt::ToolButtonTextOnly</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QToolButton" name="loopButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <strikeout>true</strikeout>
-             </font>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>LOOP</string>
-            </property>
-            <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="currentLocLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>42</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>100</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>.SF NS Text</family>
-              <pointsize>13</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>   0:00</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="playButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>56</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>P</string>
             </property>
            </widget>
           </item>
@@ -216,28 +108,8 @@
             </property>
            </widget>
           </item>
-          <item row="4" column="3" colspan="2">
-           <widget class="QLabel" name="currentVolumeLabel">
-            <property name="text">
-             <string>MAX</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="volumeLabel">
-            <property name="text">
-             <string>Volume</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="stopButton">
+          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="playButton">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -249,7 +121,7 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>48</width>
+              <width>56</width>
               <height>0</height>
              </size>
             </property>
@@ -263,7 +135,74 @@
              <enum>Qt::NoFocus</enum>
             </property>
             <property name="text">
-             <string>S</string>
+             <string>P</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLabel" name="currentLocLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>42</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>.SF NS Text</family>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>   0:00</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QToolButton" name="loopButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <strikeout>true</strikeout>
+             </font>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>LOOP</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -278,11 +217,21 @@
             <property name="font">
              <font>
               <family>.SF NS Text</family>
-              <pointsize>13</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
              <string>/ 1:23</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="volumeLabel">
+            <property name="text">
+             <string>Volume</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -317,43 +266,44 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="2">
-           <widget class="MySlider" name="pitchSlider">
+          <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="stopButton">
             <property name="enabled">
              <bool>false</bool>
             </property>
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
             </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
             </property>
-            <property name="minimum">
-             <number>-5</number>
+            <property name="text">
+             <string>S</string>
             </property>
-            <property name="maximum">
-             <number>5</number>
+           </widget>
+          </item>
+          <item row="4" column="3" colspan="2">
+           <widget class="QLabel" name="currentVolumeLabel">
+            <property name="text">
+             <string>MAX</string>
             </property>
-            <property name="pageStep">
-             <number>2</number>
-            </property>
-            <property name="value">
-             <number>0</number>
-            </property>
-            <property name="sliderPosition">
-             <number>0</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
-            </property>
-            <property name="tickInterval">
-             <number>1</number>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -364,65 +314,6 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="MySlider" name="seekBar">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="maximum">
-             <number>180</number>
-            </property>
-            <property name="value">
-             <number>30</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
-            </property>
-            <property name="tickInterval">
-             <number>10</number>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="3" colspan="2">
-           <widget class="QLabel" name="currentMixLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>90</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>50% L / 50% R</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -469,8 +360,8 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="3" colspan="2">
-           <widget class="QLabel" name="currentTempoLabel">
+          <item row="5" column="3" colspan="2">
+           <widget class="QLabel" name="currentMixLabel">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -479,27 +370,114 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>100</width>
+              <width>90</width>
               <height>0</height>
              </size>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>90</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
-             <string/>
+             <string>50% L / 50% R</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="0" column="2" colspan="3">
-           <widget class="QLabel" name="nowPlayingLabel">
-            <property name="font">
-             <font>
-              <pointsize>24</pointsize>
-             </font>
+          <item row="3" column="2">
+           <widget class="MySlider" name="pitchSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="minimum">
+             <number>-5</number>
+            </property>
+            <property name="maximum">
+             <number>5</number>
+            </property>
+            <property name="pageStep">
+             <number>2</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="sliderPosition">
+             <number>0</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBothSides</enum>
+            </property>
+            <property name="tickInterval">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="MySlider" name="seekBar">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="maximum">
+             <number>180</number>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBothSides</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QPushButton" name="nextSongButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="text">
-             <string/>
+             <string>&gt;&gt;|</string>
             </property>
            </widget>
           </item>
@@ -535,25 +513,25 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QPushButton" name="nextSongButton">
+          <item row="2" column="3" colspan="2">
+           <widget class="QLabel" name="currentTempoLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize">
+            <property name="minimumSize">
              <size>
-              <width>48</width>
-              <height>22</height>
+              <width>100</width>
+              <height>0</height>
              </size>
             </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
             <property name="text">
-             <string>&gt;&gt;|</string>
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -731,6 +709,40 @@
               </item>
              </layout>
             </widget>
+           </widget>
+          </item>
+          <item row="3" column="3" colspan="2">
+           <widget class="QLabel" name="currentPitchLabel">
+            <property name="text">
+             <string>0 semitones</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="3">
+           <widget class="QLabel" name="nowPlayingLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
            </widget>
           </item>
          </layout>
@@ -1082,7 +1094,7 @@
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;== BASIC ==&lt;/span&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;&lt;br/&gt;1. Circle Left / Circle Right&lt;br/&gt;2. Forward and Back&lt;br/&gt;3. Dosado / Dosado to a Wave&lt;br/&gt;4. Swing&lt;br/&gt;5. Promenade Family&lt;br/&gt;--a. Couples (Full, 1/2, 3/4) &lt;br/&gt;--b. Single File Promenade &lt;br/&gt;--c. Wrong Way Promenade &lt;br/&gt;--d. Star Promenade&lt;br/&gt;6. Allemande Left&lt;br/&gt;7. Arm Turns&lt;br/&gt;8. Right and Left Grand Family&lt;br/&gt;--a. Right and Left Grand &lt;br/&gt;--b. Weave the Ring&lt;br/&gt;--c. Wrong Way Grand&lt;br/&gt;9. Left-Hand Star / Right-Hand Star&lt;br/&gt;10. Pass Thru&lt;br/&gt;11. Half Sashay Family&lt;br/&gt;--a. Half Sashay&lt;br/&gt;--b. Rollaway&lt;br/&gt;--c. Ladies In, Men Sashay&lt;br/&gt;12. Turn Back Family &lt;br/&gt;--a. U-Turn Back&lt;br/&gt;--b. Backtrack&lt;br/&gt;13. Separate&lt;br/&gt;--a. Around 1 or 2 to a Line &lt;br/&gt;--b. Around 1 or 2 and Come Into the Middle&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== BASIC ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;1. Circle Left / Circle Right&lt;br/&gt;2. Forward and Back&lt;br/&gt;3. Dosado / Dosado to a Wave&lt;br/&gt;4. Swing&lt;br/&gt;5. Promenade Family&lt;br/&gt;--a. Couples (Full, 1/2, 3/4) &lt;br/&gt;--b. Single File Promenade &lt;br/&gt;--c. Wrong Way Promenade &lt;br/&gt;--d. Star Promenade&lt;br/&gt;6. Allemande Left&lt;br/&gt;7. Arm Turns&lt;br/&gt;8. Right and Left Grand Family&lt;br/&gt;--a. Right and Left Grand &lt;br/&gt;--b. Weave the Ring&lt;br/&gt;--c. Wrong Way Grand&lt;br/&gt;9. Left-Hand Star / Right-Hand Star&lt;br/&gt;10. Pass Thru&lt;br/&gt;11. Half Sashay Family&lt;br/&gt;--a. Half Sashay&lt;br/&gt;--b. Rollaway&lt;br/&gt;--c. Ladies In, Men Sashay&lt;br/&gt;12. Turn Back Family &lt;br/&gt;--a. U-Turn Back&lt;br/&gt;--b. Backtrack&lt;br/&gt;13. Separate&lt;br/&gt;--a. Around 1 or 2 to a Line &lt;br/&gt;--b. Around 1 or 2 and Come Into the Middle&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1097,7 +1109,7 @@
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;14. Split Two&lt;br/&gt;15. Courtesy Turn&lt;br/&gt;16. Ladies Chain Family&lt;br/&gt;--a. Two Ladies Chain (Reg. &amp;amp; 3/4) &lt;br/&gt;--b. Four Ladies Chain(Reg. &amp;amp; 3/4)&lt;br/&gt;--c. Chain Down the Line&lt;br/&gt;17. Do Paso&lt;br/&gt;18. Lead Right&lt;br/&gt;19. Veer Left / Veer Right&lt;br/&gt;20. Bend the Line&lt;br/&gt;21. Circulate Family&lt;br/&gt;--a. (Named Dancers) Circulate &lt;br/&gt;--b. Couples Circulate&lt;br/&gt;--c. All Eight Circulate&lt;br/&gt;--d. Single File Circulate&lt;br/&gt;--e. Split/Box Circulate&lt;br/&gt;22. Right and Left Thru&lt;br/&gt;23. Grand Square&lt;br/&gt;24. Star Thru&lt;br/&gt;25. California Twirl&lt;br/&gt;26. Walk Around the Corner&lt;br/&gt;27. See Saw&lt;br/&gt;28. Square Thru (1, 2, 3, 4) / Left Square Thru (1, 2, 3, 4)&lt;br/&gt;29. Circle to a Line&lt;br/&gt;30. Dive Thru&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;14. Split Two&lt;br/&gt;15. Courtesy Turn&lt;br/&gt;16. Ladies Chain Family&lt;br/&gt;--a. Two Ladies Chain (Reg. &amp;amp; 3/4) &lt;br/&gt;--b. Four Ladies Chain(Reg. &amp;amp; 3/4)&lt;br/&gt;--c. Chain Down the Line&lt;br/&gt;17. Do Paso&lt;br/&gt;18. Lead Right&lt;br/&gt;19. Veer Left / Veer Right&lt;br/&gt;20. Bend the Line&lt;br/&gt;21. Circulate Family&lt;br/&gt;--a. (Named Dancers) Circulate &lt;br/&gt;--b. Couples Circulate&lt;br/&gt;--c. All Eight Circulate&lt;br/&gt;--d. Single File Circulate&lt;br/&gt;--e. Split/Box Circulate&lt;br/&gt;22. Right and Left Thru&lt;br/&gt;23. Grand Square&lt;br/&gt;24. Star Thru&lt;br/&gt;25. California Twirl&lt;br/&gt;26. Walk Around the Corner&lt;br/&gt;27. See Saw&lt;br/&gt;28. Square Thru (1, 2, 3, 4) / Left Square Thru (1, 2, 3, 4)&lt;br/&gt;29. Circle to a Line&lt;br/&gt;30. Dive Thru&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1133,7 +1145,7 @@
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:13pt;&quot;&gt;31. Wheel Around &lt;br/&gt;32. Thar Family&lt;br/&gt;--a. Allemande Thar&lt;br/&gt;--b. Allemande Left to an Allemande Thar &lt;br/&gt;--c. Wrong Way Thar&lt;br/&gt;33. Slip the Clutch &lt;br/&gt;34. Shoot the Star / Shoot the Star Full Around &lt;br/&gt;35. Box the Gnat&lt;br/&gt;36. Trade Family&lt;br/&gt;--a. (Named Dancers) Trade &lt;br/&gt;--b. Couples Trade&lt;br/&gt;--c. Partner Trade&lt;br/&gt;37. Ocean Wave Family&lt;br/&gt;--a. Step to a Wave&lt;br/&gt;--b. Balance&lt;br/&gt;38. Alamo Style&lt;br/&gt;39. Swing Thru / Left Swing Thru &lt;br/&gt;40. Run / Cross Run&lt;br/&gt;41. Pass the Ocean&lt;br/&gt;42. Extend&lt;br/&gt;43. Wheel and Deal&lt;br/&gt;44. Double Pass Thru&lt;br/&gt;45. First Couple Go Left/Right, Next Couple Go Left/Right &lt;br/&gt;46. Zoom&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;31. Wheel Around &lt;br/&gt;32. Thar Family&lt;br/&gt;--a. Allemande Thar&lt;br/&gt;--b. Allemande Left to an Allemande Thar &lt;br/&gt;--c. Wrong Way Thar&lt;br/&gt;33. Slip the Clutch &lt;br/&gt;34. Shoot the Star / Shoot the Star Full Around &lt;br/&gt;35. Box the Gnat&lt;br/&gt;36. Trade Family&lt;br/&gt;--a. (Named Dancers) Trade &lt;br/&gt;--b. Couples Trade&lt;br/&gt;--c. Partner Trade&lt;br/&gt;37. Ocean Wave Family&lt;br/&gt;--a. Step to a Wave&lt;br/&gt;--b. Balance&lt;br/&gt;38. Alamo Style&lt;br/&gt;39. Swing Thru / Left Swing Thru &lt;br/&gt;40. Run / Cross Run&lt;br/&gt;41. Pass the Ocean&lt;br/&gt;42. Extend&lt;br/&gt;43. Wheel and Deal&lt;br/&gt;44. Double Pass Thru&lt;br/&gt;45. First Couple Go Left/Right, Next Couple Go Left/Right &lt;br/&gt;46. Zoom&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1145,11 +1157,11 @@
             <property name="font">
              <font>
               <family>Arial</family>
-              <pointsize>13</pointsize>
+              <pointsize>8</pointsize>
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;47. Flutterwheel / Reverse Flutterwheel&lt;br/&gt;48. Sweep a Quarter &lt;br/&gt;49. Trade By&lt;br/&gt;50. Touch 1/4&lt;br/&gt;51. Ferris Wheel&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;== MAINSTREAM ==&lt;/span&gt;&lt;br/&gt;52. Cloverleaf&lt;br/&gt;53. Turn Thru&lt;br/&gt;54. Eight Chain Thru / Eight Chain 1, 2, 3, Etc.&lt;br/&gt;55. Pass to the Center&lt;br/&gt;56. Single Hinge / Couples Hinge &lt;br/&gt;57. Centers In&lt;br/&gt;58. Cast Off 3/4&lt;br/&gt;59. Spin the Top&lt;br/&gt;60. Walk and Dodge&lt;br/&gt;61. Slide Thru&lt;br/&gt;62. Fold / Cross Fold&lt;br/&gt;63. Dixie Style to an Ocean Wave &lt;br/&gt;64. Spin Chain Thru&lt;br/&gt;65. Tag the Line (In/Out/Left/Right) &lt;br/&gt;66. Half Tag&lt;br/&gt;67. Scoot Back&lt;br/&gt;68. Recycle (From a Wave Only)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;47. Flutterwheel / Reverse Flutterwheel&lt;br/&gt;48. Sweep a Quarter &lt;br/&gt;49. Trade By&lt;br/&gt;50. Touch 1/4&lt;br/&gt;51. Ferris Wheel&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== MAINSTREAM ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;52. Cloverleaf&lt;br/&gt;53. Turn Thru&lt;br/&gt;54. Eight Chain Thru / Eight Chain 1, 2, 3, Etc.&lt;br/&gt;55. Pass to the Center&lt;br/&gt;56. Single Hinge / Couples Hinge &lt;br/&gt;57. Centers In&lt;br/&gt;58. Cast Off 3/4&lt;br/&gt;59. Spin the Top&lt;br/&gt;60. Walk and Dodge&lt;br/&gt;61. Slide Thru&lt;br/&gt;62. Fold / Cross Fold&lt;br/&gt;63. Dixie Style to an Ocean Wave &lt;br/&gt;64. Spin Chain Thru&lt;br/&gt;65. Tag the Line (In/Out/Left/Right) &lt;br/&gt;66. Half Tag&lt;br/&gt;67. Scoot Back&lt;br/&gt;68. Recycle (From a Wave Only)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1175,7 +1187,7 @@
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:13pt; font-weight:600;&quot;&gt;== PLUS ==&lt;/span&gt;&lt;span style=&quot; font-size:13pt;&quot;&gt;&lt;br/&gt;1. Acey Deucey&lt;br/&gt;2. Teacup Chain&lt;br/&gt;3. Ping Pong Circulate&lt;br/&gt;4. Load the Boat&lt;br/&gt;5. Peel Off&lt;br/&gt;6. Linear Cycle (From Waves Only)&lt;br/&gt;7. Coordinate&lt;br/&gt;8. (Anything) &amp;amp; Spread&lt;br/&gt;9. Spin Chain the Gears&lt;br/&gt;10. Track II&lt;br/&gt;11. (Anything) &amp;amp; Roll&lt;br/&gt;12. Follow Your Neighbor&lt;br/&gt;13. Fan the Top&lt;br/&gt;14. Explode the Wave&lt;br/&gt;15. Explode &amp;amp; (Anything) (From Waves Only)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== PLUS ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;1. Acey Deucey&lt;br/&gt;2. Teacup Chain&lt;br/&gt;3. Ping Pong Circulate&lt;br/&gt;4. Load the Boat&lt;br/&gt;5. Peel Off&lt;br/&gt;6. Linear Cycle (From Waves Only)&lt;br/&gt;7. Coordinate&lt;br/&gt;8. (Anything) &amp;amp; Spread&lt;br/&gt;9. Spin Chain the Gears&lt;br/&gt;10. Track II&lt;br/&gt;11. (Anything) &amp;amp; Roll&lt;br/&gt;12. Follow Your Neighbor&lt;br/&gt;13. Fan the Top&lt;br/&gt;14. Explode the Wave&lt;br/&gt;15. Explode &amp;amp; (Anything) (From Waves Only)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1187,11 +1199,11 @@
             <property name="font">
              <font>
               <family>Arial</family>
-              <pointsize>14</pointsize>
+              <pointsize>10</pointsize>
              </font>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;16. Relay the Deucey&lt;br/&gt;17. Peel the Top&lt;br/&gt;18. Diamond Circulate&lt;br/&gt;19. Single Circle to a Wave&lt;br/&gt;20. Trade the Wave&lt;br/&gt;21. Flip the Diamond&lt;br/&gt;22. Grand Swing Thru&lt;br/&gt;23. Crossfire&lt;br/&gt;24. All 8 Spin the Top&lt;br/&gt;25. Cut the Diamond&lt;br/&gt;26. Chase Right&lt;br/&gt;27. Dixie Grand&lt;br/&gt;28. 3/4 Tag the Line&lt;br/&gt;29. Spin Chain &amp;amp; Exchange the Gears&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;16. Relay the Deucey&lt;br/&gt;17. Peel the Top&lt;br/&gt;18. Diamond Circulate&lt;br/&gt;19. Single Circle to a Wave&lt;br/&gt;20. Trade the Wave&lt;br/&gt;21. Flip the Diamond&lt;br/&gt;22. Grand Swing Thru&lt;br/&gt;23. Crossfire&lt;br/&gt;24. All 8 Spin the Top&lt;br/&gt;25. Cut the Diamond&lt;br/&gt;26. Chase Right&lt;br/&gt;27. Dixie Grand&lt;br/&gt;28. 3/4 Tag the Line&lt;br/&gt;29. Spin Chain &amp;amp; Exchange the Gears&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1211,7 +1223,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1050</width>
+     <width>697</width>
      <height>26</height>
     </rect>
    </property>

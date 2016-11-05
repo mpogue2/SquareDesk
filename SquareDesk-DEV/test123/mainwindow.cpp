@@ -6,6 +6,7 @@
 #include "QMapIterator"
 #include "QThread"
 #include "QProcess"
+#include "QDesktopWidget"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -15,6 +16,7 @@
 #include <sstream>
 #include <iomanip>
 using namespace std;
+
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
 //
@@ -201,34 +203,7 @@ MainWindow::MainWindow(QWidget *parent) :
         on_monoButton_toggled(false);  // sets button and menu item
     }
 
-//    // -------
-//    // FIX: This is partial code for changing the font size dynamically...
-//    const QString FONTSIZE_KEY("fontsize");  // default is 13
-//    QString fontsize = MySettings.value(FONTSIZE_KEY).toString();
-
-//    if (fontsize.isNull()) {
-//        // first time through, FORCE MONO is FALSE (stereo mode is the default)
-//        fontsize = "13";  // FIX: needed?
-//        MySettings.setValue(FONTSIZE_KEY, "13");
-//    }
-
-//    iFontsize = fontsize.toInt();
-//    qDebug() << "font size preference is:" << iFontsize;
-
-//    QFont font = ui->currentTempoLabel->font();
-//    font.setPointSize(18);
-//    ui->currentTempoLabel->setFont(font);
-//    ui->tempoLabel->setFont(font);
-//    ui->currentPitchLabel->setFont(font);
-//    ui->pitchLabel->setFont(font);
-//    ui->currentVolumeLabel->setFont(font);
-//    ui->volumeLabel->setFont(font);
-//    ui->mixLabel->setFont(font);
-//    ui->currentMixLabel->setFont(font);
-//    ui->currentLocLabel->setFont(font);
-//    ui->songLengthLabel->setFont(font);
-////    ui->EQgroup->setFont(font);
-///
+    setFontSizes();
 
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
@@ -271,6 +246,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
+
+    resize(QDesktopWidget().availableGeometry(this).size() * 0.55);  // initial size is 55% of screen
 }
 
 // ----------------------------------------------------------------------
@@ -279,6 +256,60 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setFontSizes() {
+    //    // -------
+    //    // FIX: This is partial code for changing the font size dynamically...
+    //    const QString FONTSIZE_KEY("fontsize");  // default is 13
+    //    QString fontsize = MySettings.value(FONTSIZE_KEY).toString();
+
+    //    if (fontsize.isNull()) {
+    //        // first time through, FORCE MONO is FALSE (stereo mode is the default)
+    //        fontsize = "13";  // FIX: needed?
+    //        MySettings.setValue(FONTSIZE_KEY, "13");
+    //    }
+
+    //    iFontsize = fontsize.toInt();
+    //    qDebug() << "font size preference is:" << iFontsize;
+
+    int preferredSmallFontSize;
+#if defined(Q_OS_MAC)
+    preferredSmallFontSize = 13;
+#elif defined(Q_OS_WIN32)
+    preferredSmallFontSize = 8;
+#elif defined(Q_OS_LINUX)
+    preferredSmallFontSize = 13;  // FIX: is this right?
+#endif
+
+    QFont font = ui->currentTempoLabel->font();
+    font.setPointSize(preferredSmallFontSize);
+
+    ui->tabWidget->setFont(font);  // most everything inherits from this one
+    ui->statusBar->setFont(font);
+    ui->currentLocLabel->setFont(font);
+    ui->songLengthLabel->setFont(font);
+    ui->bassLabel->setFont(font);
+    ui->midrangeLabel->setFont(font);
+    ui->trebleLabel->setFont(font);
+    ui->EQgroup->setFont(font);
+
+    font.setPointSize(preferredSmallFontSize-2);
+    ui->loopButton->setFont(font);
+    ui->monoButton->setFont(font);
+
+    QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
+#if defined(Q_OS_WIN)
+    styleForCallerlabDefinitions = "QLabel{font-size:6pt;}";
+#endif
+    ui->basicLabel1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->basicLabel2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->MainstreamLabel1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->MainstreamLabel2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->PlusLabel1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->PlusLabel2->setStyleSheet(styleForCallerlabDefinitions);
+
+    font.setPointSize(preferredSmallFontSize+6);
+    ui->nowPlayingLabel->setFont(font);
+}
 
 // ----------------------------------------------------------------------
 void MainWindow::updatePitchTempoView() {

@@ -208,6 +208,7 @@ private:
     QString removePrefix(QString prefix, QString s);
 
     void updatePitchTempoView();
+    void setFontSizes();
 };
 
 // currentState:
