@@ -1136,6 +1136,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->loopButton->setChecked(false);
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
+
+    ui->seekBar->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()

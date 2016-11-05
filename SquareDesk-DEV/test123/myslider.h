@@ -12,6 +12,7 @@ class MySlider : public QSlider
 public:
     MySlider(QWidget *parent = 0);
     void SetLoop(bool b);           // turn on loop points
+    void SetSingingCall(bool b);    // turn on singing call coloring
     void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
 
 protected:
@@ -20,6 +21,7 @@ protected:
 
 private:
     bool drawLoopPoints;
+    bool singingCall;
     int origin;  // reset to this point when double-clicked
 
 };
