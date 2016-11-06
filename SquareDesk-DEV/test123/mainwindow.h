@@ -31,6 +31,7 @@
 #include "bass_audio.h"
 #include "myslider.h"
 #include "preferencesdialog.h"
+#include "levelmeter.h"
 
 namespace Ui
 {
@@ -77,6 +78,7 @@ private slots:
     void on_actionLoop_triggered();
 
     void on_UIUpdateTimerTick(void);
+    void on_vuMeterTimerTick(void);
 
     void aboutBox();
 
@@ -209,6 +211,12 @@ private:
 
     void updatePitchTempoView();
     void setFontSizes();
+
+    // VU Meter support
+    QTimer *UIUpdateTimer;
+    QTimer *vuMeterTimer;
+
+    LevelMeter *vuMeter;
 };
 
 // currentState:

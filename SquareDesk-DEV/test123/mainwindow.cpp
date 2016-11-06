@@ -123,7 +123,7 @@ MainWindow::MainWindow(QWidget *parent) :
     Info_Seekbar(false);
 
     // setup playback timer
-    QTimer *UIUpdateTimer = new QTimer(this);
+    UIUpdateTimer = new QTimer(this);
     connect(UIUpdateTimer, SIGNAL(timeout()), this, SLOT(on_UIUpdateTimerTick()));
     UIUpdateTimer->start(1000);           //adjust from GUI with timer->setInterval(newValue)
 
@@ -139,6 +139,31 @@ MainWindow::MainWindow(QWidget *parent) :
     cBass.SetVolume(100);
     currentVolume = 100;
     Info_Volume();
+
+    // VU Meter
+    vuMeterTimer = new QTimer(this);
+    connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
+    vuMeterTimer->start(50);           // adjust from GUI with timer->setInterval(newValue)
+
+    vuMeter = new LevelMeter(this);
+//    int x = ui->vuMeterProxy->x();
+//    int y = ui->vuMeterProxy->y();
+//    int w = ui->vuMeterProxy->width();
+//    int h = ui->vuMeterProxy->height();
+////    qDebug() << x << y << w << h;
+//    vuMeter->setGeometry(x,y,100,h);
+//    vuMeter->setFixedSize(QSize(10,100));
+////    vuMeter->setGeometry(100,100,500,500);
+
+    ui->gridLayout_2->addWidget(vuMeter, 1,5);  // add it to the layout in the right spot
+    vuMeter->setFixedHeight(20);
+
+    vuMeter->reset();
+//    vuMeter->levelChanged(0.5,0.7,100);
+    vuMeter->setEnabled(true);
+    vuMeter->setVisible(true);
+
+//    ui->vuMeterProxy->setHidden(true);
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
@@ -825,6 +850,18 @@ void MainWindow::on_actionLoop_triggered()
 void MainWindow::on_UIUpdateTimerTick(void)
 {
     Info_Seekbar(true);
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_vuMeterTimerTick(void)
+{
+//    qDebug() << "VU: " << cBass.StreamGetVuMeter();
+    float currentVolumeSlider = ui->volumeSlider->value();
+    int level = cBass.StreamGetVuMeter();
+    float levelF = (currentVolumeSlider/100.0)*((float)level)/32768.0;
+    // TODO: iff music is playing.
+//    vuMeter->levelChanged(levelF/2.0,levelF,1*1024);  // 10X/sec, update the vuMeter
+    vuMeter->levelChanged(levelF/2.0,levelF,256);  // 10X/sec, update the vuMeter
 }
 
 // --------------

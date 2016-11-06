@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     preferencesdialog.cpp \
     mytablewidget.cpp \
     tablenumberitem.cpp \
-    myslider.cpp
+    myslider.cpp \
+    levelmeter.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -28,7 +29,8 @@ HEADERS  += mainwindow.h \
     preferencesdialog.h \
     utility.h \
     mytablewidget.h \
-    tablenumberitem.h
+    tablenumberitem.h \
+    levelmeter.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui

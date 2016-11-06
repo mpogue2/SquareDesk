@@ -55,6 +55,8 @@ public:
     void Play(void);
     void Stop(void);
 
+    int StreamGetVuMeter(void); // get VU meter level (mono)
+
     DWORD                           Stream_State;  // intentionally public // FIX: add getStreamState()
     //-------------------------------------------------------------
 private:

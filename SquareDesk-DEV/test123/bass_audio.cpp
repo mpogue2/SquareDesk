@@ -207,6 +207,29 @@ void bass_audio::StreamGetPosition(void)
     Current_Position = (double)BASS_ChannelBytes2Seconds(Stream, Position);
 }
 
+// ------------------------------------------------------------------
+int bass_audio::StreamGetVuMeter(void)
+{
+    Stream_State = BASS_ChannelIsActive(Stream);
+
+    if (Stream_State == BASS_ACTIVE_PLAYING) {
+        int level;          // can return -1 for error
+        DWORD left, right;
+        level = BASS_ChannelGetLevel(Stream);
+        if (level != -1) {
+            left = LOWORD(level);   // the left level
+            right = HIWORD(level);  // the right level
+            return (left+right)/2;
+        } else {
+            // error in getting level
+//            qDebug() << "error: ChannelGetLevel";
+            return 0;
+        }
+    } else {
+//        qDebug() << "error: channel not active";
+        return 0;
+    }
+}
 
 // *******************
 // http://bass.radio42.com/help/html/ee197eac-8482-1f9a-e0e1-8ec9e4feda9b.htm
