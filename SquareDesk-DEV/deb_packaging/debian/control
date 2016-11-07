@@ -1,0 +1,11 @@
+Source: squaredesk
+Maintainer: Dan Lyke <danlyke@flutterby.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: squaredesk
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Music player for square dance callers
