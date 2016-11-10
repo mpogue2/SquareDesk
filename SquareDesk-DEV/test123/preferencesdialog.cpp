@@ -21,6 +21,15 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->EnableTimersTabCheckbox->setChecked(false);
     }
 
+    // Cuesheet tab (experimental) preference -------
+    experimentalCuesheetTabEnabled = MySettings.value("experimentalCuesheetTabEnabled").toString();
+//    qDebug() << "preferencesDialog, expTimers = " << experimentalCuesheetTabEnabled;  // FIX
+    if (experimentalCuesheetTabEnabled == "true") {
+        ui->EnableCuesheetTabCheckbox->setChecked(true);
+    } else {
+        ui->EnableCuesheetTabCheckbox->setChecked(false);
+    }
+
     // Pitch/Tempo View (experimental) preference -------
     experimentalPitchTempoViewEnabled = MySettings.value("experimentalPitchTempoViewEnabled").toString();
 //    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
@@ -64,6 +73,17 @@ void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
         experimentalTimersTabEnabled = "false";
     }
 //    qDebug() << "User selected timers tab: " << experimentalTimersTabEnabled;
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
+}
+
+void PreferencesDialog::on_EnableCuesheetTabCheckbox_toggled(bool checked)
+{
+    if (checked) {
+        experimentalCuesheetTabEnabled = "true";
+    } else {
+        experimentalCuesheetTabEnabled = "false";
+    }
+//    qDebug() << "User selected timers tab: " << experimentalCuesheetTabEnabled;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 

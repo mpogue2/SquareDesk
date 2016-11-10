@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>758</width>
-    <height>286</height>
+    <width>889</width>
+    <height>359</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,27 @@
      </property>
     </widget>
    </item>
-   <item row="7" column="3">
+   <item row="0" column="3">
+    <widget class="QPushButton" name="chooseMusicPathButton">
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Choose...</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
+     <property name="text">
+      <string>Enable Pitch and Tempo columns in song list</string>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="3">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="maximumSize">
       <size>
@@ -37,13 +57,10 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="musicPathLabel">
+   <item row="1" column="1" rowspan="2" colspan="2">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>Music Directory:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.). &lt;br/&gt;&lt;br/&gt;Music files must be named like this: &amp;quot;AB 123 - King of the Road.mp3&amp;quot;, &lt;br/&gt;where AB 123 = the record label name and number, and &amp;quot;King of the Road&amp;quot;&lt;br/&gt;is the song title. Many record companies are already using this naming format.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -61,30 +78,13 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1" rowspan="2" colspan="2">
-    <widget class="QLabel" name="label">
+   <item row="0" column="0">
+    <widget class="QLabel" name="musicPathLabel">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.). &lt;br/&gt;&lt;br/&gt;Music files must be named like this: &amp;quot;AB 123 - King of the Road.mp3&amp;quot;, &lt;br/&gt;where AB 123 = the record label name and number, and &amp;quot;King of the Road&amp;quot;&lt;br/&gt;is the song title. Many record companies are already using this naming format.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>Music Directory:</string>
      </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
-     <property name="text">
-      <string>Enable Pitch and Tempo columns in song list</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QPushButton" name="chooseMusicPathButton">
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Choose...</string>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
@@ -102,10 +102,24 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="1" rowspan="2">
+   <item row="8" column="1" rowspan="2">
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Shows current pitch and tempo settings for each song in the song list.&lt;br/&gt;Pitch numbers are in semitones relative to base pitch. Tempos are either &lt;br/&gt;BPM (e.g. 127 -&amp;gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the &lt;br/&gt;tempo is unknown, because it has not been auto-detected yet).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QCheckBox" name="EnableCuesheetTabCheckbox">
+     <property name="text">
+      <string>Enable Cuesheet tab</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Loads .html or .htm files from alongside the song files.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>

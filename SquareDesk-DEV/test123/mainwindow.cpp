@@ -373,6 +373,7 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->actionLoop->setChecked(true);
 
         ui->seekBar->SetLoop(true);
+        ui->seekBarCuesheet->SetLoop(true);
 
         double songLength = cBass.FileLength;
         cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
@@ -387,6 +388,7 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->actionLoop->setChecked(false);
 
         ui->seekBar->SetLoop(false);
+        ui->seekBarCuesheet->SetLoop(false);
 
         cBass.ClearLoop();
     }
@@ -429,6 +431,7 @@ void MainWindow::on_stopButton_clicked()
     cBass.Stop();  // Stop playback, rewind to the beginning
 
     ui->seekBar->setValue(0);
+    ui->seekBarCuesheet->setValue(0);
     Info_Seekbar(false);  // update just the text
 }
 
@@ -737,6 +740,24 @@ QString MainWindow::position2String(int position, bool pad = false)
     return s;
 }
 
+void InitializeSeekBar(MySlider *seekBar)
+{
+    seekBar->setMinimum(0);
+    seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: tricky, counts on == below
+    seekBar->setTickInterval(10);  // 10 seconds per tick
+}
+void SetSeekBarPosition(MySlider *seekBar, int currentPos_i)
+{
+    seekBar->blockSignals(true); // setValue should NOT initiate a valueChanged()
+    seekBar->setValue(currentPos_i);
+    seekBar->blockSignals(false);
+}
+void SetSeekBarNoSongLoaded(MySlider *seekBar)
+{
+    seekBar->setMinimum(0);
+    seekBar->setValue(0);
+}
+
 // ----------------------------------------------------------------------
 void MainWindow::Info_Seekbar(bool forceSlider)
 {
@@ -747,16 +768,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
     if (songLoaded) {  // FIX: this needs to pay attention to the bool
         // FIX: this code doesn't need to be executed so many times.
-        ui->seekBar->setMinimum(0);
-        ui->seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: tricky, counts on == below
-        ui->seekBar->setTickInterval(10);  // 10 seconds per tick
+        InitializeSeekBar(ui->seekBar);
+        InitializeSeekBar(ui->seekBarCuesheet);
+
         cBass.StreamGetPosition();  // update cBass.Current_Position
 
         int currentPos_i = (int)cBass.Current_Position;
         if (forceSlider) {
-            ui->seekBar->blockSignals(true); // setValue should NOT initiate a valueChanged()
-            ui->seekBar->setValue(currentPos_i);
-            ui->seekBar->blockSignals(false);
+            SetSeekBarPosition(ui->seekBar, currentPos_i);
+            SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
         }
         int fileLen_i = (int)cBass.FileLength;
 
@@ -796,8 +816,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
     }
     else {
-        ui->seekBar->setMinimum(0);
-        ui->seekBar->setValue(0);
+        SetSeekBarNoSongLoaded(ui->seekBar);
+        SetSeekBarNoSongLoaded(ui->seekBarCuesheet);
     }
 }
 
@@ -1067,13 +1087,40 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass.SetEq(2, (float)value);
 }
 
+void MainWindow::loadCuesheet(QString MP3FileName)
+{
+    int extensionPos = MP3FileName.lastIndexOf('.');
+    QString cuesheetFilenameBase(MP3FileName);
+    cuesheetFilenameBase.truncate(extensionPos + 1);
+    const char *extensions[] = { "htm", "html" };
+
+    for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i)
+    {
+        QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
+        cout << "Attempting to load " << cuesheetFilename.toUtf8().constData() << endl;
+        if (QFile::exists(cuesheetFilename))
+        {
+            cout << "Loading " << cuesheetFilename.toUtf8().constData() << endl;
+            QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
+            cout << "URL is " << cuesheetUrl.toDisplayString().toUtf8().constData() << endl;
+            ui->textBrowserCueSheet->setSource(cuesheetUrl);
+            break;
+        }
+    }
+        
+}
+
+
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType) {
+    loadCuesheet(MP3FileName);
+    
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
     QStringList pieces2 = filebase.split(".");
 
     currentMP3filename = pieces2.value(pieces2.length()-2);
-
+    
+    
     if (songTitle != "") {
         ui->nowPlayingLabel->setText(songTitle);
     } else {
@@ -1135,6 +1182,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->actionSkip_Back_15_sec->setEnabled(true);
 
     ui->seekBar->setEnabled(true);
+    ui->seekBarCuesheet->setEnabled(true);
 
     // when we add Pitch to the songTable as a hidden column, we do NOT need to force pitch anymore, because it
     //   will be set by the loader to the correct value (which is zero, if the MP3 file wasn't on the current playlist).
@@ -1175,6 +1223,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
 
     ui->seekBar->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
+    ui->seekBarCuesheet->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -1527,6 +1576,25 @@ void MainWindow::on_actionPreferences_triggered()
             showTimersTab = false;
         }
         MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
+
+        // Save the new value for experimentalCuesheetTabEnabled --------
+        int cuesheetTabNum = showTimersTab ? 2 : 1;
+        if (dialog->experimentalCuesheetTabEnabled == "true") {
+            tabsetting = "true";
+            if (!showCuesheetTab) {
+                // iff the tab was NOT showing, make it show up now
+                ui->tabWidget->insertTab(cuesheetTabNum, tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
+            }
+            showCuesheetTab = true;
+        } else {
+            tabsetting = "false";
+            if (showCuesheetTab) {
+                // iff timers tab was showing, remove it
+                ui->tabWidget->removeTab(cuesheetTabNum);  // hidden, but we can bring it back later
+            }
+            showCuesheetTab = false;
+        }
+        MySettings.setValue("experimentalCuesheetTabEnabled", tabsetting); // save the new experimental tab setting
 
         // Save the new value for experimentalPitchTempoViewEnabled --------
         QString viewsetting;
