@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -993,59 +993,90 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetDefaultConstraint</enum>
+            </property>
             <item>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <item>
-               <widget class="QPushButton" name="pushButtonCountDownTimerStartStop">
-                <property name="text">
-                 <string>Start/Stop</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButtonCountDownTimerReset">
-                <property name="text">
-                 <string>Reset</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="lineEditCountDownTimer">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="inputMask">
-                 <string>009:99</string>
-                </property>
-                <property name="text">
-                 <string>4:00</string>
-                </property>
-                <property name="maxLength">
-                 <number>6</number>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <widget class="QPushButton" name="pushButtonCountDownTimerStartStop">
+              <property name="text">
+               <string>Start/Stop</string>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QLabel" name="labelCountDownTimer">
-              <property name="font">
-               <font>
-                <pointsize>36</pointsize>
-                <weight>75</weight>
-                <italic>true</italic>
-                <bold>true</bold>
-               </font>
+             <widget class="QPushButton" name="pushButtonCountDownTimerReset">
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditCountDownTimer">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="inputMask">
+               <string>009:99</string>
               </property>
               <property name="text">
                <string>4:00</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
+              <property name="maxLength">
+               <number>6</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBoxPlayOnEnd">
+              <property name="text">
+               <string>Play on end</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelCountDownTimer">
+            <property name="font">
+             <font>
+              <pointsize>36</pointsize>
+              <weight>75</weight>
+              <italic>true</italic>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>4:00</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QPushButton" name="pushButtonCountUpTimerStartStop">
+              <property name="text">
+               <string>Start/Stop</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButtonCountUpTimerReset">
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="checkBoxStartOnPlay">
+              <property name="text">
+               <string>Start on Play</string>
               </property>
              </widget>
             </item>
@@ -1053,24 +1084,6 @@
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
-              <item>
-               <widget class="QPushButton" name="pushButtonCountUpTimerStartStop">
-                <property name="text">
-                 <string>Start/Stop</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButtonCountUpTimerReset">
-                <property name="text">
-                 <string>Reset</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
             <item>
              <widget class="QLabel" name="labelCountUpTimer">
               <property name="font">

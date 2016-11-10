@@ -208,7 +208,7 @@ private:
     qint64 timeCountDownZeroMs;
 
     bool timerStopStartClick(QTimer *&timer, QPushButton *button);
-    void updateTimer(qint64 timeZero, QLabel *label);
+    int updateTimer(qint64 timeZero, QLabel *label);
 
     QString removePrefix(QString prefix, QString s);
 

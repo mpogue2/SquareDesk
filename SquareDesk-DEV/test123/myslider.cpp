@@ -97,7 +97,7 @@ void MySlider::paintEvent(QPaintEvent *e)
         right += 1;  // only on Windows...
 #endif
 #ifdef Q_OS_LINUX
-        right -= 7;
+        right -= 4;
         left += 5;
 #endif // ifdef Q_OS_LINUX
 

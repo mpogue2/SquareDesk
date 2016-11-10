@@ -449,6 +449,10 @@ void MainWindow::on_playButton_clicked()
         ui->actionPlay->setText("Play");
         currentState = kPaused;
     }
+    if (ui->checkBoxStartOnPlay->isChecked())
+    {
+        on_pushButtonCountUpTimerStartStop_clicked();
+    }
 }
 
 
@@ -471,11 +475,12 @@ bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
     return NULL != timer;
 }
 
-void MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
+int MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
 {
     QDateTime now(QDateTime::currentDateTime());
     qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
-    int seconds = (int)((timeNowEpochMs - timeZeroEpochMs) / 1000);
+    int signedSeconds = (int)((timeNowEpochMs - timeZeroEpochMs) / 1000);
+    int seconds = signedSeconds;
     char sign = ' ';
 
     if (seconds < 0)
@@ -494,6 +499,7 @@ void MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
     ss << setfill('0') << minutes << ":" << setw(2) << setfill('0') << (seconds % 60);
     string s(ss.str());
     label->setText(s.c_str());
+    return signedSeconds;
 }
 
 // ----------------------------------------------------------------------
@@ -575,7 +581,12 @@ void MainWindow::timerCountUp_update()
 // ----------------------------------------------------------------------
 void MainWindow::timerCountDown_update()
 {
-    updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer);
+    if (updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer) >= 0
+        && ui->checkBoxPlayOnEnd->isChecked()
+        && currentState == kStopped)
+    {
+        on_playButton_clicked();
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -1241,7 +1252,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
-    qDebug() << "Setting song type to " << songType << " as " << (songType == "singing") << endl;
     ui->seekBar->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
 }
@@ -1349,7 +1359,7 @@ void MainWindow::filterMusic() {
     ui->songTable->setRowCount(0);
 
     QStringList m_TableHeader;
-    m_TableHeader << "#" << "Type" << "Label" << "Title";
+    m_TableHeader << "#" << "Type" << "Label" << "Title" << "Age";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->songTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->songTable->horizontalHeader()->setVisible(true);
@@ -2115,6 +2125,12 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
     args << "/select," << QDir::toNativeSeparators(filePath);
     QProcess::startDetached("explorer", args);
 #endif
+
+#ifdef Q_OS_LINUX
+    QStringList args;
+    args << QDir::toNativeSeparators(filePath);
+    QProcess::startDetached("xdg-open", args);
+#endif // ifdef Q_OS_LINUX
 }
 
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
