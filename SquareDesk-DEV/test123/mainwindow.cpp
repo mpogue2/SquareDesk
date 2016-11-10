@@ -210,6 +210,12 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->actionAutostart_playback->setChecked(false);
     }
 
+    // -----------
+
+    restoreCheckBoxState("startplaybackoncountdowntimer", ui->checkBoxPlayOnEnd, false);
+    restoreCheckBoxState("startcountuptimeronplay", ui->checkBoxStartOnPlay, false);
+
+
     // -------
     const QString FORCEMONO_KEY("forcemono");  // default is FALSE (use stereo)
     QString forceMonoChecked = MySettings.value(FORCEMONO_KEY).toString();
@@ -1561,6 +1567,37 @@ void MainWindow::on_actionAutostart_playback_triggered()
     } else {
         MySettings.setValue(AUTOSTART_KEY, "unchecked");
     }
+}
+
+// --------------------------------------------------------
+void MainWindow::saveCheckBoxState(const char *key_string, QCheckBox *checkBox)
+{
+    const QString key(key_string);
+    QSettings MySettings;
+    MySettings.setValue(key, checkBox->isChecked() ? "checked" : "unchecked");
+}
+
+void MainWindow::restoreCheckBoxState(const char *key_string, QCheckBox *checkBox, bool checkedDefault)
+{
+    QSettings MySettings;
+    const QString key(key_string);
+    QString value = MySettings.value(key).toString();
+    if (value.isNull())
+    {
+        value = checkedDefault ? "checked" : "unchecked";
+        MySettings.setValue(key, value);
+    }
+    checkBox->setChecked(value == "checked");
+}
+
+void MainWindow::on_checkBoxPlayOnEnd_clicked()
+{
+    saveCheckBoxState("startplaybackoncountdowntimer", ui->checkBoxPlayOnEnd);
+}
+
+void MainWindow::on_checkBoxStartOnPlay_clicked()
+{
+    saveCheckBoxState("startcountuptimeronplay", ui->checkBoxStartOnPlay);
 }
 
 // --------------------------------------------------------

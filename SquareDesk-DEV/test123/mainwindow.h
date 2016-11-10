@@ -131,6 +131,8 @@ private slots:
     void on_pushButtonCountUpTimerStartStop_clicked();
     void on_pushButtonCountUpTimerReset_clicked();
 
+    void on_checkBoxPlayOnEnd_clicked();
+    void on_checkBoxStartOnPlay_clicked();
     void on_pushButtonSetIntroTime_clicked();
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
@@ -207,6 +209,9 @@ private:
     QTimer *timerCountDown;
     qint64 timeCountDownZeroMs;
 
+    void saveCheckBoxState(const char *key_string, QCheckBox *checkBox);
+    void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox,
+                              bool checkedDefault);
     bool timerStopStartClick(QTimer *&timer, QPushButton *button);
     int updateTimer(qint64 timeZero, QLabel *label);
 
