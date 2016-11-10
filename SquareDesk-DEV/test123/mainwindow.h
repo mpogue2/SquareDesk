@@ -131,9 +131,9 @@ private slots:
     void on_pushButtonCountUpTimerStartStop_clicked();
     void on_pushButtonCountUpTimerReset_clicked();
 
-    // TODO: add these back in, when the widget/pushbutton is added...
-//    void on_pushButtonSetIntroTime_clicked();
-
+    void on_pushButtonSetIntroTime_clicked();
+    void on_pushButtonSetOutroTime_clicked();
+    void on_seekBarCuesheet_valueChanged(int);
     // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
     void timerCountUp_update();
     void timerCountDown_update();

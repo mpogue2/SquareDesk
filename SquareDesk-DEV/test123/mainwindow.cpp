@@ -493,7 +493,6 @@ void MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
         ss << hours << ":" << setw(2);
     ss << setfill('0') << minutes << ":" << setw(2) << setfill('0') << (seconds % 60);
     string s(ss.str());
-    cout << "Setting label to " << s << " " << timeZeroEpochMs << " " << timeNowEpochMs << endl;
     label->setText(s.c_str());
 }
 
@@ -543,7 +542,6 @@ void MainWindow::on_pushButtonCountDownTimerReset_clicked()
         {
             found_colon = true;
         }
-        cout << "Minutes: " << minutes << ":" << seconds << " " << (char)(ch) << endl;
     }
     timeCountDownZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
     timeCountDownZeroMs += (qint64)(minutes * 60 + seconds) * (qint64)(1000) + timerJitter;
@@ -557,7 +555,7 @@ void MainWindow::on_pushButtonCountUpTimerStartStop_clicked()
                             ui->pushButtonCountUpTimerStartStop))
     {
         on_pushButtonCountUpTimerReset_clicked();
-        connect(timerCountUp, SIGNAL(timeout()), this, SLOT(on_timerCountUp_update()));
+        connect(timerCountUp, SIGNAL(timeout()), this, SLOT(timerCountUp_update()));
     }
 }
 
@@ -567,12 +565,6 @@ void MainWindow::on_pushButtonCountUpTimerReset_clicked()
     timeCountUpZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch() + timerJitter;
     updateTimer(timeCountUpZeroMs, ui->labelCountUpTimer);
 }
-
-// ----------------------------------------------------------------------
-// TODO: need to create the widget/pushbutton before creating a function whose signal is matched up by name
-//void MainWindow::on_pushButtonSetIntroTime_clicked()
-//{
-//}
 
 // ----------------------------------------------------------------------
 void MainWindow::timerCountUp_update()
@@ -819,6 +811,36 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         SetSeekBarNoSongLoaded(ui->seekBar);
         SetSeekBarNoSongLoaded(ui->seekBarCuesheet);
     }
+}
+
+
+
+// --------------------------------1--------------------------------------
+
+void MainWindow::on_pushButtonSetIntroTime_clicked()
+{
+    int length = ui->seekBarCuesheet->maximum();
+    int position = ui->seekBarCuesheet->value();
+    
+    ui->seekBarCuesheet->SetIntro((float)((float)position / (float)length));
+    ui->seekBar->SetIntro((float)((float)position / (float)length));
+}
+
+// --------------------------------1--------------------------------------
+
+void MainWindow::on_pushButtonSetOutroTime_clicked()
+{
+    int length = ui->seekBarCuesheet->maximum();
+    int position = ui->seekBarCuesheet->value();
+    
+    ui->seekBarCuesheet->SetOutro((float)((float)position / (float)length));
+    ui->seekBar->SetOutro((float)((float)position / (float)length));
+}
+
+// --------------------------------1--------------------------------------
+void MainWindow::on_seekBarCuesheet_valueChanged(int value)
+{
+    on_seekBar_valueChanged(value);
 }
 
 // ----------------------------------------------------------------------
@@ -1097,12 +1119,9 @@ void MainWindow::loadCuesheet(QString MP3FileName)
     for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i)
     {
         QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
-        cout << "Attempting to load " << cuesheetFilename.toUtf8().constData() << endl;
         if (QFile::exists(cuesheetFilename))
         {
-            cout << "Loading " << cuesheetFilename.toUtf8().constData() << endl;
             QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
-            cout << "URL is " << cuesheetUrl.toDisplayString().toUtf8().constData() << endl;
             ui->textBrowserCueSheet->setSource(cuesheetUrl);
             break;
         }
@@ -1222,6 +1241,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
+    qDebug() << "Setting song type to " << songType << " as " << (songType == "singing") << endl;
     ui->seekBar->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
 }
@@ -1479,7 +1499,8 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     QString songTitle = ui->songTable->item(row,kTitleCol)->text();
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-    QString songType = ui->songTable->item(row,kTypeCol)->text();
+    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
+    
 
     // these must be up here to get the correct values...
     QString pitch = ui->songTable->item(row,kPitchCol)->text();

@@ -6,6 +6,9 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
 {
     drawLoopPoints = false;
     singingCall = false;
+    float defaultSingerLengthInBeats = (64 * 7 + 24);
+    introPosition = (float)(16 / defaultSingerLengthInBeats);
+    outroPosition = (float)(1.0 - 8 / defaultSingerLengthInBeats );
     origin = 0;
 }
 
@@ -13,6 +16,16 @@ void MySlider::SetLoop(bool b)
 {
     drawLoopPoints = b;
     update();
+}
+
+void MySlider::SetIntro(float intro)
+{
+    introPosition = intro;
+}
+
+void MySlider::SetOutro(float outro)
+{
+    outroPosition = outro;
 }
 
 void MySlider::SetSingingCall(bool b)
@@ -37,6 +50,7 @@ void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't w
 // http://stackoverflow.com/questions/3894737/qt4-how-to-draw-inside-a-widget
 void MySlider::paintEvent(QPaintEvent *e)
 {
+    QSlider::paintEvent(e);         // parent draws
     QPainter painter(this);
     int offset = 8;  // for the handles
     int height = this->height();
@@ -75,62 +89,46 @@ void MySlider::paintEvent(QPaintEvent *e)
         //    the colors don't draw at all. :-(
         middle += 2;  // only on Windows...
 #endif
-        QColor color1 = Qt::red;
-        QColor color2 = Qt::blue;
-        QColor color3 = QColor("#7cd38b");
+        QColor colorEnds = Qt::yellow;
+        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
         float left = 1;
         float right = width + offset + 5;
 #if defined(Q_OS_WIN)
         right += 1;  // only on Windows...
 #endif
-        float endIntro = left + 1.2 * (right-left)/7.0;
-        float startEnding = right - 1.2 * (right-left)/7.0;
-        float lengthSection = (startEnding - endIntro)/5.0;
+#ifdef Q_OS_LINUX
+        right -= 7;
+        left += 5;
+#endif // ifdef Q_OS_LINUX
+
+        float width = (right - left);
+        float endIntro = left + introPosition * width;
+        float startEnding = left  + outroPosition * width;
+        int segments = 7;
+        float lengthSection = (startEnding - endIntro)/(float)segments;
 
         // section 1: Opener
-        pen.setColor(color1);
+        pen.setColor(colorEnds);
         painter.setPen(pen);
         QLineF line1(left, middle, endIntro, middle);
         painter.drawLine(line1);
 
-        // section 2: Heads 1
-        pen.setColor(color2);
-        painter.setPen(pen);
-        QLineF line2(endIntro + 0*lengthSection, middle, endIntro + 1*lengthSection, middle);
-        painter.drawLine(line2);
-
-        // section 3: Heads 2
-        pen.setColor(color3);
-        painter.setPen(pen);
-        QLineF line3(endIntro + 1*lengthSection, middle, endIntro + 2*lengthSection, middle);
-        painter.drawLine(line3);
-
-        // section 4: Middle break
-        pen.setColor(color1);
-        painter.setPen(pen);
-        QLineF line4(endIntro + 2*lengthSection, middle, endIntro + 3*lengthSection, middle);
-        painter.drawLine(line4);
-
-        // section 5: Sides 1
-        pen.setColor(color2);
-        painter.setPen(pen);
-        QLineF line5(endIntro + 3*lengthSection, middle, endIntro + 4*lengthSection, middle);
-        painter.drawLine(line5);
-
-        // section 6: Sides 2
-        pen.setColor(color3);
-        painter.setPen(pen);
-        QLineF line6(endIntro + 4*lengthSection, middle, endIntro + 5*lengthSection, middle);
-        painter.drawLine(line6);
+        for (int i = 0; i < segments; ++i)
+        {
+            pen.setColor(colors[i % (sizeof(colors) / sizeof(*colors))]);
+            painter.setPen(pen);
+            QLineF line2(endIntro + i * lengthSection, middle,
+                         endIntro + (i + 1) * lengthSection, middle);
+            painter.drawLine(line2);
+        }
 
         // section 7: Closer
-        pen.setColor(color1);
+        pen.setColor(colorEnds);
         painter.setPen(pen);
         QLineF line7(startEnding, middle, right, middle);
         painter.drawLine(line7);
 
     }
 
-    QSlider::paintEvent(e);         // parent draws
 }
 

@@ -14,6 +14,8 @@ public:
     void SetLoop(bool b);           // turn on loop points
     void SetSingingCall(bool b);    // turn on singing call coloring
     void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
+    void SetIntro(float intro);
+    void SetOutro(float outro);
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);
@@ -22,6 +24,8 @@ protected:
 private:
     bool drawLoopPoints;
     bool singingCall;
+    float introPosition;
+    float outroPosition;
     int origin;  // reset to this point when double-clicked
 
 };

@@ -1122,7 +1122,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButtonSetTagTime">
+             <widget class="QPushButton" name="pushButtonSetOutroTime">
               <property name="text">
                <string>Out</string>
               </property>
