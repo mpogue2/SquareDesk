@@ -47,7 +47,7 @@ public:
     ~MainWindow();
 
     Ui::MainWindow *ui;
-    void handleKeypress(int key);
+    bool handleKeypress(int key);
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -208,6 +208,7 @@ private:
     qint64 timeCountUpZeroMs;
     QTimer *timerCountDown;
     qint64 timeCountDownZeroMs;
+    bool trapKeypresses;
 
     void saveCheckBoxState(const char *key_string, QCheckBox *checkBox);
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox,

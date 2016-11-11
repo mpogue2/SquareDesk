@@ -57,7 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     timerCountUp(NULL),
-    timerCountDown(NULL)
+    timerCountDown(NULL),
+    trapKeypresses(true)
 {
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
@@ -968,8 +969,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
               || ui->lineEditCountDownTimer->hasFocus()
               || ui->songTable->isEditing())) {
             // call handleKeypress on the Applications's active window
-            ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
-            return true;
+            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
         }
 
     }
@@ -978,11 +978,11 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
 // ----------------------------------------------------------------------
 //void MainWindow::keyPressEvent(QKeyEvent *event)
-void MainWindow::handleKeypress(int key)
+bool MainWindow::handleKeypress(int key)
 {
 //    qDebug() << "MainWindow::handleKeypress(), key =" << key << ", isPreferencesDialog =" << inPreferencesDialog;
-    if (inPreferencesDialog) {
-        return;
+    if (inPreferencesDialog || !trapKeypresses) {
+        return false;
     }
 
     switch (key) {
@@ -1051,6 +1051,7 @@ void MainWindow::handleKeypress(int key)
             break;
     }
     Info_Seekbar(true);
+    return true;
 }
 
 // ------------------------------------------------------------------------
@@ -1701,12 +1702,13 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         // first time through, start at HOME
         startingPlaylistDirectory = QDir::homePath();
     }
-
+    trapKeypresses = false;
     QString PlaylistFileName =
         QFileDialog::getOpenFileName(this,
                                      tr("Load Playlist"),
                                      startingPlaylistDirectory,
                                      tr("Playlist Files (*.m3u *.csv)"));
+    trapKeypresses = true;
     if (PlaylistFileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
     }
@@ -1883,6 +1885,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
     }
 
     QString preferred("CSV files (*.csv)");
+    trapKeypresses = false;
     QString PlaylistFileName =
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
@@ -1890,6 +1893,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
 //                                     tr("Playlist Files (*.m3u *.csv)"),
                                      tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
                                      &preferred);  // preferred is CSV
+    trapKeypresses = true;
     if (PlaylistFileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
     }
