@@ -1,1 +1,7 @@
 __MACOSX
+squaredesk_*
+SquareDeskPlayer
+*.o
+moc_*.cpp
+qrc_resources.cpp
+ui_*.h
