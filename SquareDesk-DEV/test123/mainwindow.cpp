@@ -187,7 +187,6 @@ MainWindow::MainWindow(QWidget *parent) :
 //  kTitleCol is always expandable, so don't set width here
     ui->songTable->setColumnWidth(kPitchCol,50);
     ui->songTable->setColumnWidth(kTempoCol,50);
-    ui->songTable->setColumnWidth(kLastPlayedCol,36);
 
     // ----------
     const QString EXPERIMENTALPITCHTEMPO_KEY("experimentalPitchTempoViewEnabled");  // default is not enabled
@@ -377,7 +376,6 @@ void MainWindow::updatePitchTempoView() {
         headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
         headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
-        headerView->setSectionResizeMode(kLastPlayedCol, QHeaderView::Interactive);
         headerView->setStretchLastSection(false);
     }
 }
@@ -1390,7 +1388,7 @@ void MainWindow::filterMusic() {
     ui->songTable->setRowCount(0);
 
     QStringList m_TableHeader;
-    m_TableHeader << "#" << "Type" << "Label" << "Title" << "Age";
+    m_TableHeader << "#" << "Type" << "Label" << "Title";
     ui->songTable->setHorizontalHeaderLabels(m_TableHeader);
     ui->songTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->songTable->horizontalHeader()->setVisible(true);
@@ -1457,7 +1455,6 @@ void MainWindow::filterMusic() {
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, "***", kLastPlayedCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
 
