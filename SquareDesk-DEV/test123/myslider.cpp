@@ -50,7 +50,9 @@ void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't w
 // http://stackoverflow.com/questions/3894737/qt4-how-to-draw-inside-a-widget
 void MySlider::paintEvent(QPaintEvent *e)
 {
+#ifdef Q_OS_LINUX
     QSlider::paintEvent(e);         // parent draws
+#endif // ifdef Q_OS_LINUX
     QPainter painter(this);
     int offset = 8;  // for the handles
     int height = this->height();
@@ -129,6 +131,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.drawLine(line7);
 
     }
-
+#ifndef Q_OS_LINUX
+    QSlider::paintEvent(e);         // parent draws
+#endif // ifndef Q_OS_LINUX
 }
 
