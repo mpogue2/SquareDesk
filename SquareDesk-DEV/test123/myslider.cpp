@@ -130,6 +130,24 @@ void MySlider::paintEvent(QPaintEvent *e)
         QLineF line7(startEnding, middle, right, middle);
         painter.drawLine(line7);
 
+#ifdef Q_OS_LINUX
+        // redraw the handle
+        pen.setWidth(1);
+        pen.setColor(Qt::gray);
+        painter.setPen(pen);
+        painter.setBrush(Qt::white);
+
+        float position = value();
+        float min = minimum();
+        float max = maximum();
+        float pixel_position = left + width * position / (max - min);
+        float handle_size = 13;
+        QRectF rectangle(pixel_position - handle_size / 2,
+                         middle - handle_size / 2,
+                         handle_size,
+                         handle_size);
+        painter.drawEllipse(rectangle);
+#endif
     }
 #ifndef Q_OS_LINUX
     QSlider::paintEvent(e);         // parent draws
