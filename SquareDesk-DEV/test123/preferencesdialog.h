@@ -22,12 +22,14 @@ public:
     QString experimentalTimersTabEnabled;
     QString experimentalCuesheetTabEnabled;
     QString experimentalPitchTempoViewEnabled;
+    QString reverseLabelTitle;
 
 private slots:
     void on_chooseMusicPathButton_clicked();
 
     void on_EnableTimersTabCheckbox_toggled(bool checked);
     void on_EnableCuesheetTabCheckbox_toggled(bool checked);
+    void on_checkBoxReverseLabelTitle_toggled(bool checked);
 
     void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
 

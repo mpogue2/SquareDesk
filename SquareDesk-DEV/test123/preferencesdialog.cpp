@@ -97,3 +97,14 @@ void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
 //    qDebug() << "User selected Pitch Tempo View Enabled: " << experimentalPitchTempoViewEnabled;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
+
+void PreferencesDialog::on_checkBoxReverseLabelTitle_toggled(bool checked)
+{
+    if (checked) {
+        reverseLabelTitle = "true";
+    } else {
+        reverseLabelTitle = "false";
+    }
+//    qDebug() << "User selected Pitch Tempo View Enabled: " << experimentalPitchTempoViewEnabled;
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
+}

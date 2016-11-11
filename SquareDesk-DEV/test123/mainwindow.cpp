@@ -58,7 +58,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     timerCountUp(NULL),
     timerCountDown(NULL),
-    trapKeypresses(true)
+    trapKeypresses(true),
+    reverseLabelTitle(false)
 {
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
@@ -235,6 +236,18 @@ MainWindow::MainWindow(QWidget *parent) :
         on_monoButton_toggled(false);  // sets button and menu item
     }
 
+    // -------
+    const QString REVERSELABELTITLE_KEY("reverselabeltitle");  // default is FALSE (use stereo)
+    QString reverselabeltitleChecked = MySettings.value(REVERSELABELTITLE_KEY).toString();
+
+    if (reverselabeltitleChecked.isNull()) {
+        // first time through, FORCE MONO is FALSE (stereo mode is the default)
+        reverselabeltitleChecked = "false";  // FIX: needed?
+        MySettings.setValue(REVERSELABELTITLE_KEY, "false");
+    }
+    reverseLabelTitle = (reverselabeltitleChecked == "true") ? true : false;
+
+    
     setFontSizes();
 
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
@@ -1397,8 +1410,8 @@ void MainWindow::filterMusic() {
         QRegularExpression re_square("^(.+) - (.+)$");
         QRegularExpressionMatch match_square = re_square.match(s);
         if (match_square.hasMatch()) {
-            label = match_square.captured(1);   // label == "RIV 307"
-            title = match_square.captured(2);   // title == "Going to Ceili (Patter)"
+            label = match_square.captured(reverseLabelTitle ? 2 : 1);   // label == "RIV 307"
+            title = match_square.captured(reverseLabelTitle ? 1 : 2);   // title == "Going to Ceili (Patter)"
         } else {
             // e.g. /Users/mpogue/__squareDanceMusic/xtras/Virginia Reel.mp3
             title = s;
@@ -1663,7 +1676,21 @@ void MainWindow::on_actionPreferences_triggered()
             }
             showCuesheetTab = false;
         }
+        
+        // Save the new value for experimentalCuesheetTabEnabled --------
+        bool oldReverseLabelTitle = reverseLabelTitle;
+        if (dialog->reverseLabelTitle == "true") {
+            tabsetting = "true";
+            reverseLabelTitle = true;
+        } else {
+            tabsetting = "false";
+            reverseLabelTitle = false;
+        }
         MySettings.setValue("experimentalCuesheetTabEnabled", tabsetting); // save the new experimental tab setting
+        if (oldReverseLabelTitle != reverseLabelTitle)
+        {
+            filterMusic();
+        }
 
         // Save the new value for experimentalPitchTempoViewEnabled --------
         QString viewsetting;
