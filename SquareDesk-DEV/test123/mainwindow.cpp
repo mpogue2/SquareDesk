@@ -2184,7 +2184,7 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 
 #ifdef Q_OS_LINUX
     QStringList args;
-    args << QDir::toNativeSeparators(filePath);
+    args << QFileInfo(filePath).absoluteDir().canonicalPath();
     QProcess::startDetached("xdg-open", args);
 #endif // ifdef Q_OS_LINUX
 }
@@ -2206,6 +2206,9 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         menu.addAction ( "Show in Explorer" , this , SLOT (revealInFinder()) );
 #endif
 
+#if defined(Q_OS_LINUX)
+        menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
+#endif
         // TODO: Linux equivalent?
 
         menu.popup(QCursor::pos());
