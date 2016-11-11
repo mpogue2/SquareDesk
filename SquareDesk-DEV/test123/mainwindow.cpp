@@ -187,6 +187,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //  kTitleCol is always expandable, so don't set width here
     ui->songTable->setColumnWidth(kPitchCol,50);
     ui->songTable->setColumnWidth(kTempoCol,50);
+    ui->songTable->setColumnWidth(kLastPlayedCol,36);
 
     // ----------
     const QString EXPERIMENTALPITCHTEMPO_KEY("experimentalPitchTempoViewEnabled");  // default is not enabled
@@ -376,6 +377,7 @@ void MainWindow::updatePitchTempoView() {
         headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
         headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kLastPlayedCol, QHeaderView::Interactive);
         headerView->setStretchLastSection(false);
     }
 }
@@ -1354,6 +1356,15 @@ void MainWindow::findMusic()
     findFilesRecursively(musicRootDir, pathStack);
 }
 
+void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
+                                   QString str, int column)
+{
+    QTableWidgetItem *newTableItem = new QTableWidgetItem( str );
+    newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);      // not editable
+    newTableItem->setTextColor(textCol);
+    songTable->setItem(songTable->rowCount()-1, column, newTableItem);
+}
+
 void MainWindow::filterMusic() {
     ui->songTable->setSortingEnabled(false);
 
@@ -1422,11 +1433,11 @@ void MainWindow::filterMusic() {
         QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
         if (type == "xtras") {
             textCol = (QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0)); // other: dark red
-        } else if (type == "patter") {
+        } else if ((type == "patter") || (type == "hoedown")) {
             textCol = (QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0)); // patter: Purple
         } else if (type == "singing") {
             textCol = (QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0)); // singing: dark green
-        } else if (type == "singing_called") {
+        } else if ((type == "singing_called") || (type == "vocal")) {
             textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
         }
 
@@ -1443,32 +1454,12 @@ void MainWindow::filterMusic() {
         newTableItem4->setTextColor(textCol);
         ui->songTable->setItem(ui->songTable->rowCount()-1, kNumberCol, newTableItem4);      // add it to column 0
 
-        QTableWidgetItem *newTableItem2 = new QTableWidgetItem( type );
-        newTableItem2->setFlags(newTableItem2->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem2->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, kTypeCol, newTableItem2);      // add it to column 2
-
-        QTableWidgetItem *newTableItem0 = new QTableWidgetItem( label + " " + labelnum );
-        newTableItem0->setFlags(newTableItem0->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem0->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, kLabelCol, newTableItem0);      // add it to column 0
-
-        QTableWidgetItem *newTableItem3 = new QTableWidgetItem( title );
-        newTableItem3->setFlags(newTableItem3->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem3->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, kTitleCol, newTableItem3);      // add it to column 3
-
-        // pitch column is hidden
-        QTableWidgetItem *newTableItem5 = new QTableWidgetItem("0");
-        newTableItem5->setFlags(newTableItem5->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem5->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, kPitchCol, newTableItem5);      // add it to column 5 (pitch, hidden)
-
-        // tempo column is hidden
-        QTableWidgetItem *newTableItem6 = new QTableWidgetItem("0");  // 0 means "use base tempo"
-        newTableItem6->setFlags(newTableItem6->flags() & ~Qt::ItemIsEditable);      // not editable
-        newTableItem6->setTextColor(textCol);
-        ui->songTable->setItem(ui->songTable->rowCount()-1, kTempoCol, newTableItem6);      // add it to column 4 (tempo, hidden)
+        addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
+        addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, "***", kLastPlayedCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
 
         // keep the path around, for loading in when we double click on it
         ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0

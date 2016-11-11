@@ -241,6 +241,7 @@ private:
 // path is stored in the userData portion of the Type column...
 #define kLabelCol 2
 #define kTitleCol 3
+#define kLastPlayedCol 6
 
 // hidden columns:
 #define kPitchCol 4
