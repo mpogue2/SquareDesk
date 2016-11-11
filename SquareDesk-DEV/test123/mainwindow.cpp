@@ -1677,7 +1677,7 @@ void MainWindow::on_actionPreferences_triggered()
             tabsetting = "false";
             reverseLabelTitle = false;
         }
-        MySettings.setValue("experimentalCuesheetTabEnabled", tabsetting); // save the new experimental tab setting
+        MySettings.setValue("reverselabeltitle", tabsetting); // save the new experimental tab setting
         if (oldReverseLabelTitle != reverseLabelTitle)
         {
             filterMusic();

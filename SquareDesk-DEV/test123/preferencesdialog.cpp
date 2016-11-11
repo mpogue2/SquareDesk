@@ -1,6 +1,14 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
+
+void setCheckboxFromString(QSettings &MySettings, QCheckBox *checkBox, const char *key, QString &value)
+{
+    value = MySettings.value(key).toString();
+    checkBox->setChecked(value == "true");
+}
+
+
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
@@ -12,33 +20,23 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     musicPath = MySettings.value("musicPath").toString();
     ui->musicPath->setText(musicPath);
 
-    // Timers tab (experimental) preference -------
-    experimentalTimersTabEnabled = MySettings.value("experimentalTimersTabEnabled").toString();
-//    qDebug() << "preferencesDialog, expTimers = " << experimentalTimersTabEnabled;  // FIX
-    if (experimentalTimersTabEnabled == "true") {
-        ui->EnableTimersTabCheckbox->setChecked(true);
-    } else {
-        ui->EnableTimersTabCheckbox->setChecked(false);
-    }
+    setCheckboxFromString(MySettings, ui->EnableTimersTabCheckbox,
+                          "experimentalTimersTabEnabled",
+                          experimentalTimersTabEnabled);
 
-    // Cuesheet tab (experimental) preference -------
-    experimentalCuesheetTabEnabled = MySettings.value("experimentalCuesheetTabEnabled").toString();
-//    qDebug() << "preferencesDialog, expTimers = " << experimentalCuesheetTabEnabled;  // FIX
-    if (experimentalCuesheetTabEnabled == "true") {
-        ui->EnableCuesheetTabCheckbox->setChecked(true);
-    } else {
-        ui->EnableCuesheetTabCheckbox->setChecked(false);
-    }
-
-    // Pitch/Tempo View (experimental) preference -------
-    experimentalPitchTempoViewEnabled = MySettings.value("experimentalPitchTempoViewEnabled").toString();
-//    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
-    if (experimentalPitchTempoViewEnabled == "true") {
-        ui->EnablePitchTempoViewCheckbox->setChecked(true);
-    } else {
-        ui->EnablePitchTempoViewCheckbox->setChecked(false);
-    }
-
+    setCheckboxFromString(MySettings, ui->EnableCuesheetTabCheckbox,
+                          "experimentalCuesheetTabEnabled",
+                          experimentalTimersTabEnabled);
+    setCheckboxFromString(MySettings, ui->EnablePitchTempoViewCheckbox,
+                          "experimentalPitchTempoViewEnabled",
+                          experimentalPitchTempoViewEnabled);
+    setCheckboxFromString(MySettings, ui->EnablePitchTempoViewCheckbox,
+                          "experimentalPitchTempoViewEnabled",
+                          experimentalPitchTempoViewEnabled);
+    setCheckboxFromString(MySettings, ui->checkBoxReverseLabelTitle,
+                          "reverselabeltitle",
+                          reverseLabelTitle);
+    
 }
 
 PreferencesDialog::~PreferencesDialog()
