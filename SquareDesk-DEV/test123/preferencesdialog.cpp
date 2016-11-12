@@ -30,11 +30,31 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->EnablePitchTempoViewCheckbox->setChecked(false);
     }
 
+    setFontSizes();
 }
 
 PreferencesDialog::~PreferencesDialog()
 {
     delete ui;
+}
+
+void PreferencesDialog::setFontSizes() {
+
+    int preferredSmallFontSize;
+#if defined(Q_OS_MAC)
+    preferredSmallFontSize = 13;
+#elif defined(Q_OS_WIN32)
+    preferredSmallFontSize = 8;
+#elif defined(Q_OS_LINUX)
+    preferredSmallFontSize = 13;  // FIX: is this right?
+#endif
+
+    QFont font = ui->musicDirHelpLabel->font();
+    font.setPointSize(preferredSmallFontSize);
+
+    ui->musicDirHelpLabel->setFont(font);
+    ui->timersHelpLabel->setFont(font);
+    ui->pitchTempoHelpLabel->setFont(font);
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()

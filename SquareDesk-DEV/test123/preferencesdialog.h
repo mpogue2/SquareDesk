@@ -21,6 +21,7 @@ public:
     QString musicPath;
     QString experimentalTimersTabEnabled;
     QString experimentalPitchTempoViewEnabled;
+    void setFontSizes();
 
 private slots:
     void on_chooseMusicPathButton_clicked();
