@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>697</width>
-    <height>610</height>
+    <width>684</width>
+    <height>475</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1230,6 +1230,37 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="A1Tab">
+       <attribute name="title">
+        <string>A1</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_12">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_11">
+          <item row="0" column="0">
+           <widget class="QLabel" name="A1Label1">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== ADVANCED 1 ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;Any Hand Concept&lt;br/&gt;(Anything) and Cross&lt;br/&gt;(Named Dancers) Cross As Couples Concept&lt;br/&gt;Belles and Beaus (couple only)&lt;br/&gt;Brace Thru (formerly Half Breed Thru)&lt;br/&gt;Cast A Shadow&lt;br/&gt;Chain Reaction (1/4 tag only)&lt;br/&gt;Clover and (Anything)&lt;br/&gt;Cross Clover and (Anything) &lt;br/&gt;Cross Over Circulate&lt;br/&gt;Cross Trail Thru&lt;br/&gt;Cycle And Wheel&lt;br/&gt;Double Star Thru&lt;br/&gt;Triple Star Thru &lt;br/&gt;Ends Bend&lt;br/&gt;Explode and (Anything)&lt;br/&gt;Explode The Line&lt;br/&gt;Fractional Tops&lt;br/&gt;Quarter Top/Half the Top/Three Quarter Top&lt;br/&gt;Grand Follow Your Neighbor &lt;br/&gt;Horseshoe Turn&lt;br/&gt;Lockit&lt;br/&gt;Mix&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="A1Label2">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Pair Off&lt;br/&gt;Partner Hinge&lt;br/&gt;Partner Tag&lt;br/&gt;Pass In/Out&lt;br/&gt;Pass the Sea&lt;br/&gt;Quarter In/Out&lt;br/&gt;Quarter Thru / Three Quarter Thru&lt;br/&gt;Grand Quarter Thru&lt;br/&gt;Grand Three Quarter Thru&lt;br/&gt;Right (Left) Roll to a Wave &lt;br/&gt;Scoot and Dodge&lt;br/&gt;Six-Two Acey-Deucey &lt;br/&gt;Split Square Chain Thru &lt;br/&gt;Split Square Thru&lt;br/&gt;Square Chain Thru&lt;br/&gt;Step and Slide&lt;br/&gt;Swap Around&lt;br/&gt;Reverse Swap Around&lt;br/&gt;Transfer the Column&lt;br/&gt;Triple Cross&lt;br/&gt;Triple Scoot&lt;br/&gt;Triple Trade&lt;br/&gt;Turn and Deal&lt;br/&gt;Wheel Thru / Left Wheel Thru&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -1239,7 +1270,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>697</width>
+     <width>684</width>
      <height>22</height>
     </rect>
    </property>

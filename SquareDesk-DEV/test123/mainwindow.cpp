@@ -64,6 +64,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->statusBar->showMessage("");
 
+    setFontSizes();
+
     this->setWindowTitle(QString("SquareDesk Music Player/Editor"));
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
@@ -228,8 +230,6 @@ MainWindow::MainWindow(QWidget *parent) :
         on_monoButton_toggled(false);  // sets button and menu item
     }
 
-    setFontSizes();
-
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
@@ -272,7 +272,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
 
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.55);  // initial size is 55% of screen
+    resize(QDesktopWidget().availableGeometry(this).size() * 0.45);  // initial size is 55% of screen
 }
 
 // ----------------------------------------------------------------------
@@ -323,7 +323,7 @@ void MainWindow::setFontSizes() {
 
     QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
 #if defined(Q_OS_WIN)
-    styleForCallerlabDefinitions = "QLabel{font-size:6pt;}";
+    styleForCallerlabDefinitions = "QLabel{font-size:8pt;}";
 #endif
     ui->basicLabel1->setStyleSheet(styleForCallerlabDefinitions);
     ui->basicLabel2->setStyleSheet(styleForCallerlabDefinitions);
@@ -331,6 +331,8 @@ void MainWindow::setFontSizes() {
     ui->MainstreamLabel2->setStyleSheet(styleForCallerlabDefinitions);
     ui->PlusLabel1->setStyleSheet(styleForCallerlabDefinitions);
     ui->PlusLabel2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->A1Label1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->A1Label2->setStyleSheet(styleForCallerlabDefinitions);
 
     font.setPointSize(preferredSmallFontSize+6);
     ui->nowPlayingLabel->setFont(font);
