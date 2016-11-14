@@ -32,6 +32,7 @@
 #include "myslider.h"
 #include "preferencesdialog.h"
 #include "levelmeter.h"
+#include "analogclock.h"
 
 namespace Ui
 {
@@ -217,6 +218,8 @@ private:
     QTimer *vuMeterTimer;
 
     LevelMeter *vuMeter;
+
+    AnalogClock *analogClock;
 };
 
 // currentState:

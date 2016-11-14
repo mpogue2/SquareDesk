@@ -7,6 +7,7 @@
 #include "QThread"
 #include "QProcess"
 #include "QDesktopWidget"
+#include "analogclock.h"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -142,30 +143,26 @@ MainWindow::MainWindow(QWidget *parent) :
     currentVolume = 100;
     Info_Volume();
 
-    // VU Meter
+    // VU Meter -----
     vuMeterTimer = new QTimer(this);
     connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
     vuMeterTimer->start(50);           // adjust from GUI with timer->setInterval(newValue)
 
     vuMeter = new LevelMeter(this);
-//    int x = ui->vuMeterProxy->x();
-//    int y = ui->vuMeterProxy->y();
-//    int w = ui->vuMeterProxy->width();
-//    int h = ui->vuMeterProxy->height();
-////    qDebug() << x << y << w << h;
-//    vuMeter->setGeometry(x,y,100,h);
-//    vuMeter->setFixedSize(QSize(10,100));
-////    vuMeter->setGeometry(100,100,500,500);
-
     ui->gridLayout_2->addWidget(vuMeter, 1,5);  // add it to the layout in the right spot
     vuMeter->setFixedHeight(20);
 
     vuMeter->reset();
-//    vuMeter->levelChanged(0.5,0.7,100);
     vuMeter->setEnabled(true);
     vuMeter->setVisible(true);
 
-//    ui->vuMeterProxy->setHidden(true);
+    // analog clock -----
+    analogClock = new AnalogClock(this);
+    ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
+//    analogClock->setGeometry(0,0,200,200);
+    analogClock->setFixedSize(QSize(110,110));
+    analogClock->setEnabled(true);
+    analogClock->setVisible(true);
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
@@ -272,7 +269,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
 
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.45);  // initial size is 55% of screen
+    resize(QDesktopWidget().availableGeometry(this).size() * 0.7);  // initial size is 70% of screen
+
+    setGeometry(
+        QStyle::alignedRect(
+            Qt::LeftToRight,
+            Qt::AlignCenter,
+            size(),
+            qApp->desktop()->availableGeometry()
+        )
+    );
 }
 
 // ----------------------------------------------------------------------
@@ -334,7 +340,7 @@ void MainWindow::setFontSizes() {
     ui->A1Label1->setStyleSheet(styleForCallerlabDefinitions);
     ui->A1Label2->setStyleSheet(styleForCallerlabDefinitions);
 
-    font.setPointSize(preferredSmallFontSize+6);
+    font.setPointSize(preferredSmallFontSize+14);
     ui->nowPlayingLabel->setFont(font);
 }
 

@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     mytablewidget.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
-    levelmeter.cpp
+    levelmeter.cpp \
+    analogclock.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -30,7 +31,8 @@ HEADERS  += mainwindow.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \
-    levelmeter.h
+    levelmeter.h \
+    analogclock.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui
