@@ -202,9 +202,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------
     const QString EXPERIMENTALCLOCKCOLORING_KEY("experimentalClockColoringEnabled");  // default is not enabled
     QString clockColoringEnabled = MySettings.value(EXPERIMENTALCLOCKCOLORING_KEY).toString();
-    qDebug() << "clockColoringEnabled" << clockColoringEnabled;
+//    qDebug() << "clockColoringEnabled" << clockColoringEnabled;
     clockColoringHidden = (clockColoringEnabled != "true");      // if blank (not set), will be remembered as false
-    qDebug() << "clockColoringHidden" << clockColoringHidden;
+//    qDebug() << "clockColoringHidden" << clockColoringHidden;
     analogClock->setHidden(clockColoringHidden);
 
     // -----------
@@ -876,12 +876,12 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
     // update the session coloring analog clock
     QTime time = QTime::currentTime();
+    int theType = NONE;
     if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
         // FIX: there's a better way to do this conversion... we also gotta localize this in one place
         //   because Dan uses it too...
-        int theType;
         if (currentSongType == "patter") {
             theType = PATTER;
         } else if (currentSongType == "singing") {
@@ -893,8 +893,9 @@ void MainWindow::on_UIUpdateTimerTick(void)
         } else {
             theType = NONE;
         }
-        analogClock->setSegment(time.minute(), theType);
     }
+    analogClock->setSegment(time.hour(), time.minute(), theType);  // always called once per second
+//    analogClock->setSegment(time.minute(), time.second(), theType);  // TEST TEST TEST
 }
 
 // ----------------------------------------------------------------------

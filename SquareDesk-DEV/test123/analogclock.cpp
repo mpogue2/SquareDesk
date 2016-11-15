@@ -63,6 +63,7 @@ AnalogClock::AnalogClock(QWidget *parent)
     // initially, all minutes have no session color
     for (int i = 0; i < 60; i++) {
         typeInMinute[i] = NONE;
+        lastHourSet[i] = -1;     // invalid hour, matches no real hour
     }
 
     coloringIsHidden = true;
@@ -236,14 +237,22 @@ void AnalogClock::paintEvent(QPaintEvent *)
 
 }
 
-void AnalogClock::setSegment(int minute, int type) {
+void AnalogClock::setSegment(int hour, int minute, int type) {
     // TODO: I have discovered a truly marvelous idea for showing session activity on the clock face,
     //    which this margin is too narrow to contain....
-    typeInMinute[minute] = type;
+    if (type == NONE) {
+        if (hour != lastHourSet[minute]) {
+            lastHourSet[minute] = hour;  // remember that we set this segment for this hour
+            typeInMinute[minute] = NONE; //   clear out the color, as the minute hand goes around, but only ONCE
+        }
+    } else {
+        // normal type, always update the current minute
+        typeInMinute[minute] = type;
+    }
 }
 
 void AnalogClock::setHidden(bool hidden) {
     coloringIsHidden = hidden;
-    qDebug() << "analogClock:" << hidden;
+//    qDebug() << "analogClock:" << hidden;
 }
 

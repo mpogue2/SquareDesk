@@ -67,8 +67,9 @@ public:
     AnalogClock(QWidget *parent = 0);
     QTimer *analogClockTimer;
 
-    void setSegment(int minute, int type);
-    int typeInMinute[60];
+    void setSegment(int hour, int minute, int type);
+    int typeInMinute[60]; // remembers the type for this minute
+    int lastHourSet[60];  // remembers the hour when the type was set for that minute
 
     void setColorForType(int type, QColor theColor);
     QColor colorForType[10];
