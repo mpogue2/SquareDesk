@@ -58,8 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     timerCountUp(NULL),
     timerCountDown(NULL),
-    trapKeypresses(true),
-    reverseLabelTitle(false)
+    trapKeypresses(true)
 {
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
@@ -238,14 +237,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // -------
     const QString REVERSELABELTITLE_KEY("reverselabeltitle");  // default is FALSE (use stereo)
-    QString reverselabeltitleChecked = MySettings.value(REVERSELABELTITLE_KEY).toString();
+    reverseLabelTitle = MySettings.value(REVERSELABELTITLE_KEY).toString();
 
-    if (reverselabeltitleChecked.isNull()) {
-        // first time through, FORCE MONO is FALSE (stereo mode is the default)
-        reverselabeltitleChecked = "false";  // FIX: needed?
-        MySettings.setValue(REVERSELABELTITLE_KEY, "false");
+    if (reverseLabelTitle.isNull()) {
+        reverseLabelTitle = "label_dash_name";
     }
-    reverseLabelTitle = (reverselabeltitleChecked == "true") ? true : false;
+    qDebug() << "Mainwindow: Read reverselabel " << reverseLabelTitle;
 
     
     setFontSizes();
@@ -285,6 +282,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (timersEnabled != "true") {
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
+    }
+    ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
+
+    // ----------
+    const QString EXPERIMENTALCUESHEET_KEY("experimentalCuesheetTabEnabled");  // default is not enabled
+    QString cuesheetEnabled = MySettings.value(EXPERIMENTALCUESHEET_KEY).toString();
+
+    if (cuesheetEnabled != "true") {
+        ui->tabWidget->removeTab(timersEnabled == "true" ? 2 : 1);  // it's remembered, don't worry!
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
@@ -1419,8 +1425,8 @@ void MainWindow::filterMusic() {
         QRegularExpression re_square("^(.+) - (.+)$");
         QRegularExpressionMatch match_square = re_square.match(s);
         if (match_square.hasMatch()) {
-            label = match_square.captured(reverseLabelTitle ? 2 : 1);   // label == "RIV 307"
-            title = match_square.captured(reverseLabelTitle ? 1 : 2);   // title == "Going to Ceili (Patter)"
+            label = match_square.captured(reverseLabelTitle == "label_dash_name" ? 1 : 2);   // label == "RIV 307"
+            title = match_square.captured(reverseLabelTitle == "label_dash_name" ? 2 :  1);   // title == "Going to Ceili (Patter)"
         } else {
             // e.g. /Users/mpogue/__squareDanceMusic/xtras/Virginia Reel.mp3
             title = s;
@@ -1664,19 +1670,16 @@ void MainWindow::on_actionPreferences_triggered()
             }
             showCuesheetTab = false;
         }
+        MySettings.setValue("experimentalCuesheetTabEnabled", tabsetting); // save the new experimental tab setting
         
-        // Save the new value for experimentalCuesheetTabEnabled --------
-        bool oldReverseLabelTitle = reverseLabelTitle;
-        if (dialog->reverseLabelTitle == "true") {
-            tabsetting = "true";
-            reverseLabelTitle = true;
-        } else {
-            tabsetting = "false";
-            reverseLabelTitle = false;
-        }
-        MySettings.setValue("reverselabeltitle", tabsetting); // save the new experimental tab setting
-        if (oldReverseLabelTitle != reverseLabelTitle)
+        // Save the new value for reverseLabelTitle --------
+        qDebug() << "Preferences changed to " << dialog->reverseLabelTitle << " vs " << reverseLabelTitle;
+        if (dialog->reverseLabelTitle != reverseLabelTitle)
         {
+            qDebug() << "Setting reverseLabelTitle to " << dialog->reverseLabelTitle;
+            reverseLabelTitle = dialog->reverseLabelTitle;
+            qDebug() << "Writing reverselabeltitle as " << reverseLabelTitle;
+            MySettings.setValue("reverselabeltitle", reverseLabelTitle);
             filterMusic();
         }
 
@@ -1691,6 +1694,7 @@ void MainWindow::on_actionPreferences_triggered()
         }
         MySettings.setValue("experimentalPitchTempoViewEnabled", viewsetting); // save the new experimental tab setting
         updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
+        MySettings.sync();
     }
 
     inPreferencesDialog = false;

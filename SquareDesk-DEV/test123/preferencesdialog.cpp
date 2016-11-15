@@ -1,6 +1,15 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
+static struct {
+    const char *description;
+    const char *tag;
+}
+    kSONG_NAME_FORMATS[] =
+    {
+        { "Label-# - Song name.mp3", "label_dash_name" },
+        { "Song name - Label-#.mp3", "name_dash_label" }
+    };
 
 void setCheckboxFromString(QSettings &MySettings, QCheckBox *checkBox, const char *key, QString &value)
 {
@@ -33,10 +42,24 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     setCheckboxFromString(MySettings, ui->EnablePitchTempoViewCheckbox,
                           "experimentalPitchTempoViewEnabled",
                           experimentalPitchTempoViewEnabled);
-    setCheckboxFromString(MySettings, ui->checkBoxReverseLabelTitle,
-                          "reverselabeltitle",
-                          reverseLabelTitle);
-    
+
+    reverseLabelTitle = MySettings.value("reverselabeltitle").toString();
+    int selectedTag = 1;
+    for (size_t i = 0;
+         i < sizeof(kSONG_NAME_FORMATS) / sizeof(kSONG_NAME_FORMATS[0]);
+         ++i)
+    {
+        ui->comboBoxSongNameFormat->insertItem(i,
+                                               kSONG_NAME_FORMATS[i].description,
+                                               kSONG_NAME_FORMATS[i].tag);
+        qDebug() << "Comparing " << kSONG_NAME_FORMATS[i].tag << " == " << reverseLabelTitle;
+        if (kSONG_NAME_FORMATS[i].tag == reverseLabelTitle)
+        {
+            qDebug() << "Selected tag is now " << selectedTag;
+            selectedTag = i;
+        }
+    }
+    ui->comboBoxSongNameFormat->setCurrentIndex(selectedTag);
 }
 
 PreferencesDialog::~PreferencesDialog()
@@ -96,13 +119,12 @@ void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
-void PreferencesDialog::on_checkBoxReverseLabelTitle_toggled(bool checked)
+void PreferencesDialog::on_comboBoxSongNameFormat_currentIndexChanged(int index)
 {
-    if (checked) {
-        reverseLabelTitle = "true";
-    } else {
-        reverseLabelTitle = "false";
+    qDebug() << "Pre compare Setting index to " << index;
+    if (index >= 0 && index < (int)(sizeof(kSONG_NAME_FORMATS) / sizeof(kSONG_NAME_FORMATS[0])))
+    {
+        qDebug() << "Setting index to " << index;
+        reverseLabelTitle = kSONG_NAME_FORMATS[index].tag;
     }
-//    qDebug() << "User selected Pitch Tempo View Enabled: " << experimentalPitchTempoViewEnabled;
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }

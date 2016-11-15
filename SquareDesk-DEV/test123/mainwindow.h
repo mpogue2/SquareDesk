@@ -209,7 +209,7 @@ private:
     QTimer *timerCountDown;
     qint64 timeCountDownZeroMs;
     bool trapKeypresses;
-    bool reverseLabelTitle;
+    QString reverseLabelTitle;
 
     void saveCheckBoxState(const char *key_string, QCheckBox *checkBox);
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox,

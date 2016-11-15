@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>889</width>
-    <height>441</height>
+    <height>462</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -124,11 +124,7 @@
     </widget>
    </item>
    <item row="3" column="1">
-    <widget class="QCheckBox" name="checkBoxReverseLabelTitle">
-     <property name="text">
-      <string>Flip Label-# - Title filename format to vice-versa</string>
-     </property>
-    </widget>
+    <widget class="QComboBox" name="comboBoxSongNameFormat"/>
    </item>
   </layout>
  </widget>

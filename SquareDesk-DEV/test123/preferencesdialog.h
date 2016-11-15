@@ -29,7 +29,8 @@ private slots:
 
     void on_EnableTimersTabCheckbox_toggled(bool checked);
     void on_EnableCuesheetTabCheckbox_toggled(bool checked);
-    void on_checkBoxReverseLabelTitle_toggled(bool checked);
+    void on_comboBoxSongNameFormat_currentIndexChanged(int index);
+
 
     void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
 
