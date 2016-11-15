@@ -171,8 +171,9 @@ private:
     bool inPreferencesDialog;
     QString musicRootPath;
 
-    bool showTimersTab;  // EXPERIMENTAL TIMERS STUFF
-    bool pitchAndTempoHidden;  // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
+    bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
+    bool pitchAndTempoHidden;   // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
+    bool clockColoringHidden;   // EXPERIMENTAL CLOCK COLORING STUFF
 
     QMap<int,QPair<QWidget*,QString> > tabmap; // keep track of experimental tabs
 
@@ -192,6 +193,8 @@ private:
     QString currentMP3filename;
     bool songLoaded;
     bool fileModified;
+
+    QString currentSongType;
 
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void findMusic();    // get the filenames into pathStack

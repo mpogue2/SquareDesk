@@ -30,6 +30,15 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->EnablePitchTempoViewCheckbox->setChecked(false);
     }
 
+    // Clock coloring (experimental) preference -------
+    experimentalClockColoringEnabled = MySettings.value("experimentalClockColoringEnabled").toString();
+//    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
+    if (experimentalClockColoringEnabled == "true") {
+        ui->EnableClockColoring->setChecked(true);
+    } else {
+        ui->EnableClockColoring->setChecked(false);
+    }
+
     setFontSizes();
 }
 
@@ -55,6 +64,7 @@ void PreferencesDialog::setFontSizes() {
     ui->musicDirHelpLabel->setFont(font);
     ui->timersHelpLabel->setFont(font);
     ui->pitchTempoHelpLabel->setFont(font);
+    ui->clockColoringHelpLabel->setFont(font);
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()
@@ -96,4 +106,15 @@ void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
     }
 //    qDebug() << "User selected Pitch Tempo View Enabled: " << experimentalPitchTempoViewEnabled;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
+}
+
+void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
+{
+    if (checked) {
+        experimentalClockColoringEnabled = "true";
+    } else {
+        experimentalClockColoringEnabled = "false";
+    }
+    //    qDebug() << "User selected Clock Coloring Enabled: " << experimentalClockColoringEnabled;
+        // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }

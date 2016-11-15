@@ -18,9 +18,12 @@ class PreferencesDialog : public QDialog
 public:
     explicit PreferencesDialog(QWidget *parent = 0);
     ~PreferencesDialog();
+
     QString musicPath;
     QString experimentalTimersTabEnabled;
     QString experimentalPitchTempoViewEnabled;
+    QString experimentalClockColoringEnabled;
+
     void setFontSizes();
 
 private slots:
@@ -29,6 +32,8 @@ private slots:
     void on_EnableTimersTabCheckbox_toggled(bool checked);
 
     void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
+
+    void on_EnableClockColoring_toggled(bool checked);
 
 private:
     Ui::PreferencesDialog *ui;

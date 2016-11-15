@@ -53,6 +53,12 @@
 
 #include <QWidget>
 
+#define NONE 0
+#define PATTER 1
+#define SINGING 2
+#define SINGING_CALLED 3
+#define XTRAS 4
+
 class AnalogClock : public QWidget
 {
     Q_OBJECT
@@ -60,7 +66,15 @@ class AnalogClock : public QWidget
 public:
     AnalogClock(QWidget *parent = 0);
     QTimer *analogClockTimer;
-    void setSegment(QString type, int minuteStart, int minuteEnd);
+
+    void setSegment(int minute, int type);
+    int typeInMinute[60];
+
+    void setColorForType(int type, QColor theColor);
+    QColor colorForType[10];
+
+    void setHidden(bool hidden);
+    bool coloringIsHidden;
 
 private slots:
     void redrawTimerExpired();

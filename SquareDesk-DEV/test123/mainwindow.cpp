@@ -164,6 +164,12 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->setEnabled(true);
     analogClock->setVisible(true);
 
+    // Tell the clock what colors to use for session segments
+    analogClock->setColorForType(PATTER, QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0));
+    analogClock->setColorForType(SINGING, QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0));
+    analogClock->setColorForType(SINGING_CALLED, QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0));
+    analogClock->setColorForType(XTRAS, QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0));
+
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
@@ -192,6 +198,14 @@ MainWindow::MainWindow(QWidget *parent) :
     pitchAndTempoHidden = (pitchTempoViewEnabled != "true");  // if blank (not set), will be remembered as false
 
     updatePitchTempoView(); // update the actual view of these 2 columns in the songTable
+
+    // ----------
+    const QString EXPERIMENTALCLOCKCOLORING_KEY("experimentalClockColoringEnabled");  // default is not enabled
+    QString clockColoringEnabled = MySettings.value(EXPERIMENTALCLOCKCOLORING_KEY).toString();
+    qDebug() << "clockColoringEnabled" << clockColoringEnabled;
+    clockColoringHidden = (clockColoringEnabled != "true");      // if blank (not set), will be remembered as false
+    qDebug() << "clockColoringHidden" << clockColoringHidden;
+    analogClock->setHidden(clockColoringHidden);
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -279,6 +293,7 @@ MainWindow::MainWindow(QWidget *parent) :
             qApp->desktop()->availableGeometry()
         )
     );
+
 }
 
 // ----------------------------------------------------------------------
@@ -858,6 +873,28 @@ void MainWindow::on_actionLoop_triggered()
 void MainWindow::on_UIUpdateTimerTick(void)
 {
     Info_Seekbar(true);
+
+    // update the session coloring analog clock
+    QTime time = QTime::currentTime();
+    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+        // if it's currently playing (checked once per second), then color this segment
+        //   with the current segment type
+        // FIX: there's a better way to do this conversion... we also gotta localize this in one place
+        //   because Dan uses it too...
+        int theType;
+        if (currentSongType == "patter") {
+            theType = PATTER;
+        } else if (currentSongType == "singing") {
+            theType = SINGING;
+        } else if (currentSongType == "singing_called") {
+            theType = SINGING_CALLED;
+        } else if (currentSongType == "xtras") {
+            theType = XTRAS;
+        } else {
+            theType = NONE;
+        }
+        analogClock->setSegment(time.minute(), theType);
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -1076,6 +1113,8 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
 }
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType) {
+    currentSongType = songType;  // save it for session coloring on the analog clock later...
+
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
     QStringList pieces2 = filebase.split(".");
@@ -1328,6 +1367,7 @@ void MainWindow::filterMusic() {
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
+        // FIX: these colors are dup'ed in the constructor...
         QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
         if (type == "xtras") {
             textCol = (QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0)); // other: dark red
@@ -1517,6 +1557,7 @@ void MainWindow::on_actionPreferences_triggered()
             filterMusic();
         }
 
+        // ----------------------------------------------------------------
         // Save the new value for experimentalTimersTabEnabled --------
         QString tabsetting;
         if (dialog->experimentalTimersTabEnabled == "true") {
@@ -1536,6 +1577,7 @@ void MainWindow::on_actionPreferences_triggered()
         }
         MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
 
+        // ----------------------------------------------------------------
         // Save the new value for experimentalPitchTempoViewEnabled --------
         QString viewsetting;
         if (dialog->experimentalPitchTempoViewEnabled == "true") {
@@ -1547,6 +1589,19 @@ void MainWindow::on_actionPreferences_triggered()
         }
         MySettings.setValue("experimentalPitchTempoViewEnabled", viewsetting); // save the new experimental tab setting
         updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
+
+        // ----------------------------------------------------------------
+        // Save the new value for experimentalClockColoringEnabled --------
+        QString coloringsetting;
+        if (dialog->experimentalClockColoringEnabled == "true") {
+            coloringsetting = "true";
+            clockColoringHidden = false;
+        } else {
+            coloringsetting = "false";
+            clockColoringHidden = true;
+        }
+        MySettings.setValue("experimentalClockColoringEnabled", coloringsetting); // save the new experimental tab setting
+        analogClock->setHidden(clockColoringHidden);
     }
 
     inPreferencesDialog = false;
