@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <QSettings>
 
+#include "common_enums.h"
+
 namespace Ui {
 class PreferencesDialog;
 }
@@ -29,6 +31,7 @@ public:
     QString GetMusicTypePatter();
     QString GetMusicTypeExtras();
     QString GetMusicTypeCalled();
+    enum SongFilenameMatchingType GetSongFilenameFormat();
 
 private slots:
     void on_chooseMusicPathButton_clicked();

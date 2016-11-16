@@ -181,6 +181,12 @@ MainWindow::MainWindow(QWidget *parent) :
         MySettings.setValue("musicPath", musicRootPath); // set to music subdirectory in user's Home directory, if nothing else
     }
 
+    songFilenameFormat = SongFilenameLabelDashName;
+    if (!MySettings.value("SongFilenameFormat").isNull())
+    {
+        songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
+    }
+
     // used to store the file paths
     findMusic();  // get the filenames from the user's directories
     filterMusic(); // and filter them into the songTable
@@ -266,6 +272,7 @@ MainWindow::MainWindow(QWidget *parent) :
     if (value.isNull()) value = "singing_called;vocal;vocals;called";
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
+   
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
@@ -1426,6 +1433,53 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
 }
 
+
+struct FilenameMatchers {
+    QRegularExpression regex;
+    int title_match;
+    int label_match;
+    int number_match;
+};
+
+struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
+{
+    static struct FilenameMatchers best_guess_matches[] =
+        {
+            { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1 },
+            { QRegularExpression("^([A-Z]+[\\- ]\\d+)-?[VvMA-C]? - (.*)$"), 2, 1, -1 },
+            { QRegularExpression("^([A-Z]+ ?\\d+)[MV]?[ -]+(.*)$/"), 2, 1, -1 },
+            { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)[MV]?[ -]+(.*)$"), 2, 1, -1 },
+            { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1 },
+            { QRegularExpression("^([A-Z]+ ?\\d+)[ab]?[ -]+(.*)$/"), 2, 1, -1 },
+            { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1 },
+            { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1 },
+            { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1 },
+            { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1 },
+            { QRegularExpression(), -1, -1, -1 }
+        };
+    static struct FilenameMatchers label_first_matches[] =
+        {
+            { QRegularExpression("^(.*) - (.*)$"), 2, 1, -1 },
+            { QRegularExpression(), -1, -1, -1 }
+        };
+    static struct FilenameMatchers filename_first_matches[] =
+        {
+            { QRegularExpression("^(.*) - (.*)$"), 1, 2, -1 },
+            { QRegularExpression(), -1, -1, -1 }
+        };
+    
+    switch (songFilenameFormat)
+    {
+    default:
+    case SongFilenameLabelDashName :
+        return label_first_matches;
+    case SongFilenameNameDashLabel :
+        return filename_first_matches;
+    case SongFilenameBestGuess :
+        return best_guess_matches;
+    }
+}
+
 void MainWindow::filterMusic() {
     ui->songTable->setSortingEnabled(false);
 
@@ -1478,29 +1532,18 @@ void MainWindow::filterMusic() {
         QString labelnum = "";
         QString title = "";
 
-
-        struct {
-            QRegularExpression regex;
-            int title_match;
-            int label_match;
-        } matches[] = {
-            { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *[VM]|\\-\\d+)?$"), 1, 2 },
-            { QRegularExpression("^([A-Z]+[\\- ]\\d+)[VvM]? - (.*)$"), 2, 1 },
-            { QRegularExpression("^([A-Z]+ ?\\d+)[MV]?[ -]+(.*)$/"), 2, 1 },
-            { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)[MV]?[ -]+(.*)$"), 2, 1 },
-            { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2 },
-            { QRegularExpression("^([A-Z]+ ?\\d+)[ab]?[ -]+(.*)$/"), 2, 1 },
-            { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1 },
-            { QRegularExpression("^(\\d+) - (.*)$"), 2, -1 },
-        };
               
         
 
-        s = fi.baseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
+        s = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
 
-        size_t num_matches = sizeof(matches) / sizeof(*matches);
-        size_t match_num = 0;
-        for (match_num = 0; match_num < num_matches; ++match_num)
+        int match_num = 0;
+        struct FilenameMatchers *matches = getFilenameMatchersForType(songFilenameFormat);
+        
+        for (match_num = 0;
+             matches[match_num].label_match >= 0
+                 && matches[match_num].title_match >= 0;
+             ++match_num)
         {
             QRegularExpressionMatch match = matches[match_num].regex.match(s);
             if (match.hasMatch()) {
@@ -1511,8 +1554,10 @@ void MainWindow::filterMusic() {
                 break;
             }
         }
-        if (match_num == num_matches)
+        if (!(matches[match_num].label_match >= 0
+              && matches[match_num].title_match >= 0))
         {
+            label = "";
             title = s;
         }
 
@@ -1693,6 +1738,26 @@ void MainWindow::on_checkBoxStartOnPlay_clicked()
     saveCheckBoxState("startcountuptimeronplay", ui->checkBoxStartOnPlay);
 }
 
+
+static bool setValueAndCheckPreviousValue(QSettings &MySettings, const char *key, QString &value)
+{
+    if (MySettings.value(key).toString() != value)
+    {
+        MySettings.setValue(key, value);
+        return true;
+    }
+    return false;
+}
+static bool  setValueAndCheckPreviousValue(QSettings &MySettings, const char *key, int value)
+{
+    if (MySettings.value(key).toInt() != value)
+    {
+        MySettings.setValue(key, value);
+        return true;
+    }
+    return false;
+}
+
 // --------------------------------------------------------
 void MainWindow::on_actionPreferences_triggered()
 {
@@ -1713,10 +1778,11 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for musicPath --------
         MySettings.setValue("musicPath", dialog->musicPath); // fish out the new dir from the Preferences dialog, and save it
 
+        bool needToFilterMusic = false;
         if (dialog->musicPath != musicRootPath) { // path has changed!
             musicRootPath = dialog->musicPath;
             findMusic();
-            filterMusic();
+            needToFilterMusic = true;
         }
 
         // ----------------------------------------------------------------
@@ -1770,21 +1836,31 @@ void MainWindow::on_actionPreferences_triggered()
             QString value;
 
             value = dialog->GetMusicTypeSinging();
-            MySettings.setValue("MusicTypeSinging", value);
+            if (setValueAndCheckPreviousValue(MySettings, "MusicTypeSinging", value))
+                needToFilterMusic = true;
             songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
 
             value = dialog->GetMusicTypePatter();
-            MySettings.setValue("MusicTypePatter", value);
+            if (setValueAndCheckPreviousValue(MySettings, "MusicTypePatter", value))
+                needToFilterMusic = true;
             songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
 
             value = dialog->GetMusicTypeExtras();
-            MySettings.setValue("MusicTypeExtras", value);
+            if (setValueAndCheckPreviousValue(MySettings, "MusicTypeExtras", value))
+                needToFilterMusic = true;
             songTypeNamesForExtras = value.toLower().split(";", QString::KeepEmptyParts);
 
             value = dialog->GetMusicTypeCalled();
-            MySettings.setValue("MusicTypeCalled", value);
+            if (setValueAndCheckPreviousValue(MySettings, "MusicTypeCalled", value))
+                needToFilterMusic = true;
             songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
         }
+        songFilenameFormat = dialog->GetSongFilenameFormat();
+        if (setValueAndCheckPreviousValue(MySettings, "SongFilenameFormat", (int)(songFilenameFormat)))
+            needToFilterMusic = true;
+        
+        if (needToFilterMusic)
+            filterMusic();
     }
 
     inPreferencesDialog = false;

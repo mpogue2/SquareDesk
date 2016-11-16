@@ -64,9 +64,38 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     {
         ui->lineEditMusicTypeCalled->setText(value);
     }
+
+    
+    enum SongFilenameMatchingType songFilenameFormat = SongFilenameLabelDashName;
+    if (!MySettings.value("SongFilenameFormat").isNull())
+    {
+        songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
+    }
+
+    ui->comboBoxMusicFormat->addItem("Label - Name",
+                                     QVariant(SongFilenameLabelDashName));
+    ui->comboBoxMusicFormat->addItem("Name - Label",
+                                     QVariant(SongFilenameNameDashLabel));
+    ui->comboBoxMusicFormat->addItem("Best Guess",
+                                     QVariant(SongFilenameBestGuess));
+    for (int i = 0; i < ui->comboBoxMusicFormat->maxCount(); ++i)
+    {
+        if (songFilenameFormat == ui->comboBoxMusicFormat->itemData(i).toInt())
+        {
+            ui->comboBoxMusicFormat->setCurrentIndex(i);
+            break;
+        }
+    }
         
     setFontSizes();
 }
+
+enum SongFilenameMatchingType PreferencesDialog::GetSongFilenameFormat()
+{
+    int currentIndex = ui->comboBoxMusicFormat->currentIndex();
+    return (SongFilenameMatchingType)(ui->comboBoxMusicFormat->itemData(currentIndex).toInt());
+}
+
 
 PreferencesDialog::~PreferencesDialog()
 {
@@ -92,6 +121,7 @@ void PreferencesDialog::setFontSizes() {
     ui->pitchTempoHelpLabel->setFont(font);
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);
+    ui->musicFormatHelpLabel->setFont(font);
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()

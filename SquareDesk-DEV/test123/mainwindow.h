@@ -27,6 +27,8 @@
 
 #include <QDateTime>
 
+#include "common_enums.h"
+
 #include "math.h"
 #include "bass_audio.h"
 #include "myslider.h"
@@ -172,6 +174,7 @@ private:
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath;
+    enum SongFilenameMatchingType songFilenameFormat;
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool pitchAndTempoHidden;   // EXPERIMENTAL PITCH/TEMPO VIEW STUFF

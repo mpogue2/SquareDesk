@@ -76,7 +76,7 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
+         <item row="7" column="0">
           <widget class="QLabel" name="musicTypesLabel">
            <property name="font">
             <font>
@@ -92,7 +92,7 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
+         <item row="7" column="1">
           <widget class="QLabel" name="musicTypesHelpLabel">
            <property name="text">
             <string>Music types are identified by matching path components. Those are matched with a &quot;;&quot; separated list of path names. Matching is case insensitive.</string>
@@ -102,7 +102,7 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="0">
+         <item row="8" column="0">
           <widget class="QLabel" name="musicTypesPatterLabel">
            <property name="text">
             <string>Patter</string>
@@ -112,14 +112,14 @@
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
+         <item row="8" column="1">
           <widget class="QLineEdit" name="lineEditMusicTypePatter">
            <property name="text">
             <string>patter;hoedown</string>
            </property>
           </widget>
          </item>
-         <item row="6" column="0">
+         <item row="9" column="0">
           <widget class="QLabel" name="musicTypesSingingLabel">
            <property name="text">
             <string>Singing</string>
@@ -129,14 +129,14 @@
            </property>
           </widget>
          </item>
-         <item row="6" column="1">
+         <item row="9" column="1">
           <widget class="QLineEdit" name="lineEditMusicTypeSinging">
            <property name="text">
             <string>singing;singers</string>
            </property>
           </widget>
          </item>
-         <item row="7" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="musicTypesCalledLabel">
            <property name="text">
             <string>Called</string>
@@ -146,14 +146,14 @@
            </property>
           </widget>
          </item>
-         <item row="7" column="1">
+         <item row="10" column="1">
           <widget class="QLineEdit" name="lineEditMusicTypeCalled">
            <property name="text">
             <string>singing_called;vocal;vocals</string>
            </property>
           </widget>
          </item>
-         <item row="8" column="0">
+         <item row="11" column="0">
           <widget class="QLabel" name="musicTypesExtrasLabel">
            <property name="text">
             <string>Extras</string>
@@ -163,12 +163,39 @@
            </property>
           </widget>
          </item>
-         <item row="8" column="1">
+         <item row="11" column="1">
           <widget class="QLineEdit" name="lineEditMusicTypeExtras">
            <property name="text">
             <string>xtras</string>
            </property>
           </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Music Format</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QLabel" name="musicFormatHelpLabel">
+           <property name="text">
+            <string>Is your music labeled as &quot;ABC 123 - Song Name.mp3&quot; (label - song name), &quot;Song Name - ABC 123.mp3&quot; (song name - label), or take the best guess.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QComboBox" name="comboBoxMusicFormat"/>
          </item>
         </layout>
        </widget>
@@ -282,6 +309,7 @@
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>chooseMusicPathButton</tabstop>
+  <tabstop>comboBoxMusicFormat</tabstop>
   <tabstop>lineEditMusicTypePatter</tabstop>
   <tabstop>lineEditMusicTypeSinging</tabstop>
   <tabstop>lineEditMusicTypeCalled</tabstop>
