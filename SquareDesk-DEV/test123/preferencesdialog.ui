@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>801</width>
-    <height>446</height>
+    <height>412</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
          <property name="geometry">
           <rect>
            <x>14</x>
-           <y>141</y>
+           <y>161</y>
            <width>140</width>
            <height>27</height>
           </rect>
@@ -45,7 +45,7 @@
          <property name="geometry">
           <rect>
            <x>160</x>
-           <y>174</y>
+           <y>194</y>
            <width>481</width>
            <height>27</height>
           </rect>
@@ -79,8 +79,8 @@
         <widget class="QLabel" name="musicTypesHelpLabel">
          <property name="geometry">
           <rect>
-           <x>160</x>
-           <y>102</y>
+           <x>159</x>
+           <y>110</y>
            <width>481</width>
            <height>33</height>
           </rect>
@@ -96,7 +96,7 @@
          <property name="geometry">
           <rect>
            <x>160</x>
-           <y>141</y>
+           <y>160</y>
            <width>481</width>
            <height>27</height>
           </rect>
@@ -109,7 +109,7 @@
          <property name="geometry">
           <rect>
            <x>14</x>
-           <y>240</y>
+           <y>260</y>
            <width>140</width>
            <height>27</height>
           </rect>
@@ -125,7 +125,7 @@
          <property name="geometry">
           <rect>
            <x>14</x>
-           <y>207</y>
+           <y>227</y>
            <width>140</width>
            <height>27</height>
           </rect>
@@ -141,7 +141,7 @@
          <property name="geometry">
           <rect>
            <x>160</x>
-           <y>240</y>
+           <y>259</y>
            <width>481</width>
            <height>27</height>
           </rect>
@@ -174,7 +174,7 @@
          <property name="geometry">
           <rect>
            <x>14</x>
-           <y>174</y>
+           <y>194</y>
            <width>140</width>
            <height>27</height>
           </rect>
@@ -190,26 +190,13 @@
          <property name="geometry">
           <rect>
            <x>160</x>
-           <y>207</y>
+           <y>226</y>
            <width>481</width>
            <height>27</height>
           </rect>
          </property>
          <property name="text">
           <string>singing_called;vocal;vocals</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="clockColoringHelpLabel">
-         <property name="geometry">
-          <rect>
-           <x>176</x>
-           <y>446</y>
-           <width>481</width>
-           <height>34</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Shows what type of song was played during each minute of the last&lt;br/&gt;hour.  The colors shown are the same colors used in the song list.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
         <widget class="QLabel" name="musicPathLabel">
@@ -238,9 +225,9 @@
          <property name="geometry">
           <rect>
            <x>160</x>
-           <y>45</y>
+           <y>30</y>
            <width>487</width>
-           <height>51</height>
+           <height>60</height>
           </rect>
          </property>
          <property name="text">
@@ -253,7 +240,7 @@
            <x>653</x>
            <y>12</y>
            <width>100</width>
-           <height>27</height>
+           <height>33</height>
           </rect>
          </property>
          <property name="maximumSize">
@@ -274,8 +261,8 @@
         <widget class="QLabel" name="timersHelpLabel">
          <property name="geometry">
           <rect>
-           <x>166</x>
-           <y>48</y>
+           <x>201</x>
+           <y>44</y>
            <width>481</width>
            <height>17</height>
           </rect>
@@ -287,7 +274,7 @@
         <widget class="QCheckBox" name="EnableTimersTabCheckbox">
          <property name="geometry">
           <rect>
-           <x>166</x>
+           <x>180</x>
            <y>20</y>
            <width>481</width>
            <height>22</height>
@@ -300,8 +287,8 @@
         <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
          <property name="geometry">
           <rect>
-           <x>166</x>
-           <y>71</y>
+           <x>180</x>
+           <y>74</y>
            <width>481</width>
            <height>22</height>
           </rect>
@@ -313,8 +300,8 @@
         <widget class="QLabel" name="pitchTempoHelpLabel">
          <property name="geometry">
           <rect>
-           <x>166</x>
-           <y>99</y>
+           <x>200</x>
+           <y>98</y>
            <width>481</width>
            <height>52</height>
           </rect>
@@ -326,8 +313,8 @@
         <widget class="QCheckBox" name="EnableClockColoring">
          <property name="geometry">
           <rect>
-           <x>166</x>
-           <y>157</y>
+           <x>180</x>
+           <y>161</y>
            <width>481</width>
            <height>22</height>
           </rect>
@@ -339,9 +326,9 @@
         <widget class="QLabel" name="ExpFeaturesLabel">
          <property name="geometry">
           <rect>
-           <x>20</x>
+           <x>12</x>
            <y>20</y>
-           <width>140</width>
+           <width>160</width>
            <height>22</height>
           </rect>
          </property>
@@ -356,6 +343,22 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="clockColoringHelpLabel">
+         <property name="geometry">
+          <rect>
+           <x>200</x>
+           <y>185</y>
+           <width>481</width>
+           <height>36</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Shows what type of song was played during each minute of the last&lt;br/&gt;hour.  The colors shown are the same colors used in the song list.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
          </property>
         </widget>
        </widget>
