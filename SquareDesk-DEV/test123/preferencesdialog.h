@@ -25,6 +25,10 @@ public:
     QString experimentalClockColoringEnabled;
 
     void setFontSizes();
+    QString GetMusicTypeSinging();
+    QString GetMusicTypePatter();
+    QString GetMusicTypeExtras();
+    QString GetMusicTypeCalled();
 
 private slots:
     void on_chooseMusicPathButton_clicked();

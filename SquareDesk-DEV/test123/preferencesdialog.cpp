@@ -39,6 +39,32 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->EnableClockColoring->setChecked(false);
     }
 
+    QString value;
+
+    value = MySettings.value("MusicTypeSinging").toString();
+    if (!value.isNull())
+    {
+        ui->lineEditMusicTypeSinging->setText(value);
+    }
+    
+    value = MySettings.value("MusicTypePatter").toString();
+    if (!value.isNull())
+    {
+        ui->lineEditMusicTypePatter->setText(value);
+    }
+    
+    value = MySettings.value("MusicTypeExtras").toString();
+    if (!value.isNull())
+    {
+        ui->lineEditMusicTypeExtras->setText(value);
+    }
+    
+    value = MySettings.value("MusicTypeCalled").toString();
+    if (!value.isNull())
+    {
+        ui->lineEditMusicTypeCalled->setText(value);
+    }
+        
     setFontSizes();
 }
 
@@ -55,7 +81,7 @@ void PreferencesDialog::setFontSizes() {
 #elif defined(Q_OS_WIN32)
     preferredSmallFontSize = 8;
 #elif defined(Q_OS_LINUX)
-    preferredSmallFontSize = 13;  // FIX: is this right?
+    preferredSmallFontSize = 9;
 #endif
 
     QFont font = ui->musicDirHelpLabel->font();
@@ -65,6 +91,7 @@ void PreferencesDialog::setFontSizes() {
     ui->timersHelpLabel->setFont(font);
     ui->pitchTempoHelpLabel->setFont(font);
     ui->clockColoringHelpLabel->setFont(font);
+    ui->musicTypesHelpLabel->setFont(font);
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()
@@ -118,3 +145,24 @@ void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
     //    qDebug() << "User selected Clock Coloring Enabled: " << experimentalClockColoringEnabled;
         // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
+
+QString PreferencesDialog::GetMusicTypeSinging()
+{
+    return ui->lineEditMusicTypeSinging->text();
+}
+
+QString PreferencesDialog::GetMusicTypePatter()
+{
+    return ui->lineEditMusicTypePatter->text();
+}
+
+QString PreferencesDialog::GetMusicTypeExtras()
+{
+    return ui->lineEditMusicTypeExtras->text();
+}
+
+QString PreferencesDialog::GetMusicTypeCalled()
+{
+    return ui->lineEditMusicTypeCalled->text();
+}
+

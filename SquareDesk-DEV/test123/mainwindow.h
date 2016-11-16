@@ -225,6 +225,12 @@ private:
     void updatePitchTempoView();
     void setFontSizes();
 
+    // Song types
+    QStringList songTypeNamesForPatter;
+    QStringList songTypeNamesForSinging;
+    QStringList songTypeNamesForCalled;
+    QStringList songTypeNamesForExtras;
+
     // VU Meter support
     QTimer *UIUpdateTimer;
     QTimer *vuMeterTimer;

@@ -6,137 +6,395 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>832</width>
-    <height>424</height>
+    <width>801</width>
+    <height>446</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>SquareDeskPlayer Preferences</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="1">
-    <widget class="QCheckBox" name="EnableTimersTabCheckbox">
-     <property name="text">
-      <string>Enable Timers tab</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QCheckBox" name="EnableClockColoring">
-     <property name="text">
-      <string>Enable Clock Coloring by Song Type</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QLabel" name="timersHelpLabel">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Provides a count-up and a count-down timer on a new &amp;quot;Timers&amp;quot; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1" rowspan="2" colspan="2">
-    <widget class="QLabel" name="musicDirHelpLabel">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.). &lt;br/&gt;&lt;br/&gt;Music files must be named like this: &amp;quot;AB 123 - King of the Road.mp3&amp;quot;, &lt;br/&gt;where AB 123 = the record label name and number, and &amp;quot;King of the Road&amp;quot;&lt;br/&gt;is the song title. Many record companies are already using this naming format.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="ExpFeaturesLabel">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Experimental Features:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0">
-    <widget class="QLabel" name="musicPathLabel">
-     <property name="font">
-      <font>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Music Directory:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="tab_3">
+        <attribute name="title">
+         <string>Music</string>
+        </attribute>
+        <widget class="QLabel" name="musicTypesPatterLabel">
+         <property name="geometry">
+          <rect>
+           <x>14</x>
+           <y>141</y>
+           <width>140</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Patter</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEditMusicTypeSinging">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>174</y>
+           <width>481</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>singing;singers</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicTypesLabel">
+         <property name="geometry">
+          <rect>
+           <x>14</x>
+           <y>102</y>
+           <width>140</width>
+           <height>33</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Music Types:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicTypesHelpLabel">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>102</y>
+           <width>481</width>
+           <height>33</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Music types are identified by matching path components. Those are matched with a &quot;;&quot; separated list of path names. Matching is case insensitive.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEditMusicTypePatter">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>141</y>
+           <width>481</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>patter;hoedown</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicTypesExtrasLabel">
+         <property name="geometry">
+          <rect>
+           <x>14</x>
+           <y>240</y>
+           <width>140</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Extras</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicTypesCalledLabel">
+         <property name="geometry">
+          <rect>
+           <x>14</x>
+           <y>207</y>
+           <width>140</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Called</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEditMusicTypeExtras">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>240</y>
+           <width>481</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>xtras</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicPath">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>12</y>
+           <width>481</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <italic>true</italic>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>/home/foo/bar</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicTypesSingingLabel">
+         <property name="geometry">
+          <rect>
+           <x>14</x>
+           <y>174</y>
+           <width>140</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Singing</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEditMusicTypeCalled">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>207</y>
+           <width>481</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>singing_called;vocal;vocals</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="clockColoringHelpLabel">
+         <property name="geometry">
+          <rect>
+           <x>176</x>
+           <y>446</y>
+           <width>481</width>
+           <height>34</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Shows what type of song was played during each minute of the last&lt;br/&gt;hour.  The colors shown are the same colors used in the song list.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicPathLabel">
+         <property name="geometry">
+          <rect>
+           <x>14</x>
+           <y>12</y>
+           <width>140</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Music Directory:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+        <widget class="QLabel" name="musicDirHelpLabel">
+         <property name="geometry">
+          <rect>
+           <x>160</x>
+           <y>45</y>
+           <width>487</width>
+           <height>51</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.). &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="chooseMusicPathButton">
+         <property name="geometry">
+          <rect>
+           <x>653</x>
+           <y>12</y>
+           <width>100</width>
+           <height>27</height>
+          </rect>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Choose...</string>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="tab_4">
+        <attribute name="title">
+         <string>Experimental</string>
+        </attribute>
+        <widget class="QLabel" name="timersHelpLabel">
+         <property name="geometry">
+          <rect>
+           <x>166</x>
+           <y>48</y>
+           <width>481</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Provides a count-up and a count-down timer on a new &amp;quot;Timers&amp;quot; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="EnableTimersTabCheckbox">
+         <property name="geometry">
+          <rect>
+           <x>166</x>
+           <y>20</y>
+           <width>481</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Enable Timers tab</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
+         <property name="geometry">
+          <rect>
+           <x>166</x>
+           <y>71</y>
+           <width>481</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Enable Pitch and Tempo columns in song list</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="pitchTempoHelpLabel">
+         <property name="geometry">
+          <rect>
+           <x>166</x>
+           <y>99</y>
+           <width>481</width>
+           <height>52</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Shows current pitch and tempo settings for each song in the song list.&lt;br/&gt;Pitch numbers are in semitones relative to base pitch. Tempos are either &lt;br/&gt;BPM (e.g. 127 -&amp;gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the &lt;br/&gt;tempo is unknown, because it has not been auto-detected yet).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="EnableClockColoring">
+         <property name="geometry">
+          <rect>
+           <x>166</x>
+           <y>157</y>
+           <width>481</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Enable Clock Coloring by Song Type</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="ExpFeaturesLabel">
+         <property name="geometry">
+          <rect>
+           <x>20</x>
+           <y>20</y>
+           <width>140</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Experimental Features:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </widget>
+      </widget>
+     </item>
+    </layout>
    </item>
-   <item row="5" column="1">
-    <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
-     <property name="text">
-      <string>Enable Pitch and Tempo columns in song list</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="3">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="maximumSize">
-      <size>
-       <width>175</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QPushButton" name="chooseMusicPathButton">
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Choose...</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLabel" name="musicPath">
-     <property name="font">
-      <font>
-       <weight>50</weight>
-       <italic>true</italic>
-       <bold>false</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>/home/foo/bar</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="1">
-    <widget class="QLabel" name="clockColoringHelpLabel">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Shows what type of song was played during each minute of the last&lt;br/&gt;hour.  The colors shown are the same colors used in the song list.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QLabel" name="pitchTempoHelpLabel">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Shows current pitch and tempo settings for each song in the song list.&lt;br/&gt;Pitch numbers are in semitones relative to base pitch. Tempos are either &lt;br/&gt;BPM (e.g. 127 -&amp;gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the &lt;br/&gt;tempo is unknown, because it has not been auto-detected yet).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
+   <item row="1" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox">
+       <property name="maximumSize">
+        <size>
+         <width>175</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -149,12 +407,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>703</x>
+     <y>422</y>
     </hint>
     <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
+     <x>400</x>
+     <y>222</y>
     </hint>
    </hints>
   </connection>
@@ -165,12 +423,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>703</x>
+     <y>422</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>400</x>
+     <y>222</y>
     </hint>
    </hints>
   </connection>

@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1132,6 +1132,9 @@
               <property name="tickPosition">
                <enum>QSlider::TicksBothSides</enum>
               </property>
+              <property name="tickInterval">
+               <number>10</number>
+              </property>
              </widget>
             </item>
             <item>
@@ -1333,7 +1336,7 @@
      <x>0</x>
      <y>0</y>
      <width>684</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

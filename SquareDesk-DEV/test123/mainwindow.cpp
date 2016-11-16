@@ -249,6 +249,23 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
 
+    QString value;
+    value = MySettings.value("MusicTypeSinging").toString();
+    if (value.isNull()) value = "singing;singers";
+    songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+
+    value = MySettings.value("MusicTypePatter").toString();
+    if (value.isNull()) value = "patter;hoedown";
+    songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+
+    value = MySettings.value("MusicTypeExtras").toString();
+    if (value.isNull()) value = "extras;xtras";
+    songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+
+    value = MySettings.value("MusicTypeCalled").toString();
+    if (value.isNull()) value = "singing_called;vocal;vocals;called";
+    songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
@@ -952,13 +969,13 @@ void MainWindow::on_UIUpdateTimerTick(void)
         //   with the current segment type
         // FIX: there's a better way to do this conversion... we also gotta localize this in one place
         //   because Dan uses it too...
-        if (currentSongType == "patter") {
+        if (songTypeNamesForPatter.contains(currentSongType)) {
             theType = PATTER;
-        } else if (currentSongType == "singing") {
+        } else if (songTypeNamesForSinging.contains(currentSongType)) {
             theType = SINGING;
-        } else if (currentSongType == "singing_called") {
+        } else if (songTypeNamesForCalled.contains(currentSongType)) {
             theType = SINGING_CALLED;
-        } else if (currentSongType == "xtras") {
+        } else if (songTypeNamesForExtras.contains(currentSongType)) {
             theType = XTRAS;
         } else {
             theType = NONE;
@@ -1317,8 +1334,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
-    ui->seekBar->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
-    ui->seekBarCuesheet->SetSingingCall(songType == "singing"); // if singing call, color the seek bar
+    bool isSingingCall = songTypeNamesForSinging.contains(songType);
+    ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+    ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -1745,7 +1763,28 @@ void MainWindow::on_actionPreferences_triggered()
             clockColoringHidden = true;
         }
         MySettings.setValue("experimentalClockColoringEnabled", coloringsetting); // save the new experimental tab setting
+
         analogClock->setHidden(clockColoringHidden);
+
+        {
+            QString value;
+
+            value = dialog->GetMusicTypeSinging();
+            MySettings.setValue("MusicTypeSinging", value);
+            songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+
+            value = dialog->GetMusicTypePatter();
+            MySettings.setValue("MusicTypePatter", value);
+            songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+
+            value = dialog->GetMusicTypeExtras();
+            MySettings.setValue("MusicTypeExtras", value);
+            songTypeNamesForExtras = value.toLower().split(";", QString::KeepEmptyParts);
+
+            value = dialog->GetMusicTypeCalled();
+            MySettings.setValue("MusicTypeCalled", value);
+            songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
+        }
     }
 
     inPreferencesDialog = false;
