@@ -398,6 +398,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>chooseMusicPathButton</tabstop>
+  <tabstop>lineEditMusicTypePatter</tabstop>
+  <tabstop>lineEditMusicTypeSinging</tabstop>
+  <tabstop>lineEditMusicTypeCalled</tabstop>
+  <tabstop>lineEditMusicTypeExtras</tabstop>
+  <tabstop>EnableTimersTabCheckbox</tabstop>
+  <tabstop>EnablePitchTempoViewCheckbox</tabstop>
+  <tabstop>EnableClockColoring</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
