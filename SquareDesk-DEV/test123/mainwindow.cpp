@@ -7,6 +7,7 @@
 #include "QThread"
 #include "QProcess"
 #include "QDesktopWidget"
+#include "analogclock.h"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -64,6 +65,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     ui->statusBar->showMessage("");
+
+    setFontSizes();
 
     this->setWindowTitle(QString("SquareDesk Music Player/Editor"));
 
@@ -141,30 +144,32 @@ MainWindow::MainWindow(QWidget *parent) :
     currentVolume = 100;
     Info_Volume();
 
-    // VU Meter
+    // VU Meter -----
     vuMeterTimer = new QTimer(this);
     connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
     vuMeterTimer->start(50);           // adjust from GUI with timer->setInterval(newValue)
 
     vuMeter = new LevelMeter(this);
-//    int x = ui->vuMeterProxy->x();
-//    int y = ui->vuMeterProxy->y();
-//    int w = ui->vuMeterProxy->width();
-//    int h = ui->vuMeterProxy->height();
-////    qDebug() << x << y << w << h;
-//    vuMeter->setGeometry(x,y,100,h);
-//    vuMeter->setFixedSize(QSize(10,100));
-////    vuMeter->setGeometry(100,100,500,500);
-
     ui->gridLayout_2->addWidget(vuMeter, 1,5);  // add it to the layout in the right spot
     vuMeter->setFixedHeight(20);
 
     vuMeter->reset();
-//    vuMeter->levelChanged(0.5,0.7,100);
     vuMeter->setEnabled(true);
     vuMeter->setVisible(true);
 
-//    ui->vuMeterProxy->setHidden(true);
+    // analog clock -----
+    analogClock = new AnalogClock(this);
+    ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
+//    analogClock->setGeometry(0,0,200,200);
+    analogClock->setFixedSize(QSize(110,110));
+    analogClock->setEnabled(true);
+    analogClock->setVisible(true);
+
+    // Tell the clock what colors to use for session segments
+    analogClock->setColorForType(PATTER, QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0));
+    analogClock->setColorForType(SINGING, QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0));
+    analogClock->setColorForType(SINGING_CALLED, QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0));
+    analogClock->setColorForType(XTRAS, QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0));
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
@@ -194,6 +199,14 @@ MainWindow::MainWindow(QWidget *parent) :
     pitchAndTempoHidden = (pitchTempoViewEnabled != "true");  // if blank (not set), will be remembered as false
 
     updatePitchTempoView(); // update the actual view of these 2 columns in the songTable
+
+    // ----------
+    const QString EXPERIMENTALCLOCKCOLORING_KEY("experimentalClockColoringEnabled");  // default is not enabled
+    QString clockColoringEnabled = MySettings.value(EXPERIMENTALCLOCKCOLORING_KEY).toString();
+//    qDebug() << "clockColoringEnabled" << clockColoringEnabled;
+    clockColoringHidden = (clockColoringEnabled != "true");      // if blank (not set), will be remembered as false
+//    qDebug() << "clockColoringHidden" << clockColoringHidden;
+    analogClock->setHidden(clockColoringHidden);
 
     // -----------
     const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
@@ -235,17 +248,6 @@ MainWindow::MainWindow(QWidget *parent) :
         on_monoButton_toggled(false);  // sets button and menu item
     }
 
-    // -------
-    const QString REVERSELABELTITLE_KEY("reverselabeltitle");  // default is FALSE (use stereo)
-    reverseLabelTitle = MySettings.value(REVERSELABELTITLE_KEY).toString();
-
-    if (reverseLabelTitle.isNull()) {
-        reverseLabelTitle = "label_dash_name";
-    }
-    qDebug() << "Mainwindow: Read reverselabel " << reverseLabelTitle;
-
-    
-    setFontSizes();
 
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
@@ -298,7 +300,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
 
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.55);  // initial size is 55% of screen
+    resize(QDesktopWidget().availableGeometry(this).size() * 0.7);  // initial size is 70% of screen
+
+    setGeometry(
+        QStyle::alignedRect(
+            Qt::LeftToRight,
+            Qt::AlignCenter,
+            size(),
+            qApp->desktop()->availableGeometry()
+        )
+    );
+
 }
 
 // ----------------------------------------------------------------------
@@ -349,7 +361,7 @@ void MainWindow::setFontSizes() {
 
     QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
 #if defined(Q_OS_WIN)
-    styleForCallerlabDefinitions = "QLabel{font-size:6pt;}";
+    styleForCallerlabDefinitions = "QLabel{font-size:8pt;}";
 #endif
     ui->basicLabel1->setStyleSheet(styleForCallerlabDefinitions);
     ui->basicLabel2->setStyleSheet(styleForCallerlabDefinitions);
@@ -357,8 +369,10 @@ void MainWindow::setFontSizes() {
     ui->MainstreamLabel2->setStyleSheet(styleForCallerlabDefinitions);
     ui->PlusLabel1->setStyleSheet(styleForCallerlabDefinitions);
     ui->PlusLabel2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->A1Label1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->A1Label2->setStyleSheet(styleForCallerlabDefinitions);
 
-    font.setPointSize(preferredSmallFontSize+6);
+    font.setPointSize(preferredSmallFontSize+14);
     ui->nowPlayingLabel->setFont(font);
 }
 
@@ -929,6 +943,29 @@ void MainWindow::on_actionLoop_triggered()
 void MainWindow::on_UIUpdateTimerTick(void)
 {
     Info_Seekbar(true);
+
+    // update the session coloring analog clock
+    QTime time = QTime::currentTime();
+    int theType = NONE;
+    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+        // if it's currently playing (checked once per second), then color this segment
+        //   with the current segment type
+        // FIX: there's a better way to do this conversion... we also gotta localize this in one place
+        //   because Dan uses it too...
+        if (currentSongType == "patter") {
+            theType = PATTER;
+        } else if (currentSongType == "singing") {
+            theType = SINGING;
+        } else if (currentSongType == "singing_called") {
+            theType = SINGING_CALLED;
+        } else if (currentSongType == "xtras") {
+            theType = XTRAS;
+        } else {
+            theType = NONE;
+        }
+    }
+    analogClock->setSegment(time.hour(), time.minute(), theType);  // always called once per second
+//    analogClock->setSegment(time.minute(), time.second(), theType);  // TEST TEST TEST
 }
 
 // ----------------------------------------------------------------------
@@ -1170,6 +1207,8 @@ void MainWindow::loadCuesheet(QString MP3FileName)
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType) {
     loadCuesheet(MP3FileName);
     
+    currentSongType = songType;  // save it for session coloring on the analog clock later...
+
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
     QStringList pieces2 = filebase.split(".");
@@ -1421,19 +1460,47 @@ void MainWindow::filterMusic() {
         QString labelnum = "";
         QString title = "";
 
+
+        struct {
+            QRegularExpression regex;
+            int title_match;
+            int label_match;
+        } matches[] = {
+            { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *[VM]|\\-\\d+)?$"), 1, 2 },
+            { QRegularExpression("^([A-Z]+[\\- ]\\d+)[VvM]? - (.*)$"), 2, 1 },
+            { QRegularExpression("^([A-Z]+ ?\\d+)[MV]?[ -]+(.*)$/"), 2, 1 },
+            { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)[MV]?[ -]+(.*)$"), 2, 1 },
+            { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2 },
+            { QRegularExpression("^([A-Z]+ ?\\d+)[ab]?[ -]+(.*)$/"), 2, 1 },
+            { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1 },
+            { QRegularExpression("^(\\d+) - (.*)$"), 2, -1 },
+        };
+              
+        
+
         s = fi.baseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-        QRegularExpression re_square("^(.+) - (.+)$");
-        QRegularExpressionMatch match_square = re_square.match(s);
-        if (match_square.hasMatch()) {
-            label = match_square.captured(reverseLabelTitle == "label_dash_name" ? 1 : 2);   // label == "RIV 307"
-            title = match_square.captured(reverseLabelTitle == "label_dash_name" ? 2 :  1);   // title == "Going to Ceili (Patter)"
-        } else {
-            // e.g. /Users/mpogue/__squareDanceMusic/xtras/Virginia Reel.mp3
+
+        size_t num_matches = sizeof(matches) / sizeof(*matches);
+        size_t match_num = 0;
+        for (match_num = 0; match_num < num_matches; ++match_num)
+        {
+            QRegularExpressionMatch match = matches[match_num].regex.match(s);
+            if (match.hasMatch()) {
+                if (matches[match_num].label_match >= 0)
+                    label = match.captured(matches[match_num].label_match);
+                if (matches[match_num].title_match >= 0)
+                    title = match.captured(matches[match_num].title_match);
+                break;
+            }
+        }
+        if (match_num == num_matches)
+        {
             title = s;
         }
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
+        // FIX: these colors are dup'ed in the constructor...
         QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
         if (type == "xtras") {
             textCol = (QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0)); // other: dark red
@@ -1634,6 +1701,7 @@ void MainWindow::on_actionPreferences_triggered()
             filterMusic();
         }
 
+        // ----------------------------------------------------------------
         // Save the new value for experimentalTimersTabEnabled --------
         QString tabsetting;
         if (dialog->experimentalTimersTabEnabled == "true") {
@@ -1653,36 +1721,7 @@ void MainWindow::on_actionPreferences_triggered()
         }
         MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
 
-        // Save the new value for experimentalCuesheetTabEnabled --------
-        int cuesheetTabNum = showTimersTab ? 2 : 1;
-        if (dialog->experimentalCuesheetTabEnabled == "true") {
-            tabsetting = "true";
-            if (!showCuesheetTab) {
-                // iff the tab was NOT showing, make it show up now
-                ui->tabWidget->insertTab(cuesheetTabNum, tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
-            }
-            showCuesheetTab = true;
-        } else {
-            tabsetting = "false";
-            if (showCuesheetTab) {
-                // iff timers tab was showing, remove it
-                ui->tabWidget->removeTab(cuesheetTabNum);  // hidden, but we can bring it back later
-            }
-            showCuesheetTab = false;
-        }
-        MySettings.setValue("experimentalCuesheetTabEnabled", tabsetting); // save the new experimental tab setting
-        
-        // Save the new value for reverseLabelTitle --------
-        qDebug() << "Preferences changed to " << dialog->reverseLabelTitle << " vs " << reverseLabelTitle;
-        if (dialog->reverseLabelTitle != reverseLabelTitle)
-        {
-            qDebug() << "Setting reverseLabelTitle to " << dialog->reverseLabelTitle;
-            reverseLabelTitle = dialog->reverseLabelTitle;
-            qDebug() << "Writing reverselabeltitle as " << reverseLabelTitle;
-            MySettings.setValue("reverselabeltitle", reverseLabelTitle);
-            filterMusic();
-        }
-
+        // ----------------------------------------------------------------
         // Save the new value for experimentalPitchTempoViewEnabled --------
         QString viewsetting;
         if (dialog->experimentalPitchTempoViewEnabled == "true") {
@@ -1694,7 +1733,19 @@ void MainWindow::on_actionPreferences_triggered()
         }
         MySettings.setValue("experimentalPitchTempoViewEnabled", viewsetting); // save the new experimental tab setting
         updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
-        MySettings.sync();
+
+        // ----------------------------------------------------------------
+        // Save the new value for experimentalClockColoringEnabled --------
+        QString coloringsetting;
+        if (dialog->experimentalClockColoringEnabled == "true") {
+            coloringsetting = "true";
+            clockColoringHidden = false;
+        } else {
+            coloringsetting = "false";
+            clockColoringHidden = true;
+        }
+        MySettings.setValue("experimentalClockColoringEnabled", coloringsetting); // save the new experimental tab setting
+        analogClock->setHidden(clockColoringHidden);
     }
 
     inPreferencesDialog = false;

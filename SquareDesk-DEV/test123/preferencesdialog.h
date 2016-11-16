@@ -18,21 +18,22 @@ class PreferencesDialog : public QDialog
 public:
     explicit PreferencesDialog(QWidget *parent = 0);
     ~PreferencesDialog();
+
     QString musicPath;
     QString experimentalTimersTabEnabled;
-    QString experimentalCuesheetTabEnabled;
     QString experimentalPitchTempoViewEnabled;
-    QString reverseLabelTitle;
+    QString experimentalClockColoringEnabled;
+
+    void setFontSizes();
 
 private slots:
     void on_chooseMusicPathButton_clicked();
 
     void on_EnableTimersTabCheckbox_toggled(bool checked);
-    void on_EnableCuesheetTabCheckbox_toggled(bool checked);
-    void on_comboBoxSongNameFormat_currentIndexChanged(int index);
-
 
     void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
+
+    void on_EnableClockColoring_toggled(bool checked);
 
 private:
     Ui::PreferencesDialog *ui;

@@ -1,23 +1,6 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
-static struct {
-    const char *description;
-    const char *tag;
-}
-    kSONG_NAME_FORMATS[] =
-    {
-        { "Label-# - Song name.mp3", "label_dash_name" },
-        { "Song name - Label-#.mp3", "name_dash_label" }
-    };
-
-void setCheckboxFromString(QSettings &MySettings, QCheckBox *checkBox, const char *key, QString &value)
-{
-    value = MySettings.value(key).toString();
-    checkBox->setChecked(value == "true");
-}
-
-
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
@@ -29,42 +12,59 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     musicPath = MySettings.value("musicPath").toString();
     ui->musicPath->setText(musicPath);
 
-    setCheckboxFromString(MySettings, ui->EnableTimersTabCheckbox,
-                          "experimentalTimersTabEnabled",
-                          experimentalTimersTabEnabled);
-
-    setCheckboxFromString(MySettings, ui->EnableCuesheetTabCheckbox,
-                          "experimentalCuesheetTabEnabled",
-                          experimentalTimersTabEnabled);
-    setCheckboxFromString(MySettings, ui->EnablePitchTempoViewCheckbox,
-                          "experimentalPitchTempoViewEnabled",
-                          experimentalPitchTempoViewEnabled);
-    setCheckboxFromString(MySettings, ui->EnablePitchTempoViewCheckbox,
-                          "experimentalPitchTempoViewEnabled",
-                          experimentalPitchTempoViewEnabled);
-
-    reverseLabelTitle = MySettings.value("reverselabeltitle").toString();
-    int selectedTag = 1;
-    for (size_t i = 0;
-         i < sizeof(kSONG_NAME_FORMATS) / sizeof(kSONG_NAME_FORMATS[0]);
-         ++i)
-    {
-        ui->comboBoxSongNameFormat->insertItem(i,
-                                               kSONG_NAME_FORMATS[i].description,
-                                               kSONG_NAME_FORMATS[i].tag);
-        qDebug() << "Comparing " << kSONG_NAME_FORMATS[i].tag << " == " << reverseLabelTitle;
-        if (kSONG_NAME_FORMATS[i].tag == reverseLabelTitle)
-        {
-            qDebug() << "Selected tag is now " << selectedTag;
-            selectedTag = i;
-        }
+    // Timers tab (experimental) preference -------
+    experimentalTimersTabEnabled = MySettings.value("experimentalTimersTabEnabled").toString();
+//    qDebug() << "preferencesDialog, expTimers = " << experimentalTimersTabEnabled;  // FIX
+    if (experimentalTimersTabEnabled == "true") {
+        ui->EnableTimersTabCheckbox->setChecked(true);
+    } else {
+        ui->EnableTimersTabCheckbox->setChecked(false);
     }
-    ui->comboBoxSongNameFormat->setCurrentIndex(selectedTag);
+
+    // Pitch/Tempo View (experimental) preference -------
+    experimentalPitchTempoViewEnabled = MySettings.value("experimentalPitchTempoViewEnabled").toString();
+//    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
+    if (experimentalPitchTempoViewEnabled == "true") {
+        ui->EnablePitchTempoViewCheckbox->setChecked(true);
+    } else {
+        ui->EnablePitchTempoViewCheckbox->setChecked(false);
+    }
+
+    // Clock coloring (experimental) preference -------
+    experimentalClockColoringEnabled = MySettings.value("experimentalClockColoringEnabled").toString();
+//    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
+    if (experimentalClockColoringEnabled == "true") {
+        ui->EnableClockColoring->setChecked(true);
+    } else {
+        ui->EnableClockColoring->setChecked(false);
+    }
+
+    setFontSizes();
 }
 
 PreferencesDialog::~PreferencesDialog()
 {
     delete ui;
+}
+
+void PreferencesDialog::setFontSizes() {
+
+    int preferredSmallFontSize;
+#if defined(Q_OS_MAC)
+    preferredSmallFontSize = 11;
+#elif defined(Q_OS_WIN32)
+    preferredSmallFontSize = 8;
+#elif defined(Q_OS_LINUX)
+    preferredSmallFontSize = 13;  // FIX: is this right?
+#endif
+
+    QFont font = ui->musicDirHelpLabel->font();
+    font.setPointSize(preferredSmallFontSize);
+
+    ui->musicDirHelpLabel->setFont(font);
+    ui->timersHelpLabel->setFont(font);
+    ui->pitchTempoHelpLabel->setFont(font);
+    ui->clockColoringHelpLabel->setFont(font);
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()
@@ -97,17 +97,6 @@ void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
-void PreferencesDialog::on_EnableCuesheetTabCheckbox_toggled(bool checked)
-{
-    if (checked) {
-        experimentalCuesheetTabEnabled = "true";
-    } else {
-        experimentalCuesheetTabEnabled = "false";
-    }
-//    qDebug() << "User selected timers tab: " << experimentalCuesheetTabEnabled;
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
-}
-
 void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
 {
     if (checked) {
@@ -119,12 +108,13 @@ void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
-void PreferencesDialog::on_comboBoxSongNameFormat_currentIndexChanged(int index)
+void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
 {
-    qDebug() << "Pre compare Setting index to " << index;
-    if (index >= 0 && index < (int)(sizeof(kSONG_NAME_FORMATS) / sizeof(kSONG_NAME_FORMATS[0])))
-    {
-        qDebug() << "Setting index to " << index;
-        reverseLabelTitle = kSONG_NAME_FORMATS[index].tag;
+    if (checked) {
+        experimentalClockColoringEnabled = "true";
+    } else {
+        experimentalClockColoringEnabled = "false";
     }
+    //    qDebug() << "User selected Clock Coloring Enabled: " << experimentalClockColoringEnabled;
+        // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
