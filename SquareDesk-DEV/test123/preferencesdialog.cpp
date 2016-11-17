@@ -80,11 +80,11 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
     }
 
-    ui->comboBoxMusicFormat->addItem("Label - Name",
+    ui->comboBoxMusicFormat->addItem("Label - Song name (e.g. 'RB 123 - Chicken Plucker')",
                                      QVariant(SongFilenameLabelDashName));
-    ui->comboBoxMusicFormat->addItem("Name - Label",
+    ui->comboBoxMusicFormat->addItem("Song name - Label (e.g. 'Chicken Plucker - RB 123')",
                                      QVariant(SongFilenameNameDashLabel));
-    ui->comboBoxMusicFormat->addItem("Best Guess",
+    ui->comboBoxMusicFormat->addItem("Best Guess (or a mixture of both formats)",
                                      QVariant(SongFilenameBestGuess));
     for (int i = 0; i < ui->comboBoxMusicFormat->maxCount(); ++i)
     {

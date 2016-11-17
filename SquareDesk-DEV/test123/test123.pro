@@ -32,7 +32,8 @@ HEADERS  += mainwindow.h \
     mytablewidget.h \
     tablenumberitem.h \
     levelmeter.h \
-    analogclock.h
+    analogclock.h \
+    common_enums.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui

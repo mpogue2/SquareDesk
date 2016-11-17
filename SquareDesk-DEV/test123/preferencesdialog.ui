@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>673</width>
-    <height>466</height>
+    <width>751</width>
+    <height>495</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>SquareDeskPlayer Preferences</string>
@@ -52,13 +58,153 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
          <string>Music</string>
         </attribute>
-        <layout class="QFormLayout" name="formLayout">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="6" column="4">
+          <widget class="QLineEdit" name="lineEditMusicTypeExtras">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>xtras</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2" colspan="3">
+          <widget class="QLabel" name="musicFormatHelpLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Choose the naming convention that you use for file names.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
+          <widget class="QLineEdit" name="lineEditMusicTypeSinging">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>singing;singers</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QLabel" name="musicTypesSingingLabel">
+           <property name="text">
+            <string>Singing:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="3">
+          <widget class="QLabel" name="musicTypesExtrasLabel">
+           <property name="text">
+            <string>Extras:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="musicTypesPatterLabel">
+           <property name="text">
+            <string>Patter:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="musicTypesLabel">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Music Types:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2" colspan="3">
+          <widget class="QComboBox" name="comboBoxMusicFormat">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Music Names:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="QLineEdit" name="lineEditMusicTypePatter">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>patter;hoedown</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="musicPathLabel">
            <property name="font">
@@ -75,7 +221,24 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="7" column="3">
+          <widget class="QLabel" name="musicTypesCalledLabel">
+           <property name="text">
+            <string>Called:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="4">
+          <widget class="QLineEdit" name="lineEditMusicTypeCalled">
+           <property name="text">
+            <string>singing_called;vocal;vocals</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
           <widget class="QLabel" name="musicPath">
            <property name="font">
             <font>
@@ -89,7 +252,29 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
+         <item row="1" column="2" colspan="3">
+          <widget class="QLabel" name="musicDirHelpLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>55</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
           <widget class="QPushButton" name="chooseMusicPathButton">
            <property name="maximumSize">
             <size>
@@ -102,133 +287,37 @@
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <widget class="QLabel" name="musicDirHelpLabel">
-           <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.). &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <item row="13" column="2">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
            </property>
-          </widget>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
-         <item row="7" column="0">
-          <widget class="QLabel" name="musicTypesLabel">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Music Types:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
+         <item row="12" column="2" colspan="3">
           <widget class="QLabel" name="musicTypesHelpLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Music types are identified by matching path components. Those are matched with a &quot;;&quot; separated list of path names. Matching is case insensitive.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;We figure out the &amp;quot;type&amp;quot; of music (e.g. patter vs singing call) by looking&lt;br/&gt;at the name of the subdirectory of the Music Directory that the song is in.&lt;br/&gt;If you put Patter songs into two subdirectories, specify the names of both&lt;br/&gt;here, separated by semicolons. Upper and lower case letters&lt;br/&gt;can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
            </property>
           </widget>
-         </item>
-         <item row="8" column="0">
-          <widget class="QLabel" name="musicTypesPatterLabel">
-           <property name="text">
-            <string>Patter</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="1">
-          <widget class="QLineEdit" name="lineEditMusicTypePatter">
-           <property name="text">
-            <string>patter;hoedown</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="0">
-          <widget class="QLabel" name="musicTypesSingingLabel">
-           <property name="text">
-            <string>Singing</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1">
-          <widget class="QLineEdit" name="lineEditMusicTypeSinging">
-           <property name="text">
-            <string>singing;singers</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
-          <widget class="QLabel" name="musicTypesCalledLabel">
-           <property name="text">
-            <string>Called</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1">
-          <widget class="QLineEdit" name="lineEditMusicTypeCalled">
-           <property name="text">
-            <string>singing_called;vocal;vocals</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="0">
-          <widget class="QLabel" name="musicTypesExtrasLabel">
-           <property name="text">
-            <string>Extras</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="1">
-          <widget class="QLineEdit" name="lineEditMusicTypeExtras">
-           <property name="text">
-            <string>xtras</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="label">
-           <property name="font">
-            <font>
-             <pointsize>9</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Music Format</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QLabel" name="musicFormatHelpLabel">
-           <property name="text">
-            <string>Is your music labeled as &quot;ABC 123 - Song Name.mp3&quot; (label - song name), &quot;Song Name - ABC 123.mp3&quot; (song name - label), or take the best guess.</string>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QComboBox" name="comboBoxMusicFormat"/>
          </item>
         </layout>
        </widget>
@@ -341,12 +430,6 @@
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
-  <tabstop>chooseMusicPathButton</tabstop>
-  <tabstop>comboBoxMusicFormat</tabstop>
-  <tabstop>lineEditMusicTypePatter</tabstop>
-  <tabstop>lineEditMusicTypeSinging</tabstop>
-  <tabstop>lineEditMusicTypeCalled</tabstop>
-  <tabstop>lineEditMusicTypeExtras</tabstop>
   <tabstop>EnableTimersTabCheckbox</tabstop>
  </tabstops>
  <resources/>
