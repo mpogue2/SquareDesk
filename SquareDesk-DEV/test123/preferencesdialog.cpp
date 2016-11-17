@@ -47,33 +47,33 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     } else {
         ui->checkBoxSaveSongPreferencesInConfig->setChecked(false);
     }
-    
+
 
     value = MySettings.value("MusicTypeSinging").toString();
     if (!value.isNull())
     {
         ui->lineEditMusicTypeSinging->setText(value);
     }
-    
+
     value = MySettings.value("MusicTypePatter").toString();
     if (!value.isNull())
     {
         ui->lineEditMusicTypePatter->setText(value);
     }
-    
+
     value = MySettings.value("MusicTypeExtras").toString();
     if (!value.isNull())
     {
         ui->lineEditMusicTypeExtras->setText(value);
     }
-    
+
     value = MySettings.value("MusicTypeCalled").toString();
     if (!value.isNull())
     {
         ui->lineEditMusicTypeCalled->setText(value);
     }
 
-    
+
     enum SongFilenameMatchingType songFilenameFormat = SongFilenameLabelDashName;
     if (!MySettings.value("SongFilenameFormat").isNull())
     {
@@ -94,7 +94,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
             break;
         }
     }
-        
+
     setFontSizes();
 }
 
@@ -130,6 +130,7 @@ void PreferencesDialog::setFontSizes() {
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);
     ui->musicFormatHelpLabel->setFont(font);
+    ui->saveSongPrefsHelpLabel->setFont(font);
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()
