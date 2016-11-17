@@ -320,6 +320,14 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
+    // -------------------------
+    value = MySettings.value("SongPreferencesInConfig").toString();
+    if (value == "true") {
+        saveSongPreferencesInConfig = true;
+    } else {
+        saveSongPreferencesInConfig = false;
+    }
+    
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
@@ -1344,12 +1352,15 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     bool isSingingCall = songTypeNamesForSinging.contains(songType);
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+    loadSettingsForSong(songTitle);
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
 {
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
 
+    saveCurrentSongSettings();
+    
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_DIR_KEY("default_dir");
     QSettings MySettings; // Will be using application informations for correct location of your settings
@@ -1646,6 +1657,7 @@ void MainWindow::on_titleSearch_textChanged()
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    saveCurrentSongSettings();
 
     int row = item->row();
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
@@ -1832,6 +1844,12 @@ void MainWindow::on_actionPreferences_triggered()
 
         analogClock->setHidden(clockColoringHidden);
 
+        
+        saveSongPreferencesInConfig = dialog->GetSaveSongPreferencesInMainConfig();
+        MySettings.setValue("SongPreferencesInConfig",
+                            saveSongPreferencesInConfig ? "true" : "false");
+
+        
         {
             QString value;
 
@@ -2178,6 +2196,7 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
 {
     // This code is similar to the row double clicked code...
     on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
+    saveCurrentSongSettings();
 
     // figure out which row is currently selected
     QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
@@ -2232,6 +2251,7 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 {
     // This code is similar to the row double clicked code...
     on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
+    saveCurrentSongSettings();
 
     QItemSelectionModel* selectionModel = ui->songTable->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -2483,4 +2503,70 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
         break;
     }
 
+}
+
+
+void MainWindow::saveCurrentSongSettings()
+{
+    QString currentSong = ui->nowPlayingLabel->text();
+    if (saveSongPreferencesInConfig && !currentSong.isEmpty())
+    {
+        QString section = "Song - " + currentSong + "/";
+        qDebug() << "Saving " << section;
+        QSettings MySettings;
+
+        int pitch = ui->pitchSlider->value();
+        MySettings.setValue(section + "pitch", pitch);
+        
+        int tempo = ui->tempoSlider->value();
+        MySettings.setValue(section + "tempo", tempo);
+
+        MySettings.setValue(section + "volume", currentVolume);
+        MySettings.setValue(section + "introPos",
+                            ui->seekBarCuesheet->GetIntro());
+        MySettings.setValue(section + "outroPos",
+                            ui->seekBarCuesheet->GetOutro());
+        // TODO: Loop points!
+    }
+}
+
+void MainWindow::loadSettingsForSong(QString songTitle)
+{
+    if (saveSongPreferencesInConfig)
+    {
+        QString section = "Song - " + songTitle + "/";
+        QSettings MySettings;
+        qDebug() << "Loading " << section;
+
+        QVariant value;
+
+        value = MySettings.value(section + "pitch");
+        if (!value.isNull())
+        {
+            ui->pitchSlider->setValue(value.toInt());
+        }
+
+        value = MySettings.value(section + "tempo");
+        if (!value.isNull())
+        {
+            ui->tempoSlider->setValue(value.toInt());
+        }
+        
+        value = MySettings.value(section + "volume");
+        if (!value.isNull())
+        {
+            ui->volumeSlider->setValue(value.toInt());
+        }
+
+        value = MySettings.value(section + "introPos");
+        if (!value.isNull())
+        {
+            ui->seekBarCuesheet->SetIntro(value.toFloat());
+        }
+        value = MySettings.value(section + "outroPos");
+        if (!value.isNull())
+        {
+            ui->seekBarCuesheet->SetOutro(value.toFloat());
+        }
+    }
 }

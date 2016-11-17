@@ -16,6 +16,8 @@ public:
     void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
     void SetIntro(float intro);
     void SetOutro(float outro);
+    float GetIntro() const;
+    float GetOutro() const;
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);

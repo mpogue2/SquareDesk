@@ -201,6 +201,9 @@ private:
 
     QString currentSongType;
 
+    void saveCurrentSongSettings();
+    void loadSettingsForSong(QString songTitle);
+        
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(QString MP3FileName);
 
@@ -209,6 +212,7 @@ private:
 
     QList<QString> *pathStack;
 
+    bool saveSongPreferencesInConfig;
     // Experimental Timer stuff
     QTimer *timerCountUp;
     qint64 timeCountUpZeroMs;

@@ -32,6 +32,7 @@ public:
     QString GetMusicTypeExtras();
     QString GetMusicTypeCalled();
     enum SongFilenameMatchingType GetSongFilenameFormat();
+    bool GetSaveSongPreferencesInMainConfig();
 
 private slots:
     void on_chooseMusicPathButton_clicked();

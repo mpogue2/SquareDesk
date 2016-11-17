@@ -28,6 +28,15 @@ void MySlider::SetOutro(float outro)
     outroPosition = outro;
 }
 
+float MySlider::GetIntro() const
+{
+    return introPosition;
+}
+float MySlider::GetOutro() const
+{
+    return outroPosition;
+}
+
 void MySlider::SetSingingCall(bool b)
 {
     singingCall = b;

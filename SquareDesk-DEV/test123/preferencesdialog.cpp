@@ -41,6 +41,14 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     QString value;
 
+    value = MySettings.value("SongPreferencesInConfig").toString();
+    if (value == "true") {
+        ui->checkBoxSaveSongPreferencesInConfig->setChecked(true);
+    } else {
+        ui->checkBoxSaveSongPreferencesInConfig->setChecked(false);
+    }
+    
+
     value = MySettings.value("MusicTypeSinging").toString();
     if (!value.isNull())
     {
@@ -196,3 +204,8 @@ QString PreferencesDialog::GetMusicTypeCalled()
     return ui->lineEditMusicTypeCalled->text();
 }
 
+
+bool PreferencesDialog::GetSaveSongPreferencesInMainConfig()
+{
+    return ui->checkBoxSaveSongPreferencesInConfig->isChecked();
+}
