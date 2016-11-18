@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "utility.h"
 #include "tablenumberitem.h"
+#include "QColorDialog"
 #include "QMap"
 #include "QMapIterator"
 #include "QThread"
@@ -166,12 +167,6 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->setEnabled(true);
     analogClock->setVisible(true);
 
-    // Tell the clock what colors to use for session segments
-    analogClock->setColorForType(PATTER, QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0));
-    analogClock->setColorForType(SINGING, QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0));
-    analogClock->setColorForType(SINGING_CALLED, QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0));
-    analogClock->setColorForType(XTRAS, QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0));
-
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
@@ -182,6 +177,43 @@ MainWindow::MainWindow(QWidget *parent) :
         MySettings.setValue("musicPath", musicRootPath); // set to music subdirectory in user's Home directory, if nothing else
     }
 
+    // set initial colors for text in songTable, also used for shading the clock
+    patterColorString = MySettings.value("patterColor").toString();
+    if (patterColorString.isNull()) {
+        patterColorString = defaultPatterColor;
+        MySettings.setValue("patterColor", patterColorString); // set to initial value, if nothing else found
+    }
+
+    singingColorString = MySettings.value("singingColor").toString();
+    if (singingColorString.isNull()) {
+        singingColorString = defaultSingingColor;
+        MySettings.setValue("singingColor", singingColorString); // set to initial value, if nothing else found
+    }
+
+    calledColorString = MySettings.value("calledColor").toString();
+    if (calledColorString.isNull()) {
+        calledColorString = defaultCalledColor;
+        MySettings.setValue("calledColor", calledColorString); // set to initial value, if nothing else found
+    }
+
+    extrasColorString = MySettings.value("extrasColor").toString();
+    if (extrasColorString.isNull()) {
+        extrasColorString = defaultExtrasColor;
+        MySettings.setValue("extrasColor", extrasColorString); // set to initial value, if nothing else found
+    }
+
+    // Tell the clock what colors to use for session segments
+    analogClock->setColorForType(PATTER, QColor(patterColorString));
+    analogClock->setColorForType(SINGING, QColor(singingColorString));
+    analogClock->setColorForType(SINGING_CALLED, QColor(calledColorString));
+    analogClock->setColorForType(XTRAS, QColor(extrasColorString));
+
+    //    analogClock->setColorForType(PATTER, QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0));
+    //    analogClock->setColorForType(SINGING, QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0));
+    //    analogClock->setColorForType(SINGING_CALLED, QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0));
+    //    analogClock->setColorForType(XTRAS, QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0));
+
+    // ----------------------------------------------
     songFilenameFormat = SongFilenameLabelDashName;
     if (!MySettings.value("SongFilenameFormat").isNull()) {
         songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
@@ -355,6 +387,11 @@ MainWindow::MainWindow(QWidget *parent) :
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
+    QColorDialog colorDlg(0);
+    colorDlg.setOption(QColorDialog::NoButtons);
+    colorDlg.setCurrentColor(Qt::white);
+
     delete ui;
 }
 
@@ -1582,19 +1619,22 @@ void MainWindow::filterMusic()
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
-        // FIX: these colors are dup'ed in the constructor...
         QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
         if (type == "xtras") {
-            textCol = (QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0)); // other: dark red
+//            textCol = (QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0)); // other: dark red
+            textCol = QColor(extrasColorString);
         }
         else if ((type == "patter") || (type == "hoedown")) {
-            textCol = (QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0)); // patter: Purple
+//            textCol = (QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0)); // patter: Purple
+            textCol = QColor(patterColorString);
         }
         else if (type == "singing") {
-            textCol = (QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0)); // singing: dark green
+//            textCol = (QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0)); // singing: dark green
+            textCol = QColor(singingColorString);
         }
         else if ((type == "singing_called") || (type == "vocal")) {
-            textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
+//            textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
+            textCol = QColor(calledColorString);
         }
 
         // look up origPath in the path2playlistNum map, and reset the s2 text to the user's playlist # setting (if any)
@@ -1786,6 +1826,9 @@ void MainWindow::on_actionPreferences_triggered()
 //    PreferencesDialog *dialog = new PreferencesDialog;
     prefDialog = new PreferencesDialog;
 
+    // initial colors going in
+    prefDialog->setColorSwatches(patterColorString, singingColorString, calledColorString, extrasColorString);
+
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
@@ -1804,6 +1847,42 @@ void MainWindow::on_actionPreferences_triggered()
             findMusic();
             needToFilterMusic = true;
         }
+
+        // Save the new value for music type colors --------
+        patterColorString = prefDialog->patterColor.name();
+        if (patterColorString == "#ffffff") {
+            patterColorString = defaultPatterColor;  // a way to reset the colors individually
+        }
+        MySettings.setValue("patterColor", patterColorString); // fish out the new colors from the Preferences dialog, and save them
+
+        // -----
+        singingColorString = prefDialog->singingColor.name();
+        if (singingColorString == "#ffffff") {
+            singingColorString = defaultSingingColor;  // a way to reset the colors individually
+        }
+        MySettings.setValue("singingColor", singingColorString);
+
+        // -----
+        calledColorString = prefDialog->calledColor.name();
+        if (calledColorString == "#ffffff") {
+            calledColorString = defaultCalledColor;  // a way to reset the colors individually
+        }
+        MySettings.setValue("calledColor", calledColorString);
+
+        // -----
+        extrasColorString = prefDialog->extrasColor.name();
+        if (extrasColorString == "#ffffff") {
+            extrasColorString = defaultExtrasColor;  // a way to reset the colors individually
+        }
+        MySettings.setValue("extrasColor", extrasColorString);
+
+        // Force the songTable to be updated(), so that changes in text color show up immediately
+//        patterColorString = prefDialog->patterColor.name();
+//        singingColorString = prefDialog->singingColor.name();
+//        calledColorString = prefDialog->calledColor.name();
+//        extrasColorString = prefDialog->extrasColor.name();
+
+        filterMusic();
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalTimersTabEnabled --------

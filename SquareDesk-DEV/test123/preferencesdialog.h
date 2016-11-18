@@ -28,6 +28,12 @@ public:
     QString experimentalClockColoringEnabled;
 
     void setFontSizes();
+    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
+    QColor patterColor;
+    QColor singingColor;
+    QColor calledColor;
+    QColor extrasColor;
+
     QString GetMusicTypeSinging();
     QString GetMusicTypePatter();
     QString GetMusicTypeExtras();
@@ -37,12 +43,14 @@ public:
 
 private slots:
     void on_chooseMusicPathButton_clicked();
-
     void on_EnableTimersTabCheckbox_toggled(bool checked);
-
     void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
-
     void on_EnableClockColoring_toggled(bool checked);
+
+    void on_calledColorButton_clicked();
+    void on_extrasColorButton_clicked();
+    void on_patterColorButton_clicked();
+    void on_singingColorButton_clicked();
 
 private:
     Ui::PreferencesDialog *ui;

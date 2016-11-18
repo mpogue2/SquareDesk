@@ -217,6 +217,12 @@ private:
     LevelMeter *vuMeter;
 
     AnalogClock *analogClock;
+
+    QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
+    QString defaultPatterColor = "#7963ff";
+    QString defaultSingingColor = "#00af5c";
+    QString defaultCalledColor = "#ab6900";
+    QString defaultExtrasColor = "#9c1f00";
 };
 
 // currentState:
