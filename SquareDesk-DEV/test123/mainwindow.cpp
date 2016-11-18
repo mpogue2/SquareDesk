@@ -1071,9 +1071,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 bool MainWindow::handleKeypress(int key)
 {
 //    qDebug() << "MainWindow::handleKeypress(), key =" << key << ", inPreferencesDialog =" << inPreferencesDialog;
-    if (prefDialog == NULL) {
-        qDebug() << "prefDialog: NULL";
-    }
+//    if (prefDialog == NULL) {
+//        qDebug() << "prefDialog: NULL";
+//    }
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
