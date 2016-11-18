@@ -877,7 +877,7 @@
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="QPlainTextEdit" name="typeSearch">
+         <widget class="QLineEdit" name="typeSearch">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -890,16 +890,13 @@
             <height>27</height>
            </size>
           </property>
-          <property name="tabChangesFocus">
-           <bool>true</bool>
-          </property>
           <property name="placeholderText">
            <string>Type</string>
           </property>
          </widget>
         </item>
         <item row="1" column="2">
-         <widget class="QPlainTextEdit" name="labelSearch">
+         <widget class="QLineEdit" name="labelSearch">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -917,16 +914,13 @@
             <italic>false</italic>
            </font>
           </property>
-          <property name="tabChangesFocus">
-           <bool>true</bool>
-          </property>
           <property name="placeholderText">
            <string>Label</string>
           </property>
          </widget>
         </item>
         <item row="1" column="3" colspan="7">
-         <widget class="QPlainTextEdit" name="titleSearch">
+         <widget class="QLineEdit" name="titleSearch">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
             <horstretch>1</horstretch>
@@ -938,9 +932,6 @@
             <width>16777215</width>
             <height>27</height>
            </size>
-          </property>
-          <property name="tabChangesFocus">
-           <bool>true</bool>
           </property>
           <property name="placeholderText">
            <string>Title (type to search)</string>

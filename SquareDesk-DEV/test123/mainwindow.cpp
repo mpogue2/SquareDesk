@@ -986,9 +986,9 @@ void MainWindow::on_clearSearchButton_clicked()
 //        qDebug() << "nothing selected.";
     }
 
-    ui->labelSearch->setPlainText("");
-    ui->typeSearch->setPlainText("");
-    ui->titleSearch->setPlainText("");
+    ui->labelSearch->setText("");
+    ui->typeSearch->setText("");
+    ui->titleSearch->setText("");
 
     if (row != -1) {
         // if a row was selected, restore it after a clear search
@@ -1661,17 +1661,17 @@ void MainWindow::filterMusic()
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
         QString labelPlusNumber = label + " " + labelnum;
-        if (ui->labelSearch->toPlainText() != "" &&
-                !labelPlusNumber.contains(QString(ui->labelSearch->toPlainText()),Qt::CaseInsensitive)) {
+        if (ui->labelSearch->text() != "" &&
+                !labelPlusNumber.contains(QString(ui->labelSearch->text()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
         }
 
-        if (ui->typeSearch->toPlainText() != "" && !type.contains(QString(ui->typeSearch->toPlainText()),Qt::CaseInsensitive)) {
+        if (ui->typeSearch->text() != "" && !type.contains(QString(ui->typeSearch->text()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
         }
 
-        if (ui->titleSearch->toPlainText() != "" &&
-                !title.contains(QString(ui->titleSearch->toPlainText()),Qt::CaseInsensitive)) {
+        if (ui->titleSearch->text() != "" &&
+                !title.contains(QString(ui->titleSearch->text()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
         }
 
