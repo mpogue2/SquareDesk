@@ -17,7 +17,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 //    qDebug() << "preferencesDialog, expTimers = " << experimentalTimersTabEnabled;  // FIX
     if (experimentalTimersTabEnabled == "true") {
         ui->EnableTimersTabCheckbox->setChecked(true);
-    } else {
+    }
+    else {
         ui->EnableTimersTabCheckbox->setChecked(false);
     }
 
@@ -26,7 +27,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 //    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
     if (experimentalPitchTempoViewEnabled == "true") {
         ui->EnablePitchTempoViewCheckbox->setChecked(true);
-    } else {
+    }
+    else {
         ui->EnablePitchTempoViewCheckbox->setChecked(false);
     }
 
@@ -35,7 +37,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 //    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
     if (experimentalClockColoringEnabled == "true") {
         ui->EnableClockColoring->setChecked(true);
-    } else {
+    }
+    else {
         ui->EnableClockColoring->setChecked(false);
     }
 
@@ -44,39 +47,35 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     value = MySettings.value("SongPreferencesInConfig").toString();
     if (value == "true") {
         ui->checkBoxSaveSongPreferencesInConfig->setChecked(true);
-    } else {
+    }
+    else {
         ui->checkBoxSaveSongPreferencesInConfig->setChecked(false);
     }
 
 
     value = MySettings.value("MusicTypeSinging").toString();
-    if (!value.isNull())
-    {
+    if (!value.isNull()) {
         ui->lineEditMusicTypeSinging->setText(value);
     }
 
     value = MySettings.value("MusicTypePatter").toString();
-    if (!value.isNull())
-    {
+    if (!value.isNull()) {
         ui->lineEditMusicTypePatter->setText(value);
     }
 
     value = MySettings.value("MusicTypeExtras").toString();
-    if (!value.isNull())
-    {
+    if (!value.isNull()) {
         ui->lineEditMusicTypeExtras->setText(value);
     }
 
     value = MySettings.value("MusicTypeCalled").toString();
-    if (!value.isNull())
-    {
+    if (!value.isNull()) {
         ui->lineEditMusicTypeCalled->setText(value);
     }
 
 
     enum SongFilenameMatchingType songFilenameFormat = SongFilenameLabelDashName;
-    if (!MySettings.value("SongFilenameFormat").isNull())
-    {
+    if (!MySettings.value("SongFilenameFormat").isNull()) {
         songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
     }
 
@@ -86,10 +85,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
                                      QVariant(SongFilenameNameDashLabel));
     ui->comboBoxMusicFormat->addItem("Best Guess (or a mixture of both formats)",
                                      QVariant(SongFilenameBestGuess));
-    for (int i = 0; i < ui->comboBoxMusicFormat->maxCount(); ++i)
-    {
-        if (songFilenameFormat == ui->comboBoxMusicFormat->itemData(i).toInt())
-        {
+    for (int i = 0; i < ui->comboBoxMusicFormat->maxCount(); ++i) {
+        if (songFilenameFormat == ui->comboBoxMusicFormat->itemData(i).toInt()) {
             ui->comboBoxMusicFormat->setCurrentIndex(i);
             break;
         }
@@ -110,7 +107,8 @@ PreferencesDialog::~PreferencesDialog()
     delete ui;
 }
 
-void PreferencesDialog::setFontSizes() {
+void PreferencesDialog::setFontSizes()
+{
 
     int preferredSmallFontSize;
 #if defined(Q_OS_MAC)
@@ -137,16 +135,14 @@ void PreferencesDialog::on_chooseMusicPathButton_clicked()
 {
     QString dir =
         QFileDialog::getExistingDirectory(this, tr("Select Base Directory for Music"),
-                                                 QDir::homePath(),
-                                                 QFileDialog::ShowDirsOnly
-                                                 | QFileDialog::DontResolveSymlinks);
+                                          QDir::homePath(),
+                                          QFileDialog::ShowDirsOnly
+                                          | QFileDialog::DontResolveSymlinks);
 
     if (dir.isNull()) {
-//        qDebug() << "User cancelled.";
         return;  // user cancelled the "Select Base Directory for Music" dialog...so don't do anything, just return
     }
 
-//    qDebug() << "User selected directory: " << dir;
     ui->musicPath->setText(dir);
     musicPath = dir;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
@@ -156,10 +152,10 @@ void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
 {
     if (checked) {
         experimentalTimersTabEnabled = "true";
-    } else {
+    }
+    else {
         experimentalTimersTabEnabled = "false";
     }
-//    qDebug() << "User selected timers tab: " << experimentalTimersTabEnabled;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
@@ -167,10 +163,10 @@ void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
 {
     if (checked) {
         experimentalPitchTempoViewEnabled = "true";
-    } else {
+    }
+    else {
         experimentalPitchTempoViewEnabled = "false";
     }
-//    qDebug() << "User selected Pitch Tempo View Enabled: " << experimentalPitchTempoViewEnabled;
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
@@ -178,11 +174,11 @@ void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
 {
     if (checked) {
         experimentalClockColoringEnabled = "true";
-    } else {
+    }
+    else {
         experimentalClockColoringEnabled = "false";
     }
-    //    qDebug() << "User selected Clock Coloring Enabled: " << experimentalClockColoringEnabled;
-        // NOTE: saving of Preferences is done at the dialog caller site, not here.
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
 QString PreferencesDialog::GetMusicTypeSinging()

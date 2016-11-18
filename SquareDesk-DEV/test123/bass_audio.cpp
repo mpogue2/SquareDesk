@@ -147,7 +147,8 @@ void bass_audio::StreamCreate(const char *filepath)
     if (FileLength > 30.0) {
         startSec1 = 10.0;
         endSec1 = 30.0;
-    } else {
+    }
+    else {
         // for very short songs, look at the whole song
         startSec1 = 0.0;
         endSec1 = FileLength;
@@ -163,10 +164,10 @@ void bass_audio::StreamCreate(const char *filepath)
     // detect bpm in background and return progress in GetBPM_ProgressCallback function
     if (bpmChan) {
         bpmValue1 = BASS_FX_BPM_DecodeGet(bpmChan,
-                                         startSec1, endSec1,
-                                         MAKELONG(MINBPM, MAXBPM),  // min/max BPM
-                                         BASS_FX_FREESOURCE, // free handle when done
-                                         0,0);
+                                          startSec1, endSec1,
+                                          MAKELONG(MINBPM, MAXBPM),  // min/max BPM
+                                          BASS_FX_FREESOURCE, // free handle when done
+                                          0,0);
 //        printf("DETECTED BPM = %5.2f\n", bpmValue1);
 //        fflush(stdout);
     }
@@ -220,12 +221,14 @@ int bass_audio::StreamGetVuMeter(void)
             left = LOWORD(level);   // the left level
             right = HIWORD(level);  // the right level
             return (left+right)/2;
-        } else {
+        }
+        else {
             // error in getting level
 //            qDebug() << "error: ChannelGetLevel";
             return 0;
         }
-    } else {
+    }
+    else {
 //        qDebug() << "error: channel not active";
         return 0;
     }
@@ -275,25 +278,27 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
     Q_UNUSED(user)
     Q_UNUSED(channel)
     Q_UNUSED(handle)
-        float *d = (float*)buffer;
-        DWORD a;
-        float mono;
-        float l,r;
+    float *d = (float *)buffer;
+    DWORD a;
+    float mono;
+    float l,r;
 
-        for (a=0; a<length/4; a+=2) {
-            l = d[a];
-            r = d[a+1];
-            mono = (l + r)/2.0;
-            d[a] = d[a+1] = mono;
-        }
+    for (a=0; a<length/4; a+=2) {
+        l = d[a];
+        r = d[a+1];
+        mono = (l + r)/2.0;
+        d[a] = d[a+1] = mono;
+    }
 }
 
 
-void bass_audio::SetMono(bool on) {
+void bass_audio::SetMono(bool on)
+{
     if (on) {
         // enable Stereo -> Mono
         mono_dsp = BASS_ChannelSetDSP(Stream, &DSP_Mono, 0, 1);
-    } else {
+    }
+    else {
         // disable it (iff it was enabled)
         if (mono_dsp != 0) {
             BASS_ChannelRemoveDSP(Stream, mono_dsp);

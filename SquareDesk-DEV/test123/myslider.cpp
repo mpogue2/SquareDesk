@@ -124,8 +124,7 @@ void MySlider::paintEvent(QPaintEvent *e)
         QLineF line1(left, middle, endIntro, middle);
         painter.drawLine(line1);
 
-        for (int i = 0; i < segments; ++i)
-        {
+        for (int i = 0; i < segments; ++i) {
             pen.setColor(colors[i % (sizeof(colors) / sizeof(*colors))]);
             painter.setPen(pen);
             QLineF line2(endIntro + i * lengthSection, middle,

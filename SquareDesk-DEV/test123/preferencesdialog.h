@@ -9,7 +9,8 @@
 
 #include "common_enums.h"
 
-namespace Ui {
+namespace Ui
+{
 class PreferencesDialog;
 }
 

@@ -6,8 +6,8 @@ class RecursionGuard
 private:
     bool &guard_value;
 public:
-RecursionGuard(bool &guard_value) :
-    guard_value(guard_value)
+    RecursionGuard(bool &guard_value) :
+        guard_value(guard_value)
     {
         guard_value = true;
     }

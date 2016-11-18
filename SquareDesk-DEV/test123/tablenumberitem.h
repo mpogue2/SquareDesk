@@ -20,7 +20,6 @@ public:
         QString str1 = text();
         QString str2 = other.text();
 
-//        qDebug() << "str1: " << str1 << ", str2: " << str2;
         if (str1 == " " || str1 == "") {
             str1 = "9999999.9";
         }
@@ -44,8 +43,6 @@ public:
 
         bool ok2 = false;
         double f2 = str2.toDouble(&ok2);
-
-//        qDebug() << "result: " << f1 << f2 << ok1 << ok2 << (f1 < f2);
 
         return f1 < f2;
     }

@@ -68,19 +68,6 @@ AnalogClock::AnalogClock(QWidget *parent)
 
     coloringIsHidden = true;
 
-//    for (int i = 0; i < 60; i++) {
-//        if (i < 10) {
-//            setSegment(i, NONE);
-//        } else if (i < 20) {
-//            setSegment(i, PATTER);
-//        } else if (i < 30) {
-//            setSegment(i, SINGING);
-//        } else if (i < 45) {
-//            setSegment(i, SINGING_CALLED);
-//        } else {
-//            setSegment(i, XTRAS);
-//        }
-//    }
 }
 
 void AnalogClock::redrawTimerExpired()
@@ -88,7 +75,8 @@ void AnalogClock::redrawTimerExpired()
     update();
 }
 
-void AnalogClock::setColorForType(int type, QColor theColor) {
+void AnalogClock::setColorForType(int type, QColor theColor)
+{
     colorForType[type] = theColor;
 }
 
@@ -113,7 +101,6 @@ void AnalogClock::paintEvent(QPaintEvent *)
     };
 
     static const QPointF oneSegment[7] = {
-//        QPointF(0.0,      0.0),
         QPointF(-5.233, -99.863),  // sin/cos(3 degrees)
         QPointF(0.0,   -100.0),
         QPointF(5.233,  -99.863),
@@ -125,15 +112,12 @@ void AnalogClock::paintEvent(QPaintEvent *)
         QPointF(-5.233, -99.863)
     };
 
-//    QColor hourColor(127, 0, 127);
-//    QColor minuteColor(0, 127, 127, 191);
-
     QColor hourColor(0,0,0);
     QColor minuteColor(0,0,0, 127);
     QColor minuteTickColor(0,0,0);
     QColor secondColor(127,0,0, 200);
 
-    QColor patterColor(127,0,0, 100);
+//    QColor patterColor(127,0,0, 100);
 
     int side = qMin(width(), height());
     QTime time = QTime::currentTime();
@@ -221,8 +205,9 @@ void AnalogClock::paintEvent(QPaintEvent *)
     // MINUTE TICKS
     painter.setPen(minuteTickColor);
     for (int j = 0; j < 60; ++j) {
-        if ((j % 5) != 0)
+        if ((j % 5) != 0) {
             painter.drawLine(92, 0, 96, 0);
+        }
         painter.rotate(6.0);
     }
 
@@ -237,7 +222,8 @@ void AnalogClock::paintEvent(QPaintEvent *)
 
 }
 
-void AnalogClock::setSegment(int hour, int minute, int type) {
+void AnalogClock::setSegment(int hour, int minute, int type)
+{
     // TODO: I have discovered a truly marvelous idea for showing session activity on the clock face,
     //    which this margin is too narrow to contain....
     if (type == NONE) {
@@ -245,14 +231,15 @@ void AnalogClock::setSegment(int hour, int minute, int type) {
             lastHourSet[minute] = hour;  // remember that we set this segment for this hour
             typeInMinute[minute] = NONE; //   clear out the color, as the minute hand goes around, but only ONCE
         }
-    } else {
+    }
+    else {
         // normal type, always update the current minute
         typeInMinute[minute] = type;
     }
 }
 
-void AnalogClock::setHidden(bool hidden) {
+void AnalogClock::setHidden(bool hidden)
+{
     coloringIsHidden = hidden;
-//    qDebug() << "analogClock:" << hidden;
 }
 

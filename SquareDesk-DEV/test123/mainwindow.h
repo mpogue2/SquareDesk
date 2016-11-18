@@ -180,7 +180,7 @@ private:
     bool pitchAndTempoHidden;   // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
     bool clockColoringHidden;   // EXPERIMENTAL CLOCK COLORING STUFF
 
-    QMap<int,QPair<QWidget*,QString> > tabmap; // keep track of experimental tabs
+    QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
 
     unsigned char currentState;
     short int currentPitch;
@@ -203,7 +203,7 @@ private:
 
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
-        
+
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(QString MP3FileName);
 
