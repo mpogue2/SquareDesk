@@ -117,8 +117,6 @@ void AnalogClock::paintEvent(QPaintEvent *)
     QColor minuteTickColor(0,0,0);
     QColor secondColor(127,0,0, 200);
 
-//    QColor patterColor(127,0,0, 100);
-
     int side = qMin(width(), height());
     QTime time = QTime::currentTime();
 

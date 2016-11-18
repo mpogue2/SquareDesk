@@ -7,6 +7,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+//    qDebug() << "PreferencesDialog::PreferencesDialog()";
     // musicPath preference -------
     QSettings MySettings;
     musicPath = MySettings.value("musicPath").toString();
@@ -104,6 +105,7 @@ enum SongFilenameMatchingType PreferencesDialog::GetSongFilenameFormat()
 
 PreferencesDialog::~PreferencesDialog()
 {
+//    qDebug() << "    PreferencesDialog::~PreferencesDialog()";
     delete ui;
 }
 

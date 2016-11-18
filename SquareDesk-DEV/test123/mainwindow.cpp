@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     timerCountDown(NULL),
     trapKeypresses(true)
 {
+    prefDialog = NULL;      // no preferences dialog created yet
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
     ui->setupUi(this);
@@ -243,11 +244,11 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     if (forceMonoChecked == "true") {
-        ui->monoButton->setChecked(true);
+//        ui->monoButton->setChecked(true);
         on_monoButton_toggled(true);  // sets button and menu item
     }
     else {
-        ui->monoButton->setChecked(false);
+//        ui->monoButton->setChecked(false);
         on_monoButton_toggled(false);  // sets button and menu item
     }
 
@@ -360,12 +361,16 @@ MainWindow::~MainWindow()
 void MainWindow::setFontSizes()
 {
     int preferredSmallFontSize;
+    int preferredNowPlayingSize;
 #if defined(Q_OS_MAC)
     preferredSmallFontSize = 13;
+    preferredNowPlayingSize = 27;
 #elif defined(Q_OS_WIN32)
     preferredSmallFontSize = 8;
+    preferredNowPlayingSize = 16;
 #elif defined(Q_OS_LINUX)
     preferredSmallFontSize = 13;  // FIX: is this right?
+    preferredNowPlayingSize = 27;
 #endif
 
     QFont font = ui->currentTempoLabel->font();
@@ -381,8 +386,8 @@ void MainWindow::setFontSizes()
     ui->EQgroup->setFont(font);
 
     font.setPointSize(preferredSmallFontSize-2);
-    ui->loopButton->setFont(font);
-    ui->monoButton->setFont(font);
+//    ui->loopButton->setFont(font);
+//    ui->monoButton->setFont(font);
 
     QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
 #if defined(Q_OS_WIN)
@@ -397,7 +402,7 @@ void MainWindow::setFontSizes()
     ui->A1Label1->setStyleSheet(styleForCallerlabDefinitions);
     ui->A1Label2->setStyleSheet(styleForCallerlabDefinitions);
 
-    font.setPointSize(preferredSmallFontSize+14);
+    font.setPointSize(preferredNowPlayingSize);
     ui->nowPlayingLabel->setFont(font);
 }
 
@@ -431,10 +436,10 @@ void MainWindow::on_loopButton_toggled(bool checked)
 {
     if (checked) {
         // regular text: "LOOP"
-        QFont f = ui->loopButton->font();
-        f.setStrikeOut(false);
-        ui->loopButton->setFont(f);
-        ui->loopButton->setText("LOOP");
+//        QFont f = ui->loopButton->font();
+//        f.setStrikeOut(false);
+//        ui->loopButton->setFont(f);
+//        ui->loopButton->setText("LOOP");
         ui->actionLoop->setChecked(true);
 
         ui->seekBar->SetLoop(true);
@@ -446,10 +451,10 @@ void MainWindow::on_loopButton_toggled(bool checked)
     }
     else {
         // strikethrough text: "LOOP"
-        QFont f = ui->loopButton->font();
-        f.setStrikeOut(true);
-        ui->loopButton->setFont(f);
-        ui->loopButton->setText("LOOP");
+//        QFont f = ui->loopButton->font();
+//        f.setStrikeOut(true);
+//        ui->loopButton->setFont(f);
+//        ui->loopButton->setText("LOOP");
         ui->actionLoop->setChecked(false);
 
         ui->seekBar->SetLoop(false);
@@ -463,12 +468,12 @@ void MainWindow::on_loopButton_toggled(bool checked)
 void MainWindow::on_monoButton_toggled(bool checked)
 {
     if (checked) {
-        ui->monoButton->setText("MONO");
+//        ui->monoButton->setText("MONO");
         ui->actionForce_Mono_Aahz_mode->setChecked(true);
         cBass.SetMono(true);
     }
     else {
-        ui->monoButton->setText("STEREO");
+//        ui->monoButton->setText("STEREO");
         ui->actionForce_Mono_Aahz_mode->setChecked(false);
         cBass.SetMono(false);
     }
@@ -483,8 +488,6 @@ void MainWindow::on_monoButton_toggled(bool checked)
     else {
         MySettings.setValue(FORCEMONO_KEY, "false");
     }
-
-
 }
 
 // ----------------------------------------------------------------------
@@ -962,7 +965,7 @@ void MainWindow::on_clearSearchButton_clicked()
 void MainWindow::on_actionLoop_triggered()
 {
     on_loopButton_toggled(ui->actionLoop->isChecked());
-    ui->loopButton->setChecked(ui->actionLoop->isChecked());
+//    ui->loopButton->setChecked(ui->actionLoop->isChecked());
 }
 
 // ----------------------------------------------------------------------
@@ -1048,11 +1051,14 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
-        if (!(ui->labelSearch->hasFocus() || // ui->labelNumberSearch->hasFocus() ||
+//        qDebug() << "GlobalEventFilter::eventFilter()";
+
+        if (!(ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()
                 || ui->lineEditCountDownTimer->hasFocus()
                 || ui->songTable->isEditing())) {
             // call handleKeypress on the Applications's active window
+//            qDebug() << "GlobalEventFilter::eventFilter(), call handleKeypress";
             return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
         }
 
@@ -1064,11 +1070,18 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //void MainWindow::keyPressEvent(QKeyEvent *event)
 bool MainWindow::handleKeypress(int key)
 {
-//    qDebug() << "MainWindow::handleKeypress(), key =" << key << ", isPreferencesDialog =" << inPreferencesDialog;
-    if (inPreferencesDialog || !trapKeypresses) {
+//    qDebug() << "MainWindow::handleKeypress(), key =" << key << ", inPreferencesDialog =" << inPreferencesDialog;
+    if (prefDialog == NULL) {
+        qDebug() << "prefDialog: NULL";
+    }
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
 
+//    qDebug() << "MainWindow::handleKeypress(), part 2, key =" << key << ", inPreferencesDialog =" << inPreferencesDialog;
+//    if (prefDialog == NULL) {
+//        qDebug() << "prefDialog: NULL";
+//    }
     switch (key) {
 
         case Qt::Key_Escape:
@@ -1329,8 +1342,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->midrangeSlider->value()); // force midrange change, if midrange slider preset before load
     ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
-    ui->loopButton->setEnabled(true);
-    ui->monoButton->setEnabled(true);
+//    ui->loopButton->setEnabled(true);
+//    ui->monoButton->setEnabled(true);
 
     cBass.Stop();
 
@@ -1338,12 +1351,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     Info_Seekbar(true);
 
     if (songType == "patter") {
-        ui->loopButton->setChecked(true);
+//        ui->loopButton->setChecked(true);
         on_loopButton_toggled(true); // default is to loop, if type is patter
     }
     else {
         // not patter, so Loop mode defaults to OFF
-        ui->loopButton->setChecked(false);
+//        ui->loopButton->setChecked(false);
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
@@ -1767,12 +1780,15 @@ static bool  setValueAndCheckPreviousValue(QSettings &MySettings, const char *ke
 void MainWindow::on_actionPreferences_triggered()
 {
     inPreferencesDialog = true;
+    trapKeypresses = false;
     on_stopButton_clicked();  // stop music, if it was playing...
 
-    PreferencesDialog *dialog = new PreferencesDialog;
+//    PreferencesDialog *dialog = new PreferencesDialog;
+    prefDialog = new PreferencesDialog;
 
     // modal dialog
-    int dialogCode = dialog->exec();
+    int dialogCode = prefDialog->exec();
+    trapKeypresses = true;
 
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
@@ -1780,11 +1796,11 @@ void MainWindow::on_actionPreferences_triggered()
         QSettings MySettings;
 
         // Save the new value for musicPath --------
-        MySettings.setValue("musicPath", dialog->musicPath); // fish out the new dir from the Preferences dialog, and save it
+        MySettings.setValue("musicPath", prefDialog->musicPath); // fish out the new dir from the Preferences dialog, and save it
 
         bool needToFilterMusic = false;
-        if (dialog->musicPath != musicRootPath) { // path has changed!
-            musicRootPath = dialog->musicPath;
+        if (prefDialog->musicPath != musicRootPath) { // path has changed!
+            musicRootPath = prefDialog->musicPath;
             findMusic();
             needToFilterMusic = true;
         }
@@ -1792,7 +1808,7 @@ void MainWindow::on_actionPreferences_triggered()
         // ----------------------------------------------------------------
         // Save the new value for experimentalTimersTabEnabled --------
         QString tabsetting;
-        if (dialog->experimentalTimersTabEnabled == "true") {
+        if (prefDialog->experimentalTimersTabEnabled == "true") {
             tabsetting = "true";
             if (!showTimersTab) {
                 // iff the tab was NOT showing, make it show up now
@@ -1813,7 +1829,7 @@ void MainWindow::on_actionPreferences_triggered()
         // ----------------------------------------------------------------
         // Save the new value for experimentalPitchTempoViewEnabled --------
         QString viewsetting;
-        if (dialog->experimentalPitchTempoViewEnabled == "true") {
+        if (prefDialog->experimentalPitchTempoViewEnabled == "true") {
             viewsetting = "true";
             pitchAndTempoHidden = false;
         }
@@ -1827,7 +1843,7 @@ void MainWindow::on_actionPreferences_triggered()
         // ----------------------------------------------------------------
         // Save the new value for experimentalClockColoringEnabled --------
         QString coloringsetting;
-        if (dialog->experimentalClockColoringEnabled == "true") {
+        if (prefDialog->experimentalClockColoringEnabled == "true") {
             coloringsetting = "true";
             clockColoringHidden = false;
         }
@@ -1840,7 +1856,7 @@ void MainWindow::on_actionPreferences_triggered()
         analogClock->setHidden(clockColoringHidden);
 
 
-        saveSongPreferencesInConfig = dialog->GetSaveSongPreferencesInMainConfig();
+        saveSongPreferencesInConfig = prefDialog->GetSaveSongPreferencesInMainConfig();
         MySettings.setValue("SongPreferencesInConfig",
                             saveSongPreferencesInConfig ? "true" : "false");
 
@@ -1848,31 +1864,31 @@ void MainWindow::on_actionPreferences_triggered()
         {
             QString value;
 
-            value = dialog->GetMusicTypeSinging();
+            value = prefDialog->GetMusicTypeSinging();
             if (setValueAndCheckPreviousValue(MySettings, "MusicTypeSinging", value)) {
                 needToFilterMusic = true;
             }
             songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
 
-            value = dialog->GetMusicTypePatter();
+            value = prefDialog->GetMusicTypePatter();
             if (setValueAndCheckPreviousValue(MySettings, "MusicTypePatter", value)) {
                 needToFilterMusic = true;
             }
             songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
 
-            value = dialog->GetMusicTypeExtras();
+            value = prefDialog->GetMusicTypeExtras();
             if (setValueAndCheckPreviousValue(MySettings, "MusicTypeExtras", value)) {
                 needToFilterMusic = true;
             }
             songTypeNamesForExtras = value.toLower().split(";", QString::KeepEmptyParts);
 
-            value = dialog->GetMusicTypeCalled();
+            value = prefDialog->GetMusicTypeCalled();
             if (setValueAndCheckPreviousValue(MySettings, "MusicTypeCalled", value)) {
                 needToFilterMusic = true;
             }
             songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
         }
-        songFilenameFormat = dialog->GetSongFilenameFormat();
+        songFilenameFormat = prefDialog->GetSongFilenameFormat();
         if (setValueAndCheckPreviousValue(MySettings, "SongFilenameFormat", (int)(songFilenameFormat))) {
             needToFilterMusic = true;
         }
@@ -1882,7 +1898,9 @@ void MainWindow::on_actionPreferences_triggered()
         }
     }
 
-    inPreferencesDialog = false;
+    delete prefDialog;
+    prefDialog = NULL;
+    inPreferencesDialog = false;  // FIX: might not need this anymore...
 }
 
 QString MainWindow::removePrefix(QString prefix, QString s)

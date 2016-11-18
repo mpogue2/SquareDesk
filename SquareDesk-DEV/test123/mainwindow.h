@@ -52,32 +52,23 @@ public:
     Ui::MainWindow *ui;
     bool handleKeypress(int key);
 
+    PreferencesDialog *prefDialog;
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
-
-private slots:
     void on_loopButton_toggled(bool checked);
-
     void on_monoButton_toggled(bool checked);
 
+private slots:
     void on_stopButton_clicked();
-
     void on_playButton_clicked();
-
     void on_pitchSlider_valueChanged(int value);
-
     void on_volumeSlider_valueChanged(int value);
-
     void on_actionMute_triggered();
-
     void on_tempoSlider_valueChanged(int value);
-
     void on_mixSlider_valueChanged(int value);
-
     void on_seekBar_valueChanged(int value);
-
     void on_clearSearchButton_clicked();
-
     void on_actionLoop_triggered();
 
     void on_UIUpdateTimerTick(void);
@@ -86,47 +77,31 @@ private slots:
     void aboutBox();
 
     void on_actionSpeed_Up_triggered();
-
     void on_actionSlow_Down_triggered();
-
     void on_actionSkip_Ahead_15_sec_triggered();
-
     void on_actionSkip_Back_15_sec_triggered();
-
     void on_actionVolume_Up_triggered();
-
     void on_actionVolume_Down_triggered();
-
     void on_actionPlay_triggered();
-
     void on_actionStop_triggered();
-
     void on_actionForce_Mono_Aahz_mode_triggered();
 
     void on_bassSlider_valueChanged(int value);
-
     void on_midrangeSlider_valueChanged(int value);
-
     void on_trebleSlider_valueChanged(int value);
 
     void on_actionOpen_MP3_file_triggered();
-
     void on_songTable_itemDoubleClicked(QTableWidgetItem *item);
 
     void on_labelSearch_textChanged();
-
     void on_typeSearch_textChanged();
-
     void on_titleSearch_textChanged();
 
     void on_actionClear_Search_triggered();
-
     void on_actionPitch_Up_triggered();
-
     void on_actionPitch_Down_triggered();
 
     void on_actionAutostart_playback_triggered();
-
     void on_actionPreferences_triggered();
 
     void on_pushButtonCountDownTimerStartStop_clicked();
@@ -139,20 +114,17 @@ private slots:
     void on_pushButtonSetIntroTime_clicked();
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
+
     // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
     void timerCountUp_update();
     void timerCountDown_update();
 
     void on_actionLoad_Playlist_triggered();
-
     void on_actionSave_Playlist_triggered();
-
     void on_actionNext_Playlist_Item_triggered();
-
     void on_actionPrevious_Playlist_Item_triggered();
 
     void on_previousSongButton_clicked();
-
     void on_nextSongButton_clicked();
 
     void on_songTable_itemSelectionChanged();
