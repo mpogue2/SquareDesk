@@ -454,7 +454,16 @@
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
+  <tabstop>lineEditMusicTypePatter</tabstop>
+  <tabstop>lineEditMusicTypeSinging</tabstop>
+  <tabstop>lineEditMusicTypeExtras</tabstop>
+  <tabstop>lineEditMusicTypeCalled</tabstop>
+  <tabstop>comboBoxMusicFormat</tabstop>
+  <tabstop>chooseMusicPathButton</tabstop>
   <tabstop>EnableTimersTabCheckbox</tabstop>
+  <tabstop>EnablePitchTempoViewCheckbox</tabstop>
+  <tabstop>EnableClockColoring</tabstop>
+  <tabstop>checkBoxSaveSongPreferencesInConfig</tabstop>
  </tabstops>
  <resources/>
  <connections>
