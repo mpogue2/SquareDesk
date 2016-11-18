@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>751</width>
+    <width>737</width>
     <height>495</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
@@ -68,10 +74,16 @@
          <item row="6" column="4">
           <widget class="QLineEdit" name="lineEditMusicTypeExtras">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>0</height>
+            </size>
            </property>
            <property name="text">
             <string>xtras</string>
@@ -231,13 +243,6 @@
            </property>
           </widget>
          </item>
-         <item row="7" column="4">
-          <widget class="QLineEdit" name="lineEditMusicTypeCalled">
-           <property name="text">
-            <string>singing_called;vocal;vocals</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="2">
           <widget class="QLabel" name="musicPath">
            <property name="font">
@@ -316,6 +321,25 @@
            </property>
            <property name="wordWrap">
             <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="4">
+          <widget class="QLineEdit" name="lineEditMusicTypeCalled">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>singing_called;vocal;vocals</string>
            </property>
           </widget>
          </item>
