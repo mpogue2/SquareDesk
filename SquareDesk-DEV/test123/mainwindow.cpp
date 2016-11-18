@@ -2614,7 +2614,6 @@ void MainWindow::saveCurrentSongSettings()
     QString currentSong = ui->nowPlayingLabel->text();
     if (saveSongPreferencesInConfig && !currentSong.isEmpty()) {
         QString section = "Song - " + currentSong + "/";
-        qDebug() << "Saving " << section;
         QSettings MySettings;
 
         int pitch = ui->pitchSlider->value();
@@ -2637,7 +2636,6 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     if (saveSongPreferencesInConfig) {
         QString section = "Song - " + songTitle + "/";
         QSettings MySettings;
-        qDebug() << "Loading " << section;
 
         QVariant value;
 
