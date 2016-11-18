@@ -208,16 +208,37 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->setColorForType(SINGING_CALLED, QColor(calledColorString));
     analogClock->setColorForType(XTRAS, QColor(extrasColorString));
 
-    //    analogClock->setColorForType(PATTER, QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0));
-    //    analogClock->setColorForType(SINGING, QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0));
-    //    analogClock->setColorForType(SINGING_CALLED, QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0));
-    //    analogClock->setColorForType(XTRAS, QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0));
-
     // ----------------------------------------------
     songFilenameFormat = SongFilenameLabelDashName;
     if (!MySettings.value("SongFilenameFormat").isNull()) {
         songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
     }
+
+    // define type names (before reading in the music filenames!) ------------------
+    QString value;
+    value = MySettings.value("MusicTypeSinging").toString();
+    if (value.isNull()) {
+        value = "singing;singers";
+    }
+    songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+
+    value = MySettings.value("MusicTypePatter").toString();
+    if (value.isNull()) {
+        value = "patter;hoedown";
+    }
+    songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+
+    value = MySettings.value("MusicTypeExtras").toString();
+    if (value.isNull()) {
+        value = "extras;xtras";
+    }
+    songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+
+    value = MySettings.value("MusicTypeCalled").toString();
+    if (value.isNull()) {
+        value = "singing_called;vocal;vocals;called";
+    }
+    songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
     // used to store the file paths
     findMusic();  // get the filenames from the user's directories
@@ -283,33 +304,6 @@ MainWindow::MainWindow(QWidget *parent) :
 //        ui->monoButton->setChecked(false);
         on_monoButton_toggled(false);  // sets button and menu item
     }
-
-
-    QString value;
-    value = MySettings.value("MusicTypeSinging").toString();
-    if (value.isNull()) {
-        value = "singing;singers";
-    }
-    songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
-
-    value = MySettings.value("MusicTypePatter").toString();
-    if (value.isNull()) {
-        value = "patter;hoedown";
-    }
-    songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
-
-    value = MySettings.value("MusicTypeExtras").toString();
-    if (value.isNull()) {
-        value = "extras;xtras";
-    }
-    songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
-
-    value = MySettings.value("MusicTypeCalled").toString();
-    if (value.isNull()) {
-        value = "singing_called;vocal;vocals;called";
-    }
-    songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
-
 
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
@@ -1016,8 +1010,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
-        // FIX: there's a better way to do this conversion... we also gotta localize this in one place
-        //   because Dan uses it too...
         if (songTypeNamesForPatter.contains(currentSongType)) {
             theType = PATTER;
         }
@@ -1620,20 +1612,17 @@ void MainWindow::filterMusic()
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
         QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
+
         if (type == "xtras") {
-//            textCol = (QColor::fromRgbF(156.0/255.0, 31.0/255.0, 0.0/255.0)); // other: dark red
             textCol = QColor(extrasColorString);
         }
         else if ((type == "patter") || (type == "hoedown")) {
-//            textCol = (QColor::fromRgbF(121.0/255.0, 99.0/255.0, 255.0/255.0)); // patter: Purple
             textCol = QColor(patterColorString);
         }
         else if (type == "singing") {
-//            textCol = (QColor::fromRgbF(0.0/255.0, 175.0/255.0, 92.0/255.0)); // singing: dark green
             textCol = QColor(singingColorString);
         }
-        else if ((type == "singing_called") || (type == "vocal")) {
-//            textCol = (QColor::fromRgbF(171.0/255.0, 105.0/255.0, 0.0/255.0)); // singing: dark green
+        else if (songTypeNamesForCalled.contains(type)) {
             textCol = QColor(calledColorString);
         }
 
@@ -1828,6 +1817,7 @@ void MainWindow::on_actionPreferences_triggered()
 
     // initial colors going in
     prefDialog->setColorSwatches(patterColorString, singingColorString, calledColorString, extrasColorString);
+    prefDialog->setDefaultColors(defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor);
 
     // modal dialog
     int dialogCode = prefDialog->exec();
@@ -1850,37 +1840,19 @@ void MainWindow::on_actionPreferences_triggered()
 
         // Save the new value for music type colors --------
         patterColorString = prefDialog->patterColor.name();
-        if (patterColorString == "#ffffff") {
-            patterColorString = defaultPatterColor;  // a way to reset the colors individually
-        }
         MySettings.setValue("patterColor", patterColorString); // fish out the new colors from the Preferences dialog, and save them
 
         // -----
         singingColorString = prefDialog->singingColor.name();
-        if (singingColorString == "#ffffff") {
-            singingColorString = defaultSingingColor;  // a way to reset the colors individually
-        }
         MySettings.setValue("singingColor", singingColorString);
 
         // -----
         calledColorString = prefDialog->calledColor.name();
-        if (calledColorString == "#ffffff") {
-            calledColorString = defaultCalledColor;  // a way to reset the colors individually
-        }
         MySettings.setValue("calledColor", calledColorString);
 
         // -----
         extrasColorString = prefDialog->extrasColor.name();
-        if (extrasColorString == "#ffffff") {
-            extrasColorString = defaultExtrasColor;  // a way to reset the colors individually
-        }
         MySettings.setValue("extrasColor", extrasColorString);
-
-        // Force the songTable to be updated(), so that changes in text color show up immediately
-//        patterColorString = prefDialog->patterColor.name();
-//        singingColorString = prefDialog->singingColor.name();
-//        calledColorString = prefDialog->calledColor.name();
-//        extrasColorString = prefDialog->extrasColor.name();
 
         filterMusic();
 

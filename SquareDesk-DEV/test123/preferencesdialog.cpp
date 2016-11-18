@@ -139,6 +139,14 @@ void PreferencesDialog::setColorSwatches(QString patter, QString singing, QStrin
     ui->extrasColorButton->setFlat(true);
 }
 
+void PreferencesDialog::setDefaultColors(QString patter, QString singing, QString called, QString extras) {
+    defaultPatterColor=patter;
+    defaultSingingColor=singing;
+    defaultCalledColor=called;
+    defaultExtrasColor=extras;
+}
+
+
 void PreferencesDialog::setFontSizes()
 {
 
@@ -233,7 +241,6 @@ QString PreferencesDialog::GetMusicTypeCalled()
     return ui->lineEditMusicTypeCalled->text();
 }
 
-
 bool PreferencesDialog::GetSaveSongPreferencesInMainConfig()
 {
     return ui->checkBoxSaveSongPreferencesInConfig->isChecked();
@@ -245,8 +252,12 @@ void PreferencesDialog::on_calledColorButton_clicked()
     if (chosenColor.isValid()) {
         calledColor = chosenColor;
 
+        if (calledColor.name() == "#ffffff") {
+            calledColor = defaultCalledColor;  // a way to reset the colors individually
+        }
+
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(chosenColor.name()).arg(chosenColor.name()));
+        ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColor.name()).arg(calledColor.name()));
         ui->calledColorButton->setAutoFillBackground(true);
         ui->calledColorButton->setFlat(true);
     }
@@ -258,14 +269,18 @@ void PreferencesDialog::on_extrasColorButton_clicked()
     if (chosenColor.isValid()) {
         extrasColor = chosenColor;
 
+        if (extrasColor.name() == "#ffffff") {
+            extrasColor = defaultExtrasColor;  // a way to reset the colors individually
+        }
+
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(chosenColor.name()).arg(chosenColor.name()));
+        ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(extrasColor.name()).arg(extrasColor.name()));
         ui->extrasColorButton->setAutoFillBackground(true);
         ui->extrasColorButton->setFlat(true);
     }
 }
 
-// TODO: I wonder if this was my problem...I was creating the preferences dialog with new()...FIX THIS
+// TODO: I wonder if this was my problem...I was creating the preferences dialog with new() and exec()...FIX THIS?
 //  http://stackoverflow.com/questions/25315408/how-to-cancel-out-of-qcolordialoggetcolor
 
 void PreferencesDialog::on_patterColorButton_clicked()
@@ -274,8 +289,12 @@ void PreferencesDialog::on_patterColorButton_clicked()
     if (chosenColor.isValid()) {
         patterColor = chosenColor;
 
+        if (patterColor.name() == "#ffffff") {
+            patterColor = defaultPatterColor;  // a way to reset the colors individually
+        }
+
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(chosenColor.name()).arg(chosenColor.name()));
+        ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(patterColor.name()).arg(patterColor.name()));
         ui->patterColorButton->setAutoFillBackground(true);
         ui->patterColorButton->setFlat(true);
     }
@@ -287,8 +306,12 @@ void PreferencesDialog::on_singingColorButton_clicked()
     if (chosenColor.isValid()) {
         singingColor = chosenColor;
 
+        if (singingColor.name() == "#ffffff") {
+            singingColor = defaultSingingColor;  // a way to reset the colors individually
+        }
+
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(chosenColor.name()).arg(chosenColor.name()));
+        ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(singingColor.name()).arg(singingColor.name()));
         ui->singingColorButton->setAutoFillBackground(true);
         ui->singingColorButton->setFlat(true);
     }

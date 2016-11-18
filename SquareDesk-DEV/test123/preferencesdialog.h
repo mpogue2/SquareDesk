@@ -34,6 +34,9 @@ public:
     QColor calledColor;
     QColor extrasColor;
 
+    void setDefaultColors(QString patter, QString singing, QString called, QString extras);
+    QString defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor;
+
     QString GetMusicTypeSinging();
     QString GetMusicTypePatter();
     QString GetMusicTypeExtras();
