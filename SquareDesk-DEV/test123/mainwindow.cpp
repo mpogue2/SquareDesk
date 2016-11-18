@@ -236,7 +236,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     value = MySettings.value("MusicTypeCalled").toString();
     if (value.isNull()) {
-        value = "singing_called;vocal;vocals;called";
+        value = "vocal;vocals;called";
     }
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 

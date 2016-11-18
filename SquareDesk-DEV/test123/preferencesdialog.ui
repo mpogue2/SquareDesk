@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>781</width>
-    <height>540</height>
+    <height>552</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -259,7 +259,7 @@
           </size>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Music Directory is the directory where you should put all your &lt;br/&gt;music files (MP3 or WAV). Each subdirectory of the Music Directory holds &lt;br/&gt;one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;, &amp;quot;singing_called&amp;quot;, &amp;quot;xtras&amp;quot;, etc.).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Music Directory is the directory where you should put all your music files (MP3 or WAV).&lt;BR/&gt;Each subdirectory of the Music Directory holds one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;,&lt;BR/&gt;&amp;quot;vocals&amp;quot;, &amp;quot;xtras&amp;quot;, etc.).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -301,7 +301,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;We figure out the &amp;quot;type&amp;quot; of music (e.g. patter vs singing call) by looking&lt;br/&gt;at the name of the subdirectory of the Music Directory that the song is in.&lt;br/&gt;If you put Patter songs into two subdirectories, specify the names of both&lt;br/&gt;here, separated by semicolons. Upper and lower case letters&lt;br/&gt;can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).&lt;BR/&gt;&lt;BR/&gt;Click on a color square to change the color associated with that Music Type.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;We figure out the &amp;quot;type&amp;quot; of music (e.g. patter vs singing call) by looking at the name of&lt;br/&gt;the subdirectory of the Music Directory that the song is in. For example, if you put&lt;br/&gt;Patter songs into two subdirectories, specify the names of both here, separated by semicolons. Upper and lower case letters can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).&lt;BR/&gt;&lt;BR/&gt;Click on a color square to change the color associated with that Music Type.  Set the&lt;BR/&gt;color to #FFFFFF to reset to the original default color.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -326,7 +326,7 @@
           </size>
          </property>
          <property name="text">
-          <string>singing_called;vocal;vocals</string>
+          <string>vocal;vocals</string>
          </property>
         </widget>
        </item>
