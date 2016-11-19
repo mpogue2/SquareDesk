@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>781</width>
-    <height>552</height>
+    <width>868</width>
+    <height>544</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,6 +20,12 @@
    <size>
     <width>0</width>
     <height>0</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>561</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -72,6 +78,37 @@
        <string>Music</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
+       <item row="1" column="2" colspan="4">
+        <widget class="QLabel" name="musicDirHelpLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>55</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>600</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Music Directory is the directory where you should put all your music files (MP3 or WAV). Each subdirectory of the Music Directory holds one type of music (e.g. &quot;patter&quot;, &quot;singing&quot;,&quot;vocals&quot;, &quot;xtras&quot;, etc.).</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
        <item row="7" column="2">
         <widget class="QLineEdit" name="lineEditMusicTypeSinging">
          <property name="sizePolicy">
@@ -117,22 +154,6 @@
          </property>
          <property name="text">
           <string>xtras</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2" colspan="4">
-        <widget class="QLabel" name="musicFormatHelpLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Choose the naming convention that you use for file names.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -244,28 +265,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="2" colspan="4">
-        <widget class="QLabel" name="musicDirHelpLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>55</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Music Directory is the directory where you should put all your music files (MP3 or WAV).&lt;BR/&gt;Each subdirectory of the Music Directory holds one type of music (e.g. &amp;quot;patter&amp;quot;, &amp;quot;singing&amp;quot;,&lt;BR/&gt;&amp;quot;vocals&amp;quot;, &amp;quot;xtras&amp;quot;, etc.).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="6">
         <widget class="QPushButton" name="chooseMusicPathButton">
          <property name="maximumSize">
@@ -276,38 +275,6 @@
          </property>
          <property name="text">
           <string>Choose...</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="2">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="12" column="2" colspan="4">
-        <widget class="QLabel" name="musicTypesHelpLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;We figure out the &amp;quot;type&amp;quot; of music (e.g. patter vs singing call) by looking at the name of&lt;br/&gt;the subdirectory of the Music Directory that the song is in. For example, if you put&lt;br/&gt;Patter songs into two subdirectories, specify the names of both here, separated by semicolons. Upper and lower case letters can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).&lt;BR/&gt;&lt;BR/&gt;Click on a color square to change the color associated with that Music Type.  Set the&lt;BR/&gt;color to #FFFFFF to reset to the original default color.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -461,6 +428,65 @@
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item row="12" column="2" colspan="4">
+        <widget class="QLabel" name="musicTypesHelpLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>600</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>We figure out the &quot;type&quot; of music (e.g. patter vs singing call) by looking at the name of the subdirectory of the Music Directory that the song is in. For example, if you put Patter songs into two subdirectories, specify the names of both here, separated by semicolons. Upper and lower case letters can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).
+
+Click on a color square to change the color associated with that Music Type.  Set the color to #FFFFFF to reset to the original default color.</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2" colspan="4">
+        <widget class="QLabel" name="musicFormatHelpLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Choose the naming convention that you use for file names.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="2">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Expanding</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

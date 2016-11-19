@@ -169,6 +169,7 @@ void PreferencesDialog::setFontSizes()
     ui->musicTypesHelpLabel->setFont(font);
     ui->musicFormatHelpLabel->setFont(font);
     ui->saveSongPrefsHelpLabel->setFont(font);
+
 }
 
 void PreferencesDialog::on_chooseMusicPathButton_clicked()
