@@ -376,6 +376,7 @@ MainWindow::MainWindow(QWidget *parent) :
         )
     );
 
+    ui->titleSearch->setFocus();  // this should be the intial focus
 }
 
 // ----------------------------------------------------------------------
@@ -1088,7 +1089,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 || ui->songTable->isEditing())) {
             // call handleKeypress on the Applications's active window
 //            qDebug() << "GlobalEventFilter::eventFilter(), call handleKeypress";
-            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
+//            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
+            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key(), KeyEvent->text());
         }
 
     }
@@ -1096,21 +1098,14 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 }
 
 // ----------------------------------------------------------------------
-//void MainWindow::keyPressEvent(QKeyEvent *event)
-bool MainWindow::handleKeypress(int key)
+bool MainWindow::handleKeypress(int key, QString text)
 {
-//    qDebug() << "MainWindow::handleKeypress(), key =" << key << ", inPreferencesDialog =" << inPreferencesDialog;
-//    if (prefDialog == NULL) {
-//        qDebug() << "prefDialog: NULL";
-//    }
+    Q_UNUSED(text)
+
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
 
-//    qDebug() << "MainWindow::handleKeypress(), part 2, key =" << key << ", inPreferencesDialog =" << inPreferencesDialog;
-//    if (prefDialog == NULL) {
-//        qDebug() << "prefDialog: NULL";
-//    }
     switch (key) {
 
         case Qt::Key_Escape:
@@ -1176,6 +1171,7 @@ bool MainWindow::handleKeypress(int key)
         default:
             break;
     }
+
     Info_Seekbar(true);
     return true;
 }

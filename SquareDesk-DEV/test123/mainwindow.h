@@ -50,7 +50,7 @@ public:
     ~MainWindow();
 
     Ui::MainWindow *ui;
-    bool handleKeypress(int key);
+    bool handleKeypress(int key, QString text);
 
     PreferencesDialog *prefDialog;
     QString defaultPatterColor = "#7963ff";
