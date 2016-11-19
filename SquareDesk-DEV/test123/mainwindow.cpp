@@ -171,6 +171,9 @@ MainWindow::MainWindow(QWidget *parent) :
     pathStack = new QList<QString>();
 
     QSettings MySettings; // Will be using application information for correct location of your settings
+
+//    qDebug() << "QSettings is in: " << MySettings.fileName();
+
     musicRootPath = MySettings.value("musicPath").toString();
     if (musicRootPath.isNull()) {
         musicRootPath = QDir::homePath() + "/music";
@@ -207,6 +210,74 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->setColorForType(SINGING, QColor(singingColorString));
     analogClock->setColorForType(SINGING_CALLED, QColor(calledColorString));
     analogClock->setColorForType(XTRAS, QColor(extrasColorString));
+
+    // ----------------------------------------------
+    // Save the new settings for experimental break and patter timers --------
+    bool initializeAll = false;  // forced init for DEBUG, normally false
+
+    // settings are:
+    // tipLengthTimerEnabled
+    // tipLengthTimerLength
+    // tipLengthAlarmAction
+    // breakLengthTimerEnabled
+    // breakLengthTimerLength
+    // breakLengthAlarmAction
+
+    tipLengthTimerEnabledString = MySettings.value("tipLengthTimerEnabled").toString();
+//    qDebug() << "tipLengthTimerEnabledString" << tipLengthTimerEnabledString;
+    if (initializeAll || tipLengthTimerEnabledString.isNull()) {
+//        qDebug() << "tipLengthTimerEnabledString == NULL";
+        tipLengthTimerEnabledString = "false";
+        MySettings.setValue("tipLengthTimerEnabled", tipLengthTimerEnabledString); // set to initial value, if nothing else found
+    }
+
+    QString tipLengthTimerLengthString = MySettings.value("tipLengthTimerLength").toString();
+//    qDebug() << "tipLengthTimerLengthString" << tipLengthTimerLengthString;
+    if (initializeAll || tipLengthTimerLengthString.isNull()) {
+//        qDebug() << "tipLengthTimerLengthString == NULL";
+        tipLengthTimerLength = 7; // defaults to 7 minutes
+        MySettings.setValue("tipLengthTimerLength", QString::number(7)); // set to initial value, if nothing else found
+    }
+    tipLengthTimerLength = tipLengthTimerLengthString.toInt();
+
+    QString tipLengthAlarmActionString = MySettings.value("tipLengthAlarmAction").toString();
+//    qDebug() << "tipLengthAlarmActionString" << tipLengthAlarmActionString;
+    if (initializeAll || tipLengthAlarmActionString.isNull()) {
+//        qDebug() << "tipLengthAlarmActionString == NULL";
+        tipLengthAlarmAction = 0;
+        MySettings.setValue("tipLengthAlarmAction", QString::number(0)); // set to initial value, if nothing else found
+    }
+    tipLengthAlarmAction = tipLengthAlarmActionString.toInt();
+
+//    qDebug() << "tip:" << tipLengthTimerEnabledString << tipLengthTimerLength << tipLengthAlarmAction;
+
+    breakLengthTimerEnabledString = MySettings.value("breakLengthTimerEnabled").toString();
+//    qDebug() << "breakLengthTimerEnabledString" << breakLengthTimerEnabledString;
+    if (initializeAll || breakLengthTimerEnabledString.isNull()) {
+//        qDebug() << "breakLengthTimerEnabledString == NULL";
+        breakLengthTimerEnabledString = "false";
+        MySettings.setValue("breakLengthTimerEnabled", breakLengthTimerEnabledString); // set to initial value, if nothing else found
+    }
+
+    QString breakLengthTimerLengthString = MySettings.value("breakLengthTimerLength").toString();
+//    qDebug() << "breakLengthTimerLengthString" << breakLengthTimerLengthString;
+    if (initializeAll || breakLengthTimerLengthString.isNull()) {
+//        qDebug() << "breakLengthTimerLengthString == NULL";
+        breakLengthTimerLength = 10; // defaults to 10 minutes
+        MySettings.setValue("breakLengthTimerLength", QString::number(10)); // set to initial value, if nothing else found
+    }
+    breakLengthTimerLength = breakLengthTimerLengthString.toInt();
+
+    QString breakLengthAlarmActionString = MySettings.value("breakLengthAlarmAction").toString();
+//    qDebug() << "breakLengthAlarmActionString" << breakLengthAlarmActionString;
+    if (initializeAll || breakLengthAlarmActionString.isNull()) {
+//        qDebug() << "breakLengthAlarmActionString == NULL";
+        breakLengthAlarmAction = 0;
+        MySettings.setValue("breakLengthAlarmAction", QString::number(0)); // set to initial value, if nothing else found
+    }
+    breakLengthAlarmAction = breakLengthAlarmActionString.toInt();
+
+//    qDebug() << "break:" << breakLengthTimerEnabledString << breakLengthTimerLength << breakLengthAlarmAction;
 
     // ----------------------------------------------
     songFilenameFormat = SongFilenameLabelDashName;
@@ -377,6 +448,15 @@ MainWindow::MainWindow(QWidget *parent) :
     );
 
     ui->titleSearch->setFocus();  // this should be the intial focus
+
+#ifdef DEBUGCLOCK
+//    analogClock->tipLengthAlarmMinutes = 5;  // FIX FIX FIX
+//    analogClock->breakLengthAlarmMinutes = 10;
+#endif
+    analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
+    analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
+    ui->warningLabel->setText("");
+    ui->warningLabel->setStyleSheet("QLabel { color : red; }");
 }
 
 // ----------------------------------------------------------------------
@@ -436,6 +516,9 @@ void MainWindow::setFontSizes()
 
     font.setPointSize(preferredNowPlayingSize);
     ui->nowPlayingLabel->setFont(font);
+
+    font.setPointSize((preferredSmallFontSize + preferredNowPlayingSize)/2);
+    ui->warningLabel->setFont(font);
 }
 
 // ----------------------------------------------------------------------
@@ -1026,9 +1109,34 @@ void MainWindow::on_UIUpdateTimerTick(void)
         else {
             theType = NONE;
         }
+
+        analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
     }
+#ifndef DEBUGCLOCK
     analogClock->setSegment(time.hour(), time.minute(), theType);  // always called once per second
-//    analogClock->setSegment(time.minute(), time.second(), theType);  // TEST TEST TEST
+#else
+    analogClock->setSegment(time.minute(), time.second(), theType);  // FIX FIX FIX FIX ******
+#endif
+
+//    qDebug() << "per second: " << analogClock->tipLengthAlarmMinutes << analogClock->breakLengthAlarmMinutes;
+
+    if (tipLengthTimerEnabledString=="true" && analogClock->tipLengthAlarm && theType == PATTER) {
+        if (tipLengthAlarmAction == 0) {
+            ui->warningLabel->setText("LONG TIP!");
+        } else {
+            // TODO: optionally play a reminder tone
+        }
+    } else if (breakLengthTimerEnabledString=="true" && analogClock->breakLengthAlarm) {
+        if (breakLengthAlarmAction == 0) {
+            ui->warningLabel->setText("BREAK OVER");
+        } else {
+            // TODO: optionally play a reminder tone
+            // TODO: optionally play the current song
+            // TODO: optionally play the next song
+        }
+    } else {
+        ui->warningLabel->setText("");
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -1886,6 +1994,33 @@ void MainWindow::on_actionPreferences_triggered()
         }
         MySettings.setValue("experimentalPitchTempoViewEnabled", viewsetting); // save the new experimental tab setting
         updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
+
+        // -----------------------------------------------------------------------
+        // Save the new settings for experimental break and patter timers --------
+//        qDebug() << "prefs results: " << prefDialog->tipLengthTimerEnabledString <<
+//                    prefDialog->tipLength << prefDialog->tipAlarmAction <<
+//                    prefDialog->breakLengthTimerEnabledString << prefDialog->breakLength <<
+//                    prefDialog->breakAlarmAction;
+
+        MySettings.setValue("tipLengthTimerEnabled", prefDialog->tipLengthTimerEnabledString);
+        MySettings.setValue("tipLengthTimerLength", QString::number(prefDialog->tipLength));  // int seconds
+        MySettings.setValue("tipLengthAlarmAction", QString::number(prefDialog->tipAlarmAction));  // int
+
+        MySettings.setValue("breakLengthTimerEnabled", prefDialog->breakLengthTimerEnabledString);
+        MySettings.setValue("breakLengthTimerLength", QString::number(prefDialog->breakLength));  // int seconds
+        MySettings.setValue("breakLengthAlarmAction", QString::number(prefDialog->breakAlarmAction));  // int
+
+        tipLengthTimerEnabledString = prefDialog->tipLengthTimerEnabledString;  // save new settings in MainWindow, too
+        tipLengthTimerLength = prefDialog->tipLength;
+        tipLengthAlarmAction = prefDialog->tipAlarmAction;
+
+        breakLengthTimerEnabledString = prefDialog->breakLengthTimerEnabledString;
+        breakLengthTimerLength = prefDialog->breakLength;
+        breakLengthAlarmAction = prefDialog->breakAlarmAction;
+
+        // and tell the clock, too.
+        analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
+        analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalClockColoringEnabled --------

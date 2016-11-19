@@ -53,6 +53,9 @@
 
 #include <QWidget>
 
+// set to speed up the clock by 60X
+//#define DEBUGCLOCK 1
+
 #define NONE 0
 #define PATTER 1
 #define SINGING 2
@@ -76,6 +79,11 @@ public:
 
     void setHidden(bool hidden);
     bool coloringIsHidden;
+    bool tipLengthAlarm;
+    bool breakLengthAlarm;
+
+    int breakLengthAlarmMinutes;
+    int tipLengthAlarmMinutes;
 
 private slots:
     void redrawTimerExpired();

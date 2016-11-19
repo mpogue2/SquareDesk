@@ -67,7 +67,11 @@ AnalogClock::AnalogClock(QWidget *parent)
     }
 
     coloringIsHidden = true;
+    tipLengthAlarm = false;
+    breakLengthAlarm = false;
 
+    tipLengthAlarmMinutes = 100;  // if >60, disabled
+    tipLengthAlarmMinutes = 100;  // if >60, disabled
 }
 
 void AnalogClock::redrawTimerExpired()
@@ -155,9 +159,62 @@ void AnalogClock::paintEvent(QPaintEvent *)
     QRectF rect(corner, QSizeF(size, size));
     painter.drawText(rect, Qt::AlignVCenter | Qt::AlignHCenter, QString(theTime), 0);
 
+    // time now!
+#ifndef DEBUGCLOCK
+    int startMinute = time.minute();
+#else
+    int startMinute = time.second();  // FIX FIX FIX FIX FIX **********
+#endif
+
+    // check for LONG PATTER ALARM -------
+    int numMinutesPatter = 0;
+
+    for (int i = 0; i < 60; i++) {
+        int currentMinute = startMinute - i;
+        if (currentMinute < 0) {
+            currentMinute += 60;
+        }
+//        qDebug() << "typeInMinute[" << currentMinute << "]=" << typeInMinute[currentMinute];
+        if (typeInMinute[currentMinute] == PATTER) {
+            numMinutesPatter++;
+        } else {
+            break;  // break out of the for loop, because we're only looking at the first segment
+        }
+    }
+
+    if (numMinutesPatter >= tipLengthAlarmMinutes) {
+//        qDebug() << "TIP LENGTH ALARM";
+        tipLengthAlarm = true;
+    } else {
+        tipLengthAlarm = false;
+    }
+
+    // check for END OF BREAK -------
+    int numMinutesBreak = 0;
+
+    for (int i = 0; i < 60; i++) {
+        int currentMinute = startMinute - i;
+        if (currentMinute < 0) {
+            currentMinute += 60;
+        }
+        if (typeInMinute[currentMinute] == NONE) {
+            numMinutesBreak++;
+        } else {
+            break;  // break out of the for loop, because we're only looking at the first segment
+        }
+    }
+
+//    qDebug() << "number of minutes of patter: " << numMinutesPatter << "number of minutes of break: " << numMinutesBreak;
+
+    if (numMinutesBreak >= breakLengthAlarmMinutes && numMinutesBreak < 60) {
+//        qDebug() << "BREAK LENGTH ALARM";
+        breakLengthAlarm = true;
+    } else {
+        breakLengthAlarm = false;
+    }
+
     // SESSION SEGMENTS: what were we doing over the last hour?
     if (!coloringIsHidden) {
-        int startMinute = time.minute();
         for (int i = 0; i < 60; i++) {
             int currentMinute = startMinute - i;
             if (currentMinute < 0) {

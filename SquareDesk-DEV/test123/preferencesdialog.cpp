@@ -96,6 +96,36 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     setFontSizes();
 //    setColorSwatches("#ff0000","#00ff00","#0000ff","#ffffff");  // DO NOT DO THIS HERE. PARENT MUST DO THIS.
+
+    // settings for experimental break/tip timers are:
+    // tipLengthTimerEnabled
+    // tipLengthTimerLength
+    // tipLengthAlarmAction
+    // breakLengthTimerEnabled
+    // breakLengthTimerLength
+    // breakLengthAlarmAction
+
+    ui->longTipCheckbox->setChecked(MySettings.value("tipLengthTimerEnabled") == "true");
+    tipLengthTimerEnabledString = MySettings.value("tipLengthTimerEnabled").toString();
+
+    unsigned int tt = MySettings.value("tipLengthTimerLength").toInt();
+    ui->longTipLength->setCurrentIndex(tt-5);
+    tipLength = tt;
+
+    unsigned int tt2 = MySettings.value("tipLengthAlarmAction").toInt();
+    ui->afterLongTipAction->setCurrentIndex(tt2);
+    tipAlarmAction = tt2;
+
+    ui->breakTimerCheckbox->setChecked(MySettings.value("breakLengthTimerEnabled") == "true");
+    breakLengthTimerEnabledString = MySettings.value("breakLengthTimerEnabled").toString();
+
+    unsigned int bb = MySettings.value("breakLengthTimerLength").toInt();
+    ui->breakLength->setCurrentIndex(bb/5 - 1);
+    breakLength = bb;
+
+    unsigned int bb2 = MySettings.value("breakLengthAlarmAction").toInt();
+    ui->afterBreakAction->setCurrentIndex(bb2);
+    breakAlarmAction = bb2;
 }
 
 enum SongFilenameMatchingType PreferencesDialog::GetSongFilenameFormat()
@@ -222,6 +252,7 @@ void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
+// ------------
 QString PreferencesDialog::GetMusicTypeSinging()
 {
     return ui->lineEditMusicTypeSinging->text();
@@ -317,3 +348,59 @@ void PreferencesDialog::on_singingColorButton_clicked()
         ui->singingColorButton->setFlat(true);
     }
 }
+
+void PreferencesDialog::on_breakTimerCheckbox_toggled(bool checked)
+{
+    if (checked) {
+        breakLengthTimerEnabledString = "true";
+    }
+    else {
+        breakLengthTimerEnabledString = "false";
+    }
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
+//    qDebug() << "Pref dialog, break enabled now " << breakLengthTimerEnabledString;
+}
+
+void PreferencesDialog::on_longTipCheckbox_toggled(bool checked)
+{
+    if (checked) {
+        tipLengthTimerEnabledString = "true";
+    }
+    else {
+        tipLengthTimerEnabledString = "false";
+    }
+//    qDebug() << "Pref dialog, longTip enabled now " << tipLengthTimerEnabledString;
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
+}
+
+void PreferencesDialog::on_breakLength_currentIndexChanged(int index)
+{
+    Q_UNUSED(index)
+    QString theText = ui->breakLength->currentText();
+    QStringList sl1 = theText.split(" ");
+    QString mText = sl1[0];
+    breakLength = mText.toInt();
+}
+
+void PreferencesDialog::on_longTipLength_currentIndexChanged(int index)
+{
+    Q_UNUSED(index)
+//    qDebug() << "longTipLength:" << index;
+    QString theText = ui->longTipLength->currentText();
+    QStringList sl1 = theText.split(" ");
+    QString mText = sl1[0];
+    tipLength = mText.toInt();
+}
+
+void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
+{
+//    qDebug() << "afterBreakAction:" << index;
+    breakAlarmAction = index;  // 0 = message, 1 = tone
+}
+
+void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
+{
+//    qDebug() << "afterLongTipAction:" << index;
+    tipAlarmAction = index;  // 0 = message, 1 = tone, 2 = start current, 3 = start next
+}
+

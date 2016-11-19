@@ -223,6 +223,12 @@ private:
     AnalogClock *analogClock;
 
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
+
+    // experimental break and patter timers
+    QString tipLengthTimerEnabledString, breakLengthTimerEnabledString;
+    unsigned int tipLengthTimerLength, breakLengthTimerLength;
+    unsigned int tipLengthAlarmAction, breakLengthAlarmAction;
+
 };
 
 // currentState:

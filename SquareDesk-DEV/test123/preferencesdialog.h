@@ -27,6 +27,13 @@ public:
     QString experimentalPitchTempoViewEnabled;
     QString experimentalClockColoringEnabled;
 
+    QString tipLengthTimerEnabledString;
+    QString breakLengthTimerEnabledString;
+    unsigned int tipLength;
+    unsigned int breakLength;
+    unsigned int tipAlarmAction;
+    unsigned int breakAlarmAction;
+
     void setFontSizes();
     void setColorSwatches(QString patter, QString singing, QString called, QString extras);
     QColor patterColor;
@@ -54,6 +61,14 @@ private slots:
     void on_extrasColorButton_clicked();
     void on_patterColorButton_clicked();
     void on_singingColorButton_clicked();
+
+    void on_longTipCheckbox_toggled(bool checked);
+    void on_longTipLength_currentIndexChanged(int index);
+    void on_afterLongTipAction_currentIndexChanged(int index);
+
+    void on_breakTimerCheckbox_toggled(bool checked);
+    void on_breakLength_currentIndexChanged(int index);
+    void on_afterBreakAction_currentIndexChanged(int index);
 
 private:
     Ui::PreferencesDialog *ui;
