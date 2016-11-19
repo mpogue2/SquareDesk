@@ -1048,6 +1048,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (true) {
         on_actionAutostart_playback_triggered();  // write AUTOPLAY setting back
         event->accept();  // OK to close, if user said "OK" or "SAVE"
+
+        // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
+        QSettings settings;
+        settings.setValue("geometry", saveGeometry());
+        settings.setValue("windowState", saveState());
+        QMainWindow::closeEvent(event);
     }
     else {
         event->ignore();  // do not close, if used said "CANCEL"
