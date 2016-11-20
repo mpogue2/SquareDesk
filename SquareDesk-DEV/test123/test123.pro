@@ -33,7 +33,8 @@ HEADERS  += mainwindow.h \
     tablenumberitem.h \
     levelmeter.h \
     analogclock.h \
-    common_enums.h
+    common_enums.h \
+    macUtils.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui
@@ -42,7 +43,7 @@ INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 
 # NOTE: there is no debug version of libbass
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix
 else:unix: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix
 
@@ -53,6 +54,7 @@ win32 {
 macx {
     # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
     LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    LIBS += -framework CoreFoundation
     mylib.path = Contents/MacOS
     mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     QMAKE_BUNDLE_DATA += mylib
@@ -76,3 +78,6 @@ RESOURCES += resources.qrc
 
 #DISTFILES += \
 #    README.txt
+
+OBJECTIVE_SOURCES += \
+    macUtils.mm

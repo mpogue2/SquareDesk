@@ -36,6 +36,10 @@
 #include "levelmeter.h"
 #include "analogclock.h"
 
+#if defined(Q_OS_MAC)
+#include "macUtils.h"
+#endif
+
 namespace Ui
 {
 class MainWindow;
@@ -229,6 +233,9 @@ private:
     unsigned int tipLengthTimerLength, breakLengthTimerLength;
     unsigned int tipLengthAlarmAction, breakLengthAlarmAction;
 
+#ifdef Q_OS_MAC
+    MacUtils macUtils;  // singleton
+#endif
 };
 
 // currentState:
