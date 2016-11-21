@@ -126,6 +126,24 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     unsigned int bb2 = MySettings.value("breakLengthAlarmAction").toInt();
     ui->afterBreakAction->setCurrentIndex(bb2);
     breakAlarmAction = bb2;
+
+    // initial BPM setting
+    validator = new QIntValidator(100, 150, this);
+    ui->initialBPM->setValidator(validator);
+
+    value = MySettings.value("initialBPMenabled").toString();
+    if (!value.isNull()) {
+        ui->initialBPMcheckbox->setChecked(value == "true");
+    }
+
+    value = MySettings.value("initialBPM").toString();
+    if (!value.isNull()) {
+        ui->initialBPM->setText(value);
+    } else {
+        ui->initialBPM->setText("125");
+    }
+
+    on_initialBPM_textChanged(ui->initialBPM->text());  // make sure last saved value is validated
 }
 
 enum SongFilenameMatchingType PreferencesDialog::GetSongFilenameFormat()
@@ -404,3 +422,30 @@ void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
     tipAlarmAction = index;  // 0 = message, 1 = tone, 2 = start current, 3 = start next
 }
 
+
+void PreferencesDialog::on_initialBPM_textChanged(const QString &arg1)
+{
+    int pos = 0;
+    bool acceptable = (ui->initialBPM->validator()->validate((QString &)arg1,pos) == QValidator::Acceptable);
+//    qDebug() << "ACCEPTABLE?: " << acceptable;
+
+    const QString COLOR_STYLE("QLineEdit { background-color : %1; }");
+
+//    QColor OKcolor("#d0f0d0");
+    QColor notOKcolor("#f08080");
+
+    if (acceptable) {
+//        ui->initialBPM->setStyleSheet(COLOR_STYLE.arg(OKcolor.name()));
+        ui->initialBPM->setStyleSheet("");
+        bpmTarget = ui->initialBPM->text().toInt();
+    } else {
+        ui->initialBPM->setStyleSheet(COLOR_STYLE.arg(notOKcolor.name()));
+        bpmTarget = 125;
+    }
+
+}
+
+void PreferencesDialog::on_initialBPMcheckbox_toggled(bool checked)
+{
+    bpmEnabled = checked;
+}

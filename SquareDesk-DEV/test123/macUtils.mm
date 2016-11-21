@@ -17,6 +17,7 @@ void MacUtils::disableScreensaver() {
     }
 
     // TODO: do I also need to disable IDLE sleep?
+    // TODO: does this need to be a Preference (e.g. "[ ] disable screensaver while SquareDesk is open")
 }
 
 void MacUtils::reenableScreensaver() {

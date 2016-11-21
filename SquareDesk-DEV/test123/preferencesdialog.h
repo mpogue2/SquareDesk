@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QSettings>
+#include <QValidator>
 
 #include "common_enums.h"
 
@@ -51,6 +52,11 @@ public:
     enum SongFilenameMatchingType GetSongFilenameFormat();
     bool GetSaveSongPreferencesInMainConfig();
 
+    QValidator *validator;
+
+    bool bpmEnabled;
+    unsigned int bpmTarget;
+
 private slots:
     void on_chooseMusicPathButton_clicked();
     void on_EnableTimersTabCheckbox_toggled(bool checked);
@@ -69,6 +75,10 @@ private slots:
     void on_breakTimerCheckbox_toggled(bool checked);
     void on_breakLength_currentIndexChanged(int index);
     void on_afterBreakAction_currentIndexChanged(int index);
+
+    void on_initialBPM_textChanged(const QString &arg1);
+
+    void on_initialBPMcheckbox_toggled(bool checked);
 
 private:
     Ui::PreferencesDialog *ui;

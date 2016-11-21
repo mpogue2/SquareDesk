@@ -236,6 +236,9 @@ private:
 #ifdef Q_OS_MAC
     MacUtils macUtils;  // singleton
 #endif
+
+    bool tryToSetInitialBPM;
+    unsigned int initialBPMTarget;
 };
 
 // currentState:

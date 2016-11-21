@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>922</width>
+    <width>995</width>
     <height>552</height>
    </rect>
   </property>
@@ -71,7 +71,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
@@ -561,6 +561,21 @@ Click on a color square to change the color associated with that Music Type.  Se
            <string>15 minutes</string>
           </property>
          </item>
+         <item>
+          <property name="text">
+           <string>20 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>25 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>30 minutes</string>
+          </property>
+         </item>
         </widget>
        </item>
        <item row="9" column="1">
@@ -657,6 +672,31 @@ Click on a color square to change the color associated with that Music Type.  Se
          <item>
           <property name="text">
            <string>10 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>11 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>12 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>13 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>14 minutes</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>15 minutes</string>
           </property>
          </item>
         </widget>
@@ -789,6 +829,35 @@ Click on a color square to change the color associated with that Music Type.  Se
          </property>
          <property name="text">
           <string>Remember tempo, pitch, and in/out points for each song</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QCheckBox" name="initialBPMcheckbox">
+         <property name="text">
+          <string>Set song's initial BPM to</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="2">
+        <widget class="QLineEdit" name="initialBPM">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>65</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>125</string>
+         </property>
+         <property name="maxLength">
+          <number>3</number>
          </property>
         </widget>
        </item>

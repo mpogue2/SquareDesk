@@ -467,6 +467,24 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
     ui->warningLabel->setText("");
     ui->warningLabel->setStyleSheet("QLabel { color : red; }");
+
+    // Feature: try to set initial BPM to X
+    value = MySettings.value("initialBPMenabled").toString();
+    if (value.isNull()) {
+        MySettings.setValue("initialBPMenabled", "false");
+        tryToSetInitialBPM = false;
+    } else {
+        tryToSetInitialBPM = (value == "true");
+    }
+
+    value = MySettings.value("initialBPM").toString();
+    if (value.isNull()) {
+        MySettings.setValue("initialBPM", "125");
+        initialBPMTarget = 125;
+    } else {
+        initialBPMTarget = value.toInt();
+    }
+
 }
 
 // ----------------------------------------------------------------------
@@ -1442,8 +1460,18 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
-        ui->tempoSlider->setValue(songBPM);
-        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+
+        if (tryToSetInitialBPM) {
+            // if the user wants us to try to hit a particular BPM target, use that value
+            ui->tempoSlider->setValue(initialBPMTarget);
+            ui->tempoSlider->valueChanged(initialBPMTarget);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        } else {
+            // otherwise, if the user wants us to start with the slider at the regular detected BPM
+            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
+            //     all saved tempo preferences will always win.
+            ui->tempoSlider->setValue(songBPM);
+            ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        }
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
@@ -2101,6 +2129,13 @@ void MainWindow::on_actionPreferences_triggered()
         if (needToFilterMusic) {
             filterMusic();
         }
+
+        // Feature: Try to set initial BPM to X --------------------
+        tryToSetInitialBPM = prefDialog->bpmEnabled;
+        initialBPMTarget = prefDialog->bpmTarget;
+
+        MySettings.setValue("initialBPMenabled", tryToSetInitialBPM ? "true" : "false");    // fish out the new setting and set in QSettings
+        MySettings.setValue("initialBPM", QString::number(initialBPMTarget));              // fish out the new setting and set in QSettings
     }
 
     delete prefDialog;
