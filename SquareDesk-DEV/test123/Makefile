@@ -56,7 +56,8 @@ SOURCES       = main.cpp \
 		tablenumberitem.cpp \
 		myslider.cpp \
 		levelmeter.cpp \
-		analogclock.cpp qrc_resources.cpp \
+		analogclock.cpp \
+		prefsmanager.cpp qrc_resources.cpp \
 		moc_mainwindow.cpp \
 		moc_preferencesdialog.cpp \
 		moc_levelmeter.cpp \
@@ -70,6 +71,7 @@ OBJECTS       = main.o \
 		myslider.o \
 		levelmeter.o \
 		analogclock.o \
+		prefsmanager.o \
 		qrc_resources.o \
 		moc_mainwindow.o \
 		moc_preferencesdialog.o \
@@ -169,7 +171,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		mytablewidget.h \
 		tablenumberitem.h \
 		levelmeter.h \
-		analogclock.h main.cpp \
+		analogclock.h \
+		common_enums.h main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
@@ -177,7 +180,8 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		tablenumberitem.cpp \
 		myslider.cpp \
 		levelmeter.cpp \
-		analogclock.cpp
+		analogclock.cpp \
+		prefsmanager.cpp
 QMAKE_TARGET  = SquareDeskPlayer
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = SquareDeskPlayer
@@ -400,8 +404,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui preferencesdialog.ui $(DISTDIR)/
 
 
@@ -433,16 +437,20 @@ qrc_resources.cpp: resources.qrc \
 compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp
-moc_mainwindow.cpp: bass_audio.h \
+moc_mainwindow.cpp: common_enums.h \
+		bass_audio.h \
 		bass.h \
 		myslider.h \
 		preferencesdialog.h \
+		prefs_options.h \
 		levelmeter.h \
 		analogclock.h \
 		mainwindow.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
-moc_preferencesdialog.cpp: preferencesdialog.h
+moc_preferencesdialog.cpp: common_enums.h \
+		prefs_options.h \
+		preferencesdialog.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include preferencesdialog.h -o moc_preferencesdialog.cpp
 
 moc_levelmeter.cpp: levelmeter.h
@@ -475,19 +483,23 @@ compiler_clean: compiler_rcc_clean compiler_moc_header_clean compiler_uic_clean
 ####### Compile
 
 main.o: main.cpp mainwindow.h \
+		common_enums.h \
 		bass_audio.h \
 		bass.h \
 		myslider.h \
 		preferencesdialog.h \
+		prefs_options.h \
 		levelmeter.h \
 		analogclock.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
+		common_enums.h \
 		bass_audio.h \
 		bass.h \
 		myslider.h \
 		preferencesdialog.h \
+		prefs_options.h \
 		levelmeter.h \
 		analogclock.h \
 		ui_mainwindow.h \
@@ -502,6 +514,8 @@ bass_audio.o: bass_audio.cpp bass_audio.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o bass_audio.o bass_audio.cpp
 
 preferencesdialog.o: preferencesdialog.cpp preferencesdialog.h \
+		common_enums.h \
+		prefs_options.h \
 		ui_preferencesdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o preferencesdialog.o preferencesdialog.cpp
 
@@ -519,6 +533,10 @@ levelmeter.o: levelmeter.cpp levelmeter.h
 
 analogclock.o: analogclock.cpp analogclock.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o analogclock.o analogclock.cpp
+
+prefsmanager.o: prefsmanager.cpp prefsmanager.h \
+		prefs_options.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o prefsmanager.o prefsmanager.cpp
 
 qrc_resources.o: qrc_resources.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_resources.o qrc_resources.cpp

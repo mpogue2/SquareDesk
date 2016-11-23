@@ -53,10 +53,6 @@ public:
     bool handleKeypress(int key, QString text);
 
     PreferencesDialog *prefDialog;
-    QString defaultPatterColor = "#7963ff";
-    QString defaultSingingColor = "#00af5c";
-    QString defaultCalledColor = "#ab6900";
-    QString defaultExtrasColor = "#9c1f00";
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -225,7 +221,7 @@ private:
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
 
     // experimental break and patter timers
-    QString tipLengthTimerEnabledString, breakLengthTimerEnabledString;
+    bool tipLengthTimerEnabled, breakLengthTimerEnabled;
     unsigned int tipLengthTimerLength, breakLengthTimerLength;
     unsigned int tipLengthAlarmAction, breakLengthAlarmAction;
 

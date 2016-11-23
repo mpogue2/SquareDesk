@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     tablenumberitem.cpp \
     myslider.cpp \
     levelmeter.cpp \
-    analogclock.cpp
+    analogclock.cpp \
+    prefsmanager.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \

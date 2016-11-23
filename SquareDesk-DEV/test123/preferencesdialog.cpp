@@ -128,13 +128,6 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     breakAlarmAction = bb2;
 }
 
-enum SongFilenameMatchingType PreferencesDialog::GetSongFilenameFormat()
-{
-    int currentIndex = ui->comboBoxMusicFormat->currentIndex();
-    return (SongFilenameMatchingType)(ui->comboBoxMusicFormat->itemData(currentIndex).toInt());
-}
-
-
 PreferencesDialog::~PreferencesDialog()
 {
 //    qDebug() << "    PreferencesDialog::~PreferencesDialog()";
@@ -253,25 +246,6 @@ void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
 }
 
 // ------------
-QString PreferencesDialog::GetMusicTypeSinging()
-{
-    return ui->lineEditMusicTypeSinging->text();
-}
-
-QString PreferencesDialog::GetMusicTypePatter()
-{
-    return ui->lineEditMusicTypePatter->text();
-}
-
-QString PreferencesDialog::GetMusicTypeExtras()
-{
-    return ui->lineEditMusicTypeExtras->text();
-}
-
-QString PreferencesDialog::GetMusicTypeCalled()
-{
-    return ui->lineEditMusicTypeCalled->text();
-}
 
 bool PreferencesDialog::GetSaveSongPreferencesInMainConfig()
 {
@@ -404,3 +378,24 @@ void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
     tipAlarmAction = index;  // 0 = message, 1 = tone, 2 = start current, 3 = start next
 }
 
+/* See the large comment at the top of prefs_options.h */
+
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name,default)
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name,default)
+#define CONFIG_ATTRIBUTE_STRING(control, name, default)                 \
+    QString PreferencesDialog::Get##name() { return ui->control->text(); } \
+    void PreferencesDialog::Set##name(QString value) { ui->control->setText(value); }
+
+#define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) \
+    bool PreferencesDialog::Get##name() { return ui->control->isChecked(); } \
+    void PreferencesDialog::Set##name(bool value) { ui->control->setChecked(value); }
+
+#define CONFIG_ATTRIBUTE_COMBO(control, name, default) \
+    int PreferencesDialog::Get##name() { return ui->control->currentIndex(); } \
+    void PreferencesDialog::Set##name(int value) { ui->control->setCurrentIndex(value); }
+#include "prefs_options.h"
+#undef CONFIG_ATTRIBUTE_STRING
+#undef CONFIG_ATTRIBUTE_BOOLEAN
+#undef CONFIG_ATTRIBUTE_COMBO
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS

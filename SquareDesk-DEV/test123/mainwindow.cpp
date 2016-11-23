@@ -9,6 +9,7 @@
 #include "QProcess"
 #include "QDesktopWidget"
 #include "analogclock.h"
+#include "prefsmanager.h"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -170,40 +171,17 @@ MainWindow::MainWindow(QWidget *parent) :
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
-    QSettings MySettings; // Will be using application information for correct location of your settings
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
 //    qDebug() << "QSettings is in: " << MySettings.fileName();
 
-    musicRootPath = MySettings.value("musicPath").toString();
-    if (musicRootPath.isNull()) {
-        musicRootPath = QDir::homePath() + "/music";
-        MySettings.setValue("musicPath", musicRootPath); // set to music subdirectory in user's Home directory, if nothing else
-    }
+    musicRootPath = prefsManager.GetmusicPath();
 
     // set initial colors for text in songTable, also used for shading the clock
-    patterColorString = MySettings.value("patterColor").toString();
-    if (patterColorString.isNull()) {
-        patterColorString = defaultPatterColor;
-        MySettings.setValue("patterColor", patterColorString); // set to initial value, if nothing else found
-    }
-
-    singingColorString = MySettings.value("singingColor").toString();
-    if (singingColorString.isNull()) {
-        singingColorString = defaultSingingColor;
-        MySettings.setValue("singingColor", singingColorString); // set to initial value, if nothing else found
-    }
-
-    calledColorString = MySettings.value("calledColor").toString();
-    if (calledColorString.isNull()) {
-        calledColorString = defaultCalledColor;
-        MySettings.setValue("calledColor", calledColorString); // set to initial value, if nothing else found
-    }
-
-    extrasColorString = MySettings.value("extrasColor").toString();
-    if (extrasColorString.isNull()) {
-        extrasColorString = defaultExtrasColor;
-        MySettings.setValue("extrasColor", extrasColorString); // set to initial value, if nothing else found
-    }
+    patterColorString = prefsManager.GetpatterColor();
+    singingColorString = prefsManager.GetsingingColor();
+    calledColorString = prefsManager.GetcalledColor();
+    extrasColorString = prefsManager.GetextrasColor();
 
     // Tell the clock what colors to use for session segments
     analogClock->setColorForType(PATTER, QColor(patterColorString));
@@ -213,7 +191,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ----------------------------------------------
     // Save the new settings for experimental break and patter timers --------
-    bool initializeAll = false;  // forced init for DEBUG, normally false
 
     // settings are:
     // tipLengthTimerEnabled
@@ -223,92 +200,35 @@ MainWindow::MainWindow(QWidget *parent) :
     // breakLengthTimerLength
     // breakLengthAlarmAction
 
-    tipLengthTimerEnabledString = MySettings.value("tipLengthTimerEnabled").toString();
-//    qDebug() << "tipLengthTimerEnabledString" << tipLengthTimerEnabledString;
-    if (initializeAll || tipLengthTimerEnabledString.isNull()) {
-//        qDebug() << "tipLengthTimerEnabledString == NULL";
-        tipLengthTimerEnabledString = "false";
-        MySettings.setValue("tipLengthTimerEnabled", tipLengthTimerEnabledString); // set to initial value, if nothing else found
-    }
-
-    QString tipLengthTimerLengthString = MySettings.value("tipLengthTimerLength").toString();
-//    qDebug() << "tipLengthTimerLengthString" << tipLengthTimerLengthString;
-    if (initializeAll || tipLengthTimerLengthString.isNull()) {
-//        qDebug() << "tipLengthTimerLengthString == NULL";
-        tipLengthTimerLength = 7; // defaults to 7 minutes
-        MySettings.setValue("tipLengthTimerLength", QString::number(7)); // set to initial value, if nothing else found
-    }
-    tipLengthTimerLength = tipLengthTimerLengthString.toInt();
-
-    QString tipLengthAlarmActionString = MySettings.value("tipLengthAlarmAction").toString();
-//    qDebug() << "tipLengthAlarmActionString" << tipLengthAlarmActionString;
-    if (initializeAll || tipLengthAlarmActionString.isNull()) {
-//        qDebug() << "tipLengthAlarmActionString == NULL";
-        tipLengthAlarmAction = 0;
-        MySettings.setValue("tipLengthAlarmAction", QString::number(0)); // set to initial value, if nothing else found
-    }
-    tipLengthAlarmAction = tipLengthAlarmActionString.toInt();
-
+    tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
+    int tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
+    tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
 //    qDebug() << "tip:" << tipLengthTimerEnabledString << tipLengthTimerLength << tipLengthAlarmAction;
 
-    breakLengthTimerEnabledString = MySettings.value("breakLengthTimerEnabled").toString();
+    breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
 //    qDebug() << "breakLengthTimerEnabledString" << breakLengthTimerEnabledString;
-    if (initializeAll || breakLengthTimerEnabledString.isNull()) {
-//        qDebug() << "breakLengthTimerEnabledString == NULL";
-        breakLengthTimerEnabledString = "false";
-        MySettings.setValue("breakLengthTimerEnabled", breakLengthTimerEnabledString); // set to initial value, if nothing else found
-    }
 
-    QString breakLengthTimerLengthString = MySettings.value("breakLengthTimerLength").toString();
+    breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
 //    qDebug() << "breakLengthTimerLengthString" << breakLengthTimerLengthString;
-    if (initializeAll || breakLengthTimerLengthString.isNull()) {
-//        qDebug() << "breakLengthTimerLengthString == NULL";
-        breakLengthTimerLength = 10; // defaults to 10 minutes
-        MySettings.setValue("breakLengthTimerLength", QString::number(10)); // set to initial value, if nothing else found
-    }
-    breakLengthTimerLength = breakLengthTimerLengthString.toInt();
 
-    QString breakLengthAlarmActionString = MySettings.value("breakLengthAlarmAction").toString();
-//    qDebug() << "breakLengthAlarmActionString" << breakLengthAlarmActionString;
-    if (initializeAll || breakLengthAlarmActionString.isNull()) {
-//        qDebug() << "breakLengthAlarmActionString == NULL";
-        breakLengthAlarmAction = 0;
-        MySettings.setValue("breakLengthAlarmAction", QString::number(0)); // set to initial value, if nothing else found
-    }
-    breakLengthAlarmAction = breakLengthAlarmActionString.toInt();
-
+    breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 //    qDebug() << "break:" << breakLengthTimerEnabledString << breakLengthTimerLength << breakLengthAlarmAction;
 
     // ----------------------------------------------
-    songFilenameFormat = SongFilenameLabelDashName;
-    if (!MySettings.value("SongFilenameFormat").isNull()) {
-        songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
-    }
+    songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
     // define type names (before reading in the music filenames!) ------------------
     QString value;
-    value = MySettings.value("MusicTypeSinging").toString();
-    if (value.isNull()) {
-        value = "singing;singers";
-    }
+    value = prefsManager.GetMusicTypeSinging();
     songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
 
-    value = MySettings.value("MusicTypePatter").toString();
-    if (value.isNull()) {
-        value = "patter;hoedown";
-    }
+    value = prefsManager.GetMusicTypePatter();
     songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
 
-    value = MySettings.value("MusicTypeExtras").toString();
-    if (value.isNull()) {
-        value = "extras;xtras";
-    }
+    value = prefsManager.GetMusicTypeExtras();
     songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
 
-    value = MySettings.value("MusicTypeCalled").toString();
-    if (value.isNull()) {
-        value = "vocal;vocals;called";
-    }
+    value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
     // used to store the file paths
@@ -323,58 +243,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kTempoCol,50);
 
     // ----------
-    const QString EXPERIMENTALPITCHTEMPO_KEY("experimentalPitchTempoViewEnabled");  // default is not enabled
-    QString pitchTempoViewEnabled = MySettings.value(EXPERIMENTALPITCHTEMPO_KEY).toString();
-    pitchAndTempoHidden = (pitchTempoViewEnabled != "true");  // if blank (not set), will be remembered as false
-
+    pitchAndTempoHidden = !prefsManager.GetexperimentalPitchTempoViewEnabled();
     updatePitchTempoView(); // update the actual view of these 2 columns in the songTable
 
     // ----------
-    const QString EXPERIMENTALCLOCKCOLORING_KEY("experimentalClockColoringEnabled");  // default is not enabled
-    QString clockColoringEnabled = MySettings.value(EXPERIMENTALCLOCKCOLORING_KEY).toString();
-    clockColoringHidden = (clockColoringEnabled != "true");      // if blank (not set), will be remembered as false
+    clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
     analogClock->setHidden(clockColoringHidden);
 
     // -----------
-    const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
-    QString autoStartChecked = MySettings.value(AUTOSTART_KEY).toString();
-
-    if (autoStartChecked.isNull()) {
-        // first time through, AUTOPLAY is UNCHECKED
-        autoStartChecked = "unchecked";
-        MySettings.setValue(AUTOSTART_KEY, "unchecked");
-    }
-
-    if (autoStartChecked == "checked") {
-        ui->actionAutostart_playback->setChecked(true);
-    }
-    else {
-        ui->actionAutostart_playback->setChecked(false);
-    }
+    ui->actionAutostart_playback->setChecked(prefsManager.Getautostartplayback());
 
     // -----------
 
-    restoreCheckBoxState("startplaybackoncountdowntimer", ui->checkBoxPlayOnEnd, false);
-    restoreCheckBoxState("startcountuptimeronplay", ui->checkBoxStartOnPlay, false);
+    ui->checkBoxPlayOnEnd->setChecked(prefsManager.Getstartplaybackoncountdowntimer());
+    ui->checkBoxStartOnPlay->setChecked(prefsManager.Getstartcountuptimeronplay());
 
     // -------
-    const QString FORCEMONO_KEY("forcemono");  // default is FALSE (use stereo)
-    QString forceMonoChecked = MySettings.value(FORCEMONO_KEY).toString();
-
-    if (forceMonoChecked.isNull()) {
-        // first time through, FORCE MONO is FALSE (stereo mode is the default)
-        forceMonoChecked = "false";  // FIX: needed?
-        MySettings.setValue(FORCEMONO_KEY, "false");
-    }
-
-    if (forceMonoChecked == "true") {
-//        ui->monoButton->setChecked(true);
-        on_monoButton_toggled(true);  // sets button and menu item
-    }
-    else {
-//        ui->monoButton->setChecked(false);
-        on_monoButton_toggled(false);  // sets button and menu item
-    }
+    on_monoButton_toggled(prefsManager.Getforcemono());
 
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
@@ -405,27 +290,21 @@ MainWindow::MainWindow(QWidget *parent) :
     // experimental timers tab is tab #1 (second tab)
     tabmap.insert(1, QPair<QWidget *,QString>(ui->tabWidget->widget(1), ui->tabWidget->tabText(1)));
 
+    bool timersEnabled = prefsManager.GetexperimentalTimersEnabled();
     // ----------
-    const QString EXPERIMENTALTIMERS_KEY("experimentalTimersTabEnabled");  // default is not enabled
-    QString timersEnabled = MySettings.value(EXPERIMENTALTIMERS_KEY).toString();
-
-    if (timersEnabled != "true") {
+    if (timersEnabled) {
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
     // ----------
-    const QString EXPERIMENTALCUESHEET_KEY("experimentalCuesheetTabEnabled");  // default is not enabled
-    QString cuesheetEnabled = MySettings.value(EXPERIMENTALCUESHEET_KEY).toString();
-
-    if (cuesheetEnabled != "true") {
-        ui->tabWidget->removeTab(timersEnabled == "true" ? 2 : 1);  // it's remembered, don't worry!
+    if (prefsManager.GetexperimentalCuesheetEnabled()) {
+        ui->tabWidget->removeTab(timersEnabled ? 2 : 1);  // it's remembered, don't worry!
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
     // -------------------------
-    value = MySettings.value("SongPreferencesInConfig").toString();
-    if (value == "true") {
+    if (prefsManager.GetSongPreferencesInConfig()) {
         saveSongPreferencesInConfig = true;
     }
     else {
@@ -594,15 +473,8 @@ void MainWindow::on_monoButton_toggled(bool checked)
     }
 
     // the Force Mono (Aahz Mode) setting is persistent across restarts of the application
-    QSettings MySettings; // Will be using application information for correct location of your settings
-    const QString FORCEMONO_KEY("forcemono");  // default is AUTOSTART ENABLED
-
-    if (ui->actionForce_Mono_Aahz_mode->isChecked()) {
-        MySettings.setValue(FORCEMONO_KEY, "true");
-    }
-    else {
-        MySettings.setValue(FORCEMONO_KEY, "false");
-    }
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setforcemono(ui->actionForce_Mono_Aahz_mode->isChecked());
 }
 
 // ----------------------------------------------------------------------
@@ -1120,13 +992,13 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
 //    qDebug() << "per second: " << analogClock->tipLengthAlarmMinutes << analogClock->breakLengthAlarmMinutes;
 
-    if (tipLengthTimerEnabledString=="true" && analogClock->tipLengthAlarm && theType == PATTER) {
+    if (tipLengthTimerEnabled && analogClock->tipLengthAlarm && theType == PATTER) {
         if (tipLengthAlarmAction == 0) {
             ui->warningLabel->setText("LONG TIP!");
         } else {
             // TODO: optionally play a reminder tone
         }
-    } else if (breakLengthTimerEnabledString=="true" && analogClock->breakLengthAlarm) {
+    } else if (breakLengthTimerEnabled && analogClock->breakLengthAlarm) {
         if (breakLengthAlarmAction == 0) {
             ui->warningLabel->setText("BREAK OVER");
         } else {
@@ -1506,15 +1378,9 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
     saveCurrentSongSettings();
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
-    const QString DEFAULT_DIR_KEY("default_dir");
-    QSettings MySettings; // Will be using application informations for correct location of your settings
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
-
-    QString startingDirectory = MySettings.value(DEFAULT_DIR_KEY).toString();
-    if (startingDirectory.isNull()) {
-        // first time through, start at HOME
-        startingDirectory = QDir::homePath();
-    }
+    QString startingDirectory = prefsManager.Getdefault_dir();
 
     QString MP3FileName =
         QFileDialog::getOpenFileName(this,
@@ -1527,7 +1393,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
     QDir CurrentDir;
-    MySettings.setValue(DEFAULT_DIR_KEY, CurrentDir.absoluteFilePath(MP3FileName));
+    prefsManager.Setdefault_dir(CurrentDir.absoluteFilePath(MP3FileName));
 
     ui->songTable->clearSelection();  // if loaded via menu, then clear previous selection (if present)
     ui->nextSongButton->setEnabled(false);  // and, next/previous song buttons are disabled
@@ -1850,64 +1716,22 @@ void MainWindow::on_actionPitch_Down_triggered()
 void MainWindow::on_actionAutostart_playback_triggered()
 {
     // the Autostart on Playback mode setting is persistent across restarts of the application
-    QSettings MySettings; // Will be using application information for correct location of your settings
-    const QString AUTOSTART_KEY("autostartplayback");  // default is AUTOSTART ENABLED
-
-    if (ui->actionAutostart_playback->isChecked()) {
-        MySettings.setValue(AUTOSTART_KEY, "checked");
-    }
-    else {
-        MySettings.setValue(AUTOSTART_KEY, "unchecked");
-    }
-}
-
-// --------------------------------------------------------
-void MainWindow::saveCheckBoxState(const char *key_string, QCheckBox *checkBox)
-{
-    const QString key(key_string);
-    QSettings MySettings;
-    MySettings.setValue(key, checkBox->isChecked() ? "checked" : "unchecked");
-}
-
-void MainWindow::restoreCheckBoxState(const char *key_string, QCheckBox *checkBox, bool checkedDefault)
-{
-    QSettings MySettings;
-    const QString key(key_string);
-    QString value = MySettings.value(key).toString();
-    if (value.isNull()) {
-        value = checkedDefault ? "checked" : "unchecked";
-        MySettings.setValue(key, value);
-    }
-    checkBox->setChecked(value == "checked");
+    PreferencesManager prefsManager;
+    prefsManager.Setautostartplayback(ui->actionAutostart_playback->isChecked());
 }
 
 void MainWindow::on_checkBoxPlayOnEnd_clicked()
 {
-    saveCheckBoxState("startplaybackoncountdowntimer", ui->checkBoxPlayOnEnd);
+    PreferencesManager prefsManager;
+    prefsManager.Setstartplaybackoncountdowntimer(ui->checkBoxPlayOnEnd->isChecked());
 }
 
 void MainWindow::on_checkBoxStartOnPlay_clicked()
 {
-    saveCheckBoxState("startcountuptimeronplay", ui->checkBoxStartOnPlay);
+    PreferencesManager prefsManager;
+    prefsManager.Setstartcountuptimeronplay(ui->checkBoxStartOnPlay->isChecked());
 }
 
-
-static bool setValueAndCheckPreviousValue(QSettings &MySettings, const char *key, QString &value)
-{
-    if (MySettings.value(key).toString() != value) {
-        MySettings.setValue(key, value);
-        return true;
-    }
-    return false;
-}
-static bool  setValueAndCheckPreviousValue(QSettings &MySettings, const char *key, int value)
-{
-    if (MySettings.value(key).toInt() != value) {
-        MySettings.setValue(key, value);
-        return true;
-    }
-    return false;
-}
 
 // --------------------------------------------------------
 void MainWindow::on_actionPreferences_triggered()
@@ -1915,13 +1739,15 @@ void MainWindow::on_actionPreferences_triggered()
     inPreferencesDialog = true;
     trapKeypresses = false;
     on_stopButton_clicked();  // stop music, if it was playing...
+    PreferencesManager prefsManager;
 
 //    PreferencesDialog *dialog = new PreferencesDialog;
     prefDialog = new PreferencesDialog;
+    prefsManager.populatePreferencesDialog(prefDialog);
 
     // initial colors going in
-    prefDialog->setColorSwatches(patterColorString, singingColorString, calledColorString, extrasColorString);
-    prefDialog->setDefaultColors(defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor);
+//    prefDialog->setColorSwatches(patterColorString, singingColorString, calledColorString, extrasColorString);
+//    prefDialog->setDefaultColors(defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor);
 
     // modal dialog
     int dialogCode = prefDialog->exec();
@@ -1930,41 +1756,24 @@ void MainWindow::on_actionPreferences_triggered()
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
         // OK clicked
-        QSettings MySettings;
-
         // Save the new value for musicPath --------
-        MySettings.setValue("musicPath", prefDialog->musicPath); // fish out the new dir from the Preferences dialog, and save it
+        prefsManager.extractValuesFromPreferencesDialog(prefDialog);
 
-        bool needToFilterMusic = false;
         if (prefDialog->musicPath != musicRootPath) { // path has changed!
             musicRootPath = prefDialog->musicPath;
             findMusic();
-            needToFilterMusic = true;
         }
 
         // Save the new value for music type colors --------
-        patterColorString = prefDialog->patterColor.name();
-        MySettings.setValue("patterColor", patterColorString); // fish out the new colors from the Preferences dialog, and save them
-
-        // -----
-        singingColorString = prefDialog->singingColor.name();
-        MySettings.setValue("singingColor", singingColorString);
-
-        // -----
-        calledColorString = prefDialog->calledColor.name();
-        MySettings.setValue("calledColor", calledColorString);
-
-        // -----
-        extrasColorString = prefDialog->extrasColor.name();
-        MySettings.setValue("extrasColor", extrasColorString);
-
-        filterMusic();
+        patterColorString = prefsManager.GetpatterColor();
+        singingColorString = prefsManager.GetsingingColor();
+        calledColorString = prefsManager.GetcalledColor();
+        extrasColorString = prefsManager.GetextrasColor();
+        
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalTimersTabEnabled --------
-        QString tabsetting;
-        if (prefDialog->experimentalTimersTabEnabled == "true") {
-            tabsetting = "true";
+        if (prefsManager.GetexperimentalTimersEnabled()) {
             if (!showTimersTab) {
                 // iff the tab was NOT showing, make it show up now
                 ui->tabWidget->insertTab(1, tabmap.value(1).first, tabmap.value(1).second);  // bring it back now!
@@ -1972,27 +1781,16 @@ void MainWindow::on_actionPreferences_triggered()
             showTimersTab = true;
         }
         else {
-            tabsetting = "false";
             if (showTimersTab) {
                 // iff timers tab was showing, remove it
                 ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
             }
             showTimersTab = false;
         }
-        MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalPitchTempoViewEnabled --------
-        QString viewsetting;
-        if (prefDialog->experimentalPitchTempoViewEnabled == "true") {
-            viewsetting = "true";
-            pitchAndTempoHidden = false;
-        }
-        else {
-            viewsetting = "false";
-            pitchAndTempoHidden = true;
-        }
-        MySettings.setValue("experimentalPitchTempoViewEnabled", viewsetting); // save the new experimental tab setting
+        pitchAndTempoHidden = !prefsManager.GetexperimentalPitchTempoViewEnabled();
         updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
 
         // -----------------------------------------------------------------------
@@ -2001,22 +1799,13 @@ void MainWindow::on_actionPreferences_triggered()
 //                    prefDialog->tipLength << prefDialog->tipAlarmAction <<
 //                    prefDialog->breakLengthTimerEnabledString << prefDialog->breakLength <<
 //                    prefDialog->breakAlarmAction;
+        tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();  // save new settings in MainWindow, too
+        tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
+        tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
 
-        MySettings.setValue("tipLengthTimerEnabled", prefDialog->tipLengthTimerEnabledString);
-        MySettings.setValue("tipLengthTimerLength", QString::number(prefDialog->tipLength));  // int seconds
-        MySettings.setValue("tipLengthAlarmAction", QString::number(prefDialog->tipAlarmAction));  // int
-
-        MySettings.setValue("breakLengthTimerEnabled", prefDialog->breakLengthTimerEnabledString);
-        MySettings.setValue("breakLengthTimerLength", QString::number(prefDialog->breakLength));  // int seconds
-        MySettings.setValue("breakLengthAlarmAction", QString::number(prefDialog->breakAlarmAction));  // int
-
-        tipLengthTimerEnabledString = prefDialog->tipLengthTimerEnabledString;  // save new settings in MainWindow, too
-        tipLengthTimerLength = prefDialog->tipLength;
-        tipLengthAlarmAction = prefDialog->tipAlarmAction;
-
-        breakLengthTimerEnabledString = prefDialog->breakLengthTimerEnabledString;
-        breakLengthTimerLength = prefDialog->breakLength;
-        breakLengthAlarmAction = prefDialog->breakAlarmAction;
+        breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
+        breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
+        breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 
         // and tell the clock, too.
         analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
@@ -2024,60 +1813,28 @@ void MainWindow::on_actionPreferences_triggered()
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalClockColoringEnabled --------
-        QString coloringsetting;
-        if (prefDialog->experimentalClockColoringEnabled == "true") {
-            coloringsetting = "true";
-            clockColoringHidden = false;
-        }
-        else {
-            coloringsetting = "false";
-            clockColoringHidden = true;
-        }
-        MySettings.setValue("experimentalClockColoringEnabled", coloringsetting); // save the new experimental tab setting
-
+        clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
 
-
-        saveSongPreferencesInConfig = prefDialog->GetSaveSongPreferencesInMainConfig();
-        MySettings.setValue("SongPreferencesInConfig",
-                            saveSongPreferencesInConfig ? "true" : "false");
-
+        saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
 
         {
             QString value;
-
-            value = prefDialog->GetMusicTypeSinging();
-            if (setValueAndCheckPreviousValue(MySettings, "MusicTypeSinging", value)) {
-                needToFilterMusic = true;
-            }
+            value = prefsManager.GetMusicTypeSinging();
             songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
 
-            value = prefDialog->GetMusicTypePatter();
-            if (setValueAndCheckPreviousValue(MySettings, "MusicTypePatter", value)) {
-                needToFilterMusic = true;
-            }
+            value = prefsManager.GetMusicTypePatter();
             songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
 
-            value = prefDialog->GetMusicTypeExtras();
-            if (setValueAndCheckPreviousValue(MySettings, "MusicTypeExtras", value)) {
-                needToFilterMusic = true;
-            }
+            value = prefsManager.GetMusicTypeExtras();
             songTypeNamesForExtras = value.toLower().split(";", QString::KeepEmptyParts);
 
-            value = prefDialog->GetMusicTypeCalled();
-            if (setValueAndCheckPreviousValue(MySettings, "MusicTypeCalled", value)) {
-                needToFilterMusic = true;
-            }
+            value = prefsManager.GetMusicTypeCalled();
             songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
         }
-        songFilenameFormat = prefDialog->GetSongFilenameFormat();
-        if (setValueAndCheckPreviousValue(MySettings, "SongFilenameFormat", (int)(songFilenameFormat))) {
-            needToFilterMusic = true;
-        }
+        songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-        if (needToFilterMusic) {
-            filterMusic();
-        }
+        filterMusic();
     }
 
     delete prefDialog;
@@ -2099,14 +1856,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
-    QSettings MySettings; // Will be using application informations for correct location of your settings
-    QString musicRootPath = MySettings.value("musicPath").toString();
-
-    QString startingPlaylistDirectory = MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
-    if (startingPlaylistDirectory.isNull()) {
-        // first time through, start at HOME
-        startingPlaylistDirectory = QDir::homePath();
-    }
+    PreferencesManager prefsManager;
+    QString musicRootPath = prefsManager.GetmusicPath();
+    QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
     trapKeypresses = false;
     QString PlaylistFileName =
         QFileDialog::getOpenFileName(this,
@@ -2120,7 +1872,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
     QDir CurrentDir;
-    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
+    prefsManager.Setdefault_playlist_dir(CurrentDir.absoluteFilePath(PlaylistFileName));
 
     // --------
     QString firstBadSongLine = "";
