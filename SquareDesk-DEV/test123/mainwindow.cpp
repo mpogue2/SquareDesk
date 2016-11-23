@@ -7,6 +7,7 @@
 #include "QMapIterator"
 #include "QThread"
 #include "QProcess"
+#include "QScrollBar"
 #include "QDesktopWidget"
 #include "analogclock.h"
 
@@ -413,23 +414,29 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // save info about the experimental timers tab
     // experimental timers tab is tab #1 (second tab)
+    // experimental lyrics tab is tab #2 (third tab)
     tabmap.insert(1, QPair<QWidget *,QString>(ui->tabWidget->widget(1), ui->tabWidget->tabText(1)));
+    tabmap.insert(2, QPair<QWidget *,QString>(ui->tabWidget->widget(2), ui->tabWidget->tabText(2)));
 
     // ----------
     const QString EXPERIMENTALTIMERS_KEY("experimentalTimersTabEnabled");  // default is not enabled
     QString timersEnabled = MySettings.value(EXPERIMENTALTIMERS_KEY).toString();
 
+    showTimersTab = true;
     if (timersEnabled != "true") {
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
+        showTimersTab = false;
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
     // ----------
-    const QString EXPERIMENTALCUESHEET_KEY("experimentalCuesheetTabEnabled");  // default is not enabled
-    QString cuesheetEnabled = MySettings.value(EXPERIMENTALCUESHEET_KEY).toString();
+    const QString EXPERIMENTALLYRICS_KEY("experimentalLyricsTabEnabled");  // default is not enabled
+    QString lyricsEnabled = MySettings.value(EXPERIMENTALLYRICS_KEY).toString();
 
-    if (cuesheetEnabled != "true") {
-        ui->tabWidget->removeTab(timersEnabled == "true" ? 2 : 1);  // it's remembered, don't worry!
+    showLyricsTab = true;
+    if (lyricsEnabled != "true") {
+        ui->tabWidget->removeTab(showTimersTab ? 2 : 1);  // it's remembered, don't worry!
+        showLyricsTab = false;
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
@@ -484,6 +491,8 @@ MainWindow::MainWindow(QWidget *parent) :
     } else {
         initialBPMTarget = value.toInt();
     }
+
+    ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // clear out the existing lyrics
 
 }
 
@@ -986,6 +995,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
     if (songLoaded) {  // FIX: this needs to pay attention to the bool
         // FIX: this code doesn't need to be executed so many times.
+        // FIX: we initialize it, only to force it a few lines down?
         InitializeSeekBar(ui->seekBar);
         InitializeSeekBar(ui->seekBarCuesheet);
 
@@ -995,6 +1005,18 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if (forceSlider) {
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
+
+            int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
+            int maxScroll = ui->textBrowserCueSheet->verticalScrollBar()->maximum();
+//            int minSeekbar = ui->seekBar->minimum();
+            int maxSeekbar = ui->seekBar->maximum();
+            float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
+            float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
+#ifdef SCROLLLYRICS
+            ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
+#else
+            Q_UNUSED(targetScroll)
+#endif
         }
         int fileLen_i = (int)cBass.FileLength;
 
@@ -1400,6 +1422,8 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
 
 void MainWindow::loadCuesheet(QString MP3FileName)
 {
+    ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // always clear out the existing lyrics on load
+
     int extensionPos = MP3FileName.lastIndexOf('.');
     QString cuesheetFilenameBase(MP3FileName);
     cuesheetFilenameBase.truncate(extensionPos + 1);
@@ -1408,10 +1432,12 @@ void MainWindow::loadCuesheet(QString MP3FileName)
     for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
         QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
         if (QFile::exists(cuesheetFilename)) {
-            QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
+            QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
             ui->textBrowserCueSheet->setSource(cuesheetUrl);
             break;
         }
+        // TODO: also look in <music directory>/lyrics
+        // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
     }
 
 }
@@ -2031,6 +2057,28 @@ void MainWindow::on_actionPreferences_triggered()
             showTimersTab = false;
         }
         MySettings.setValue("experimentalTimersTabEnabled", tabsetting); // save the new experimental tab setting
+
+        // ----------------------------------------------------------------
+        // Save the new value for experimentalLyricsTabEnabled --------
+        QString tabsetting2;
+        if (prefDialog->experimentalLyricsTabEnabled == "true") {
+            tabsetting2 = "true";
+            if (!showLyricsTab) {
+                // iff the tab was NOT showing, make it show up now
+                ui->tabWidget->insertTab((showTimersTab ? 2 : 1),  // if Timers tab is already showing, this comes after it
+                                         tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
+            }
+            showLyricsTab = true;
+        }
+        else {
+            tabsetting2 = "false";
+            if (showLyricsTab) {
+                // iff lyrics tab was showing, remove it
+                ui->tabWidget->removeTab(showTimersTab ? 2 : 1);  // hidden, but we can bring it back later
+            }
+            showLyricsTab = false;
+        }
+        MySettings.setValue("experimentalLyricsTabEnabled", tabsetting2); // save the new experimental tab setting
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalPitchTempoViewEnabled --------

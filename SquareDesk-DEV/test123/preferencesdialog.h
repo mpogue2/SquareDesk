@@ -25,6 +25,7 @@ public:
 
     QString musicPath;
     QString experimentalTimersTabEnabled;
+    QString experimentalLyricsTabEnabled;
     QString experimentalPitchTempoViewEnabled;
     QString experimentalClockColoringEnabled;
 
@@ -60,6 +61,7 @@ public:
 private slots:
     void on_chooseMusicPathButton_clicked();
     void on_EnableTimersTabCheckbox_toggled(bool checked);
+    void on_EnableLyricsTabCheckbox_toggled(bool checked);
     void on_EnablePitchTempoViewCheckbox_toggled(bool checked);
     void on_EnableClockColoring_toggled(bool checked);
 

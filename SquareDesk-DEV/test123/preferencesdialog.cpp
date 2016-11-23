@@ -24,6 +24,16 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         ui->EnableTimersTabCheckbox->setChecked(false);
     }
 
+    // Lyrics tab (experimental) preference -------
+    experimentalLyricsTabEnabled = MySettings.value("experimentalLyricsTabEnabled").toString();
+//    qDebug() << "preferencesDialog, expLyrics = " << experimentalLyricsTabEnabled;  // FIX
+    if (experimentalLyricsTabEnabled == "true") {
+        ui->EnableLyricsTabCheckbox->setChecked(true);
+    }
+    else {
+        ui->EnableLyricsTabCheckbox->setChecked(false);
+    }
+
     // Pitch/Tempo View (experimental) preference -------
     experimentalPitchTempoViewEnabled = MySettings.value("experimentalPitchTempoViewEnabled").toString();
 //    qDebug() << "preferencesDialog, expTimers = " << experimentalPitchTempoViewEnabled;  // FIX
@@ -212,6 +222,7 @@ void PreferencesDialog::setFontSizes()
 
     ui->musicDirHelpLabel->setFont(font);
     ui->timersHelpLabel->setFont(font);
+    ui->lyricsHelpLabel->setFont(font);
     ui->pitchTempoHelpLabel->setFont(font);
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);
@@ -247,6 +258,18 @@ void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
     }
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
+
+void PreferencesDialog::on_EnableLyricsTabCheckbox_toggled(bool checked)
+{
+    if (checked) {
+        experimentalLyricsTabEnabled = "true";
+    }
+    else {
+        experimentalLyricsTabEnabled = "false";
+    }
+    // NOTE: saving of Preferences is done at the dialog caller site, not here.
+}
+
 
 void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
 {
