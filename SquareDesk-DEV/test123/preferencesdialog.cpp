@@ -2,12 +2,34 @@
 #include "ui_preferencesdialog.h"
 #include "QColorDialog"
 
+static void  SetTimerPulldownValuesToFirstDigit(QComboBox *comboBox)
+{
+    for (int i = 0; i < comboBox->count(); ++i)
+    {
+        QString theText = comboBox->itemText(i);
+        QStringList sl1 = theText.split(" ");
+        QString mText = sl1[0];
+        int length = mText.toInt();
+        comboBox->setItemData(i, QVariant(length));
+    }
+}
+
+static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
+{
+    for (int i = 0; i < comboBox->count(); ++i)
+    {
+        comboBox->setItemData(i, QVariant(i + 1));
+    }
+}
+
+
+
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
-
+#if 0
 //    qDebug() << "PreferencesDialog::PreferencesDialog()";
     // musicPath preference -------
     QSettings MySettings;
@@ -80,20 +102,16 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     if (!MySettings.value("SongFilenameFormat").isNull()) {
         songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
     }
-
-    ui->comboBoxMusicFormat->addItem("Label - Song name (e.g. 'RB 123 - Chicken Plucker')",
-                                     QVariant(SongFilenameLabelDashName));
-    ui->comboBoxMusicFormat->addItem("Song name - Label (e.g. 'Chicken Plucker - RB 123')",
-                                     QVariant(SongFilenameNameDashLabel));
-    ui->comboBoxMusicFormat->addItem("Best Guess (or a mixture of both formats)",
-                                     QVariant(SongFilenameBestGuess));
+#endif
+    
+#if 0
     for (int i = 0; i < ui->comboBoxMusicFormat->maxCount(); ++i) {
         if (songFilenameFormat == ui->comboBoxMusicFormat->itemData(i).toInt()) {
             ui->comboBoxMusicFormat->setCurrentIndex(i);
             break;
         }
     }
-
+#endif
     setFontSizes();
 //    setColorSwatches("#ff0000","#00ff00","#0000ff","#ffffff");  // DO NOT DO THIS HERE. PARENT MUST DO THIS.
 
@@ -104,7 +122,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     // breakLengthTimerEnabled
     // breakLengthTimerLength
     // breakLengthAlarmAction
-
+#if 0
     ui->longTipCheckbox->setChecked(MySettings.value("tipLengthTimerEnabled") == "true");
     tipLengthTimerEnabledString = MySettings.value("tipLengthTimerEnabled").toString();
 
@@ -126,7 +144,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     unsigned int bb2 = MySettings.value("breakLengthAlarmAction").toInt();
     ui->afterBreakAction->setCurrentIndex(bb2);
     breakAlarmAction = bb2;
+#endif
+    
+    SetTimerPulldownValuesToFirstDigit(ui->breakLength);
+    SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
+    SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);    
 }
+
 
 PreferencesDialog::~PreferencesDialog()
 {
@@ -212,45 +236,7 @@ void PreferencesDialog::on_chooseMusicPathButton_clicked()
     // NOTE: saving of Preferences is done at the dialog caller site, not here.
 }
 
-void PreferencesDialog::on_EnableTimersTabCheckbox_toggled(bool checked)
-{
-    if (checked) {
-        experimentalTimersTabEnabled = "true";
-    }
-    else {
-        experimentalTimersTabEnabled = "false";
-    }
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
-}
-
-void PreferencesDialog::on_EnablePitchTempoViewCheckbox_toggled(bool checked)
-{
-    if (checked) {
-        experimentalPitchTempoViewEnabled = "true";
-    }
-    else {
-        experimentalPitchTempoViewEnabled = "false";
-    }
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
-}
-
-void PreferencesDialog::on_EnableClockColoring_toggled(bool checked)
-{
-    if (checked) {
-        experimentalClockColoringEnabled = "true";
-    }
-    else {
-        experimentalClockColoringEnabled = "false";
-    }
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
-}
-
 // ------------
-
-bool PreferencesDialog::GetSaveSongPreferencesInMainConfig()
-{
-    return ui->checkBoxSaveSongPreferencesInConfig->isChecked();
-}
 
 void PreferencesDialog::on_calledColorButton_clicked()
 {
@@ -323,60 +309,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
     }
 }
 
-void PreferencesDialog::on_breakTimerCheckbox_toggled(bool checked)
-{
-    if (checked) {
-        breakLengthTimerEnabledString = "true";
-    }
-    else {
-        breakLengthTimerEnabledString = "false";
-    }
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
-//    qDebug() << "Pref dialog, break enabled now " << breakLengthTimerEnabledString;
-}
 
-void PreferencesDialog::on_longTipCheckbox_toggled(bool checked)
-{
-    if (checked) {
-        tipLengthTimerEnabledString = "true";
-    }
-    else {
-        tipLengthTimerEnabledString = "false";
-    }
-//    qDebug() << "Pref dialog, longTip enabled now " << tipLengthTimerEnabledString;
-    // NOTE: saving of Preferences is done at the dialog caller site, not here.
-}
-
-void PreferencesDialog::on_breakLength_currentIndexChanged(int index)
-{
-    Q_UNUSED(index)
-    QString theText = ui->breakLength->currentText();
-    QStringList sl1 = theText.split(" ");
-    QString mText = sl1[0];
-    breakLength = mText.toInt();
-}
-
-void PreferencesDialog::on_longTipLength_currentIndexChanged(int index)
-{
-    Q_UNUSED(index)
-//    qDebug() << "longTipLength:" << index;
-    QString theText = ui->longTipLength->currentText();
-    QStringList sl1 = theText.split(" ");
-    QString mText = sl1[0];
-    tipLength = mText.toInt();
-}
-
-void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
-{
-//    qDebug() << "afterBreakAction:" << index;
-    breakAlarmAction = index;  // 0 = message, 1 = tone
-}
-
-void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
-{
-//    qDebug() << "afterLongTipAction:" << index;
-    tipAlarmAction = index;  // 0 = message, 1 = tone, 2 = start current, 3 = start next
-}
 
 /* See the large comment at the top of prefs_options.h */
 
@@ -391,8 +324,11 @@ void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
     void PreferencesDialog::Set##name(bool value) { ui->control->setChecked(value); }
 
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) \
-    int PreferencesDialog::Get##name() { return ui->control->currentIndex(); } \
-    void PreferencesDialog::Set##name(int value) { ui->control->setCurrentIndex(value); }
+    int PreferencesDialog::Get##name() { return ui->control->itemData(ui->control->currentIndex()).toInt(); } \
+    void PreferencesDialog::Set##name(int value) \
+    { for (int i = 0; i < ui->control->count(); ++i) { \
+            if (ui->control->itemData(i).toInt() == value) { ui->control->setCurrentIndex(value); break; } \
+        } }
 #include "prefs_options.h"
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
