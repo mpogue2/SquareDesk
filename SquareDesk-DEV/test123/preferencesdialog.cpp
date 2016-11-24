@@ -103,7 +103,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
         songFilenameFormat = (SongFilenameMatchingType)(MySettings.value("SongFilenameFormat").toInt());
     }
 #endif
-    
+
 #if 0
     for (int i = 0; i < ui->comboBoxMusicFormat->maxCount(); ++i) {
         if (songFilenameFormat == ui->comboBoxMusicFormat->itemData(i).toInt()) {
@@ -145,10 +145,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->afterBreakAction->setCurrentIndex(bb2);
     breakAlarmAction = bb2;
 #endif
-    
+
     SetTimerPulldownValuesToFirstDigit(ui->breakLength);
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
-    SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);    
+    SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
+
+    // Initialize the color chooser buttons
+    setColorSwatches(GetpatterColorString(), GetsingingColorString(), GetcalledColorString(), GetextrasColorString());
 }
 
 
@@ -160,6 +163,8 @@ PreferencesDialog::~PreferencesDialog()
 
 void PreferencesDialog::setColorSwatches(QString patter, QString singing, QString called, QString extras) {
     const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
+
+    qDebug() << "setColorSwatches: " << patter << singing << called << extras;
 
     QColor patterColor1(patter);
     patterColor = patterColor1;
@@ -174,10 +179,11 @@ void PreferencesDialog::setColorSwatches(QString patter, QString singing, QStrin
     ui->singingColorButton->setFlat(true);
 
     QColor calledColor1(called);
-    calledColor = calledColor1;
+//    calledColorString = calledColor1.name();
     ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColor1.name()).arg(calledColor1.name()));
     ui->calledColorButton->setAutoFillBackground(true);
     ui->calledColorButton->setFlat(true);
+    ui->calledColorButton->setText(called);  // save it in the text of the button
 
     QColor extrasColor1(extras);
     extrasColor = extrasColor1;
@@ -240,36 +246,46 @@ void PreferencesDialog::on_chooseMusicPathButton_clicked()
 
 void PreferencesDialog::on_calledColorButton_clicked()
 {
-    QColor chosenColor = QColorDialog::getColor(calledColor, this); //return the color chosen by user
+    QString calledColorString = ui->calledColorButton->text();
+//    qDebug() << "calledColor going in (string): " << calledColorString;
+    QColor chosenColor = QColorDialog::getColor(QColor(calledColorString), this); //return the color chosen by user
     if (chosenColor.isValid()) {
-        calledColor = chosenColor;
+        calledColorString = chosenColor.name();
 
-        if (calledColor.name() == "#ffffff") {
-            calledColor = defaultCalledColor;  // a way to reset the colors individually
+        if (chosenColor == "#ffffff") {
+            calledColorString = defaultCalledColor;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColor.name()).arg(calledColor.name()));
+        ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColorString).arg(calledColorString));
         ui->calledColorButton->setAutoFillBackground(true);
         ui->calledColorButton->setFlat(true);
+        ui->calledColorButton->setText(calledColorString);  // remember it in the control's text
     }
+
+//    qDebug() << "on_calledColorButton_clicked(): updated called color (string and button text) = " << calledColorString;
 }
 
 void PreferencesDialog::on_extrasColorButton_clicked()
 {
-    QColor chosenColor = QColorDialog::getColor(extrasColor, this); //return the color chosen by user
+    QString extrasColorString = ui->extrasColorButton->text();
+//    qDebug() << "extrasColor going in (string): " << extrasColorString;
+    QColor chosenColor = QColorDialog::getColor(QColor(extrasColorString), this); //return the color chosen by user
     if (chosenColor.isValid()) {
-        extrasColor = chosenColor;
+        extrasColorString = chosenColor.name();
 
-        if (extrasColor.name() == "#ffffff") {
-            extrasColor = defaultExtrasColor;  // a way to reset the colors individually
+        if (chosenColor == "#ffffff") {
+            extrasColorString = defaultExtrasColor;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(extrasColor.name()).arg(extrasColor.name()));
+        ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(extrasColorString).arg(extrasColorString));
         ui->extrasColorButton->setAutoFillBackground(true);
         ui->extrasColorButton->setFlat(true);
+        ui->extrasColorButton->setText(extrasColorString);  // remember it in the control's text
     }
+
+//    qDebug() << "on_extrasColorButton_clicked(): updated extras color (string and button text) = " << extrasColorString;
 }
 
 // TODO: I wonder if this was my problem...I was creating the preferences dialog with new() and exec()...FIX THIS?
@@ -277,47 +293,69 @@ void PreferencesDialog::on_extrasColorButton_clicked()
 
 void PreferencesDialog::on_patterColorButton_clicked()
 {
-    QColor chosenColor = QColorDialog::getColor(patterColor, this); //return the color chosen by user
+    QString patterColorString = ui->patterColorButton->text();
+//    qDebug() << "patterColor going in (string): " << patterColorString;
+    QColor chosenColor = QColorDialog::getColor(QColor(patterColorString), this); //return the color chosen by user
     if (chosenColor.isValid()) {
-        patterColor = chosenColor;
+        patterColorString = chosenColor.name();
 
-        if (patterColor.name() == "#ffffff") {
-            patterColor = defaultPatterColor;  // a way to reset the colors individually
+        if (chosenColor == "#ffffff") {
+            patterColorString = defaultPatterColor;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(patterColor.name()).arg(patterColor.name()));
+        ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(patterColorString).arg(patterColorString));
         ui->patterColorButton->setAutoFillBackground(true);
         ui->patterColorButton->setFlat(true);
+        ui->patterColorButton->setText(patterColorString);  // remember it in the control's text
     }
+
+//    qDebug() << "on_patterColorButton_clicked(): updated patter color (string and button text) = " << patterColorString;
 }
 
 void PreferencesDialog::on_singingColorButton_clicked()
 {
-    QColor chosenColor = QColorDialog::getColor(singingColor, this); //return the color chosen by user
+    QString singingColorString = ui->singingColorButton->text();
+//    qDebug() << "singingColor going in (string): " << singingColorString;
+    QColor chosenColor = QColorDialog::getColor(QColor(singingColorString), this); //return the color chosen by user
     if (chosenColor.isValid()) {
-        singingColor = chosenColor;
+        singingColorString = chosenColor.name();
 
-        if (singingColor.name() == "#ffffff") {
-            singingColor = defaultSingingColor;  // a way to reset the colors individually
+        if (chosenColor == "#ffffff") {
+            singingColorString = defaultSingingColor;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
-        ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(singingColor.name()).arg(singingColor.name()));
+        ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(singingColorString).arg(singingColorString));
         ui->singingColorButton->setAutoFillBackground(true);
         ui->singingColorButton->setFlat(true);
+        ui->singingColorButton->setText(singingColorString);  // remember it in the control's text
     }
-}
 
+//    qDebug() << "on_singingColorButton_clicked(): updated singing color (string and button text) = " << singingColorString;
+}
 
 
 /* See the large comment at the top of prefs_options.h */
 
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name,default)
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name,default)
+
 #define CONFIG_ATTRIBUTE_STRING(control, name, default)                 \
     QString PreferencesDialog::Get##name() { return ui->control->text(); } \
     void PreferencesDialog::Set##name(QString value) { ui->control->setText(value); }
+
+#define CONFIG_ATTRIBUTE_COLOR(control, name, default)                 \
+    QString PreferencesDialog::Get##name() { qDebug() << "COLOR PD:Get" << #name << ",returning:" << ui->control->text();  return ui->control->text(); } \
+    void PreferencesDialog::Set##name(QString value) \
+    { \
+       qDebug() << "COLOR PreferencesDialog:Set" << #name << #control << value; \
+       const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }"); \
+       ui->control->setStyleSheet(COLOR_STYLE.arg(value).arg(value)); \
+       ui->control->setAutoFillBackground(true); \
+       ui->control->setFlat(true); \
+       ui->control->setText(value); \
+    }
 
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) \
     bool PreferencesDialog::Get##name() { return ui->control->isChecked(); } \
@@ -333,5 +371,6 @@ void PreferencesDialog::on_singingColorButton_clicked()
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
 #undef CONFIG_ATTRIBUTE_COMBO
+#undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS

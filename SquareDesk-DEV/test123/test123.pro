@@ -34,7 +34,9 @@ HEADERS  += mainwindow.h \
     tablenumberitem.h \
     levelmeter.h \
     analogclock.h \
-    common_enums.h
+    common_enums.h \
+    prefs_options.h \
+    prefsmanager.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui

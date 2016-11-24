@@ -27,10 +27,11 @@
 
 
 CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/music")
-CONFIG_ATTRIBUTE_STRING(patterColorButton, patterColor, defaultPatterColor)
-CONFIG_ATTRIBUTE_STRING(singingColorButton, singingColor, defaultSingingColor)
-CONFIG_ATTRIBUTE_STRING(calledColorButton, calledColor, defaultCalledColor)
-CONFIG_ATTRIBUTE_STRING(extrasColorButton, extrasColor, defaultExtrasColor)
+
+CONFIG_ATTRIBUTE_COLOR(patterColorButton,  patterColorString,  defaultPatterColor)
+CONFIG_ATTRIBUTE_COLOR(singingColorButton, singingColorString, defaultSingingColor)
+CONFIG_ATTRIBUTE_COLOR(calledColorButton,  calledColorString,  defaultCalledColor)
+CONFIG_ATTRIBUTE_COLOR(extrasColorButton,  extrasColorString,  defaultExtrasColor)
 
 CONFIG_ATTRIBUTE_BOOLEAN(longTipCheckbox,tipLengthTimerEnabled, false)
 CONFIG_ATTRIBUTE_COMBO(longTipLength,tipLengthTimerLength, 7)

@@ -171,17 +171,21 @@ MainWindow::MainWindow(QWidget *parent) :
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
+    qDebug() << "MainWindow::MainWindow() before prefsManager";
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    qDebug() << "MainWindow::MainWindow() after prefsManager";
 
 //    qDebug() << "QSettings is in: " << MySettings.fileName();
 
     musicRootPath = prefsManager.GetmusicPath();
 
     // set initial colors for text in songTable, also used for shading the clock
-    patterColorString = prefsManager.GetpatterColor();
-    singingColorString = prefsManager.GetsingingColor();
-    calledColorString = prefsManager.GetcalledColor();
-    extrasColorString = prefsManager.GetextrasColor();
+    patterColorString = prefsManager.GetpatterColorString();
+    singingColorString = prefsManager.GetsingingColorString();
+    calledColorString = prefsManager.GetcalledColorString();
+    extrasColorString = prefsManager.GetextrasColorString();
+
+    qDebug() << "MainWindow::MainWindow() colors:" << patterColorString << singingColorString << calledColorString << extrasColorString;
 
     // Tell the clock what colors to use for session segments
     analogClock->setColorForType(PATTER, QColor(patterColorString));
@@ -1759,17 +1763,24 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
 
-        if (prefDialog->musicPath != musicRootPath) { // path has changed!
-            musicRootPath = prefDialog->musicPath;
-            findMusic();
-        }
+        qDebug() << "------------------------";
+
+//        if (prefDialog->musicPath != musicRootPath) { // path has changed!
+//            musicRootPath = prefDialog->musicPath;
+//            findMusic();
+//        }
+
+        musicRootPath = prefsManager.GetmusicPath();
+        qDebug() << "NEW: " << musicRootPath;
+        findMusic(); // always refresh the songTable after the Prefs dialog returns with OK
 
         // Save the new value for music type colors --------
-        patterColorString = prefsManager.GetpatterColor();
-        singingColorString = prefsManager.GetsingingColor();
-        calledColorString = prefsManager.GetcalledColor();
-        extrasColorString = prefsManager.GetextrasColor();
-        
+        patterColorString = prefsManager.GetpatterColorString();
+        singingColorString = prefsManager.GetsingingColorString();
+        calledColorString = prefsManager.GetcalledColorString();
+        extrasColorString = prefsManager.GetextrasColorString();
+
+        qDebug() << "NEW: " << patterColorString << singingColorString << calledColorString << extrasColorString;
 
         // ----------------------------------------------------------------
         // Save the new value for experimentalTimersTabEnabled --------
