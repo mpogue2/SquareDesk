@@ -37,7 +37,8 @@ HEADERS  += mainwindow.h \
     common_enums.h \
     prefs_options.h \
     prefsmanager.h \
-    default_colors.h
+    default_colors.h \
+    macUtils.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui
