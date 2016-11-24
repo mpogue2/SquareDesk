@@ -1429,6 +1429,7 @@ void MainWindow::loadCuesheet(QString MP3FileName)
     cuesheetFilenameBase.truncate(extensionPos + 1);
     const char *extensions[] = { "htm", "html" };
 
+    // FIX: comparison should be case insensitive (I have lots of files that differ only in case. They came that way.
     for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
         QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
         if (QFile::exists(cuesheetFilename)) {
