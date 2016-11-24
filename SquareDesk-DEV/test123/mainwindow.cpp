@@ -292,18 +292,29 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // save info about the experimental timers tab
     // experimental timers tab is tab #1 (second tab)
+    // experimental lyrics tab is tab #2 (third tab)
     tabmap.insert(1, QPair<QWidget *,QString>(ui->tabWidget->widget(1), ui->tabWidget->tabText(1)));
+    tabmap.insert(2, QPair<QWidget *,QString>(ui->tabWidget->widget(2), ui->tabWidget->tabText(2)));
 
     bool timersEnabled = prefsManager.GetexperimentalTimersEnabled();
+    qDebug() << "Timers enabled:" << timersEnabled;
     // ----------
-    if (timersEnabled) {
+    showTimersTab = true;
+    if (!timersEnabled) {
+        qDebug() << "MAKING THE TIMERS TAB DISAPPEAR.";
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
+        showTimersTab = false;
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
     // ----------
-    if (prefsManager.GetexperimentalCuesheetEnabled()) {
+    bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
+    qDebug() << "Lyrics enabled:" << lyricsEnabled;
+    showLyricsTab = true;
+    if (!lyricsEnabled) {
+        qDebug() << "MAKING THE LYRICS TAB DISAPPEAR.";
         ui->tabWidget->removeTab(timersEnabled ? 2 : 1);  // it's remembered, don't worry!
+        showLyricsTab = false;
     }
     ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
@@ -1783,7 +1794,7 @@ void MainWindow::on_actionPreferences_triggered()
         qDebug() << "NEW: " << patterColorString << singingColorString << calledColorString << extrasColorString;
 
         // ----------------------------------------------------------------
-        // Save the new value for experimentalTimersTabEnabled --------
+        // Show the Timers tab, if it is enabled now
         if (prefsManager.GetexperimentalTimersEnabled()) {
             if (!showTimersTab) {
                 // iff the tab was NOT showing, make it show up now
@@ -1797,6 +1808,23 @@ void MainWindow::on_actionPreferences_triggered()
                 ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
             }
             showTimersTab = false;
+        }
+
+        // ----------------------------------------------------------------
+        // Show the Lyrics tab, if it is enabled now
+        if (prefsManager.GetexperimentalCuesheetEnabled()) {
+            if (!showLyricsTab) {
+                // iff the Lyrics tab was NOT showing, make it show up now
+                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
+            }
+            showLyricsTab = true;
+        }
+        else {
+            if (showLyricsTab) {
+                // iff Lyrics tab was showing, remove it
+                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
+            }
+            showLyricsTab = false;
         }
 
         // ----------------------------------------------------------------

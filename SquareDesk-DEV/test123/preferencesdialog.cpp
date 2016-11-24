@@ -347,7 +347,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
     void PreferencesDialog::Set##name(QString value) { ui->control->setText(value); }
 
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default)                 \
-    QString PreferencesDialog::Get##name() { qDebug() << "COLOR PD:Get" << #name << ",returning:" << ui->control->text();  return ui->control->text(); } \
+    QString PreferencesDialog::Get##name() { qDebug() << "COLOR PreferencesDialog:Get" << #name << ",returning:" << ui->control->text();  return ui->control->text(); } \
     void PreferencesDialog::Set##name(QString value) \
     { \
        qDebug() << "COLOR PreferencesDialog:Set" << #name << #control << value; \
@@ -359,8 +359,8 @@ void PreferencesDialog::on_singingColorButton_clicked()
     }
 
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) \
-    bool PreferencesDialog::Get##name() { return ui->control->isChecked(); } \
-    void PreferencesDialog::Set##name(bool value) { ui->control->setChecked(value); }
+    bool PreferencesDialog::Get##name() { qDebug() << "BOOL PreferencesDialog::Get" << #name << ",returning:" << ui->control->isChecked(); return ui->control->isChecked(); } \
+    void PreferencesDialog::Set##name(bool value) { qDebug() << "BOOL PreferencesDialog:Set" << #name << #control << value; ui->control->setChecked(value); }
 
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) \
     int PreferencesDialog::Get##name() { return ui->control->itemData(ui->control->currentIndex()).toInt(); } \

@@ -149,6 +149,7 @@ private:
     enum SongFilenameMatchingType songFilenameFormat;
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
+    bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF
     bool pitchAndTempoHidden;   // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
     bool clockColoringHidden;   // EXPERIMENTAL CLOCK COLORING STUFF
 
