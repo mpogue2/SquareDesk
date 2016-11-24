@@ -5,11 +5,7 @@
 #include <QDir>
 
 #include "common_enums.h"
-
-QString defaultPatterColor = "#7963ff";
-QString defaultSingingColor = "#00af5c";
-QString defaultCalledColor = "#ab6900";
-QString defaultExtrasColor = "#9c1f00";
+#include "default_colors.h"
 
 PreferencesManager::PreferencesManager() : MySettings()
 {

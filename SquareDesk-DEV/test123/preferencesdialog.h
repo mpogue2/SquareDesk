@@ -8,6 +8,7 @@
 #include <QSettings>
 
 #include "common_enums.h"
+#include "default_colors.h"
 
 namespace Ui
 {
@@ -33,7 +34,7 @@ public:
     QColor extrasColor;
 
     void setDefaultColors(QString patter, QString singing, QString called, QString extras);
-    QString defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor;
+//    QString defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor;
 
 /* See the large comment at the top of prefs_options.h */
 

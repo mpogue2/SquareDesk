@@ -36,7 +36,8 @@ HEADERS  += mainwindow.h \
     analogclock.h \
     common_enums.h \
     prefs_options.h \
-    prefsmanager.h
+    prefsmanager.h \
+    default_colors.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui

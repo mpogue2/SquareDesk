@@ -192,12 +192,12 @@ void PreferencesDialog::setColorSwatches(QString patter, QString singing, QStrin
     ui->extrasColorButton->setFlat(true);
 }
 
-void PreferencesDialog::setDefaultColors(QString patter, QString singing, QString called, QString extras) {
-    defaultPatterColor=patter;
-    defaultSingingColor=singing;
-    defaultCalledColor=called;
-    defaultExtrasColor=extras;
-}
+//void PreferencesDialog::setDefaultColors(QString patter, QString singing, QString called, QString extras) {
+//    defaultPatterColor=patter;
+//    defaultSingingColor=singing;
+//    defaultCalledColor=called;
+//    defaultExtrasColor=extras;
+//}
 
 
 void PreferencesDialog::setFontSizes()
@@ -252,8 +252,9 @@ void PreferencesDialog::on_calledColorButton_clicked()
     if (chosenColor.isValid()) {
         calledColorString = chosenColor.name();
 
-        if (chosenColor == "#ffffff") {
-            calledColorString = defaultCalledColor;  // a way to reset the colors individually
+        if (chosenColor.name() == "#ffffff") {
+            qDebug() << "setting calledColorString back to default: " << DEFAULTCALLEDCOLOR;
+            calledColorString = DEFAULTCALLEDCOLOR;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
@@ -275,7 +276,7 @@ void PreferencesDialog::on_extrasColorButton_clicked()
         extrasColorString = chosenColor.name();
 
         if (chosenColor == "#ffffff") {
-            extrasColorString = defaultExtrasColor;  // a way to reset the colors individually
+            extrasColorString = DEFAULTEXTRASCOLOR;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
@@ -300,7 +301,7 @@ void PreferencesDialog::on_patterColorButton_clicked()
         patterColorString = chosenColor.name();
 
         if (chosenColor == "#ffffff") {
-            patterColorString = defaultPatterColor;  // a way to reset the colors individually
+            patterColorString = DEFAULTPATTERCOLOR;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
@@ -322,7 +323,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
         singingColorString = chosenColor.name();
 
         if (chosenColor == "#ffffff") {
-            singingColorString = defaultSingingColor;  // a way to reset the colors individually
+            singingColorString = DEFAULTSINGINGCOLOR;  // a way to reset the colors individually
         }
 
         const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
