@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1111</width>
-    <height>559</height>
+    <width>805</width>
+    <height>535</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -66,793 +66,818 @@
     </layout>
    </item>
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout"/>
-   </item>
-   <item row="1" column="0">
-    <widget class="QTabWidget" name="tabWidget">
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <widget class="QWidget" name="tab_3">
-      <attribute name="title">
-       <string>Music</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="2" colspan="4">
-        <widget class="QLabel" name="musicDirHelpLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>55</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>600</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Music Directory is the directory where you should put all your music files (MP3 or WAV). Each subdirectory of the Music Directory holds one type of music (e.g. &quot;patter&quot;, &quot;singing&quot;,&quot;vocals&quot;, &quot;xtras&quot;, etc.).</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="2">
-        <widget class="QLineEdit" name="lineEditMusicTypeSinging">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>184</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>singing;singers</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="musicTypesSingingLabel">
-         <property name="text">
-          <string>Singing:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="5">
-        <widget class="QLineEdit" name="lineEditMusicTypeExtras">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>190</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>xtras</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="4">
-        <widget class="QLabel" name="musicTypesExtrasLabel">
-         <property name="text">
-          <string>     Extras:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="musicTypesPatterLabel">
-         <property name="text">
-          <string>Patter:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="musicTypesLabel">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Music Types:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="2" colspan="4">
-        <widget class="QComboBox" name="comboBoxMusicFormat">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <item>
-          <property name="text">
-           <string>Label - Song name (e.g. 'XYZ 123 - Chicken Plucker')</string>
-          </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <widget class="QWidget" name="tab_3">
+        <attribute name="title">
+         <string>Music</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="1" column="2" colspan="4">
+          <widget class="QLabel" name="musicDirHelpLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>55</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>600</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Music Directory is the directory where you should put all your music files (MP3 or WAV). Each subdirectory of the Music Directory holds one type of music (e.g. &quot;patter&quot;, &quot;singing&quot;,&quot;vocals&quot;, &quot;xtras&quot;, etc.).</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Song name - Label (e.g. 'Chicken Plucker - RB 123')</string>
-          </property>
+         <item row="7" column="2">
+          <widget class="QLineEdit" name="lineEditMusicTypeSinging">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>184</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>singing;singers</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>Best Guess (or a mixture of both formats)</string>
-          </property>
+         <item row="7" column="0">
+          <widget class="QLabel" name="musicTypesSingingLabel">
+           <property name="text">
+            <string>Singing:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
          </item>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <pointsize>13</pointsize>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Music Names:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QLineEdit" name="lineEditMusicTypePatter">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>184</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>patter;hoedown</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="musicPathLabel">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Music Directory:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="4">
-        <widget class="QLabel" name="musicTypesCalledLabel">
-         <property name="text">
-          <string>     Called:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="6">
-        <widget class="QPushButton" name="chooseMusicPathButton">
-         <property name="maximumSize">
-          <size>
-           <width>100</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Choose...</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="5">
-        <widget class="QLineEdit" name="lineEditMusicTypeCalled">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>190</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>vocal;vocals</string>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="6">
-        <widget class="QPushButton" name="calledColorButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>20</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="baseSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>C</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2" colspan="3">
-        <widget class="QLabel" name="musicPath">
-         <property name="font">
-          <font>
-           <weight>50</weight>
-           <italic>true</italic>
-           <bold>false</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>/home/foo/bar</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="6">
-        <widget class="QPushButton" name="extrasColorButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>E</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="3">
-        <widget class="QPushButton" name="patterColorButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>P</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="3">
-        <widget class="QPushButton" name="singingColorButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-         <property name="autoFillBackground">
-          <bool>true</bool>
-         </property>
-         <property name="text">
-          <string>S</string>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="2" colspan="4">
-        <widget class="QLabel" name="musicTypesHelpLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>600</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>We figure out the &quot;type&quot; of music (e.g. patter vs singing call) by looking at the name of the subdirectory of the Music Directory that the song is in. For example, if you put Patter songs into two subdirectories, specify the names of both here, separated by semicolons. Upper and lower case letters can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).
+         <item row="6" column="5">
+          <widget class="QLineEdit" name="lineEditMusicTypeExtras">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>xtras</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="4">
+          <widget class="QLabel" name="musicTypesExtrasLabel">
+           <property name="text">
+            <string>     Extras:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QLabel" name="musicTypesPatterLabel">
+           <property name="text">
+            <string>Patter:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="musicTypesLabel">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Music Types:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2" colspan="4">
+          <widget class="QComboBox" name="comboBoxMusicFormat">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <item>
+            <property name="text">
+             <string>Label - Song name (e.g. 'XYZ 123 - Chicken Plucker')</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Song name - Label (e.g. 'Chicken Plucker - RB 123')</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Best Guess (or a mixture of both formats)</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label">
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Music Names:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="QLineEdit" name="lineEditMusicTypePatter">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>184</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>patter;hoedown</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="musicPathLabel">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Music Directory:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="4">
+          <widget class="QLabel" name="musicTypesCalledLabel">
+           <property name="text">
+            <string>     Called:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="5">
+          <widget class="QLineEdit" name="lineEditMusicTypeCalled">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>190</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>vocal;vocals</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="6">
+          <widget class="QPushButton" name="calledColorButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>20</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>C</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2" colspan="3">
+          <widget class="QLabel" name="musicPath">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <italic>true</italic>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>/home/foo/bar</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="6">
+          <widget class="QPushButton" name="extrasColorButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>E</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="3">
+          <widget class="QPushButton" name="patterColorButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>P</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="3">
+          <widget class="QPushButton" name="singingColorButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>20</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="autoFillBackground">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>S</string>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="12" column="2" colspan="4">
+          <widget class="QLabel" name="musicTypesHelpLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>600</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>We figure out the &quot;type&quot; of music (e.g. patter vs singing call) by looking at the name of the subdirectory of the Music Directory that the song is in. For example, if you put Patter songs into two subdirectories, specify the names of both here, separated by semicolons. Upper and lower case letters can be used interchangeably (&quot;Patter&quot; and &quot;patter&quot; are the same).
 
 Click on a color square to change the color associated with that Music Type.  Set the color to #FFFFFF to reset to the original default color.</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="2" colspan="4">
-        <widget class="QLabel" name="musicFormatHelpLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Choose the naming convention that you use for file names.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="2">
-        <spacer name="verticalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Expanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QWidget" name="tab_4">
-      <attribute name="title">
-       <string>Experimental</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="4" column="1" colspan="3">
-        <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
-         <property name="text">
-          <string>Enable Pitch and Tempo columns in song list</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1" colspan="5">
-        <widget class="QCheckBox" name="EnableTimersTabCheckbox">
-         <property name="text">
-          <string>Enable Timers tab</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="ExpFeaturesLabel">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Experimental Features:</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="14" column="1">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="11" column="2">
-        <widget class="QComboBox" name="breakLength">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <item>
-          <property name="text">
-           <string>5 minutes</string>
-          </property>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>10 minutes</string>
-          </property>
+         <item row="4" column="2" colspan="4">
+          <widget class="QLabel" name="musicFormatHelpLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>400</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Choose the naming convention that you use for file names.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>15 minutes</string>
-          </property>
+         <item row="13" column="2">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Expanding</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
          </item>
-        </widget>
-       </item>
-       <item row="11" column="1">
-        <widget class="QCheckBox" name="breakTimerCheckbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Break timer: After </string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="3">
-        <widget class="QLabel" name="inactivityLabel">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>of inactivity, </string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="2">
-        <widget class="QComboBox" name="longTipLength">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <item>
-          <property name="text">
-           <string>5 minutes</string>
-          </property>
+         <item row="0" column="5">
+          <widget class="QPushButton" name="chooseMusicPathButton">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Choose...</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>6 minutes</string>
-          </property>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_4">
+        <attribute name="title">
+         <string>Experimental</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="13" column="1">
+          <widget class="QCheckBox" name="initialBPMcheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Set song's initial BPM to</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>7 minutes</string>
-          </property>
+         <item row="0" column="1" colspan="5">
+          <widget class="QCheckBox" name="EnableTimersTabCheckbox">
+           <property name="text">
+            <string>Enable Timers tab</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>8 minutes</string>
-          </property>
+         <item row="4" column="1" colspan="3">
+          <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
+           <property name="text">
+            <string>Enable Pitch and Tempo columns in song list</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>9 minutes</string>
-          </property>
+         <item row="14" column="1">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>2</height>
+            </size>
+           </property>
+          </spacer>
          </item>
-         <item>
-          <property name="text">
-           <string>10 minutes</string>
-          </property>
+         <item row="13" column="2">
+          <widget class="QLineEdit" name="initialBPMLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>65</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>125</string>
+           </property>
+           <property name="maxLength">
+            <number>3</number>
+           </property>
+          </widget>
          </item>
-        </widget>
-       </item>
-       <item row="1" column="1" colspan="5">
-        <widget class="QLabel" name="timersHelpLabel">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Provides a count-up and a count-down timer on a new &amp;quot;Timers&amp;quot; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="1">
-        <widget class="QCheckBox" name="longTipCheckbox">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Long tip warning: After</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="3">
-        <widget class="QLabel" name="label_2">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>of patter,</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1" colspan="5">
-        <widget class="QLabel" name="pitchTempoHelpLabel">
-         <property name="text">
-          <string>Shows current pitch and tempo settings for each song in the song list. Pitch numbers are in semitones relative to base pitch. Tempos are either BPM (e.g. 127 -&gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the tempo is unknown, because it has not been auto-detected yet).</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="1" colspan="5">
-        <widget class="QLabel" name="clockColoringHelpLabel">
-         <property name="text">
-          <string>Shows what type of song was played during each minute of the last hour.  The colors shown are the same colors used in the song list.</string>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="1" colspan="5">
-        <widget class="QLabel" name="saveSongPrefsHelpLabel">
-         <property name="text">
-          <string>When checked, changes you make to tempo, pitch, and in/out points for a song are saved automatically, and restored when the song is loaded again.</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1" colspan="4">
-        <widget class="QCheckBox" name="EnableClockColoring">
-         <property name="text">
-          <string>Enable Clock Coloring by Song Type</string>
-         </property>
-        </widget>
-       </item>
-       <item row="12" column="4" colspan="4">
-        <widget class="QComboBox" name="afterLongTipAction">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="currentIndex">
-          <number>0</number>
-         </property>
-         <item>
-          <property name="text">
-           <string>show on-screen message.</string>
-          </property>
+         <item row="9" column="1" colspan="4">
+          <widget class="QCheckBox" name="checkBoxSaveSongPreferencesInConfig">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Remember tempo, pitch, and in/out points for each song</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>play a reminder tone (NOT_IMPL).</string>
-          </property>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="EnableCuesheetTabCheckbox">
+           <property name="text">
+            <string>Enable Lyrics tab</string>
+           </property>
+          </widget>
          </item>
-        </widget>
-       </item>
-       <item row="9" column="1" colspan="4">
-        <widget class="QCheckBox" name="checkBoxSaveSongPreferencesInConfig">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Remember tempo, pitch, and in/out points for each song</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="4" colspan="2">
-        <widget class="QComboBox" name="afterBreakAction">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>0</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>show on-screen message.</string>
-          </property>
+         <item row="12" column="4" colspan="4">
+          <widget class="QComboBox" name="afterLongTipAction">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>225</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>225</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>show on-screen message.</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play a reminder tone (NOT_IMPL).</string>
+            </property>
+           </item>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>play a reminder tone (NOT_IMPL).</string>
-          </property>
+         <item row="12" column="2">
+          <widget class="QComboBox" name="longTipLength">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <item>
+            <property name="text">
+             <string>5 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>6 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>7 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>8 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>9 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>10 minutes</string>
+            </property>
+           </item>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>play the current song (NOT_IMPL).</string>
-          </property>
+         <item row="1" column="1" colspan="5">
+          <widget class="QLabel" name="timersHelpLabel">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Provides a count-up and a count-down timer on a new &amp;quot;Timers&amp;quot; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
          </item>
-         <item>
-          <property name="text">
-           <string>play the next song (NOT_IMPL).</string>
-          </property>
+         <item row="12" column="1">
+          <widget class="QCheckBox" name="longTipCheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Long tip warning: After</string>
+           </property>
+          </widget>
          </item>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="EnableCuesheetTabCheckbox">
-         <property name="text">
-          <string>Enable Lyrics tab</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLabel" name="cuesheetHelpLabel">
-         <property name="text">
-          <string>Enable the experimental lyrics/cuesheet tab.</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="1">
-        <widget class="QCheckBox" name="initialBPMcheckbox">
-         <property name="text">
-          <string>Set song's initial BPM to</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="2">
-        <widget class="QLineEdit" name="initialBPMLineEdit">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>65</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>125</string>
-         </property>
-         <property name="maxLength">
-          <number>3</number>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
+         <item row="12" column="3">
+          <widget class="QLabel" name="label_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>of patter,</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1">
+          <widget class="QCheckBox" name="breakTimerCheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Break timer: After </string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="5">
+          <widget class="QLabel" name="clockColoringHelpLabel">
+           <property name="text">
+            <string>Shows what type of song was played during each minute of the last hour.  The colors shown are the same colors used in the song list.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="10" column="1" colspan="5">
+          <widget class="QLabel" name="saveSongPrefsHelpLabel">
+           <property name="text">
+            <string>When checked, changes you make to tempo, pitch, and in/out points for a song are saved automatically, and restored when the song is loaded again.</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1" colspan="4">
+          <widget class="QCheckBox" name="EnableClockColoring">
+           <property name="text">
+            <string>Enable Clock Coloring by Song Type</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="3">
+          <widget class="QLabel" name="inactivityLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>of inactivity, </string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="ExpFeaturesLabel">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Experimental:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="2">
+          <widget class="QComboBox" name="breakLength">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <item>
+            <property name="text">
+             <string>5 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>10 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>15 minutes</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="3" column="1" colspan="2">
+          <widget class="QLabel" name="cuesheetHelpLabel">
+           <property name="text">
+            <string>Enable the experimental lyrics/cuesheet tab.</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="4">
+          <widget class="QComboBox" name="afterBreakAction">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>225</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>225</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <item>
+            <property name="text">
+             <string>show on-screen message.</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play a reminder tone (NOT_IMPL).</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play the current song (NOT_IMPL).</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play the next song (NOT_IMPL).</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="5" column="1" colspan="4">
+          <widget class="QLabel" name="pitchTempoHelpLabel">
+           <property name="text">
+            <string>Shows current pitch and tempo settings for each song in the song list. Pitch numbers are in semitones relative to base pitch. Tempos are either BPM (e.g. 127 -&gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the tempo is unknown, because it has not been auto-detected yet).</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -862,7 +887,6 @@ Click on a color square to change the color associated with that Music Type.  Se
   <tabstop>lineEditMusicTypeExtras</tabstop>
   <tabstop>lineEditMusicTypeCalled</tabstop>
   <tabstop>comboBoxMusicFormat</tabstop>
-  <tabstop>chooseMusicPathButton</tabstop>
   <tabstop>EnableTimersTabCheckbox</tabstop>
   <tabstop>EnablePitchTempoViewCheckbox</tabstop>
   <tabstop>EnableClockColoring</tabstop>
