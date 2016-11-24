@@ -28,6 +28,11 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui(new Ui::PreferencesDialog)
 {
     ui->setupUi(this);
+
+    // validator for initial BPM setting
+    validator = new QIntValidator(100, 150, this);
+    ui->initialBPMLineEdit->setValidator(validator);
+
 #if 0
 //    qDebug() << "PreferencesDialog::PreferencesDialog()";
     // musicPath preference -------
@@ -217,6 +222,7 @@ void PreferencesDialog::setFontSizes()
 
     ui->musicDirHelpLabel->setFont(font);
     ui->timersHelpLabel->setFont(font);
+    ui->cuesheetHelpLabel->setFont(font);
     ui->pitchTempoHelpLabel->setFont(font);
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);
@@ -368,10 +374,38 @@ void PreferencesDialog::on_singingColorButton_clicked()
     { for (int i = 0; i < ui->control->count(); ++i) { \
             if (ui->control->itemData(i).toInt() == value) { ui->control->setCurrentIndex(i); break; } \
         } }
+
+#define CONFIG_ATTRIBUTE_INT(control, name, default)                 \
+    int PreferencesDialog::Get##name() { qDebug() << "INT PreferencesDialog::Get" << #name << ",returning:" << ui->control->text().toInt(); return ui->control->text().toInt(); } \
+    void PreferencesDialog::Set##name(int value) { qDebug() << "INT PreferencesDialog:Set" << #name << #control << value; ui->control->setText(QString::number(value)); }
+
 #include "prefs_options.h"
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
+#undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+
+void PreferencesDialog::on_initialBPMLineEdit_textChanged(const QString &arg1)
+{
+    int pos = 0;
+    bool acceptable = (ui->initialBPMLineEdit->validator()->validate((QString &)arg1,pos) == QValidator::Acceptable);
+    qDebug() << "ACCEPTABLE?: " << acceptable;
+
+    const QString COLOR_STYLE("QLineEdit { background-color : %1; }");
+
+//    QColor OKcolor("#d0f0d0");
+    QColor notOKcolor("#f08080");
+
+    if (acceptable) {
+//        ui->initialBPM->setStyleSheet(COLOR_STYLE.arg(OKcolor.name()));
+        ui->initialBPMLineEdit->setStyleSheet("");
+//        bpmTarget = ui->initialBPMLineEdit->text().toInt();
+    } else {
+        ui->initialBPMLineEdit->setStyleSheet(COLOR_STYLE.arg(notOKcolor.name()));
+//        bpmTarget = 125;
+    }
+
+}

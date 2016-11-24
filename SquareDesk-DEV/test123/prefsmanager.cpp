@@ -11,6 +11,7 @@ PreferencesManager::PreferencesManager() : MySettings()
 {
 }
 
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)  \
 QString PreferencesManager::Get##name()                  \
 {                                                        \
@@ -30,6 +31,7 @@ void PreferencesManager::Set##name(QString value)        \
     MySettings.setValue(#name, value);                   \
 }
 
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default) \
 bool PreferencesManager::Get##name()                     \
 {                                                        \
@@ -49,6 +51,7 @@ void PreferencesManager::Set##name(bool value)           \
     MySettings.setValue(#name, value ? true : false);    \
 }
 
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_STRING(control, name, default) \
     QString PreferencesManager::Get##name()             \
 {                                                       \
@@ -89,6 +92,7 @@ void PreferencesManager::Set##name(QString value)       \
     MySettings.setValue(#name, value);                  \
 }
 
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) \
 bool PreferencesManager::Get##name()                     \
 {                                                        \
@@ -108,19 +112,19 @@ void PreferencesManager::Set##name(bool value)           \
     MySettings.setValue(#name, value ? true : false);    \
 }
 
-// OK get is wrong below, because it returns a string, not an int
 
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_INT(control, name, default) \
     int PreferencesManager::Get##name()              \
 {                                                    \
-    value = MySettings.value(#name).toString();      \
+    QString value = MySettings.value(#name).toString();      \
     if (value.isNull())                              \
     {                                                \
         value = default;                             \
         Set##name(default);                          \
     }                                                \
-    qDebug() << "INT PreferencesManager::Get" << #name << ", default:" << #default << ", returning as string (wrong):" << value;   \
-    return value;                                    \
+    qDebug() << "INT PreferencesManager::Get" << #name << ", default:" << #default << ", returning as int:" << value.toInt();   \
+    return value.toInt();                                    \
 }                                                    \
                                                      \
 void PreferencesManager::Set##name(int value)        \
@@ -129,6 +133,7 @@ void PreferencesManager::Set##name(int value)        \
     MySettings.setValue(#name, value);               \
 }
 
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) \
 int  PreferencesManager::Get##name()                   \
 {                                                      \

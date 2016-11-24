@@ -1330,8 +1330,24 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
-        ui->tempoSlider->setValue(songBPM);
-        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+//        ui->tempoSlider->setValue(songBPM);
+//        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+
+        PreferencesManager prefsManager;
+        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
+        int initialBPM = prefsManager.GetinitialBPM();
+        if (tryToSetInitialBPM) {
+            // if the user wants us to try to hit a particular BPM target, use that value
+            ui->tempoSlider->setValue(initialBPM);
+            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        } else {
+            // otherwise, if the user wants us to start with the slider at the regular detected BPM
+            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
+            //     all saved tempo preferences will always win.
+            ui->tempoSlider->setValue(songBPM);
+            ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        }
+
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +

@@ -24,8 +24,6 @@
  *
  */
 
-
-
 CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/music")
 
 CONFIG_ATTRIBUTE_COLOR(patterColorButton,  patterColorString,  DEFAULTPATTERCOLOR)
@@ -53,6 +51,8 @@ CONFIG_ATTRIBUTE_BOOLEAN(EnableClockColoring,experimentalClockColoringEnabled, f
 
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSaveSongPreferencesInConfig,SongPreferencesInConfig, false)
 
+CONFIG_ATTRIBUTE_BOOLEAN(initialBPMcheckbox,tryToSetInitialBPM, false)
+CONFIG_ATTRIBUTE_INT(initialBPMLineEdit,initialBPM, 125)
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(autostartplayback, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(forcemono, false);

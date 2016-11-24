@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>944</width>
-    <height>552</height>
+    <width>1111</width>
+    <height>559</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -71,7 +71,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
@@ -818,6 +818,35 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="cuesheetHelpLabel">
          <property name="text">
           <string>Enable the experimental lyrics/cuesheet tab.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="1">
+        <widget class="QCheckBox" name="initialBPMcheckbox">
+         <property name="text">
+          <string>Set song's initial BPM to</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="2">
+        <widget class="QLineEdit" name="initialBPMLineEdit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>65</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>125</string>
+         </property>
+         <property name="maxLength">
+          <number>3</number>
          </property>
         </widget>
        </item>

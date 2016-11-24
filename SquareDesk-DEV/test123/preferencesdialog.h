@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QSettings>
+#include <QValidator>
 
 #include "common_enums.h"
 #include "default_colors.h"
@@ -26,6 +27,8 @@ public:
     QString musicPath;
     void setFontSizes();
 
+    QValidator *validator;
+
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
 //    QColor patterColor;
 //    QColor singingColor;
@@ -44,6 +47,7 @@ public:
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) bool Get##name(); void Set##name(bool value);
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) int Get##name(); void Set##name(int value);
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) QString Get##name(); void Set##name(QString value);
+#define CONFIG_ATTRIBUTE_INT(control, name, default) int Get##name(); void Set##name(int value);
     #include "prefs_options.h"
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
@@ -51,7 +55,7 @@ public:
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
-
+#undef CONFIG_ATTRIBUTE_INT
 
 private slots:
     void on_chooseMusicPathButton_clicked();
@@ -60,6 +64,8 @@ private slots:
     void on_extrasColorButton_clicked();
     void on_patterColorButton_clicked();
     void on_singingColorButton_clicked();
+
+    void on_initialBPMLineEdit_textChanged(const QString &arg1);
 
 private:
     Ui::PreferencesDialog *ui;
