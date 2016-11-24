@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1111</width>
-    <height>559</height>
+    <width>944</width>
+    <height>552</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -201,6 +201,21 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <item>
+          <property name="text">
+           <string>Label - Song name (e.g. 'XYZ 123 - Chicken Plucker')</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Song name - Label (e.g. 'Chicken Plucker - RB 123')</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Best Guess (or a mixture of both formats)</string>
+          </property>
+         </item>
         </widget>
        </item>
        <item row="3" column="0">

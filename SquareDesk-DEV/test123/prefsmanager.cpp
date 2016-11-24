@@ -133,9 +133,9 @@ void PreferencesManager::Set##name(int value)        \
 int  PreferencesManager::Get##name()                   \
 {                                                      \
     QVariant value = MySettings.value(#name);          \
+    if (value.isNull())                                \
     {                                                  \
-        if (value.isNull())                            \
-            value = QVariant(default);                 \
+        value = QVariant(default);                     \
         Set##name(default);                            \
     }                                                  \
     qDebug() << "COMBO PreferencesManager::Get" << #name << ", default:" << #default << ", returning as int:" << value.toInt();   \
@@ -177,6 +177,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+    MySettings.sync();
 }
 
 
@@ -198,6 +199,7 @@ void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *p
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+    MySettings.sync();
 }
 
 

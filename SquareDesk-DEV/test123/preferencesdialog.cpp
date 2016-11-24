@@ -13,7 +13,6 @@ static void  SetTimerPulldownValuesToFirstDigit(QComboBox *comboBox)
         comboBox->setItemData(i, QVariant(length));
     }
 }
-
 static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
 {
     for (int i = 0; i < comboBox->count(); ++i)
@@ -149,7 +148,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     SetTimerPulldownValuesToFirstDigit(ui->breakLength);
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
-
+    SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
+    SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
     // Initialize the color chooser buttons
     //setColorSwatches(GetpatterColorString(), GetsingingColorString(), GetcalledColorString(), GetextrasColorString());
 }
@@ -366,7 +366,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
     int PreferencesDialog::Get##name() { return ui->control->itemData(ui->control->currentIndex()).toInt(); } \
     void PreferencesDialog::Set##name(int value) \
     { for (int i = 0; i < ui->control->count(); ++i) { \
-            if (ui->control->itemData(i).toInt() == value) { ui->control->setCurrentIndex(value); break; } \
+            if (ui->control->itemData(i).toInt() == value) { ui->control->setCurrentIndex(i); break; } \
         } }
 #include "prefs_options.h"
 #undef CONFIG_ATTRIBUTE_STRING
