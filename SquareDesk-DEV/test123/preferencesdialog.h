@@ -26,14 +26,14 @@ public:
     QString musicPath;
     void setFontSizes();
 
-    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
-    QColor patterColor;
-    QColor singingColor;
+//    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
+//    QColor patterColor;
+//    QColor singingColor;
 //    QColor calledColor;
 //    QString calledColor;
-    QColor extrasColor;
+//    QColor extrasColor;
 
-    void setDefaultColors(QString patter, QString singing, QString called, QString extras);
+//    void setDefaultColors(QString patter, QString singing, QString called, QString extras);
 //    QString defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor;
 
 /* See the large comment at the top of prefs_options.h */

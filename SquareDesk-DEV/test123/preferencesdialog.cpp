@@ -151,7 +151,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
 
     // Initialize the color chooser buttons
-    setColorSwatches(GetpatterColorString(), GetsingingColorString(), GetcalledColorString(), GetextrasColorString());
+    //setColorSwatches(GetpatterColorString(), GetsingingColorString(), GetcalledColorString(), GetextrasColorString());
 }
 
 
@@ -161,36 +161,36 @@ PreferencesDialog::~PreferencesDialog()
     delete ui;
 }
 
-void PreferencesDialog::setColorSwatches(QString patter, QString singing, QString called, QString extras) {
-    const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
+//void PreferencesDialog::setColorSwatches(QString patter, QString singing, QString called, QString extras) {
+//    const QString COLOR_STYLE("QPushButton { background-color : %1; color : %2; }");
 
-    qDebug() << "setColorSwatches: " << patter << singing << called << extras;
+//    qDebug() << "setColorSwatches: " << patter << singing << called << extras;
 
-    QColor patterColor1(patter);
-    patterColor = patterColor1;
-    ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(patterColor1.name()).arg(patterColor1.name()));
-    ui->patterColorButton->setAutoFillBackground(true);
-    ui->patterColorButton->setFlat(true);
+//    QColor patterColor1(patter);
+//    patterColor = patterColor1;
+//    ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(patterColor1.name()).arg(patterColor1.name()));
+//    ui->patterColorButton->setAutoFillBackground(true);
+//    ui->patterColorButton->setFlat(true);
 
-    QColor singingColor1(singing);
-    singingColor = singingColor1;
-    ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(singingColor1.name()).arg(singingColor1.name()));
-    ui->singingColorButton->setAutoFillBackground(true);
-    ui->singingColorButton->setFlat(true);
+//    QColor singingColor1(singing);
+//    singingColor = singingColor1;
+//    ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(singingColor1.name()).arg(singingColor1.name()));
+//    ui->singingColorButton->setAutoFillBackground(true);
+//    ui->singingColorButton->setFlat(true);
 
-    QColor calledColor1(called);
-//    calledColorString = calledColor1.name();
-    ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColor1.name()).arg(calledColor1.name()));
-    ui->calledColorButton->setAutoFillBackground(true);
-    ui->calledColorButton->setFlat(true);
-    ui->calledColorButton->setText(called);  // save it in the text of the button
+//    QColor calledColor1(called);
+////    calledColorString = calledColor1.name();
+//    ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColor1.name()).arg(calledColor1.name()));
+//    ui->calledColorButton->setAutoFillBackground(true);
+//    ui->calledColorButton->setFlat(true);
+//    ui->calledColorButton->setText(called);  // save it in the text of the button
 
-    QColor extrasColor1(extras);
-    extrasColor = extrasColor1;
-    ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(extrasColor1.name()).arg(extrasColor1.name()));
-    ui->extrasColorButton->setAutoFillBackground(true);
-    ui->extrasColorButton->setFlat(true);
-}
+//    QColor extrasColor1(extras);
+//    extrasColor = extrasColor1;
+//    ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(extrasColor1.name()).arg(extrasColor1.name()));
+//    ui->extrasColorButton->setAutoFillBackground(true);
+//    ui->extrasColorButton->setFlat(true);
+//}
 
 //void PreferencesDialog::setDefaultColors(QString patter, QString singing, QString called, QString extras) {
 //    defaultPatterColor=patter;
