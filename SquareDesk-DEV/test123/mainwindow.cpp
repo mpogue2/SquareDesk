@@ -63,6 +63,16 @@ MainWindow::MainWindow(QWidget *parent) :
     timerCountDown(NULL),
     trapKeypresses(true)
 {
+
+    // Disable ScreenSaver while SquareDesk is running
+#if defined(Q_OS_MAC)
+    macUtils.disableScreensaver();
+#elif defined(Q_OS_WIN)
+    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
+#elif defined(Q_OS_LINUX)
+    // TODO
+#endif
+
     prefDialog = NULL;      // no preferences dialog created yet
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
@@ -362,6 +372,13 @@ MainWindow::~MainWindow()
     colorDlg.setCurrentColor(Qt::white);
 
     delete ui;
+
+    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
+#ifdef Q_OS_MAC
+    macUtils.reenableScreensaver();
+#else
+    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
+#endif
 }
 
 void MainWindow::setFontSizes()
