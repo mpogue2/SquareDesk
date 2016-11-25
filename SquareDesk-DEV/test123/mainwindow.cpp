@@ -258,10 +258,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
     ui->currentPitchLabel->setText("0 semitones");
+    // FIX: initial focus is titleSearch, so the shortcuts for these menu items don't work
+    //   at initial start.
+    ui->actionPitch_Down->setEnabled(true);  // and the corresponding menu items
+    ui->actionPitch_Up->setEnabled(true);
 
     ui->volumeSlider->setEnabled(true);
     ui->volumeSlider->setValue(100);
     ui->currentVolumeLabel->setText("Max");
+    // FIX: initial focus is titleSearch, so the shortcuts for these menu items don't work
+    //   at initial start.
+    ui->actionVolume_Down->setEnabled(true);  // and the corresponding menu items
+    ui->actionVolume_Up->setEnabled(true);
+    ui->actionMute->setEnabled(true);
 
     ui->mixSlider->setEnabled(true);
     ui->mixSlider->setValue(0);
@@ -477,6 +486,12 @@ void MainWindow::on_monoButton_toggled(bool checked)
 // ----------------------------------------------------------------------
 void MainWindow::on_stopButton_clicked()
 {
+// TODO: instead of removing focus on STOP, better we should restore focus to the previous focused widget on STOP
+//    if (QApplication::focusWidget() != NULL) {
+//        QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
+//                                                    //  or it will eat our keyboard shortcuts
+//    }
+
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
     currentState = kStopped;
@@ -493,11 +508,17 @@ void MainWindow::on_playButton_clicked()
 {
     cBass.Play();  // currently paused, so start playing
     if (currentState == kStopped || currentState == kPaused) {
+        // If we just started playing, clear focus from all widgets
+        if (QApplication::focusWidget() != NULL) {
+            QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
+                                                        //  or it will eat our keyboard shortcuts
+        }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
         currentState = kPlaying;
     }
     else {
+        // TODO: we might want to restore focus here....
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
         currentState = kPaused;
