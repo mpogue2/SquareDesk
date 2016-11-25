@@ -335,6 +335,11 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
     ui->warningLabel->setText("");
     ui->warningLabel->setStyleSheet("QLabel { color : red; }");
+
+    // LYRICS TAB ------------
+    ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->pushButtonSetOutroTime->setEnabled(false);
+
 }
 
 // ----------------------------------------------------------------------
@@ -1378,6 +1383,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     bool isSingingCall = songTypeNamesForSinging.contains(songType);
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+
+    ui->pushButtonSetIntroTime->setEnabled(isSingingCall);  // if not singing call, buttons will be greyed out on Lyrics tab
+    ui->pushButtonSetOutroTime->setEnabled(isSingingCall);
+
     loadSettingsForSong(songTitle);
 }
 
