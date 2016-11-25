@@ -174,7 +174,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // analog clock -----
     analogClock = new AnalogClock(this);
     ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
-//    analogClock->setGeometry(0,0,200,200);
     analogClock->setFixedSize(QSize(110,110));
     analogClock->setEnabled(true);
     analogClock->setVisible(true);
@@ -182,11 +181,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
-    qDebug() << "MainWindow::MainWindow() before prefsManager";
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-    qDebug() << "MainWindow::MainWindow() after prefsManager";
-
-//    qDebug() << "QSettings is in: " << MySettings.fileName();
 
     musicRootPath = prefsManager.GetmusicPath();
 
@@ -196,8 +191,6 @@ MainWindow::MainWindow(QWidget *parent) :
     calledColorString = prefsManager.GetcalledColorString();
     extrasColorString = prefsManager.GetextrasColorString();
 
-    qDebug() << "MainWindow::MainWindow() colors:" << patterColorString << singingColorString << calledColorString << extrasColorString;
-
     // Tell the clock what colors to use for session segments
     analogClock->setColorForType(PATTER, QColor(patterColorString));
     analogClock->setColorForType(SINGING, QColor(singingColorString));
@@ -206,28 +199,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ----------------------------------------------
     // Save the new settings for experimental break and patter timers --------
-
-    // settings are:
-    // tipLengthTimerEnabled
-    // tipLengthTimerLength
-    // tipLengthAlarmAction
-    // breakLengthTimerEnabled
-    // breakLengthTimerLength
-    // breakLengthAlarmAction
-
     tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
     int tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
     tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
-//    qDebug() << "tip:" << tipLengthTimerEnabledString << tipLengthTimerLength << tipLengthAlarmAction;
 
     breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
-//    qDebug() << "breakLengthTimerEnabledString" << breakLengthTimerEnabledString;
-
     breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
-//    qDebug() << "breakLengthTimerLengthString" << breakLengthTimerLengthString;
-
     breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
-//    qDebug() << "break:" << breakLengthTimerEnabledString << breakLengthTimerLength << breakLengthAlarmAction;
 
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
@@ -308,11 +286,9 @@ MainWindow::MainWindow(QWidget *parent) :
     tabmap.insert(2, QPair<QWidget *,QString>(ui->tabWidget->widget(2), ui->tabWidget->tabText(2)));
 
     bool timersEnabled = prefsManager.GetexperimentalTimersEnabled();
-    qDebug() << "Timers enabled:" << timersEnabled;
     // ----------
     showTimersTab = true;
     if (!timersEnabled) {
-        qDebug() << "MAKING THE TIMERS TAB DISAPPEAR.";
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
         showTimersTab = false;
     }
@@ -320,10 +296,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ----------
     bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
-    qDebug() << "Lyrics enabled:" << lyricsEnabled;
     showLyricsTab = true;
     if (!lyricsEnabled) {
-        qDebug() << "MAKING THE LYRICS TAB DISAPPEAR.";
         ui->tabWidget->removeTab(timersEnabled ? 2 : 1);  // it's remembered, don't worry!
         showLyricsTab = false;
     }
@@ -355,8 +329,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->titleSearch->setFocus();  // this should be the intial focus
 
 #ifdef DEBUGCLOCK
-//    analogClock->tipLengthAlarmMinutes = 5;  // FIX FIX FIX
-//    analogClock->breakLengthAlarmMinutes = 10;
+    analogClock->tipLengthAlarmMinutes = 5;  // FIX FIX FIX
+    analogClock->breakLengthAlarmMinutes = 10;
 #endif
     analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
@@ -410,8 +384,6 @@ void MainWindow::setFontSizes()
     ui->EQgroup->setFont(font);
 
     font.setPointSize(preferredSmallFontSize-2);
-//    ui->loopButton->setFont(font);
-//    ui->monoButton->setFont(font);
 
     QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
 #if defined(Q_OS_WIN)
@@ -462,11 +434,6 @@ void MainWindow::updatePitchTempoView()
 void MainWindow::on_loopButton_toggled(bool checked)
 {
     if (checked) {
-        // regular text: "LOOP"
-//        QFont f = ui->loopButton->font();
-//        f.setStrikeOut(false);
-//        ui->loopButton->setFont(f);
-//        ui->loopButton->setText("LOOP");
         ui->actionLoop->setChecked(true);
 
         ui->seekBar->SetLoop(true);
@@ -477,11 +444,6 @@ void MainWindow::on_loopButton_toggled(bool checked)
 
     }
     else {
-        // strikethrough text: "LOOP"
-//        QFont f = ui->loopButton->font();
-//        f.setStrikeOut(true);
-//        ui->loopButton->setFont(f);
-//        ui->loopButton->setText("LOOP");
         ui->actionLoop->setChecked(false);
 
         ui->seekBar->SetLoop(false);
@@ -495,12 +457,10 @@ void MainWindow::on_loopButton_toggled(bool checked)
 void MainWindow::on_monoButton_toggled(bool checked)
 {
     if (checked) {
-//        ui->monoButton->setText("MONO");
         ui->actionForce_Mono_Aahz_mode->setChecked(true);
         cBass.SetMono(true);
     }
     else {
-//        ui->monoButton->setText("STEREO");
         ui->actionForce_Mono_Aahz_mode->setChecked(false);
         cBass.SetMono(false);
     }
@@ -543,8 +503,7 @@ void MainWindow::on_playButton_clicked()
     }
 }
 
-
-
+// ----------------------------------------------------------------------
 bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
 {
     if (timer) {
@@ -561,6 +520,7 @@ bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
     return NULL != timer;
 }
 
+// ----------------------------------------------------------------------
 int MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
 {
     QDateTime now(QDateTime::currentDateTime());
@@ -597,8 +557,6 @@ void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
         connect(timerCountDown, SIGNAL(timeout()), this, SLOT(timerCountDown_update()));
     }
 }
-
-
 
 // ----------------------------------------------------------------------
 
@@ -699,7 +657,6 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
         return;
     }
 
-//    qDebug() << "pitchSliderChanged, setting text to " << currentPitch;
     ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch));
 }
 
@@ -750,8 +707,6 @@ void MainWindow::on_actionMute_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
-//    qDebug() << "on_tempoSlider_valueChanged: " << value;
-
     if (tempoIsBPM) {
         float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
         float desiredBPM = (float)value;            // desired BPM
@@ -868,12 +823,12 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
             int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
             int maxScroll = ui->textBrowserCueSheet->verticalScrollBar()->maximum();
-//            int minSeekbar = ui->seekBar->minimum();
-            int maxSeekbar = ui->seekBar->maximum();
+            int maxSeekbar = ui->seekBar->maximum();  // NOTE: minSeekbar is always 0
             float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
             float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
 //#define SCROLLLYRICS
 #ifdef SCROLLLYRICS
+            // experimental lyrics scrolling at the same time as the InfoBar
             ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
 #else
             Q_UNUSED(targetScroll)
@@ -884,7 +839,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         if (currentPos_i == fileLen_i) {  // NOTE: tricky, counts on -1 above
             // avoids the problem of manual seek to max slider value causing auto-STOP
-//            qDebug() << "Reached the end of playback!";
             if (!ui->actionContinuous_Play->isChecked()) {
                 on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
             }
@@ -900,7 +854,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                 }
                 else {
                     // more than 1 row or no rows at all selected (BAD)
-                    //        qDebug() << "nothing selected.";
                     return;
                 }
 
@@ -926,10 +879,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     }
 }
 
-
-
 // --------------------------------1--------------------------------------
-
 void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
     int length = ui->seekBarCuesheet->maximum();
@@ -980,7 +930,6 @@ void MainWindow::on_clearSearchButton_clicked()
     }
     else {
         // more than 1 row or no rows at all selected (BAD)
-//        qDebug() << "nothing selected.";
     }
 
     ui->labelSearch->setText("");
@@ -999,7 +948,6 @@ void MainWindow::on_clearSearchButton_clicked()
 void MainWindow::on_actionLoop_triggered()
 {
     on_loopButton_toggled(ui->actionLoop->isChecked());
-//    ui->loopButton->setChecked(ui->actionLoop->isChecked());
 }
 
 // ----------------------------------------------------------------------
@@ -1036,8 +984,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
 #else
     analogClock->setSegment(time.minute(), time.second(), theType);  // FIX FIX FIX FIX ******
 #endif
-
-//    qDebug() << "per second: " << analogClock->tipLengthAlarmMinutes << analogClock->breakLengthAlarmMinutes;
 
     if (tipLengthTimerEnabled && analogClock->tipLengthAlarm && theType == PATTER) {
         if (tipLengthAlarmAction == 0) {
@@ -1114,15 +1060,11 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
-//        qDebug() << "GlobalEventFilter::eventFilter()";
-
         if (!(ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()
                 || ui->lineEditCountDownTimer->hasFocus()
                 || ui->songTable->isEditing())) {
             // call handleKeypress on the Applications's active window
-//            qDebug() << "GlobalEventFilter::eventFilter(), call handleKeypress";
-//            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key());
             return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key(), KeyEvent->text());
         }
 
@@ -1421,21 +1363,16 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->midrangeSlider->value()); // force midrange change, if midrange slider preset before load
     ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
-//    ui->loopButton->setEnabled(true);
-//    ui->monoButton->setEnabled(true);
-
     cBass.Stop();
 
     songLoaded = true;
     Info_Seekbar(true);
 
     if (songType == "patter") {
-//        ui->loopButton->setChecked(true);
         on_loopButton_toggled(true); // default is to loop, if type is patter
     }
     else {
         // not patter, so Loop mode defaults to OFF
-//        ui->loopButton->setChecked(false);
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
@@ -1474,7 +1411,6 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
     ui->previousSongButton->setEnabled(false);
 
     // --------
-//    qDebug() << "loading: " << MP3FileName;
     loadMP3File(MP3FileName, QString(""), QString(""));  // "" means use title from the filename
 }
 
@@ -1590,7 +1526,6 @@ void MainWindow::filterMusic()
         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();  // this is the full pathname
         if (playlistIndex != " " && playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
-//            qDebug() << "remembering playlistIndex:" << playlistIndex << ", origPath:" << pathToMP3;
             // TODO: reconcile int here with float elsewhere on insertion
             path2playlistNum[pathToMP3] = playlistIndex;
         }
@@ -1815,13 +1750,8 @@ void MainWindow::on_actionPreferences_triggered()
     on_stopButton_clicked();  // stop music, if it was playing...
     PreferencesManager prefsManager;
 
-//    PreferencesDialog *dialog = new PreferencesDialog;
     prefDialog = new PreferencesDialog;
     prefsManager.populatePreferencesDialog(prefDialog);
-
-    // initial colors going in
-//    prefDialog->setColorSwatches(patterColorString, singingColorString, calledColorString, extrasColorString);
-//    prefDialog->setDefaultColors(defaultPatterColor, defaultSingingColor, defaultCalledColor, defaultExtrasColor);
 
     // modal dialog
     int dialogCode = prefDialog->exec();
@@ -1833,15 +1763,8 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
 
-        qDebug() << "------------------------";
-
-//        if (prefDialog->musicPath != musicRootPath) { // path has changed!
-//            musicRootPath = prefDialog->musicPath;
-//            findMusic();
-//        }
-
+        // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
-        qDebug() << "NEW: " << musicRootPath;
         findMusic(); // always refresh the songTable after the Prefs dialog returns with OK
 
         // Save the new value for music type colors --------
@@ -1849,8 +1772,6 @@ void MainWindow::on_actionPreferences_triggered()
         singingColorString = prefsManager.GetsingingColorString();
         calledColorString = prefsManager.GetcalledColorString();
         extrasColorString = prefsManager.GetextrasColorString();
-
-        qDebug() << "NEW: " << patterColorString << singingColorString << calledColorString << extrasColorString;
 
         // ----------------------------------------------------------------
         // Show the Timers tab, if it is enabled now
@@ -1893,10 +1814,6 @@ void MainWindow::on_actionPreferences_triggered()
 
         // -----------------------------------------------------------------------
         // Save the new settings for experimental break and patter timers --------
-//        qDebug() << "prefs results: " << prefDialog->tipLengthTimerEnabledString <<
-//                    prefDialog->tipLength << prefDialog->tipAlarmAction <<
-//                    prefDialog->breakLengthTimerEnabledString << prefDialog->breakLength <<
-//                    prefDialog->breakAlarmAction;
         tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();  // save new settings in MainWindow, too
         tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
         tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
@@ -1943,7 +1860,6 @@ void MainWindow::on_actionPreferences_triggered()
 QString MainWindow::removePrefix(QString prefix, QString s)
 {
     QString s2 = s.remove( prefix );
-//    qDebug() << "prefix:" << prefix << ", s:" << s << ", s2:" << s2;
     return s2;
 }
 
@@ -2048,7 +1964,6 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
             while (!in.atEnd()) {
                 QString line = in.readLine();
-                //          qDebug() << "line:" << line;
 
                 if (line == "#EXTM3U") {
                     // ignore, it's the first line of the M3U file
@@ -2064,7 +1979,6 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                 }
                 else {
                     songCount++;  // it's a real song path
-                    //              qDebug() << "SONG #" << songCount << "SONG PATH:" << line;
 
                     bool match = false;
                     // exit the loop early, if we find a match
@@ -2201,7 +2115,6 @@ void MainWindow::on_actionSave_Playlist_triggered()
             QMapIterator<int, QString> i(imports);
             while (i.hasNext()) {
                 i.next();
-                //            qDebug() << i.key() << ": " << i.value();
                 stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
                 stream << i.value() << endl;
             }
@@ -2220,7 +2133,6 @@ void MainWindow::on_actionSave_Playlist_triggered()
             QMapIterator<int, QString> i(imports);
             while (i.hasNext()) {
                 i.next();
-                //            qDebug() << i.key() << ": " << i.value();
                 stream << "\"" << i.value() << "\"," <<
                        importsPitch[i.key()] << "," <<
                        importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
@@ -2297,8 +2209,6 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
         on_playButton_clicked();
     }
 
-    // TODO: Continuous Play mode to allow playing through an entire playlist without stopping (do not play blank playIndex files).
-    //       Continuous Play should be disabled and OFF, unless a playlist is loaded.
 }
 
 void MainWindow::on_actionPrevious_Playlist_Item_triggered()
@@ -2388,12 +2298,7 @@ void MainWindow::on_actionClear_Playlist_triggered()
         theItem->setText(""); // clear out the current list
 
         // let's intentionally NOT clear the pitches.  They are persistent within a session.
-//        QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-//        theItem2->setText("0"); // clear out the current list
-
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
-//        QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-//        theItem2->setText("100%"); // clear out the current list
     }
 
     ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
@@ -2438,7 +2343,6 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
     Q_UNUSED(pos);
 
     // TODO: this function isn't called on Windows yet...
-
     if (ui->songTable->selectionModel()->hasSelection()) {
         QMenu menu(this);
 
@@ -2453,7 +2357,6 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 #if defined(Q_OS_LINUX)
         menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
 #endif
-        // TODO: Linux equivalent?
 
         menu.popup(QCursor::pos());
         menu.exec();

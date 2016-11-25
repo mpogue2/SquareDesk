@@ -224,12 +224,10 @@ int bass_audio::StreamGetVuMeter(void)
         }
         else {
             // error in getting level
-//            qDebug() << "error: ChannelGetLevel";
             return 0;
         }
     }
     else {
-//        qDebug() << "error: channel not active";
         return 0;
     }
 }
@@ -309,7 +307,7 @@ void bass_audio::SetMono(bool on)
 // ------------------------------------------------------------------
 void bass_audio::Play(void)
 {
-    //Check for current state
+    // Check for current state
     bPaused = false;
     Stream_State = BASS_ChannelIsActive(Stream);
 //    qDebug() << "current state: " << Stream_State << ", curPos: " << Current_Position;

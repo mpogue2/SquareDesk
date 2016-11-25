@@ -134,7 +134,7 @@ void AnalogClock::paintEvent(QPaintEvent *)
     theTime.replace("AM","");
     theTime.replace("PM","");  // cheesy way to get 12 hour clock string...
 //    if ((time.second() % 2) == 0)
-//        theTime.replace(":"," ");  // this doesn't work well, because ":" and " " have different widths in the default font
+//        theTime.replace(":"," ");  // FIX: this doesn't work well, because ":" and " " have different widths in the default font
 
     QPointF pt(0, 45);
     painter.setPen(Qt::blue);
@@ -174,7 +174,6 @@ void AnalogClock::paintEvent(QPaintEvent *)
         if (currentMinute < 0) {
             currentMinute += 60;
         }
-//        qDebug() << "typeInMinute[" << currentMinute << "]=" << typeInMinute[currentMinute];
         if (typeInMinute[currentMinute] == PATTER) {
             numMinutesPatter++;
         } else {
@@ -183,7 +182,6 @@ void AnalogClock::paintEvent(QPaintEvent *)
     }
 
     if (numMinutesPatter >= tipLengthAlarmMinutes) {
-//        qDebug() << "TIP LENGTH ALARM";
         tipLengthAlarm = true;
     } else {
         tipLengthAlarm = false;
@@ -204,10 +202,7 @@ void AnalogClock::paintEvent(QPaintEvent *)
         }
     }
 
-//    qDebug() << "number of minutes of patter: " << numMinutesPatter << "number of minutes of break: " << numMinutesBreak;
-
     if (numMinutesBreak >= breakLengthAlarmMinutes && numMinutesBreak < 60) {
-//        qDebug() << "BREAK LENGTH ALARM";
         breakLengthAlarm = true;
     } else {
         breakLengthAlarm = false;
