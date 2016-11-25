@@ -292,7 +292,6 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
         showTimersTab = false;
     }
-    ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
 
     // ----------
     bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
@@ -301,7 +300,7 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->tabWidget->removeTab(timersEnabled ? 2 : 1);  // it's remembered, don't worry!
         showLyricsTab = false;
     }
-    ui->tabWidget->setCurrentIndex(0); // music tab is primary, regardless of last setting in Qt Designer
+    ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
 
     // -------------------------
     if (prefsManager.GetSongPreferencesInConfig()) {
@@ -1646,6 +1645,7 @@ void MainWindow::filterMusic()
     }
 
     if (notSorted) {
+        ui->songTable->sortItems(kTitleCol);  // sort by title as last
         ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
         ui->songTable->sortItems(kTypeCol);  // sort first by type (singing vs patter)
 
@@ -2017,7 +2017,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     }
 
     ui->songTable->sortItems(kTitleCol);  // sort by title as last
-    ui->songTable->sortItems(kLabelCol);  // sort by label/label# as secondary
+    ui->songTable->sortItems(kLabelCol);  // sort third by label/label# as secondary
+    ui->songTable->sortItems(kTypeCol);  // sort second by type (singing vs patter)
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary
     notSorted = false;
     ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
@@ -2301,8 +2302,9 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
     }
 
-    ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
-    ui->songTable->sortItems(kTypeCol);  // sort first by type (singing vs patter)
+    ui->songTable->sortItems(kTitleCol);    // sort by title as last
+    ui->songTable->sortItems(kLabelCol);    // sort second by label/label #
+    ui->songTable->sortItems(kTypeCol);     // sort first by type (singing vs patter)
 
     notSorted = false;
     ui->songTable->setSortingEnabled(true);  // reenable sorting

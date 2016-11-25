@@ -21,8 +21,7 @@ static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
     }
 }
 
-
-
+// -------------------------------------------------------------------
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
@@ -41,6 +40,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
     SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
     SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
+
+    ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 }
 
 
