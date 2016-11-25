@@ -5,6 +5,7 @@
 #include "QColorDialog"
 #include "QMap"
 #include "QMapIterator"
+#include "QScrollBar"
 #include "QThread"
 #include "QProcess"
 #include "QDesktopWidget"
@@ -864,6 +865,20 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if (forceSlider) {
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
+
+            int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
+            int maxScroll = ui->textBrowserCueSheet->verticalScrollBar()->maximum();
+//            int minSeekbar = ui->seekBar->minimum();
+            int maxSeekbar = ui->seekBar->maximum();
+            float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
+            float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
+//#define SCROLLLYRICS
+#ifdef SCROLLLYRICS
+            ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
+#else
+            Q_UNUSED(targetScroll)
+#endif
+
         }
         int fileLen_i = (int)cBass.FileLength;
 
@@ -1269,6 +1284,8 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
 
 void MainWindow::loadCuesheet(QString MP3FileName)
 {
+    ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // always clear out the existing lyrics on load
+
     int extensionPos = MP3FileName.lastIndexOf('.');
     QString cuesheetFilenameBase(MP3FileName);
     cuesheetFilenameBase.truncate(extensionPos + 1);
@@ -1278,12 +1295,14 @@ void MainWindow::loadCuesheet(QString MP3FileName)
     for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
         QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
         if (QFile::exists(cuesheetFilename)) {
-            QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
+            QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
             ui->textBrowserCueSheet->setSource(cuesheetUrl);
             break;
         }
     }
 
+    // TODO: also look in <music directory>/lyrics and /cuesheets, basically, look everywhere for a match
+    // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 }
 
 
