@@ -804,12 +804,47 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
            <item>
             <property name="text">
+             <string>6 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>7 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>8 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>9 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>10 minutes</string>
             </property>
            </item>
            <item>
             <property name="text">
              <string>15 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>20 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>25 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>30 minutes</string>
             </property>
            </item>
           </widget>
