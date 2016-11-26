@@ -9,6 +9,7 @@
 #include "QThread"
 #include "QProcess"
 #include "QDesktopWidget"
+#include "QTextDocument"
 #include "analogclock.h"
 #include "prefsmanager.h"
 
@@ -1286,32 +1287,47 @@ void MainWindow::loadCuesheet(QString MP3FileName)
 {
     hasLyrics = false;
 
+    QString HTML;
+
 #if defined(Q_OS_MAC)
     // priority order:
     //   1) lyrics found by matching file names
     //   2) lyrics found embedded in the USLT ID3 tag in the file itself
     QString embeddedID3Lyrics = loadLyrics(MP3FileName);
     if (embeddedID3Lyrics != "") {
-        ui->textBrowserCueSheet->setText(embeddedID3Lyrics);
+        HTML = txtToHTMLlyrics(embeddedID3Lyrics, MP3FileName);  // embed CSS, if found, since USLT is plain text
+        ui->textBrowserCueSheet->setHtml(HTML);
         hasLyrics = true;
     } else {
-        ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // always clear out the existing lyrics on load
+        HTML = txtToHTMLlyrics(QString("No lyrics found for this song."), MP3FileName);  // The error message is styled with CSS, too, if present
+        ui->textBrowserCueSheet->setHtml(HTML);   // always clear out the existing lyrics on load
     }
 #else
-    ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // always clear out the existing lyrics on load
+    HTML = txtToHTMLlyrics(QString("No lyrics found for this song."), MP3FileName);  // The error message is styled with CSS, too, if present
+    ui->textBrowserCueSheet->setHtml(HTML);   // always clear out the existing lyrics on load
 #endif
 
     int extensionPos = MP3FileName.lastIndexOf('.');
     QString cuesheetFilenameBase(MP3FileName);
     cuesheetFilenameBase.truncate(extensionPos + 1);
-    const char *extensions[] = { "htm", "html" };
+    const char *extensions[] = { "htm", "html", "txt" };
 
     // FIX: comparison should be case insensitive (I have lots of files that differ only in case. They came that way.
     for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
         QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
         if (QFile::exists(cuesheetFilename)) {
             QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
-            ui->textBrowserCueSheet->setSource(cuesheetUrl);
+            if (QString(extensions[i]) == "txt") {
+                // text files are read in, converted to HTML, and sent to the Lyrics tab
+                QFile f1(cuesheetFilename);
+                f1.open(QIODevice::ReadOnly | QIODevice::Text);
+                QTextStream in(&f1);
+                QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
+                ui->textBrowserCueSheet->setText(html);
+                f1.close();
+            } else {
+                ui->textBrowserCueSheet->setSource(cuesheetUrl);
+            }
             hasLyrics = true;
             break;
         }
@@ -2677,3 +2693,45 @@ QString MainWindow::loadLyrics(QString MP3FileName)
     return (USLTlyrics);
 }
 #endif
+
+// ------------------------------------------------------------------------
+QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
+    QStringList pieces = filePathname.split( "/" );
+    pieces.pop_back(); // get rid of actual filename, keep the path
+    QString filedir = pieces.join("/"); // FIX: MAC SPECIFIC?
+//    qDebug() << "filePathname:" << filePathname << ", filedir" << filedir;
+
+    // TODO: we could get fancy, and keep looking in parent directories until we
+    //  find a CSS file, or until we hit the musicRootPath.  That allows for an overall
+    //  default, with overrides for individual subdirs.
+
+    QString css("");
+    bool fileIsOpen = false;
+    QFile f1(filedir + "/cuesheet2.css");  // This is the SqView convention for a CSS file
+    if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        // if there's a "cuesheet2.csv" file in the same directory as the .txt file,
+        //   then we're going to embed it into the HTML representation of the .txt file,
+        //   so that the font preferences therein apply.
+        fileIsOpen = true;
+        QTextStream in(&f1);
+        css = in.readAll();  // read the entire CSS file, if it exists
+    }
+
+    text = text.toHtmlEscaped();  // convert ">" to "&gt;" etc
+    text = text.replace(QRegExp("[\r|\n]"),"<br/>\n");
+
+    // TODO: fancier translation of .txt to .html, recognizing headers, etc.
+
+    QString HTML;
+    HTML += "<HTML>\n";
+    HTML += "<HEAD><STYLE>" + css + "</STYLE></HEAD>\n";
+    HTML += "<BODY>\n" + text + "</BODY>\n";
+    HTML += "</HTML>\n";
+
+//        qDebug() << "incoming:" << text << ", outgoing:" << HTML;
+
+    if (fileIsOpen) {
+        f1.close();
+    }
+    return(HTML);
+}

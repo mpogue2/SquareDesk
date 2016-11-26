@@ -194,6 +194,8 @@ private:
     int lyricsTabNumber;
     bool hasLyrics;
 
+    QString txtToHTMLlyrics(QString text, QString filePathname);
+
     QList<QString> *pathStack;
 
     bool saveSongPreferencesInConfig;
