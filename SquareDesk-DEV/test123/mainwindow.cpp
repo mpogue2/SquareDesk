@@ -21,6 +21,26 @@
 #include <iomanip>
 using namespace std;
 
+#if defined(Q_OS_MAC)
+// TAGLIB stuff is Mac-only for now...
+#include <taglib/tlist.h>
+#include <taglib/fileref.h>
+#include <taglib/tfile.h>
+#include <taglib/tag.h>
+#include <taglib/tpropertymap.h>
+
+#include <taglib/mpegfile.h>
+#include <taglib/id3v2tag.h>
+#include <taglib/id3v2frame.h>
+#include <taglib/id3v2header.h>
+
+#include <taglib/synchronizedlyricsframe.h>
+#include <taglib/unsynchronizedlyricsframe.h>
+#include <string>
+
+using namespace TagLib;
+
+#endif
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
 //
@@ -305,11 +325,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------
     bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
     showLyricsTab = true;
+    lyricsTabNumber = (showTimersTab ? 2 : 1);
     if (!lyricsEnabled) {
         ui->tabWidget->removeTab(timersEnabled ? 2 : 1);  // it's remembered, don't worry!
         showLyricsTab = false;
+        lyricsTabNumber = -1;
     }
     ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
+    ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
+//    qDebug() << "MainWindow():: lyricsTabNumber:" << lyricsTabNumber; // FIX
 
     // -------------------------
     if (prefsManager.GetSongPreferencesInConfig()) {
@@ -1249,9 +1273,33 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass.SetEq(2, (float)value);
 }
 
+//QString capitalize(const QString &str)
+//{
+//    QString tmp = str;
+//    // if you want to ensure all other letters are lowercase:
+//    tmp = tmp.toLower();
+//    tmp[0] = str[0].toUpper();
+//    return tmp;
+//}
+
 void MainWindow::loadCuesheet(QString MP3FileName)
 {
+    hasLyrics = false;
+
+#if defined(Q_OS_MAC)
+    // priority order:
+    //   1) lyrics found by matching file names
+    //   2) lyrics found embedded in the USLT ID3 tag in the file itself
+    QString embeddedID3Lyrics = loadLyrics(MP3FileName);
+    if (embeddedID3Lyrics != "") {
+        ui->textBrowserCueSheet->setText(embeddedID3Lyrics);
+        hasLyrics = true;
+    } else {
+        ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // always clear out the existing lyrics on load
+    }
+#else
     ui->textBrowserCueSheet->setText("No lyrics found for this song.");   // always clear out the existing lyrics on load
+#endif
 
     int extensionPos = MP3FileName.lastIndexOf('.');
     QString cuesheetFilenameBase(MP3FileName);
@@ -1264,12 +1312,20 @@ void MainWindow::loadCuesheet(QString MP3FileName)
         if (QFile::exists(cuesheetFilename)) {
             QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
             ui->textBrowserCueSheet->setSource(cuesheetUrl);
+            hasLyrics = true;
             break;
         }
     }
 
     // TODO: also look in <music directory>/lyrics and /cuesheets, basically, look everywhere for a match
     // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
+
+    if (hasLyrics && lyricsTabNumber != -1) {
+        ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
+    } else {
+        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+    }
+
 }
 
 
@@ -1823,6 +1879,7 @@ void MainWindow::on_actionPreferences_triggered()
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
         if (prefsManager.GetexperimentalCuesheetEnabled()) {
+            lyricsTabNumber = (showTimersTab ? 2 : 1);
             if (!showLyricsTab) {
                 // iff the Lyrics tab was NOT showing, make it show up now
                 ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
@@ -1830,11 +1887,19 @@ void MainWindow::on_actionPreferences_triggered()
             showLyricsTab = true;
         }
         else {
+            lyricsTabNumber = -1;  // not shown
             if (showLyricsTab) {
                 // iff Lyrics tab was showing, remove it
                 ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
             }
             showLyricsTab = false;
+        }
+
+//        qDebug() << "After Preferences:: lyricsTabNumber:" << lyricsTabNumber; // FIX
+        if (hasLyrics && lyricsTabNumber != -1) {
+            ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
+        } else {
+            ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
         }
 
         // ----------------------------------------------------------------
@@ -2496,7 +2561,7 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 
 }
 
-
+// ----------------------------------------------------------------------
 void MainWindow::saveCurrentSongSettings()
 {
     QString currentSong = ui->nowPlayingLabel->text();
@@ -2552,3 +2617,54 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         }
     }
 }
+
+#if defined(Q_OS_MAC)
+// ------------------------------------------------------------------------------------------
+QString MainWindow::loadLyrics(QString MP3FileName)
+{
+//    qDebug() << "Attempting to load lyrics for: " << MP3FileName;
+
+    QString USLTlyrics;
+
+    MPEG::File *mp3file;
+    ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
+
+    mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
+    id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
+
+//    qDebug() << "mp3file: " << mp3file << ", id3: " << id3v2tag;
+
+    ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
+    for (; it != id3v2tag->frameList().end(); it++)
+    {
+//        cout << (*it)->frameID() << " - \"" << (*it)->toString() << "\"" << endl;
+//        cout << (*it)->frameID() << endl;
+
+        if ((*it)->frameID() == "SYLT")
+        {
+//            qDebug() << "LOAD LYRICS -- found an SYLT frame!";
+        }
+
+        if ((*it)->frameID() == "USLT")
+        {
+//            qDebug() << "LOAD LYRICS -- found a USLT frame!";
+
+            ID3v2::UnsynchronizedLyricsFrame* usltFrame = (ID3v2::UnsynchronizedLyricsFrame*)(*it);
+            USLTlyrics = usltFrame->text().toCString();
+
+//            QString lyrics0 = dialog->lyrics.replace(QRegExp("^<br>\\[header\\]"),"[header]");
+//            QString lyrics1 = "<HTML><BODY style=\"font-family:arial;color:#000000;font-size:200%\">" + theUSLTLyrics;
+//            QString lyrics2 = lyrics1.replace("[header]","<FONT size=\"+3\" face=\"Arial\">");
+//            QString lyrics3 = lyrics2.replace("[lyrics]","<FONT color=\"#F51B67\"> <span>");
+//            QString lyrics4 = lyrics3.replace("[¤]","'"); // .replace("<br><br>","<br>");
+//            qDebug() << "PROCESSED RESULT = '" << lyrics3.toStdString() << "'" << endl;
+        }
+
+    }
+
+//    qDebug() << "END OF FRAME LIST ***************";
+//    qDebug() << "Lyrics found: " << USLTlyrics;
+
+    return (USLTlyrics);
+}
+#endif

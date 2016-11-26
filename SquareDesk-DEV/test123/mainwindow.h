@@ -187,6 +187,13 @@ private:
     void findMusic();    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
 
+#if defined(Q_OS_MAC)
+    // Lyrics stuff
+    QString loadLyrics(QString MP3FileName);
+#endif
+    int lyricsTabNumber;
+    bool hasLyrics;
+
     QList<QString> *pathStack;
 
     bool saveSongPreferencesInConfig;

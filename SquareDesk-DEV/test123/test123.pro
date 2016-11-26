@@ -63,11 +63,12 @@ macx {
     mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     QMAKE_BUNDLE_DATA += mylib
 
-    # add taglib static library, FIX: move to the squaredesk directory!
-    # LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/binaries/lib -ltag
-    #INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
-    #/usr/lib/libz.dylib
-    #LIBS += /usr/lib/libz.dylib
+#     add taglib static library, FIX: move to the squaredesk directory!
+#     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/binaries/lib -ltag
+     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
+    INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
+#    /usr/lib/libz.dylib
+    LIBS += /usr/lib/libz.dylib
 
     ICON = $$PWD/desk1d.icns
     DISTFILES += desk1d.icns
