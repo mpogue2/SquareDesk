@@ -24,6 +24,7 @@
 #include <QToolTip>
 #include <QVariant>
 #include <QWheelEvent>
+#include <QFileSystemWatcher>
 
 #include <QDateTime>
 
@@ -78,6 +79,7 @@ private slots:
     void on_UIUpdateTimerTick(void);
     void on_vuMeterTimerTick(void);
 
+    void on_newVolumeMounted(QString);
     void aboutBox();
 
     void on_actionSpeed_Up_triggered();
@@ -149,7 +151,7 @@ private:
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
-    QString musicRootPath;
+    QString musicRootPath, guestRootPath, guestVolume, guestMode;
     enum SongFilenameMatchingType songFilenameFormat;
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
@@ -184,7 +186,7 @@ private:
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(QString MP3FileName);
 
-    void findMusic();    // get the filenames into pathStack
+    void findMusic(QString mainRootDir, QString guestRootDir, QString mode);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
 
 #if defined(Q_OS_MAC)
@@ -242,6 +244,10 @@ private:
 #ifdef Q_OS_MAC
     MacUtils macUtils;  // singleton
 #endif
+
+    QFileSystemWatcher *fileWatcher;
+    QStringList getCurrentVolumes(QString volumeDir);
+    QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
 };
 
 // currentState:

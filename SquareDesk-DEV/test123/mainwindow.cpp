@@ -205,6 +205,20 @@ MainWindow::MainWindow(QWidget *parent) :
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
     musicRootPath = prefsManager.GetmusicPath();
+    guestRootPath = ""; // initially, no guest music
+    guestVolume = "";   // and no guest volume present
+    guestMode = "main"; // and not guest mode
+
+#if defined(Q_OS_MAC)
+    // initial Guest Mode stuff works on Mac OS only
+    //   should be straightforward to extend to Linux.
+    //   I don't know how difficult this will be on Windows (how to watch for new volumes on Windows?)
+    fileWatcher = new QFileSystemWatcher();     // watch that directory for mounted flash drives
+    fileWatcher->addPath(QString("/Volumes"));  // MAC SPECIFIC RIGHT NOW
+    connect(fileWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(on_newVolumeMounted(QString)));
+
+    lastKnownVolumeList = getCurrentVolumes("/Volumes"); // initial list, so we can look for NEW ones
+#endif
 
     // set initial colors for text in songTable, also used for shading the clock
     patterColorString = prefsManager.GetpatterColorString();
@@ -246,7 +260,7 @@ MainWindow::MainWindow(QWidget *parent) :
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
     // used to store the file paths
-    findMusic();  // get the filenames from the user's directories
+    findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
     filterMusic(); // and filter them into the songTable
 
     ui->songTable->setColumnWidth(kNumberCol,36);
@@ -1517,11 +1531,12 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack)
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix)
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
         QString s1 = it.next();
+//        qDebug() << "FFR:" << s1;
         // If alias, follow it.
         QString resolvedFilePath = it.fileInfo().symLinkTarget(); // path with the symbolic links followed/removed
         if (resolvedFilePath == "") {
@@ -1531,32 +1546,53 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack)
 
         QFileInfo fi(s1);
         QStringList section = fi.canonicalPath().split("/");
-        QString type = section[section.length()-1];  // must be the last item in the path
-                                                     // of where the alias is, not where the file is
-
+        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
+                                                              // of where the alias is, not where the file is, and append "*" or not
         pathStack->append(type + "#!#" + resolvedFilePath);
     }
 }
 
-void MainWindow::findMusic()
+void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode)
 {
-    // always gets rid of the old one...
+    // always gets rid of the old pathstack...
     if (pathStack) {
         delete pathStack;
     }
+
+    // make a new one
     pathStack = new QList<QString>();
 
-    QDir musicRootDir(musicRootPath);
-    musicRootDir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot |
-                           QDir::NoDotDot); // FIX: temporarily don't allow symlinks  | QDir::NoSymLinks
+    // mode == "main": look only in the main directory (e.g. there isn't a guest directory)
+    // mode == "guest": look only in the guest directory (e.g. guest overrides main)
+    // mode == "both": look in both places for MP3 files (e.g. merge guest into main)
+    if (mode == "main" || mode == "both") {
+        // looks for files in the mainRootDir --------
+//        qDebug() << "looking for files in the mainRootDir";
+        QDir rootDir1(mainRootDir);
+        rootDir1.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
 
-    QStringList qsl;
-    qsl.append("*.mp3");                // I only want MP3 files
-    qsl.append("*.wav");                //          or WAV files
-    musicRootDir.setNameFilters(qsl);
+        QStringList qsl;
+        qsl.append("*.mp3");                // I only want MP3 files
+        qsl.append("*.wav");                //          or WAV files
+        rootDir1.setNameFilters(qsl);
 
-    // --------
-    findFilesRecursively(musicRootDir, pathStack);
+        findFilesRecursively(rootDir1, pathStack, "");  // appends to the pathstack
+    }
+
+    if (guestRootDir != "" && (mode == "guest" || mode == "both")) {
+        // looks for files in the guestRootDir --------
+//        qDebug() << "looking for files in the guestRootDir";
+        QDir rootDir2(guestRootDir);
+        rootDir2.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
+
+        QStringList qsl;
+        qsl.append("*.mp3");                // I only want MP3 files
+        qsl.append("*.wav");                //          or WAV files
+        rootDir2.setNameFilters(qsl);
+
+        findFilesRecursively(rootDir2, pathStack, "*");  // appends to the pathstack, "*" for "Guest"
+    }
+
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -1616,6 +1652,7 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
     }
 }
 
+// --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
     ui->songTable->setSortingEnabled(false);
@@ -1650,7 +1687,6 @@ void MainWindow::filterMusic()
 
     while (iter.hasNext()) {
         QString s = iter.next();
-
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         s = sl1[1];  // everything else
@@ -1658,8 +1694,8 @@ void MainWindow::filterMusic()
 
         QFileInfo fi(s);
 
-        if (fi.canonicalPath() == musicRootPath) {
-            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT
+        if (fi.canonicalPath() == musicRootPath && type.right(1) != "*") {
+            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
             type = "";
         }
 
@@ -1702,16 +1738,23 @@ void MainWindow::filterMusic()
 
         QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
 
-        if (type == "xtras") {
+        QString cType = type;  // type for Color purposes
+        if (cType.right(1)=="*") {
+            cType.chop(1);  // remove the "*" for the purposes of coloring
+        }
+//        if (cType == "xtras") {
+        if (songTypeNamesForExtras.contains(cType)) {
             textCol = QColor(extrasColorString);
         }
-        else if ((type == "patter") || (type == "hoedown")) {
+//        else if ((cType == "patter") || (cType == "hoedown")) {
+        else if (songTypeNamesForPatter.contains(cType)) {
             textCol = QColor(patterColorString);
         }
-        else if (type == "singing") {
+//        else if (cType == "singing") {
+        else if (songTypeNamesForSinging.contains(cType)) {
             textCol = QColor(singingColorString);
         }
-        else if (songTypeNamesForCalled.contains(type)) {
+        else if (songTypeNamesForCalled.contains(cType)) {
             textCol = QColor(calledColorString);
         }
 
@@ -1765,7 +1808,14 @@ void MainWindow::filterMusic()
 
     ui->songTable->setSortingEnabled(true);
 
-    QString msg1 = QString::number(ui->songTable->rowCount()) + QString(" audio files found.");
+    QString msg1;
+    if (guestMode == "main") {
+        msg1 = QString::number(ui->songTable->rowCount()) + QString(" audio files found.");
+    } else if (guestMode == "guest") {
+        msg1 = QString::number(ui->songTable->rowCount()) + QString(" guest audio files found.");
+    } else if (guestMode == "both") {
+        msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
+    }
     ui->statusBar->showMessage(msg1);
 }
 
@@ -1876,7 +1926,7 @@ void MainWindow::on_actionPreferences_triggered()
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
-        findMusic(); // always refresh the songTable after the Prefs dialog returns with OK
+        findMusic(musicRootPath, "", "main"); // always refresh the songTable after the Prefs dialog returns with OK
 
         // Save the new value for music type colors --------
         patterColorString = prefsManager.GetpatterColorString();
@@ -2734,4 +2784,93 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
         f1.close();
     }
     return(HTML);
+}
+
+// ----------------------------------------------------------------------------
+QStringList MainWindow::getCurrentVolumes(QString volumeDirName) {
+    QStringList volumeDirList;
+
+    QDir volumesDir(volumeDirName);
+    volumesDir.setFilter(QDir::Dirs | QDir::NoDot | QDir::NoDotDot | QDir::NoSymLinks);
+//    QList<QString> *volumes = new QList<QString>();
+
+    QDirIterator it(volumesDir);
+    while(it.hasNext()) {
+        QString s1 = it.next();
+//        qDebug() << "Found dir:" << s1;
+        volumeDirList.append(s1);
+
+        //        QFileInfo fi(s1);
+//        QStringList section = fi.canonicalPath().split("/");
+//        QString type = section[section.length()-1];  // must be the last item in the path
+                                                     // of where the alias is, not where the file is
+    }
+
+    return(volumeDirList);
+}
+
+// ----------------------------------------------------------------------------
+void MainWindow::on_newVolumeMounted(QString dirName) {
+//    qDebug() << "NEW VOLUME:" << dirName;
+
+//    // always gets rid of the old one...
+//    if (pathStack) {
+//        delete pathStack;
+//    }
+//    pathStack = new QList<QString>();
+
+//    QDir musicRootDir(musicRootPath);
+//    musicRootDir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot |
+//                           QDir::NoDotDot); // FIX: temporarily don't allow symlinks  | QDir::NoSymLinks
+
+//    QStringList qsl;
+//    qsl.append("*.mp3");                // I only want MP3 files
+//    qsl.append("*.wav");                //          or WAV files
+//    musicRootDir.setNameFilters(qsl);
+
+    QStringList newVolumeList = getCurrentVolumes(dirName);
+
+//    foreach (const QString &item, lastKnownVolumeList) {
+//        qDebug() << "LastKnownVolumeList:" << item;
+//    }
+//    foreach (const QString &item, newVolumeList) {
+//        qDebug() << "NewVolumeList:" << item;
+//    }
+
+    QSet<QString> newVolumes, goneVolumes;
+    QString newVolume, goneVolume;
+    if (lastKnownVolumeList.length() == newVolumeList.length() - 1) {
+        // A VOLUME APPEARED
+        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+        foreach (const QString &item, newVolumes) {
+//            qDebug() << "DETECTED NEW VOLUME:" << item;
+            newVolume = item;  // first item is the volume added
+        }
+        // TODO: Look for a directory with the right name, and THEN findMusic()
+        // TODO: if (exists)
+        guestMode = "both"; // <-- replace, don't merge (use "both" for merge)
+        guestVolume = newVolume;
+        guestRootPath = guestVolume + "/squareDanceMusic";  // NOTE: THIS IS HARD-CODED RIGHT NOW
+        sleep(2);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
+        findMusic(musicRootPath, guestRootPath, guestMode);  // get the filenames from the guest's directories
+    } else if (lastKnownVolumeList.length() == newVolumeList.length() + 1) {
+        // A VOLUME WENT AWAY
+        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+        foreach (const QString &item, goneVolumes) {
+//            qDebug() << "DETECTED VOLUME GONE:" << item;
+            goneVolume = item;
+        }
+        if (goneVolume == guestVolume) {
+            guestMode = "main";
+            guestRootPath = "";
+            findMusic(musicRootPath, "", guestMode);  // get the filenames from the user's directories
+        }
+    } else {
+//        qDebug() << "More than one volume change at exactly the same time. I give up. :-(";
+        return;
+    }
+
+    lastKnownVolumeList = newVolumeList;
+
+    filterMusic(); // and filter them into the songTable
 }
