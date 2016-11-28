@@ -2820,21 +2820,6 @@ QStringList MainWindow::getCurrentVolumes(QString volumeDirName) {
 void MainWindow::on_newVolumeMounted(QString dirName) {
 //    qDebug() << "NEW VOLUME:" << dirName;
 
-//    // always gets rid of the old one...
-//    if (pathStack) {
-//        delete pathStack;
-//    }
-//    pathStack = new QList<QString>();
-
-//    QDir musicRootDir(musicRootPath);
-//    musicRootDir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot |
-//                           QDir::NoDotDot); // FIX: temporarily don't allow symlinks  | QDir::NoSymLinks
-
-//    QStringList qsl;
-//    qsl.append("*.mp3");                // I only want MP3 files
-//    qsl.append("*.wav");                //          or WAV files
-//    musicRootDir.setNameFilters(qsl);
-
     QStringList newVolumeList = getCurrentVolumes(dirName);
 
 //    foreach (const QString &item, lastKnownVolumeList) {
