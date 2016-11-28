@@ -934,7 +934,14 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             return;
         }
 
-        ui->currentLocLabel->setText(position2String(currentPos_i, true));  // pad on the left
+        PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+        if (prefsManager.GetuseTimeRemaining()) {
+            // time remaining in song
+            ui->currentLocLabel->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
+        } else {
+            // current position in song
+            ui->currentLocLabel->setText(position2String(currentPos_i, true));              // pad on the left
+        }
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
     }
     else {

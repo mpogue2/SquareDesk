@@ -54,6 +54,8 @@ CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSaveSongPreferencesInConfig,SongPreferencesInCo
 CONFIG_ATTRIBUTE_BOOLEAN(initialBPMcheckbox,tryToSetInitialBPM, false)
 CONFIG_ATTRIBUTE_INT(initialBPMLineEdit,initialBPM, 125)
 
+CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
+
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(autostartplayback, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(forcemono, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(startplaybackoncountdowntimer, false)
