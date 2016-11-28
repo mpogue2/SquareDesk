@@ -67,6 +67,11 @@ macx {
 #     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/binaries/lib -ltag
      LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
     INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
+
+    INCLUDEPATH += /Users/mpogue/Documents/QtProjects/pods/qtwebserver
+    QT += network
+    LIBS += $$PWD/libqtwebserver.a
+
 #    /usr/lib/libz.dylib
     LIBS += /usr/lib/libz.dylib
 

@@ -13,6 +13,11 @@
 #include "analogclock.h"
 #include "prefsmanager.h"
 
+#include "tcp/tcpmultithreadedserver.h"
+#include "http/httpwebengine.h"
+#include "http/httpiodeviceresource.h"
+using namespace QtWebServer;
+
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // BUG: NL allowed in the search fields, makes the text disappear until DEL pressed
@@ -387,6 +392,19 @@ MainWindow::MainWindow(QWidget *parent) :
     // LYRICS TAB ------------
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
+
+    // EXPERIMENTAL
+    Log::instance()->setLoggingMode(Log::LoggingModeConsole);
+    Tcp::MultithreadedServer s;
+    Http::WebEngine w;
+
+    w.addResource(new Http::IODeviceResource(
+                      "/tam",
+                      new QFile("/Users/mpogue/tamination/index.html")));
+
+    s.setResponder(&w);
+    s.listen(QHostAddress::Any, 3000, 16);
+
 
 }
 
