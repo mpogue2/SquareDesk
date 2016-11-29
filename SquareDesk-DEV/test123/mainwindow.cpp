@@ -449,6 +449,8 @@ void MainWindow::setFontSizes()
     ui->plusCallList2->setStyleSheet(styleForCallerlabDefinitions);
     ui->a1CallList1->setStyleSheet(styleForCallerlabDefinitions);
     ui->a1CallList2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->a2CallList1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->a2CallList2->setStyleSheet(styleForCallerlabDefinitions);
 
     font.setPointSize(preferredNowPlayingSize);
     ui->nowPlayingLabel->setFont(font);

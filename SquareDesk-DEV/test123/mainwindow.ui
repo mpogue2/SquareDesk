@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>751</width>
+    <width>721</width>
     <height>558</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1272,7 +1272,83 @@
                </font>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Pair Off&lt;br/&gt;Partner Hinge&lt;br/&gt;Partner Tag&lt;br/&gt;Pass In/Out&lt;br/&gt;Pass the Sea&lt;br/&gt;Quarter In/Out&lt;br/&gt;Quarter Thru / Three Quarter Thru&lt;br/&gt;Grand Quarter Thru&lt;br/&gt;Grand Three Quarter Thru&lt;br/&gt;Right (Left) Roll to a Wave &lt;br/&gt;Scoot and Dodge&lt;br/&gt;Six-Two Acey-Deucey &lt;br/&gt;Split Square Chain Thru &lt;br/&gt;Split Square Thru&lt;br/&gt;Square Chain Thru&lt;br/&gt;Step and Slide&lt;br/&gt;Swap Around&lt;br/&gt;Reverse Swap Around&lt;br/&gt;Transfer the Column&lt;br/&gt;Triple Cross&lt;br/&gt;Triple Scoot&lt;br/&gt;Triple Trade&lt;br/&gt;Turn and Deal&lt;br/&gt;Wheel Thru / Left Wheel Thru&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;Pair Off&lt;br/&gt;Partner Hinge&lt;br/&gt;Partner Tag&lt;br/&gt;Pass In/Out&lt;br/&gt;Pass the Sea&lt;br/&gt;Quarter In/Out&lt;br/&gt;Quarter Thru / Three Quarter Thru&lt;br/&gt;Grand Quarter Thru&lt;br/&gt;Grand Three Quarter Thru&lt;br/&gt;Right (Left) Roll to a Wave &lt;br/&gt;Scoot and Dodge&lt;br/&gt;Six-Two Acey-Deucey &lt;br/&gt;Split Square Chain Thru &lt;br/&gt;Split Square Thru&lt;br/&gt;Square Chain Thru&lt;br/&gt;Step and Slide&lt;br/&gt;Swap Around&lt;br/&gt;Reverse Swap Around&lt;br/&gt;Transfer the Column&lt;br/&gt;Triple Cross&lt;br/&gt;Triple Scoot&lt;br/&gt;Triple Trade&lt;br/&gt;Turn and Deal&lt;br/&gt;Wheel Thru / Left Wheel Thru&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="A2">
+           <attribute name="title">
+            <string>A2</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="0" column="0">
+             <widget class="QLabel" name="a2CallList1">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== ADVANCED 2 ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;All 4 Couples / All 8 Concept, such as:&lt;br/&gt;
+All 4 Couples Right and Left Thru &lt;br/&gt;
+All 4 Couples Star Thru&lt;br/&gt;
+All 4 Couples Chase Right&lt;br/&gt;
+All 8 Swing Thru&lt;br/&gt;
+All 8 Switch the Wave&lt;br/&gt;
+All 8 Walk and Dodge&lt;br/&gt;
+All 8 Mix&lt;br/&gt;
+Checkmate the Column &lt;br/&gt;
+Diamond Chain Thru &lt;br/&gt;
+Hourglass Circulate&lt;br/&gt;
+Cut/Flip the Hourglass &lt;br/&gt;
+In/Out Roll Circulate&lt;br/&gt;
+Mini-Busy&lt;br/&gt;
+Motivate&lt;br/&gt;
+Pass and Roll&lt;br/&gt;
+Pass and Roll Your Neighbor &lt;br/&gt;
+Peel and Trail&lt;br/&gt;
+Recycle (facing couples) &lt;br/&gt;
+Remake, Grand Remake, Remake The Thar&lt;br/&gt;
+Scoot and Weave&lt;br/&gt;
+Scoot Chain Thru&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="textFormat">
+               <enum>Qt::AutoText</enum>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="a2CallList2">
+              <property name="font">
+               <font>
+                <pointsize>11</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;
+Single Wheel&lt;br/&gt;
+Slip / Slide / Swing / Slither &lt;br/&gt;
+Spin the Windmill &lt;br/&gt;
+Split/Box Counter Rotate &lt;br/&gt;
+Split/Box Transfer&lt;br/&gt;
+Swing and Mix&lt;br/&gt;
+Switch the Wave&lt;br/&gt;
+Switch to a Diamond/Hourglass (waves only) &lt;br/&gt;
+Trade Circulate&lt;br/&gt;
+Trail Off&lt;br/&gt;
+Transfer and (Anything)&lt;br/&gt;
+Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="scaledContents">
+               <bool>false</bool>
               </property>
               <property name="alignment">
                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -1294,7 +1370,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>751</width>
+     <width>721</width>
      <height>22</height>
     </rect>
    </property>
