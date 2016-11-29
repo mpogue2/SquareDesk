@@ -100,12 +100,15 @@ void MySlider::paintEvent(QPaintEvent *e)
         //    the colors don't draw at all. :-(
         middle += 2;  // only on Windows...
 #endif
-        QColor colorEnds = Qt::yellow;
+        QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
         QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
         float left = 1;
         float right = width + offset + 5;
+#if defined(Q_OS_MAC)
+        left += 1;   // pixel perfection on Mac OS X Sierra
+#endif
 #if defined(Q_OS_WIN)
-        right += 1;  // only on Windows...
+        right += 1;  // pixel perfection on Windows 10
 #endif
 #ifdef Q_OS_LINUX
         right -= 4;
