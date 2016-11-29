@@ -441,14 +441,14 @@ void MainWindow::setFontSizes()
 #if defined(Q_OS_WIN)
     styleForCallerlabDefinitions = "QLabel{font-size:8pt;}";
 #endif
-    ui->basicLabel1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->basicLabel2->setStyleSheet(styleForCallerlabDefinitions);
-    ui->MainstreamLabel1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->MainstreamLabel2->setStyleSheet(styleForCallerlabDefinitions);
-    ui->PlusLabel1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->PlusLabel2->setStyleSheet(styleForCallerlabDefinitions);
-    ui->A1Label1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->A1Label2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->basicCallList1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->basicCallList2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->basicCallList3->setStyleSheet(styleForCallerlabDefinitions);
+    ui->basicCallList4->setStyleSheet(styleForCallerlabDefinitions);
+    ui->plusCallList1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->plusCallList2->setStyleSheet(styleForCallerlabDefinitions);
+    ui->a1CallList1->setStyleSheet(styleForCallerlabDefinitions);
+    ui->a1CallList2->setStyleSheet(styleForCallerlabDefinitions);
 
     font.setPointSize(preferredNowPlayingSize);
     ui->nowPlayingLabel->setFont(font);
@@ -2843,7 +2843,7 @@ void MainWindow::on_newVolumeMounted(QString dirName) {
         guestMode = "both"; // <-- replace, don't merge (use "both" for merge)
         guestVolume = newVolume;
         guestRootPath = guestVolume + "/squareDanceMusic";  // NOTE: THIS IS HARD-CODED RIGHT NOW
-        sleep(2);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
+        QThread::sleep(2);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
         findMusic(musicRootPath, guestRootPath, guestMode);  // get the filenames from the guest's directories
     } else if (lastKnownVolumeList.length() == newVolumeList.length() + 1) {
         // A VOLUME WENT AWAY
