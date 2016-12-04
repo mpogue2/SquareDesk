@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>807</width>
-    <height>535</height>
+    <height>558</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -836,6 +836,31 @@ Click on a color square to change the color associated with that Music Type.  Se
            <item>
             <property name="text">
              <string>10 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>11 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>12 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>13 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>14 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>15 minutes</string>
             </property>
            </item>
           </widget>

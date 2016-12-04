@@ -52,15 +52,11 @@
 #define ANALOGCLOCK_H
 
 #include <QWidget>
+#include "clickablelabel.h"
+#include "typetracker.h"
 
 // set to speed up the clock by 60X
 //#define DEBUGCLOCK 1
-
-#define NONE 0
-#define PATTER 1
-#define SINGING 2
-#define SINGING_CALLED 3
-#define XTRAS 4
 
 class AnalogClock : public QWidget
 {
@@ -70,9 +66,9 @@ public:
     AnalogClock(QWidget *parent = 0);
     QTimer *analogClockTimer;
 
-    void setSegment(int hour, int minute, int type);
-    int typeInMinute[60]; // remembers the type for this minute
-    int lastHourSet[60];  // remembers the hour when the type was set for that minute
+    void setSegment(unsigned int hour, unsigned int minute, unsigned int second, unsigned int type);
+    unsigned int typeInMinute[60]; // remembers the type for this minute
+    unsigned int lastHourSet[60];  // remembers the hour when the type was set for that minute
 
     void setColorForType(int type, QColor theColor);
     QColor colorForType[10];
@@ -84,6 +80,13 @@ public:
 
     int breakLengthAlarmMinutes;
     int tipLengthAlarmMinutes;
+    bool tipLengthTimerEnabled;
+
+    void setTimerLabel(clickableLabel *theLabel);
+
+    clickableLabel *timerLabel;
+    TypeTracker typeTracker;
+    void resetPatter(void);
 
 private slots:
     void redrawTimerExpired();

@@ -144,6 +144,8 @@ private slots:
 
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
 
+    void on_warningLabel_clicked();
+
 private:
     QAction *closeAct;  // WINDOWS only
 

@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -890,7 +890,7 @@
            </widget>
           </item>
           <item row="1" column="6">
-           <widget class="QLabel" name="warningLabel">
+           <widget class="clickableLabel" name="warningLabel">
             <property name="font">
              <font>
               <pointsize>18</pointsize>
@@ -1795,6 +1795,11 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    <class>MyTableWidget</class>
    <extends>QTableWidget</extends>
    <header location="global">mytablewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>clickableLabel</class>
+   <extends>QLabel</extends>
+   <header location="global">clickablelabel.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

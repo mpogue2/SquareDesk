@@ -71,7 +71,8 @@ AnalogClock::AnalogClock(QWidget *parent)
     breakLengthAlarm = false;
 
     tipLengthAlarmMinutes = 100;  // if >60, disabled
-    tipLengthAlarmMinutes = 100;  // if >60, disabled
+
+//    typeTracker.printState("AnalogClock::AnalogClock()");
 }
 
 void AnalogClock::redrawTimerExpired()
@@ -166,7 +167,8 @@ void AnalogClock::paintEvent(QPaintEvent *)
     int startMinute = time.second();  // FIX FIX FIX FIX FIX **********
 #endif
 
-    // check for LONG PATTER ALARM -------
+    // OLDSTYLE: check for LONG PATTER ALARM -------
+    // TODO: delete this section when NEWSTYLE section is fully debugged
     int numMinutesPatter = 0;
 
     for (int i = 0; i < 60; i++) {
@@ -185,6 +187,46 @@ void AnalogClock::paintEvent(QPaintEvent *)
         tipLengthAlarm = true;
     } else {
         tipLengthAlarm = false;
+    }
+
+    // NEWSTYLE: check for LONG PATTER ALARM
+    int patterLengthSecs = typeTracker.currentPatterLength();
+    unsigned int secs = patterLengthSecs;
+    unsigned int mm = (unsigned int)(secs/60);
+    unsigned int ss = secs - 60*mm;
+
+    // To debug, change 60 to 5
+    int maxPatterLength = tipLengthAlarmMinutes * 60;  // the user's preference for MAX PATTER LENGTH (converted to seconds)
+
+//    qDebug() << "clock::paintEvent" << tipLengthTimerEnabled;
+
+    if (timerLabel != NULL) {
+//        qDebug() << "timerLabel: " << (unsigned long long)timerLabel;
+        if (patterLengthSecs == -1 || !tipLengthTimerEnabled) {
+            // if not patter, or the patter timer is disabled
+            timerLabel->setVisible(false);
+        } else if (patterLengthSecs < maxPatterLength) {
+            // UNDER THE TIME LIMIT
+            timerLabel->setVisible(true);
+            timerLabel->setStyleSheet("QLabel { color : black; }");
+            timerLabel->setText(QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+        } else if (patterLengthSecs < maxPatterLength + 15) {  // it will be red for 15 seconds, before also starting to flash "LONG TIP"
+            // OVER THE TIME LIMIT, so make the time-in-patter RED.
+            timerLabel->setVisible(true);
+            timerLabel->setStyleSheet("QLabel { color : red; }");
+            timerLabel->setText(QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            // TODO: play a sound, if enabled
+        } else {
+            // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
+            timerLabel->setVisible(true);
+            timerLabel->setStyleSheet("QLabel { color : red; }");
+            if (ss % 2 == 0) {
+                timerLabel->setText(QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            } else {
+                timerLabel->setText("LONG TIP");
+            }
+            // TODO: play a more serious sound, if enabled
+        }
     }
 
     // check for END OF BREAK -------
@@ -272,7 +314,7 @@ void AnalogClock::paintEvent(QPaintEvent *)
 
 }
 
-void AnalogClock::setSegment(int hour, int minute, int type)
+void AnalogClock::setSegment(unsigned int hour, unsigned int minute, unsigned int second, unsigned int type)
 {
     // TODO: I have discovered a truly marvelous idea for showing session activity on the clock face,
     //    which this margin is too narrow to contain....
@@ -286,10 +328,31 @@ void AnalogClock::setSegment(int hour, int minute, int type)
         // normal type, always update the current minute
         typeInMinute[minute] = type;
     }
+
+
+    // TODO: use the timeSegmentList instead of the typeInMinute[] and lastHourSet[] to do Clock Coloring
+
+    Q_UNUSED(second)
+    typeTracker.addSecond(type);
+//    typeTracker.printState("AnalogClock::setSegment():");
 }
 
 void AnalogClock::setHidden(bool hidden)
 {
     coloringIsHidden = hidden;
+}
+
+void AnalogClock::setTimerLabel(clickableLabel *theLabel)
+{
+//    qDebug() << "AnalogClock::setTimerLabel";
+    timerLabel = theLabel;
+//    timerLabel->setText("Hello!");
+//    timerLabel->setVisible(true);
+}
+
+void AnalogClock::resetPatter(void)
+{
+    timerLabel->setText("00:00");
+    typeTracker.addStop();
 }
 

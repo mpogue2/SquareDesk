@@ -39,6 +39,8 @@ using namespace std;
 #include <taglib/unsynchronizedlyricsframe.h>
 #include <string>
 
+#include "typetracker.h"
+
 using namespace TagLib;
 
 #endif
@@ -242,6 +244,8 @@ MainWindow::MainWindow(QWidget *parent) :
     breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
     breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 
+    analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;  // tell the clock whether the alarm is enabled
+
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
@@ -388,6 +392,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
 
+    analogClock->setTimerLabel(ui->warningLabel);  // tell the clock which label to use for the patter timer
 }
 
 // ----------------------------------------------------------------------
@@ -1053,11 +1058,12 @@ void MainWindow::on_UIUpdateTimerTick(void)
         analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
     }
 #ifndef DEBUGCLOCK
-    analogClock->setSegment(time.hour(), time.minute(), theType);  // always called once per second
+    analogClock->setSegment(time.hour(), time.minute(), time.second(), theType);  // always called once per second
 #else
-    analogClock->setSegment(time.minute(), time.second(), theType);  // FIX FIX FIX FIX ******
+    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
 #endif
 
+#ifdef ORIGINALTIPTIMERWARNING
     if (tipLengthTimerEnabled && analogClock->tipLengthAlarm && theType == PATTER) {
         if (tipLengthAlarmAction == 0) {
             ui->warningLabel->setText("LONG TIP!");
@@ -1075,6 +1081,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
     } else {
         ui->warningLabel->setText("");
     }
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -2002,6 +2009,7 @@ void MainWindow::on_actionPreferences_triggered()
         breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 
         // and tell the clock, too.
+        analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
         analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
         analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
 
@@ -2867,4 +2875,10 @@ void MainWindow::on_newVolumeMounted(QString dirName) {
     lastKnownVolumeList = newVolumeList;
 
     filterMusic(); // and filter them into the songTable
+}
+
+void MainWindow::on_warningLabel_clicked() {
+//    qDebug() << "warningLabel clicked!";
+    // TODO: clear the timer
+    analogClock->resetPatter();
 }

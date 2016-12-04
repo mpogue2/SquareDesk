@@ -20,7 +20,9 @@ SOURCES += main.cpp\
     myslider.cpp \
     levelmeter.cpp \
     analogclock.cpp \
-    prefsmanager.cpp
+    prefsmanager.cpp \
+    clickablelabel.cpp \
+    typetracker.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -38,7 +40,9 @@ HEADERS  += mainwindow.h \
     prefs_options.h \
     prefsmanager.h \
     default_colors.h \
-    macUtils.h
+    macUtils.h \
+    clickablelabel.h \
+    typetracker.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui
