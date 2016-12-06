@@ -56,7 +56,7 @@
 #include "typetracker.h"
 
 // set to speed up the clock by 60X
-//#define DEBUGCLOCK 1
+#define DEBUGCLOCK 1
 
 class AnalogClock : public QWidget
 {
@@ -78,9 +78,10 @@ public:
     bool tipLengthAlarm;
     bool breakLengthAlarm;
 
+    bool tipLengthTimerEnabled;  // TODO: rename to patterLengthTimerEnabled
+    int tipLengthAlarmMinutes;   // TODO: rename to patterLengthAlarmMinutes
+    bool breakLengthTimerEnabled;
     int breakLengthAlarmMinutes;
-    int tipLengthAlarmMinutes;
-    bool tipLengthTimerEnabled;
 
     void setTimerLabel(clickableLabel *theLabel);
 

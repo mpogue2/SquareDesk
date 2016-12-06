@@ -67,16 +67,106 @@ AnalogClock::AnalogClock(QWidget *parent)
     }
 
     coloringIsHidden = true;
-    tipLengthAlarm = false;
-    breakLengthAlarm = false;
+//    tipLengthAlarm = false;
+//    breakLengthAlarm = false;
 
-    tipLengthAlarmMinutes = 100;  // if >60, disabled
+//    tipLengthAlarmMinutes = 100;  // if >60, disabled
 
 //    typeTracker.printState("AnalogClock::AnalogClock()");
+
 }
 
 void AnalogClock::redrawTimerExpired()
 {
+//    qDebug() << "redrawTimerExpired";
+//    if (timerLabel != NULL) {
+//        if (time.second() % 2 == 0) {
+//            timerLabel->setText("12345");
+//        } else {
+//            timerLabel->setText("54321");
+//        }
+//    }
+
+    // THIS NEEDS TO BE HERE, OR IT WILL CAUSE LOTS OF PAINT EVENTS
+
+    // NEWSTYLE: check for LONG PATTER ALARM
+    int patterLengthSecs = typeTracker.currentPatterLength();
+    unsigned int secs = patterLengthSecs;
+    unsigned int mm = (unsigned int)(secs/60);
+    unsigned int ss = secs - 60*mm;
+    // TODO: Patter timer should change to count-down timer
+
+    // BREAK timer is a count-down timer to 00:00 (end of break)
+    //   but it keeps on counting
+    int breakLengthSecs = typeTracker.currentBreakLength();
+    int b_secs = breakLengthAlarmMinutes*60 - breakLengthSecs;  // seconds to go in the break; to debug, change 60 to 5
+    int b_mm = abs(b_secs/60);
+    int b_ss = abs(b_secs) - 60*abs(b_mm);  // always positive
+
+//    qDebug() << "BREAK PIECES: " << breakLengthSecs << b_secs << b_mm << b_ss;
+
+    // To debug, change 60 to 5
+    int maxPatterLength = tipLengthAlarmMinutes * 60;  // the user's preference for MAX PATTER LENGTH (converted to seconds)
+    int maxBreakLength = breakLengthAlarmMinutes * 60;  // the user's preference for MAX BREAK LENGTH (converted to seconds)
+
+    if (timerLabel != NULL) {
+        if (patterLengthSecs == -1 || !tipLengthTimerEnabled) {
+            // if not patter, or the patter timer is disabled
+            if (breakLengthSecs == -1 || !breakLengthTimerEnabled) {
+                // AND if also it's not break or the break timer is disabled
+                timerLabel->setVisible(false);  // make the timerLabel disappear
+            } else if (breakLengthSecs < maxBreakLength && typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
+                // it is for sure a BREAK, the break timer is enabled, and it's under the break time limit,
+                //   and we played something before the break, and we're currently in state NONE (NOTE: can't use patter or singing calls or extras as break music)
+//                qDebug() << "for sure a BREAK";
+                timerLabel->setVisible(true);
+                timerLabel->setStyleSheet("QLabel { color : blue; }");
+                timerLabel->setText(QString("BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+            } else if (typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
+                // the break has expired.  We played something before the break, and we're currently in NONE state.
+//                qDebug() << "expired BREAK";
+                timerLabel->setVisible(true);
+                timerLabel->setStyleSheet("QLabel { color : red; }");  // turns red when break is over
+                // alternate the time (negative now), and "END BREAK"
+                if (b_ss % 2 == 0) {
+                    timerLabel->setText("END BREAK");
+                } else {
+                    timerLabel->setText(QString("-") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+                }
+                // TODO: optionally play a sound, or start the next song
+            } else {
+                // either we have 1 state known (e.g. NONE for 3600 secs), OR
+                //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
+//                qDebug() << "none state";
+                timerLabel->setVisible(false);
+            }
+        } else if (patterLengthSecs < maxPatterLength) {
+//            qDebug() << "patter under the time limit";
+            // UNDER THE TIME LIMIT
+            timerLabel->setVisible(true);
+            timerLabel->setStyleSheet("QLabel { color : black; }");
+            timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+        } else if (patterLengthSecs < maxPatterLength + 15) {  // it will be red for 15 seconds, before also starting to flash "LONG TIP"
+//            qDebug() << "patter OVER the time limit";
+            // OVER THE TIME LIMIT, so make the time-in-patter RED.
+            timerLabel->setVisible(true);
+            timerLabel->setStyleSheet("QLabel { color : red; }");
+            timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            // TODO: play a sound, if enabled
+        } else {
+//            qDebug() << "patter REALLY over the time limit";
+            // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
+            timerLabel->setVisible(true);
+            timerLabel->setStyleSheet("QLabel { color : red; }");
+            if (ss % 2 == 0) {
+                timerLabel->setText("LONG TIP");
+            } else {
+                timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            }
+            // TODO: play a more serious sound, if enabled
+        }
+    }
+
     update();
 }
 
@@ -87,6 +177,9 @@ void AnalogClock::setColorForType(int type, QColor theColor)
 
 void AnalogClock::paintEvent(QPaintEvent *)
 {
+//    qDebug() << "clock::paintEvent";  // IMPORTANT: make sure we only get a couple of these per second
+    QTime time = QTime::currentTime();
+
     static const QPoint hourHand[3] = {
         QPoint(7, 8),
         QPoint(-7, 8),
@@ -123,7 +216,6 @@ void AnalogClock::paintEvent(QPaintEvent *)
     QColor secondColor(127,0,0, 200);
 
     int side = qMin(width(), height());
-    QTime time = QTime::currentTime();
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -131,7 +223,7 @@ void AnalogClock::paintEvent(QPaintEvent *)
     painter.scale(side / 200.0, side / 200.0);
 
     // digital part of the analog clock -----
-    QString theTime = time.toString("h:mmA");
+    QString theTime = time.toString("h:mmA"); // TODO: Europe uses 24 hour time (preference)
     theTime.replace("AM","");
     theTime.replace("PM","");  // cheesy way to get 12 hour clock string...
 //    if ((time.second() % 2) == 0)
@@ -164,91 +256,52 @@ void AnalogClock::paintEvent(QPaintEvent *)
 #ifndef DEBUGCLOCK
     int startMinute = time.minute();
 #else
-    int startMinute = time.second();  // FIX FIX FIX FIX FIX **********
+    int startMinute = time.second();
 #endif
 
-    // OLDSTYLE: check for LONG PATTER ALARM -------
-    // TODO: delete this section when NEWSTYLE section is fully debugged
-    int numMinutesPatter = 0;
+//    // OLDSTYLE: check for LONG PATTER ALARM -------
+//    // TODO: delete this section when NEWSTYLE section is fully debugged
+//    int numMinutesPatter = 0;
 
-    for (int i = 0; i < 60; i++) {
-        int currentMinute = startMinute - i;
-        if (currentMinute < 0) {
-            currentMinute += 60;
-        }
-        if (typeInMinute[currentMinute] == PATTER) {
-            numMinutesPatter++;
-        } else {
-            break;  // break out of the for loop, because we're only looking at the first segment
-        }
-    }
+//    for (int i = 0; i < 60; i++) {
+//        int currentMinute = startMinute - i;
+//        if (currentMinute < 0) {
+//            currentMinute += 60;
+//        }
+//        if (typeInMinute[currentMinute] == PATTER) {
+//            numMinutesPatter++;
+//        } else {
+//            break;  // break out of the for loop, because we're only looking at the first segment
+//        }
+//    }
 
-    if (numMinutesPatter >= tipLengthAlarmMinutes) {
-        tipLengthAlarm = true;
-    } else {
-        tipLengthAlarm = false;
-    }
+//    if (numMinutesPatter >= tipLengthAlarmMinutes) {
+//        tipLengthAlarm = true;
+//    } else {
+//        tipLengthAlarm = false;
+//    }
 
-    // NEWSTYLE: check for LONG PATTER ALARM
-    int patterLengthSecs = typeTracker.currentPatterLength();
-    unsigned int secs = patterLengthSecs;
-    unsigned int mm = (unsigned int)(secs/60);
-    unsigned int ss = secs - 60*mm;
 
-    // To debug, change 60 to 5
-    int maxPatterLength = tipLengthAlarmMinutes * 60;  // the user's preference for MAX PATTER LENGTH (converted to seconds)
+//    // OLDSTYLE: check for END OF BREAK -------
+//    int numMinutesBreak = 0;
 
-//    qDebug() << "clock::paintEvent" << tipLengthTimerEnabled;
+//    for (int i = 0; i < 60; i++) {
+//        int currentMinute = startMinute - i;
+//        if (currentMinute < 0) {
+//            currentMinute += 60;
+//        }
+//        if (typeInMinute[currentMinute] == NONE) {
+//            numMinutesBreak++;
+//        } else {
+//            break;  // break out of the for loop, because we're only looking at the first segment
+//        }
+//    }
 
-    if (timerLabel != NULL) {
-//        qDebug() << "timerLabel: " << (unsigned long long)timerLabel;
-        if (patterLengthSecs == -1 || !tipLengthTimerEnabled) {
-            // if not patter, or the patter timer is disabled
-            timerLabel->setVisible(false);
-        } else if (patterLengthSecs < maxPatterLength) {
-            // UNDER THE TIME LIMIT
-            timerLabel->setVisible(true);
-            timerLabel->setStyleSheet("QLabel { color : black; }");
-            timerLabel->setText(QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
-        } else if (patterLengthSecs < maxPatterLength + 15) {  // it will be red for 15 seconds, before also starting to flash "LONG TIP"
-            // OVER THE TIME LIMIT, so make the time-in-patter RED.
-            timerLabel->setVisible(true);
-            timerLabel->setStyleSheet("QLabel { color : red; }");
-            timerLabel->setText(QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
-            // TODO: play a sound, if enabled
-        } else {
-            // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
-            timerLabel->setVisible(true);
-            timerLabel->setStyleSheet("QLabel { color : red; }");
-            if (ss % 2 == 0) {
-                timerLabel->setText(QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
-            } else {
-                timerLabel->setText("LONG TIP");
-            }
-            // TODO: play a more serious sound, if enabled
-        }
-    }
-
-    // check for END OF BREAK -------
-    int numMinutesBreak = 0;
-
-    for (int i = 0; i < 60; i++) {
-        int currentMinute = startMinute - i;
-        if (currentMinute < 0) {
-            currentMinute += 60;
-        }
-        if (typeInMinute[currentMinute] == NONE) {
-            numMinutesBreak++;
-        } else {
-            break;  // break out of the for loop, because we're only looking at the first segment
-        }
-    }
-
-    if (numMinutesBreak >= breakLengthAlarmMinutes && numMinutesBreak < 60) {
-        breakLengthAlarm = true;
-    } else {
-        breakLengthAlarm = false;
-    }
+//    if (numMinutesBreak >= breakLengthAlarmMinutes && numMinutesBreak < 60) {
+//        breakLengthAlarm = true;
+//    } else {
+//        breakLengthAlarm = false;
+//    }
 
     // SESSION SEGMENTS: what were we doing over the last hour?
     if (!coloringIsHidden) {
@@ -346,8 +399,8 @@ void AnalogClock::setTimerLabel(clickableLabel *theLabel)
 {
 //    qDebug() << "AnalogClock::setTimerLabel";
     timerLabel = theLabel;
-//    timerLabel->setText("Hello!");
-//    timerLabel->setVisible(true);
+    timerLabel->setText("");
+    timerLabel->setVisible(true);
 }
 
 void AnalogClock::resetPatter(void)

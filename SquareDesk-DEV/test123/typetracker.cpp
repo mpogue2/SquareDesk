@@ -3,7 +3,16 @@
 
 TypeTracker::TypeTracker()
 {
-    consolidateNSecondsOfNone = 60;  // 60 seconds means BREAK (and patter timer is auto-reset)
+    // You can stop the Patter for up to N seconds (right now, 30s), without auto-going to break.
+    // So, if you want to give direction to dancers without going to break, make sure it's
+    //   less than N=30 seconds.  In general, it's better to turn down the volume with your hand-wheel,
+    //   than to stop the music entirely.
+    //   >30 seconds of not playing patter means we're in BREAK (and the patter timer is auto-reset)
+    //   singing calls take us out of patter timer mode immediately, and when singing calls stop,
+    //     the auto-break timer auto-starts.  (Might want to wait 15 second before doing so for singing calls, too).
+    //   NOTE: this 30s is not lost, it's subtracted from the initial break timer when the break timer starts.
+    // Right now, the break timer is a count-down timer, while the patter timer is a count-up timer.
+    consolidateNSecondsOfNone = 30;
 
     TimeSegment t;
     t.type = NONE;
@@ -86,6 +95,7 @@ void TypeTracker::printState(QString header)
     }
     qDebug() << "\tTOTAL = " << totalSeconds;
     qDebug() << "\tpatterLength = " << currentPatterLength();
+    qDebug() << "\tbreakLength = " << currentBreakLength();
 }
 
 // returns number of seconds in the current (maybe-still-possible-to-consolidate) patter segment, or -1 if not in a patter segment
@@ -105,6 +115,26 @@ int TypeTracker::currentPatterLength(void) {
     }
 
     // we are in a PATTER segment, and it's not one of those potentially consolidatable ones
+    return(timeSegmentList.first().length);
+}
+
+// returns number of seconds in the current break (not counting the maybe-still-possible-to-consolidate None segment, or -1 if not in a break segment
+int TypeTracker::currentBreakLength(void) {
+    if (timeSegmentList.first().type == NONE &&
+            timeSegmentList.first().length < consolidateNSecondsOfNone &&
+            timeSegmentList.length() >= 2 &&
+            timeSegmentList.at(1).type == PATTER) {
+        // special case, where we MIGHT be able to consolidate if Patter starts up again.  Treat this NONE time as still being PATTER time.
+        // return -1 in this case, because we're NOT in a break (quite yet)
+        return(-1);
+    }
+
+    if (timeSegmentList.first().type != NONE) {
+        // we're not in a BREAK segment, so return -1
+        return(-1);
+    }
+
+    // we are in a BREAK/NONE segment, and it's not one of those potentially consolidatable patter sections
     return(timeSegmentList.first().length);
 }
 

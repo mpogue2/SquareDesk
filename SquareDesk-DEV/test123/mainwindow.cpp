@@ -244,7 +244,8 @@ MainWindow::MainWindow(QWidget *parent) :
     breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
     breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 
-    analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;  // tell the clock whether the alarm is enabled
+    analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;      // tell the clock whether the patter alarm is enabled
+    analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;  // tell the clock whether the break alarm is enabled
 
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
@@ -2011,6 +2012,8 @@ void MainWindow::on_actionPreferences_triggered()
         // and tell the clock, too.
         analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
         analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
+
+        analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
         analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
 
         // ----------------------------------------------------------------

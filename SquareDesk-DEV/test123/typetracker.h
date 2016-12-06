@@ -24,7 +24,8 @@ public:
     void printState(QString s);
     QList<TimeSegment> timeSegmentList;  // public, so we can iterate
 
-    int currentPatterLength(void);      // returns current patter length, or -1 if not in patter or potentially in patter
+    int currentPatterLength(void);      // returns current patter length, or -1 if not in patter-or-potentially-in-patter
+    int currentBreakLength(void);       // returns current break length, or -1 if not in break (for sure not potentially-in-patter)
     void addStop(void);                 // adds a NONE:0, which prevents consolidation.
 
     int consolidateNSecondsOfNone;   // when consolidating Patter-None-Patter segments, this many seconds of None becomes a BREAK
