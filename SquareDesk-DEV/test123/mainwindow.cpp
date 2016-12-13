@@ -1124,7 +1124,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.6.1</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.6.2</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a> and ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>") +
@@ -1157,6 +1157,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 bool MainWindow::handleKeypress(int key, QString text)
 {
     Q_UNUSED(text)
+    QString tabTitle;
 
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
@@ -1224,7 +1225,24 @@ bool MainWindow::handleKeypress(int key, QString text)
             on_actionPitch_Down_triggered();
             break;
 
+        case Qt::Key_PageDown:
+            // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
+            tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
+            if (tabTitle.endsWith("*Lyrics")) {
+                ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() + 200);
+            }
+            break;
+
+        case Qt::Key_PageUp:
+            // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
+            tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
+            if (tabTitle.endsWith("*Lyrics")) {
+                ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() - 200);
+            }
+            break;
+
         default:
+//            qDebug() << "unhandled key:" << key;
             break;
     }
 
@@ -2884,4 +2902,10 @@ void MainWindow::on_warningLabel_clicked() {
 //    qDebug() << "warningLabel clicked!";
     // TODO: clear the timer
     analogClock->resetPatter();
+}
+
+void MainWindow::on_tabWidget_currentChanged(int index)
+{
+    Q_UNUSED(index)
+//    qDebug() << "tab changed to:" << index;
 }

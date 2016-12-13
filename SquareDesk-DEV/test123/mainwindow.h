@@ -146,6 +146,8 @@ private slots:
 
     void on_warningLabel_clicked();
 
+    void on_tabWidget_currentChanged(int index);
+
 private:
     QAction *closeAct;  // WINDOWS only
 
