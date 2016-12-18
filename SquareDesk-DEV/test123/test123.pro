@@ -69,13 +69,14 @@ macx {
 
 #     add taglib static library, FIX: move to the squaredesk directory!
 #     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/binaries/lib -ltag
-     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
+    LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
     INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
 #    /usr/lib/libz.dylib
     LIBS += /usr/lib/libz.dylib
 
     ICON = $$PWD/desk1d.icns
     DISTFILES += desk1d.icns
+    DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
 
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"

@@ -183,6 +183,8 @@ private:
     bool fileModified;
 
     QString currentSongType;
+    QString currentSongTitle;
+    int randCallIndex;     // for Flash Calls
 
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
@@ -252,6 +254,8 @@ private:
     QFileSystemWatcher *fileWatcher;
     QStringList getCurrentVolumes(QString volumeDir);
     QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
+
+    QStringList flashCalls;
 };
 
 // currentState:

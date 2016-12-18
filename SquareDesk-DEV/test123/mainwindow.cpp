@@ -15,7 +15,8 @@
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
-// BUG: NL allowed in the search fields, makes the text disappear until DEL pressed
+// TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
+//   then, ENTER could select it, maybe?  Think about this.
 
 #include <iostream>
 #include <sstream>
@@ -394,6 +395,44 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButtonSetOutroTime->setEnabled(false);
 
     analogClock->setTimerLabel(ui->warningLabel);  // tell the clock which label to use for the patter timer
+
+    // read list of calls (in application bundle on Mac OS X)
+    // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
+    //   file on those platforms.  It's convenient to stick it in the bundle on Mac OS X.  Maybe parallel with
+    //   the executable on Windows and Linux?
+#if defined(Q_OS_MAC)
+    QString appPath = QApplication::applicationFilePath();
+    QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
+    allcallsPath.replace("Contents/MacOS/SquareDeskPlayer/","");
+//    qDebug() << "allcallsPath:" << allcallsPath;
+
+    QFile file(allcallsPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Could not open 'allcalls.csv' file in bundle.";
+        return;
+    }
+
+    while (!file.atEnd()) {
+        QString line = file.readLine().simplified();
+        QStringList lineparts = line.split(',');
+        QString level = lineparts[0];
+        QString call = lineparts[1].replace("\"","");
+//        qDebug() << "call: " << call << ", level: " << level;
+
+        if (level == "plus") {
+            flashCalls.append(call);
+        }
+    }
+
+//    qDebug() << "flashCalls:" << flashCalls;
+
+    currentSongType = "";
+    currentSongTitle = "";
+
+    qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
+    randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
+
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -545,6 +584,8 @@ void MainWindow::on_stopButton_clicked()
 
     cBass.Stop();  // Stop playback, rewind to the beginning
 
+    ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+
     ui->seekBar->setValue(0);
     ui->seekBarCuesheet->setValue(0);
     Info_Seekbar(false);  // update just the text
@@ -569,6 +610,7 @@ void MainWindow::on_playButton_clicked()
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
         currentState = kPaused;
+        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
     if (ui->checkBoxStartOnPlay->isChecked()) {
         on_pushButtonCountUpTimerStartStop_clicked();
@@ -951,6 +993,39 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             ui->currentLocLabel->setText(position2String(currentPos_i, true));              // pad on the left
         }
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
+
+#if defined(Q_OS_MAC)
+        // FLASH CALL FEATURE ======================================
+        // TODO: do this only if patter? -------------------
+        // TODO: right now this is hard-coded for Plus calls.  Need to add a preference to specify other levels (not
+        //   mutually exclusive, either).
+        int flashCallEverySeconds = 10;
+        int numCalls = flashCalls.length();
+        if (currentPos_i % flashCallEverySeconds == 0 && currentPos_i != 0) {
+            // Now pick a new random number, but don't pick the same one twice in a row.
+            // TODO: should really do a permutation over all the allowed calls, with no repeats
+            //   but this should be good enough for now, if the number of calls is sufficiently
+            //   large.
+            // TODO: pick a new random call when PLAY is pressed.  Otherwise, we get the same call
+            //   for too long when STOP is pressed then PLAY is pressed.
+            int newRandCallIndex;
+            do {
+                newRandCallIndex = qrand() % numCalls;
+            } while (newRandCallIndex == randCallIndex);
+            randCallIndex = newRandCallIndex;
+        }
+
+        if (prefsManager.GetenableFlashCalls()) {
+             if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+                 // don't show any random calls until at least the end of the first N seconds
+                 ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+                 ui->nowPlayingLabel->setText(flashCalls[randCallIndex]);
+             } else {
+                 ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+                 ui->nowPlayingLabel->setText(currentSongTitle);
+             }
+        }
+#endif
     }
     else {
         SetSeekBarNoSongLoaded(ui->seekBar);
@@ -1413,6 +1488,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     else {
         ui->nowPlayingLabel->setText(currentMP3filename);  // FIX?  convert to short version?
     }
+    currentSongTitle = ui->nowPlayingLabel->text();  // save, in case we are Flash Calling
 
     QDir md(MP3FileName);
     QString canonicalFN = md.canonicalPath();
