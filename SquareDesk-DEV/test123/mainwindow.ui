@@ -1682,7 +1682,7 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <string>Loop</string>
    </property>
    <property name="shortcut">
-    <string>L</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionForce_Mono_Aahz_mode">

@@ -1316,6 +1316,10 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
+        case Qt::Key_L:
+            on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
+            break;
+
         default:
 //            qDebug() << "unhandled key:" << key;
             break;
