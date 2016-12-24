@@ -69,8 +69,10 @@ macx {
 
 #     add taglib static library, FIX: move to the squaredesk directory!
 #     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/binaries/lib -ltag
-    LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
-    INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
+#    LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
+    LIBS += -L$$OUT_PWD/../taglib -ltaglib
+#    INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
+    INCLUDEPATH += $$PWD/../taglib/binaries/include
 #    /usr/lib/libz.dylib
     LIBS += /usr/lib/libz.dylib
 
@@ -87,7 +89,7 @@ macx {
 mac: {
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sdApp executable
     #  (inside sdApp.app)
-    # This way, it's easy for sdApp to find the executable for sd.
+    # This way, it's easy for sdApp to find the executable for sd, and it's easy for SDP to start up sd.
     copydata.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
