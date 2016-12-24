@@ -84,6 +84,22 @@ macx {
     QMAKE_MAC_SDK = macosx10.12
 }
 
+mac: {
+    # Copy the sd executable and the sd_calls.dat data file to the same place as the sdApp executable
+    #  (inside sdApp.app)
+    # This way, it's easy for sdApp to find the executable for sd.
+    copydata.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
+    first.depends = $(first) copydata copydata2 copydata3
+    export(first.depends)
+    export(copydata.commands)
+    export(copydata2.commands)
+    export(copydata3.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata3
+}
+
+
 RESOURCES += resources.qrc
 
 #DISTFILES += \

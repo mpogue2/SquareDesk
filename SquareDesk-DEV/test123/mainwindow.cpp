@@ -409,6 +409,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open 'allcalls.csv' file in bundle.";
+        qDebug() << "looked here:" << allcallsPath;
         return;
     }
 
