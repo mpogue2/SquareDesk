@@ -47,12 +47,13 @@
 // Unless this isn't for the WIN32 API at all, in which case make the
 // "SDLIB_API" symbol do nothing.
 
+// -mpogue, we're not doing a DLL right now...
 #if defined(WIN32)
-#if defined(SDLIB_EXPORTS)
-#define SDLIB_API __declspec(dllexport)
-#else
+//#if defined(SDLIB_EXPORTS)
+//#define SDLIB_API __declspec(dllexport)
+//#else
 #define SDLIB_API __declspec(dllimport)
-#endif
+//#endif
 #else
 #define SDLIB_API
 #endif

@@ -1,17 +1,24 @@
 TEMPLATE = subdirs
 
-SUBDIRS = \
-           sd      \      # relative paths
-           sdApp   \
-           taglib  \
-           test123
+SUBDIRS = taglib test123
 
-# where to find the sub projects
+mac {
+# sd and sdApp are MAC OS X ONLY for now.
+#   sd needs to be compiled outside of Qt, I think,
+#   or under cygwin.
+SUBDIRS += sd sdApp
 sd.subdir = sd
 sdApp.subdir = sdApp
-taglib.subdir = taglib/taglib
-test123.subdir = test123
 
 # what subproject depends on others -- test123 and sdApp depend on sd, test123 also depends on taglib
 sdApp.depends = sd
 test123.depends = sd taglib
+}
+
+# where to find the sub projects
+taglib.subdir = taglib/taglib
+test123.subdir = test123
+
+win32 {
+test123.depends = taglib
+}

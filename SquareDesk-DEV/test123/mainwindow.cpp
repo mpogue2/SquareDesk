@@ -23,7 +23,7 @@
 #include <iomanip>
 using namespace std;
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 // TAGLIB stuff is Mac-only for now...
 #include <taglib/tlist.h>
 #include <taglib/fileref.h>
@@ -93,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #if defined(Q_OS_MAC)
     macUtils.disableScreensaver();
 #elif defined(Q_OS_WIN)
+#pragma comment(lib, "user32.lib")
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
 #elif defined(Q_OS_LINUX)
     // TODO
@@ -400,15 +401,24 @@ MainWindow::MainWindow(QWidget *parent) :
     // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
     //   file on those platforms.  It's convenient to stick it in the bundle on Mac OS X.  Maybe parallel with
     //   the executable on Windows and Linux?
+
 #if defined(Q_OS_MAC)
     QString appPath = QApplication::applicationFilePath();
     QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
     allcallsPath.replace("Contents/MacOS/SquareDeskPlayer/","");
-//    qDebug() << "allcallsPath:" << allcallsPath;
+#endif
 
+#if defined(Q_OS_WIN32)
+    // TODO: There has to be a better way to do this.
+    QString appPath = QApplication::applicationFilePath();
+    QString allcallsPath = appPath + "/allcalls.csv";
+    allcallsPath.replace("SquareDeskPlayer.exe/","");
+#endif
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Could not open 'allcalls.csv' file in bundle.";
+        qDebug() << "Could not open 'allcalls.csv' file.";
         qDebug() << "looked here:" << allcallsPath;
         return;
     }
@@ -447,9 +457,9 @@ MainWindow::~MainWindow()
     delete ui;
 
     // REENABLE SCREENSAVER, RELEASE THE KRAKEN
-#ifdef Q_OS_MAC
+#if defined(Q_OS_MAC)
     macUtils.reenableScreensaver();
-#else
+#elif defined(Q_OS_WIN32)
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
 #endif
 }
@@ -995,7 +1005,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
         // FLASH CALL FEATURE ======================================
         // TODO: do this only if patter? -------------------
         // TODO: right now this is hard-coded for Plus calls.  Need to add a preference to specify other levels (not
@@ -1418,7 +1428,7 @@ void MainWindow::loadCuesheet(QString MP3FileName)
 
     QString HTML;
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // priority order:
     //   1) lyrics found by matching file names
     //   2) lyrics found embedded in the USLT ID3 tag in the file itself
@@ -2812,7 +2822,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     }
 }
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 // ------------------------------------------------------------------------------------------
 QString MainWindow::loadLyrics(QString MP3FileName)
 {

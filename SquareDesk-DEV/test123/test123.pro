@@ -52,11 +52,35 @@ DEPENDPATH += $$PWD/
 
 # NOTE: there is no debug version of libbass
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:unix: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix
 
 win32 {
     RC_FILE = desk1d.rc
+    LIBS += -L$$OUT_PWD/../taglib -ltaglib
+    INCLUDEPATH += $$PWD/../taglib/binaries/include
+}
+
+# copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
+win32:CONFIG(debug, debug|release): {
+    copydata.commands = xcopy /q /y $$shell_path($$PWD/windll/*.dll) $$shell_path($$OUT_PWD\debug)
+    copydata3.commands = xcopy /q /y $$shell_path($$PWD/allcalls.csv) $$shell_path($$OUT_PWD\debug)
+    first.depends = $(first) copydata copydata3
+    export(first.depends)
+    export(copydata.commands)
+    export(copydata3.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata3
+}
+
+# copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
+win32:CONFIG(release, debug|release): {
+    copydata.commands = xcopy /q /y $$shell_path($$PWD/windll/*.dll) $$shell_path($$OUT_PWD\release)
+    copydata3.commands = xcopy /q /y $$shell_path($$PWD/allcalls.csv) $$shell_path($$OUT_PWD\release)
+    first.depends = $(first) copydata copydata3
+    export(first.depends)
+    export(copydata.commands)
+    export(copydata3.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata3
 }
 
 macx {
