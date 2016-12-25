@@ -79,7 +79,7 @@ private slots:
     void on_UIUpdateTimerTick(void);
     void on_vuMeterTimerTick(void);
 
-    void on_newVolumeMounted(QString);
+    void on_newVolumeMounted();
     void aboutBox();
 
     void on_actionSpeed_Up_triggered();
@@ -252,8 +252,9 @@ private:
 #endif
 
     QFileSystemWatcher *fileWatcher;
-    QStringList getCurrentVolumes(QString volumeDir);
+    QStringList getCurrentVolumes();
     QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
+    QStringList newVolumeList;    // list of volume pathnames, one per volume
 
     QStringList flashCalls;
 };

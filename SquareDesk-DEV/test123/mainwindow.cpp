@@ -12,11 +12,14 @@
 #include "QTextDocument"
 #include "analogclock.h"
 #include "prefsmanager.h"
+#include <QStorageInfo>
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
 //   then, ENTER could select it, maybe?  Think about this.
+// BUG: if you're playing a song on an external flash drive, and remove it, playback stops, but the song is still
+//   in the currenttitlebar, and it tries to play (silently).  Should clear everything out at that point and unload the song.
 
 #include <iostream>
 #include <sstream>
@@ -24,7 +27,7 @@
 using namespace std;
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-// TAGLIB stuff is Mac-only for now...
+// TAGLIB stuff is MAC OS X and WIN32 only for now...
 #include <taglib/tlist.h>
 #include <taglib/fileref.h>
 #include <taglib/tfile.h>
@@ -213,15 +216,11 @@ MainWindow::MainWindow(QWidget *parent) :
     guestVolume = "";   // and no guest volume present
     guestMode = "main"; // and not guest mode
 
-#if defined(Q_OS_MAC)
-    // initial Guest Mode stuff works on Mac OS only
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+    // initial Guest Mode stuff works on Mac OS and WIN32 only
     //   should be straightforward to extend to Linux.
-    //   I don't know how difficult this will be on Windows (how to watch for new volumes on Windows?)
-    fileWatcher = new QFileSystemWatcher();     // watch that directory for mounted flash drives
-    fileWatcher->addPath(QString("/Volumes"));  // MAC SPECIFIC RIGHT NOW
-    connect(fileWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(on_newVolumeMounted(QString)));
-
-    lastKnownVolumeList = getCurrentVolumes("/Volumes"); // initial list, so we can look for NEW ones
+    lastKnownVolumeList = getCurrentVolumes();  // get initial list
+    newVolumeList = lastKnownVolumeList;  // keep lists sorted, for easy comparisons
 #endif
 
     // set initial colors for text in songTable, also used for shading the clock
@@ -1169,6 +1168,19 @@ void MainWindow::on_UIUpdateTimerTick(void)
         ui->warningLabel->setText("");
     }
 #endif
+
+    // about once a second, poll for volume changes
+    newVolumeList = getCurrentVolumes();  // get the current state of the world
+    qSort(newVolumeList);  // sort to allow direct comparison
+    if(lastKnownVolumeList == newVolumeList){
+//        qDebug() << "no change to volume list...";
+    } else {
+//        qDebug() << "***** change to volume list...";
+//        qDebug() << "old volume list:" << lastKnownVolumeList;
+//        qDebug() << "new volume list:" << newVolumeList;
+        on_newVolumeMounted();
+    }
+    lastKnownVolumeList = newVolumeList;
 }
 
 // ----------------------------------------------------------------------
@@ -1659,6 +1671,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 // this function stores the absolute paths of each file in a QVector
 void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix)
 {
+//    qDebug() << "FFR: rootDir =" << rootDir;
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
         QString s1 = it.next();
@@ -2916,71 +2929,83 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
 }
 
 // ----------------------------------------------------------------------------
-QStringList MainWindow::getCurrentVolumes(QString volumeDirName) {
+QStringList MainWindow::getCurrentVolumes() {
+
     QStringList volumeDirList;
 
-    QDir volumesDir(volumeDirName);
-    volumesDir.setFilter(QDir::Dirs | QDir::NoDot | QDir::NoDotDot | QDir::NoSymLinks);
-//    QList<QString> *volumes = new QList<QString>();
-
-    QDirIterator it(volumesDir);
-    while(it.hasNext()) {
-        QString s1 = it.next();
-//        qDebug() << "Found dir:" << s1;
-        volumeDirList.append(s1);
-
-        //        QFileInfo fi(s1);
-//        QStringList section = fi.canonicalPath().split("/");
-//        QString type = section[section.length()-1];  // must be the last item in the path
-                                                     // of where the alias is, not where the file is
+#if defined(Q_OS_MAC)
+    foreach (const QStorageInfo &storageVolume, QStorageInfo::mountedVolumes()) {
+            if (storageVolume.isValid() && storageVolume.isReady()) {
+//                qDebug() << "name:" << storageVolume.name() << ", device:" << storageVolume.device();
+//                qDebug() << "fileSystemType:" << storageVolume.fileSystemType();
+//                qDebug() << "size:" << storageVolume.bytesTotal()/1000/1000 << "MB";
+//                qDebug() << "availableSize:" << storageVolume.bytesAvailable()/1000/1000 << "MB";
+            volumeDirList.append(storageVolume.name());}
     }
+#endif
+
+#if defined(Q_OS_WIN32)
+    foreach (const QFileInfo &fileinfo, QDir::drives()) {
+//        qDebug() << fileinfo.absoluteFilePath();
+        volumeDirList.append(fileinfo.absoluteFilePath());
+    }
+#endif
+
+    qSort(volumeDirList);     // always return sorted, for convenient comparisons later
 
     return(volumeDirList);
 }
 
 // ----------------------------------------------------------------------------
-void MainWindow::on_newVolumeMounted(QString dirName) {
-//    qDebug() << "NEW VOLUME:" << dirName;
-
-    QStringList newVolumeList = getCurrentVolumes(dirName);
-
-//    foreach (const QString &item, lastKnownVolumeList) {
-//        qDebug() << "LastKnownVolumeList:" << item;
-//    }
-//    foreach (const QString &item, newVolumeList) {
-//        qDebug() << "NewVolumeList:" << item;
-//    }
+void MainWindow::on_newVolumeMounted() {
 
     QSet<QString> newVolumes, goneVolumes;
     QString newVolume, goneVolume;
-    if (lastKnownVolumeList.length() == newVolumeList.length() - 1) {
-        // A VOLUME APPEARED
+
+    guestMode = "both"; // <-- replace, don't merge (use "both" for merge, "guest" for just guest's music)
+
+    if (lastKnownVolumeList.length() < newVolumeList.length()) {
+        // ONE OR MORE VOLUMES APPEARED
+        //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S NEW (if more than 1)
         newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
         foreach (const QString &item, newVolumes) {
-//            qDebug() << "DETECTED NEW VOLUME:" << item;
+//            qDebug() << "MERGING IN NEW VOLUME:" << item;
             newVolume = item;  // first item is the volume added
         }
-        // TODO: Look for a directory with the right name, and THEN findMusic()
-        // TODO: if (exists)
-        guestMode = "both"; // <-- replace, don't merge (use "both" for merge)
-        guestVolume = newVolume;
-        guestRootPath = guestVolume + "/squareDanceMusic";  // NOTE: THIS IS HARD-CODED RIGHT NOW
-        QThread::sleep(2);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
+
+#if defined(Q_OS_MAC)
+        guestVolume = newVolume;  // e.g. MIKEPOGUE
+        guestRootPath = "/Volumes/" + guestVolume + "/squareDanceMusic";  // NOTE: THIS IS HARD-CODED RIGHT NOW
+        QApplication::beep();  // beep only on MAC OS X (Win32 already beeps by itself)
+#endif
+
+#if defined(Q_OS_WIN32)
+        guestVolume = newVolume;    // e.g. E:
+        guestRootPath = newVolume + "\\squareDanceMusic";                 // NOTE: THIS IS HARD-CODED RIGHT NOW
+#endif
+
+        ui->statusBar->showMessage("SCANNING GUEST VOLUME: " + newVolume);
+        QThread::sleep(1);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
+
         findMusic(musicRootPath, guestRootPath, guestMode);  // get the filenames from the guest's directories
-    } else if (lastKnownVolumeList.length() == newVolumeList.length() + 1) {
-        // A VOLUME WENT AWAY
+    } else if (lastKnownVolumeList.length() > newVolumeList.length()) {
+        // ONE OR MORE VOLUMES WENT AWAY
+        //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
         goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
         foreach (const QString &item, goneVolumes) {
-//            qDebug() << "DETECTED VOLUME GONE:" << item;
+//            qDebug() << "REMOVING GUEST VOLUME:" << item;
             goneVolume = item;
         }
-        if (goneVolume == guestVolume) {
-            guestMode = "main";
-            guestRootPath = "";
-            findMusic(musicRootPath, "", guestMode);  // get the filenames from the user's directories
-        }
+
+        ui->statusBar->showMessage("REMOVING GUEST VOLUME: " + goneVolume);
+        QApplication::beep();  // beep on MAC OS X and Win32
+        QThread::sleep(1);  // FIX: not sure this is needed.
+
+        guestMode = "main";
+        guestRootPath = "";
+        findMusic(musicRootPath, "", guestMode);  // get the filenames from the user's directories
     } else {
-//        qDebug() << "More than one volume change at exactly the same time. I give up. :-(";
+        qDebug() << "No volume added/lost by the time we got here. I give up. :-(";
         return;
     }
 
@@ -2990,7 +3015,6 @@ void MainWindow::on_newVolumeMounted(QString dirName) {
 }
 
 void MainWindow::on_warningLabel_clicked() {
-//    qDebug() << "warningLabel clicked!";
     // TODO: clear the timer
     analogClock->resetPatter();
 }
@@ -2998,5 +3022,4 @@ void MainWindow::on_warningLabel_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     Q_UNUSED(index)
-//    qDebug() << "tab changed to:" << index;
 }
