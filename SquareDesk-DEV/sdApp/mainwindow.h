@@ -22,13 +22,15 @@ public:
     ~MainWindow();
 
 private slots:
-    void writeData(const QByteArray &data);
-    void readData();
+    void writeSDData(const QByteArray &data);
+    void readSDData();
+    void readPSData();
 
 private:
     Ui::MainWindow *ui;
     Console *console;
     QProcess *sd;  // sd process
+    QProcess *ps;  // pocketsphinx process
     Highlighter *highlighter;
     RenderArea *renderArea;
     QTextEdit *currentSequenceWidget;

@@ -19,6 +19,10 @@
 // TODO: only display the LAST resolve (when there are multiple)
 // TODO: where to display the resolve...in the sequence window, maybe?
 //    then the only thing left in the input window is a single line of input.
+// TODO: multiple resolves still show up, should use last one or none
+// TODO: write the sequence out to a file somewhere?
+// TODO: too many false positives right now, if I chew or cough.  Is there a threshold parameter to tune this?
+//         Or, when we get a beep, should we just throw everything away via Ctrl-U?
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -47,8 +51,54 @@ MainWindow::MainWindow(QWidget *parent) :
 
     console->setFixedHeight(150);
 
+    QString sdWorkingDirectory = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0] + "/sdApp";
+
+    // POCKET_SPHINX -------------------------------------------
+    //    WHICH=5365
+    //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
+#define POCKETSPHINXSUPPORT 1
+#define USEJSGF 1
+
+#if defined(POCKETSPHINXSUPPORT)
+    QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
+
+    unsigned int whichModel = 5365;
+//    QString modelDir = "/Users/mpogue/ps/";
+    QString modelDir = sdWorkingDirectory + "/";  // put current dict and jsgf grammar into ~/Documents/sdApp
+
+#if defined(USEJSGF)
+    QString dictFile = modelDir + QString::number(whichModel) + "a.dic";
+    QString jsgfFile = modelDir + "mainstream.jsgf";
+
+    QStringList PSargs;
+    PSargs << "-dict" << dictFile << "-jsgf" << jsgfFile;
+#else
+    QString dictFile = modelDir + QString::number(whichModel) + "a.dic";
+    QString lmFile = modelDir + QString::number(whichModel) + ".lm";
+
+    QStringList PSargs;
+    PSargs << "-dict" << dictFile << "-lm" << lmFile;
+#endif
+
+    PSargs << "-inmic" << "yes";
+    qDebug() << PSargs;
+
+    ps = new QProcess(Q_NULLPTR);
+
+    ps->setWorkingDirectory(sdWorkingDirectory);
+    ps->start(pathToPS, PSargs);
+
+    qDebug() << "Waiting to start ps...";
+    ps->waitForStarted();
+    qDebug() << "   started.";
+
+    connect(ps,   &QProcess::readyReadStandardOutput,
+            this, &MainWindow::readPSData);                 // output data from ps
+#endif
+
 //    qDebug() << "current dir:" << QDir::currentPath();
 
+    // SD -------------------------------------------
     QString pathToSD = QDir::currentPath() + "/sd";
     // NOTE: sd_calls.dat MUST be in the same directory.
 
@@ -64,7 +114,6 @@ MainWindow::MainWindow(QWidget *parent) :
 //    myProcess->setStandardInputFile("/Users/mpogue/Documents/QtProjects/build-sdApp-Desktop_Qt_5_7_0_clang_64bit-Debug/in.txt");
 
 //    qDebug() << "standard doc locs:" << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    QString sdWorkingDirectory = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0] + "/sdApp";
 //    sdWorkingDirectory = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug";
 
     qDebug() << "pathToSD:" << pathToSD;
@@ -80,23 +129,24 @@ MainWindow::MainWindow(QWidget *parent) :
     sd->setWorkingDirectory(sdWorkingDirectory);
     sd->start(pathToSD, SDargs);
 
-    qDebug() << "waiting to start sd...";
+    qDebug() << "Waiting to start sd...";
     sd->waitForStarted();
-    qDebug() << "started.";
+    qDebug() << "   started.";
 
+    // Send a couple of startup calls to SD...
     if (true) {
         sd->write("heads start\n");  // DEBUG
         sd->waitForBytesWritten();
 
-        sd->write("square thru 4\n"); // DEBUG
-        sd->waitForBytesWritten();
+//        sd->write("square thru 4\n"); // DEBUG
+//        sd->waitForBytesWritten();
     } else {
         sd->write("just as they are\n");
         sd->waitForBytesWritten();
     }
 
-    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readData);  // output data from sd
-    connect(console, &Console::getData, this, &MainWindow::writeData);      // input data to sd
+    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData);  // output data from sd
+    connect(console, &Console::getData, this, &MainWindow::writeSDData);      // input data to sd
 
     highlighter = new Highlighter(console->document());
 }
@@ -104,10 +154,13 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     sd->terminate();
+#if defined(POCKETSPHINXSUPPORT)
+    ps->terminate();
+#endif
     delete ui;
 }
 
-void MainWindow::writeData(const QByteArray &data)
+void MainWindow::writeSDData(const QByteArray &data)
 {
     // console has data, send to sd
 //    qDebug() << "writeData() to sd:" << data;
@@ -118,7 +171,7 @@ void MainWindow::writeData(const QByteArray &data)
     sd->waitForBytesWritten();
 }
 
-void MainWindow::readData()
+void MainWindow::readSDData()
 {
     // sd has data, send to console
     QByteArray s = sd->readAll();
@@ -234,3 +287,89 @@ void MainWindow::readData()
     renderArea->setLayout2(lastFormatList);
 
 }
+
+void MainWindow::readPSData()
+{
+    // pocketsphinx has a valid string, send it to sd
+    QByteArray s = ps->readAll();
+    qDebug() << "data from PS:" << s;
+
+    // TODO: insert NLU here
+    // TODO: <anything> and roll --> [anything] and roll
+
+    // handle numbers: one -> 1
+    QString s2 = s.toLower().replace("one","1").replace("two","2").replace("three","3").replace("four","4").replace("eight","8");
+
+    // handle optional words at the beginning
+    s2 = s2.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
+
+    // handle specialized spelling of flutter wheel
+    s2 = s2.replace("flutterwheel","flutter wheel");
+
+    // handle specialized wording of first go *, next go *
+    s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
+    s2 = s2.replace(QRegExp("first .* go right .* next .* go left"),"first couple go right, next go left");
+
+    // handle the <anything> and roll case
+    QRegExp andRollCall("(.*) and roll.*");
+    if (s2.indexOf(andRollCall) != -1) {
+        s2 = "[" + andRollCall.cap(1) + "] and roll\n";
+    }
+
+    // handle the <anything> and sweep case
+    // FIX: this needs to add center boys, etc, but that messes up the QRegExp
+    QString who = QString("(^[heads|sides|centers|ends|outsides|insides|couples|everybody") +
+//                  QString("center boys|end boys|outside boys|inside boys|all four boys|") +
+//                  QString("center girls|end girls|outside girls|inside girls|all four girls|") +
+//                  QString("center men|end men|outside men|inside men|all four men|") +
+//                  QString("center ladies|end ladies|outside ladies|inside ladies|all four ladies") +
+                  QString("]*)");
+//    qDebug() << "who:" << who;
+    QRegExp andSweepCall(QString("<who>[ ]*(.*) and sweep.*").replace("<who>",who));
+//    qDebug() << "andSweepCall" << andSweepCall;
+    if (s2.indexOf(andSweepCall) != -1) {
+//        qDebug() << "CAPTURED:" << andSweepCall.capturedTexts();
+        s2 = andSweepCall.cap(1) + " [" + andSweepCall.cap(2) + "] and sweep 1/4\n";
+        s2 = s2.replace(QRegExp("^ "),""); // trim off possibly extra starting space
+        s2 = s2.replace("[ ","[");  // trim off possibly extra space because (.*) was greedy...
+    }
+
+    // square thru -> square thru 4
+    if (s2 == "square thru\n") {
+        s2 = "square thru 4\n";
+    }
+
+    // SD COMMANDS -------
+    // square your|the set -> square thru 4
+    if (s2 == "square the set\n" || s2 == "square your set\n") {
+        s2 = "abort this sequence\n";
+        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+        sd->waitForBytesWritten();
+        sd->write(s2.toLatin1());
+        sd->waitForBytesWritten();
+        sd->write("y\n");
+        sd->waitForBytesWritten();
+        sd->write("heads start\n");
+        sd->waitForBytesWritten();
+    } else if (s2 == "undo last call\n") {
+        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+        sd->waitForBytesWritten();
+        sd->write("undo last call\n");  // back up one call
+        sd->waitForBytesWritten();
+    } else if (s2 == "cancel\n" || s2 == "cancel that") {
+        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+        sd->waitForBytesWritten();
+    } else if (s2 != "\n") {
+        qDebug() << "sending to SD:" << s2;
+        sd->write(s2.toLatin1());
+        sd->waitForBytesWritten();
+    }
+}
+
+//Heads Square Thru 4
+//Swing Thru
+//Boys Run
+//Couples Circulate
+//Ferris Wheel
+//Double Pass Thru
+//[first Couple Go Left, Next Go Right] And Roll
