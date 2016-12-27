@@ -257,7 +257,14 @@ void MainWindow::readSDData()
         QStringList words = current.split(" ");
         for (int j=0; j < words.length(); j++ ) {
             QString current2 = words.at(j);
-            QString replacement2 = current2.left(1).toUpper() + current2.mid(1).toLower();
+            QString replacement2;
+            if (current2.left(1) == "[") {
+                // left bracket case
+                replacement2 = "[" + current2.left(2).toUpper() + current2.mid(2).toLower();
+            } else {
+                // normal case
+                replacement2 = current2.left(1).toUpper() + current2.mid(1).toLower();
+            }
             words.replace(j, replacement2);
         }
         QString replacement = words.join(" ");
@@ -333,15 +340,22 @@ void MainWindow::readPSData()
 
     // handle manually-inserted brackets
     s2 = s2.replace(QRegExp("left bracket\\s+"), "[").replace(QRegExp("\\s+right bracket"),"]");
-    qDebug() << "bracket:" << s2;
+//    qDebug() << "bracket:" << s2;
 //    s2.replace("[\b+","[").replace("\b+]","]");  // sd is picky about spaces
 
     // handle "single hinge" --> "hinge", "single file circulate" --> "circulate", "all 8 circulate" --> "circulate" (quirk of sd)
     s2 = s2.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
-    s2 = s2.replace("men hinge", "boys hinge").replace("ladies hinge", "girls hinge");  // wacky sd!
+
+    // handle "men <anything>" and "ladies <anything>", EXCEPT for ladies chain
+    if (!s2.contains("ladies chain") && !s2.contains("men chain")) {
+        s2 = s2.replace("men", "boys").replace("ladies", "girls");  // wacky sd!
+    }
 
     // handle "allemande left alamo style" --> "allemande left in the alamo style"
     s2 = s2.replace("allemande left alamo style", "allemande left in the alamo style");
+
+    // handle "right a left thru" --> "right and left thru"
+    s2 = s2.replace("right a left thru", "right and left thru");
 
     // handle "separate [go] around <n> [to a line]" --> delete "go"
     s2 = s2.replace("separate go around", "separate around");
@@ -349,15 +363,36 @@ void MainWindow::readPSData()
     // handle "dixie style [to a wave|to an ocean wave]" --> "dixie style to a wave"
     s2 = s2.replace(QRegExp("dixie style.*"), "dixie style to a wave\n");
 
-    // TODO: handle the explode and case...
-    //  "all four boys explode and right and left thru and roll" = YIPES
-
     // handle the <anything> and roll case
-    //   don't do anything, if we added manual brackets
-    QRegExp andRollCall("(.*) and roll.*");
-    if (!s2.contains("[") && s2.indexOf(andRollCall) != -1) {
-        s2 = "[" + andRollCall.cap(1) + "] and roll\n";
+    //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
+    if (!s2.contains("[")) {
+        QRegExp andRollCall("(.*) and roll.*");
+        if (!s2.contains("[") && s2.indexOf(andRollCall) != -1) {
+            s2 = "[" + andRollCall.cap(1) + "] and roll\n";
+        }
+
+        // explode must be handled *after* roll, because explode binds tightly with the call
+        // e.g. EXPLODE AND RIGHT AND LEFT THRU AND ROLL must be translated to:
+        //      [explode and [right and left thru]] and roll
+
+        // first, handle both: "explode and <anything> and roll"
+        //  by the time we're here, it's already "[explode and <anything>] and roll\n", because
+        //  we've already done the roll processing.
+        QRegExp explodeAndRollCall("\\[explode and (.*)\\] and roll");
+        QRegExp explodeAndNotRollCall("^explode and (.*)");
+
+        if (s2.indexOf(explodeAndRollCall) != -1) {
+//            qDebug() << "path1" << s2;
+            s2 = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll\n";
+        } else if (s2.indexOf(explodeAndNotRollCall) != -1) {
+//            qDebug() << "path2" << s2;
+            // not a roll, for sure.  Must be a naked "explode and <anything>\n"
+            s2 = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]\n";
+        } else {
+//            qDebug() << "not explode.";
+        }
     }
+
 
     // handle "undo [that]" --> "undo last call"
     s2 = s2.replace("undo that", "undo last call");
@@ -429,7 +464,7 @@ void MainWindow::readPSData()
 
         sd->write("refresh display\n");  // refresh
         sd->waitForBytesWritten();
-    } else if (s2 == "cancel\n" || s2 == "cancel that") {
+    } else if (s2 == "erase\n" || s2 == "erase that\n") {
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
         sd->waitForBytesWritten();
     } else if (s2 != "\n") {

@@ -4,8 +4,9 @@ grammar plus;
 // TODO: split into calls that can roll/sweep and those that can't, and keep them separate
 // TODO: some sort of file output
 // TODO: undo back to #
+// FIX: "run" should not be accepted.  Only <WHO> run.
 
-public <S> = ([<WHO>] [<GODO>] [<LBRACKET>] [<EXPLODE>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>]) 
+public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>]) 
              | <SDCOMMAND>;
 
 // This line mostly controls the level, along with whether EXPLODE and SPREAD are active.
@@ -14,7 +15,7 @@ public <S> = ([<WHO>] [<GODO>] [<LBRACKET>] [<EXPLODE>] <ONECALL> [<RBRACKET>] [
 <SDCOMMAND> = (HEADS | SIDES) START
              | SQUARE (YOUR|THE) SET
              | UNDO [LAST CALL | THAT]
-             | CANCEL [THAT]
+             | ERASE [THAT]
              | JUST AS THEY ARE;
 
 <LBRACKET> = LEFT BRACKET;
