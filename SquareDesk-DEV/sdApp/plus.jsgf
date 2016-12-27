@@ -1,0 +1,181 @@
+#JSGF V1.0;
+grammar plus;
+
+// TODO: split into calls that can roll/sweep and those that can't, and keep them separate
+// TODO: some sort of file output
+// TODO: undo back to #
+
+public <S> = ([<WHO>] [<GODO>] [<LBRACKET>] [<EXPLODE>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>]) 
+             | <SDCOMMAND>;
+
+// This line mostly controls the level, along with whether EXPLODE and SPREAD are active.
+<ONECALL> = (<BASICCALL> | <MSCALL> | <PLUSCALL>);
+
+<SDCOMMAND> = (HEADS | SIDES) START
+             | SQUARE (YOUR|THE) SET
+             | UNDO [LAST CALL | THAT]
+             | CANCEL [THAT]
+             | JUST AS THEY ARE;
+
+<LBRACKET> = LEFT BRACKET;
+<RBRACKET> = RIGHT BRACKET;
+
+<DIRECTION> = LEFT | RIGHT;
+
+<NUMBER> = ONE | TWO | THREE | FOUR;
+<BIGNUMBER> = ONE | TWO | THREE | FOUR | FIVE | SIX | SEVEN | EIGHT;
+
+<HEADSSIDES> = (HEADS | SIDES);
+
+<GODO> = (GO | DO | DO A);
+
+<WHO> = HEADS
+      | SIDES
+      | CENTERS
+      | ENDS
+      | OUTSIDES
+      | INSIDES
+      | COUPLES
+      | EVERYBODY
+      | ALL EIGHT
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] BOYS
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] GIRLS
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] MEN
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] LADIES;
+
+// TODO:      | (HEAD | SIDE) (PAIR | COUPLES | TWO)
+
+<SWEEP> = AND SWEEP (A | ONE) QUARTER [MORE];
+
+<ROLL> = AND ROLL [TO FACE];
+
+<SPREAD> = AND SPREAD;
+
+<EXPLODE> = EXPLODE AND;
+
+// CIRCLE <DIRECTION>
+//            | [GO] FORWARD AND BACK
+//            | DOSADO [TO A WAVE]
+//            | SWING
+//            | [WRONG WAY] PROMENADE
+//            | SINGLE FILE PROMENADE
+//            | ALLEMANDE LEFT
+//            | LEFT ALLEMANDE
+//            | LEFT ARM TURN
+//            | RIGHT ARM TURN
+//            | RIGHT (AND|A) LEFT GRAND
+//            | GRAND RIGHT AND LEFT
+//            | WEAVE THE RING
+//            | WRONG WAY GRAND [RIGHT AND LEFT]
+//            | [MAKE A] <DIRECTION> HAND STAR
+//            | STAR PROMENADE
+//            | COURTESY TURN
+//            | LADIES CHAIN
+//            | DOPASO
+//            | GRAND SQUARE
+//            | WALK ALL AROUND THE (CORNER|LEFT HAND LADY)
+//            | SPLIT TWO
+//            | GO AROUND <NUMBER>
+//            | LADIES IN [AND THE] MEN SASHAY
+//            | BACKTRACK
+//            | SEE SAW
+//            | ALLEMANDE THAR
+//            | ALLEMANDE LEFT TO AN ALLEMANDE THAR
+//            | SHOOT THE STAR
+//            | SLIP THE CLUTCH
+//            | BALANCE
+
+<BASICCALL> = PASS THRU
+            | HALF SASHAY
+            | ROLLAWAY
+            | U TURN BACK
+            | SEPARATE [GO] AROUND <BIGNUMBER> [TO A LINE]
+            | CHAIN
+            | CHAIN DOWN THE LINE
+            | LEAD <DIRECTION>
+            | RIGHT (AND|A) LEFT THRU
+            | STAR THRU
+            | CIRCLE TO A LINE
+            | BEND THE LINE
+            | [LEFT] SQUARE THRU
+            | [LEFT] SQUARE THRU <BIGNUMBER>
+            | CALIFORNIA TWIRL
+            | DIVE THRU
+            | [REVERSE] WHEEL AROUND
+            | WRONG WAY THAR
+            | BOX THE GNAT
+            | STEP TO A WAVE
+            | ALLEMANDE LEFT IN THE ALAMO STYLE
+            | PASS THE OCEAN
+            | EXTEND
+            | [LEFT] SWING THRU
+            | RUN
+            | CROSS RUN
+            | TRADE
+            | PARTNER TRADE
+            | WHEEL AND DEAL
+            | DOUBLE PASS THRU
+            | FIRST [COUPLE] GO <DIRECTION> [AND] [THE] NEXT [COUPLE] GO <DIRECTION>
+            | ZOOM
+            | [REVERSE] FLUTTERWHEEL
+            | REVERSE THE FLUTTER
+            | VEER <DIRECTION>
+            | TRADE BY
+            | [LEFT] TOUCH (A|ONE) QUARTER
+            | CIRCULATE
+            | SINGLE FILE CIRCULATE
+            | SPLIT CIRCULATE
+            | BOX CIRCULATE
+            | FERRIS WHEEL;
+
+<MSCALL> =    CLOVERLEAF
+            | TURN THRU
+            | EIGHT CHAIN THRU
+            | EIGHT CHAIN <BIGNUMBER>
+            | PASS TO THE CENTER
+            | SPIN THE TOP
+            | CENTERS IN
+            | CAST OFF ONE QUARTER
+            | CAST OFF ONE HALF
+            | CAST OFF TWO QUARTERS
+            | CAST OFF THREE QUARTERS
+            | WALK AND DODGE
+            | SLIDE THRU
+            | FOLD
+            | CROSS FOLD
+            | DIXIE STYLE [TO A WAVE|TO AN OCEAN WAVE]
+            | [ONE] [HALF|QUARTER] TAG
+            | TAG THE LINE
+            | FACE (IN|OUT|LEFT|RIGHT)
+            | SCOOT BACK
+            | [SINGLE] HINGE
+            | RECYCLE;
+
+<PLUSCALL> = THREE QUARTER TAG [THE LINE]
+           | ACEY DEUCEY
+           | ALL EIGHT SPIN THE TOP
+           | CHASE <DIRECTION>
+           | COORDINATE
+           | CROSSFIRE
+           | CUT THE DIAMOND
+           | DIAMOND CIRCULATE
+           | DIXIE GRAND
+           | EXPLODE THE WAVE
+           | EXPLODE
+           | FAN THE TOP
+           | FLIP THE DIAMOND
+           | FOLLOW YOUR NEIGHBOR
+           | GRAND SWING THRU
+           | LINEAR CYCLE
+           | LOAD THE BOAT
+           | PEEL OFF
+           | PEEL (THE|YOUR) TOP
+           | PING PONG CIRCULATE
+           | RELAY THE DEUCEY
+           | SINGLE CIRCLE TO (A | AN OCEAN) WAVE
+           | SPIN CHAIN AND EXCHANGE THE GEARS
+           | SPIN CHAIN THE GEARS
+           | SPIN CHAIN THRU
+           | TEACUP CHAIN
+           | TRACK TWO
+           | TRADE THE WAVE;

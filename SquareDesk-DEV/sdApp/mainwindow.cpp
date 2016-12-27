@@ -8,6 +8,7 @@
 #include <QString>
 #include <QDir>
 #include <QStandardPaths>
+#include <QScrollBar>
 
 // TODO: disallow "exit"
 // TODO: integrate into a sequence window
@@ -59,6 +60,8 @@ MainWindow::MainWindow(QWidget *parent) :
 #define POCKETSPHINXSUPPORT 1
 #define USEJSGF 1
 
+    QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+
 #if defined(POCKETSPHINXSUPPORT)
     QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
 
@@ -68,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #if defined(USEJSGF)
     QString dictFile = modelDir + QString::number(whichModel) + "a.dic";
-    QString jsgfFile = modelDir + "mainstream.jsgf";
+    QString jsgfFile = modelDir + danceLevel + ".jsgf";
 
     QStringList PSargs;
     PSargs << "-dict" << dictFile << "-jsgf" << jsgfFile;
@@ -106,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    pathToSD = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug/sd_qt";
 
     QStringList SDargs;
-    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-lines" << "1000" << "a2";  // default level
+    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-lines" << "1000" << danceLevel;  // default level for sd
 
     sd = new QProcess(Q_NULLPTR);
 
@@ -206,6 +209,8 @@ void MainWindow::readSDData()
     QStringList currentSequence;
     QString lastPrompt;
 
+    // TODO: deal with multiple resolve's
+
     // scan the unedited lines for sectionStart, layout1/2, and sequence lines
     QStringList lines = uneditedData.split("\n");
     foreach (const QString &line, lines) {
@@ -261,6 +266,9 @@ void MainWindow::readSDData()
     }
 
     currentSequenceWidget->setText(currentSequence.join("\n"));
+    // always scroll to make the last line visible, as we're adding lines
+    QScrollBar *sb = currentSequenceWidget->verticalScrollBar();
+    sb->setValue(sb->maximum());
 
     //editedData.chop(1);  // no last NL
     console->clear();
@@ -294,47 +302,103 @@ void MainWindow::readPSData()
     QByteArray s = ps->readAll();
     qDebug() << "data from PS:" << s;
 
-    // TODO: insert NLU here
-    // TODO: <anything> and roll --> [anything] and roll
+    // NLU -----------------
+    // This section does the impedance match between what you can say and the exact wording that sd understands.
+    //
+    // handle numbers: one -> 1, etc.
+    QString s2 = s.toLower();
 
-    // handle numbers: one -> 1
-    QString s2 = s.toLower().replace("one","1").replace("two","2").replace("three","3").replace("four","4").replace("eight","8");
+    // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
+    // must be in this order, and must be before number substitution.
+    s2 = s2.replace("three quarters","3/4"); // technically, this one is not required, since sd understands both already.
+    s2 = s2.replace("two quarters","1/2").replace("one half","1/2").replace("half","1/2");
+    s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
+
+    s2 = s2.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
+    s2 = s2.replace("five","5").replace("six","6").replace("seven","7").replace("eight","8");
 
     // handle optional words at the beginning
     s2 = s2.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
 
-    // handle specialized spelling of flutter wheel
+    // handle specialized sd spelling of flutter wheel, and specialized wording of reverse flutter wheel
     s2 = s2.replace("flutterwheel","flutter wheel");
+    s2 = s2.replace("reverse the flutter","reverse flutter wheel");
 
-    // handle specialized wording of first go *, next go *
+    // handle specialized sd wording of first go *, next go *
     s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
     s2 = s2.replace(QRegExp("first .* go right .* next .* go left"),"first couple go right, next go left");
 
+    // handle "single circle to an ocean wave" -> "single circle to a wave"
+    s2 = s2.replace("single circle to an ocean wave","single circle to a wave");
+
+    // handle manually-inserted brackets
+    s2 = s2.replace(QRegExp("left bracket\\s+"), "[").replace(QRegExp("\\s+right bracket"),"]");
+    qDebug() << "bracket:" << s2;
+//    s2.replace("[\b+","[").replace("\b+]","]");  // sd is picky about spaces
+
+    // handle "single hinge" --> "hinge", "single file circulate" --> "circulate", "all 8 circulate" --> "circulate" (quirk of sd)
+    s2 = s2.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
+    s2 = s2.replace("men hinge", "boys hinge").replace("ladies hinge", "girls hinge");  // wacky sd!
+
+    // handle "allemande left alamo style" --> "allemande left in the alamo style"
+    s2 = s2.replace("allemande left alamo style", "allemande left in the alamo style");
+
+    // handle "separate [go] around <n> [to a line]" --> delete "go"
+    s2 = s2.replace("separate go around", "separate around");
+
+    // handle "dixie style [to a wave|to an ocean wave]" --> "dixie style to a wave"
+    s2 = s2.replace(QRegExp("dixie style.*"), "dixie style to a wave\n");
+
+    // TODO: handle the explode and case...
+    //  "all four boys explode and right and left thru and roll" = YIPES
+
     // handle the <anything> and roll case
+    //   don't do anything, if we added manual brackets
     QRegExp andRollCall("(.*) and roll.*");
-    if (s2.indexOf(andRollCall) != -1) {
+    if (!s2.contains("[") && s2.indexOf(andRollCall) != -1) {
         s2 = "[" + andRollCall.cap(1) + "] and roll\n";
     }
 
-    // handle the <anything> and sweep case
-    // FIX: this needs to add center boys, etc, but that messes up the QRegExp
-    QString who = QString("(^[heads|sides|centers|ends|outsides|insides|couples|everybody") +
-//                  QString("center boys|end boys|outside boys|inside boys|all four boys|") +
-//                  QString("center girls|end girls|outside girls|inside girls|all four girls|") +
-//                  QString("center men|end men|outside men|inside men|all four men|") +
-//                  QString("center ladies|end ladies|outside ladies|inside ladies|all four ladies") +
-                  QString("]*)");
-//    qDebug() << "who:" << who;
-    QRegExp andSweepCall(QString("<who>[ ]*(.*) and sweep.*").replace("<who>",who));
-//    qDebug() << "andSweepCall" << andSweepCall;
-    if (s2.indexOf(andSweepCall) != -1) {
-//        qDebug() << "CAPTURED:" << andSweepCall.capturedTexts();
-        s2 = andSweepCall.cap(1) + " [" + andSweepCall.cap(2) + "] and sweep 1/4\n";
-        s2 = s2.replace(QRegExp("^ "),""); // trim off possibly extra starting space
-        s2 = s2.replace("[ ","[");  // trim off possibly extra space because (.*) was greedy...
+    // handle "undo [that]" --> "undo last call"
+    s2 = s2.replace("undo that", "undo last call");
+    if (s2 == "undo\n") {
+        s2 = "undo last call\n";
     }
 
-    // square thru -> square thru 4
+    // handle "peel your top" --> "peel the top"
+    s2 = s2.replace("peel your top", "peel the top");
+
+    // handle the <anything> and sweep case
+    // FIX: this needs to add center boys, etc, but that messes up the QRegExp
+//    QString who = QString("(^[heads|sides|centers|ends|outsides|insides|couples|everybody") +
+////                  QString("center boys|end boys|outside boys|inside boys|all four boys|") +
+////                  QString("center girls|end girls|outside girls|inside girls|all four girls|") +
+////                  QString("center men|end men|outside men|inside men|all four men|") +
+////                  QString("center ladies|end ladies|outside ladies|inside ladies|all four ladies") +
+//                  QString("]*)");
+////    qDebug() << "who:" << who;
+//    QRegExp andSweepCall(QString("<who>[ ]*(.*) and sweep.*").replace("<who>",who));
+////    qDebug() << "andSweepCall" << andSweepCall;
+//    if (s2.indexOf(andSweepCall) != -1) {
+////        qDebug() << "CAPTURED:" << andSweepCall.capturedTexts();
+//        s2 = andSweepCall.cap(1) + " [" + andSweepCall.cap(2) + "] and sweep 1/4\n";
+//        s2 = s2.replace(QRegExp("^ "),""); // trim off possibly extra starting space
+//        s2 = s2.replace("[ ","[");  // trim off possibly extra space because (.*) was greedy...
+//    }
+
+    // <ANYTHING> AND SWEEP (A | ONE) QUARTER [MORE]
+    QRegExp andSweepPart(" and sweep.*");
+    int found = s2.indexOf(andSweepPart);
+    if (found != -1) {
+        if (s2.contains("[")) {
+            // if manual brackets added, don't add more of them.
+            s2 = s2.replace(andSweepPart,"") + " and sweep 1/4\n";
+        } else {
+            s2 = "[" + s2.replace(andSweepPart,"") + "] and sweep 1/4\n";
+        }
+    }
+
+    // handle "square thru" -> "square thru 4"
     if (s2 == "square thru\n") {
         s2 = "square thru 4\n";
     }
@@ -342,19 +406,28 @@ void MainWindow::readPSData()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (s2 == "square the set\n" || s2 == "square your set\n") {
-        s2 = "abort this sequence\n";
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
         sd->waitForBytesWritten();
-        sd->write(s2.toLatin1());
+
+        console->clear();
+
+        sd->write("abort this sequence\n");
         sd->waitForBytesWritten();
+
         sd->write("y\n");
         sd->waitForBytesWritten();
+
         sd->write("heads start\n");
         sd->waitForBytesWritten();
     } else if (s2 == "undo last call\n") {
+        qDebug() << "sending to SD: \"undo last call\n\"";
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
         sd->waitForBytesWritten();
+
         sd->write("undo last call\n");  // back up one call
+        sd->waitForBytesWritten();
+
+        sd->write("refresh display\n");  // refresh
         sd->waitForBytesWritten();
     } else if (s2 == "cancel\n" || s2 == "cancel that") {
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string

@@ -4,10 +4,8 @@ grammar basic;
 // TODO: split into calls that can roll/sweep and those that can't, and keep them separate
 // TODO: add plus calls
 
-public <S> = ([<WHO>] [<GODO>] 
-               (<BASICCALL> | <MSCALL>) 
-               [<SWEEP> | <ROLL>]) 
-           | <SDCOMMAND>;
+public <S> = ([<WHO>] [<GODO>] (<BASICCALL> | <MSCALL>) [<SWEEP>]) 
+             | <SDCOMMAND>;
 
 <SDCOMMAND> = (HEADS | SIDES) START
              | SQUARE (YOUR|THE) SET
@@ -107,7 +105,6 @@ public <S> = ([<WHO>] [<GODO>]
             | ZOOM
             | [REVERSE] FLUTTERWHEEL
             | REVERSE THE FLUTTER
-            | SWEEP (A|ONE) QUARTER [MORE]
             | VEER <DIRECTION>
             | TRADE BY
             | TOUCH A QUARTER
