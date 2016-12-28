@@ -84,16 +84,16 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     PSargs << "-inmic" << "yes";
-    qDebug() << PSargs;
+//    qDebug() << PSargs;
 
     ps = new QProcess(Q_NULLPTR);
 
     ps->setWorkingDirectory(sdWorkingDirectory);
     ps->start(pathToPS, PSargs);
 
-    qDebug() << "Waiting to start ps...";
+//    qDebug() << "Waiting to start ps...";
     ps->waitForStarted();
-    qDebug() << "   started.";
+//    qDebug() << "   started.";
 
     connect(ps,   &QProcess::readyReadStandardOutput,
             this, &MainWindow::readPSData);                 // output data from ps
@@ -119,8 +119,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //    qDebug() << "standard doc locs:" << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
 //    sdWorkingDirectory = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug";
 
-    qDebug() << "pathToSD:" << pathToSD;
-    qDebug() << "sdWorkingDirectory:" << sdWorkingDirectory;
+//    qDebug() << "pathToSD:" << pathToSD;
+//    qDebug() << "sdWorkingDirectory:" << sdWorkingDirectory;
 
     // check whether required sd_calls.dat file exists in the Documents/sdApp directory
     QFileInfo check_file(sdWorkingDirectory + "/sd_calls.dat");
@@ -129,12 +129,14 @@ MainWindow::MainWindow(QWidget *parent) :
         exit(-1);
     }
 
+    // TODO: check for files required by PS
+
     sd->setWorkingDirectory(sdWorkingDirectory);
     sd->start(pathToSD, SDargs);
 
-    qDebug() << "Waiting to start sd...";
+//    qDebug() << "Waiting to start sd...";
     sd->waitForStarted();
-    qDebug() << "   started.";
+//    qDebug() << "   started.";
 
     // Send a couple of startup calls to SD...
     if (true) {
@@ -165,13 +167,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::writeSDData(const QByteArray &data)
 {
-    // console has data, send to sd
-//    qDebug() << "writeData() to sd:" << data;
+    if (data != "") {
+        // console has data, send to sd
+//        qDebug() << "writeData() to sd:" << data;
 
-    QString d = data;
-    d.replace("\r","\n");
-    sd->write(d.toUtf8());
-    sd->waitForBytesWritten();
+        QString d = data;
+        d.replace("\r","\n");
+        if (d.at(d.length()-1) == '\n') {
+            sd->write(d.toUtf8());
+//            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
+            sd->waitForBytesWritten();
+        } else {
+            sd->write(d.toUtf8());
+            sd->waitForBytesWritten();
+        }
+    }
 }
 
 void MainWindow::readSDData()
@@ -181,6 +191,12 @@ void MainWindow::readSDData()
 //    qDebug() << "readData() from sd:" << s;
 
     QString qs(s);
+
+    if (qs.contains("\u0007")) {
+        QApplication::beep();
+        qs = qs.replace("\u0007","");  // delete all BEL chars
+    }
+
     uneditedData.append(qs);
 
     // do deletes early
@@ -192,7 +208,7 @@ void MainWindow::readSDData()
         done = (beforeLength == afterLength);
     }
 
-    uneditedData.replace("\u0007","");  // delete BEL chars
+//    uneditedData.replace("\u0007","");  // delete BEL chars
 
     // echo is needed for entering the level, but NOT wanted after that
     if (s.contains("Enter startup command>")) {
@@ -210,12 +226,20 @@ void MainWindow::readSDData()
     QString lastPrompt;
 
     // TODO: deal with multiple resolve's
+//    qDebug() << "unedited data:" << uneditedData;
+    QString errorLine;
+    QString resolveLine;
+    bool grabResolve = false;
 
     // scan the unedited lines for sectionStart, layout1/2, and sequence lines
     QStringList lines = uneditedData.split("\n");
     foreach (const QString &line, lines) {
 //        qDebug() << QString(" [%1] ").arg(line);
-        if (line.contains("layout1:")) {
+
+        if (grabResolve) {
+            resolveLine = line;  // grabs next line, then stops.
+            grabResolve = false;
+        } else if (line.contains("layout1:")) {
             lastLayout1 = line;
             lastLayout1 = lastLayout1.replace("layout1: ","").replace("\"","");
             lastFormatList.clear();
@@ -223,7 +247,10 @@ void MainWindow::readSDData()
             format2line = line;
             format2line = format2line.replace("layout2: ","").replace("\"","");
             lastFormatList.append(format2line);
+            errorLine = "";     // clear out possible error line
+            resolveLine = "";   // clear out possible resolve line
         } else if (sequenceLine.indexIn(line) > -1) {
+            // line like "3: square thru"
             int itemNumber = sequenceLine.cap(1).toInt();
             QString call = sequenceLine.cap(2).trimmed();
 //            qDebug() << itemNumber << ":" << call;
@@ -236,9 +263,16 @@ void MainWindow::readSDData()
             currentSequence.clear();
             editedData = "";  // sectionStart causes clear of editedData
         } else if (line == "") {
+            // skip blank lines
+        } else if (line.contains("(no matches)")) {
+            // special case for this error message
+             errorLine = line + "\n";
+        } else if (line.contains("resolve is:")) {
+            // special case for this line
+            grabResolve = true;
         } else if (line.contains("-->")) {
             // suppress output, but record it
-            lastPrompt = line;
+            lastPrompt = errorLine + line;  // this is a bold idea.  show last error only.
 //            qDebug() << "lastPrompt:" << lastPrompt;
 //            editedData += "DELETED PROMPT";  // no layout lines make it into here
 //            editedData += "\n";  // no layout lines make it into here
@@ -247,6 +281,8 @@ void MainWindow::readSDData()
             editedData += "\n";  // no layout lines make it into here
         }
     }
+
+//    qDebug() << "RESOLVE:" << resolveLine;
 
     editedData += lastPrompt.replace("\u0007","");  // keep only the last prompt (no NL)
 //    qDebug() << "editedLastPrompt:" << lastPrompt.replace("\u0007","");
@@ -272,12 +308,18 @@ void MainWindow::readSDData()
         currentSequence.replace(i, replacement);
     }
 
-    currentSequenceWidget->setText(currentSequence.join("\n"));
+    if (resolveLine == "") {
+        currentSequenceWidget->setText(currentSequence.join("\n"));
+    } else {
+        currentSequenceWidget->setText(currentSequence.join("\n") + "\nresolve is: " + resolveLine);
+    }
     // always scroll to make the last line visible, as we're adding lines
     QScrollBar *sb = currentSequenceWidget->verticalScrollBar();
     sb->setValue(sb->maximum());
 
     //editedData.chop(1);  // no last NL
+//    qDebug() << "edited data:" << editedData;
+
     console->clear();
     console->putData(QByteArray(editedData.toLatin1()));
 
@@ -307,7 +349,9 @@ void MainWindow::readPSData()
 {
     // pocketsphinx has a valid string, send it to sd
     QByteArray s = ps->readAll();
-    qDebug() << "data from PS:" << s;
+
+//    qDebug() << "data from PS:" << s;
+    return; // FIX FIX FIX
 
     // NLU -----------------
     // This section does the impedance match between what you can say and the exact wording that sd understands.
@@ -455,7 +499,7 @@ void MainWindow::readPSData()
         sd->write("heads start\n");
         sd->waitForBytesWritten();
     } else if (s2 == "undo last call\n") {
-        qDebug() << "sending to SD: \"undo last call\n\"";
+//        qDebug() << "sending to SD: \"undo last call\n\"";
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
         sd->waitForBytesWritten();
 
@@ -468,7 +512,7 @@ void MainWindow::readPSData()
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
         sd->waitForBytesWritten();
     } else if (s2 != "\n") {
-        qDebug() << "sending to SD:" << s2;
+//        qDebug() << "sending to SD:" << s2;
         sd->write(s2.toLatin1());
         sd->waitForBytesWritten();
     }
