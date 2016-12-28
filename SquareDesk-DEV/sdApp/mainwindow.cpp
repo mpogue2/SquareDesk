@@ -15,15 +15,8 @@
 // TODO: right at the beginning, if I type in heads square thru 4,
 //   automatically add the heads start.  Same for sides.
 // TODO: only allow focus in the prompt window
-// TODO: allow audible beeps again...
 // TODO: figure out where the sd output files really should go (right now: ~/Documents/sdApp)
-// TODO: only display the LAST resolve (when there are multiple)
-// TODO: where to display the resolve...in the sequence window, maybe?
-//    then the only thing left in the input window is a single line of input.
-// TODO: multiple resolves still show up, should use last one or none
 // TODO: write the sequence out to a file somewhere?
-// TODO: too many false positives right now, if I chew or cough.  Is there a threshold parameter to tune this?
-//         Or, when we get a beep, should we just throw everything away via Ctrl-U?
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -351,7 +344,7 @@ void MainWindow::readPSData()
     QByteArray s = ps->readAll();
 
 //    qDebug() << "data from PS:" << s;
-    return; // FIX FIX FIX
+//    return; // FIX FIX FIX
 
     // NLU -----------------
     // This section does the impedance match between what you can say and the exact wording that sd understands.
@@ -411,7 +404,7 @@ void MainWindow::readPSData()
     //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
     if (!s2.contains("[")) {
         QRegExp andRollCall("(.*) and roll.*");
-        if (!s2.contains("[") && s2.indexOf(andRollCall) != -1) {
+        if (s2.indexOf(andRollCall) != -1) {
             s2 = "[" + andRollCall.cap(1) + "] and roll\n";
         }
 
@@ -437,6 +430,13 @@ void MainWindow::readPSData()
         }
     }
 
+    // handle <ANYTHING> and spread
+    if (!s2.contains("[")) {
+        QRegExp andSpreadCall("(.*) and spread");
+        if (s2.indexOf(andSpreadCall) != -1) {
+            s2 = "[" + andSpreadCall.cap(1) + "] and spread\n";
+        }
+    }
 
     // handle "undo [that]" --> "undo last call"
     s2 = s2.replace("undo that", "undo last call");
