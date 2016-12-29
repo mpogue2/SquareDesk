@@ -1,4 +1,5 @@
 #include <QColorDialog>
+#include <QCoreApplication>
 #include <QDesktopWidget>
 #include <QMap>
 #include <QMapIterator>
@@ -3547,7 +3548,7 @@ void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
-    QString pathToSD = QDir::currentPath() + "/sd";
+    QString pathToSD = QCoreApplication::applicationDirPath() + "/sd";
     // NOTE: sd_calls.dat MUST be in the same directory.
 
     // start sd as a process -----
