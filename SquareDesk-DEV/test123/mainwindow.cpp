@@ -3071,12 +3071,14 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
         voiceInputEnabled = true;
+        ui->statusBar->setStyleSheet("color: red");
         ui->statusBar->showMessage("Microphone enabled for voice input to SD");
         if (console != 0) {
             console->setFocus();
         }
     } else {
         voiceInputEnabled = false;
+        ui->statusBar->setStyleSheet("color: black");
         ui->statusBar->showMessage("Microphone disabled");
     }
 }
@@ -3483,6 +3485,7 @@ void MainWindow::initSDtab() {
     currentSequenceWidget->setStyleSheet("QLabel { background-color : white; color : black; }");
     currentSequenceWidget->setAlignment(Qt::AlignTop);
     currentSequenceWidget->setReadOnly(true);
+    currentSequenceWidget->setFocusPolicy(Qt::NoFocus);  // do not allow this widget to get focus (console always has it)
 
     ui->seqGridLayout->addWidget(currentSequenceWidget,0,0,1,1);
     ui->seqGridLayout->addWidget(console, 1,0,1,2);
