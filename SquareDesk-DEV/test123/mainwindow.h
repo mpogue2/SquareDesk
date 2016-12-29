@@ -16,6 +16,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QProcess>
 #include <QProxyStyle>
 #include <QSettings>
 #include <QSlider>
@@ -29,6 +30,7 @@
 #include <QDateTime>
 
 #include "common_enums.h"
+#include "sdhighlighter.h"
 
 #include "math.h"
 #include "bass_audio.h"
@@ -36,6 +38,8 @@
 #include "preferencesdialog.h"
 #include "levelmeter.h"
 #include "analogclock.h"
+#include "console.h"
+#include "renderarea.h"
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
@@ -56,6 +60,9 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
+
+    Console *console;                   // these are public so that eventFilter can browse them
+    QTextEdit *currentSequenceWidget;
 
     PreferencesDialog *prefDialog;
 
@@ -147,6 +154,10 @@ private slots:
     void on_warningLabel_clicked();
 
     void on_tabWidget_currentChanged(int index);
+
+    void writeSDData(const QByteArray &data);
+    void readSDData();
+    void readPSData();
 
 private:
     QAction *closeAct;  // WINDOWS only
@@ -257,6 +268,20 @@ private:
     QStringList newVolumeList;    // list of volume pathnames, one per volume
 
     QStringList flashCalls;
+
+    // --------------
+    void initSDtab();
+
+    QProcess *sd;  // sd process
+    QProcess *ps;  // pocketsphinx process
+    Highlighter *highlighter;
+    RenderArea *renderArea;
+    QString uneditedData;
+    QString editedData;
+    QString copyrightText;  // sd copyright string (shown once at start)
+    bool copyrightShown;
+
+    bool voiceInputEnabled;
 };
 
 // currentState:

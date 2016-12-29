@@ -22,7 +22,10 @@ SOURCES += main.cpp\
     analogclock.cpp \
     prefsmanager.cpp \
     clickablelabel.cpp \
-    typetracker.cpp
+    typetracker.cpp \
+    console.cpp \
+    renderarea.cpp \
+    sdhighlighter.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -42,7 +45,11 @@ HEADERS  += mainwindow.h \
     default_colors.h \
     macUtils.h \
     clickablelabel.h \
-    typetracker.h
+    typetracker.h \
+    console.h \
+    renderarea.h \
+    common.h \
+    sdhighlighter.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui

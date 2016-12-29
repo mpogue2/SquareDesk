@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1120,6 +1120,16 @@
         </item>
         <item>
          <widget class="QTextBrowser" name="textBrowserCueSheet"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="sequencer">
+       <attribute name="title">
+        <string>SD</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="seqGridLayout"/>
         </item>
        </layout>
       </widget>

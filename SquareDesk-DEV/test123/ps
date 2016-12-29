@@ -1,0 +1,2 @@
+#!/bin/bash
+pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes
