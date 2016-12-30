@@ -3103,10 +3103,10 @@ void MainWindow::microphoneStatusUpdate() {
     if (ui->tabWidget->tabText(index) == "SD") {
         if (voiceInputEnabled) {
             ui->statusBar->setStyleSheet("color: red");
-            ui->statusBar->showMessage("Microphone enabled for voice input");
+            ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
         } else {
             ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled");
+            ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
         }
     } else {
         if (voiceInputEnabled) {
