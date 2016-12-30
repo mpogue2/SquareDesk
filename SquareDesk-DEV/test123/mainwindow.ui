@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1434,9 +1434,16 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="separator"/>
     <addaction name="actionContinuous_Play"/>
    </widget>
+   <widget class="QMenu" name="menuSequence">
+    <property name="title">
+     <string>SD</string>
+    </property>
+    <addaction name="actionEnable_voice_input"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
+   <addaction name="menuSequence"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="enabled">
@@ -1791,6 +1798,14 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
   <action name="actionClear_Playlist">
    <property name="text">
     <string>Clear Playlist</string>
+   </property>
+  </action>
+  <action name="actionEnable_voice_input">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable voice input</string>
    </property>
   </action>
  </widget>

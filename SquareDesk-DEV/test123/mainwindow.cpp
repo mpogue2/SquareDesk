@@ -24,20 +24,12 @@
 // BUG: if you're playing a song on an external flash drive, and remove it, playback stops, but the song is still
 //   in the currenttitlebar, and it tries to play (silently).  Should clear everything out at that point and unload the song.
 
-// BUG: typing doesn't work in sd right now.  Key is eaten?  Or focus problem?
-//   If sd tab is open, focus should be forced, and other key interpretation should be disabled.
 // BUG: should allow Ctrl-U in the sd window, to clear the line (equiv to "erase that")
-// TODO: bundle sd and ps with the main sdp executable (MacOSX and Win32).
-// TODO: bundle the .dic and .jsgf files (which also allows a third party to modify the
-//   ASR grammar, although it does not allow updating the NLU without recompilation)
-// TODO: need a way to turn ASR on/off via a button and/or a menu item.
-// TODO: if sd tab is NOT open, then we should disable the ASR (so it's not typing things
-//   to sd in the background)
 
 // TODO: include a license in the executable bundle for Mac (e.g. GPL2).  Include the same
 //   license next to the Win32 executable (e.g. COPYING).
 
-// REMINDER (I forget how to do this every single time) -- to set a layout to fill a single tab:
+// REMINDER TO FUTURE SELF: (I forget how to do this every single time) -- to set a layout to fill a single tab:
 //    In designer, you should first in form preview select requested tab,
 //    than in tree-view click to PARENT QTabWidget and set the layout as for all tabs.
 //    Really this layout appears as new properties for selected tab only. Every tab has own layout.
@@ -316,6 +308,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
+    on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
+    voiceInputEnabled = prefsManager.Getenablevoiceinput();
 
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
@@ -3071,16 +3065,32 @@ void MainWindow::on_warningLabel_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
-        voiceInputEnabled = true;
-        ui->statusBar->setStyleSheet("color: red");
-        ui->statusBar->showMessage("Microphone enabled for voice input to SD");
         if (console != 0) {
             console->setFocus();
         }
+    }
+    microphoneStatusUpdate();
+}
+
+void MainWindow::microphoneStatusUpdate() {
+    int index = ui->tabWidget->currentIndex();
+
+    if (ui->tabWidget->tabText(index) == "SD") {
+        if (voiceInputEnabled) {
+            ui->statusBar->setStyleSheet("color: red");
+            ui->statusBar->showMessage("Microphone enabled for voice input");
+        } else {
+            ui->statusBar->setStyleSheet("color: black");
+            ui->statusBar->showMessage("Microphone disabled");
+        }
     } else {
-        voiceInputEnabled = false;
-        ui->statusBar->setStyleSheet("color: black");
-        ui->statusBar->showMessage("Microphone disabled");
+        if (voiceInputEnabled) {
+            ui->statusBar->setStyleSheet("color: black");
+            ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
+        } else {
+            ui->statusBar->setStyleSheet("color: black");
+            ui->statusBar->showMessage("Microphone disabled");
+        }
     }
 }
 
@@ -3188,6 +3198,10 @@ void MainWindow::readSDData()
             editedData = "";  // sectionStart causes clear of editedData
         } else if (line == "") {
             // skip blank lines
+        } else if (line.contains("Enter startup command>") || line.contains("Do you really want to abort it?")) {
+            // skip blank lines
+//            editedData += line;  // no NL
+            lastPrompt = errorLine + line;  // this is a bold idea.  treat this as the last prompt, too.
         } else if (line.startsWith("SD --") || line.contains("Copyright") || line.contains("Gildea")) {
             copyrightText += line + "\n";
         } else if (line.contains("(no matches)")) {
@@ -3239,7 +3253,8 @@ void MainWindow::readSDData()
     if (copyrightShown) {
         copyrightText = "";
     } else {
-        copyrightText += "\n";
+        copyrightText += "\nTry: 'Heads start'"
+                         "\n";
     }
 
     if (resolveLine == "") {
@@ -3451,8 +3466,9 @@ void MainWindow::readPSData()
         sd->write("y\n");
         sd->waitForBytesWritten();
 
-        sd->write("heads start\n");
-        sd->waitForBytesWritten();
+//        sd->write("heads start\n");
+//        sd->waitForBytesWritten();
+
     } else if (s2 == "undo last call\n") {
 //        qDebug() << "sending to SD: \"undo last call\n\"";
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
@@ -3494,53 +3510,43 @@ void MainWindow::initSDtab() {
 
     console->setFixedHeight(150);
 
-    QString sdWorkingDirectory = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0] + "/sdApp";
-
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365
     //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
 #define POCKETSPHINXSUPPORT 1
-#define USEJSGF 1
 
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    unsigned int whichModel = 5365;
 
 #if defined(POCKETSPHINXSUPPORT)
-//    QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
-    QString pathToPS = QCoreApplication::applicationDirPath() + "/pocketsphinx_continuous";
-    // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the QCoreApplication::applicationDirPath().
+    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
+    QString pathToPS = appDir + "pocketsphinx_continuous";
 
-    unsigned int whichModel = 5365;
-//    QString modelDir = "/Users/mpogue/ps/";
-    QString modelDir = sdWorkingDirectory + "/";  // put current dict and jsgf grammar into ~/Documents/sdApp
+    // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the same directory.
+    QString pathToDict = QString::number(whichModel) + "a.dic";
+    QString pathToJSGF = danceLevel + ".jsgf";
 
-#if defined(USEJSGF)
-    QString dictFile = modelDir + QString::number(whichModel) + "a.dic";
-    QString jsgfFile = modelDir + danceLevel + ".jsgf";
+    // The acoustic models are one level up in the models subdirectory
+    QString pathToHMM  = "../models/en-us";
 
     QStringList PSargs;
-    PSargs << "-dict" << dictFile << "-jsgf" << jsgfFile;
-#else
-    QString dictFile = modelDir + QString::number(whichModel) + "a.dic";
-    QString lmFile = modelDir + QString::number(whichModel) + ".lm";
+    PSargs << "-dict" << pathToDict     // pronunciation dictionary
+           << "-jsgf" << pathToJSGF     // language model
+           << "-inmic" << "yes"         // use the built-in microphone
+           << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
-    QStringList PSargs;
-    PSargs << "-dict" << dictFile << "-lm" << lmFile;
-#endif
-
-     // use the built-in microphone, and the US English acoustic model (a bunch of files) is in ../models/en-us
-    PSargs << "-inmic" << "yes" << "-hmm" << "../models/en-us/";
 //    qDebug() << PSargs;
 
     ps = new QProcess(Q_NULLPTR);
 
-    ps->setWorkingDirectory(QCoreApplication::applicationDirPath());
+    ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
     ps->start(pathToPS, PSargs);
 
 //    qDebug() << "Waiting to start ps...";
     ps->waitForStarted();
 //    qDebug() << "   started.";
 
-    voiceInputEnabled = false;  // disabled, until we get onto the sd tab
+//    voiceInputEnabled = false;  // disabled, until we get onto the sd tab
 
     connect(ps,   &QProcess::readyReadStandardOutput,
             this, &MainWindow::readPSData);                 // output data from ps
@@ -3551,36 +3557,59 @@ void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
-    QString pathToSD = QCoreApplication::applicationDirPath() + "/sd";
-    // NOTE: sd_calls.dat MUST be in the same directory.
+    // NOTE: sd and sd_calls.dat must be in the same directory in the bundle (Mac OS X).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
 
     // start sd as a process -----
 //    pathToSD = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug/sd_qt";
 
     QStringList SDargs;
-    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-lines" << "1000" << danceLevel;  // default level for sd
-
+    SDargs << "-no_color" << "-no_cursor" << "-no_console"      // act as server only
+           << "-lines" << "1000"
+           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
+           << danceLevel;                                       // default level for sd
     sd = new QProcess(Q_NULLPTR);
 
 //    myProcess->setStandardOutputFile("/Users/mpogue/Documents/QtProjects/build-sdApp-Desktop_Qt_5_7_0_clang_64bit-Debug/foobar2.txt");
 //    myProcess->setStandardInputFile("/Users/mpogue/Documents/QtProjects/build-sdApp-Desktop_Qt_5_7_0_clang_64bit-Debug/in.txt");
 
-//    qDebug() << "standard doc locs:" << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-//    sdWorkingDirectory = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug";
+    PreferencesManager prefsManager;
+    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
 
-//    qDebug() << "pathToSD:" << pathToSD;
-//    qDebug() << "sdWorkingDirectory:" << sdWorkingDirectory;
+    // if the sequences directory doesn't exist, create it (but ask nicely first)
+    QDir dir(sequencesDir);
+    if (!dir.exists()) {
+        QMessageBox msgBox;
+        msgBox.setText("A 'sd' subdirectory to hold sd sequence files was not found in your Music Directory.");
+        msgBox.setInformativeText("Should I create one for you?");
+        msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
+        msgBox.setDefaultButton(QMessageBox::Yes);
+        msgBox.setDetailedText(QString("sd is an open-source square dance sequence designer that is built into SquareDesk."
+                                       " When sd writes a sequence to a file, it writes it to a file in the 'sd'"
+                                       " subdirectory of your Music Directory.  If you say 'yes' here, we'll create"
+                                       " that subdirectory for you.  If you say 'no', the sd tab will be disabled."
+                                       " Future versions of SquareDeskPlayer may offer more options."
+                                       ));
+        int ret = msgBox.exec();
 
-    // check whether required sd_calls.dat file exists in the Documents/sdApp directory
-    QFileInfo check_file(sdWorkingDirectory + "/sd_calls.dat");
-    if (!check_file.exists()) {
-        qDebug() << "ERROR: sd_calls.dat file not found in ~/Documents/sdApp.  Please put a copy there!";
-        exit(-1);
+        switch (ret) {
+          case QMessageBox::No:
+            // TODO: remember this choice, and disable sd, but allow it to be reenabled later.
+            break;
+          case QMessageBox::Yes:
+            dir.mkpath(".");
+            break;
+          default:
+            // should never be reached
+            break;
+        }
     }
 
-    // TODO: check for files required by PS
+//    qDebug() << "sequencesDir:" << sequencesDir;
 
-    sd->setWorkingDirectory(sdWorkingDirectory);
+//    QString sdWorkingDirectory = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0] + "/sd";
+    sd->setWorkingDirectory(sequencesDir);
     sd->start(pathToSD, SDargs);
 
 //    qDebug() << "Waiting to start sd...";
@@ -3589,8 +3618,8 @@ void MainWindow::initSDtab() {
 
     // Send a couple of startup calls to SD...
     if (true) {
-        sd->write("heads start\n");  // DEBUG
-        sd->waitForBytesWritten();
+//        sd->write("heads start\n");  // DEBUG
+//        sd->waitForBytesWritten();
 
 //        sd->write("square thru 4\n"); // DEBUG
 //        sd->waitForBytesWritten();
@@ -3603,4 +3632,22 @@ void MainWindow::initSDtab() {
     connect(console, &Console::getData, this, &MainWindow::writeSDData);      // input data to sd
 
     highlighter = new Highlighter(console->document());
+}
+
+void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
+{
+    if (checked) {
+        ui->actionEnable_voice_input->setChecked(true);
+        voiceInputEnabled = true;
+    }
+    else {
+        ui->actionEnable_voice_input->setChecked(false);
+        voiceInputEnabled = false;
+    }
+
+    microphoneStatusUpdate();
+
+    // the Enable Voice Input setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
 }

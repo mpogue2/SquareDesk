@@ -159,6 +159,9 @@ private slots:
     void readSDData();
     void readPSData();
 
+    void on_actionEnable_voice_input_toggled(bool arg1);
+    void microphoneStatusUpdate();
+
 private:
     QAction *closeAct;  // WINDOWS only
 
