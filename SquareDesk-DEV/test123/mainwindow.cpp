@@ -3198,8 +3198,10 @@ void MainWindow::readSDData()
             editedData = "";  // sectionStart causes clear of editedData
         } else if (line == "") {
             // skip blank lines
-        } else if (line.contains("Enter startup command>") || line.contains("Do you really want to abort it?")) {
-            // skip blank lines
+        } else if (line.contains("Enter startup command>") ||
+                   line.contains("Do you really want to abort it?") ||
+                   line.contains("Enter search command>")) {
+            // PROMPTS
 //            editedData += line;  // no NL
             lastPrompt = errorLine + line;  // this is a bold idea.  treat this as the last prompt, too.
         } else if (line.startsWith("SD --") || line.contains("Copyright") || line.contains("Gildea")) {
