@@ -270,10 +270,11 @@ private:
 // path is stored in the userData portion of the Type column...
 #define kLabelCol 2
 #define kTitleCol 3
+#define kAgeCol   4
 
 // hidden columns:
-#define kPitchCol 4
-#define kTempoCol 5
+#define kPitchCol 5
+#define kTempoCol 6
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time

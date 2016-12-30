@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>721</width>
-    <height>558</height>
+    <width>782</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -73,6 +73,9 @@
            <property name="sortingEnabled">
             <bool>true</bool>
            </property>
+           <property name="columnCount">
+            <number>7</number>
+           </property>
            <attribute name="horizontalHeaderVisible">
             <bool>false</bool>
            </attribute>
@@ -119,6 +122,11 @@
            </column>
            <column>
             <property name="text">
+             <string>Age</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
              <string>Pitch</string>
             </property>
            </column>
@@ -127,6 +135,7 @@
              <string>Tempo</string>
             </property>
            </column>
+           <column/>
           </widget>
          </widget>
         </item>
@@ -1370,8 +1379,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>721</width>
-     <height>22</height>
+     <width>782</width>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

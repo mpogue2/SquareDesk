@@ -22,6 +22,7 @@ SOURCES += main.cpp\
     analogclock.cpp \
     prefsmanager.cpp \
     clickablelabel.cpp \
+    songsettings.cpp \
     typetracker.cpp
 
 HEADERS  += mainwindow.h \

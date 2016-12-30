@@ -13,6 +13,8 @@
 #include "analogclock.h"
 #include "prefsmanager.h"
 
+#include "songsettings.h"
+
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
@@ -79,6 +81,7 @@ using namespace TagLib;
 
 // GLOBALS:
 bass_audio cBass;
+SongSettings songSettings;
 
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
@@ -273,6 +276,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kTypeCol,96);
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kAgeCol, 36);
     ui->songTable->setColumnWidth(kPitchCol,50);
     ui->songTable->setColumnWidth(kTempoCol,50);
 
@@ -448,7 +452,7 @@ MainWindow::~MainWindow()
     // REENABLE SCREENSAVER, RELEASE THE KRAKEN
 #ifdef Q_OS_MAC
     macUtils.reenableScreensaver();
-#else
+#elsifdef Q_OS_WINDOWS
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
 #endif
 }
@@ -508,11 +512,13 @@ void MainWindow::setFontSizes()
 void MainWindow::updatePitchTempoView()
 {
     if (pitchAndTempoHidden) {
+        ui->songTable->setColumnHidden(kAgeCol,true); // hide the age column
         ui->songTable->setColumnHidden(kPitchCol,true); // hide the pitch column
         ui->songTable->setColumnHidden(kTempoCol,true); // hide the tempo column
     }
     else {
 
+        ui->songTable->setColumnHidden(kAgeCol,false); // show the age column
         ui->songTable->setColumnHidden(kPitchCol,false); // show the pitch column
         ui->songTable->setColumnHidden(kTempoCol,false); // show the tempo column
 
@@ -522,6 +528,7 @@ void MainWindow::updatePitchTempoView()
         headerView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
         headerView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
         headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+        headerView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
         headerView->setStretchLastSection(false);
@@ -1665,6 +1672,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
 
 void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode)
 {
+    songSettings.OpenDatabase(mainRootDir);
     // always gets rid of the old pathstack...
     if (pathStack) {
         delete pathStack;
@@ -1883,6 +1891,7 @@ void MainWindow::filterMusic()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, "", kAgeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
 
@@ -2229,7 +2238,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                             QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
                             theItem3->setText(list1[2]);
 
-                            match = true;
+                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
+                            theItemAge->setText("***");
+                        match = true;
                         }
                     }
                     // if we had no match, remember the first non-matching song path
@@ -2754,55 +2765,36 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 void MainWindow::saveCurrentSongSettings()
 {
     QString currentSong = ui->nowPlayingLabel->text();
+    
     if (saveSongPreferencesInConfig && !currentSong.isEmpty()) {
-        QString section = "Song - " + currentSong + "/";
-        QSettings MySettings;
-
         int pitch = ui->pitchSlider->value();
-        MySettings.setValue(section + "pitch", pitch);
-
         int tempo = ui->tempoSlider->value();
-        MySettings.setValue(section + "tempo", tempo);
-
-        MySettings.setValue(section + "volume", currentVolume);
-        MySettings.setValue(section + "introPos",
-                            ui->seekBarCuesheet->GetIntro());
-        MySettings.setValue(section + "outroPos",
-                            ui->seekBarCuesheet->GetOutro());
+        
+        songSettings.SaveSettings(currentMP3filename,
+                                  pitch, tempo,
+                                  ui->seekBarCuesheet->GetIntro(),
+                                  ui->seekBarCuesheet->GetOutro());
         // TODO: Loop points!
     }
+
+    
 }
 
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
     if (saveSongPreferencesInConfig) {
-        QString section = "Song - " + songTitle + "/";
-        QSettings MySettings;
-
-        QVariant value;
-
-        value = MySettings.value(section + "pitch");
-        if (!value.isNull()) {
-            ui->pitchSlider->setValue(value.toInt());
-        }
-
-        value = MySettings.value(section + "tempo");
-        if (!value.isNull()) {
-            ui->tempoSlider->setValue(value.toInt());
-        }
-
-        value = MySettings.value(section + "volume");
-        if (!value.isNull()) {
-            ui->volumeSlider->setValue(value.toInt());
-        }
-
-        value = MySettings.value(section + "introPos");
-        if (!value.isNull()) {
-            ui->seekBarCuesheet->SetIntro(value.toFloat());
-        }
-        value = MySettings.value(section + "outroPos");
-        if (!value.isNull()) {
-            ui->seekBarCuesheet->SetOutro(value.toFloat());
+        int pitch = ui->pitchSlider->value();
+        int tempo = ui->tempoSlider->value();
+        double intro = ui->seekBarCuesheet->GetIntro();
+        double outro = ui->seekBarCuesheet->GetOutro();
+        if (songSettings.LoadSettings(currentMP3filename,
+                                      pitch, tempo,
+                                      intro, outro))
+        {
+            ui->pitchSlider->setValue(pitch);
+            ui->tempoSlider->setValue(tempo);
+            ui->seekBarCuesheet->SetIntro(intro);
+            ui->seekBarCuesheet->SetOutro(outro);
         }
     }
 }

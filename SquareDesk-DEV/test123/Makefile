@@ -14,7 +14,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -m64 -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -m64 -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -std=c++11 -m64 -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I. -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64
 QMAKE         = /usr/lib/x86_64-linux-gnu/qt5/bin/qmake
 DEL_FILE      = rm -f
@@ -33,10 +33,10 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = SquareDeskPlayer1.0.0
-DISTDIR = /home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123/.tmp/SquareDeskPlayer1.0.0
+DISTDIR = /home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/.tmp/SquareDeskPlayer1.0.0
 LINK          = g++
 LFLAGS        = -m64 -Wl,-O1
-LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -lQt5Widgets -lQt5Gui -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -57,11 +57,15 @@ SOURCES       = main.cpp \
 		myslider.cpp \
 		levelmeter.cpp \
 		analogclock.cpp \
-		prefsmanager.cpp qrc_resources.cpp \
+		prefsmanager.cpp \
+		clickablelabel.cpp \
+		songsettings.cpp \
+		typetracker.cpp qrc_resources.cpp \
 		moc_mainwindow.cpp \
 		moc_preferencesdialog.cpp \
 		moc_levelmeter.cpp \
-		moc_analogclock.cpp
+		moc_analogclock.cpp \
+		moc_clickablelabel.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		bass_audio.o \
@@ -72,11 +76,15 @@ OBJECTS       = main.o \
 		levelmeter.o \
 		analogclock.o \
 		prefsmanager.o \
+		clickablelabel.o \
+		songsettings.o \
+		typetracker.o \
 		qrc_resources.o \
 		moc_mainwindow.o \
 		moc_preferencesdialog.o \
 		moc_levelmeter.o \
-		moc_analogclock.o
+		moc_analogclock.o \
+		moc_clickablelabel.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/linux.conf \
@@ -172,7 +180,13 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		tablenumberitem.h \
 		levelmeter.h \
 		analogclock.h \
-		common_enums.h main.cpp \
+		common_enums.h \
+		prefs_options.h \
+		prefsmanager.h \
+		default_colors.h \
+		macUtils.h \
+		clickablelabel.h \
+		typetracker.h main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
@@ -181,7 +195,10 @@ DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		myslider.cpp \
 		levelmeter.cpp \
 		analogclock.cpp \
-		prefsmanager.cpp
+		prefsmanager.cpp \
+		clickablelabel.cpp \
+		songsettings.cpp \
+		typetracker.cpp
 QMAKE_TARGET  = SquareDeskPlayer
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = SquareDeskPlayer
@@ -404,8 +421,9 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents macUtils.mm $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui preferencesdialog.ui $(DISTDIR)/
 
 
@@ -434,30 +452,40 @@ qrc_resources.cpp: resources.qrc \
 		Graphicrating-Koloria-Button-Rec.ico
 	/usr/lib/x86_64-linux-gnu/qt5/bin/rcc -name resources resources.qrc -o qrc_resources.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp
 moc_mainwindow.cpp: common_enums.h \
 		bass_audio.h \
 		bass.h \
 		myslider.h \
 		preferencesdialog.h \
+		default_colors.h \
 		prefs_options.h \
 		levelmeter.h \
 		analogclock.h \
+		clickablelabel.h \
+		typetracker.h \
+		macUtils.h \
 		mainwindow.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
 moc_preferencesdialog.cpp: common_enums.h \
+		default_colors.h \
 		prefs_options.h \
 		preferencesdialog.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include preferencesdialog.h -o moc_preferencesdialog.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include preferencesdialog.h -o moc_preferencesdialog.cpp
 
 moc_levelmeter.cpp: levelmeter.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include levelmeter.h -o moc_levelmeter.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include levelmeter.h -o moc_levelmeter.cpp
 
-moc_analogclock.cpp: analogclock.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer.danlyke/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include analogclock.h -o moc_analogclock.cpp
+moc_analogclock.cpp: clickablelabel.h \
+		typetracker.h \
+		analogclock.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include analogclock.h -o moc_analogclock.cpp
+
+moc_clickablelabel.cpp: clickablelabel.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include clickablelabel.h -o moc_clickablelabel.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
@@ -466,7 +494,8 @@ compiler_uic_clean:
 	-$(DEL_FILE) ui_mainwindow.h ui_preferencesdialog.h
 ui_mainwindow.h: mainwindow.ui \
 		myslider.h \
-		mytablewidget.h
+		mytablewidget.h \
+		clickablelabel.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/uic mainwindow.ui -o ui_mainwindow.h
 
 ui_preferencesdialog.h: preferencesdialog.ui
@@ -488,9 +517,13 @@ main.o: main.cpp mainwindow.h \
 		bass.h \
 		myslider.h \
 		preferencesdialog.h \
+		default_colors.h \
 		prefs_options.h \
 		levelmeter.h \
-		analogclock.h
+		analogclock.h \
+		clickablelabel.h \
+		typetracker.h \
+		macUtils.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp mainwindow.h \
@@ -499,13 +532,18 @@ mainwindow.o: mainwindow.cpp mainwindow.h \
 		bass.h \
 		myslider.h \
 		preferencesdialog.h \
+		default_colors.h \
 		prefs_options.h \
 		levelmeter.h \
 		analogclock.h \
+		clickablelabel.h \
+		typetracker.h \
+		macUtils.h \
 		ui_mainwindow.h \
 		mytablewidget.h \
 		utility.h \
-		tablenumberitem.h
+		tablenumberitem.h \
+		prefsmanager.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 bass_audio.o: bass_audio.cpp bass_audio.h \
@@ -515,6 +553,7 @@ bass_audio.o: bass_audio.cpp bass_audio.h \
 
 preferencesdialog.o: preferencesdialog.cpp preferencesdialog.h \
 		common_enums.h \
+		default_colors.h \
 		prefs_options.h \
 		ui_preferencesdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o preferencesdialog.o preferencesdialog.cpp
@@ -531,12 +570,26 @@ myslider.o: myslider.cpp myslider.h
 levelmeter.o: levelmeter.cpp levelmeter.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o levelmeter.o levelmeter.cpp
 
-analogclock.o: analogclock.cpp analogclock.h
+analogclock.o: analogclock.cpp analogclock.h \
+		clickablelabel.h \
+		typetracker.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o analogclock.o analogclock.cpp
 
 prefsmanager.o: prefsmanager.cpp prefsmanager.h \
-		prefs_options.h
+		prefs_options.h \
+		preferencesdialog.h \
+		common_enums.h \
+		default_colors.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o prefsmanager.o prefsmanager.cpp
+
+clickablelabel.o: clickablelabel.cpp clickablelabel.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o clickablelabel.o clickablelabel.cpp
+
+songsettings.o: songsettings.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o songsettings.o songsettings.cpp
+
+typetracker.o: typetracker.cpp typetracker.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o typetracker.o typetracker.cpp
 
 qrc_resources.o: qrc_resources.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_resources.o qrc_resources.cpp
@@ -552,6 +605,9 @@ moc_levelmeter.o: moc_levelmeter.cpp
 
 moc_analogclock.o: moc_analogclock.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_analogclock.o moc_analogclock.cpp
+
+moc_clickablelabel.o: moc_clickablelabel.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_clickablelabel.o moc_clickablelabel.cpp
 
 ####### Install
 
