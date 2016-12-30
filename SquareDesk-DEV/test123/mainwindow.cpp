@@ -3505,7 +3505,9 @@ void MainWindow::initSDtab() {
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
 #if defined(POCKETSPHINXSUPPORT)
-    QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
+//    QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
+    QString pathToPS = QCoreApplication::applicationDirPath() + "/pocketsphinx_continuous";
+    // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the QCoreApplication::applicationDirPath().
 
     unsigned int whichModel = 5365;
 //    QString modelDir = "/Users/mpogue/ps/";
@@ -3525,12 +3527,13 @@ void MainWindow::initSDtab() {
     PSargs << "-dict" << dictFile << "-lm" << lmFile;
 #endif
 
-    PSargs << "-inmic" << "yes";
+     // use the built-in microphone, and the US English acoustic model (a bunch of files) is in ../models/en-us
+    PSargs << "-inmic" << "yes" << "-hmm" << "../models/en-us/";
 //    qDebug() << PSargs;
 
     ps = new QProcess(Q_NULLPTR);
 
-    ps->setWorkingDirectory(sdWorkingDirectory);
+    ps->setWorkingDirectory(QCoreApplication::applicationDirPath());
     ps->start(pathToPS, PSargs);
 
 //    qDebug() << "Waiting to start ps...";

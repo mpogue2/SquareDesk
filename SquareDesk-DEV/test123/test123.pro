@@ -118,18 +118,58 @@ macx {
 }
 
 mac: {
-    # Copy the sd executable and the sd_calls.dat data file to the same place as the sdApp executable
-    #  (inside sdApp.app)
-    # This way, it's easy for sdApp to find the executable for sd, and it's easy for SDP to start up sd.
-    copydata.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
+    #  (inside the SquareDeskPlayer.app bundle)
+    # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
+    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
-    first.depends = $(first) copydata copydata2 copydata3
+
+#    first.depends = $(first) copydata copydata2 copydata3
+#    export(first.depends)
+#    export(copydata.commands)
+#    export(copydata2.commands)
+#    export(copydata3.commands)
+#    QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata3
+
+    # Copy the ps executable and the .dict and .jsgf data files to the same place as the ps executable
+    #  (inside the SquareDeskPlayer.app bundle)
+    # This way, it's easy for SDP to find the executable for ps, and it's easy for SDP to start up ps.
+    # ***** NOTE: the path to pocketsphinx is specific to my particular installation! *****
+#    copydata4.commands = $(COPY_DIR) /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/bin/pocketsphinx_continuous $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata5.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata6.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+
+    # TODO: need to include the dependent libraries of pocketsphinx, too.
+    # NO.  Dependent libraries (there are actually 3 of them) are done via the postBuildStepMac.  And, that's only
+    #   done when needed, not every build, because it modified the pocketsphinx executable and libraries.
+    #   Do not muck with this, unless you have to, because it's fragile.
+
+#    copydata7.commands = $(COPY_DIR) /usr/local/opt/cmu-sphinxbase/lib/libsphinxbase.3.dylib $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+#    copydata8.commands = $(COPY_DIR) /usr/local/opt/cmu-sphinxbase/lib/libsphinxad.3.dylib   $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+
+    #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
+    #
+    #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
+    #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
+    #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
+    #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
+
+#    first.depends = $(first) copydata1 copydata2 copydata3 copydata4 copydata5 copydata6 copydata7 copydata8
+    first.depends = $(first) copydata1 copydata2 copydata3 copydata5 copydata6
+
     export(first.depends)
-    export(copydata.commands)
+    export(copydata1.commands)
     export(copydata2.commands)
     export(copydata3.commands)
-    QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata3
+#    export(copydata4.commands)
+    export(copydata5.commands)
+    export(copydata6.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
+
+#    QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata4 copydata5 copydata6 copydata7 copydata8
+    QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata5 copydata6
 }
 
 
