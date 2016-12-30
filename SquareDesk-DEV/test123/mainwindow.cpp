@@ -3139,11 +3139,6 @@ void MainWindow::readSDData()
 
 //    uneditedData.replace("\u0007","");  // delete BEL chars
 
-    // echo is needed for entering the level, but NOT wanted after that
-    if (s.contains("Enter startup command>")) {
-        console->setLocalEchoEnabled(false);
-    }
-
     QString lastLayout1;
     QString format2line;
     QList<QString> lastFormatList;
@@ -3200,7 +3195,9 @@ void MainWindow::readSDData()
             // skip blank lines
         } else if (line.contains("Enter startup command>") ||
                    line.contains("Do you really want to abort it?") ||
-                   line.contains("Enter search command>")) {
+                   line.contains("Enter search command>") ||
+                   line.contains("Enter comment:") ||
+                   line.contains("Do you want to write it anyway?")) {
             // PROMPTS
 //            editedData += line;  // no NL
             lastPrompt = errorLine + line;  // this is a bold idea.  treat this as the last prompt, too.
@@ -3227,6 +3224,13 @@ void MainWindow::readSDData()
 //    qDebug() << "RESOLVE:" << resolveLine;
 
     editedData += lastPrompt.replace("\u0007","");  // keep only the last prompt (no NL)
+
+    // echo is needed for entering the level and entering comments, but NOT wanted after that
+    if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
+        console->setLocalEchoEnabled(true);
+    } else {
+        console->setLocalEchoEnabled(false);
+    }
 
 //    qDebug() << "editedLastPrompt:" << lastPrompt.replace("\u0007","");
 //    qDebug() << "currentSequence:" << currentSequence;
