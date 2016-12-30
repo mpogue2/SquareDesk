@@ -180,3 +180,7 @@ RESOURCES += resources.qrc
 
 OBJECTIVE_SOURCES += \
     macUtils.mm
+
+DISTFILES += \
+    LICENSE.GPL3 \
+    LICENSE.GPL2
