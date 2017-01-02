@@ -84,6 +84,10 @@ using namespace std;
 
 #include "typetracker.h"
 
+#if defined(Q_OS_MAC)
+#define POCKETSPHINXSUPPORT 1
+#endif
+
 using namespace TagLib;
 
 #endif
@@ -503,6 +507,15 @@ MainWindow::~MainWindow()
     macUtils.reenableScreensaver();
 #elif defined(Q_OS_WIN32)
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
+#endif
+
+    if (sd) {
+        sd->kill();
+    }
+#if defined(POCKETSPHINXSUPPORT)
+    if (ps) {
+        ps->kill();
+    }
 #endif
 }
 
@@ -3544,8 +3557,6 @@ void MainWindow::initSDtab() {
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365
     //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
-#define POCKETSPHINXSUPPORT 1
-
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
     unsigned int whichModel = 5365;
 
