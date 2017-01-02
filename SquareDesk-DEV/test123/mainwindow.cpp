@@ -3123,8 +3123,8 @@ void MainWindow::writeSDData(const QByteArray &data)
 {
     if (data != "") {
         // console has data, send to sd
-//        qDebug() << "writeData() to sd:" << data;
-
+        qDebug() << "writeData() to sd:" << data;
+//        return;  // FIX FIX FIX DEBUG
         QString d = data;
         d.replace("\r","\n");
         if (d.at(d.length()-1) == '\n') {
@@ -3142,13 +3142,13 @@ void MainWindow::readSDData()
 {
     // sd has data, send to console
     QByteArray s = sd->readAll();
-//    qDebug() << "readData() from sd:" << s;
+    qDebug() << "readData() from sd:" << s;
 
     QString qs(s);
 
-    if (qs.contains("\u0007")) {
+    if (qs.contains("\a")) {
         QApplication::beep();
-        qs = qs.replace("\u0007","");  // delete all BEL chars
+        qs = qs.replace("\a","");  // delete all BEL chars
     }
 
     uneditedData.append(qs);
@@ -3248,7 +3248,7 @@ void MainWindow::readSDData()
 
 //    qDebug() << "RESOLVE:" << resolveLine;
 
-    editedData += lastPrompt.replace("\u0007","");  // keep only the last prompt (no NL)
+    editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
 
     // echo is needed for entering the level and entering comments, but NOT wanted after that
     if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
@@ -3588,15 +3588,20 @@ void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
+#if defined(Q_OS_MAC)
     // NOTE: sd and sd_calls.dat must be in the same directory in the bundle (Mac OS X).
     QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
     QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-
+#else
+    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#endif
     // start sd as a process -----
 //    pathToSD = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug/sd_qt";
 
     QStringList SDargs;
-    SDargs << "-no_color" << "-no_cursor" << "-no_console"      // act as server only
+    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
            << "-lines" << "1000"
            << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
            << danceLevel;                                       // default level for sd

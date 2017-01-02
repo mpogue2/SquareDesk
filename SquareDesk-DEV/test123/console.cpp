@@ -89,8 +89,11 @@ Console::Console(QWidget *parent)
     p.setColor(QPalette::Base, Qt::white);
     p.setColor(QPalette::Text, Qt::black);
     setPalette(p);
+#if defined(Q_OS_MAC)
+    // temporarily commented out for Win32 because of runtime errors
     QFont theFont("courier");
     this->setFont(theFont);
+#endif
 }
 
 void Console::putData(const QByteArray &data)
