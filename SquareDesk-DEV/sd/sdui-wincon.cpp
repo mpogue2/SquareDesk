@@ -117,6 +117,7 @@ void iofull::display_help()
    printf("                                 when input or output is redirected\n");
    printf("-no_cursor                  do not use screen management functions at all\n");
    printf("-journal <filename>         echo input commands to journal file\n");
+   fflush(stdout);  // -mpogue
 }
 
 
@@ -369,6 +370,7 @@ extern void clear_line()
    }
    else
       printf(" XXX\n");
+      fflush(stdout);  // -mpogue
 }
 
 extern void rubout()
@@ -386,6 +388,7 @@ extern void rubout()
    }
    else
       printf("\b \b");
+      fflush(stdout);  // -mpogue
 }
 
 extern void erase_last_n(int n)
@@ -455,6 +458,7 @@ extern void put_line(const char the_line[])
    else {
       fputs(the_line, stdout);
    }
+   fflush(stdout);  // -mpogue
 }
 
 extern void put_char(int c)
@@ -503,6 +507,7 @@ extern void put_char(int c)
    }
    else
       putchar(c);
+      fflush(stdout);  // -mpogue
 }
 
 

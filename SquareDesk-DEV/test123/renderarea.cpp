@@ -286,8 +286,13 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
         }
 
         // draw the formation (if there is one)
+#if defined(Q_OS_MAC)
+        unsigned int formationFontSize = 24;
+#else
+        unsigned int formationFontSize = 12;
+#endif
         if (formation != "") {
-            painter.setFont(QFont("Arial",24,QFont::Bold));
+            painter.setFont(QFont("Arial",formationFontSize,QFont::Bold));
             painter.drawText(190,30,formation);
         }
     }
