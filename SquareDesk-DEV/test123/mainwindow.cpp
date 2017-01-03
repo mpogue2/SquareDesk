@@ -1303,7 +1303,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
-//        qDebug() << "eventFilter:" << KeyEvent->text();
+//        qDebug() << "mainwindow::GlobalEventFilter:" << KeyEvent;
 //        if (ui->labelSearch->hasFocus()) {
 //            qDebug() << "labelSearch has focus.";
 //        } else if (ui->typeSearch->hasFocus()) {
@@ -3150,6 +3150,7 @@ void MainWindow::writeSDData(const QByteArray &data)
 //            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
             sd->waitForBytesWritten();
         } else {
+//            qDebug() << "writeSDData:" << d.toUtf8();
             sd->write(d.toUtf8());
             sd->waitForBytesWritten();
         }

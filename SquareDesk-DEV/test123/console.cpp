@@ -136,8 +136,8 @@ void Console::setLocalEchoEnabled(bool set)
 
 void Console::keyPressEvent(QKeyEvent *e)
 {
+//    qDebug() << "Console:keyPressEvent:" << e << e->key() << Qt::Key_Escape;
     switch (e->key()) {
-//    case Qt::Key_Backspace:
     case Qt::Key_Left:
     case Qt::Key_Right:
     case Qt::Key_Up:
@@ -147,7 +147,15 @@ void Console::keyPressEvent(QKeyEvent *e)
         if (localEchoEnabled) {
             QPlainTextEdit::keyPressEvent(e);
         }
-        emit getData(e->text().toLocal8Bit());
+        if (e->text() == "\u001B") {
+            // map ESC to Ctrl-U (delete entire line)
+//            qDebug() << "Control-U detected.";
+// BUG: on Win32, the Ctrl-U is sent, but sd doesn't react.
+            emit getData(QByteArray("\025")); // Ctrl-U
+        } else {
+//            qDebug() << "Normal key detected:" << e->text().toLocal8Bit();
+            emit getData(e->text().toLocal8Bit());
+        }
     }
 }
 
