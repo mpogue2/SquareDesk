@@ -3335,8 +3335,16 @@ void MainWindow::readSDData()
 //    qDebug() << "lastLayout1:" << lastLayout1;
 //    qDebug() << "lastFormatList:" << lastFormatList;
 
-    renderArea->setLayout1(lastLayout1);
-    renderArea->setLayout2(lastFormatList);
+//    qDebug() << "lastPrompt:" << lastPrompt;
+    if (lastPrompt.contains("Enter startup command>")) {
+        renderArea->setLayout1("");
+        renderArea->setLayout2(QStringList());      // show squared up dancers
+        renderArea->setFormation("Squared set");    // starting formation
+        currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
+    } else {
+        renderArea->setLayout1(lastLayout1);
+        renderArea->setLayout2(lastFormatList);
+    }
 
 }
 

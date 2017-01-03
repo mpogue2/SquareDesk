@@ -62,14 +62,14 @@ void RenderArea::setBrush(const QBrush &brush)
 
 void RenderArea::setLayout1(QString s)
 {
-//    qDebug() << "setLayout1" << bad++;
+//    qDebug() << "setLayout1" << s;
     this->layout1 = s;
     update();
 }
 
 void RenderArea::setLayout2(QStringList sl)
 {
-//    qDebug() << "setLayout2" << bad++;
+//    qDebug() << "setLayout2" << sl;
     this->layout2 = sl;
     update();
 }
@@ -81,8 +81,6 @@ void RenderArea::setFormation(QString s)
     update();
 }
 
-
-
 void RenderArea::paintEvent(QPaintEvent * /* event */)
 {
 //    qDebug() << "paintEvent" << bad++;
@@ -93,6 +91,19 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 
     painter.setPen(QPen(Qt::black));
     painter.setRenderHint(QPainter::Antialiasing, true);
+
+    if (layout1 == "" && layout2.length() == 0) {
+        setLayout1("      n  o  @@k              b@@j              c@@      g  f  ");
+        QStringList sl;
+        sl.append("        3GV   3BV      ");
+        sl.append("");
+        sl.append(" 4B>               2G<");
+        sl.append("");
+        sl.append(" 4G>               2B<");
+        sl.append("");
+        sl.append("       1B^   1G^      ");
+        setLayout2(sl);
+    }
 
     if (layout1 != "" && layout2.length() != 0) {
 //        qDebug() << "************";
