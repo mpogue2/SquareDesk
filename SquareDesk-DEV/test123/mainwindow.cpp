@@ -1322,16 +1322,24 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //            qDebug() << "something else has focus, or there is no focus right now.";
 //        }
 
+//        QString currentWindowName = ((((QApplication *)Object)->activeWindow()))->objectName();
+        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>(((QApplication *)Object)->activeWindow());
+        if (maybeMainWindow == 0) {
+            // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
+            return QObject::eventFilter(Object,Event);
+        }
+
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
         if (!(ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()
                 || ui->lineEditCountDownTimer->hasFocus()
                 || ui->songTable->isEditing()
-                || ((MainWindow *)(((QApplication *)Object)->activeWindow()))->console->hasFocus()
+                || maybeMainWindow->console->hasFocus()
               )) {
-            // call handleKeypress on the Applications's active window
-            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key(), KeyEvent->text());
+            // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
+//            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
+            return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
 
     }
