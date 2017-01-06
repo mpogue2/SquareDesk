@@ -1,0 +1,136 @@
+#JSGF V1.0;
+grammar basic;
+
+// TODO: split into calls that can roll/sweep and those that can't, and keep them separate
+// TODO: add plus calls
+
+public <S> = ([<WHO>] [<GODO>] (<BASICCALL> | <MSCALL>) [<SWEEP>]) 
+             | <SDCOMMAND>;
+
+<SDCOMMAND> = (HEADS | SIDES) START
+             | SQUARE (YOUR|THE) SET
+             | UNDO LAST CALL
+             | CANCEL [THAT];
+
+<DIRECTION> = LEFT | RIGHT;
+
+<NUMBER> = ONE | TWO | THREE | FOUR;
+
+<HEADSSIDES> = (HEADS | SIDES);
+
+<GODO> = (GO | DO | DO A);
+
+<WHO> = HEADS
+      | SIDES
+      | CENTERS
+      | ENDS
+      | OUTSIDES
+      | INSIDES
+      | COUPLES
+      | EVERYBODY
+      | ALL EIGHT
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR] BOYS
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR] GIRLS
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR] MEN
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR] LADIES;
+
+//      | (HEAD | SIDE) (PAIR | COUPLE | TWO)
+
+<SWEEP> = AND SWEEP (A | ONE) QUARTER [MORE];
+
+<ROLL> = AND ROLL [TO FACE];
+
+<BASICCALL> = CIRCLE <DIRECTION>
+            | [GO] FORWARD AND BACK
+            | DOSADO [TO A WAVE]
+            | SWING
+            | [WRONG WAY] PROMENADE
+            | SINGLE FILE PROMENADE
+            | ALLEMANDE LEFT
+            | LEFT ALLEMANDE
+            | LEFT ARM TURN
+            | RIGHT ARM TURN
+            | RIGHT (AND|A) LEFT GRAND
+            | GRAND RIGHT AND LEFT
+            | WEAVE THE RING
+            | WRONG WAY GRAND [RIGHT AND LEFT]
+            | [MAKE A] <DIRECTION> HAND STAR
+            | STAR PROMENADE
+            | PASS THRU
+            | SPLIT TWO
+            | GO AROUND <NUMBER>
+            | HALF SASHAY
+            | ROLLAWAY
+            | LADIES IN [AND THE] MEN SASHAY
+            | U TURN BACK
+            | BACKTRACK
+            | SEPARATE AROUND <NUMBER>
+            | COURTESY TURN
+//            | LADIES CHAIN
+            | CHAIN
+            | CHAIN DOWN THE LINE
+            | DOPASO
+            | LEAD <DIRECTION>
+            | RIGHT (AND|A) LEFT THRU
+            | GRAND SQUARE
+            | STAR THRU
+            | CIRCLE TO A LINE
+            | BEND THE LINE
+            | WALK ALL AROUND THE (CORNER|LEFT HAND LADY)
+            | SEE SAW
+            | SQUARE THRU
+            | SQUARE THRU <NUMBER>
+            | CALIFORNIA TWIRL
+            | DIVE THRU
+            | [REVERSE] WHEEL AROUND
+            | ALLEMANDE THAR
+            | ALLEMANDE LEFT TO AN ALLEMANDE THAR
+            | WRONG WAY THAR
+            | SHOOT THE STAR
+            | SLIP THE CLUTCH
+            | BOX THE GNAT
+            | STEP TO A WAVE
+            | BALANCE
+            | ALLEMANDE LEFT [IN THE] ALAMO STYLE
+            | PASS THE OCEAN
+            | EXTEND
+            | SWING THRU
+            | RUN
+            | CROSS RUN
+            | TRADE
+            | PARTNER TRADE
+            | WHEEL AND DEAL
+            | DOUBLE PASS THRU
+            | FIRST [COUPLE] GO <DIRECTION> [AND] [THE] NEXT [COUPLE] GO <DIRECTION>
+            | ZOOM
+            | [REVERSE] FLUTTERWHEEL
+            | REVERSE THE FLUTTER
+            | VEER <DIRECTION>
+            | TRADE BY
+            | TOUCH A QUARTER
+            | TOUCH ONE QUARTER
+            | CIRCULATE
+            | SINGLE FILE CIRCULATE
+            | SPLIT CIRCULATE
+            | BOX CIRCULATE
+            | FERRIS WHEEL;
+
+<MSCALL> =    CLOVERLEAF
+            | TURN THRU
+            | EIGHT CHAIN THRU
+            | EIGHT CHAIN <NUMBER>
+            | PASS TO THE CENTER
+            | SPIN THE TOP
+            | CENTERS IN
+            | CAST OFF ONE QUARTER
+            | CAST OFF ONE HALF
+            | CAST OFF THREE [QUARTER|QUARTERS]
+            | WALK AND DODGE
+            | SLIDE THRU
+            | FOLD
+            | CROSS FOLD
+            | DIXIE STYLE [TO A WAVE|TO AN OCEAN WAVE]
+            | [HALF|QUARTER] TAG [THE LINE]
+            | SCOOT BACK
+            | [SINGLE] HINGE
+            | RECYCLE;

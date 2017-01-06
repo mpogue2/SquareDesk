@@ -1132,6 +1132,16 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="sequencer">
+       <attribute name="title">
+        <string>SD</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="seqGridLayout"/>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="ALL">
        <attribute name="title">
         <string>Callerlab Lists</string>
@@ -1433,9 +1443,16 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="separator"/>
     <addaction name="actionContinuous_Play"/>
    </widget>
+   <widget class="QMenu" name="menuSequence">
+    <property name="title">
+     <string>SD</string>
+    </property>
+    <addaction name="actionEnable_voice_input"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
+   <addaction name="menuSequence"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="enabled">
@@ -1691,7 +1708,7 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <string>Loop</string>
    </property>
    <property name="shortcut">
-    <string>L</string>
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="actionForce_Mono_Aahz_mode">
@@ -1790,6 +1807,14 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
   <action name="actionClear_Playlist">
    <property name="text">
     <string>Clear Playlist</string>
+   </property>
+  </action>
+  <action name="actionEnable_voice_input">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable voice input</string>
    </property>
   </action>
  </widget>

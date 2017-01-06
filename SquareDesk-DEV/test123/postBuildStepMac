@@ -1,0 +1,46 @@
+# post-build step:
+# copy dependent libraries into the bundle, and make libraries relative to each other
+
+# NOTE: this might only work once, then you have to rebuild the executables, because they
+#  are already modified?
+
+EXE=/Users/mpogue/Documents/QtProjects/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS/pocketsphinx_continuous
+
+LIBDIR=/Users/mpogue/Documents/QtProjects/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS/libs
+
+otool -L $EXE
+
+chmod 755 $EXE
+
+dylibbundler -od -b -x $EXE -d $LIBDIR
+
+# OK, this puts them one directory too low.  Need to do mv libs .. to fix it.
+mv $LIBDIR $LIBDIR/..
+
+echo
+echo EXECUTABLE
+otool -L $EXE
+echo
+echo LIBRARY 1
+otool -L $LIBDIR/libsphinxad.3.dylib
+echo
+echo LIBRARY 2
+otool -L $LIBDIR/libsphinxbase.3.dylib
+echo
+echo LIBRARY 3
+otool -L $LIBDIR/libpocketsphinx.3.dylib
+
+# MORE TO DO:
+# http://cmusphinx.sourceforge.net/wiki/tutorialadapt
+# This copies over the acoustic model into a subdirectory
+
+# ***** NOTE: This needs to be rewritten to be executable more than once.
+
+cd $LIBDIR
+cd ..
+cd ..
+mkdir models/en-us
+cp cp /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us/en-us/* ./models/en-us
+
+# Keep going until this works (from the MacOS directory):
+#   ./pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us/

@@ -16,6 +16,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPaintEvent>
+#include <QProcess>
 #include <QProxyStyle>
 #include <QSettings>
 #include <QSlider>
@@ -29,6 +30,7 @@
 #include <QDateTime>
 
 #include "common_enums.h"
+#include "sdhighlighter.h"
 
 #include "math.h"
 #include "bass_audio.h"
@@ -36,6 +38,8 @@
 #include "preferencesdialog.h"
 #include "levelmeter.h"
 #include "analogclock.h"
+#include "console.h"
+#include "renderarea.h"
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
@@ -56,6 +60,9 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
+
+    Console *console;                   // these are public so that eventFilter can browse them
+    QTextEdit *currentSequenceWidget;
 
     PreferencesDialog *prefDialog;
 
@@ -79,7 +86,7 @@ private slots:
     void on_UIUpdateTimerTick(void);
     void on_vuMeterTimerTick(void);
 
-    void on_newVolumeMounted(QString);
+    void on_newVolumeMounted();
     void aboutBox();
 
     void on_actionSpeed_Up_triggered();
@@ -148,6 +155,13 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
+    void writeSDData(const QByteArray &data);
+    void readSDData();
+    void readPSData();
+
+    void on_actionEnable_voice_input_toggled(bool arg1);
+    void microphoneStatusUpdate();
+
 private:
     QAction *closeAct;  // WINDOWS only
 
@@ -195,7 +209,7 @@ private:
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // Lyrics stuff
     QString loadLyrics(QString MP3FileName);
 #endif
@@ -252,10 +266,25 @@ private:
 #endif
 
     QFileSystemWatcher *fileWatcher;
-    QStringList getCurrentVolumes(QString volumeDir);
+    QStringList getCurrentVolumes();
     QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
+    QStringList newVolumeList;    // list of volume pathnames, one per volume
 
     QStringList flashCalls;
+
+    // --------------
+    void initSDtab();
+
+    QProcess *sd;  // sd process
+    QProcess *ps;  // pocketsphinx process
+    Highlighter *highlighter;
+    RenderArea *renderArea;
+    QString uneditedData;
+    QString editedData;
+    QString copyrightText;  // sd copyright string (shown once at start)
+    bool copyrightShown;
+
+    bool voiceInputEnabled;
 };
 
 // currentState:

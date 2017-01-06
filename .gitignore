@@ -5,3 +5,4 @@ SquareDeskPlayer
 moc_*.cpp
 qrc_resources.cpp
 ui_*.h
+build-*
