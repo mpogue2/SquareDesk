@@ -88,6 +88,10 @@ using namespace std;
 
 #include "typetracker.h"
 
+#if defined(Q_OS_MAC)
+#define POCKETSPHINXSUPPORT 1
+#endif
+
 using namespace TagLib;
 
 #endif
@@ -339,9 +343,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
+
+// voice input is only available on MAC OS X right now...
+#if defined(Q_OS_MAC)
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
-
+#else
+    on_actionEnable_voice_input_toggled(false);
+    voiceInputEnabled = false;
+#endif
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
@@ -518,6 +528,15 @@ MainWindow::~MainWindow()
     macUtils.reenableScreensaver();
 #elif defined(Q_OS_WIN32)
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
+#endif
+
+    if (sd) {
+        sd->kill();
+    }
+#if defined(POCKETSPHINXSUPPORT)
+    if (ps) {
+        ps->kill();
+    }
 #endif
 }
 
@@ -1284,7 +1303,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.6.2</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.7.1</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
@@ -1303,7 +1322,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
-//        qDebug() << "eventFilter:" << KeyEvent->text();
+//        qDebug() << "mainwindow::GlobalEventFilter:" << KeyEvent;
 //        if (ui->labelSearch->hasFocus()) {
 //            qDebug() << "labelSearch has focus.";
 //        } else if (ui->typeSearch->hasFocus()) {
@@ -1322,16 +1341,24 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //            qDebug() << "something else has focus, or there is no focus right now.";
 //        }
 
+//        QString currentWindowName = ((((QApplication *)Object)->activeWindow()))->objectName();
+        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>(((QApplication *)Object)->activeWindow());
+        if (maybeMainWindow == 0) {
+            // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
+            return QObject::eventFilter(Object,Event);
+        }
+
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
         if (!(ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()
                 || ui->lineEditCountDownTimer->hasFocus()
                 || ui->songTable->isEditing()
-                || ((MainWindow *)(((QApplication *)Object)->activeWindow()))->console->hasFocus()
+                || maybeMainWindow->console->hasFocus()
               )) {
-            // call handleKeypress on the Applications's active window
-            return ((MainWindow *)(((QApplication *)Object)->activeWindow()))->handleKeypress(KeyEvent->key(), KeyEvent->text());
+            // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
+//            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
+            return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
 
     }
@@ -3109,10 +3136,10 @@ void MainWindow::microphoneStatusUpdate() {
     if (ui->tabWidget->tabText(index) == "SD") {
         if (voiceInputEnabled) {
             ui->statusBar->setStyleSheet("color: red");
-            ui->statusBar->showMessage("Microphone enabled for voice input");
+            ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
         } else {
             ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled");
+            ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
         }
     } else {
         if (voiceInputEnabled) {
@@ -3130,7 +3157,6 @@ void MainWindow::writeSDData(const QByteArray &data)
     if (data != "") {
         // console has data, send to sd
 //        qDebug() << "writeData() to sd:" << data;
-
         QString d = data;
         d.replace("\r","\n");
         if (d.at(d.length()-1) == '\n') {
@@ -3138,6 +3164,7 @@ void MainWindow::writeSDData(const QByteArray &data)
 //            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
             sd->waitForBytesWritten();
         } else {
+//            qDebug() << "writeSDData:" << d.toUtf8();
             sd->write(d.toUtf8());
             sd->waitForBytesWritten();
         }
@@ -3150,11 +3177,13 @@ void MainWindow::readSDData()
     QByteArray s = sd->readAll();
 //    qDebug() << "readData() from sd:" << s;
 
+    s = s.replace("\r\n","\n");  // This should be safe on all platforms, but is required for Win32
+
     QString qs(s);
 
-    if (qs.contains("\u0007")) {
+    if (qs.contains("\a")) {
         QApplication::beep();
-        qs = qs.replace("\u0007","");  // delete all BEL chars
+        qs = qs.replace("\a","");  // delete all BEL chars
     }
 
     uneditedData.append(qs);
@@ -3168,8 +3197,6 @@ void MainWindow::readSDData()
         done = (beforeLength == afterLength);
     }
 
-//    uneditedData.replace("\u0007","");  // delete BEL chars
-
     QString lastLayout1;
     QString format2line;
     QList<QString> lastFormatList;
@@ -3180,7 +3207,7 @@ void MainWindow::readSDData()
     QStringList currentSequence;
     QString lastPrompt;
 
-    // TODO: deal with multiple resolve's
+    // TODO: deal with multiple resolve lines
 //    qDebug() << "unedited data:" << uneditedData;
     QString errorLine;
     QString resolveLine;
@@ -3189,8 +3216,6 @@ void MainWindow::readSDData()
     // scan the unedited lines for sectionStart, layout1/2, and sequence lines
     QStringList lines = uneditedData.split("\n");
     foreach (const QString &line, lines) {
-//        qDebug() << QString(" [%1] ").arg(line);
-
         if (grabResolve) {
             resolveLine = line;  // grabs next line, then stops.
             grabResolve = false;
@@ -3209,7 +3234,6 @@ void MainWindow::readSDData()
             int itemNumber = sequenceLine.cap(1).toInt();
             QString call = sequenceLine.cap(2).trimmed();
 
-//            qDebug() << itemNumber << ":" << call;
             if (call == "HEADS" || call == "SIDES") {
                 call += " start";
             }
@@ -3244,8 +3268,6 @@ void MainWindow::readSDData()
             // suppress output, but record it
             lastPrompt = errorLine + line;  // this is a bold idea.  show last error only.
 //            qDebug() << "lastPrompt:" << lastPrompt;
-//            editedData += "DELETED PROMPT";  // no layout lines make it into here
-//            editedData += "\n";  // no layout lines make it into here
         } else {
             editedData += line;  // no layout lines make it into here
             editedData += "\n";  // no layout lines make it into here
@@ -3254,7 +3276,7 @@ void MainWindow::readSDData()
 
 //    qDebug() << "RESOLVE:" << resolveLine;
 
-    editedData += lastPrompt.replace("\u0007","");  // keep only the last prompt (no NL)
+    editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
 
     // echo is needed for entering the level and entering comments, but NOT wanted after that
     if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
@@ -3263,7 +3285,6 @@ void MainWindow::readSDData()
         console->setLocalEchoEnabled(false);
     }
 
-//    qDebug() << "editedLastPrompt:" << lastPrompt.replace("\u0007","");
 //    qDebug() << "currentSequence:" << currentSequence;
     // capitalize all the words in each call
     for (int i=0; i < currentSequence.length(); i++ ) {
@@ -3282,7 +3303,6 @@ void MainWindow::readSDData()
             words.replace(j, replacement2);
         }
         QString replacement = words.join(" ");
-//        qDebug() << current << replacement;
         currentSequence.replace(i, replacement);
     }
 
@@ -3314,8 +3334,6 @@ void MainWindow::readSDData()
     console->clear();
     console->putData(QByteArray(editedData.toLatin1()));
 
-//    console->setFocus();
-
     // look at unedited last line to see if there's a prompt
     if (lines[lines.length()-1].contains("-->")) {
 //        qDebug() << "Found prompt:" << lines[lines.length()-1];
@@ -3331,8 +3349,16 @@ void MainWindow::readSDData()
 //    qDebug() << "lastLayout1:" << lastLayout1;
 //    qDebug() << "lastFormatList:" << lastFormatList;
 
-    renderArea->setLayout1(lastLayout1);
-    renderArea->setLayout2(lastFormatList);
+//    qDebug() << "lastPrompt:" << lastPrompt;
+    if (lastPrompt.contains("Enter startup command>")) {
+        renderArea->setLayout1("");
+        renderArea->setLayout2(QStringList());      // show squared up dancers
+        renderArea->setFormation("Squared set");    // starting formation
+        currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
+    } else {
+        renderArea->setLayout1(lastLayout1);
+        renderArea->setLayout2(lastFormatList);
+    }
 
 }
 
@@ -3352,6 +3378,7 @@ void MainWindow::readPSData()
 
     // NLU --------------------------------------------
     // This section does the impedance match between what you can say and the exact wording that sd understands.
+    // TODO: put this stuff into an external text file, read in at runtime?
     //
     QString s2 = s.toLower();
 
@@ -3381,8 +3408,6 @@ void MainWindow::readPSData()
 
     // handle manually-inserted brackets
     s2 = s2.replace(QRegExp("left bracket\\s+"), "[").replace(QRegExp("\\s+right bracket"),"]");
-//    qDebug() << "bracket:" << s2;
-//    s2.replace("[\b+","[").replace("\b+]","]");  // sd is picky about spaces
 
     // handle "single hinge" --> "hinge", "single file circulate" --> "circulate", "all 8 circulate" --> "circulate" (quirk of sd)
     s2 = s2.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
@@ -3503,10 +3528,11 @@ void MainWindow::readPSData()
         sd->write("y\n");
         sd->waitForBytesWritten();
 
-//        sd->write("heads start\n");
+//        sd->write("heads start\n");   // THIS IS OPTIONAL.  For now, don't do it -- user needs to say it.
 //        sd->waitForBytesWritten();
 
     } else if (s2 == "undo last call\n") {
+        // TODO: put more synonyms of this in...
 //        qDebug() << "sending to SD: \"undo last call\n\"";
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
         sd->waitForBytesWritten();
@@ -3527,6 +3553,11 @@ void MainWindow::readPSData()
 }
 
 void MainWindow::initSDtab() {
+
+#if !defined(Q_OS_MAC)
+    ui->actionEnable_voice_input->setEnabled(false);
+#endif
+
     renderArea = new RenderArea;
     renderArea->setPen(QPen(Qt::blue));
     renderArea->setBrush(QBrush(Qt::green));
@@ -3550,12 +3581,10 @@ void MainWindow::initSDtab() {
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365
     //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
-#define POCKETSPHINXSUPPORT 1
-
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-    unsigned int whichModel = 5365;
 
 #if defined(POCKETSPHINXSUPPORT)
+    unsigned int whichModel = 5365;
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
     QString pathToPS = appDir + "pocketsphinx_continuous";
 
@@ -3583,33 +3612,33 @@ void MainWindow::initSDtab() {
     ps->waitForStarted();
 //    qDebug() << "   started.";
 
-//    voiceInputEnabled = false;  // disabled, until we get onto the sd tab
-
     connect(ps,   &QProcess::readyReadStandardOutput,
             this, &MainWindow::readPSData);                 // output data from ps
-
-//    qDebug() << "current dir:" << QDir::currentPath();
 
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
-    // NOTE: sd and sd_calls.dat must be in the same directory in the bundle (Mac OS X).
+#if defined(Q_OS_MAC)
+    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
     QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
     QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#else
+    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#endif
 
     // start sd as a process -----
-//    pathToSD = "/Users/mpogue/Documents/QtProjects/build-sd_qt-Desktop_Qt_5_7_0_clang_64bit-Debug/sd_qt";
-
     QStringList SDargs;
-    SDargs << "-no_color" << "-no_cursor" << "-no_console"      // act as server only
+//    SDargs << "-help";  // this is an excellent place to start!
+    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
            << "-lines" << "1000"
            << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
            << danceLevel;                                       // default level for sd
     sd = new QProcess(Q_NULLPTR);
 
-//    myProcess->setStandardOutputFile("/Users/mpogue/Documents/QtProjects/build-sdApp-Desktop_Qt_5_7_0_clang_64bit-Debug/foobar2.txt");
-//    myProcess->setStandardInputFile("/Users/mpogue/Documents/QtProjects/build-sdApp-Desktop_Qt_5_7_0_clang_64bit-Debug/in.txt");
-
+    // Let's make an "sd" directory in the Music Directory
+    //  This will be used for storing sequences (until we move that into SQLite).
     PreferencesManager prefsManager;
     QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
 
@@ -3644,27 +3673,31 @@ void MainWindow::initSDtab() {
 
 //    qDebug() << "sequencesDir:" << sequencesDir;
 
-//    QString sdWorkingDirectory = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0] + "/sd";
     sd->setWorkingDirectory(sequencesDir);
+    sd->setProcessChannelMode(QProcess::MergedChannels);
+//    qDebug() << "pathToSD:" << pathToSD << ", args:" << SDargs;
     sd->start(pathToSD, SDargs);
 
 //    qDebug() << "Waiting to start sd...";
-    sd->waitForStarted();
-//    qDebug() << "   started.";
-
-    // Send a couple of startup calls to SD...
-    if (true) {
-//        sd->write("heads start\n");  // DEBUG
-//        sd->waitForBytesWritten();
-
-//        sd->write("square thru 4\n"); // DEBUG
-//        sd->waitForBytesWritten();
+    if (sd->waitForStarted() == false) {
+        qDebug() << "ERROR: sd did not start properly.";
     } else {
-        sd->write("just as they are\n");
-        sd->waitForBytesWritten();
+//        qDebug() << "sd started.";
     }
 
+    // DEBUG: Send a couple of startup calls to SD...
+//    if (true) {
+//        sd->write("heads start\n\r");  // DEBUG
+//        sd->waitForBytesWritten();
+//        sd->write("square thru 4\n"); // DEBUG
+//        sd->waitForBytesWritten();
+//    } else {
+//        sd->write("just as they are\n");
+//        sd->waitForBytesWritten();
+//    }
+
     connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData);  // output data from sd
+//    connect(sd, &QProcess::readyReadStandardError, this, &MainWindow::readSDData);  // Not needed, now that we merged the output channels
     connect(console, &Console::getData, this, &MainWindow::writeSDData);      // input data to sd
 
     highlighter = new Highlighter(console->document());

@@ -1,0 +1,29 @@
+%YAML 1.2
+---
+name: JSGF
+file_extensions: [jsgf]
+scope: text.plain
+comment: simple syntax highlighting for JSGF grammar files
+# Reference: https://www.reddit.com/r/SublimeText/comments/463w4u/custom_keyword_highlighting/
+# On Mac OS X, copy this file into ~/Library/Application Support/Sublime Text 3/Packages
+
+contexts:
+  main:
+    - comment: entity names in angle brackets
+      match: <(?:.*?)>
+      scope: keyword.control.c
+    - comment: JSF keywords
+      match: (?:public|grammar)
+      scope: string.quoted.double.c
+    - comment: C++-style single line comment
+      match: //.*$
+      scope: comment
+    - comment: pipe symbol
+      match: \|
+      scope: entity.other.attribute-name
+    - comment: grouped options (parentheses)
+      match: \(|\)
+      scope: entity.other.attribute-name
+    - comment: optional words [square brackets]
+      match: \[(?:.*?)\]
+      scope: constant.numeric

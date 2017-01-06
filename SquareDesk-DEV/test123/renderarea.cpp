@@ -1,3 +1,28 @@
+/****************************************************************************
+**
+** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+** Contact: mpogue @ zenstarstudio.com
+**
+** This file is part of the SquareDesk/SquareDeskPlayer application.
+**
+** $SQUAREDESK_BEGIN_LICENSE$
+**
+** Commercial License Usage
+** For commercial licensing terms and conditions, contact the authors via the
+** email address above.
+**
+** GNU General Public License Usage
+** This file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appear in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file.
+**
+** $SQUAREDESK_END_LICENSE$
+**
+****************************************************************************/
+
 #include "renderarea.h"
 
 #include <QPainter>
@@ -37,14 +62,14 @@ void RenderArea::setBrush(const QBrush &brush)
 
 void RenderArea::setLayout1(QString s)
 {
-//    qDebug() << "setLayout1" << bad++;
+//    qDebug() << "setLayout1" << s;
     this->layout1 = s;
     update();
 }
 
 void RenderArea::setLayout2(QStringList sl)
 {
-//    qDebug() << "setLayout2" << bad++;
+//    qDebug() << "setLayout2" << sl;
     this->layout2 = sl;
     update();
 }
@@ -56,8 +81,6 @@ void RenderArea::setFormation(QString s)
     update();
 }
 
-
-
 void RenderArea::paintEvent(QPaintEvent * /* event */)
 {
 //    qDebug() << "paintEvent" << bad++;
@@ -68,6 +91,19 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 
     painter.setPen(QPen(Qt::black));
     painter.setRenderHint(QPainter::Antialiasing, true);
+
+    if (layout1 == "" && layout2.length() == 0) {
+        setLayout1("      n  o  @@k              b@@j              c@@      g  f  ");
+        QStringList sl;
+        sl.append("        3GV   3BV      ");
+        sl.append("");
+        sl.append(" 4B>               2G<");
+        sl.append("");
+        sl.append(" 4G>               2B<");
+        sl.append("");
+        sl.append("       1B^   1G^      ");
+        setLayout2(sl);
+    }
 
     if (layout1 != "" && layout2.length() != 0) {
 //        qDebug() << "************";
@@ -261,8 +297,13 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
         }
 
         // draw the formation (if there is one)
+#if defined(Q_OS_MAC)
+        unsigned int formationFontSize = 24;
+#else
+        unsigned int formationFontSize = 12;
+#endif
         if (formation != "") {
-            painter.setFont(QFont("Arial",24,QFont::Bold));
+            painter.setFont(QFont("Arial",formationFontSize,QFont::Bold));
             painter.drawText(190,30,formation);
         }
     }

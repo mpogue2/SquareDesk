@@ -92,6 +92,7 @@ win32:CONFIG(release, debug|release): {
 }
 
 macx {
+    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
     # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
     LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     LIBS += -framework CoreFoundation
@@ -99,15 +100,14 @@ macx {
     mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     QMAKE_BUNDLE_DATA += mylib
 
-#     add taglib static library, FIX: move to the squaredesk directory!
-#     LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/binaries/lib -ltag
-#    LIBS += -L/Users/mpogue/_squareMike/taglib-1.10/taglib-debug -ltag
+    # TAGLIB ----------------------------------------
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
-#    INCLUDEPATH += /Users/mpogue/_squareMike/taglib-1.10/binaries/include
     INCLUDEPATH += $$PWD/../taglib/binaries/include
-#    /usr/lib/libz.dylib
+
+    # ZLIB ------------------------------------------
     LIBS += /usr/lib/libz.dylib
 
+    # ICONS, ALLCALLS.CSV ---------------------------
     ICON = $$PWD/desk1d.icns
     DISTFILES += desk1d.icns
     DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
@@ -116,9 +116,8 @@ macx {
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
     QMAKE_MAC_SDK = macosx10.12
-}
 
-mac: {
+    # SD --------------------------------------------
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
     #  (inside the SquareDeskPlayer.app bundle)
     # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
@@ -126,53 +125,41 @@ mac: {
     copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
 
-#    first.depends = $(first) copydata copydata2 copydata3
-#    export(first.depends)
-#    export(copydata.commands)
-#    export(copydata2.commands)
-#    export(copydata3.commands)
-#    QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata3
-
-    # Copy the ps executable and the .dict and .jsgf data files to the same place as the ps executable
-    #  (inside the SquareDeskPlayer.app bundle)
-    # This way, it's easy for SDP to find the executable for ps, and it's easy for SDP to start up ps.
-    # ***** NOTE: the path to pocketsphinx is specific to my particular installation! *****
-#    copydata4.commands = $(COPY_DIR) /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/bin/pocketsphinx_continuous $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-    copydata5.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-    copydata6.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-
-    # TODO: need to include the dependent libraries of pocketsphinx, too.
-    # NO.  Dependent libraries (there are actually 3 of them) are done via the postBuildStepMac.  And, that's only
-    #   done when needed, not every build, because it modified the pocketsphinx executable and libraries.
-    #   Do not muck with this, unless you have to, because it's fragile.
-
-#    copydata7.commands = $(COPY_DIR) /usr/local/opt/cmu-sphinxbase/lib/libsphinxbase.3.dylib $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-#    copydata8.commands = $(COPY_DIR) /usr/local/opt/cmu-sphinxbase/lib/libsphinxad.3.dylib   $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-
+    # PS --------------------------------------------
+    # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
     #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
-    #
     #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
     #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
     #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
     #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
 
-#    first.depends = $(first) copydata1 copydata2 copydata3 copydata4 copydata5 copydata6 copydata7 copydata8
-    first.depends = $(first) copydata1 copydata2 copydata3 copydata5 copydata6
+    # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
+    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
+    copydata4.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata5.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDeskPlayer.app/Contents
+
+    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/models/en-us
+    copydata6b.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDeskPlayer.app/Contents/models
+
+    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
+    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+
+    first.depends = $(first) copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     export(first.depends)
     export(copydata1.commands)
     export(copydata2.commands)
     export(copydata3.commands)
-#    export(copydata4.commands)
+    export(copydata4.commands)
     export(copydata5.commands)
-    export(copydata6.commands)
-#    export(copydata7.commands)
-#    export(copydata8.commands)
+    export(copydata6a.commands)
+    export(copydata6b.commands)
+    export(copydata7.commands)
+    export(copydata8.commands)
 
-#    QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata4 copydata5 copydata6 copydata7 copydata8
-    QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata5 copydata6
+    QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 }
-
 
 RESOURCES += resources.qrc
 

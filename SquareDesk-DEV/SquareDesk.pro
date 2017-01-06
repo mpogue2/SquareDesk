@@ -20,5 +20,7 @@ taglib.subdir = taglib/taglib
 test123.subdir = test123
 
 win32 {
-test123.depends = taglib
+SUBDIRS += sd
+sd.subdir = sd
+test123.depends = sd taglib
 }

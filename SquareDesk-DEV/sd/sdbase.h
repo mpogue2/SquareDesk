@@ -47,13 +47,12 @@
 // Unless this isn't for the WIN32 API at all, in which case make the
 // "SDLIB_API" symbol do nothing.
 
-// -mpogue, we're not doing a DLL right now...
 #if defined(WIN32)
-//#if defined(SDLIB_EXPORTS)
-//#define SDLIB_API __declspec(dllexport)
-//#else
+#if defined(SDLIB_EXPORTS)
+#define SDLIB_API __declspec(dllexport)
+#else
 #define SDLIB_API __declspec(dllimport)
-//#endif
+#endif
 #else
 #define SDLIB_API
 #endif
@@ -1004,7 +1003,7 @@ public:
 enum call_list_kind {
    call_list_none, call_list_empty, /* Not real call list kinds; used only for
                                        fictional purposes in the user interface;
-				       never appear in the rest of the program. */
+                       never appear in the rest of the program. */
    call_list_any,                   /* This is the "universal" call list; used
                                        whenever the setup isn't one of the known ones. */
    call_list_1x8, call_list_l1x8,

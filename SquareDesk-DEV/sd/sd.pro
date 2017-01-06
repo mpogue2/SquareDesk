@@ -12,14 +12,22 @@ export(copydata.commands)
 QMAKE_EXTRA_TARGETS += first copydata
 }
 
-
-win32:CONFIG(debug, debug|release): {
-    # Copy the sd_calls.dat to the same place as the executable (DEBUG ONLY)
-    copydata.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\debug)
-    first.depends = $(first) copydata
+#win32:CONFIG(debug, debug|release): {
+win32 {
+    SOURCES += main.cpp  # this is just a dummy file
+    # Copy the sdtty.exe and sd_calls.dat to the test123 RELEASE dirs
+    # sdtty.exe was pre-compiled externally with the makeSDforWin32 script
+    copydata.commands = xcopy /q /y $$shell_path($$PWD/sdlib.dll) $$shell_path($$OUT_PWD\..\test123\release)
+    copydata2.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\..\test123\release)
+#    copydata3.commands = xcopy /q /y $$shell_path($$PWD/sdtty.exe) $$shell_path($$OUT_PWD\debug)
+    copydata4.commands = xcopy /q /y $$shell_path($$PWD/sdtty.exe) $$shell_path($$OUT_PWD\..\test123\release)
+    first.depends = $(first) copydata copydata2 copydata4
     export(first.depends)
     export(copydata.commands)
-    QMAKE_EXTRA_TARGETS += first copydata
+    export(copydata2.commands)
+#    export(copydata3.commands)
+    export(copydata4.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata4
 }
 
 #QMAKE_CXXFLAGS += -Wall -Wno-switch -Wno-uninitialized -Wno-char-subscripts -Wunused-parameter -Wunused-const-variable -Wunused-parameter
@@ -27,8 +35,12 @@ win32:CONFIG(debug, debug|release): {
 
 QMAKE_CXXFLAGS += -w
 
-SOURCES += main.cpp \
-    common.cpp \
+# NOTE: compilation for Win32 must be done with makeSDforWin32 script
+#   in the minGW environment, NOT HERE.
+#   I'm not sure about Linux.
+
+mac {
+SOURCES += common.cpp \
     mapcachefile.cpp \
     sdbasic.cpp \
     sdconc.cpp \
@@ -49,6 +61,7 @@ SOURCES += main.cpp \
     sdui-ttu.cpp \
     sdui-tty.cpp \
     sdutil.cpp
+}
 
 HEADERS += \
     database.h \

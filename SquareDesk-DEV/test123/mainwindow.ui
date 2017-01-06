@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
-    <height>744</height>
+    <width>752</width>
+    <height>558</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1389,8 +1389,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>782</width>
-     <height>27</height>
+     <width>752</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1815,6 +1815,9 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="text">
     <string>Enable voice input</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

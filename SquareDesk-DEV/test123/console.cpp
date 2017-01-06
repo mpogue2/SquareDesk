@@ -49,6 +49,31 @@
 **
 ****************************************************************************/
 
+/****************************************************************************
+**
+** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+** Contact: mpogue @ zenstarstudio.com
+**
+** This file is part of the SquareDesk/SquareDeskPlayer application.
+**
+** $SQUAREDESK_BEGIN_LICENSE$
+**
+** Commercial License Usage
+** For commercial licensing terms and conditions, contact the authors via the
+** email address above.
+**
+** GNU General Public License Usage
+** This file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appear in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file.
+**
+** $SQUAREDESK_END_LICENSE$
+**
+****************************************************************************/
+
 #include "console.h"
 
 #include <QScrollBar>
@@ -64,8 +89,11 @@ Console::Console(QWidget *parent)
     p.setColor(QPalette::Base, Qt::white);
     p.setColor(QPalette::Text, Qt::black);
     setPalette(p);
+#if defined(Q_OS_MAC)
+    // temporarily commented out for Win32 because of runtime errors
     QFont theFont("courier");
     this->setFont(theFont);
+#endif
 }
 
 void Console::putData(const QByteArray &data)
@@ -108,8 +136,8 @@ void Console::setLocalEchoEnabled(bool set)
 
 void Console::keyPressEvent(QKeyEvent *e)
 {
+//    qDebug() << "Console:keyPressEvent:" << e << e->key() << Qt::Key_Escape;
     switch (e->key()) {
-//    case Qt::Key_Backspace:
     case Qt::Key_Left:
     case Qt::Key_Right:
     case Qt::Key_Up:
@@ -119,7 +147,15 @@ void Console::keyPressEvent(QKeyEvent *e)
         if (localEchoEnabled) {
             QPlainTextEdit::keyPressEvent(e);
         }
-        emit getData(e->text().toLocal8Bit());
+        if (e->text() == "\u001B") {
+            // map ESC to Ctrl-U (delete entire line)
+//            qDebug() << "Control-U detected.";
+// BUG: on Win32, the Ctrl-U is sent, but sd doesn't react.
+            emit getData(QByteArray("\025")); // Ctrl-U
+        } else {
+//            qDebug() << "Normal key detected:" << e->text().toLocal8Bit();
+            emit getData(e->text().toLocal8Bit());
+        }
     }
 }
 
