@@ -553,10 +553,14 @@ void MainWindow::setFontSizes()
     ui->EQgroup->setFont(font);
 
     font.setPointSize(preferredSmallFontSize-2);
-
-    QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
+#if defined(Q_OS_MAC)
+    QString styleForCallerlabDefinitions("QLabel{font-size:10pt;}");
+#endif
 #if defined(Q_OS_WIN)
     styleForCallerlabDefinitions = "QLabel{font-size:8pt;}";
+#endif
+#if defined(Q_OS_LINUX)
+    QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");  // DAN, PLEASE ADJUST THIS
 #endif
     ui->basicCallList1->setStyleSheet(styleForCallerlabDefinitions);
     ui->basicCallList2->setStyleSheet(styleForCallerlabDefinitions);
@@ -3559,6 +3563,7 @@ void MainWindow::initSDtab() {
     console = new Console;
     console->setEnabled(true);
     console->setLocalEchoEnabled(true);
+    console->setFixedHeight(100);
 
     currentSequenceWidget = new QTextEdit();
     currentSequenceWidget->setStyleSheet("QLabel { background-color : white; color : black; }");
@@ -3570,7 +3575,7 @@ void MainWindow::initSDtab() {
     ui->seqGridLayout->addWidget(console, 1,0,1,2);
     ui->seqGridLayout->addWidget(renderArea, 0,1);
 
-    console->setFixedHeight(150);
+//    console->setFixedHeight(150);
 
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365

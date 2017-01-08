@@ -38,7 +38,7 @@ RenderArea::RenderArea(QWidget *parent)
 
 QSize RenderArea::minimumSizeHint() const
 {
-    return QSize(360, 360);
+    return QSize(180, 180);
 }
 
 QSize RenderArea::sizeHint() const
