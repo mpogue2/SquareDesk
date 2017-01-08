@@ -557,7 +557,7 @@ void MainWindow::setFontSizes()
     QString styleForCallerlabDefinitions("QLabel{font-size:10pt;}");
 #endif
 #if defined(Q_OS_WIN)
-    styleForCallerlabDefinitions = "QLabel{font-size:8pt;}";
+    QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");
 #endif
 #if defined(Q_OS_LINUX)
     QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");  // DAN, PLEASE ADJUST THIS

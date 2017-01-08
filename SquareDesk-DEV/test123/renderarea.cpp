@@ -38,7 +38,7 @@ RenderArea::RenderArea(QWidget *parent)
 
 QSize RenderArea::minimumSizeHint() const
 {
-    return QSize(180, 180);
+    return QSize(100, 100);
 }
 
 QSize RenderArea::sizeHint() const
@@ -110,8 +110,9 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 //        qDebug() << "layouts:" << layout1 << layout2;
 //        qDebug() << "w/h:" << this->width() << this->height();
 
-        QPoint center(180,180);
+//        QPoint center(180,180);
 //        qDebug() << "center:" << center;
+        QPoint center(this->width()/2, this->height()/2);
 
         // make a list of each person
         QString peopleStr;
@@ -185,30 +186,43 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
         float ySize = y + 4.0*oneUnit; // total height is always one person short
 //        qDebug() << "final x/y sizes (pixels):" << xSize << ySize;
 
-        int xoffset = 180 - xSize/2.0;
-        int yoffset = 180 - ySize/2.0;
+//        int xoffset = 180 - xSize/2.0;
+//        int yoffset = 180 - ySize/2.0;
+        int xoffset = this->width()/2 - xSize/2.0;
+        int yoffset = this->height()/2 - ySize/2.0;
 //        qDebug() << "final x/y offsets (pixels):" << xoffset << yoffset;
 
         // draw the renderArea ---------------------
-        QRect r2(0, 0, 360, 360);
+        QRect r2(0, 0, this->width(), this->height());
         painter.setPen(QPen(Qt::black));
         painter.setBrush(QBrush(QColor(240,240,240)));
         painter.drawRect(r2);
 
         // draw the grid ---------------------
-        for (int i=0; i<360; i+=oneSpace) {
-            if (i == 180) {
-                continue;  // skip the center lines
-            }
+//        for (int i=0; i<360; i+=oneSpace) {
+//            if (i == 180) {
+//                continue;  // skip the center lines
+//            }
+//            painter.setPen(QPen(Qt::black,0.25,Qt::DotLine));
+//            painter.drawLine(0,i,360,i);
+//            painter.drawLine(i,0,i,360);
+//        }
+
+        for (int i=1; i<10; i++) {
             painter.setPen(QPen(Qt::black,0.25,Qt::DotLine));
-            painter.drawLine(0,i,360,i);
-            painter.drawLine(i,0,i,360);
+            painter.drawLine(0,i*oneSpace + center.y(),this->width(),i*oneSpace + center.y());
+            painter.drawLine(0,-i*oneSpace + center.y(),this->width(),-i*oneSpace + center.y());
+            painter.drawLine(i*oneSpace + center.x(),0,i*oneSpace + center.x(),this->height());
+            painter.drawLine(-i*oneSpace + center.x(),0,-i*oneSpace + center.x(),this->height());
         }
 
         // draw the center lines explictly
+        //        painter.setPen(QPen(Qt::black,0.75,Qt::SolidLine));
+        //        painter.drawLine(0,180,360,180);
+        //        painter.drawLine(180,0,180,360);
         painter.setPen(QPen(Qt::black,0.75,Qt::SolidLine));
-        painter.drawLine(0,180,360,180);
-        painter.drawLine(180,0,180,360);
+        painter.drawLine(0,center.y(),this->width(),center.y());
+        painter.drawLine(center.x(),0,center.x(),this->height());
 
         // draw the people ----------------------
 
@@ -298,13 +312,14 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 
         // draw the formation (if there is one)
 #if defined(Q_OS_MAC)
-        unsigned int formationFontSize = 24;
+        unsigned int formationFontSize = (24*this->width())/360;
 #else
-        unsigned int formationFontSize = 12;
+        unsigned int formationFontSize = (12*this->width())/360;
 #endif
         if (formation != "") {
             painter.setFont(QFont("Arial",formationFontSize,QFont::Bold));
-            painter.drawText(190,30,formation);
+//            painter.drawText(190,30,formation);
+            painter.drawText(0.52*this->width(),0.1*this->height(),formation);
         }
     }
 }
