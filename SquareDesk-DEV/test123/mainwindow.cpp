@@ -84,7 +84,7 @@ using namespace std;
 
 #include "typetracker.h"
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 #define POCKETSPHINXSUPPORT 1
 #endif
 
@@ -339,7 +339,7 @@ MainWindow::MainWindow(QWidget *parent) :
     on_monoButton_toggled(prefsManager.Getforcemono());
 
 // voice input is only available on MAC OS X right now...
-#if defined(Q_OS_MAC)
+#ifdef POCKETSPHINXSUPPORT
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
 #else
@@ -3150,9 +3150,9 @@ void MainWindow::writeSDData(const QByteArray &data)
 {
     if (data != "") {
         // console has data, send to sd
-//        qDebug() << "writeData() to sd:" << data;
         QString d = data;
         d.replace("\r","\n");
+//        qDebug() << "writeSDData() to SD:" << data << d.toUtf8();
         if (d.at(d.length()-1) == '\n') {
             sd->write(d.toUtf8());
 //            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
@@ -3548,8 +3548,8 @@ void MainWindow::readPSData()
 
 void MainWindow::initSDtab() {
 
-#if !defined(Q_OS_MAC)
-    ui->actionEnable_voice_input->setEnabled(false);
+#ifndef POCKETSPHINXSUPPORT
+    ui->actionEnable_voice_input->setEnabled(false);  // if no PS support, grey out the menu item
 #endif
 
     renderArea = new RenderArea;
@@ -3582,12 +3582,22 @@ void MainWindow::initSDtab() {
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
     QString pathToPS = appDir + "pocketsphinx_continuous";
 
+#if defined(Q_OS_WIN32)
+    pathToPS += ".exe";   // executable has a different name on Win32
+#endif
+
     // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
     QString pathToJSGF = danceLevel + ".jsgf";
 
-    // The acoustic models are one level up in the models subdirectory
+#if defined(Q_OS_MAC)
+    // The acoustic models are one level up in the models subdirectory on MAC
     QString pathToHMM  = "../models/en-us";
+#endif
+#if defined(Q_OS_WIN32)
+    // The acoustic models are at the same level, but in the models subdirectory on MAC
+    QString pathToHMM  = "models/en-us";
+#endif
 
     QStringList PSargs;
     PSargs << "-dict" << pathToDict     // pronunciation dictionary
@@ -3595,7 +3605,7 @@ void MainWindow::initSDtab() {
            << "-inmic" << "yes"         // use the built-in microphone
            << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
-//    qDebug() << PSargs;
+//    qDebug() << pathToPS << PSargs;
 
     ps = new QProcess(Q_NULLPTR);
 
@@ -3627,6 +3637,7 @@ void MainWindow::initSDtab() {
     QStringList SDargs;
 //    SDargs << "-help";  // this is an excellent place to start!
     SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
+//      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
            << "-lines" << "1000"
            << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
            << danceLevel;                                       // default level for sd
