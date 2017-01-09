@@ -87,7 +87,7 @@ using namespace std;
 
 #include "typetracker.h"
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 #define POCKETSPHINXSUPPORT 1
 #endif
 
@@ -346,7 +346,7 @@ MainWindow::MainWindow(QWidget *parent) :
     on_monoButton_toggled(prefsManager.Getforcemono());
 
 // voice input is only available on MAC OS X right now...
-#if defined(Q_OS_MAC)
+#ifdef POCKETSPHINXSUPPORT
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
 #else
@@ -624,10 +624,14 @@ void MainWindow::setFontSizes()
     ui->EQgroup->setFont(font);
 
     font.setPointSize(preferredSmallFontSize-2);
-
-    QString styleForCallerlabDefinitions("QLabel{font-size:12pt;}");
+#if defined(Q_OS_MAC)
+    QString styleForCallerlabDefinitions("QLabel{font-size:10pt;}");
+#endif
 #if defined(Q_OS_WIN)
-    styleForCallerlabDefinitions = "QLabel{font-size:8pt;}";
+    QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");
+#endif
+#if defined(Q_OS_LINUX)
+    QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");  // DAN, PLEASE ADJUST THIS
 #endif
     ui->basicCallList1->setStyleSheet(styleForCallerlabDefinitions);
     ui->basicCallList2->setStyleSheet(styleForCallerlabDefinitions);
@@ -1443,7 +1447,7 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
-    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL) || console->hasFocus()) {
         return false;
     }
 
@@ -3229,15 +3233,16 @@ void MainWindow::writeSDData(const QByteArray &data)
 {
     if (data != "") {
         // console has data, send to sd
-//        qDebug() << "writeData() to sd:" << data;
         QString d = data;
         d.replace("\r","\n");
+//        qDebug() << "writeSDData() to SD:" << data << d.toUtf8();
         if (d.at(d.length()-1) == '\n') {
+//            qDebug() << "writeSDData1:" << d.toUtf8();
             sd->write(d.toUtf8());
 //            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
             sd->waitForBytesWritten();
         } else {
-//            qDebug() << "writeSDData:" << d.toUtf8();
+//            qDebug() << "writeSDData2:" << d.toUtf8();
             sd->write(d.toUtf8());
             sd->waitForBytesWritten();
         }
@@ -3454,6 +3459,8 @@ void MainWindow::readPSData()
     // TODO: put this stuff into an external text file, read in at runtime?
     //
     QString s2 = s.toLower();
+    s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
+    s2.replace(QRegExp("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
@@ -3590,7 +3597,12 @@ void MainWindow::readPSData()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (s2 == "square the set\n" || s2 == "square your set\n") {
+#if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
+#endif
         sd->waitForBytesWritten();
 
         console->clear();
@@ -3607,7 +3619,12 @@ void MainWindow::readPSData()
     } else if (s2 == "undo last call\n") {
         // TODO: put more synonyms of this in...
 //        qDebug() << "sending to SD: \"undo last call\n\"";
+#if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
+#endif
         sd->waitForBytesWritten();
 
         sd->write("undo last call\n");  // back up one call
@@ -3616,7 +3633,13 @@ void MainWindow::readPSData()
         sd->write("refresh display\n");  // refresh
         sd->waitForBytesWritten();
     } else if (s2 == "erase\n" || s2 == "erase that\n") {
+        // TODO: put more synonyms in, e.g. "cancel that"
+#if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
+#endif
         sd->waitForBytesWritten();
     } else if (s2 != "\n") {
 //        qDebug() << "sending to SD:" << s2;
@@ -3627,8 +3650,8 @@ void MainWindow::readPSData()
 
 void MainWindow::initSDtab() {
 
-#if !defined(Q_OS_MAC)
-    ui->actionEnable_voice_input->setEnabled(false);
+#ifndef POCKETSPHINXSUPPORT
+    ui->actionEnable_voice_input->setEnabled(false);  // if no PS support, grey out the menu item
 #endif
 
     renderArea = new RenderArea;
@@ -3638,6 +3661,7 @@ void MainWindow::initSDtab() {
     console = new Console;
     console->setEnabled(true);
     console->setLocalEchoEnabled(true);
+    console->setFixedHeight(100);
 
     currentSequenceWidget = new QTextEdit();
     currentSequenceWidget->setStyleSheet("QLabel { background-color : white; color : black; }");
@@ -3649,7 +3673,7 @@ void MainWindow::initSDtab() {
     ui->seqGridLayout->addWidget(console, 1,0,1,2);
     ui->seqGridLayout->addWidget(renderArea, 0,1);
 
-    console->setFixedHeight(150);
+//    console->setFixedHeight(150);
 
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365
@@ -3661,12 +3685,22 @@ void MainWindow::initSDtab() {
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
     QString pathToPS = appDir + "pocketsphinx_continuous";
 
+#if defined(Q_OS_WIN32)
+    pathToPS += ".exe";   // executable has a different name on Win32
+#endif
+
     // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
     QString pathToJSGF = danceLevel + ".jsgf";
 
-    // The acoustic models are one level up in the models subdirectory
+#if defined(Q_OS_MAC)
+    // The acoustic models are one level up in the models subdirectory on MAC
     QString pathToHMM  = "../models/en-us";
+#endif
+#if defined(Q_OS_WIN32)
+    // The acoustic models are at the same level, but in the models subdirectory on MAC
+    QString pathToHMM  = "models/en-us";
+#endif
 
     QStringList PSargs;
     PSargs << "-dict" << pathToDict     // pronunciation dictionary
@@ -3674,7 +3708,7 @@ void MainWindow::initSDtab() {
            << "-inmic" << "yes"         // use the built-in microphone
            << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
-//    qDebug() << PSargs;
+//    qDebug() << pathToPS << PSargs;
 
     ps = new QProcess(Q_NULLPTR);
 
@@ -3704,7 +3738,8 @@ void MainWindow::initSDtab() {
     // start sd as a process -----
     QStringList SDargs;
 //    SDargs << "-help";  // this is an excellent place to start!
-    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
+//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
+      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
            << "-lines" << "1000"
            << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
            << danceLevel;                                       // default level for sd

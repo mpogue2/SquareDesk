@@ -105,6 +105,7 @@ void Console::putData(const QByteArray &data)
 
     if (data2s.contains('\x07')) {
             QApplication::beep();
+//            qDebug() << "Console::putData -- BEEP";
             data2s.replace('\x07',"");
 //            qDebug() << "post-beep console data:" << data2 << "length:" << data.length();
     }
@@ -148,12 +149,19 @@ void Console::keyPressEvent(QKeyEvent *e)
             QPlainTextEdit::keyPressEvent(e);
         }
         if (e->text() == "\u001B") {
-            // map ESC to Ctrl-U (delete entire line)
-//            qDebug() << "Control-U detected.";
-// BUG: on Win32, the Ctrl-U is sent, but sd doesn't react.
+//            qDebug() << "ESC detected.";
+//            qDebug() << "ESC detected:" << e->key() << e->text() << e->text().toLocal8Bit();
+
+#if defined(Q_OS_MAC)
+            // map ESC to Ctrl-U (delete entire line), MAC OS ONLY
             emit getData(QByteArray("\025")); // Ctrl-U
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+            emit getData(QByteArray("\u001B")); // ESC is passed thru to sd, translated there to ClearToEOL
+#endif
+
         } else {
-//            qDebug() << "Normal key detected:" << e->text().toLocal8Bit();
+//            qDebug() << "Normal key detected:" << e->key() << e->text() << e->text().toLocal8Bit();
             emit getData(e->text().toLocal8Bit());
         }
     }

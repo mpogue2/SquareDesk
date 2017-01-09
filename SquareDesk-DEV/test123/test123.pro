@@ -161,6 +161,37 @@ macx {
     QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 }
 
+win32 {
+    # PS --------------------------------------------
+    # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
+    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
+    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/release)
+    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/release)
+    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/release)
+
+    copydata7.commands = if not exist $$shell_path($$OUT_PWD/release/models/en-us) mkdir $$shell_path($$OUT_PWD/release/models/en-us)
+    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
+    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/release/models/en-us)
+
+    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
+    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/release)
+    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/release)
+
+    first.depends = $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+
+    export(first.depends)
+    export(copydata4.commands)
+    export(copydata5.commands)
+    export(copydata6.commands)
+    export(copydata7.commands)
+    export(copydata8.commands)
+    export(copydata9.commands)
+    export(copydata10.commands)
+
+    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+}
+
+
 RESOURCES += resources.qrc
 
 #DISTFILES += \

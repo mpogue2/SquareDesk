@@ -1,0 +1,2 @@
+#./pocketsphinx_continuous.exe -inmic yes -hmm ../models/en-us -lm ../model/en-us/en-us.lm.bin -dict ../model/en-us/cmudict-en-us.dict
+./pocketsphinx_continuous -dict ../../../../test123/5365a.dic -jsgf ../../../../test123/plus.jsgf -inmic yes -hmm ../models/en-us
