@@ -1356,7 +1356,7 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
-    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL) || console->hasFocus()) {
         return false;
     }
 
@@ -3158,11 +3158,12 @@ void MainWindow::writeSDData(const QByteArray &data)
         d.replace("\r","\n");
 //        qDebug() << "writeSDData() to SD:" << data << d.toUtf8();
         if (d.at(d.length()-1) == '\n') {
+//            qDebug() << "writeSDData1:" << d.toUtf8();
             sd->write(d.toUtf8());
 //            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
             sd->waitForBytesWritten();
         } else {
-//            qDebug() << "writeSDData:" << d.toUtf8();
+//            qDebug() << "writeSDData2:" << d.toUtf8();
             sd->write(d.toUtf8());
             sd->waitForBytesWritten();
         }
@@ -3379,6 +3380,8 @@ void MainWindow::readPSData()
     // TODO: put this stuff into an external text file, read in at runtime?
     //
     QString s2 = s.toLower();
+    s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
+    s2.replace(QRegExp("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
@@ -3515,7 +3518,12 @@ void MainWindow::readPSData()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (s2 == "square the set\n" || s2 == "square your set\n") {
+#if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
+#endif
         sd->waitForBytesWritten();
 
         console->clear();
@@ -3532,7 +3540,12 @@ void MainWindow::readPSData()
     } else if (s2 == "undo last call\n") {
         // TODO: put more synonyms of this in...
 //        qDebug() << "sending to SD: \"undo last call\n\"";
+#if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
+#endif
         sd->waitForBytesWritten();
 
         sd->write("undo last call\n");  // back up one call
@@ -3541,7 +3554,13 @@ void MainWindow::readPSData()
         sd->write("refresh display\n");  // refresh
         sd->waitForBytesWritten();
     } else if (s2 == "erase\n" || s2 == "erase that\n") {
+        // TODO: put more synonyms in, e.g. "cancel that"
+#if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
+#endif
+#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
+        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
+#endif
         sd->waitForBytesWritten();
     } else if (s2 != "\n") {
 //        qDebug() << "sending to SD:" << s2;
@@ -3641,8 +3660,8 @@ void MainWindow::initSDtab() {
     // start sd as a process -----
     QStringList SDargs;
 //    SDargs << "-help";  // this is an excellent place to start!
-    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
-//      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
+//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
+      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
            << "-lines" << "1000"
            << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
            << danceLevel;                                       // default level for sd

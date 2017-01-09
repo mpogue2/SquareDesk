@@ -602,6 +602,20 @@ static bool get_user_input(const char *prompt, int which)
       }
 
       nc = get_char();
+      // printf("K=%d",nc);  // -mpogue DEBUG DEBUG DBEUG
+
+      // -mpogue TODO: DO THIS SECTION ONLY IF IN SQUAREDESK MODE
+      //  ESC -> CLEAR LINE
+      if (nc == 0x1B) { // ESC
+         // erase to end of line, like below
+         matcher.erase_matcher_input();
+         strcpy(user_input, matcher.m_user_input);
+         function_key_expansion = (const char *) 0;
+         clear_line();                   // Clear the current line.
+         put_line(user_input_prompt);    // Redisplay the prompt.
+         continue;  // go back to the for(;;)
+      }
+      // -mpogue TODO: DO THIS SECTION ONLY IF IN SQUAREDESK MODE
 
       if (nc >= 128) {
          modifier_block *keyptr;
