@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>752</width>
-    <height>558</height>
+    <width>782</width>
+    <height>744</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -74,7 +74,7 @@
             <bool>true</bool>
            </property>
            <property name="columnCount">
-            <number>7</number>
+            <number>8</number>
            </property>
            <attribute name="horizontalHeaderVisible">
             <bool>false</bool>
@@ -1389,8 +1389,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>752</width>
-     <height>22</height>
+     <width>782</width>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1449,10 +1449,25 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     </property>
     <addaction name="actionEnable_voice_input"/>
    </widget>
+   <widget class="QMenu" name="menuSession">
+    <property name="title">
+     <string>Session</string>
+    </property>
+    <addaction name="actionPractice"/>
+    <addaction name="separator"/>
+    <addaction name="actionMonday"/>
+    <addaction name="actionTuesday"/>
+    <addaction name="actionWednesday"/>
+    <addaction name="actionThursday"/>
+    <addaction name="actionFriday"/>
+    <addaction name="actionSaturday"/>
+    <addaction name="actionSunday"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
    <addaction name="menuSequence"/>
+   <addaction name="menuSession"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="enabled">
@@ -1818,6 +1833,46 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionPractice">
+   <property name="text">
+    <string>Practice</string>
+   </property>
+  </action>
+  <action name="actionMonday">
+   <property name="text">
+    <string>Monday</string>
+   </property>
+  </action>
+  <action name="actionTuesday">
+   <property name="text">
+    <string>Tuesday</string>
+   </property>
+  </action>
+  <action name="actionWednesday">
+   <property name="text">
+    <string>Wednesday</string>
+   </property>
+  </action>
+  <action name="actionThursday">
+   <property name="text">
+    <string>Thursday</string>
+   </property>
+  </action>
+  <action name="actionFriday">
+   <property name="text">
+    <string>Friday</string>
+   </property>
+  </action>
+  <action name="actionSaturday">
+   <property name="text">
+    <string>Saturday</string>
+   </property>
+  </action>
+  <action name="actionSunday">
+   <property name="text">
+    <string>Sunday</string>
    </property>
   </action>
  </widget>

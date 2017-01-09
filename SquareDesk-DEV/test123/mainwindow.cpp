@@ -44,7 +44,6 @@
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
 
-#include "songsettings.h"
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -129,7 +128,7 @@ using namespace TagLib;
 
 // GLOBALS:
 bass_audio cBass;
-SongSettings songSettings;
+
 
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
@@ -137,7 +136,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     timerCountUp(NULL),
     timerCountDown(NULL),
-    trapKeypresses(true)
+    trapKeypresses(true),
+    sd(NULL),
+    firstTimeSongIsPlayed(false)
 {
 
     // Disable ScreenSaver while SquareDesk is running
@@ -501,17 +502,72 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #endif
 
-    {
-//        QStandardItemModel *model(new QStandardItemModel());
-//        QStandardItem *item(new QStandardItem("new entry"));
-//        model->appendRow(item);
-//        ui->comboBoxSessionName->setModel(model);
-        ui->comboBoxSessionName->insertItem(0, "new entry");
-        ui->comboBoxSessionName->insertItem(0, "monday");
-        
-    }
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
+    setCurrentSessionId(songSettings.getCurrentSession());
 }
+
+
+void MainWindow::setCurrentSessionId(int id)
+{
+    QAction *actions[] = {
+        ui->actionPractice,
+        ui->actionMonday,
+        ui->actionTuesday,
+        ui->actionWednesday,
+        ui->actionThursday,
+        ui->actionFriday,
+        ui->actionSaturday,
+        ui->actionSunday,
+        NULL
+    };
+    for (int i = 1; actions[i]; ++i)
+    {
+        int this_id = i+1;
+        actions[i]->setChecked(this_id == id);
+    }
+    songSettings.setCurrentSession(id);
+}
+
+void MainWindow::on_actionPractice_triggered(bool /* checked */)
+{
+    setCurrentSessionId(1);
+}
+
+void MainWindow::on_actionMonday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(2);
+}
+
+void MainWindow::on_actionTuesday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(3);
+}
+
+void MainWindow::on_actionWednesday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(4);
+}
+
+void MainWindow::on_actionThursday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(5);
+}
+
+void MainWindow::on_actionFriday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(6);
+}
+
+void MainWindow::on_actionSaturday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(7);
+}
+
+void MainWindow::on_actionSunday_triggered(bool /* checked */)
+{
+    setCurrentSessionId(8);
+}
+
 
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
@@ -529,7 +585,6 @@ MainWindow::~MainWindow()
 #elif defined(Q_OS_WIN32)
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
 #endif
-
     if (sd) {
         sd->kill();
     }
@@ -538,6 +593,7 @@ MainWindow::~MainWindow()
         ps->kill();
     }
 #endif
+    
 }
 
 void MainWindow::setFontSizes()
@@ -686,6 +742,22 @@ void MainWindow::on_playButton_clicked()
 {
     cBass.Play();  // currently paused, so start playing
     if (currentState == kStopped || currentState == kPaused) {
+        if (firstTimeSongIsPlayed)
+        {
+            firstTimeSongIsPlayed = false;
+            saveCurrentSongSettings();
+            songSettings.markSongPlayed(currentMP3filename);
+            QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+            QModelIndexList selected = selectionModel->selectedRows();
+            int row = -1;
+            if (selected.count() == 1) {
+                // exactly 1 row was selected (good)
+                QModelIndex index = selected.at(0);
+                row = index.row();
+                ui->songTable->item(row, kAgeCol)->setText("***");
+            }
+            
+        }
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != NULL) {
             QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
@@ -1612,6 +1684,7 @@ void MainWindow::loadCuesheet(QString MP3FileName)
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType)
 {
+    firstTimeSongIsPlayed = true;
     loadCuesheet(MP3FileName);
 
     currentSongType = songType;  // save it for session coloring on the analog clock later...
@@ -1807,7 +1880,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
 
 void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode)
 {
-    songSettings.OpenDatabase(mainRootDir);
+    songSettings.openDatabase(mainRootDir);
     // always gets rid of the old pathstack...
     if (pathStack) {
         delete pathStack;
@@ -2026,7 +2099,7 @@ void MainWindow::filterMusic()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, "", kAgeCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName()), kAgeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
 
@@ -2905,7 +2978,7 @@ void MainWindow::saveCurrentSongSettings()
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
         
-        songSettings.SaveSettings(currentMP3filename,
+        songSettings.saveSettings(currentMP3filename,
                                   currentSong,
                                   pitch, tempo,
                                   ui->seekBarCuesheet->GetIntro(),
@@ -2923,7 +2996,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         int tempo = ui->tempoSlider->value();
         double intro = ui->seekBarCuesheet->GetIntro();
         double outro = ui->seekBarCuesheet->GetOutro();
-        if (songSettings.LoadSettings(currentMP3filename,
+        if (songSettings.loadSettings(currentMP3filename,
                                       songTitle,
                                       pitch, tempo,
                                       intro, outro))

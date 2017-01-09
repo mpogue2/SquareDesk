@@ -8,31 +8,38 @@ class SongSettings
 {
 public:
     SongSettings();
-    void OpenDatabase(const QString &path);
-    void CloseDatabase();
-    void SaveSettings(const QString &filename,
+    void openDatabase(const QString &path);
+    void closeDatabase();
+    void saveSettings(const QString &filename,
                       const QString &songname,
                  int pitch,
                  int temp,
                  double introPos,
                  double outroPos);
-    bool LoadSettings(const QString &filename,
+    bool loadSettings(const QString &filename,
                       const QString &songname,
                  int &pitch,
                  int &temp,
                  double &introPos,
                  double &outroPos);
-    void MarkSongPlayed(const QString &filename,
-                        const QString &session);
-    void InitializeSessionsModel();
+    void initializeSessionsModel();
     QSqlTableModel modelSessions;
+    void setCurrentSession(int id) { current_session_id = id; }
+    int getCurrentSession() { return current_session_id; }
+    QString getSongAge(const QString &filename);
+    void markSongPlayed(const QString &filename);
     
 private:
-    QSqlDatabase m_db;
+    void debugErrors(const char *where, QSqlQuery &q);
+    void exec(const char *where, QSqlQuery &q);
+    void exec(const char *where, QSqlQuery &q, const QString &str);
     
-    void EnsureSchema(TableDefinition *);
-    int GetSongIDFromFilename(const QString &filename);
-    int GetSessionIDFromName(const QString &name);
+    QSqlDatabase m_db;
+    int current_session_id;
+    
+    void ensureSchema(TableDefinition *);
+    int getSongIDFromFilename(const QString &filename);
+    int getSessionIDFromName(const QString &name);
 };
 
 /*     QString writeLocation = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);

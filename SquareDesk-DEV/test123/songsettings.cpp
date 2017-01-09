@@ -8,6 +8,33 @@
 #include "songsettings.h"
 using namespace std;
 
+
+void SongSettings::exec(const char *where, QSqlQuery &q)
+{
+    if (!q.exec())
+    {
+        debugErrors(where, q);
+    }
+}
+
+void SongSettings::exec(const char *where, QSqlQuery &q, const QString &str)
+{
+    if (!q.exec(str))
+    {
+        debugErrors(where, q);
+    }
+}
+
+
+void SongSettings::debugErrors(const char *where, QSqlQuery & /* q */)
+{
+    if (m_db.lastError().type() != QSqlError::NoError)
+    {
+        qDebug() << where << ":" << m_db.lastError();
+    }
+}
+
+
 class RowDefinition {
 public:
     RowDefinition(const char *name, const char *definition,
@@ -34,10 +61,11 @@ public:
 };
 
 
-void SongSettings::EnsureSchema(TableDefinition *table_definition)
+void SongSettings::ensureSchema(TableDefinition *table_definition)
 {
-    QSqlQuery q;
-    q.exec("PRAGMA TABLE_INFO(" + QString(table_definition->name) + ")");
+    QSqlQuery q(m_db);
+    exec("ensureSchema", q, "PRAGMA TABLE_INFO(" + QString(table_definition->name) + ")");
+    
 
     bool found_any_fields = false;
     vector<QString> alter_statements;
@@ -97,7 +125,8 @@ void SongSettings::EnsureSchema(TableDefinition *table_definition)
                 alter_statements.push_back(row->index);
             }
         }
-        alter += ")";
+        alter += "\n)\n";
+
         alter_statements.insert(alter_statements.begin(), alter);
     } 
     for (vector<QString>::iterator alter = alter_statements.begin();
@@ -105,7 +134,7 @@ void SongSettings::EnsureSchema(TableDefinition *table_definition)
          ++alter)
     {
         qDebug() << "Executing " << *alter;
-        q.exec(*alter);
+        exec("ensureSchema", q, *alter);
         if (m_db.lastError().type() != QSqlError::NoError)
         {
             qDebug() << "Creating database: " << m_db.lastError();
@@ -116,9 +145,7 @@ void SongSettings::EnsureSchema(TableDefinition *table_definition)
 
 RowDefinition song_rows[] =
 {
-    RowDefinition("id", "int auto_increment primary_key"),
-    RowDefinition("filename", "text",
-                  "CREATE UNIQUE INDEX songs_filename_idx ON songs(filename)"),
+    RowDefinition("filename", "text PRIMARY KEY"),
     RowDefinition("name", "text",
         "CREATE INDEX songs_name_idx ON SONGS(name)"),
     RowDefinition("pitch", "int"),
@@ -133,7 +160,6 @@ TableDefinition song_table("songs", song_rows);
 
 RowDefinition session_rows[] =
 {
-    RowDefinition("id", "int auto_increment primary_key"),
     RowDefinition("name", "text",
                   "CREATE UNIQUE INDEX session_name_idx ON session(name)"),
     RowDefinition(NULL, NULL),
@@ -142,11 +168,10 @@ TableDefinition session_table("sessions", song_rows);
 
 RowDefinition song_play_rows[] =
 {
-    RowDefinition("id", "int auto_increment primary_key"),
-    RowDefinition("song_id", "int references songs(id)"),
-    RowDefinition("session_id", "int references songs(id)"),
-    RowDefinition("timestamp", "DATETIME DEFAULT CURRENT_TIMESTAMP"
-                  "CREATE INDEX song_play_song_session_timestamp songs(song_id,session_id,timestamp)"),
+    RowDefinition("song_rowid", "int references songs(rowid)"),
+    RowDefinition("session_rowid", "int references songs(rowid)"),
+    RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
+                  "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
     RowDefinition(NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
@@ -155,7 +180,7 @@ TableDefinition song_plays_table("song_plays", song_play_rows);
 /*
 "CREATE TABLE play_history (
  id int auto_increment primary key,
- song_id int REFERENCES songs(id),
+ song_rowid int REFERENCES songs(id),
  audience_id INT REFERENCES play_audiences(id)
  played_on TIMESTAMP,
     );
@@ -163,9 +188,24 @@ TableDefinition song_plays_table("song_plays", song_play_rows);
 
 SongSettings::SongSettings()
 {
+    QDate date(QDate::currentDate());
+    current_session_id = date.dayOfWeek() + 1;
 }
 
-void SongSettings::OpenDatabase(const QString& path)
+static const char *default_session_names[] =
+{
+    "Practice",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+    NULL
+};
+
+void SongSettings::openDatabase(const QString& path)
 {
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(path + "/SquareDesk.sqlite3");
@@ -178,35 +218,64 @@ void SongSettings::OpenDatabase(const QString& path)
     {
         qDebug() << "Database: connection ok";
     }
-    EnsureSchema(&song_table);
-    EnsureSchema(&session_table);
-    EnsureSchema(&song_plays_table);
-    InitializeSessionsModel();
+    ensureSchema(&song_table);
+    ensureSchema(&session_table);
+    ensureSchema(&song_plays_table);
+    {
+        unsigned int sessions_available = 0;
+        {
+            QSqlQuery q(m_db);
+            q.prepare("SELECT rowid FROM sessions WHERE id <= 8");
+            exec("openDatabase", q);
+            while (q.next())
+            {
+                int id = q.value(0).toInt();
+                sessions_available |= (1 << id);
+            }
+        }
+        {
+            for (int id = 1; default_session_names[id - 1]; ++id)
+            {
+                if (!(sessions_available & (1 << id)))
+                {
+                    QSqlQuery q(m_db);
+                    q.prepare("INSERT into SESSIONS(rowid,name) VALUES(:id, :name)");
+                    q.bindValue(":name",default_session_names[id - 1]);
+                    q.bindValue(":id", id);
+                    exec("openDatabase", q);
+                }
+            }
+        }
+    }
+
+    initializeSessionsModel();
 }
 
-int SongSettings::GetSongIDFromFilename(const QString &filename)
+int SongSettings::getSongIDFromFilename(const QString &filename)
 {
     int id = -1;
     {
-        QSqlQuery q;
-        q.prepare("SELECT id FROM songs WHERE filename=:filename");
+        QSqlQuery q(m_db);
+        q.prepare("SELECT rowid FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filename);
-        q.exec();
+        qDebug() << "Looking for song ID for " << filename;
+        exec("getSongIDFromFilename",q);
         while (q.next())
         {
             id = q.value(0).toInt();
+            qDebug() << "Found" << id;
         }
     }
     return id;
 }
-int SongSettings::GetSessionIDFromName(const QString &name)
+int SongSettings::getSessionIDFromName(const QString &name)
 {
     int id = -1;
     {
-        QSqlQuery q;
-        q.prepare("SELECT id FROM sessions WHERE name=:name");
+        QSqlQuery q(m_db);
+        q.prepare("SELECT rowid FROM sessions WHERE name=:name");
         q.bindValue(":name", name);
-        q.exec();
+        exec("getSessionIDFromFilename",q);
         while (q.next())
         {
             id = q.value(0).toInt();
@@ -216,7 +285,7 @@ int SongSettings::GetSessionIDFromName(const QString &name)
 }
 
 
-void SongSettings::InitializeSessionsModel()
+void SongSettings::initializeSessionsModel()
 {
     modelSessions.setTable("sessions");
     modelSessions.setEditStrategy(QSqlTableModel::OnManualSubmit);
@@ -228,28 +297,45 @@ void SongSettings::InitializeSessionsModel()
 
 
 
-void SongSettings::MarkSongPlayed(const QString &filename,
-                                  const QString &session)
+void SongSettings::markSongPlayed(const QString &filename)
 {
-    int song_id = GetSongIDFromFilename(filename);
-    int session_id = GetSessionIDFromName(session);
-    QSqlQuery q;
-    q.prepare("INSERT INTO song_plays(song_id,session_id) VALUES (:song_id, :session_id)");
-    q.bindValue(":song_id", song_id);
-    q.bindValue(":session_id", session_id);
-    q.exec();
+    qDebug() << "Marking song played" << filename;
+    int song_rowid = getSongIDFromFilename(filename);
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO song_plays(song_rowid,session_rowid) VALUES (:song_rowid, :session_rowid)");
+    q.bindValue(":song_rowid", song_rowid);
+    q.bindValue(":session_rowid", current_session_id);
+    exec("markSongPlayed", q);
 }
 
-void SongSettings::SaveSettings(const QString &filename,
-                                const QString &songname,
-                 int pitch,
-                 int tempo,
-                 double introPos,
-                 double outroPos)
+QString SongSettings::getSongAge(const QString &filename)
 {
-    int id = GetSongIDFromFilename(filename);
+    QSqlQuery q(m_db);
+    qDebug() << "getsongage " << filename << " : " << current_session_id;
+    q.prepare("SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1");
+    q.bindValue(":filename", filename);
+    q.bindValue(":session_rowid", current_session_id);
+    exec("getSongAge", q);
 
-    QSqlQuery q;
+    if (q.next())
+    {
+        QString str(QString("%1").arg(q.value(0).toInt(), 3));
+        qDebug() << "Returning song age " << str << "for" << filename;
+        return str;
+    }
+    return QString("");
+}
+
+void SongSettings::saveSettings(const QString &filename,
+                                const QString &songname,
+                                int pitch,
+                                int tempo,
+                                double introPos,
+                                double outroPos)
+{
+    int id = getSongIDFromFilename(filename);
+
+    QSqlQuery q(m_db);
     if (id == -1)
     {
         q.prepare("INSERT INTO songs(filename, name, pitch, tempo, introPos, outroPos) VALUES (:filename, :name, :pitch, :tempo, :introPos, :outroPos)");
@@ -263,14 +349,11 @@ void SongSettings::SaveSettings(const QString &filename,
     q.bindValue(":tempo", tempo);
     q.bindValue(":introPos", introPos);
     q.bindValue(":outroPos", outroPos);
-    q.exec();
-    if (m_db.lastError().type() != QSqlError::NoError)
-    {
-        qDebug() << "SaveSettings: " << m_db.lastError();
-    }
+    q.bindValue(":name", songname);
+    exec("saveSettings", q);
 }
 
-bool SongSettings::LoadSettings(const QString &filename,
+bool SongSettings::loadSettings(const QString &filename,
                                 const QString &songname,
                                 int &pitch,
                                 int &tempo,
@@ -279,10 +362,11 @@ bool SongSettings::LoadSettings(const QString &filename,
 {
     bool foundResults = false;
     {
-        QSqlQuery q;
+        QSqlQuery q(m_db);
         q.prepare("SELECT filename, pitch, tempo, introPos, outroPos FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filename);
-        q.exec();
+        exec("loadSettings", q);
+
         while (q.next())
         {
             foundResults = true;
@@ -294,10 +378,10 @@ bool SongSettings::LoadSettings(const QString &filename,
     }
     if (!foundResults)
     {
-        QSqlQuery q;
+        QSqlQuery q(m_db);
         q.prepare("SELECT filename, pitch, tempo, introPos, outroPos FROM songs WHERE name=:name");
         q.bindValue(":name", songname);
-        q.exec();
+        exec("loadSettings", q);
         while (q.next())
         {
             foundResults = true;
@@ -310,7 +394,7 @@ bool SongSettings::LoadSettings(const QString &filename,
     return foundResults;
 }
 
-void SongSettings::CloseDatabase()
+void SongSettings::closeDatabase()
 {
     m_db.close();
 }

@@ -65,6 +65,7 @@
 #include "analogclock.h"
 #include "console.h"
 #include "renderarea.h"
+#include "songsettings.h"
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
@@ -186,6 +187,16 @@ private slots:
 
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
+
+
+    void on_actionPractice_triggered(bool checked);
+    void on_actionMonday_triggered(bool checked);
+    void on_actionTuesday_triggered(bool checked);
+    void on_actionWednesday_triggered(bool checked);
+    void on_actionThursday_triggered(bool checked);
+    void on_actionFriday_triggered(bool checked);
+    void on_actionSaturday_triggered(bool checked);
+    void on_actionSunday_triggered(bool checked);
 
 private:
     QAction *closeAct;  // WINDOWS only
@@ -310,6 +321,12 @@ private:
     bool copyrightShown;
 
     bool voiceInputEnabled;
+
+    SongSettings songSettings;
+
+
+    bool firstTimeSongIsPlayed;
+    void setCurrentSessionId(int id);
 };
 
 // currentState:
