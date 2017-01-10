@@ -1,0 +1,45 @@
+# To use:
+# 1) compile in Qt
+# 2) ./deployIt
+# 3) run .inno file
+
+# LATEST VERSION deploys sd and pocketSphinx and models
+windowsBuild=X:/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_MSVC2013_32bit-Release/test123/release
+
+mkdir -p plugins/imageformats
+mkdir -p models/en-us
+
+echo "======== Copying executables from $windowsBuild..."
+cp $windowsBuild/SquareDeskPlayer.exe .
+cp $windowsBuild/pocketsphinx_continuous.exe .
+cp $windowsBuild/sdtty.exe .
+
+echo "======== Copying DLLs..."
+cp $windowsBuild/bass*.dll .
+cp $windowsBuild/icu*54.dll .
+cp $windowsBuild/msvc*120.dll .
+cp $windowsBuild/msvcp140.dll .
+cp $windowsBuild/pocketsphinx.dll .
+cp $windowsBuild/qsqlite*.dll .
+cp $windowsBuild/sdlib.dll .
+cp $windowsBuild/sphinxbase.dll .
+#cp $windowsBuild/tag*.dll .
+cp $windowsBuild/vcruntime140.dll .
+cp $windowsBuild/zlib*.dll .
+cp $windowsBuild/plugins/imageformats/qico.dll ./plugins/imageformats
+cp $windowsBuild/desk1d.ico .
+
+echo "======== Copying DATA FILES..."
+cp $windowsBuild/allcalls.csv .
+cp $windowsBuild/sd_calls.dat .
+cp $windowsBuild/5365a.dic .
+cp $windowsBuild/plus.jsgf .
+cp $windowsBuild/models/en-us/* ./models/en-us
+cp $windowsBuild/cuesheet2.css .
+cp $windowsBuild/ps .
+
+echo "======== Running windeployqt..."
+PATH=$PATH:/cygdrive/c/Qt/5.7/msvc2015/bin
+windeployqt --no-translations --no-system-d3d-compiler ./SquareDeskPlayer.exe
+
+echo "DONE."
