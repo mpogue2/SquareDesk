@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SquareDeskPlayer"
-#define MyAppVersion "0.6.2"
+#define MyAppVersion "0.7.2"
 #define MyAppPublisher "Zenstar Software"
 #define MyAppURL "http://www.squaredesk.net"
 #define MyAppExeName "SquareDeskPlayer.exe"
@@ -43,8 +43,12 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
+Source: {#DeployDirectory}\5365a.dic; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\allcalls.csv; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\bass.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\bass_fx.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\bassmix.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\cuesheet2.css; DestDir: "{app}"; Flags: ignoreversion
 ; intentionally not deploying D3Dcompiler_47.dll
 Source: {#DeployDirectory}\desk1d.ico; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\icudt54.dll; DestDir: "{app}"; Flags: ignoreversion
@@ -55,12 +59,16 @@ Source: {#DeployDirectory}\libGLESV2.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\msvcp120.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\msvcr120.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\msvcp140.dll; DestDir: "{app}"; Flags: ignoreversion
-Source: {#DeployDirectory}\vcruntime140.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\plus.jsgf; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\pocketsphinx.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\pocketsphinx_continuous.exe; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\ps; DestDir: "{app}"; Flags: ignoreversion
 ; intentionally not deploying opengl32sw.dll
 Source: {#DeployDirectory}\iconengines\qsvgicon.dll; DestDir: "{app}\iconengines"; Flags: ignoreversion
 Source: {#DeployDirectory}\platforms\qwindows.dll; DestDir: "{app}\platforms"; Flags: ignoreversion
 Source: {#DeployDirectory}\plugins\imageformats\qico.dll; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
 Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
+
 Source: {#DeployDirectory}\Qt5Core.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\Qt5Gui.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5Multimedia.dll; DestDir: "{app}"; Flags: ignoreversion
@@ -78,9 +86,23 @@ Source: {#DeployDirectory}\Qt5Gui.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5WebKitWidgets.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\Qt5Svg.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\Qt5Widgets.dll; DestDir: "{app}"; Flags: ignoreversion
+
+Source: {#DeployDirectory}\sd_calls.dat; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\sdlib.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\sdtty.exe; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\sphinxbase.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\SquareDeskPlayer.exe; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\tag.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\vcruntime140.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\zlib1.dll; DestDir: "{app}"; Flags: ignoreversion
+
+Source: {#DeployDirectory}\models\en-us\feat.params; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
+Source: {#DeployDirectory}\models\en-us\mdef; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
+Source: {#DeployDirectory}\models\en-us\means; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
+Source: {#DeployDirectory}\models\en-us\noisedict; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
+Source: {#DeployDirectory}\models\en-us\sendump; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
+Source: {#DeployDirectory}\models\en-us\transition_matrices; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
+Source: {#DeployDirectory}\models\en-us\variances; DestDir: "{app}\models\en-us\"; Flags: ignoreversion
 ; intentionally not deploying translations directory and contents...(yet)
 ;Source: {#DeployDirectory}\sqView_utility.db; DestDir: "{app}"; Flags: ignoreversion
 
