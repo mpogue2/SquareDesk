@@ -1,0 +1,27 @@
+#JSGF V1.0;
+grammar plus;
+
+// TODO: split into calls that can roll/sweep and those that can't, and keep them separate
+// TODO: some sort of file output
+// TODO: undo back to #
+// FIX: "run" should not be accepted.  Only <WHO> run.
+
+public <S> = ([<WHO>] <BASICCALL>);
+
+<WHO> = /0.00001/ HEADS
+      | /0.00001/ SIDES
+      | /0.00001/ CENTERS
+      | /1e-30/ ENDS;
+
+<BASICCALL> = PASS THRU
+            | HALF SASHAY
+            | ROLLAWAY
+            | U TURN BACK
+            | CHAIN
+            | CHAIN DOWN THE LINE
+            | RIGHT (AND|A) LEFT THRU
+            | STAR THRU
+            | CIRCLE TO A LINE
+            | BEND THE LINE
+            | [LEFT] SQUARE THRU
+            | FOLD;
