@@ -133,12 +133,7 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
          alter != alter_statements.end();
          ++alter)
     {
-        qDebug() << "Executing " << *alter;
         exec("ensureSchema", q, *alter);
-        if (m_db.lastError().type() != QSqlError::NoError)
-        {
-            qDebug() << "Creating database: " << m_db.lastError();
-        }
     }
 }
 
@@ -258,12 +253,10 @@ int SongSettings::getSongIDFromFilename(const QString &filename)
         QSqlQuery q(m_db);
         q.prepare("SELECT rowid FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filename);
-        qDebug() << "Looking for song ID for " << filename;
         exec("getSongIDFromFilename",q);
         while (q.next())
         {
             id = q.value(0).toInt();
-            qDebug() << "Found" << id;
         }
     }
     return id;
@@ -299,7 +292,6 @@ void SongSettings::initializeSessionsModel()
 
 void SongSettings::markSongPlayed(const QString &filename)
 {
-    qDebug() << "Marking song played" << filename;
     int song_rowid = getSongIDFromFilename(filename);
     QSqlQuery q(m_db);
     q.prepare("INSERT INTO song_plays(song_rowid,session_rowid) VALUES (:song_rowid, :session_rowid)");
@@ -311,7 +303,6 @@ void SongSettings::markSongPlayed(const QString &filename)
 QString SongSettings::getSongAge(const QString &filename)
 {
     QSqlQuery q(m_db);
-    qDebug() << "getsongage " << filename << " : " << current_session_id;
     q.prepare("SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1");
     q.bindValue(":filename", filename);
     q.bindValue(":session_rowid", current_session_id);
@@ -320,7 +311,6 @@ QString SongSettings::getSongAge(const QString &filename)
     if (q.next())
     {
         QString str(QString("%1").arg(q.value(0).toInt(), 3));
-        qDebug() << "Returning song age " << str << "for" << filename;
         return str;
     }
     return QString("");

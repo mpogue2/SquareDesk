@@ -74,7 +74,7 @@
             <bool>true</bool>
            </property>
            <property name="columnCount">
-            <number>8</number>
+            <number>7</number>
            </property>
            <attribute name="horizontalHeaderVisible">
             <bool>false</bool>
