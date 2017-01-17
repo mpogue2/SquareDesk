@@ -1288,7 +1288,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.7.2</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.7.4a</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
@@ -3292,9 +3292,9 @@ void MainWindow::readSDData()
         for (int j=0; j < words.length(); j++ ) {
             QString current2 = words.at(j);
             QString replacement2;
-            if (current2.left(1) == "[") {
+            if (current2.length() >= 1 && current2.at(0) == '[') {
                 // left bracket case
-                replacement2 = "[" + current2.left(2).toUpper() + current2.mid(2).toLower();
+                replacement2 = "[" + QString(current2.at(1)).toUpper() + current2.mid(2).toLower();
             } else {
                 // normal case
                 replacement2 = current2.left(1).toUpper() + current2.mid(1).toLower();
