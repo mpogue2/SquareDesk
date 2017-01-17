@@ -3385,9 +3385,13 @@ void MainWindow::readPSData()
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
-    s2 = s2.replace("three quarters","3/4"); // technically, this one is not required, since sd understands both already.
+    s2 = s2.replace("once and a half","1-1/2");
+    s2 = s2.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
     s2 = s2.replace("two quarters","1/2").replace("one half","1/2").replace("half","1/2");
     s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
+
+    // handle 1P2P
+    s2 = s2.replace("one pee two pee","1P2P");
 
     // handle numbers: one -> 1, etc.
     s2 = s2.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
