@@ -12,12 +12,14 @@ public:
     void closeDatabase();
     void saveSettings(const QString &filename,
                       const QString &songname,
+                      int volume,
                  int pitch,
                  int temp,
                  double introPos,
                  double outroPos);
     bool loadSettings(const QString &filename,
                       const QString &songname,
+                      int &volume,
                  int &pitch,
                  int &temp,
                  double &introPos,

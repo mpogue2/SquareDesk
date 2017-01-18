@@ -327,6 +327,7 @@ private:
 
     bool firstTimeSongIsPlayed;
     void setCurrentSessionId(int id);
+    void setCurrentSessionIdReloadMusic(int id);
 };
 
 // currentState:

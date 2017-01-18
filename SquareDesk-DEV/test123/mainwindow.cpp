@@ -520,52 +520,63 @@ void MainWindow::setCurrentSessionId(int id)
         ui->actionSunday,
         NULL
     };
-    for (int i = 1; actions[i]; ++i)
+    for (int i = 0; actions[i]; ++i)
     {
         int this_id = i+1;
-        actions[i]->setChecked(this_id == id);
+        bool checked = this_id == id;
+        actions[i]->setChecked(checked);
     }
     songSettings.setCurrentSession(id);
 }
 
+void MainWindow::setCurrentSessionIdReloadMusic(int id)
+{
+    setCurrentSessionId(id);
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+        QFileInfo fi(origPath);
+        ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName()));
+    }
+}
+
 void MainWindow::on_actionPractice_triggered(bool /* checked */)
 {
-    setCurrentSessionId(1);
+    setCurrentSessionIdReloadMusic(1);
 }
 
 void MainWindow::on_actionMonday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(2);
+    setCurrentSessionIdReloadMusic(2);
 }
 
 void MainWindow::on_actionTuesday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(3);
+    setCurrentSessionIdReloadMusic(3);
 }
 
 void MainWindow::on_actionWednesday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(4);
+    setCurrentSessionIdReloadMusic(4);
 }
 
 void MainWindow::on_actionThursday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(5);
+    setCurrentSessionIdReloadMusic(5);
 }
 
 void MainWindow::on_actionFriday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(6);
+    setCurrentSessionIdReloadMusic(6);
 }
 
 void MainWindow::on_actionSaturday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(7);
+    setCurrentSessionIdReloadMusic(7);
 }
 
 void MainWindow::on_actionSunday_triggered(bool /* checked */)
 {
-    setCurrentSessionId(8);
+    setCurrentSessionIdReloadMusic(8);
 }
 
 
@@ -924,6 +935,7 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
     }
     ui->currentPitchLabel->setText(sign + QString::number(currentPitch) +" semitone" + plural);
 
+    saveCurrentSongSettings();
     // update the hidden pitch column
     QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -1003,6 +1015,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         ui->currentTempoLabel->setText(QString::number(value) + "%");
     }
 
+    saveCurrentSongSettings();
     // update the hidden tempo column
     QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
@@ -1884,7 +1897,8 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
 
 void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode)
 {
-    songSettings.openDatabase(mainRootDir);
+    QString databaseDir(mainRootDir + "/.squaredesk");
+    songSettings.openDatabase(databaseDir);
     // always gets rid of the old pathstack...
     if (pathStack) {
         delete pathStack;
@@ -2984,6 +2998,7 @@ void MainWindow::saveCurrentSongSettings()
         
         songSettings.saveSettings(currentMP3filename,
                                   currentSong,
+                                  currentVolume,
                                   pitch, tempo,
                                   ui->seekBarCuesheet->GetIntro(),
                                   ui->seekBarCuesheet->GetOutro());
@@ -2998,15 +3013,18 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     if (saveSongPreferencesInConfig) {
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
+        int volume = ui->volumeSlider->value();
         double intro = ui->seekBarCuesheet->GetIntro();
         double outro = ui->seekBarCuesheet->GetOutro();
         if (songSettings.loadSettings(currentMP3filename,
                                       songTitle,
+                                      volume,
                                       pitch, tempo,
                                       intro, outro))
         {
             ui->pitchSlider->setValue(pitch);
             ui->tempoSlider->setValue(tempo);
+            ui->volumeSlider->setValue(volume);
             ui->seekBarCuesheet->SetIntro(intro);
             ui->seekBarCuesheet->SetOutro(outro);
         }

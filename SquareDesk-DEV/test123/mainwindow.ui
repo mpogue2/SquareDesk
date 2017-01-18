@@ -74,7 +74,7 @@
             <bool>true</bool>
            </property>
            <property name="columnCount">
-            <number>7</number>
+            <number>8</number>
            </property>
            <attribute name="horizontalHeaderVisible">
             <bool>false</bool>
@@ -1836,41 +1836,65 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
   </action>
   <action name="actionPractice">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Practice</string>
    </property>
   </action>
   <action name="actionMonday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Monday</string>
    </property>
   </action>
   <action name="actionTuesday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Tuesday</string>
    </property>
   </action>
   <action name="actionWednesday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Wednesday</string>
    </property>
   </action>
   <action name="actionThursday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Thursday</string>
    </property>
   </action>
   <action name="actionFriday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Friday</string>
    </property>
   </action>
   <action name="actionSaturday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Saturday</string>
    </property>
   </action>
   <action name="actionSunday">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Sunday</string>
    </property>
