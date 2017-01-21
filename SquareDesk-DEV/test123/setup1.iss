@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SquareDeskPlayer"
-#define MyAppVersion "0.7.2"
+#define MyAppVersion "0.7.4"
 #define MyAppPublisher "Zenstar Software"
 #define MyAppURL "http://www.squaredesk.net"
 #define MyAppExeName "SquareDeskPlayer.exe"

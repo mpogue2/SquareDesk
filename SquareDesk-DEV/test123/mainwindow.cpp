@@ -3074,14 +3074,54 @@ void MainWindow::on_newVolumeMounted() {
 
 #if defined(Q_OS_MAC)
         guestVolume = newVolume;  // e.g. MIKEPOGUE
-        guestRootPath = "/Volumes/" + guestVolume + "/squareDanceMusic";  // NOTE: THIS IS HARD-CODED RIGHT NOW
+        guestRootPath = "/Volumes/" + guestVolume + "/";  // this is where to search for a Music Directory
         QApplication::beep();  // beep only on MAC OS X (Win32 already beeps by itself)
 #endif
 
 #if defined(Q_OS_WIN32)
-        guestVolume = newVolume;    // e.g. E:
-        guestRootPath = newVolume + "\\squareDanceMusic";                 // NOTE: THIS IS HARD-CODED RIGHT NOW
+        guestVolume = newVolume;            // e.g. E:
+        guestRootPath = newVolume + "\\";   // this is where to search for a Music Directory
 #endif
+
+        // We do it this way, so that the name of the root directory is case insensitive (squareDanceMusic, squaredancemusic, etc.)
+        QDir newVolumeRootDir(guestRootPath);
+        newVolumeRootDir.setFilter(QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
+
+        QDirIterator it(newVolumeRootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+        QString d;
+        bool foundSquareDeskMusicDir = false;
+        QString foundDirName;
+        while(it.hasNext()) {
+            d = it.next();
+            // If alias, try to follow it.
+            QString resolvedFilePath = it.fileInfo().symLinkTarget(); // path with the symbolic links followed/removed
+            if (resolvedFilePath == "") {
+                // If NOT alias, then use the original fileName
+                resolvedFilePath = d;
+            }
+
+            QFileInfo fi(d);
+            QStringList section = fi.canonicalFilePath().split("/");  // expand
+//            qDebug() << "d" << d << "section.length():" << section.length() << "section" << section;
+            if (section.length() >= 1) {
+                QString dirName = section[section.length()-1];
+//                qDebug() << "dirName:" << dirName;
+
+                if (dirName.compare("squaredancemusic",Qt::CaseInsensitive) == 0) { // exact match, but case-insensitive
+                    foundSquareDeskMusicDir = true;
+                    foundDirName = dirName;
+                    break;  // break out of the for loop when we find first directory that matches "squaredancemusic"
+                }
+            } else {
+                continue;
+            }
+        }
+
+        if (!foundSquareDeskMusicDir) {
+            return;  // if we didn't find anything, just return
+        }
+
+        guestRootPath += foundDirName;  // e.g. /Volumes/MIKE/squareDanceMusic, or E:\SquareDanceMUSIC
 
         ui->statusBar->showMessage("SCANNING GUEST VOLUME: " + newVolume);
         QThread::sleep(1);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
