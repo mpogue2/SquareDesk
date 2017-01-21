@@ -3241,7 +3241,7 @@ void MainWindow::readSDData()
     QList<QString> lastFormatList;
 
     QRegExp sequenceLine("^ *([0-9]+):(.*)");
-    QRegExp sectionStart("^Sd 38.89");
+    QRegExp sectionStart("Sd 38.89");
 
     QStringList currentSequence;
     QString lastPrompt;
@@ -3250,6 +3250,8 @@ void MainWindow::readSDData()
 //    qDebug() << "unedited data:" << uneditedData;
     QString errorLine;
     QString resolveLine;
+//    QString copyrightText;
+    copyrightText = "";
     bool grabResolve = false;
 
     // scan the unedited lines for sectionStart, layout1/2, and sequence lines
@@ -3316,6 +3318,8 @@ void MainWindow::readSDData()
 //    qDebug() << "RESOLVE:" << resolveLine;
 
     editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
+//    qDebug() << "editedData:" << editedData;
+//    qDebug() << "copyrightText:" << copyrightText;
 
     // echo is needed for entering the level and entering comments, but NOT wanted after that
     if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
@@ -3345,22 +3349,10 @@ void MainWindow::readSDData()
         currentSequence.replace(i, replacement);
     }
 
-    // show copyright once
-    if (copyrightShown) {
-        copyrightText = "";
-    } else {
-        copyrightText += "\nTry: 'Heads start'"
-                         "\n";
-    }
-
     if (resolveLine == "") {
-        currentSequenceWidget->setText(copyrightText + currentSequence.join("\n"));
+        currentSequenceWidget->setText(currentSequence.join("\n"));
     } else {
-        currentSequenceWidget->setText(copyrightText + currentSequence.join("\n") + "\nresolve is: " + resolveLine);
-    }
-
-    if (copyrightText != "" && !copyrightShown) {
-        copyrightShown = true;
+        currentSequenceWidget->setText(currentSequence.join("\n") + "\nresolve is: " + resolveLine);
     }
 
     // always scroll to make the last line visible, as we're adding lines
@@ -3393,7 +3385,12 @@ void MainWindow::readSDData()
         renderArea->setLayout1("");
         renderArea->setLayout2(QStringList());      // show squared up dancers
         renderArea->setFormation("Squared set");    // starting formation
-        currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
+        if (!copyrightShown) {
+            currentSequenceWidget->setText(copyrightText + "\nSquared set\n\nTry: 'Heads start'");    // clear out current sequence
+            copyrightShown = true;
+        } else {
+            currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
+        }
     } else {
         renderArea->setLayout1(lastLayout1);
         renderArea->setLayout2(lastFormatList);
