@@ -3434,8 +3434,10 @@ void MainWindow::readPSData()
     s2 = s2.replace("one pee two pee","1P2P");
 
     // handle numbers: one -> 1, etc.
+    s2 = s2.replace("eight chain","EIGHT CHAIN"); // sd wants "eight chain 4", not "8 chain 4", so protect it
     s2 = s2.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
     s2 = s2.replace("five","5").replace("six","6").replace("seven","7").replace("eight","8");
+    s2 = s2.replace("EIGHT CHAIN","eight chain"); // sd wants "eight chain 4", not "8 chain 4", so protect it
 
     // handle optional words at the beginning
     s2 = s2.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");

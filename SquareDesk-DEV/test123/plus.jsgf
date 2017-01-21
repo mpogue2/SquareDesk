@@ -99,7 +99,7 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
             | HALF SASHAY
             | ROLLAWAY
             | U TURN BACK
-            | SEPARATE [GO] AROUND <BIGNUMBER> [TO A LINE]
+            | SEPARATE [GO] AROUND <BIGNUMBER> TO A LINE
             | CHAIN
             | CHAIN <NUMBER> QUARTERS
             | CHAIN DOWN THE LINE
