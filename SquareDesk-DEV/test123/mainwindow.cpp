@@ -338,7 +338,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
 
-// voice input is only available on MAC OS X right now...
+// voice input is only available on MAC OS X and Win32 right now...
 #ifdef POCKETSPHINXSUPPORT
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
@@ -346,6 +346,10 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionEnable_voice_input_toggled(false);
     voiceInputEnabled = false;
 #endif
+
+    on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
+    autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
+
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
@@ -1016,14 +1020,11 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             int maxSeekbar = ui->seekBar->maximum();  // NOTE: minSeekbar is always 0
             float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
             float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
-//#define SCROLLLYRICS
-#ifdef SCROLLLYRICS
-            // experimental lyrics scrolling at the same time as the InfoBar
-            ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
-#else
-            Q_UNUSED(targetScroll)
-#endif
 
+            if (autoScrollLyricsEnabled) {
+                // lyrics scrolling at the same time as the InfoBar
+                ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
+            }
         }
         int fileLen_i = (int)cBass.FileLength;
 
@@ -3792,4 +3793,20 @@ void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
     // the Enable Voice Input setting is persistent across restarts of the application
     PreferencesManager prefsManager;
     prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
+}
+
+void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
+{
+    if (checked) {
+        ui->actionAuto_scroll_during_playback->setChecked(true);
+        autoScrollLyricsEnabled = true;
+    }
+    else {
+        ui->actionAuto_scroll_during_playback->setChecked(false);
+        autoScrollLyricsEnabled = false;
+    }
+
+    // the Enable Auto-scroll during playback setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.Setenableautoscrolllyrics(ui->actionAuto_scroll_during_playback->isChecked());
 }

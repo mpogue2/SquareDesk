@@ -1440,9 +1440,16 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     </property>
     <addaction name="actionEnable_voice_input"/>
    </widget>
+   <widget class="QMenu" name="menuLyrics">
+    <property name="title">
+     <string>Lyrics</string>
+    </property>
+    <addaction name="actionAuto_scroll_during_playback"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
+   <addaction name="menuLyrics"/>
    <addaction name="menuSequence"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -1809,6 +1816,14 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionAuto_scroll_during_playback">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-scroll cuesheet</string>
    </property>
   </action>
  </widget>

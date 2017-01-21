@@ -187,6 +187,8 @@ private slots:
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 
+    void on_actionAuto_scroll_during_playback_toggled(bool arg1);
+
 private:
     QAction *closeAct;  // WINDOWS only
 
@@ -310,6 +312,7 @@ private:
     bool copyrightShown;
 
     bool voiceInputEnabled;
+    bool autoScrollLyricsEnabled;
 };
 
 // currentState:
