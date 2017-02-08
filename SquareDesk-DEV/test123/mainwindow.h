@@ -198,6 +198,8 @@ private slots:
     void on_actionSaturday_triggered(bool checked);
     void on_actionSunday_triggered(bool checked);
 
+    void on_actionCompact_triggered(bool checked);
+
 private:
     QAction *closeAct;  // WINDOWS only
 

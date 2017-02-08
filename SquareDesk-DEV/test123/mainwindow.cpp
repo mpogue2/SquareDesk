@@ -539,6 +539,55 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
     }
 }
 
+
+void MainWindow::on_actionCompact_triggered(bool checked)
+{
+    static bool visible = true;
+    visible = !visible;
+    ui->actionCompact->setChecked(!visible);
+
+    QWidget *widgets[] =
+    {
+        ui->pitchSlider,
+        ui->pitchLabel,
+        ui->tempoSlider,
+        ui->currentMixLabel,
+        ui->mixLabel,
+        ui->mixSlider,
+        ui->EQgroup,
+        ui->layoutWidget,
+        ui->bassSlider,
+        ui->trebleLabel,
+        ui->midrangeLabel,
+        ui->trebleSlider,
+        ui->bassLabel,
+        ui->midrangeSlider,
+        ui->currentPitchLabel,
+        ui->currentLocLabel,
+        ui->warningLabel,
+        ui->tempoLabel,
+        ui->volumeLabel,
+        ui->volumeSlider,
+        ui->currentVolumeLabel,
+        ui->currentTempoLabel,
+        analogClock,
+        NULL
+    };
+    for (int i = 0; widgets[i]; ++i)
+    {
+        if (visible)
+        {
+            widgets[i]->show();
+        }
+        else
+        {
+            widgets[i]->hide();
+        }
+    }
+}
+
+
+
 void MainWindow::on_actionPractice_triggered(bool /* checked */)
 {
     setCurrentSessionIdReloadMusic(1);
@@ -620,6 +669,16 @@ void MainWindow::setFontSizes()
 #elif defined(Q_OS_LINUX)
     preferredSmallFontSize = 13;  // FIX: is this right?
     preferredNowPlayingSize = 27;
+    
+    QFont fontSmall = ui->currentTempoLabel->font();
+    fontSmall.setPointSize(8);
+    fontSmall.setPointSize(preferredSmallFontSize);
+
+    ui->titleSearch->setFont(fontSmall);
+    ui->labelSearch->setFont(fontSmall);
+    ui->titleSearch->setFont(fontSmall);
+    ui->clearSearchButton->setFont(fontSmall);
+    ui->songTable->setFont(fontSmall);
 #endif
 
     QFont font = ui->currentTempoLabel->font();

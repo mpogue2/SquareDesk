@@ -206,6 +206,22 @@
           <property name="bottomMargin">
            <number>7</number>
           </property>
+          <item row="1" column="5">
+           <widget class="QWidget" name="vuMeterProxy" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+           </widget>
+          </item>
           <item row="4" column="2">
            <widget class="QSlider" name="volumeSlider">
             <property name="enabled">
@@ -311,22 +327,6 @@
             </property>
             <property name="text">
              <string>/ 1:23</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="5">
-           <widget class="QWidget" name="vuMeterProxy" native="true">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>40</height>
-             </size>
             </property>
            </widget>
           </item>
@@ -505,6 +505,37 @@
             </property>
            </widget>
           </item>
+          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="playButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>P</string>
+            </property>
+           </widget>
+          </item>
           <item row="5" column="3" colspan="2">
            <widget class="QLabel" name="currentMixLabel">
             <property name="sizePolicy">
@@ -561,37 +592,6 @@
             </property>
             <property name="tickInterval">
              <number>10</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="playButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>P</string>
             </property>
            </widget>
           </item>
@@ -1463,11 +1463,18 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="actionSaturday"/>
     <addaction name="actionSunday"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionCompact"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
    <addaction name="menuSequence"/>
    <addaction name="menuSession"/>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="enabled">
@@ -1897,6 +1904,11 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="text">
     <string>Sunday</string>
+   </property>
+  </action>
+  <action name="actionCompact">
+   <property name="text">
+    <string>Compact</string>
    </property>
   </action>
  </widget>
