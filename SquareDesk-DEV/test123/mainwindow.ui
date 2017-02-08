@@ -1907,6 +1907,9 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
   </action>
   <action name="actionCompact">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Compact</string>
    </property>
