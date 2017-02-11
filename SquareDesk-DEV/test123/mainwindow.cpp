@@ -134,6 +134,9 @@ MainWindow::MainWindow(QWidget *parent) :
     timerCountDown(NULL),
     trapKeypresses(true)
 {
+//    QSettings mySettings;
+//    QString settingsPath = mySettings.fileName();
+//    qDebug() << "settingsPath: " << settingsPath;
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
@@ -2752,13 +2755,270 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 #endif // ifdef Q_OS_LINUX
 }
 
+// ----------------------------------------------------------------------
+int MainWindow::selectedSongRow() {
+    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+    return row;
+}
+
+// ----------------------------------------------------------------------
+int MainWindow::PlaylistItemCount() {
+    int playlistItemCount = 0;
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        if (playlistIndex != "") {
+            playlistItemCount++;
+        }
+    }
+    qDebug() << "items in the playlist:" << playlistItemCount;
+    return (playlistItemCount);
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::PlaylistItemToTop() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+    qDebug() << "PlaylistItemToTop(): " << selectedRow << currentNumberText;
+
+    if (currentNumberText == "") {
+        // add to list, and make it the #1
+
+        // Iterate over the entire songTable, incrementing every item
+        // TODO: turn off sorting
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndex = theItem->text();  // this is the playlist #
+            if (playlistIndex != "") {
+                // if a # was set, increment it
+                QString newIndex = QString::number(playlistIndex.toInt()+1);
+                qDebug() << "old, new:" << playlistIndex << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+
+        ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
+        // TODO: turn on sorting again
+
+    } else {
+        // already on the list
+        // Iterate over the entire songTable, incrementing items BELOW this item
+        // TODO: turn off sorting
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            if (playlistIndexText != "") {
+                int playlistIndexInt = playlistIndexText.toInt();
+                if (playlistIndexInt < currentNumberInt) {
+                    // if a # was set and less, increment it
+                    QString newIndex = QString::number(playlistIndexInt+1);
+                    qDebug() << "old, new:" << playlistIndexText << newIndex;
+                    ui->songTable->item(i,kNumberCol)->setText(newIndex);
+                }
+            }
+        }
+        // and then set this one to #1
+        ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
+    }
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemToBottom() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+    qDebug() << "PlaylistItemToBottom(): " << selectedRow << currentNumberText;
+    int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
+
+    if (currentNumberText == "") {
+        // add to list, and make it the bottom
+
+        // Iterate over the entire songTable, not touching every item
+        // TODO: turn off sorting
+
+//        for (int i=0; i<ui->songTable->rowCount(); i++) {
+//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//            QString playlistIndex = theItem->text();  // this is the playlist #
+//            if (playlistIndex != "") {
+//                playlistItemCount++;
+//                // if a # was set, increment it
+////                QString newIndex = QString::number(playlistIndex.toInt()+1);
+////                qDebug() << "old, new:" << playlistIndex << newIndex;
+////                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+//            }
+//        }
+
+//        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
+        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
+        // TODO: turn on sorting again
+
+    } else {
+        // already on the list
+        // Iterate over the entire songTable, decrementing items ABOVE this item
+        // TODO: turn off sorting
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            if (playlistIndexText != "") {
+                int playlistIndexInt = playlistIndexText.toInt();
+                if (playlistIndexInt > currentNumberInt) {
+                    // if a # was set and more, decrement it
+                    QString newIndex = QString::number(playlistIndexInt-1);
+                    qDebug() << "old, new:" << playlistIndexText << newIndex;
+                    ui->songTable->item(i,kNumberCol)->setText(newIndex);
+                }
+            }
+        }
+        // and then set this one to #LAST
+        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
+    }
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemMoveUp() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+    qDebug() << "PlaylistMoveUp(): " << selectedRow << currentNumberText;
+
+    // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
+    // TODO: turn off sorting
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        if (playlistIndex != "") {
+            int playlistIndexInt = playlistIndex.toInt();
+            if (playlistIndexInt == currentNumberInt - 1) {
+                QString newIndex = QString::number(playlistIndex.toInt()+1);
+                qDebug() << "old, new:" << playlistIndex << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+
+    ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
+    // TODO: turn on sorting again
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemMoveDown() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+    qDebug() << "PlaylistMoveUDown(): " << selectedRow << currentNumberText;
+
+    // add to list, and make it the bottom
+
+    // Iterate over the entire songTable, find the item just BELOW this one, and move it UP (only)
+    // TODO: turn off sorting
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        if (playlistIndex != "") {
+            int playlistIndexInt = playlistIndex.toInt();
+            if (playlistIndexInt == currentNumberInt + 1) {
+                QString newIndex = QString::number(playlistIndex.toInt()-1);
+                qDebug() << "old, new:" << playlistIndex << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+
+    ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
+    // TODO: turn on sorting again
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemRemove() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+    qDebug() << "PlaylistItemRemove(): " << selectedRow << currentNumberText;
+
+    // already on the list
+    // Iterate over the entire songTable, decrementing items BELOW this item
+    // TODO: turn off sorting
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndexText = theItem->text();  // this is the playlist #
+        if (playlistIndexText != "") {
+            int playlistIndexInt = playlistIndexText.toInt();
+            if (playlistIndexInt > currentNumberInt) {
+                // if a # was set and more, decrement it
+                QString newIndex = QString::number(playlistIndexInt-1);
+                qDebug() << "old, new:" << playlistIndexText << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+    // and then set this one to #LAST
+    ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
+}
+
+
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 {
     Q_UNUSED(pos);
 
-    // TODO: this function isn't called on Windows yet...
     if (ui->songTable->selectionModel()->hasSelection()) {
         QMenu menu(this);
+
+        int selectedRow = selectedSongRow();  // get current row or -1
+
+        if (selectedRow != -1) {
+            // if a single row was selected
+//            ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch));
+            QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+            int currentNumberInt = currentNumberText.toInt();
+            int playlistItemCount = PlaylistItemCount();
+            qDebug() << "currentNumberText: " << currentNumberText << "100: " << QString::number(100);
+
+            if (currentNumberText == "") {
+                if (playlistItemCount == 0) {
+                    menu.addAction ( "Add to playlist" , this , SLOT (PlaylistItemToTop()) );
+                } else {
+                    menu.addAction ( "Add to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                    menu.addAction ( "Add to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                }
+            } else if (playlistItemCount > 1) {
+                if (currentNumberInt == 1) {
+                    // already the first item, and there's more than one item on the list, so moves make sense
+                    menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
+                    menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                } else if (currentNumberInt == playlistItemCount && playlistItemCount > 1) {
+                    // already the last item, and there's more than one item on the list, so moves make sense
+                    menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                    menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                } else {
+                    // somewhere in the middle, and there's more than one item on the list, so moves make sense
+                    menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                    menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                    menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
+                    menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                }
+            }
+            if (playlistItemCount >= 1) {
+                menu.addSeparator();
+                menu.addAction ( "Remove from playlist" , this , SLOT (PlaylistItemRemove()) );
+            }
+        }
+        menu.addSeparator();
 
 #if defined(Q_OS_MAC)
         menu.addAction ( "Reveal in Finder" , this , SLOT (revealInFinder()) );

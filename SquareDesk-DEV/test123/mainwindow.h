@@ -189,6 +189,12 @@ private slots:
 
     void on_actionAuto_scroll_during_playback_toggled(bool arg1);
 
+    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
+    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
+    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
+    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
+    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
+
 private:
     QAction *closeAct;  // WINDOWS only
 
@@ -266,6 +272,9 @@ private:
 
     void updatePitchTempoView();
     void setFontSizes();
+
+    int selectedSongRow();  // returns -1 if none selected
+    int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
 
     // Song types
     QStringList songTypeNamesForPatter;
