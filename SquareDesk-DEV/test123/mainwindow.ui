@@ -1424,10 +1424,28 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <property name="title">
      <string>Playlist</string>
     </property>
+    <widget class="QMenu" name="menuAdd_to_Playlist">
+     <property name="title">
+      <string>Add to Playlist</string>
+     </property>
+     <addaction name="actionAt_TOP"/>
+     <addaction name="actionAt_BOTTOM"/>
+    </widget>
+    <widget class="QMenu" name="menuMove_song">
+     <property name="title">
+      <string>Move song</string>
+     </property>
+     <addaction name="actionUP_in_Playlist"/>
+     <addaction name="actionDOWN_in_Playlist"/>
+    </widget>
     <addaction name="actionLoad_Playlist"/>
     <addaction name="actionSave_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Playlist"/>
+    <addaction name="separator"/>
+    <addaction name="menuAdd_to_Playlist"/>
+    <addaction name="menuMove_song"/>
+    <addaction name="actionRemove_from_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionNext_Playlist_Item"/>
     <addaction name="actionPrevious_Playlist_Item"/>
@@ -1824,6 +1842,46 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="text">
     <string>Auto-scroll cuesheet</string>
+   </property>
+  </action>
+  <action name="actionAt_TOP">
+   <property name="text">
+    <string>at TOP</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Left</string>
+   </property>
+  </action>
+  <action name="actionAt_BOTTOM">
+   <property name="text">
+    <string>at BOTTOM</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Right</string>
+   </property>
+  </action>
+  <action name="actionRemove_from_Playlist">
+   <property name="text">
+    <string>Remove from Playlist</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Backspace</string>
+   </property>
+  </action>
+  <action name="actionUP_in_Playlist">
+   <property name="text">
+    <string>UP in Playlist</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Up</string>
+   </property>
+  </action>
+  <action name="actionDOWN_in_Playlist">
+   <property name="text">
+    <string>DOWN in Playlist</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Down</string>
    </property>
   </action>
  </widget>

@@ -503,6 +503,8 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // ----------------------------------------------------------------------
@@ -2703,6 +2705,62 @@ void MainWindow::on_songTable_itemSelectionChanged()
         ui->nextSongButton->setEnabled(false);
         ui->previousSongButton->setEnabled(false);
     }
+
+    // ----------------
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    // turn them all OFF
+    ui->actionAt_TOP->setEnabled(false);
+    ui->actionAt_BOTTOM->setEnabled(false);
+    ui->actionUP_in_Playlist->setEnabled(false);
+    ui->actionDOWN_in_Playlist->setEnabled(false);
+    ui->actionRemove_from_Playlist->setEnabled(false);
+
+    if (selectedRow != -1) {
+        // if a single row was selected
+        QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+        int currentNumberInt = currentNumberText.toInt();
+        int playlistItemCount = PlaylistItemCount();
+
+        if (currentNumberText == "") {
+//            qDebug() << "not in a playlist";
+            // if not in a Playlist then we can add it at Top or Bottom, that's it.
+            ui->actionAt_TOP->setEnabled(true);
+            ui->actionAt_BOTTOM->setEnabled(true);
+        } else {
+//            qDebug() << "in a playlist";
+            ui->actionRemove_from_Playlist->setEnabled(true);  // can remove it
+
+            // current item is on the Playlist already
+            if (playlistItemCount > 1) {
+//                qDebug() << "more than one item on the playlist";
+                // more than one item on the list
+                if (currentNumberInt == 1) {
+//                   qDebug() << "first item on the playlist";
+//                     it's the first item, and there's more than one item on the list, so moves make sense
+                    ui->actionAt_BOTTOM->setEnabled(true);
+                    ui->actionDOWN_in_Playlist->setEnabled(true);
+                } else if (currentNumberInt == playlistItemCount) {
+//                    qDebug() << "last item on the playlist";
+                    // it's the last item, and there's more than one item on the list, so moves make sense
+                    ui->actionAt_TOP->setEnabled(true);
+                    ui->actionUP_in_Playlist->setEnabled(true);
+                } else {
+//                    qDebug() << "middle item on the playlist";
+                    // it's somewhere in the middle, and there's more than one item on the list, so moves make sense
+                    ui->actionAt_TOP->setEnabled(true);
+                    ui->actionAt_BOTTOM->setEnabled(true);
+                    ui->actionUP_in_Playlist->setEnabled(true);
+                    ui->actionDOWN_in_Playlist->setEnabled(true);
+                }
+            } else {
+//                qDebug() << "one item on the playlist, and this is it.";
+                // One item on the playlist, and this is it.
+                // Can't move up/down or to top/bottom.
+                // Can remove it, though.
+            }
+        }
+    }
 }
 
 void MainWindow::on_actionClear_Playlist_triggered()
@@ -2723,6 +2781,8 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     notSorted = false;
     ui->songTable->setSortingEnabled(true);  // reenable sorting
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // ---------------------------------------------------------
@@ -2779,17 +2839,22 @@ int MainWindow::PlaylistItemCount() {
             playlistItemCount++;
         }
     }
-    qDebug() << "items in the playlist:" << playlistItemCount;
+//    qDebug() << "items in the playlist:" << playlistItemCount;
     return (playlistItemCount);
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemToTop() {
     int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    qDebug() << "PlaylistItemToTop(): " << selectedRow << currentNumberText;
+//    qDebug() << "PlaylistItemToTop(): " << selectedRow << currentNumberText;
 
     if (currentNumberText == "") {
         // add to list, and make it the #1
@@ -2802,7 +2867,7 @@ void MainWindow::PlaylistItemToTop() {
             if (playlistIndex != "") {
                 // if a # was set, increment it
                 QString newIndex = QString::number(playlistIndex.toInt()+1);
-                qDebug() << "old, new:" << playlistIndex << newIndex;
+//                qDebug() << "old, new:" << playlistIndex << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -2822,7 +2887,7 @@ void MainWindow::PlaylistItemToTop() {
                 if (playlistIndexInt < currentNumberInt) {
                     // if a # was set and less, increment it
                     QString newIndex = QString::number(playlistIndexInt+1);
-                    qDebug() << "old, new:" << playlistIndexText << newIndex;
+//                    qDebug() << "old, new:" << playlistIndexText << newIndex;
                     ui->songTable->item(i,kNumberCol)->setText(newIndex);
                 }
             }
@@ -2830,15 +2895,22 @@ void MainWindow::PlaylistItemToTop() {
         // and then set this one to #1
         ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
     }
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemToBottom() {
     int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    qDebug() << "PlaylistItemToBottom(): " << selectedRow << currentNumberText;
+//    qDebug() << "PlaylistItemToBottom(): " << selectedRow << currentNumberText;
     int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
 
     if (currentNumberText == "") {
@@ -2875,7 +2947,7 @@ void MainWindow::PlaylistItemToBottom() {
                 if (playlistIndexInt > currentNumberInt) {
                     // if a # was set and more, decrement it
                     QString newIndex = QString::number(playlistIndexInt-1);
-                    qDebug() << "old, new:" << playlistIndexText << newIndex;
+//                    qDebug() << "old, new:" << playlistIndexText << newIndex;
                     ui->songTable->item(i,kNumberCol)->setText(newIndex);
                 }
             }
@@ -2883,15 +2955,21 @@ void MainWindow::PlaylistItemToBottom() {
         // and then set this one to #LAST
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
     }
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemMoveUp() {
     int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    qDebug() << "PlaylistMoveUp(): " << selectedRow << currentNumberText;
+//    qDebug() << "PlaylistMoveUp(): " << selectedRow << currentNumberText;
 
     // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
     // TODO: turn off sorting
@@ -2903,7 +2981,7 @@ void MainWindow::PlaylistItemMoveUp() {
             int playlistIndexInt = playlistIndex.toInt();
             if (playlistIndexInt == currentNumberInt - 1) {
                 QString newIndex = QString::number(playlistIndex.toInt()+1);
-                qDebug() << "old, new:" << playlistIndex << newIndex;
+//                qDebug() << "old, new:" << playlistIndex << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -2911,15 +2989,21 @@ void MainWindow::PlaylistItemMoveUp() {
 
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
     // TODO: turn on sorting again
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemMoveDown() {
     int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    qDebug() << "PlaylistMoveUDown(): " << selectedRow << currentNumberText;
+//    qDebug() << "PlaylistMoveUDown(): " << selectedRow << currentNumberText;
 
     // add to list, and make it the bottom
 
@@ -2933,7 +3017,7 @@ void MainWindow::PlaylistItemMoveDown() {
             int playlistIndexInt = playlistIndex.toInt();
             if (playlistIndexInt == currentNumberInt + 1) {
                 QString newIndex = QString::number(playlistIndex.toInt()-1);
-                qDebug() << "old, new:" << playlistIndex << newIndex;
+//                qDebug() << "old, new:" << playlistIndex << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -2941,15 +3025,21 @@ void MainWindow::PlaylistItemMoveDown() {
 
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
     // TODO: turn on sorting again
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemRemove() {
     int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    qDebug() << "PlaylistItemRemove(): " << selectedRow << currentNumberText;
+//    qDebug() << "PlaylistItemRemove(): " << selectedRow << currentNumberText;
 
     // already on the list
     // Iterate over the entire songTable, decrementing items BELOW this item
@@ -2962,13 +3052,14 @@ void MainWindow::PlaylistItemRemove() {
             if (playlistIndexInt > currentNumberInt) {
                 // if a # was set and more, decrement it
                 QString newIndex = QString::number(playlistIndexInt-1);
-                qDebug() << "old, new:" << playlistIndexText << newIndex;
+//                qDebug() << "old, new:" << playlistIndexText << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
     }
     // and then set this one to #LAST
     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 
@@ -2987,7 +3078,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
             QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
             int currentNumberInt = currentNumberText.toInt();
             int playlistItemCount = PlaylistItemCount();
-            qDebug() << "currentNumberText: " << currentNumberText << "100: " << QString::number(100);
+//            qDebug() << "currentNumberText: " << currentNumberText << "100: " << QString::number(100);
 
             if (currentNumberText == "") {
                 if (playlistItemCount == 0) {
@@ -2996,24 +3087,29 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
                     menu.addAction ( "Add to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
                     menu.addAction ( "Add to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
                 }
-            } else if (playlistItemCount > 1) {
-                if (currentNumberInt == 1) {
-                    // already the first item, and there's more than one item on the list, so moves make sense
-                    menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
-                    menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
-                } else if (currentNumberInt == playlistItemCount && playlistItemCount > 1) {
-                    // already the last item, and there's more than one item on the list, so moves make sense
-                    menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
-                    menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+            } else {
+                // currently on the playlist
+                if (playlistItemCount > 1) {
+                    // more than one item
+                    if (currentNumberInt == 1) {
+                        // already the first item, and there's more than one item on the list, so moves make sense
+                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
+                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                    } else if (currentNumberInt == playlistItemCount) {
+                        // already the last item, and there's more than one item on the list, so moves make sense
+                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                    } else {
+                        // somewhere in the middle, and there's more than one item on the list, so moves make sense
+                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
+                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                    }
                 } else {
-                    // somewhere in the middle, and there's more than one item on the list, so moves make sense
-                    menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
-                    menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
-                    menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
-                    menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                    // exactly one item, and this is it.
                 }
-            }
-            if (playlistItemCount >= 1) {
+                // this item is on the playlist, so it can be removed.
                 menu.addSeparator();
                 menu.addAction ( "Remove from playlist" , this , SLOT (PlaylistItemRemove()) );
             }
@@ -4069,4 +4165,29 @@ void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
     // the Enable Auto-scroll during playback setting is persistent across restarts of the application
     PreferencesManager prefsManager;
     prefsManager.Setenableautoscrolllyrics(ui->actionAuto_scroll_during_playback->isChecked());
+}
+
+void MainWindow::on_actionAt_TOP_triggered()    // Add > at TOP
+{
+    PlaylistItemToTop();
+}
+
+void MainWindow::on_actionAt_BOTTOM_triggered()  // Add > at BOTTOM
+{
+    PlaylistItemToBottom();
+}
+
+void MainWindow::on_actionRemove_from_Playlist_triggered()
+{
+    PlaylistItemRemove();
+}
+
+void MainWindow::on_actionUP_in_Playlist_triggered()
+{
+    PlaylistItemMoveUp();
+}
+
+void MainWindow::on_actionDOWN_in_Playlist_triggered()
+{
+    PlaylistItemMoveDown();
 }
