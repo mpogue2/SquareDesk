@@ -3780,12 +3780,16 @@ void MainWindow::readPSData()
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
     s2 = s2.replace("once and a half","1-1/2");
+    s2 = s2.replace("four quarters","4/4");
     s2 = s2.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
-    s2 = s2.replace("two quarters","1/2").replace("one half","1/2").replace("half","1/2");
+    s2 = s2.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
     s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
 
     // handle 1P2P
     s2 = s2.replace("one pee two pee","1P2P");
+
+    // handle "third" --> "3rd", for dixie grand
+    s2 = s2.replace("third", "3rd");
 
     // handle numbers: one -> 1, etc.
     s2 = s2.replace("eight chain","EIGHT CHAIN"); // sd wants "eight chain 4", not "8 chain 4", so protect it
@@ -3794,7 +3798,10 @@ void MainWindow::readPSData()
     s2 = s2.replace("EIGHT CHAIN","eight chain"); // sd wants "eight chain 4", not "8 chain 4", so protect it
 
     // handle optional words at the beginning
+
+    s2 = s2.replace("do the centers", "DOTHECENTERS");  // special case "do the centers part of load the boat"
     s2 = s2.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
+    s2 = s2.replace("DOTHECENTERS", "do the centers");  // special case "do the centers part of load the boat"
 
     // handle specialized sd spelling of flutter wheel, and specialized wording of reverse flutter wheel
     s2 = s2.replace("flutterwheel","flutter wheel");
@@ -3802,7 +3809,9 @@ void MainWindow::readPSData()
 
     // handle specialized sd wording of first go *, next go *
     s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
-    s2 = s2.replace(QRegExp("first .* go right .* next .* go left"),"first couple go right, next go left");
+    s2 = s2.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
+    s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go left"),"first couple go left, next go left");
+    s2 = s2.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go right"),"first couple go right, next go right");
 
     // handle "single circle to an ocean wave" -> "single circle to a wave"
     s2 = s2.replace("single circle to an ocean wave","single circle to a wave");
@@ -3999,6 +4008,10 @@ void MainWindow::initSDtab() {
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365
     //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
+    // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
+    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS
+    // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
+    // TEST SD MANUALLY: ./sd
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
 #if defined(POCKETSPHINXSUPPORT)
