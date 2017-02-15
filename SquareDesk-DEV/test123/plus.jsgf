@@ -101,7 +101,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
 //            | SLIP THE CLUTCH
 //            | BALANCE
 
-<BASICCALL> = PASS THRU
+<BASICCALL> = [LEFT] PASS THRU
             | HALF SASHAY
             | ROLLAWAY
             | U TURN BACK
@@ -122,7 +122,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
             | WRONG WAY THAR
             | SLIP THE CLUTCH
             | BOX THE GNAT
-            | STEP TO A WAVE
+            | [LEFT] STEP TO A WAVE
             | ALLEMANDE LEFT IN THE ALAMO STYLE
             | PASS THE OCEAN
             | EXTEND
@@ -132,7 +132,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
             | TRADE
             | PARTNER TRADE
             | WHEEL AND DEAL
-            | DOUBLE PASS THRU
+            | [LEFT] DOUBLE PASS THRU
             | FIRST [COUPLE] GO <DIRECTION> [AND] [THE] NEXT [COUPLE] GO <DIRECTION> [KEEP WALKING]
             | ZOOM
             | [REVERSE] FLUTTERWHEEL
@@ -152,7 +152,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
             | [LEFT] SQUARE THRU BUT ON THE [2ND|3RD|4TH] HAND;
 
 <MSCALL> =    CLOVERLEAF
-            | TURN THRU
+            | [LEFT] TURN THRU
             | EIGHT CHAIN THRU
             | EIGHT CHAIN <BIGNUMBER>
             | PASS TO THE CENTER
@@ -169,8 +169,8 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
             | FOLD
             | CROSS FOLD
             | [REVERSE] DIXIE STYLE [TO A WAVE|TO AN OCEAN WAVE]
-            | [ONE] [HALF|QUARTER] TAG
-            | TAG THE LINE
+            | [LEFT] [ONE] [HALF|QUARTER] TAG
+            | [LEFT] TAG THE LINE
             | FACE (IN|OUT|LEFT|RIGHT)
             | SCOOT BACK
             | [SINGLE] HINGE
@@ -189,7 +189,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
            | DIXIE GRAND [BUT ON THE THIRD HAND]
            | EXPLODE THE WAVE
            | EXPLODE
-           | FAN THE TOP
+           | [LEFT] FAN THE TOP
            | FLIP THE DIAMOND
            | FOLLOW YOUR NEIGHBOR
            | GRAND SWING THRU
