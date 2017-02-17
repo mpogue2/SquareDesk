@@ -44,7 +44,7 @@
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
 
-
+#define CUSTOM_FILTER
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
@@ -223,7 +223,7 @@ MainWindow::MainWindow(QWidget *parent) :
     UIUpdateTimer->start(1000);           //adjust from GUI with timer->setInterval(newValue)
 
     closeEventHappened = false;
-
+    
     ui->songTable->clearSelection();
     ui->songTable->clearFocus();
 
@@ -316,7 +316,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // used to store the file paths
     findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
-    filterMusic(); // and filter them into the songTable
+    loadMusicList(); // and filter them into the songTable
 
     ui->songTable->setColumnWidth(kNumberCol,36);
     ui->songTable->setColumnWidth(kTypeCol,96);
@@ -2059,6 +2059,43 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
+#ifdef CUSTOM_FILTER
+    QString label = ui->labelSearch->text();
+    QString type = ui->typeSearch->text();
+    QString title = ui->titleSearch->text();
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+        QString songType = ui->songTable->item(i,kTypeCol)->text();
+        QString songLabel = ui->songTable->item(i,kLabelCol)->text();
+        
+        bool show = true;
+            
+        if (!(label.isEmpty()
+              || songLabel.contains(label, Qt::CaseInsensitive)))
+        {
+            show = false;
+        }
+        if (!(type.isEmpty()
+              || songType.contains(type, Qt::CaseInsensitive)))
+        {
+            show = false;
+        }
+        if (!(title.isEmpty()
+              || songTitle.contains(title, Qt::CaseInsensitive)))
+        {
+            show = false;
+        }
+        ui->songTable->setRowHidden(i, !show);
+    }
+#else /* ifdef CUSTOM_FILTER */
+    loadMusicList();
+#endif /* else ifdef CUSTOM_FILTER */
+}
+
+// --------------------------------------------------------------------------------
+void MainWindow::loadMusicList()
+{  
     ui->songTable->setSortingEnabled(false);
 
     // Need to remember the PL# mapping here, and reapply it after the filter
@@ -2088,6 +2125,8 @@ void MainWindow::filterMusic()
     ui->songTable->horizontalHeader()->setVisible(true);
 
     QListIterator<QString> iter(*pathStack);
+    QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
+
 
     while (iter.hasNext()) {
         QString s = iter.next();
@@ -2114,9 +2153,9 @@ void MainWindow::filterMusic()
         struct FilenameMatchers *matches = getFilenameMatchersForType(songFilenameFormat);
 
         for (match_num = 0;
-                matches[match_num].label_match >= 0
-                && matches[match_num].title_match >= 0;
-                ++match_num) {
+             matches[match_num].label_match >= 0
+                 && matches[match_num].title_match >= 0;
+             ++match_num) {
             QRegularExpressionMatch match = matches[match_num].regex.match(s);
             if (match.hasMatch()) {
                 if (matches[match_num].label_match >= 0) {
@@ -2133,14 +2172,12 @@ void MainWindow::filterMusic()
             }
         }
         if (!(matches[match_num].label_match >= 0
-                && matches[match_num].title_match >= 0)) {
+              && matches[match_num].title_match >= 0)) {
             label = "";
             title = s;
         }
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
-
-        QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
 
         QString cType = type;  // type for Color purposes
         if (cType.right(1)=="*") {
@@ -2187,6 +2224,7 @@ void MainWindow::filterMusic()
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
         QString labelPlusNumber = label + " " + labelnum;
+#ifndef CUSTOM_FILTER
         if (ui->labelSearch->text() != "" &&
                 !labelPlusNumber.contains(QString(ui->labelSearch->text()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
@@ -2200,8 +2238,12 @@ void MainWindow::filterMusic()
                 !title.contains(QString(ui->titleSearch->text()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
         }
-
+#endif /* ifndef CUSTOM_FILTER */   
     }
+
+#ifdef CUSTOM_FILTER
+    filterMusic();
+#endif /* ifdef CUSTOM_FILTER */
 
     if (notSorted) {
         ui->songTable->sortItems(kTitleCol);  // sort by title as last
@@ -2427,7 +2469,7 @@ void MainWindow::on_actionPreferences_triggered()
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-        filterMusic();
+        loadMusicList();
     }
 
     delete prefDialog;
@@ -3266,7 +3308,7 @@ void MainWindow::on_newVolumeMounted() {
 
     lastKnownVolumeList = newVolumeList;
 
-    filterMusic(); // and filter them into the songTable
+    loadMusicList(); // and filter them into the songTable
 }
 
 void MainWindow::on_warningLabel_clicked() {
