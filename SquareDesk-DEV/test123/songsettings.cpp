@@ -216,7 +216,7 @@ void SongSettings::openDatabase(const QString& path)
  
     if (!m_db.open())
     {
-        qDebug() << "Error: database faile: " << path << ":" << m_db.lastError();
+        qDebug() << "Error: database fail: " << path << ":" << m_db.lastError();
     }
     else
     {
@@ -278,7 +278,6 @@ int SongSettings::getSongIDFromFilename(const QString &filename)
             id = q.value(0).toInt();
         }
 #ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE
-        qDebug() << "Hit database for row id " << filename <<  " " << id;
         song_id_cache[filename] = id;
 #endif /* ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE */
     }
@@ -348,7 +347,6 @@ QString SongSettings::getSongAge(const QString &filename)
     q.bindValue(":session_rowid", current_session_id);
     exec("getSongAge", q);
 
-    qDebug() << "Hit database for song age " << filename;
     if (q.next())
     {
         int age = q.value(0).toInt();
@@ -440,7 +438,6 @@ bool SongSettings::loadSettings(const QString &filename,
         outroPos = cached_song->second.outroPos;
         return true;
     }
-    qDebug() << "Hit database for song settings " << filename;
 #endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_CACHE */
     
     bool foundResults = false;
