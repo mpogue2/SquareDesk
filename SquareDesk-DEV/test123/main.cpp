@@ -26,6 +26,8 @@
 #include "mainwindow.h"
 #include <QApplication>
 
+#include "startupwizard.h"
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
@@ -48,6 +50,8 @@ int main(int argc, char *argv[])
     a.addLibraryPath(sDir + "/plugins");
 
     a.installEventFilter(new GlobalEventFilter(w.ui));
+
+    Q_INIT_RESOURCE(startupwizard); // resources for the startup wizard
 
     return a.exec();
 }

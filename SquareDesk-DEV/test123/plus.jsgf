@@ -2,21 +2,31 @@
 grammar plus;
 
 // TODO: split into calls that can roll/sweep and those that can't, and keep them separate
-// TODO: some sort of file output
 // TODO: undo back to #
 // FIX: "run" should not be accepted.  Only <WHO> run.
 
-public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>]) 
+public <S> = DO THE CENTERS PART OF LOAD THE BOAT 
+             | ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>]) 
              | <SDCOMMAND>;
 
 // This line mostly controls the level, along with whether EXPLODE and SPREAD are active.
+// One exception: "do the centers part of load the boat", which is special-cased.
 <ONECALL> = (<BASICCALL> | <MSCALL> | <PLUSCALL>);
 
+<1P2P> = ONE PEE TWO PEE;
+
 <SDCOMMAND> = (HEADS | SIDES) START
-             | SQUARE (YOUR|THE) SET
-             | UNDO [LAST CALL | THAT]
-             | ERASE [THAT]
-             | JUST AS THEY ARE;
+            | (HEADS | SIDES) <1P2P>
+            | SQUARE (YOUR|THE) SET
+            | UNDO [LAST CALL | THAT]
+            | ERASE [THAT]
+            | JUST AS THEY ARE
+            | WRITE THIS SEQUENCE
+            | RESOLVE
+            | FIND ANOTHER
+            | ABORT THE SEARCH
+            | ACCEPT CURRENT CHOICE
+            | TOGGLE SINGING;
 
 <LBRACKET> = LEFT BRACKET;
 <RBRACKET> = RIGHT BRACKET;
@@ -26,23 +36,28 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
 <NUMBER> = ONE | TWO | THREE | FOUR;
 <BIGNUMBER> = ONE | TWO | THREE | FOUR | FIVE | SIX | SEVEN | EIGHT;
 
+<N/4> = (ONE QUARTER | TWO QUARTERS | THREE QUARTERS | FOUR QUARTERS) | ONE HALF;
+
 <HEADSSIDES> = (HEADS | SIDES);
 
 <GODO> = (GO | DO | DO A);
 
 <WHO> = HEADS
       | SIDES
+      | HEADLINERS MOVE IN AND
+      | SIDELINERS MOVE IN AND
       | CENTERS
       | ENDS
       | OUTSIDES
       | INSIDES
-      | COUPLES
+      | [CENTER|CENTERS] COUPLES
       | EVERYBODY
       | ALL EIGHT
       | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] BOYS
       | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] GIRLS
       | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] MEN
-      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] LADIES;
+      | [CENTER | END | OUTSIDE | INSIDE | ALL FOUR | HEAD | SIDE] LADIES
+      | THOSE FACING;
 
 // TODO:      | (HEAD | SIDE) (PAIR | COUPLES | TWO)
 
@@ -86,12 +101,13 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
 //            | SLIP THE CLUTCH
 //            | BALANCE
 
-<BASICCALL> = PASS THRU
+<BASICCALL> = [LEFT] PASS THRU
             | HALF SASHAY
             | ROLLAWAY
             | U TURN BACK
-            | SEPARATE [GO] AROUND <BIGNUMBER> [TO A LINE]
+            | SEPARATE [GO] AROUND <BIGNUMBER> TO A LINE
             | CHAIN
+            | CHAIN <NUMBER> QUARTERS
             | CHAIN DOWN THE LINE
             | LEAD <DIRECTION>
             | RIGHT (AND|A) LEFT THRU
@@ -104,8 +120,9 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
             | DIVE THRU
             | [REVERSE] WHEEL AROUND
             | WRONG WAY THAR
+            | SLIP THE CLUTCH
             | BOX THE GNAT
-            | STEP TO A WAVE
+            | [LEFT] STEP TO A WAVE
             | ALLEMANDE LEFT IN THE ALAMO STYLE
             | PASS THE OCEAN
             | EXTEND
@@ -115,22 +132,27 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
             | TRADE
             | PARTNER TRADE
             | WHEEL AND DEAL
-            | DOUBLE PASS THRU
-            | FIRST [COUPLE] GO <DIRECTION> [AND] [THE] NEXT [COUPLE] GO <DIRECTION>
+            | [LEFT] DOUBLE PASS THRU
+            | FIRST [COUPLE] GO <DIRECTION> [AND] [THE] NEXT [COUPLE] GO <DIRECTION> [KEEP WALKING]
             | ZOOM
             | [REVERSE] FLUTTERWHEEL
             | REVERSE THE FLUTTER
+            | SWEEP (A|ONE) QUARTER
             | VEER [TO THE] <DIRECTION>
             | TRADE BY
             | [LEFT] TOUCH (A|ONE) QUARTER
-            | CIRCULATE
+            | [HALF] CIRCULATE [ONCE AND A HALF]
             | SINGLE FILE CIRCULATE
-            | SPLIT CIRCULATE
-            | BOX CIRCULATE
-            | FERRIS WHEEL;
+            | SPLIT CIRCULATE [ONCE AND A HALF]
+            | SPLIT CIRCULATE <NUMBER>
+            | BOX CIRCULATE [ONCE AND A HALF]
+            | FERRIS WHEEL
+            | BACK AWAY
+            | MOVE IN
+            | [LEFT] SQUARE THRU BUT ON THE [2ND|3RD|4TH] HAND;
 
 <MSCALL> =    CLOVERLEAF
-            | TURN THRU
+            | [LEFT] TURN THRU
             | EIGHT CHAIN THRU
             | EIGHT CHAIN <BIGNUMBER>
             | PASS TO THE CENTER
@@ -141,16 +163,20 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
             | CAST OFF TWO QUARTERS
             | CAST OFF THREE QUARTERS
             | WALK AND DODGE
+            | BOYS WALK OTHERS DODGE
+            | GIRLS WALK OTHERS DODGE
             | SLIDE THRU
             | FOLD
             | CROSS FOLD
-            | DIXIE STYLE [TO A WAVE|TO AN OCEAN WAVE]
-            | [ONE] [HALF|QUARTER] TAG
-            | TAG THE LINE
+            | [REVERSE] DIXIE STYLE [TO A WAVE|TO AN OCEAN WAVE]
+            | [LEFT] [ONE] [HALF|QUARTER] TAG
+            | [LEFT] TAG THE LINE
             | FACE (IN|OUT|LEFT|RIGHT)
             | SCOOT BACK
             | [SINGLE] HINGE
-            | RECYCLE;
+            | RECYCLE
+            | WALK
+            | DODGE;
 
 <PLUSCALL> = THREE QUARTER TAG [THE LINE]
            | ACEY DEUCEY
@@ -160,10 +186,10 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
            | CROSSFIRE
            | CUT THE DIAMOND
            | DIAMOND CIRCULATE
-           | DIXIE GRAND
+           | DIXIE GRAND [BUT ON THE THIRD HAND]
            | EXPLODE THE WAVE
            | EXPLODE
-           | FAN THE TOP
+           | [LEFT] FAN THE TOP
            | FLIP THE DIAMOND
            | FOLLOW YOUR NEIGHBOR
            | GRAND SWING THRU
@@ -174,9 +200,13 @@ public <S> = ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [
            | PING PONG CIRCULATE
            | RELAY THE DEUCEY
            | SINGLE CIRCLE TO (A | AN OCEAN) WAVE
+           | SINGLE CIRCLE <N/4> TO (A | AN OCEAN) WAVE
            | SPIN CHAIN AND EXCHANGE THE GEARS
            | SPIN CHAIN THE GEARS
            | SPIN CHAIN THRU
            | TEACUP CHAIN
-           | TRACK TWO
-           | TRADE THE WAVE;
+           | [LEFT] TRACK TWO
+           | TRADE THE WAVE
+           | ONCE AND A HALF
+           | SPREAD
+           | DO YOUR PART;

@@ -73,9 +73,6 @@
            <property name="sortingEnabled">
             <bool>true</bool>
            </property>
-           <property name="columnCount">
-            <number>8</number>
-           </property>
            <attribute name="horizontalHeaderVisible">
             <bool>false</bool>
            </attribute>
@@ -135,7 +132,6 @@
              <string>Tempo</string>
             </property>
            </column>
-           <column/>
           </widget>
          </widget>
         </item>
@@ -206,22 +202,6 @@
           <property name="bottomMargin">
            <number>7</number>
           </property>
-          <item row="1" column="5">
-           <widget class="QWidget" name="vuMeterProxy" native="true">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>40</height>
-             </size>
-            </property>
-           </widget>
-          </item>
           <item row="4" column="2">
            <widget class="QSlider" name="volumeSlider">
             <property name="enabled">
@@ -327,6 +307,22 @@
             </property>
             <property name="text">
              <string>/ 1:23</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="5">
+           <widget class="QWidget" name="vuMeterProxy" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -505,37 +501,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="playButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>P</string>
-            </property>
-           </widget>
-          </item>
           <item row="5" column="3" colspan="2">
            <widget class="QLabel" name="currentMixLabel">
             <property name="sizePolicy">
@@ -592,6 +557,37 @@
             </property>
             <property name="tickInterval">
              <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="playButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>P</string>
             </property>
            </widget>
           </item>
@@ -1402,6 +1398,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="actionPreferences"/>
+    <addaction name="separator"/>
+    <addaction name="actionStartup_Wizard"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -1433,10 +1431,28 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <property name="title">
      <string>Playlist</string>
     </property>
+    <widget class="QMenu" name="menuAdd_to_Playlist">
+     <property name="title">
+      <string>Add to Playlist</string>
+     </property>
+     <addaction name="actionAt_TOP"/>
+     <addaction name="actionAt_BOTTOM"/>
+    </widget>
+    <widget class="QMenu" name="menuMove_song">
+     <property name="title">
+      <string>Move song</string>
+     </property>
+     <addaction name="actionUP_in_Playlist"/>
+     <addaction name="actionDOWN_in_Playlist"/>
+    </widget>
     <addaction name="actionLoad_Playlist"/>
     <addaction name="actionSave_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Playlist"/>
+    <addaction name="separator"/>
+    <addaction name="menuAdd_to_Playlist"/>
+    <addaction name="menuMove_song"/>
+    <addaction name="actionRemove_from_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionNext_Playlist_Item"/>
     <addaction name="actionPrevious_Playlist_Item"/>
@@ -1448,6 +1464,12 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <string>SD</string>
     </property>
     <addaction name="actionEnable_voice_input"/>
+   </widget>
+   <widget class="QMenu" name="menuLyrics">
+    <property name="title">
+     <string>Lyrics</string>
+    </property>
+    <addaction name="actionAuto_scroll_during_playback"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -1472,6 +1494,7 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
    <addaction name="menuMusic"/>
+   <addaction name="menuLyrics"/>
    <addaction name="menuSequence"/>
    <addaction name="menuSession"/>
    <addaction name="menuView"/>
@@ -1840,6 +1863,59 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionAuto_scroll_during_playback">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-scroll cuesheet</string>
+   </property>
+  </action>
+  <action name="actionAt_TOP">
+   <property name="text">
+    <string>at TOP</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Left</string>
+   </property>
+  </action>
+  <action name="actionAt_BOTTOM">
+   <property name="text">
+    <string>at BOTTOM</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Right</string>
+   </property>
+  </action>
+  <action name="actionRemove_from_Playlist">
+   <property name="text">
+    <string>Remove from Playlist</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Backspace</string>
+   </property>
+  </action>
+  <action name="actionUP_in_Playlist">
+   <property name="text">
+    <string>UP in Playlist</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Up</string>
+   </property>
+  </action>
+  <action name="actionDOWN_in_Playlist">
+   <property name="text">
+    <string>DOWN in Playlist</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Down</string>
+   </property>
+  </action>
+  <action name="actionStartup_Wizard">
+   <property name="text">
+    <string>Startup Wizard...</string>
    </property>
   </action>
   <action name="actionPractice">
