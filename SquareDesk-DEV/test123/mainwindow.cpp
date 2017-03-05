@@ -42,6 +42,8 @@
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
 
+#include "startupwizard.h"
+
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
@@ -505,6 +507,7 @@ MainWindow::MainWindow(QWidget *parent) :
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
 }
 
 // ----------------------------------------------------------------------
@@ -4203,4 +4206,37 @@ void MainWindow::on_actionUP_in_Playlist_triggered()
 void MainWindow::on_actionDOWN_in_Playlist_triggered()
 {
     PlaylistItemMoveDown();
+}
+
+void MainWindow::on_actionStartup_Wizard_triggered()
+{
+    StartupWizard wizard;
+    int dialogCode = wizard.exec();
+
+    if(dialogCode == QDialog::Accepted) {
+        // must setup internal variables, from updated Preferences..
+        PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+
+        musicRootPath = prefsManager.GetmusicPath();
+
+        QString value;
+        value = prefsManager.GetMusicTypeSinging();
+        songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+
+        value = prefsManager.GetMusicTypePatter();
+        songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+
+        value = prefsManager.GetMusicTypeExtras();
+        songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+
+        value = prefsManager.GetMusicTypeCalled();
+        songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+
+        // used to store the file paths
+        findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
+        filterMusic(); // and filter them into the songTable
+
+        // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.
+        // initSDtab();  // sd directory has changed, so startup everything again.
+    }
 }

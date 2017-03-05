@@ -1393,6 +1393,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
     <addaction name="actionPreferences"/>
+    <addaction name="separator"/>
+    <addaction name="actionStartup_Wizard"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -1882,6 +1884,11 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Down</string>
+   </property>
+  </action>
+  <action name="actionStartup_Wizard">
+   <property name="text">
+    <string>Startup Wizard...</string>
    </property>
   </action>
  </widget>

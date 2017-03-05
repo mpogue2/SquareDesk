@@ -205,6 +205,8 @@ private slots:
 
     void on_actionDOWN_in_Playlist_triggered();
 
+    void on_actionStartup_Wizard_triggered();
+
 private:
     QAction *closeAct;  // WINDOWS only
 
