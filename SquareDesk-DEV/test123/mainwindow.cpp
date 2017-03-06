@@ -320,6 +320,9 @@ MainWindow::MainWindow(QWidget *parent) :
     value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
+    // -------------------------
+    saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
+
     // used to store the file paths
     findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
@@ -424,13 +427,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 //    qDebug() << "MainWindow():: lyricsTabNumber:" << lyricsTabNumber; // FIX
 
-    // -------------------------
-    if (prefsManager.GetSongPreferencesInConfig()) {
-        saveSongPreferencesInConfig = true;
-    }
-    else {
-        saveSongPreferencesInConfig = false;
-    }
 
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -554,8 +550,7 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
 
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
-    static bool visible = true;
-    visible = !visible;
+    bool visible = !checked;
     ui->actionCompact->setChecked(!visible);
 
     QWidget *widgets[] =
@@ -840,7 +835,7 @@ void MainWindow::on_playButton_clicked()
                 // exactly 1 row was selected (good)
                 QModelIndex index = selected.at(0);
                 row = index.row();
-                ui->songTable->item(row, kAgeCol)->setText("***");
+                ui->songTable->item(row, kAgeCol)->setText("0");
             }
             
         }
@@ -2223,8 +2218,33 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName()), kAgeCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
+
+        if (saveSongPreferencesInConfig)
+        {
+            int pitch = 0;
+            int tempo = 0;
+            int volume = 0;
+            double intro = 0;
+            double outro = 0;
+            songSettings.loadSettings(fi.completeBaseName(),
+                                      title,
+                                      volume,
+                                      pitch, tempo,
+                                      intro, outro);
+            
+            addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                          QString("%1").arg(pitch),
+                                          kPitchCol);
+            
+            addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                          QString("%1").arg(tempo),
+                                          kTempoCol);
+        }
+        else
+        {
+            addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
+            addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
+        }
 
         // keep the path around, for loading in when we double click on it
         ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole,
