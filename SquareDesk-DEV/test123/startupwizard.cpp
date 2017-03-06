@@ -15,8 +15,9 @@ StartupWizard::StartupWizard(QWidget *parent)
     addPage(new ConclusionPage);
 
 #if !defined(Q_OS_MAC)
-    setPixmap(QWizard::BannerPixmap, QPixmap(":/startupwizardimages/banner.png"));
-    setPixmap(QWizard::BackgroundPixmap, QPixmap(":/startupwizardimages/background.png"));
+//    setPixmap(QWizard::BannerPixmap, QPixmap(":/startupwizardimages/banner.png"));
+//    setPixmap(QWizard::BackgroundPixmap, QPixmap(":/startupwizardimages/background.png"));
+    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark1.png"));
 #endif
 
     setWindowTitle(tr("Startup Wizard"));
@@ -150,7 +151,8 @@ OutputFilesPage::OutputFilesPage(QWidget *parent)
                    "what you want the music subdirectory names to be.  Each subdirectory contains "
                    "MP3 files of the same musical type, e.g. 'patter' or 'singing calls'."));
 #if !defined(Q_OS_MAC)
-    setPixmap(QWizard::LogoPixmap, QPixmap(":/startupwizardimages/logo3.png"));
+//    setPixmap(QWizard::LogoPixmap, QPixmap(":/startupwizardimages/logo3.png"));
+    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark1.png"));
 #endif
 
     outputDirLabel = new QLabel("New Music Directory:");
@@ -240,7 +242,8 @@ CopyFilesPage::CopyFilesPage(QWidget *parent)
                    "unchecked, if you don't want to copy in any files of that type."
                    ));
 #if !defined(Q_OS_MAC)
-    setPixmap(QWizard::LogoPixmap, QPixmap(":/startupwizardimages/logo3.png"));
+//    setPixmap(QWizard::LogoPixmap, QPixmap(":/startupwizardimages/logo3.png"));
+    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark1.png"));
 #endif
 
 #if defined(Q_OS_MAC)
@@ -413,7 +416,8 @@ ConclusionPage::ConclusionPage(QWidget *parent)
     setTitle(tr("Final Confirmation"));
 
 #if !defined(Q_OS_MAC)
-    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark2.png"));
+//    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark2.png"));
+    setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark1.png"));
 #endif
 
     label = new QLabel;
