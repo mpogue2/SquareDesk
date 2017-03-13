@@ -685,6 +685,11 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
            <item>
             <property name="text">
+             <string>4 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>5 minutes</string>
             </property>
            </item>
