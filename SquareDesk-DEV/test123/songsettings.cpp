@@ -184,7 +184,8 @@ TableDefinition song_plays_table("song_plays", song_play_rows);
     );
 */
 
-SongSettings::SongSettings()
+SongSettings::SongSettings() :
+    databaseOpened(false)
 {
     QDate date(QDate::currentDate());
     current_session_id = date.dayOfWeek() + 1;
@@ -205,6 +206,8 @@ static const char *default_session_names[] =
 
 void SongSettings::openDatabase(const QString& path)
 {
+    closeDatabase();
+    
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     QDir dir(path);
     
@@ -220,6 +223,7 @@ void SongSettings::openDatabase(const QString& path)
     }
     else
     {
+        databaseOpened = true;
 //        qDebug() << "Database: connection ok";
     }
     ensureSchema(&song_table);
@@ -260,14 +264,7 @@ void SongSettings::openDatabase(const QString& path)
 int SongSettings::getSongIDFromFilename(const QString &filename)
 {
     int id = -1;
-#ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE
-    map<QString,int>::iterator cached_song = song_id_cache.find(filename);
-    if (cached_song != song_id_cache.end())
-    {
-        id = cached_song->second;
-    }
-    else
-#endif /* ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE */
+
     {
         QSqlQuery q(m_db);
         q.prepare("SELECT rowid FROM songs WHERE filename=:filename");
@@ -277,9 +274,6 @@ int SongSettings::getSongIDFromFilename(const QString &filename)
         {
             id = q.value(0).toInt();
         }
-#ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE
-        song_id_cache[filename] = id;
-#endif /* ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE */
     }
     return id;
 }
@@ -320,27 +314,10 @@ void SongSettings::markSongPlayed(const QString &filename)
     q.bindValue(":song_rowid", song_rowid);
     q.bindValue(":session_rowid", current_session_id);
     exec("markSongPlayed", q);
-#ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
-    map<QString,int>::iterator cached_song = song_age_cache.find(filename);
-    if (cached_song != song_age_cache.end())
-    {
-        song_age_cache.erase(cached_song);
-    }
-#endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE */
 }
 
 QString SongSettings::getSongAge(const QString &filename)
 {
-#ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
-    map<QString,int>::iterator cached_age = song_age_cache.find(filename);
-    if (cached_age != song_age_cache.end())
-    {
-        QString str((cached_age->second >= 0) ?
-                    QString("%1").arg(cached_age->second, 3) : "");
-        return str;
-    }
-#endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE */
-
     QSqlQuery q(m_db);
     q.prepare("SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1");
     q.bindValue(":filename", filename);
@@ -350,22 +327,9 @@ QString SongSettings::getSongAge(const QString &filename)
     if (q.next())
     {
         int age = q.value(0).toInt();
-#ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
-        if (cached_age != song_age_cache.end())
-        {
-            cached_age->second = age;
-        }
-        else
-        {
-            song_age_cache[filename] = age;
-        }
-#endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE */
         QString str(QString("%1").arg(age, 3));
         return str;
     }
-#ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE    
-    song_age_cache[filename] = 0;
-#endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE */
     return QString("");
 }
 
@@ -381,25 +345,6 @@ void SongSettings::saveSettings(const QString &filename,
 {
     int id = getSongIDFromFilename(filename);
 
-#ifdef SONGSETTINGS_INCLUDE_SONG_CACHE
-    SongSetting song_setting;
-
-    map<QString,SongSetting>::iterator cached_song = song_cache.find(filename);
-    if (cached_song != song_cache.end())
-    {
-        song_setting = cached_song->second;
-    }
-    
-    song_setting.volume = volume;
-    song_setting.pitch = pitch;
-    song_setting.tempo = tempo;
-    song_setting.introPos = introPos;
-    song_setting.outroPos = outroPos;
-
-    song_cache[filename] = song_setting;
-#endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_CACHE */
-
-        
     QSqlQuery q(m_db);
     if (id == -1)
     {
@@ -427,19 +372,6 @@ bool SongSettings::loadSettings(const QString &filename,
                                 double &introPos,
                                 double &outroPos)
 {
-#ifdef SONGSETTINGS_INCLUDE_SONG_CACHE
-    map<QString,SongSetting>::iterator cached_song = song_cache.find(filename);
-    if (cached_song != song_cache.end())
-    {
-        volume = cached_song->second.volume;
-        pitch = cached_song->second.pitch;
-        tempo = cached_song->second.tempo;
-        introPos = cached_song->second.introPos;
-        outroPos = cached_song->second.outroPos;
-        return true;
-    }
-#endif /* #ifdef SONGSETTINGS_INCLUDE_SONG_CACHE */
-    
     bool foundResults = false;
     {
         QSqlQuery q(m_db);
@@ -470,22 +402,17 @@ bool SongSettings::loadSettings(const QString &filename,
             tempo = q.value(2).toInt();
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
+            volume = q.value(5).toInt();
         }
     }
-
-#ifdef SONGSETTINGS_INCLUDE_SONG_CACHE
-    SongSetting song_setting;
-    song_setting.volume = volume;
-    song_setting.pitch = pitch;
-    song_setting.tempo = tempo;
-    song_setting.introPos = introPos;
-    song_setting.outroPos = outroPos;
-    song_cache[filename] = song_setting;
-#endif /* ifdef SONGSETTINGS_INCLUDE_SONG_CACHE */
     return foundResults;
 }
 
 void SongSettings::closeDatabase()
 {
-    m_db.close();
+    if (databaseOpened)
+    {
+        m_db.close();
+        databaseOpened = false;
+    }
 }

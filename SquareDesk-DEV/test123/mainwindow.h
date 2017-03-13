@@ -200,6 +200,25 @@ private slots:
     void on_actionSunday_triggered(bool checked);
 
     void on_actionCompact_triggered(bool checked);
+    void on_actionAuto_scroll_during_playback_toggled(bool arg1);
+
+    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
+    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
+    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
+    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
+    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
+
+    void on_actionAt_TOP_triggered();
+
+    void on_actionAt_BOTTOM_triggered();
+
+    void on_actionRemove_from_Playlist_triggered();
+
+    void on_actionUP_in_Playlist_triggered();
+
+    void on_actionDOWN_in_Playlist_triggered();
+
+    void on_actionStartup_Wizard_triggered();
 
 private:
     QAction *closeAct;  // WINDOWS only
@@ -280,6 +299,9 @@ private:
     void updatePitchTempoView();
     void setFontSizes();
 
+    int selectedSongRow();  // returns -1 if none selected
+    int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
+
     // Song types
     QStringList songTypeNamesForPatter;
     QStringList songTypeNamesForSinging;
@@ -332,6 +354,7 @@ private:
     bool firstTimeSongIsPlayed;
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadMusic(int id);
+    bool autoScrollLyricsEnabled;
 };
 
 // currentState:

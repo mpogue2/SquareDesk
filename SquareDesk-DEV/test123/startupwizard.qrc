@@ -1,0 +1,11 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>startupwizardimages/background.png</file>
+    <file>startupwizardimages/banner.png</file>
+    <file>startupwizardimages/logo1.png</file>
+    <file>startupwizardimages/logo2.png</file>
+    <file>startupwizardimages/logo3.png</file>
+    <file>startupwizardimages/watermark1.png</file>
+    <file>startupwizardimages/watermark2.png</file>
+</qresource>
+</RCC>

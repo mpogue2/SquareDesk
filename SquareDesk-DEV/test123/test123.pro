@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     typetracker.cpp \
     console.cpp \
     renderarea.cpp \
-    sdhighlighter.cpp
+    sdhighlighter.cpp \
+    startupwizard.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -50,7 +51,8 @@ HEADERS  += mainwindow.h \
     console.h \
     renderarea.h \
     common.h \
-    sdhighlighter.h
+    sdhighlighter.h \
+    startupwizard.h
 
 FORMS    += mainwindow.ui \
     preferencesdialog.ui
@@ -191,8 +193,9 @@ win32 {
     QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 }
 
-
 RESOURCES += resources.qrc
+RESOURCES += startupwizard.qrc
+
 
 #DISTFILES += \
 #    README.txt
@@ -203,3 +206,6 @@ OBJECTIVE_SOURCES += \
 DISTFILES += \
     LICENSE.GPL3 \
     LICENSE.GPL2
+
+CONFIG += c++11
+    

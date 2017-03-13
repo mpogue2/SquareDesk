@@ -45,6 +45,9 @@
 #include "prefsmanager.h"
 
 #define CUSTOM_FILTER
+#include "startupwizard.h"
+
+
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
@@ -140,6 +143,9 @@ MainWindow::MainWindow(QWidget *parent) :
     sd(NULL),
     firstTimeSongIsPlayed(false)
 {
+//    QSettings mySettings;
+//    QString settingsPath = mySettings.fileName();
+//    qDebug() << "settingsPath: " << settingsPath;
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
@@ -314,6 +320,9 @@ MainWindow::MainWindow(QWidget *parent) :
     value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
+    // -------------------------
+    saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
+
     // used to store the file paths
     findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
@@ -345,7 +354,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
 
-// voice input is only available on MAC OS X right now...
+// voice input is only available on MAC OS X and Win32 right now...
 #ifdef POCKETSPHINXSUPPORT
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
@@ -353,6 +362,10 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionEnable_voice_input_toggled(false);
     voiceInputEnabled = false;
 #endif
+
+    on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
+    autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
+
     // Volume, Pitch, and Mix can be set before loading a music file.  NOT tempo.
     ui->pitchSlider->setEnabled(true);
     ui->pitchSlider->setValue(0);
@@ -414,13 +427,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 //    qDebug() << "MainWindow():: lyricsTabNumber:" << lyricsTabNumber; // FIX
 
-    // -------------------------
-    if (prefsManager.GetSongPreferencesInConfig()) {
-        saveSongPreferencesInConfig = true;
-    }
-    else {
-        saveSongPreferencesInConfig = false;
-    }
 
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -504,6 +510,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
     setCurrentSessionId(songSettings.getCurrentSession());
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 
@@ -542,8 +550,7 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
 
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
-    static bool visible = true;
-    visible = !visible;
+    bool visible = !checked;
     ui->actionCompact->setChecked(!visible);
 
     QWidget *widgets[] =
@@ -828,7 +835,7 @@ void MainWindow::on_playButton_clicked()
                 // exactly 1 row was selected (good)
                 QModelIndex index = selected.at(0);
                 row = index.row();
-                ui->songTable->item(row, kAgeCol)->setText("***");
+                ui->songTable->item(row, kAgeCol)->setText("0");
             }
             
         }
@@ -1179,14 +1186,11 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             int maxSeekbar = ui->seekBar->maximum();  // NOTE: minSeekbar is always 0
             float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
             float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
-//#define SCROLLLYRICS
-#ifdef SCROLLLYRICS
-            // experimental lyrics scrolling at the same time as the InfoBar
-            ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
-#else
-            Q_UNUSED(targetScroll)
-#endif
 
+            if (autoScrollLyricsEnabled) {
+                // lyrics scrolling at the same time as the InfoBar
+                ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
+            }
         }
         int fileLen_i = (int)cBass.FileLength;
 
@@ -1451,7 +1455,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.7.2</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.7.4a</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
@@ -2214,8 +2218,33 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName()), kAgeCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
+
+        if (saveSongPreferencesInConfig)
+        {
+            int pitch = 0;
+            int tempo = 0;
+            int volume = 0;
+            double intro = 0;
+            double outro = 0;
+            songSettings.loadSettings(fi.completeBaseName(),
+                                      title,
+                                      volume,
+                                      pitch, tempo,
+                                      intro, outro);
+            
+            addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                          QString("%1").arg(pitch),
+                                          kPitchCol);
+            
+            addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                          QString("%1").arg(tempo),
+                                          kTempoCol);
+        }
+        else
+        {
+            addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
+            addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
+        }
 
         // keep the path around, for loading in when we double click on it
         ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole,
@@ -2565,9 +2594,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                             QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
                             theItem3->setText(list1[2]);
 
+                            match = true;
                             QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
                             theItemAge->setText("***");
-                        match = true;
                         }
                     }
                     // if we had no match, remember the first non-matching song path
@@ -2910,6 +2939,62 @@ void MainWindow::on_songTable_itemSelectionChanged()
         ui->nextSongButton->setEnabled(false);
         ui->previousSongButton->setEnabled(false);
     }
+
+    // ----------------
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    // turn them all OFF
+    ui->actionAt_TOP->setEnabled(false);
+    ui->actionAt_BOTTOM->setEnabled(false);
+    ui->actionUP_in_Playlist->setEnabled(false);
+    ui->actionDOWN_in_Playlist->setEnabled(false);
+    ui->actionRemove_from_Playlist->setEnabled(false);
+
+    if (selectedRow != -1) {
+        // if a single row was selected
+        QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+        int currentNumberInt = currentNumberText.toInt();
+        int playlistItemCount = PlaylistItemCount();
+
+        if (currentNumberText == "") {
+//            qDebug() << "not in a playlist";
+            // if not in a Playlist then we can add it at Top or Bottom, that's it.
+            ui->actionAt_TOP->setEnabled(true);
+            ui->actionAt_BOTTOM->setEnabled(true);
+        } else {
+//            qDebug() << "in a playlist";
+            ui->actionRemove_from_Playlist->setEnabled(true);  // can remove it
+
+            // current item is on the Playlist already
+            if (playlistItemCount > 1) {
+//                qDebug() << "more than one item on the playlist";
+                // more than one item on the list
+                if (currentNumberInt == 1) {
+//                   qDebug() << "first item on the playlist";
+//                     it's the first item, and there's more than one item on the list, so moves make sense
+                    ui->actionAt_BOTTOM->setEnabled(true);
+                    ui->actionDOWN_in_Playlist->setEnabled(true);
+                } else if (currentNumberInt == playlistItemCount) {
+//                    qDebug() << "last item on the playlist";
+                    // it's the last item, and there's more than one item on the list, so moves make sense
+                    ui->actionAt_TOP->setEnabled(true);
+                    ui->actionUP_in_Playlist->setEnabled(true);
+                } else {
+//                    qDebug() << "middle item on the playlist";
+                    // it's somewhere in the middle, and there's more than one item on the list, so moves make sense
+                    ui->actionAt_TOP->setEnabled(true);
+                    ui->actionAt_BOTTOM->setEnabled(true);
+                    ui->actionUP_in_Playlist->setEnabled(true);
+                    ui->actionDOWN_in_Playlist->setEnabled(true);
+                }
+            } else {
+//                qDebug() << "one item on the playlist, and this is it.";
+                // One item on the playlist, and this is it.
+                // Can't move up/down or to top/bottom.
+                // Can remove it, though.
+            }
+        }
+    }
 }
 
 void MainWindow::on_actionClear_Playlist_triggered()
@@ -2930,6 +3015,8 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     notSorted = false;
     ui->songTable->setSortingEnabled(true);  // reenable sorting
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 // ---------------------------------------------------------
@@ -2962,13 +3049,306 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 #endif // ifdef Q_OS_LINUX
 }
 
+// ----------------------------------------------------------------------
+int MainWindow::selectedSongRow() {
+    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+    return row;
+}
+
+// ----------------------------------------------------------------------
+int MainWindow::PlaylistItemCount() {
+    int playlistItemCount = 0;
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        if (playlistIndex != "") {
+            playlistItemCount++;
+        }
+    }
+//    qDebug() << "items in the playlist:" << playlistItemCount;
+    return (playlistItemCount);
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::PlaylistItemToTop() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+//    qDebug() << "PlaylistItemToTop(): " << selectedRow << currentNumberText;
+
+    if (currentNumberText == "") {
+        // add to list, and make it the #1
+
+        // Iterate over the entire songTable, incrementing every item
+        // TODO: turn off sorting
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndex = theItem->text();  // this is the playlist #
+            if (playlistIndex != "") {
+                // if a # was set, increment it
+                QString newIndex = QString::number(playlistIndex.toInt()+1);
+//                qDebug() << "old, new:" << playlistIndex << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+
+        ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
+        // TODO: turn on sorting again
+
+    } else {
+        // already on the list
+        // Iterate over the entire songTable, incrementing items BELOW this item
+        // TODO: turn off sorting
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            if (playlistIndexText != "") {
+                int playlistIndexInt = playlistIndexText.toInt();
+                if (playlistIndexInt < currentNumberInt) {
+                    // if a # was set and less, increment it
+                    QString newIndex = QString::number(playlistIndexInt+1);
+//                    qDebug() << "old, new:" << playlistIndexText << newIndex;
+                    ui->songTable->item(i,kNumberCol)->setText(newIndex);
+                }
+            }
+        }
+        // and then set this one to #1
+        ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
+    }
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemToBottom() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+//    qDebug() << "PlaylistItemToBottom(): " << selectedRow << currentNumberText;
+    int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
+
+    if (currentNumberText == "") {
+        // add to list, and make it the bottom
+
+        // Iterate over the entire songTable, not touching every item
+        // TODO: turn off sorting
+
+//        for (int i=0; i<ui->songTable->rowCount(); i++) {
+//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//            QString playlistIndex = theItem->text();  // this is the playlist #
+//            if (playlistIndex != "") {
+//                playlistItemCount++;
+//                // if a # was set, increment it
+////                QString newIndex = QString::number(playlistIndex.toInt()+1);
+////                qDebug() << "old, new:" << playlistIndex << newIndex;
+////                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+//            }
+//        }
+
+//        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
+        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
+        // TODO: turn on sorting again
+
+    } else {
+        // already on the list
+        // Iterate over the entire songTable, decrementing items ABOVE this item
+        // TODO: turn off sorting
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            if (playlistIndexText != "") {
+                int playlistIndexInt = playlistIndexText.toInt();
+                if (playlistIndexInt > currentNumberInt) {
+                    // if a # was set and more, decrement it
+                    QString newIndex = QString::number(playlistIndexInt-1);
+//                    qDebug() << "old, new:" << playlistIndexText << newIndex;
+                    ui->songTable->item(i,kNumberCol)->setText(newIndex);
+                }
+            }
+        }
+        // and then set this one to #LAST
+        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
+    }
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemMoveUp() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+//    qDebug() << "PlaylistMoveUp(): " << selectedRow << currentNumberText;
+
+    // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
+    // TODO: turn off sorting
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        if (playlistIndex != "") {
+            int playlistIndexInt = playlistIndex.toInt();
+            if (playlistIndexInt == currentNumberInt - 1) {
+                QString newIndex = QString::number(playlistIndex.toInt()+1);
+//                qDebug() << "old, new:" << playlistIndex << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+
+    ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
+    // TODO: turn on sorting again
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemMoveDown() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+//    qDebug() << "PlaylistMoveUDown(): " << selectedRow << currentNumberText;
+
+    // add to list, and make it the bottom
+
+    // Iterate over the entire songTable, find the item just BELOW this one, and move it UP (only)
+    // TODO: turn off sorting
+
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        if (playlistIndex != "") {
+            int playlistIndexInt = playlistIndex.toInt();
+            if (playlistIndexInt == currentNumberInt + 1) {
+                QString newIndex = QString::number(playlistIndex.toInt()-1);
+//                qDebug() << "old, new:" << playlistIndex << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+
+    ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
+    // TODO: turn on sorting again
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+}
+
+// --------------------------------------------------------------------
+void MainWindow::PlaylistItemRemove() {
+    int selectedRow = selectedSongRow();  // get current row or -1
+
+    if (selectedRow == -1) {
+        return;
+    }
+
+    QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+    int currentNumberInt = currentNumberText.toInt();
+
+//    qDebug() << "PlaylistItemRemove(): " << selectedRow << currentNumberText;
+
+    // already on the list
+    // Iterate over the entire songTable, decrementing items BELOW this item
+    // TODO: turn off sorting
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndexText = theItem->text();  // this is the playlist #
+        if (playlistIndexText != "") {
+            int playlistIndexInt = playlistIndexText.toInt();
+            if (playlistIndexInt > currentNumberInt) {
+                // if a # was set and more, decrement it
+                QString newIndex = QString::number(playlistIndexInt-1);
+//                qDebug() << "old, new:" << playlistIndexText << newIndex;
+                ui->songTable->item(i,kNumberCol)->setText(newIndex);
+            }
+        }
+    }
+    // and then set this one to #LAST
+    ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+}
+
+
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 {
     Q_UNUSED(pos);
 
-    // TODO: this function isn't called on Windows yet...
     if (ui->songTable->selectionModel()->hasSelection()) {
         QMenu menu(this);
+
+        int selectedRow = selectedSongRow();  // get current row or -1
+
+        if (selectedRow != -1) {
+            // if a single row was selected
+//            ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch));
+            QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+            int currentNumberInt = currentNumberText.toInt();
+            int playlistItemCount = PlaylistItemCount();
+//            qDebug() << "currentNumberText: " << currentNumberText << "100: " << QString::number(100);
+
+            if (currentNumberText == "") {
+                if (playlistItemCount == 0) {
+                    menu.addAction ( "Add to playlist" , this , SLOT (PlaylistItemToTop()) );
+                } else {
+                    menu.addAction ( "Add to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                    menu.addAction ( "Add to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                }
+            } else {
+                // currently on the playlist
+                if (playlistItemCount > 1) {
+                    // more than one item
+                    if (currentNumberInt == 1) {
+                        // already the first item, and there's more than one item on the list, so moves make sense
+                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
+                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                    } else if (currentNumberInt == playlistItemCount) {
+                        // already the last item, and there's more than one item on the list, so moves make sense
+                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                    } else {
+                        // somewhere in the middle, and there's more than one item on the list, so moves make sense
+                        menu.addAction ( "Move to TOP of playlist" , this , SLOT (PlaylistItemToTop()) );
+                        menu.addAction ( "Move UP in playlist" , this , SLOT (PlaylistItemMoveUp()) );
+                        menu.addAction ( "Move DOWN in playlist" , this , SLOT (PlaylistItemMoveDown()) );
+                        menu.addAction ( "Move to BOTTOM of playlist" , this , SLOT (PlaylistItemToBottom()) );
+                    }
+                } else {
+                    // exactly one item, and this is it.
+                }
+                // this item is on the playlist, so it can be removed.
+                menu.addSeparator();
+                menu.addAction ( "Remove from playlist" , this , SLOT (PlaylistItemRemove()) );
+            }
+        }
+        menu.addSeparator();
 
 #if defined(Q_OS_MAC)
         menu.addAction ( "Reveal in Finder" , this , SLOT (revealInFinder()) );
@@ -3272,14 +3652,54 @@ void MainWindow::on_newVolumeMounted() {
 
 #if defined(Q_OS_MAC)
         guestVolume = newVolume;  // e.g. MIKEPOGUE
-        guestRootPath = "/Volumes/" + guestVolume + "/squareDanceMusic";  // NOTE: THIS IS HARD-CODED RIGHT NOW
+        guestRootPath = "/Volumes/" + guestVolume + "/";  // this is where to search for a Music Directory
         QApplication::beep();  // beep only on MAC OS X (Win32 already beeps by itself)
 #endif
 
 #if defined(Q_OS_WIN32)
-        guestVolume = newVolume;    // e.g. E:
-        guestRootPath = newVolume + "\\squareDanceMusic";                 // NOTE: THIS IS HARD-CODED RIGHT NOW
+        guestVolume = newVolume;            // e.g. E:
+        guestRootPath = newVolume + "\\";   // this is where to search for a Music Directory
 #endif
+
+        // We do it this way, so that the name of the root directory is case insensitive (squareDanceMusic, squaredancemusic, etc.)
+        QDir newVolumeRootDir(guestRootPath);
+        newVolumeRootDir.setFilter(QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
+
+        QDirIterator it(newVolumeRootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+        QString d;
+        bool foundSquareDeskMusicDir = false;
+        QString foundDirName;
+        while(it.hasNext()) {
+            d = it.next();
+            // If alias, try to follow it.
+            QString resolvedFilePath = it.fileInfo().symLinkTarget(); // path with the symbolic links followed/removed
+            if (resolvedFilePath == "") {
+                // If NOT alias, then use the original fileName
+                resolvedFilePath = d;
+            }
+
+            QFileInfo fi(d);
+            QStringList section = fi.canonicalFilePath().split("/");  // expand
+//            qDebug() << "d" << d << "section.length():" << section.length() << "section" << section;
+            if (section.length() >= 1) {
+                QString dirName = section[section.length()-1];
+//                qDebug() << "dirName:" << dirName;
+
+                if (dirName.compare("squaredancemusic",Qt::CaseInsensitive) == 0) { // exact match, but case-insensitive
+                    foundSquareDeskMusicDir = true;
+                    foundDirName = dirName;
+                    break;  // break out of the for loop when we find first directory that matches "squaredancemusic"
+                }
+            } else {
+                continue;
+            }
+        }
+
+        if (!foundSquareDeskMusicDir) {
+            return;  // if we didn't find anything, just return
+        }
+
+        guestRootPath += foundDirName;  // e.g. /Volumes/MIKE/squareDanceMusic, or E:\SquareDanceMUSIC
 
         ui->statusBar->showMessage("SCANNING GUEST VOLUME: " + newVolume);
         QThread::sleep(1);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
@@ -3399,7 +3819,7 @@ void MainWindow::readSDData()
     QList<QString> lastFormatList;
 
     QRegExp sequenceLine("^ *([0-9]+):(.*)");
-    QRegExp sectionStart("^Sd 38.89");
+    QRegExp sectionStart("Sd 38.89");
 
     QStringList currentSequence;
     QString lastPrompt;
@@ -3408,6 +3828,8 @@ void MainWindow::readSDData()
 //    qDebug() << "unedited data:" << uneditedData;
     QString errorLine;
     QString resolveLine;
+//    QString copyrightText;
+    copyrightText = "";
     bool grabResolve = false;
 
     // scan the unedited lines for sectionStart, layout1/2, and sequence lines
@@ -3474,6 +3896,8 @@ void MainWindow::readSDData()
 //    qDebug() << "RESOLVE:" << resolveLine;
 
     editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
+//    qDebug() << "editedData:" << editedData;
+//    qDebug() << "copyrightText:" << copyrightText;
 
     // echo is needed for entering the level and entering comments, but NOT wanted after that
     if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
@@ -3490,9 +3914,9 @@ void MainWindow::readSDData()
         for (int j=0; j < words.length(); j++ ) {
             QString current2 = words.at(j);
             QString replacement2;
-            if (current2.left(1) == "[") {
+            if (current2.length() >= 1 && current2.at(0) == '[') {
                 // left bracket case
-                replacement2 = "[" + current2.left(2).toUpper() + current2.mid(2).toLower();
+                replacement2 = "[" + QString(current2.at(1)).toUpper() + current2.mid(2).toLower();
             } else {
                 // normal case
                 replacement2 = current2.left(1).toUpper() + current2.mid(1).toLower();
@@ -3503,22 +3927,10 @@ void MainWindow::readSDData()
         currentSequence.replace(i, replacement);
     }
 
-    // show copyright once
-    if (copyrightShown) {
-        copyrightText = "";
-    } else {
-        copyrightText += "\nTry: 'Heads start'"
-                         "\n";
-    }
-
     if (resolveLine == "") {
-        currentSequenceWidget->setText(copyrightText + currentSequence.join("\n"));
+        currentSequenceWidget->setText(currentSequence.join("\n"));
     } else {
-        currentSequenceWidget->setText(copyrightText + currentSequence.join("\n") + "\nresolve is: " + resolveLine);
-    }
-
-    if (copyrightText != "" && !copyrightShown) {
-        copyrightShown = true;
+        currentSequenceWidget->setText(currentSequence.join("\n") + "\nresolve is: " + resolveLine);
     }
 
     // always scroll to make the last line visible, as we're adding lines
@@ -3551,7 +3963,12 @@ void MainWindow::readSDData()
         renderArea->setLayout1("");
         renderArea->setLayout2(QStringList());      // show squared up dancers
         renderArea->setFormation("Squared set");    // starting formation
-        currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
+        if (!copyrightShown) {
+            currentSequenceWidget->setText(copyrightText + "\nSquared set\n\nTry: 'Heads start'");    // clear out current sequence
+            copyrightShown = true;
+        } else {
+            currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
+        }
     } else {
         renderArea->setLayout1(lastLayout1);
         renderArea->setLayout2(lastFormatList);
@@ -3583,16 +4000,29 @@ void MainWindow::readPSData()
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
-    s2 = s2.replace("three quarters","3/4"); // technically, this one is not required, since sd understands both already.
-    s2 = s2.replace("two quarters","1/2").replace("one half","1/2").replace("half","1/2");
+    s2 = s2.replace("once and a half","1-1/2");
+    s2 = s2.replace("four quarters","4/4");
+    s2 = s2.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
+    s2 = s2.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
     s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
 
+    // handle 1P2P
+    s2 = s2.replace("one pee two pee","1P2P");
+
+    // handle "third" --> "3rd", for dixie grand
+    s2 = s2.replace("third", "3rd");
+
     // handle numbers: one -> 1, etc.
+    s2 = s2.replace("eight chain","EIGHT CHAIN"); // sd wants "eight chain 4", not "8 chain 4", so protect it
     s2 = s2.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
     s2 = s2.replace("five","5").replace("six","6").replace("seven","7").replace("eight","8");
+    s2 = s2.replace("EIGHT CHAIN","eight chain"); // sd wants "eight chain 4", not "8 chain 4", so protect it
 
     // handle optional words at the beginning
+
+    s2 = s2.replace("do the centers", "DOTHECENTERS");  // special case "do the centers part of load the boat"
     s2 = s2.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
+    s2 = s2.replace("DOTHECENTERS", "do the centers");  // special case "do the centers part of load the boat"
 
     // handle specialized sd spelling of flutter wheel, and specialized wording of reverse flutter wheel
     s2 = s2.replace("flutterwheel","flutter wheel");
@@ -3600,7 +4030,9 @@ void MainWindow::readPSData()
 
     // handle specialized sd wording of first go *, next go *
     s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
-    s2 = s2.replace(QRegExp("first .* go right .* next .* go left"),"first couple go right, next go left");
+    s2 = s2.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
+    s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go left"),"first couple go left, next go left");
+    s2 = s2.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go right"),"first couple go right, next go right");
 
     // handle "single circle to an ocean wave" -> "single circle to a wave"
     s2 = s2.replace("single circle to an ocean wave","single circle to a wave");
@@ -3797,6 +4229,10 @@ void MainWindow::initSDtab() {
     // POCKET_SPHINX -------------------------------------------
     //    WHICH=5365
     //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
+    // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
+    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS
+    // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
+    // TEST SD MANUALLY: ./sd
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
 #if defined(POCKETSPHINXSUPPORT)
@@ -3947,4 +4383,78 @@ void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
     // the Enable Voice Input setting is persistent across restarts of the application
     PreferencesManager prefsManager;
     prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
+}
+
+void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
+{
+    if (checked) {
+        ui->actionAuto_scroll_during_playback->setChecked(true);
+        autoScrollLyricsEnabled = true;
+    }
+    else {
+        ui->actionAuto_scroll_during_playback->setChecked(false);
+        autoScrollLyricsEnabled = false;
+    }
+
+    // the Enable Auto-scroll during playback setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.Setenableautoscrolllyrics(ui->actionAuto_scroll_during_playback->isChecked());
+}
+
+void MainWindow::on_actionAt_TOP_triggered()    // Add > at TOP
+{
+    PlaylistItemToTop();
+}
+
+void MainWindow::on_actionAt_BOTTOM_triggered()  // Add > at BOTTOM
+{
+    PlaylistItemToBottom();
+}
+
+void MainWindow::on_actionRemove_from_Playlist_triggered()
+{
+    PlaylistItemRemove();
+}
+
+void MainWindow::on_actionUP_in_Playlist_triggered()
+{
+    PlaylistItemMoveUp();
+}
+
+void MainWindow::on_actionDOWN_in_Playlist_triggered()
+{
+    PlaylistItemMoveDown();
+}
+
+void MainWindow::on_actionStartup_Wizard_triggered()
+{
+    StartupWizard wizard;
+    int dialogCode = wizard.exec();
+
+    if(dialogCode == QDialog::Accepted) {
+        // must setup internal variables, from updated Preferences..
+        PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+
+        musicRootPath = prefsManager.GetmusicPath();
+
+        QString value;
+        value = prefsManager.GetMusicTypeSinging();
+        songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+
+        value = prefsManager.GetMusicTypePatter();
+        songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+
+        value = prefsManager.GetMusicTypeExtras();
+        songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+
+        value = prefsManager.GetMusicTypeCalled();
+        songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+
+        // used to store the file paths
+        findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
+        filterMusic(); // and filter them into the songTable
+
+        // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.
+        // initSDtab();  // sd directory has changed, so startup everything again.
+    }
 }

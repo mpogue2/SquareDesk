@@ -3,9 +3,9 @@
 #include <QtSql/QSqlDatabase>
 #include <QtSql>
 
-#define SONGSETTINGS_INCLUDE_SONG_ID_CACHE
-#define SONGSETTINGS_INCLUDE_SONG_CACHE
-#define SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
+// #define SONGSETTINGS_INCLUDE_SONG_ID_CACHE
+// #define SONGSETTINGS_INCLUDE_SONG_CACHE
+// #define SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
 
 
 #ifdef SONGSETTINGS_INCLUDE_SONG_CACHE
@@ -53,7 +53,8 @@ private:
     void debugErrors(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
-    
+
+    bool databaseOpened;
     QSqlDatabase m_db;
     int current_session_id;
     
