@@ -61,8 +61,10 @@ INCLUDEPATH += $$PWD/
 DEPENDPATH += $$PWD/
 
 # NOTE: there is no debug version of libbass
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
+#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
+#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:unix: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -lsqlite3
 
 win32 {

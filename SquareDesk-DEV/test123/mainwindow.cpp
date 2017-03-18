@@ -214,7 +214,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #if defined(Q_OS_WIN)
     // NOTE: WINDOWS ONLY
     closeAct = new QAction(QIcon(), tr("&Exit"), this);
-    closeAct->setShortcuts(QKeySequence::Close);`
+    closeAct->setShortcuts(QKeySequence::Close);
     closeAct->setStatusTip(tr("Exit the program"));
     connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
     ui->menuFile->addAction(closeAct);
