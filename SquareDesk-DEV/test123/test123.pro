@@ -98,6 +98,7 @@ macx {
     # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
     LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     LIBS += -framework CoreFoundation
+    LIBS += -framework AppKit
     mylib.path = Contents/MacOS
     mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     QMAKE_BUNDLE_DATA += mylib
@@ -208,4 +209,4 @@ DISTFILES += \
     LICENSE.GPL2
 
 CONFIG += c++11
-    
+

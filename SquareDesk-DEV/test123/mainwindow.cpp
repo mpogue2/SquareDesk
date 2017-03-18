@@ -157,6 +157,11 @@ MainWindow::MainWindow(QWidget *parent) :
     // TODO
 #endif
 
+    // Disable extra (Native Mac) tab bar
+#if defined(Q_OS_MAC)
+    macUtils.disableWindowTabbing();
+#endif
+
     prefDialog = NULL;      // no preferences dialog created yet
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
@@ -202,7 +207,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
 #if defined(Q_OS_WIN)
-    delete ui->mainToolBar; // remove toolbar on WINDOWS (not present on Mac)
+    delete ui->mainToolBar; // remove toolbar on WINDOWS (toolbar is not present on Mac)
 #endif
 
     // ------------
