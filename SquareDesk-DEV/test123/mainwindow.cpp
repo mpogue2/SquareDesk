@@ -229,7 +229,7 @@ MainWindow::MainWindow(QWidget *parent) :
     UIUpdateTimer->start(1000);           //adjust from GUI with timer->setInterval(newValue)
 
     closeEventHappened = false;
-    
+
     ui->songTable->clearSelection();
     ui->songTable->clearFocus();
 
@@ -660,7 +660,7 @@ MainWindow::~MainWindow()
         ps->kill();
     }
 #endif
-    
+
 }
 
 void MainWindow::setFontSizes()
@@ -676,7 +676,7 @@ void MainWindow::setFontSizes()
 #elif defined(Q_OS_LINUX)
     preferredSmallFontSize = 13;  // FIX: is this right?
     preferredNowPlayingSize = 27;
-    
+
     QFont fontSmall = ui->currentTempoLabel->font();
     fontSmall.setPointSize(8);
     fontSmall.setPointSize(preferredSmallFontSize);
@@ -837,7 +837,7 @@ void MainWindow::on_playButton_clicked()
                 row = index.row();
                 ui->songTable->item(row, kAgeCol)->setText("0");
             }
-            
+
         }
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != NULL) {
@@ -1475,6 +1475,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
 //        qDebug() << "mainwindow::GlobalEventFilter:" << KeyEvent;
+//        qDebug() << "KeyEvent->key() = " << KeyEvent->key() << "Qt::Key_Escape =" << Qt::Key_Escape;
 //        if (ui->labelSearch->hasFocus()) {
 //            qDebug() << "labelSearch has focus.";
 //        } else if (ui->typeSearch->hasFocus()) {
@@ -1502,12 +1503,22 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
-        if (!(ui->labelSearch->hasFocus() ||
-                ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()
-                || ui->lineEditCountDownTimer->hasFocus()
-                || ui->songTable->isEditing()
-                || maybeMainWindow->console->hasFocus()
-              )) {
+        // UNLESS it's one of the search/timer edit fields and the ESC key is pressed (we must still allow
+        //   stopping of music when editing a text field).  Sorry, can't use the SPACE BAR
+        //   when editing a search field, because " " is a valid character to search for.
+        //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
+        if ( !(ui->labelSearch->hasFocus() ||
+               ui->typeSearch->hasFocus() ||
+               ui->titleSearch->hasFocus() ||
+               ui->lineEditCountDownTimer->hasFocus() ||
+               ui->songTable->isEditing() ||
+               maybeMainWindow->console->hasFocus() )     ||
+             ( (ui->labelSearch->hasFocus() ||
+                ui->typeSearch->hasFocus() ||
+                ui->titleSearch->hasFocus() ||
+                ui->lineEditCountDownTimer->hasFocus()) &&
+                (KeyEvent->key() == Qt::Key_Escape) )
+           ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
 //            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
@@ -1530,6 +1541,15 @@ bool MainWindow::handleKeypress(int key, QString text)
     switch (key) {
 
         case Qt::Key_Escape:
+            // ESC is special:  it always gets the music to stop, and gets you out of
+            //   editing a search field or timer field.
+            ui->labelSearch->clearFocus();
+            ui->typeSearch->clearFocus();
+            ui->titleSearch->clearFocus();
+            ui->lineEditCountDownTimer->clearFocus();
+            // FIX: should we also stop editing of the songTable on ESC?
+            // NOTE: intentional fall thru here...ESC means STOP AND REWIND, just like S or END
+
         case Qt::Key_End:  // FIX: should END go to the end of the song? or stop playback?
         case Qt::Key_S:
             on_stopButton_clicked();
@@ -2072,9 +2092,9 @@ void MainWindow::filterMusic()
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString songType = ui->songTable->item(i,kTypeCol)->text();
         QString songLabel = ui->songTable->item(i,kLabelCol)->text();
-        
+
         bool show = true;
-            
+
         if (!(label.isEmpty()
               || songLabel.contains(label, Qt::CaseInsensitive)))
         {
@@ -2099,7 +2119,7 @@ void MainWindow::filterMusic()
 
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
-{  
+{
     ui->songTable->setSortingEnabled(false);
 
     // Need to remember the PL# mapping here, and reapply it after the filter
@@ -2231,11 +2251,11 @@ void MainWindow::loadMusicList()
                                       volume,
                                       pitch, tempo,
                                       intro, outro);
-            
+
             addStringToLastRowOfSongTable(textCol, ui->songTable,
                                           QString("%1").arg(pitch),
                                           kPitchCol);
-            
+
             addStringToLastRowOfSongTable(textCol, ui->songTable,
                                           QString("%1").arg(tempo),
                                           kTempoCol);
@@ -2267,7 +2287,7 @@ void MainWindow::loadMusicList()
                 !title.contains(QString(ui->titleSearch->text()),Qt::CaseInsensitive)) {
             ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
         }
-#endif /* ifndef CUSTOM_FILTER */   
+#endif /* ifndef CUSTOM_FILTER */
     }
 
 #ifdef CUSTOM_FILTER
@@ -3472,11 +3492,11 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 void MainWindow::saveCurrentSongSettings()
 {
     QString currentSong = ui->nowPlayingLabel->text();
-    
+
     if (saveSongPreferencesInConfig && !currentSong.isEmpty()) {
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
-        
+
         songSettings.saveSettings(currentMP3filename,
                                   currentSong,
                                   currentVolume,
@@ -3486,7 +3506,7 @@ void MainWindow::saveCurrentSongSettings()
         // TODO: Loop points!
     }
 
-    
+
 }
 
 void MainWindow::loadSettingsForSong(QString songTitle)
