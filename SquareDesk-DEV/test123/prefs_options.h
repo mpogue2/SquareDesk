@@ -30,6 +30,8 @@
  *  1. This file has no declarations that can't be processed twice.
  *  2. This file doesn't have "include" guards.
  *
+ * When adding a combo box here, make sure that you add the associated
+ * "SetPulldownValuesToItemNumberPlusOne" in preferencesdialog.cpp
  *
  * The four places this file gets processed are prefsdialog.{cpp,h},
  * and prefsmanager.{cpp,h}.
