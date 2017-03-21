@@ -509,7 +509,9 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
-    setCurrentSessionId(songSettings.getCurrentSession());
+    setCurrentSessionId((SessionDefaultPractice ==
+                         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
+                        ? 1 : songSettings.getCurrentSession());
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }

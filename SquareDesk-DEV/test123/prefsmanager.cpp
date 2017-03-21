@@ -161,6 +161,7 @@ int  PreferencesManager::Get##name()                   \
                                                        \
 void PreferencesManager::Set##name(int value)          \
 {                                                      \
+    qDebug() << "Set " << #name << " : " << value;       \
     MySettings.setValue(#name, QVariant(value));       \
 }
 
