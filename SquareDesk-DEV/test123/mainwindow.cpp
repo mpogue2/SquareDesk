@@ -835,7 +835,7 @@ void MainWindow::on_playButton_clicked()
                 // exactly 1 row was selected (good)
                 QModelIndex index = selected.at(0);
                 row = index.row();
-                ui->songTable->item(row, kAgeCol)->setText("0");
+                ui->songTable->item(row, kAgeCol)->setText("  0");
             }
             
         }
