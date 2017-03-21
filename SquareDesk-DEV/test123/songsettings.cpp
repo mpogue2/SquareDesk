@@ -204,11 +204,12 @@ static const char *default_session_names[] =
     NULL
 };
 
+static const char database_type_name[] = "QSQLITE";
 void SongSettings::openDatabase(const QString& path)
 {
     closeDatabase();
     
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
+    m_db = QSqlDatabase::addDatabase(database_type_name);
     QDir dir(path);
     
     if (!dir.exists())
@@ -412,7 +413,10 @@ void SongSettings::closeDatabase()
 {
     if (databaseOpened)
     {
+        QString connection;
+        connection = m_db.connectionName();
         m_db.close();
-        databaseOpened = false;
+        m_db = QSqlDatabase();
+        m_db.removeDatabase(connection);
     }
 }
