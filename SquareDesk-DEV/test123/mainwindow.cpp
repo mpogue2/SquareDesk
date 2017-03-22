@@ -328,6 +328,11 @@ MainWindow::MainWindow(QWidget *parent) :
     // -------------------------
     saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
 
+    setCurrentSessionId((SessionDefaultPractice ==
+                         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
+                        ? 1 : songSettings.getCurrentSession());
+
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
     // used to store the file paths
     findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
@@ -514,11 +519,6 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
-    setCurrentSessionId((SessionDefaultPractice ==
-                         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
-                        ? 1 : songSettings.getCurrentSession());
-
-    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
 
 
