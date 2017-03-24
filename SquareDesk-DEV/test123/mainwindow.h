@@ -223,8 +223,6 @@ private slots:
 private:
     QAction *closeAct;  // WINDOWS only
 
-    bool notSorted;
-
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath, guestRootPath, guestVolume, guestMode;

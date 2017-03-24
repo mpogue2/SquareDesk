@@ -224,8 +224,6 @@ MainWindow::MainWindow(QWidget *parent) :
     currentPitch = 0;
     tempoIsBPM = false;
 
-    notSorted = true;
-
     Info_Seekbar(false);
 
     // setup playback timer
@@ -2301,10 +2299,7 @@ void MainWindow::loadMusicList()
     filterMusic();
 #endif /* ifdef CUSTOM_FILTER */
 
-    if (notSorted) {
-        sortByDefaultSortOrder();
-    }
-
+    sortByDefaultSortOrder();
     ui->songTable->setSortingEnabled(true);
 
     QString msg1;
@@ -2691,7 +2686,6 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     }
     sortByDefaultSortOrder();
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
-    notSorted = false;
     ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
 
     // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
@@ -4482,5 +4476,4 @@ void MainWindow::sortByDefaultSortOrder()
     ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
     ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
     ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
-    notSorted = false;
 }
