@@ -619,7 +619,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <item row="5" column="1" colspan="4">
           <widget class="QLabel" name="pitchTempoHelpLabel">
            <property name="text">
-            <string>Shows current pitch and tempo settings for each song in the song list. Pitch numbers are in semitones relative to base pitch. Tempos are either BPM (e.g. 127 -&gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the tempo is unknown, because it has not been auto-detected yet).</string>
+            <string>Shows age, current pitch, and current tempo settings for each song. Age is in days-since-last-played.  Pitch numbers are in semitones relative to base pitch. Tempos are either BPM (e.g. 127 -&gt; 127BPM), percent (e.g. 100%), or 0 (meaning that the tempo is unknown, because it has not been auto-detected yet).</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -635,7 +635,7 @@ Click on a color square to change the color associated with that Music Type.  Se
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Remember tempo, pitch, and in/out points for each song</string>
+            <string>Remember tempo, pitch, and in/out points for each song between sessions</string>
            </property>
           </widget>
          </item>
@@ -668,7 +668,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <item row="10" column="1" colspan="5">
           <widget class="QLabel" name="saveSongPrefsHelpLabel">
            <property name="text">
-            <string>When checked, changes you make to tempo, pitch, and in/out points for a song are saved automatically, and restored when the song is loaded again.</string>
+            <string>When checked, changes you make to tempo, pitch, and in/out points for a song are saved automatically, and restored when the song is re-loaded, even if you quit the application.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -840,7 +840,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <item row="4" column="1" colspan="3">
           <widget class="QCheckBox" name="EnablePitchTempoViewCheckbox">
            <property name="text">
-            <string>Enable Pitch and Tempo columns in song list</string>
+            <string>Enable Age, Pitch, and Tempo columns in song list</string>
            </property>
           </widget>
          </item>
