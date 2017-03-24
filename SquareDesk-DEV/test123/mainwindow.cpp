@@ -2302,11 +2302,7 @@ void MainWindow::loadMusicList()
 #endif /* ifdef CUSTOM_FILTER */
 
     if (notSorted) {
-        ui->songTable->sortItems(kTitleCol);  // sort by title as last
-        ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
-        ui->songTable->sortItems(kTypeCol);  // sort first by type (singing vs patter)
-
-        notSorted = false;
+        sortByDefaultSortOrder();
     }
 
     ui->songTable->setSortingEnabled(true);
@@ -2693,11 +2689,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         // file didn't open...
         return;
     }
-
-    ui->songTable->sortItems(kTitleCol);  // sort by title as last
-    ui->songTable->sortItems(kLabelCol);  // sort third by label/label# as secondary
-    ui->songTable->sortItems(kTypeCol);  // sort second by type (singing vs patter)
-    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary
+    sortByDefaultSortOrder();
+    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
     notSorted = false;
     ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
 
@@ -3036,11 +3029,7 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
     }
 
-    ui->songTable->sortItems(kTitleCol);    // sort by title as last
-    ui->songTable->sortItems(kLabelCol);    // sort second by label/label #
-    ui->songTable->sortItems(kTypeCol);     // sort first by type (singing vs patter)
-
-    notSorted = false;
+    sortByDefaultSortOrder();
     ui->songTable->setSortingEnabled(true);  // reenable sorting
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
@@ -4484,4 +4473,14 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.
         // initSDtab();  // sd directory has changed, so startup everything again.
     }
+}
+
+void MainWindow::sortByDefaultSortOrder()
+{
+    // these must be in "backwards" order to get the right order, which
+    //   is that Type is primary, Title is secondary, Label is tertiary
+    ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
+    ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+    ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+    notSorted = false;
 }

@@ -268,6 +268,8 @@ private:
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
 
+    void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
+
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // Lyrics stuff
     QString loadLyrics(QString MP3FileName);
