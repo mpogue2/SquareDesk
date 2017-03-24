@@ -2613,8 +2613,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                             theItem3->setText(list1[2]);
 
                             match = true;
-                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
-                            theItemAge->setText("***");
+//                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
+//                            theItemAge->setText("***");
                         }
                     }
                     // if we had no match, remember the first non-matching song path
