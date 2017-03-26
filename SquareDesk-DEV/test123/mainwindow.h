@@ -28,6 +28,7 @@
 
 #include <QObject>
 
+#include <QActionGroup>
 #include <QDebug>
 #include <QMainWindow>
 #include <QTimer>
@@ -92,6 +93,7 @@ public:
     QTextEdit *currentSequenceWidget;
 
     PreferencesDialog *prefDialog;
+    QActionGroup *sdActionGroup1;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -99,6 +101,8 @@ protected:
     void on_monoButton_toggled(bool checked);
 
 private slots:
+    void sdActionTriggered(QAction * action);
+
     void on_stopButton_clicked();
     void on_playButton_clicked();
     void on_pitchSlider_valueChanged(int value);

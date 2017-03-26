@@ -23,6 +23,7 @@
 **
 ****************************************************************************/
 
+#include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDesktopWidget>
@@ -515,6 +516,20 @@ MainWindow::MainWindow(QWidget *parent) :
     randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
 
 #endif
+
+    // Make menu items mutually exclusive
+    QList<QAction*> actions = ui->menuSequence->actions();
+    //    qDebug() << "ACTIONS:" << actions;
+
+    sdActionGroup1 = new QActionGroup(this);
+    sdActionGroup1->setExclusive(true);
+
+    sdActionGroup1->addAction(actions[2]);  // NORMAL
+    sdActionGroup1->addAction(actions[3]);  // Color only
+    sdActionGroup1->addAction(actions[4]);  // Mental image
+    sdActionGroup1->addAction(actions[5]);  // Sight
+
+    connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 }
@@ -4476,4 +4491,10 @@ void MainWindow::sortByDefaultSortOrder()
     ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
     ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
     ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+}
+
+void MainWindow::sdActionTriggered(QAction * action) {
+//    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    renderArea->setCoupleColoringScheme(action->text());
 }
