@@ -52,10 +52,14 @@ public slots:
     void setLayout2(QStringList sl);
     void setFormation(QString s);
 
+    void setCoupleColoringScheme(QString colorScheme);
+
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;
 
 private:
+    QString coupleColoringScheme;
+
     QPen pen;
     QBrush brush;
     QPixmap pixmap;
@@ -63,6 +67,9 @@ private:
     QStringList layout2;
     unsigned long bad;
     QString formation;
+
+    QColor coupleColor[4];
+    bool mentalImageMode;
 };
 
 #endif // RENDERAREA_H

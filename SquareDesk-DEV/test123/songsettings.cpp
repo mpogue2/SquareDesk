@@ -1,3 +1,27 @@
+/****************************************************************************
+**
+** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+** Contact: mpogue @ zenstarstudio.com
+**
+** This file is part of the SquareDesk/SquareDeskPlayer application.
+**
+** $SQUAREDESK_BEGIN_LICENSE$
+**
+** Commercial License Usage
+** For commercial licensing terms and conditions, contact the authors via the
+** email address above.
+**
+** GNU General Public License Usage
+** This file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appear in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file.
+**
+** $SQUAREDESK_END_LICENSE$
+**
+****************************************************************************/
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -68,11 +92,11 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
 {
     QSqlQuery q(m_db);
     exec("ensureSchema", q, "PRAGMA TABLE_INFO(" + QString(table_definition->name) + ")");
-    
+
 
     bool found_any_fields = false;
     vector<QString> alter_statements;
-    
+
     while (q.next())
     {
         found_any_fields = true;
@@ -131,7 +155,7 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
         alter += "\n)\n";
 
         alter_statements.insert(alter_statements.begin(), alter);
-    } 
+    }
     for (vector<QString>::iterator alter = alter_statements.begin();
          alter != alter_statements.end();
          ++alter)
@@ -208,7 +232,7 @@ static const char database_type_name[] = "QSQLITE";
 void SongSettings::openDatabase(const QString& path, bool in_memory)
 {
     closeDatabase();
-    
+
     m_db = QSqlDatabase::addDatabase(database_type_name);
     if (in_memory)
     {

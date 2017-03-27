@@ -23,6 +23,7 @@
 **
 ****************************************************************************/
 
+#include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDesktopWidget>
@@ -223,8 +224,6 @@ MainWindow::MainWindow(QWidget *parent) :
     currentState = kStopped;
     currentPitch = 0;
     tempoIsBPM = false;
-
-    notSorted = true;
 
     Info_Seekbar(false);
 
@@ -517,6 +516,20 @@ MainWindow::MainWindow(QWidget *parent) :
     randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
 
 #endif
+
+    // Make menu items mutually exclusive
+    QList<QAction*> actions = ui->menuSequence->actions();
+    //    qDebug() << "ACTIONS:" << actions;
+
+    sdActionGroup1 = new QActionGroup(this);
+    sdActionGroup1->setExclusive(true);
+
+    sdActionGroup1->addAction(actions[2]);  // NORMAL
+    sdActionGroup1->addAction(actions[3]);  // Color only
+    sdActionGroup1->addAction(actions[4]);  // Mental image
+    sdActionGroup1->addAction(actions[5]);  // Sight
+
+    connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 }
@@ -1919,7 +1932,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
-    bool isSingingCall = songTypeNamesForSinging.contains(songType);
+    bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
+                         songTypeNamesForCalled.contains(songType);
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
 
@@ -2296,14 +2310,7 @@ void MainWindow::loadMusicList()
     filterMusic();
 #endif /* ifdef CUSTOM_FILTER */
 
-    if (notSorted) {
-        ui->songTable->sortItems(kTitleCol);  // sort by title as last
-        ui->songTable->sortItems(kLabelCol);  // sort second by label/label #
-        ui->songTable->sortItems(kTypeCol);  // sort first by type (singing vs patter)
-
-        notSorted = false;
-    }
-
+    sortByDefaultSortOrder();
     ui->songTable->setSortingEnabled(true);
 
     QString msg1;
@@ -2620,8 +2627,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                             theItem3->setText(list1[2]);
 
                             match = true;
-                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
-                            theItemAge->setText("***");
+//                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
+//                            theItemAge->setText("***");
                         }
                     }
                     // if we had no match, remember the first non-matching song path
@@ -2691,12 +2698,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         // file didn't open...
         return;
     }
-
-    ui->songTable->sortItems(kTitleCol);  // sort by title as last
-    ui->songTable->sortItems(kLabelCol);  // sort third by label/label# as secondary
-    ui->songTable->sortItems(kTypeCol);  // sort second by type (singing vs patter)
-    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary
-    notSorted = false;
+    sortByDefaultSortOrder();
+    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
     ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
 
     // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
@@ -3034,11 +3037,7 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
     }
 
-    ui->songTable->sortItems(kTitleCol);    // sort by title as last
-    ui->songTable->sortItems(kLabelCol);    // sort second by label/label #
-    ui->songTable->sortItems(kTypeCol);     // sort first by type (singing vs patter)
-
-    notSorted = false;
+    sortByDefaultSortOrder();
     ui->songTable->setSortingEnabled(true);  // reenable sorting
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
@@ -4480,4 +4479,19 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.
         // initSDtab();  // sd directory has changed, so startup everything again.
     }
+}
+
+void MainWindow::sortByDefaultSortOrder()
+{
+    // these must be in "backwards" order to get the right order, which
+    //   is that Type is primary, Title is secondary, Label is tertiary
+    ui->songTable->sortItems(kLabelCol);  // sort last by label/label #
+    ui->songTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+    ui->songTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+}
+
+void MainWindow::sdActionTriggered(QAction * action) {
+//    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    renderArea->setCoupleColoringScheme(action->text());
 }
