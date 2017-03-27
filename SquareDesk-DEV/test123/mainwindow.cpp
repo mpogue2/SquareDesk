@@ -1932,7 +1932,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         on_loopButton_toggled(false); // default is to loop, if type is patter
     }
 
-    bool isSingingCall = songTypeNamesForSinging.contains(songType);
+    bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
+                         songTypeNamesForCalled.contains(songType);
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
 
