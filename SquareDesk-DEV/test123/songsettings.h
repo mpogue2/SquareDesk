@@ -25,7 +25,7 @@ class SongSettings
 {
 public:
     SongSettings();
-    void openDatabase(const QString &path);
+    void openDatabase(const QString &path, bool in_memory);
     void closeDatabase();
     void saveSettings(const QString &filename,
                       const QString &songname,

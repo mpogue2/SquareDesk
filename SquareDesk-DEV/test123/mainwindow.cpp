@@ -334,7 +334,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
     // used to store the file paths
-    findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
+    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
 
     ui->songTable->setColumnWidth(kNumberCol,36);
@@ -1985,10 +1985,14 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
     }
 }
 
-void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode)
+void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase)
 {
     QString databaseDir(mainRootDir + "/.squaredesk");
-    songSettings.openDatabase(databaseDir);
+
+    if (refreshDatabase)
+    {
+        songSettings.openDatabase(databaseDir, !saveSongPreferencesInConfig);
+    }
     // always gets rid of the old pathstack...
     if (pathStack) {
         delete pathStack;
@@ -2246,33 +2250,24 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName()), kAgeCol);
 
-        if (saveSongPreferencesInConfig)
-        {
-            int pitch = 0;
-            int tempo = 0;
-            int volume = 0;
-            double intro = 0;
-            double outro = 0;
-            songSettings.loadSettings(fi.completeBaseName(),
-                                      title,
-                                      volume,
-                                      pitch, tempo,
-                                      intro, outro);
+        int pitch = 0;
+        int tempo = 0;
+        int volume = 0;
+        double intro = 0;
+        double outro = 0;
+        songSettings.loadSettings(fi.completeBaseName(),
+                                  title,
+                                  volume,
+                                  pitch, tempo,
+                                  intro, outro);
+        
+        addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                      QString("%1").arg(pitch),
+                                      kPitchCol);
 
-            addStringToLastRowOfSongTable(textCol, ui->songTable,
-                                          QString("%1").arg(pitch),
-                                          kPitchCol);
-
-            addStringToLastRowOfSongTable(textCol, ui->songTable,
-                                          QString("%1").arg(tempo),
-                                          kTempoCol);
-        }
-        else
-        {
-            addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kPitchCol);
-            addStringToLastRowOfSongTable(textCol, ui->songTable, "0", kTempoCol);
-        }
-
+        addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                      QString("%1").arg(tempo),
+                                      kTempoCol);
         // keep the path around, for loading in when we double click on it
         ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole,
                 QVariant(origPath)); // path set on cell in col 0
@@ -2429,7 +2424,12 @@ void MainWindow::on_actionPreferences_triggered()
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
-        findMusic(musicRootPath, "", "main"); // always refresh the songTable after the Prefs dialog returns with OK
+
+        bool oldSaveSongPreferencesInConfig = saveSongPreferencesInConfig;
+        saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
+
+        findMusic(musicRootPath, "", "main",
+                  oldSaveSongPreferencesInConfig || saveSongPreferencesInConfig); // always refresh the songTable after the Prefs dialog returns with OK
 
         // Save the new value for music type colors --------
         patterColorString = prefsManager.GetpatterColorString();
@@ -2506,8 +2506,6 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for experimentalClockColoringEnabled --------
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
-
-        saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
 
         {
             QString value;
@@ -3500,7 +3498,7 @@ void MainWindow::saveCurrentSongSettings()
 {
     QString currentSong = ui->nowPlayingLabel->text();
 
-    if (saveSongPreferencesInConfig && !currentSong.isEmpty()) {
+    if (!currentSong.isEmpty()) {
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
 
@@ -3518,24 +3516,22 @@ void MainWindow::saveCurrentSongSettings()
 
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
-    if (saveSongPreferencesInConfig) {
-        int pitch = ui->pitchSlider->value();
-        int tempo = ui->tempoSlider->value();
-        int volume = ui->volumeSlider->value();
-        double intro = ui->seekBarCuesheet->GetIntro();
-        double outro = ui->seekBarCuesheet->GetOutro();
-        if (songSettings.loadSettings(currentMP3filename,
-                                      songTitle,
-                                      volume,
-                                      pitch, tempo,
-                                      intro, outro))
-        {
-            ui->pitchSlider->setValue(pitch);
-            ui->tempoSlider->setValue(tempo);
-            ui->volumeSlider->setValue(volume);
-            ui->seekBarCuesheet->SetIntro(intro);
-            ui->seekBarCuesheet->SetOutro(outro);
-        }
+    int pitch = ui->pitchSlider->value();
+    int tempo = ui->tempoSlider->value();
+    int volume = ui->volumeSlider->value();
+    double intro = ui->seekBarCuesheet->GetIntro();
+    double outro = ui->seekBarCuesheet->GetOutro();
+    if (songSettings.loadSettings(currentMP3filename,
+                                  songTitle,
+                                  volume,
+                                  pitch, tempo,
+                                  intro, outro))
+    {
+        ui->pitchSlider->setValue(pitch);
+        ui->tempoSlider->setValue(tempo);
+        ui->volumeSlider->setValue(volume);
+        ui->seekBarCuesheet->SetIntro(intro);
+        ui->seekBarCuesheet->SetOutro(outro);
     }
 }
 
@@ -3731,7 +3727,7 @@ void MainWindow::on_newVolumeMounted() {
         ui->statusBar->showMessage("SCANNING GUEST VOLUME: " + newVolume);
         QThread::sleep(1);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
 
-        findMusic(musicRootPath, guestRootPath, guestMode);  // get the filenames from the guest's directories
+        findMusic(musicRootPath, guestRootPath, guestMode, false);  // get the filenames from the guest's directories
     } else if (lastKnownVolumeList.length() > newVolumeList.length()) {
         // ONE OR MORE VOLUMES WENT AWAY
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
@@ -3747,7 +3743,7 @@ void MainWindow::on_newVolumeMounted() {
 
         guestMode = "main";
         guestRootPath = "";
-        findMusic(musicRootPath, "", guestMode);  // get the filenames from the user's directories
+        findMusic(musicRootPath, "", guestMode, false);  // get the filenames from the user's directories
     } else {
         qDebug() << "No volume added/lost by the time we got here. I give up. :-(";
         return;
@@ -4478,7 +4474,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
         // used to store the file paths
-        findMusic(musicRootPath,"","main");  // get the filenames from the user's directories
+        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
 
         // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.

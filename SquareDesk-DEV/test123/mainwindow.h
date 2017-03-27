@@ -264,7 +264,7 @@ private:
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(QString MP3FileName);
 
-    void findMusic(QString mainRootDir, QString guestRootDir, QString mode);    // get the filenames into pathStack
+    void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
 

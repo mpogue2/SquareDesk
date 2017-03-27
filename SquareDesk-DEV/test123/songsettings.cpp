@@ -205,19 +205,26 @@ static const char *default_session_names[] =
 };
 
 static const char database_type_name[] = "QSQLITE";
-void SongSettings::openDatabase(const QString& path)
+void SongSettings::openDatabase(const QString& path, bool in_memory)
 {
     closeDatabase();
     
     m_db = QSqlDatabase::addDatabase(database_type_name);
-    QDir dir(path);
-    
-    if (!dir.exists())
+    if (in_memory)
     {
-        dir.mkpath(".");
+        m_db.setDatabaseName(":memory:");
     }
-    m_db.setDatabaseName(path + "/SquareDesk.sqlite3");
- 
+    else
+    {
+        QDir dir(path);
+    
+        if (!dir.exists())
+        {
+            dir.mkpath(".");
+        }
+        m_db.setDatabaseName(path + "/SquareDesk.sqlite3");
+    }
+
     if (!m_db.open())
     {
         qDebug() << "Error: database fail: " << path << ":" << m_db.lastError();
