@@ -255,7 +255,6 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
         painter.drawLine(center.x(),0,center.x(),this->height());
 
         // draw the people ----------------------
-
         int person = 0;
         x = y = 0.0;
 
@@ -315,8 +314,14 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 
                 // draw the shape
                 if (personGender == "B") {
+                    painter.setPen(QPen(Qt::black,1.5,
+                                        Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin));  // outline pen style
+
                     painter.drawRect(r);
                 } else {
+                    painter.setPen(QPen(Qt::black,1.75,
+                                        Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin));  // outline pen style
+
                     painter.drawEllipse(r);
                 }
 
@@ -345,17 +350,19 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
                 }
 
                 // draw the direction indicator
-                painter.setPen(Qt::black);
+                painter.setPen(QPen(Qt::black,2.0,
+                                    Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin));  // outline pen style
+
                 QPoint personCenter(x + 2*oneUnit + xoffset,
                                     y + 2*oneUnit + yoffset);
                 if (personDirection == "<") {
-                    painter.drawLine(personCenter + QPoint(-1*oneUnit,0), personCenter + QPoint(-2*oneUnit,0));
+                    painter.drawLine(personCenter + QPoint(-1.2*oneUnit,0), personCenter + QPoint(-2*oneUnit,0));
                 } else if (personDirection == ">") {
-                    painter.drawLine(personCenter + QPoint(1*oneUnit,0), personCenter + QPoint(2*oneUnit,0));
+                    painter.drawLine(personCenter + QPoint(1.2*oneUnit,0), personCenter + QPoint(2*oneUnit,0));
                 } else if (personDirection == "V") {
-                    painter.drawLine(personCenter+ QPoint(0,1*oneUnit), personCenter + QPoint(0,2*oneUnit));
+                    painter.drawLine(personCenter+ QPoint(0,1.2*oneUnit), personCenter + QPoint(0,2*oneUnit));
                 } else {
-                    painter.drawLine(personCenter+ QPoint(0,-1*oneUnit), personCenter + QPoint(0,-2*oneUnit));
+                    painter.drawLine(personCenter+ QPoint(0,-1.2*oneUnit), personCenter + QPoint(0,-2*oneUnit));
                 }
 
                 person++;
