@@ -2054,7 +2054,12 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
                                    QString str, int column)
 {
-    QTableWidgetItem *newTableItem = new QTableWidgetItem( str.trimmed() );
+    QTableWidgetItem *newTableItem;
+    if (column == kNumberCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
+        newTableItem = new TableNumberItem( str.trimmed() );  // does sorting correctly for numbers
+    } else {
+        newTableItem = new QTableWidgetItem( str.trimmed() );
+    }
     newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);      // not editable
     newTableItem->setTextColor(textCol);
     if (column == kAgeCol || column == kPitchCol || column == kTempoCol) {
