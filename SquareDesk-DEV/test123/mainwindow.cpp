@@ -563,7 +563,8 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QFileInfo fi(origPath);
-        ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName()));
+        ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName()).trimmed());
+        ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
 }
 
@@ -855,7 +856,9 @@ void MainWindow::on_playButton_clicked()
                 // exactly 1 row was selected (good)
                 QModelIndex index = selected.at(0);
                 row = index.row();
-                ui->songTable->item(row, kAgeCol)->setText("  0");
+//                ui->songTable->item(row, kAgeCol)->setText("  0");
+                ui->songTable->item(row, kAgeCol)->setText("0");
+                ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
 
         }
@@ -1036,7 +1039,7 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
         return;
     }
 
-    ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch));
+    ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
 }
 
 // ----------------------------------------------------------------------
@@ -2051,9 +2054,12 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
                                    QString str, int column)
 {
-    QTableWidgetItem *newTableItem = new QTableWidgetItem( str );
+    QTableWidgetItem *newTableItem = new QTableWidgetItem( str.trimmed() );
     newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);      // not editable
     newTableItem->setTextColor(textCol);
+    if (column == kAgeCol || column == kPitchCol || column == kTempoCol) {
+        newTableItem->setTextAlignment(Qt::AlignCenter);
+    }
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
 }
 
@@ -2274,7 +2280,7 @@ void MainWindow::loadMusicList()
                                   volume,
                                   pitch, tempo,
                                   intro, outro);
-        
+
         addStringToLastRowOfSongTable(textCol, ui->songTable,
                                       QString("%1").arg(pitch),
                                       kPitchCol);
@@ -2621,10 +2627,10 @@ void MainWindow::on_actionLoad_Playlist_triggered()
                             theItem->setText(QString::number(songCount));
 
                             QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-                            theItem2->setText(list1[1]);
+                            theItem2->setText(list1[1].trimmed());
 
                             QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-                            theItem3->setText(list1[2]);
+                            theItem3->setText(list1[2].trimmed());
 
                             match = true;
 //                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);

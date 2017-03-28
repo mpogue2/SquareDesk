@@ -121,15 +121,24 @@
             <property name="text">
              <string>Age</string>
             </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
            </column>
            <column>
             <property name="text">
              <string>Pitch</string>
             </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
            </column>
            <column>
             <property name="text">
              <string>Tempo</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
             </property>
            </column>
           </widget>
