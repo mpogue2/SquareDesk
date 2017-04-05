@@ -28,6 +28,7 @@ public:
     void openDatabase(const QString &path, bool in_memory);
     void closeDatabase();
     void saveSettings(const QString &filename,
+                      const QString &filenameWithPath,
                       const QString &songname,
                       int volume,
                  int pitch,
@@ -35,6 +36,7 @@ public:
                  double introPos,
                  double outroPos);
     bool loadSettings(const QString &filename,
+                      const QString &filenameWithPath,
                       const QString &songname,
                       int &volume,
                  int &pitch,
@@ -45,8 +47,8 @@ public:
     QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
-    QString getSongAge(const QString &filename);
-    void markSongPlayed(const QString &filename);
+    QString getSongAge(const QString &filename, const QString &filenameWithPath);
+    void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
     
 private:
@@ -59,7 +61,8 @@ private:
     int current_session_id;
     
     void ensureSchema(TableDefinition *);
-    int getSongIDFromFilename(const QString &filename);
+    int getSongIDFromFilename(const QString &filename, const QString &filenameWithPath);
+    int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);
     
 #ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE

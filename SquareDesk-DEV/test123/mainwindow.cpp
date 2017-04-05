@@ -563,7 +563,7 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QFileInfo fi(origPath);
-        ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName()).trimmed());
+        ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName(),origPath).trimmed());
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
 }
@@ -848,7 +848,7 @@ void MainWindow::on_playButton_clicked()
         {
             firstTimeSongIsPlayed = false;
             saveCurrentSongSettings();
-            songSettings.markSongPlayed(currentMP3filename);
+            songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
             QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
             QModelIndexList selected = selectionModel->selectedRows();
             int row = -1;
@@ -1005,6 +1005,16 @@ void MainWindow::timerCountDown_update()
     }
 }
 
+int MainWindow::getSelectionRowForFilename(const QString &filePath)
+{
+    for (int i=0; i < ui->songTable->rowCount(); i++) {
+        QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+        if (filePath == origPath)
+            return i;
+    }
+    return -1;
+}
+
 // ----------------------------------------------------------------------
 
 void MainWindow::on_pitchSlider_valueChanged(int value)
@@ -1026,20 +1036,11 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
 
     saveCurrentSongSettings();
     // update the hidden pitch column
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
+    int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+    if (row != -1)
+    {
+        ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
     }
-    else {
-        // FIX: more than 1 row or no rows at all selected (BAD)
-        return;
-    }
-
-    ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
 }
 
 // ----------------------------------------------------------------------
@@ -1106,26 +1107,16 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
 
     saveCurrentSongSettings();
     // update the hidden tempo column
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
+    int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+    if (row != -1)
+    {
+        if (tempoIsBPM) {
+            ui->songTable->item(row, kTempoCol)->setText(QString::number(value));
+        }
+        else {
+            ui->songTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
+        }
     }
-    else {
-        // FIX: more than 1 row or no rows at all selected (BAD)
-        return;
-    }
-
-    if (tempoIsBPM) {
-        ui->songTable->item(row, kTempoCol)->setText(QString::number(value));
-    }
-    else {
-        ui->songTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
-    }
-
 }
 
 // ----------------------------------------------------------------------
@@ -1810,6 +1801,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     firstTimeSongIsPlayed = true;
     loadCuesheet(MP3FileName);
 
+    currentMP3filenameWithPath = MP3FileName;
+    
     currentSongType = songType;  // save it for session coloring on the analog clock later...
 
     QStringList pieces = MP3FileName.split( "/" );
@@ -2277,7 +2270,7 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName()), kAgeCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName(), origPath), kAgeCol);
 
         int pitch = 0;
         int tempo = 0;
@@ -2285,6 +2278,7 @@ void MainWindow::loadMusicList()
         double intro = 0;
         double outro = 0;
         songSettings.loadSettings(fi.completeBaseName(),
+                                  origPath,
                                   title,
                                   volume,
                                   pitch, tempo,
@@ -3517,6 +3511,7 @@ void MainWindow::saveCurrentSongSettings()
         int tempo = ui->tempoSlider->value();
 
         songSettings.saveSettings(currentMP3filename,
+                                  currentMP3filenameWithPath,
                                   currentSong,
                                   currentVolume,
                                   pitch, tempo,
@@ -3536,6 +3531,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
     if (songSettings.loadSettings(currentMP3filename,
+                                  currentMP3filenameWithPath,
                                   songTitle,
                                   volume,
                                   pitch, tempo,

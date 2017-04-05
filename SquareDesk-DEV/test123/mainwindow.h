@@ -253,6 +253,7 @@ private:
     bool closeEventHappened;
 
     QString currentMP3filename;
+    QString currentMP3filenameWithPath;
     bool songLoaded;
     bool fileModified;
 
@@ -305,6 +306,7 @@ private:
 
     int selectedSongRow();  // returns -1 if none selected
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
+    int getSelectionRowForFilename(const QString &filePath);
 
     // Song types
     QStringList songTypeNamesForPatter;
