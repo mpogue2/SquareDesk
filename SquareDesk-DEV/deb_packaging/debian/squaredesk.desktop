@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Square Desk
+GenericName=Square Desk
+Comment=Square Dance Caller music and choreography tool!
+Icon=/usr/share/SquareDeskPlayer/desk1d.ico
+Exec=SquareDeskPlayer
+Terminal=false
+Type=Application
+Categories=Qt;Multimedia;

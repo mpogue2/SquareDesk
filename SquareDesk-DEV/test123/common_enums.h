@@ -32,5 +32,9 @@ enum SongFilenameMatchingType {
     SongFilenameBestGuess
 };
 
+enum SessionDefaultType {
+    SessionDefaultPractice = 1,
+    SessionDefaultDOW
+};
 
 #endif // ifndef COMMON_ENUMS_H

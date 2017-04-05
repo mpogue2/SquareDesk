@@ -28,6 +28,7 @@
 
 #include <QObject>
 
+#include <QActionGroup>
 #include <QDebug>
 #include <QMainWindow>
 #include <QTimer>
@@ -92,6 +93,7 @@ public:
     QTextEdit *currentSequenceWidget;
 
     PreferencesDialog *prefDialog;
+    QActionGroup *sdActionGroup1;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -99,6 +101,8 @@ protected:
     void on_monoButton_toggled(bool checked);
 
 private slots:
+    void sdActionTriggered(QAction * action);
+
     void on_stopButton_clicked();
     void on_playButton_clicked();
     void on_pitchSlider_valueChanged(int value);
@@ -223,8 +227,6 @@ private slots:
 private:
     QAction *closeAct;  // WINDOWS only
 
-    bool notSorted;
-
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath, guestRootPath, guestVolume, guestMode;
@@ -251,6 +253,7 @@ private:
     bool closeEventHappened;
 
     QString currentMP3filename;
+    QString currentMP3filenameWithPath;
     bool songLoaded;
     bool fileModified;
 
@@ -264,9 +267,11 @@ private:
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(QString MP3FileName);
 
-    void findMusic(QString mainRootDir, QString guestRootDir, QString mode);    // get the filenames into pathStack
+    void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
+
+    void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // Lyrics stuff
@@ -301,6 +306,7 @@ private:
 
     int selectedSongRow();  // returns -1 if none selected
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
+    int getSelectionRowForFilename(const QString &filePath);
 
     // Song types
     QStringList songTypeNamesForPatter;

@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SquareDeskPlayer"
-#define MyAppVersion "0.7.4"
+#define MyAppVersion "0.8.0"
 #define MyAppPublisher "Zenstar Software"
 #define MyAppURL "http://www.squaredesk.net"
 #define MyAppExeName "SquareDeskPlayer.exe"
@@ -67,7 +67,8 @@ Source: {#DeployDirectory}\ps; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\iconengines\qsvgicon.dll; DestDir: "{app}\iconengines"; Flags: ignoreversion
 Source: {#DeployDirectory}\platforms\qwindows.dll; DestDir: "{app}\platforms"; Flags: ignoreversion
 Source: {#DeployDirectory}\plugins\imageformats\qico.dll; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
-Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
+;Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
+Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}"; Flags: ignoreversion
 
 Source: {#DeployDirectory}\Qt5Core.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\Qt5Gui.dll; DestDir: "{app}"; Flags: ignoreversion
@@ -80,7 +81,7 @@ Source: {#DeployDirectory}\Qt5Gui.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5Qml.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5Quick.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5Sensors.dll; DestDir: "{app}"; Flags: ignoreversion
-;Source: {#DeployDirectory}\Qt5Sql.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\Qt5Sql.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5WebChannel.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5WebKit.dll; DestDir: "{app}"; Flags: ignoreversion
 ;Source: {#DeployDirectory}\Qt5WebKitWidgets.dll; DestDir: "{app}"; Flags: ignoreversion

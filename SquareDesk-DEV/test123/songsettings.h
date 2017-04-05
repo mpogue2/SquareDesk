@@ -2,6 +2,7 @@
 #define SONGSETTINGS_H_INCLUDED
 #include <QtSql/QSqlDatabase>
 #include <QtSql>
+#include <vector>
 
 // #define SONGSETTINGS_INCLUDE_SONG_ID_CACHE
 // #define SONGSETTINGS_INCLUDE_SONG_CACHE
@@ -25,9 +26,13 @@ class SongSettings
 {
 public:
     SongSettings();
-    void openDatabase(const QString &path);
+    void openDatabase(const QString &path,
+                      const QString &mainRootDir,
+                      const QString &guestRootDir,
+                      bool in_memory);
     void closeDatabase();
     void saveSettings(const QString &filename,
+                      const QString &filenameWithPath,
                       const QString &songname,
                       int volume,
                  int pitch,
@@ -35,6 +40,7 @@ public:
                  double introPos,
                  double outroPos);
     bool loadSettings(const QString &filename,
+                      const QString &filenameWithPath,
                       const QString &songname,
                       int &volume,
                  int &pitch,
@@ -45,8 +51,8 @@ public:
     QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
-    QString getSongAge(const QString &filename);
-    void markSongPlayed(const QString &filename);
+    QString getSongAge(const QString &filename, const QString &filenameWithPath);
+    void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
     
 private:
@@ -59,8 +65,11 @@ private:
     int current_session_id;
     
     void ensureSchema(TableDefinition *);
-    int getSongIDFromFilename(const QString &filename);
+    int getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized);
+    int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);
+    QString removeRootDirs(const QString &filenameWithPath);
+
     
 #ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE
     std::map<QString,int> song_id_cache;
@@ -71,6 +80,7 @@ private:
 #ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
     std::map<QString, int> song_age_cache;
 #endif
+    std::vector<QString> root_directories;
     
 };
 

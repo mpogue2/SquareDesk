@@ -34,6 +34,10 @@ RenderArea::RenderArea(QWidget *parent)
     setBackgroundRole(QPalette::Base);
     setAutoFillBackground(true);
     bad = 0;
+
+    // TODO: two sets of colors needed
+    setCoupleColoringScheme("Normal");
+    mentalImageMode = false;
 }
 
 QSize RenderArea::minimumSizeHint() const
@@ -80,6 +84,32 @@ void RenderArea::setFormation(QString s)
     this->formation = s;
     update();
 }
+
+void RenderArea::setCoupleColoringScheme(QString colorScheme) {
+    coupleColoringScheme = colorScheme;  // save as QString
+    if (colorScheme == "Normal" || colorScheme == "Color only") {
+        coupleColor[COUPLE1] = COUPLE1COLOR;
+        coupleColor[COUPLE2] = COUPLE2COLOR;
+        coupleColor[COUPLE3] = COUPLE3COLOR;
+        coupleColor[COUPLE4] = COUPLE4COLOR;
+        mentalImageMode = false;
+    } else if (colorScheme == "Mental image") {
+        coupleColor[COUPLE1] = COUPLE1COLOR;
+        coupleColor[COUPLE2] = GREYCOUPLECOLOR;
+        coupleColor[COUPLE3] = GREYCOUPLECOLOR;
+        coupleColor[COUPLE4] = GREYCOUPLECOLOR;
+        mentalImageMode = true;
+    } else {
+        // Sight
+        coupleColor[COUPLE1] = COUPLE1COLOR;
+        coupleColor[COUPLE2] = GREYCOUPLECOLOR;
+        coupleColor[COUPLE3] = GREYCOUPLECOLOR;
+        coupleColor[COUPLE4] = COUPLE4COLOR;
+        mentalImageMode = false;
+    }
+    update();  // re-render the area
+}
+
 
 void RenderArea::paintEvent(QPaintEvent * /* event */)
 {
@@ -225,7 +255,6 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
         painter.drawLine(center.x(),0,center.x(),this->height());
 
         // draw the people ----------------------
-
         int person = 0;
         x = y = 0.0;
 
@@ -269,31 +298,71 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
                         4*oneUnit, 4*oneUnit);  // EACH PERSON TAKES UP SPACE SMALLER THAN ONESPACE
 
                 if (personNumber=="1") {
-                    painter.setBrush(QBrush(COUPLE1COLOR));
+                    if (personGender != "B" && mentalImageMode) {
+                            // head girl is grey in mental image mode
+                            painter.setBrush(QBrush(GREYCOUPLECOLOR));
+                    } else {
+                        painter.setBrush(QBrush(coupleColor[COUPLE1]));
+                    }
                 } else if (personNumber=="2") {
-                    painter.setBrush(QBrush(COUPLE2COLOR));
+                    painter.setBrush(QBrush(coupleColor[COUPLE2]));
                 } else if (personNumber=="3") {
-                    painter.setBrush(QBrush(COUPLE3COLOR));
+                    painter.setBrush(QBrush(coupleColor[COUPLE3]));
                 } else {
-                    painter.setBrush(QBrush(COUPLE4COLOR));
+                    painter.setBrush(QBrush(coupleColor[COUPLE4]));
                 }
 
+                // draw the shape
                 if (personGender == "B") {
+                    painter.setPen(QPen(Qt::black,1.5,
+                                        Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin));  // outline pen style
+
                     painter.drawRect(r);
                 } else {
+                    painter.setPen(QPen(Qt::black,1.75,
+                                        Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin));  // outline pen style
+
                     painter.drawEllipse(r);
                 }
+
+                // draw a number
+//                painter.setFont(QFont("Arial",formationFontSize,QFont::Bold));
+#if defined(Q_OS_MAC)
+                painter.setFont(QFont("Arial",11));
+                int hOffset = 3;
+                int vOffset = -4;
+#elif defined(Q_OS_WIN)
+                painter.setFont(QFont("Arial",8));
+                int hOffset = 4;
+                int vOffset = -5;
+#else
+                painter.setFont(QFont("Arial",8));
+                int hOffset = 2;
+                int vOffset = -3;
+#endif
+                QPointF textLoc = QPoint(x + xoffset + 2*oneUnit - hOffset,
+                                         y + yoffset + 2*oneUnit - vOffset);
+                painter.setPen(Qt::black);
+
+                if (coupleColoringScheme == "Normal") {
+                    // This is the only mode where we draw numbers
+                    painter.drawText(textLoc, personNumber);
+                }
+
+                // draw the direction indicator
+                painter.setPen(QPen(Qt::black,2.0,
+                                    Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin));  // outline pen style
 
                 QPoint personCenter(x + 2*oneUnit + xoffset,
                                     y + 2*oneUnit + yoffset);
                 if (personDirection == "<") {
-                    painter.drawLine(personCenter, personCenter + QPoint(-2*oneUnit,0));
+                    painter.drawLine(personCenter + QPoint(-1.2*oneUnit,0), personCenter + QPoint(-2*oneUnit,0));
                 } else if (personDirection == ">") {
-                    painter.drawLine(personCenter, personCenter + QPoint(2*oneUnit,0));
+                    painter.drawLine(personCenter + QPoint(1.2*oneUnit,0), personCenter + QPoint(2*oneUnit,0));
                 } else if (personDirection == "V") {
-                    painter.drawLine(personCenter, personCenter + QPoint(0,2*oneUnit));
+                    painter.drawLine(personCenter+ QPoint(0,1.2*oneUnit), personCenter + QPoint(0,2*oneUnit));
                 } else {
-                    painter.drawLine(personCenter, personCenter + QPoint(0,-2*oneUnit));
+                    painter.drawLine(personCenter+ QPoint(0,-1.2*oneUnit), personCenter + QPoint(0,-2*oneUnit));
                 }
 
                 person++;

@@ -30,6 +30,8 @@
  *  1. This file has no declarations that can't be processed twice.
  *  2. This file doesn't have "include" guards.
  *
+ * When adding a combo box here, make sure that you add the associated
+ * "SetPulldownValuesToItemNumberPlusOne" in preferencesdialog.cpp
  *
  * The four places this file gets processed are prefsdialog.{cpp,h},
  * and prefsmanager.{cpp,h}.
@@ -63,6 +65,7 @@ CONFIG_ATTRIBUTE_BOOLEAN(breakTimerCheckbox, breakLengthTimerEnabled, false)
 CONFIG_ATTRIBUTE_COMBO(breakLength,breakLengthTimerLength, 10)
 CONFIG_ATTRIBUTE_COMBO(afterBreakAction,breakLengthAlarmAction, 10)
 CONFIG_ATTRIBUTE_COMBO(comboBoxMusicFormat, SongFilenameFormat, SongFilenameLabelDashName)
+CONFIG_ATTRIBUTE_COMBO(comboBoxSessionDefault, SessionDefault, SessionDefaultPractice)
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeSinging, MusicTypeSinging, "singing;singers")
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypePatter, MusicTypePatter, "patter;hoedown")
 

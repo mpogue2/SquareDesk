@@ -28,16 +28,19 @@
 
 TypeTracker::TypeTracker()
 {
-    // You can stop the Patter for up to N seconds (right now, 30s), without auto-going to break.
+    // You can stop the Patter for up to N seconds (right now, 60s), without auto-going to break.
     // So, if you want to give direction to dancers without going to break, make sure it's
-    //   less than N=30 seconds.  In general, it's better to turn down the volume with your hand-wheel,
+    //   less than N=60 seconds.  In general, it's better to turn down the volume with your hand-wheel,
     //   than to stop the music entirely.
-    //   >30 seconds of not playing patter means we're in BREAK (and the patter timer is auto-reset)
+    //   >60 seconds of not playing patter means we're in BREAK (and the patter timer is auto-reset)
     //   singing calls take us out of patter timer mode immediately, and when singing calls stop,
     //     the auto-break timer auto-starts.  (Might want to wait 15 second before doing so for singing calls, too).
-    //   NOTE: this 30s is not lost, it's subtracted from the initial break timer when the break timer starts.
+    //   NOTE: this 60s is not lost, it's subtracted from the initial break timer when the break timer starts.
     // Right now, the break timer is a count-down timer, while the patter timer is a count-up timer.
-    consolidateNSecondsOfNone = 30;
+    //
+    // changed to 60s at suggestion of David Dvorak (I think he's right)
+    // TODO: make a Preference for this value
+    consolidateNSecondsOfNone = 60;
 
     TimeSegment t;
     t.type = NONE;

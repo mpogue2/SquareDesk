@@ -1,3 +1,27 @@
+/****************************************************************************
+**
+** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+** Contact: mpogue @ zenstarstudio.com
+**
+** This file is part of the SquareDesk/SquareDeskPlayer application.
+**
+** $SQUAREDESK_BEGIN_LICENSE$
+**
+** Commercial License Usage
+** For commercial licensing terms and conditions, contact the authors via the
+** email address above.
+**
+** GNU General Public License Usage
+** This file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appear in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file.
+**
+** $SQUAREDESK_END_LICENSE$
+**
+****************************************************************************/
 #include <QtSql/QSqlDatabase>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
@@ -68,11 +92,10 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
 {
     QSqlQuery q(m_db);
     exec("ensureSchema", q, "PRAGMA TABLE_INFO(" + QString(table_definition->name) + ")");
-    
 
     bool found_any_fields = false;
     vector<QString> alter_statements;
-    
+
     while (q.next())
     {
         found_any_fields = true;
@@ -131,7 +154,7 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
         alter += "\n)\n";
 
         alter_statements.insert(alter_statements.begin(), alter);
-    } 
+    }
     for (vector<QString>::iterator alter = alter_statements.begin();
          alter != alter_statements.end();
          ++alter)
@@ -144,8 +167,10 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
 RowDefinition song_rows[] =
 {
     RowDefinition("filename", "text PRIMARY KEY"),
+    RowDefinition("songname", "text",
+        "CREATE INDEX songs_songname ON songs(songname)"),
     RowDefinition("name", "text",
-        "CREATE INDEX songs_name_idx ON SONGS(name)"),
+        "CREATE INDEX songs_name_idx ON songs(name)"),
     RowDefinition("pitch", "int"),
     RowDefinition("tempo", "int"),
     RowDefinition("volume", "int"),
@@ -204,19 +229,35 @@ static const char *default_session_names[] =
     NULL
 };
 
-void SongSettings::openDatabase(const QString& path)
+static const char database_type_name[] = "QSQLITE";
+void SongSettings::openDatabase(const QString& path,
+                                const QString& root_dir,
+                                const QString& guest_dir,
+                                bool in_memory)
 {
     closeDatabase();
-    
-    m_db = QSqlDatabase::addDatabase("QSQLITE");
-    QDir dir(path);
-    
-    if (!dir.exists())
+    root_directories.clear();
+    if (root_dir.length() > 0)
+        root_directories.push_back(root_dir);
+    if (guest_dir.length() > 0)
+        root_directories.push_back(guest_dir);
+
+    m_db = QSqlDatabase::addDatabase(database_type_name);
+    if (in_memory)
     {
-        dir.mkpath(".");
+        m_db.setDatabaseName(":memory:");
     }
-    m_db.setDatabaseName(path + "/SquareDesk.sqlite3");
- 
+    else
+    {
+        QDir dir(path);
+    
+        if (!dir.exists())
+        {
+            dir.mkpath(".");
+        }
+        m_db.setDatabaseName(path + "/SquareDesk.sqlite3");
+    }
+
     if (!m_db.open())
     {
         qDebug() << "Error: database fail: " << path << ":" << m_db.lastError();
@@ -260,8 +301,7 @@ void SongSettings::openDatabase(const QString& path)
 }
 
 
-
-int SongSettings::getSongIDFromFilename(const QString &filename)
+int SongSettings::getSongIDFromFilenameAlone(const QString &filename)
 {
     int id = -1;
 
@@ -277,6 +317,26 @@ int SongSettings::getSongIDFromFilename(const QString &filename)
     }
     return id;
 }
+
+int SongSettings::getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized)
+{
+    int id = getSongIDFromFilenameAlone(filenameWithPathNormalized);
+    if (-1 == id)
+    {
+        id = getSongIDFromFilenameAlone(filename);
+        if (-1 != id)
+        {
+            QSqlQuery q(m_db);
+            q.prepare("UPDATE songs SET filename=:newfilename, songname=:songname WHERE rowid=:id");
+            q.bindValue(":newfilename", filenameWithPathNormalized);
+            q.bindValue(":songname", filename);
+            q.bindValue(":id", id);
+            exec("updatingSongName", q);
+        }
+    }
+    return id;
+}
+
 int SongSettings::getSessionIDFromName(const QString &name)
 {
     int id = -1;
@@ -304,11 +364,24 @@ void SongSettings::initializeSessionsModel()
 
 }
 
-
-
-void SongSettings::markSongPlayed(const QString &filename)
+QString SongSettings::removeRootDirs(const QString &filenameWithPath)
 {
-    int song_rowid = getSongIDFromFilename(filename);
+    QString filenameWithPathNormalized(filenameWithPath);
+    for (QString root_dir : root_directories)
+    {
+        if (filenameWithPath.startsWith(root_dir))
+        {
+            filenameWithPathNormalized.remove(0, root_dir.length());
+            break;
+        }
+    }
+    return filenameWithPathNormalized;
+}
+
+void SongSettings::markSongPlayed(const QString &filename, const QString &filenameWithPath)
+{
+    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    int song_rowid = getSongIDFromFilename(filename, filenameWithPathNormalized);
     QSqlQuery q(m_db);
     q.prepare("INSERT INTO song_plays(song_rowid,session_rowid) VALUES (:song_rowid, :session_rowid)");
     q.bindValue(":song_rowid", song_rowid);
@@ -316,19 +389,38 @@ void SongSettings::markSongPlayed(const QString &filename)
     exec("markSongPlayed", q);
 }
 
-QString SongSettings::getSongAge(const QString &filename)
+QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath)
 {
-    QSqlQuery q(m_db);
-    q.prepare("SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1");
-    q.bindValue(":filename", filename);
-    q.bindValue(":session_rowid", current_session_id);
-    exec("getSongAge", q);
-
-    if (q.next())
+    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    const char sql[] = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1";
     {
-        int age = q.value(0).toInt();
-        QString str(QString("%1").arg(age, 3));
-        return str;
+        QSqlQuery q(m_db);
+        q.prepare(sql);
+        q.bindValue(":filename", filenameWithPathNormalized);
+        q.bindValue(":session_rowid", current_session_id);
+        exec("getSongAge", q);
+
+        if (q.next())
+        {
+            int age = q.value(0).toInt();
+            QString str(QString("%1").arg(age, 3));
+            return str;
+        }
+    }
+
+    {
+        QSqlQuery q(m_db);
+        q.prepare(sql);
+        q.bindValue(":filename", filename);
+        q.bindValue(":session_rowid", current_session_id);
+        exec("getSongAge", q);
+
+        if (q.next())
+        {
+            int age = q.value(0).toInt();
+            QString str(QString("%1").arg(age, 3));
+            return str;
+        }
     }
     return QString("");
 }
@@ -336,6 +428,7 @@ QString SongSettings::getSongAge(const QString &filename)
 
 
 void SongSettings::saveSettings(const QString &filename,
+                                const QString &filenameWithPath,
                                 const QString &songname,
                                 int volume,
                                 int pitch,
@@ -343,18 +436,20 @@ void SongSettings::saveSettings(const QString &filename,
                                 double introPos,
                                 double outroPos)
 {
-    int id = getSongIDFromFilename(filename);
+    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    int id = getSongIDFromFilename(filename, filenameWithPathNormalized);
 
     QSqlQuery q(m_db);
     if (id == -1)
     {
-        q.prepare("INSERT INTO songs(filename, name, pitch, tempo, introPos, outroPos, volume) VALUES (:filename, :name, :pitch, :tempo, :introPos, :outroPos, :volume)");
+        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, introPos, outroPos, volume) VALUES (:filename, :songname, :name, :pitch, :tempo, :introPos, :outroPos, :volume)");
     }
     else
     {
-        q.prepare("UPDATE songs SET name = :name, pitch = :pitch, tempo = :tempo, introPos = :introPos, outroPos = :outroPos, volume = :volume WHERE filename = :filename");
+        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, introPos = :introPos, outroPos = :outroPos, volume = :volume WHERE filename = :filename");
     }
-    q.bindValue(":filename", filename);
+    q.bindValue(":filename", filenameWithPathNormalized);
+    q.bindValue(":songname", filename);
     q.bindValue(":pitch", pitch);
     q.bindValue(":tempo", tempo);
     q.bindValue(":introPos", introPos);
@@ -365,6 +460,7 @@ void SongSettings::saveSettings(const QString &filename,
 }
 
 bool SongSettings::loadSettings(const QString &filename,
+                                const QString &filenameWithPath,
                                 const QString &songname,
                                 int &volume,
                                 int &pitch,
@@ -372,7 +468,25 @@ bool SongSettings::loadSettings(const QString &filename,
                                 double &introPos,
                                 double &outroPos)
 {
+    QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
+    {
+        QSqlQuery q(m_db);
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume FROM songs WHERE filename=:filename");
+        q.bindValue(":filename", filenameWithPathNormalized);
+        exec("loadSettings", q);
+
+        while (q.next())
+        {
+            foundResults = true;
+            pitch = q.value(1).toInt();
+            tempo = q.value(2).toInt();
+            introPos = q.value(3).toFloat();
+            outroPos = q.value(4).toFloat();
+            volume = q.value(5).toInt();
+        }
+    }
+    if (!foundResults)
     {
         QSqlQuery q(m_db);
         q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume FROM songs WHERE filename=:filename");
@@ -412,7 +526,10 @@ void SongSettings::closeDatabase()
 {
     if (databaseOpened)
     {
+        QString connection;
+        connection = m_db.connectionName();
         m_db.close();
-        databaseOpened = false;
+        m_db = QSqlDatabase();
+        m_db.removeDatabase(connection);
     }
 }

@@ -30,6 +30,18 @@
 #define COUPLE2COLOR (QColor(125,216,183))
 #define COUPLE3COLOR (QColor(0,199,250))
 #define COUPLE4COLOR (QColor(255,255,180))
+#define GREYCOUPLECOLOR (QColor(120,120,120))
+
 #define COUPLE4COLOR_DARK (QColor(201,209,38))
+
+#define COUPLE1 0
+#define COUPLE2 1
+#define COUPLE3 2
+#define COUPLE4 3
+
+#define COUPLECOLOR_RED (QColor(253,139,227))
+#define COUPLECOLOR_GREEN (QColor(125,216,183))
+#define COUPLECOLOR_BLUE (QColor(0,199,250))
+#define COUPLECOLOR_YELLOW (QColor(255,255,180))
 
 #endif // COMMON_H

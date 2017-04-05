@@ -63,6 +63,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     SetTimerPulldownValuesToFirstDigit(ui->breakLength);
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
+    SetPulldownValuesToItemNumberPlusOne(ui->comboBoxSessionDefault);
     SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
     SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
 

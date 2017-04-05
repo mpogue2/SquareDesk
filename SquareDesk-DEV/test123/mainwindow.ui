@@ -121,15 +121,24 @@
             <property name="text">
              <string>Age</string>
             </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
            </column>
            <column>
             <property name="text">
              <string>Pitch</string>
             </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
            </column>
            <column>
             <property name="text">
              <string>Tempo</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
             </property>
            </column>
           </widget>
@@ -1386,7 +1395,7 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1464,6 +1473,11 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <string>SD</string>
     </property>
     <addaction name="actionEnable_voice_input"/>
+    <addaction name="separator"/>
+    <addaction name="actionNormal"/>
+    <addaction name="actionColor_only"/>
+    <addaction name="actionMental_image"/>
+    <addaction name="actionSight"/>
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
@@ -1988,6 +2002,41 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="text">
     <string>Compact</string>
+   </property>
+  </action>
+  <action name="actionNormal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normal</string>
+   </property>
+  </action>
+  <action name="actionMental_image">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Mental image</string>
+   </property>
+  </action>
+  <action name="actionSight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sight</string>
+   </property>
+  </action>
+  <action name="actionColor_only">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Color only</string>
    </property>
   </action>
  </widget>
