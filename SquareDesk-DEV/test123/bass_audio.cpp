@@ -29,6 +29,61 @@
 #include <stdio.h>
 #include <QDebug>
 
+// GLOBALS =========
+float gStream_Pan = 0.0;
+bool gStream_Mono = false;
+HDSP gMono_dsp = 0;  // DSP handle (u32)
+
+// ========================================================================
+// Mix/Pan, then optionally mix down to mono
+// http://bass.radio42.com/help/html/b8b8a713-7af4-465e-a612-1acd769d4639.htm
+// http://www.delphipraxis.net/141676-bass-dll-stereo-zu-mono-2.html
+// also see the dsptest.c example (e.g. echo)
+void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, void *user)
+{
+    Q_UNUSED(user)
+    Q_UNUSED(channel)
+    Q_UNUSED(handle)
+
+    // NOTE: uses globals: gStream_Mono (true|false) and gStream_Pan (-1.0 = all L, 1.0 = all R)
+
+    float *d = (float *)buffer;
+    DWORD a;
+    float outL, outR;
+    float inL,inR;
+    float mono;
+
+    const float PI_OVER_2 = 3.14159265/2.0;
+    float theta = PI_OVER_2 * (gStream_Pan + 1.0)/2.0;  // convert to 0-PI/2
+    float KL = cos(theta);
+    float KR = sin(theta);
+
+    if (gStream_Mono) {
+        // FORCE MONO mode
+        for (a=0; a<length/4; a+=2)
+        {
+            inL = d[a];
+            inR = d[a+1];
+            outL = KL * inL;
+            outR = KR * inR;             // constant power pan
+            mono = (outL + outR)/2.0;  // mix down to mono for BOTH output channels
+            d[a] = d[a+1] = mono;
+        }
+
+    } else {
+        // NORMAL STEREO mode
+        for (a=0; a<length/4; a+=2)
+        {
+            inL = d[a];
+            inR = d[a+1];
+            outL = KL * inL;
+            outR = KR * inR;  // constant power pan
+            d[a] = outL;
+            d[a+1] = outR;
+        }
+    }
+}
+
 // ------------------------------------------------------------------
 bass_audio::bass_audio(void)
 {
@@ -38,7 +93,8 @@ bass_audio::bass_audio(void)
     Stream_Tempo = 100;  // current tempo, relative to 100
     Stream_Pitch = 0;    // current pitch correction, in semitones; -5 .. 5
     Stream_BPM = 0.0;    // current estimated BPM (original song, without tempo correction)
-    Stream_Pan = 0.0;
+//    Stream_Pan = 0.0;
+//    Stream_Mono = false; // true, if FORCE MONO mode
 
     fxEQ = 0;            // equalizer handle
     Stream_Eq[0] = 50.0;  // current EQ (3 bands), 0 = Bass, 1 = Mid, 2 = Treble
@@ -99,8 +155,8 @@ void bass_audio::SetPitch(int newPitch)
 // ------------------------------------------------------------------
 void bass_audio::SetPan(float newPan)
 {
-    Stream_Pan = newPan;
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_PAN, newPan);
+    gStream_Pan = newPan;
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_PAN, newPan);  // Panning/Mixing now done in MONO routine
 }
 
 // ------------------------------------------------------------------
@@ -211,6 +267,8 @@ void bass_audio::StreamCreate(const char *filepath)
     //   early in the song (which is quick, and reliable 98% of the time).
     Stream_BPM = bpmValue1;  // save original detected BPM
 
+    // ALWAYS do channel processing
+    gMono_dsp = BASS_ChannelSetDSP(Stream, &DSP_Mono, 0, 1);
 }
 
 // ------------------------------------------------------------------
@@ -288,45 +346,9 @@ void bass_audio::ClearLoop()
     startPoint_bytes = endPoint_bytes = 0;
 }
 
-// ========================================================================
-// Mix down to mono
-// http://bass.radio42.com/help/html/b8b8a713-7af4-465e-a612-1acd769d4639.htm
-// http://www.delphipraxis.net/141676-bass-dll-stereo-zu-mono-2.html
-// also see the dsptest.c example (e.g. echo)
-
-HDSP mono_dsp = 0;  // DSP handle (u32)
-
-void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, void *user)
-{
-    Q_UNUSED(user)
-    Q_UNUSED(channel)
-    Q_UNUSED(handle)
-    float *d = (float *)buffer;
-    DWORD a;
-    float mono;
-    float l,r;
-
-    for (a=0; a<length/4; a+=2) {
-        l = d[a];
-        r = d[a+1];
-        mono = (l + r)/2.0;
-        d[a] = d[a+1] = mono;
-    }
-}
-
-
 void bass_audio::SetMono(bool on)
 {
-    if (on) {
-        // enable Stereo -> Mono
-        mono_dsp = BASS_ChannelSetDSP(Stream, &DSP_Mono, 0, 1);
-    }
-    else {
-        // disable it (iff it was enabled)
-        if (mono_dsp != 0) {
-            BASS_ChannelRemoveDSP(Stream, mono_dsp);
-        }
-    }
+    gStream_Mono = on;
 }
 
 // ------------------------------------------------------------------

@@ -37,7 +37,8 @@ public:
     int                     Stream_Tempo;
     float                   Stream_Eq[3];
     int                     Stream_Pitch;
-    float                   Stream_Pan;
+//    float                   Stream_Pan;
+//    bool                    Stream_Mono;
     float                   Stream_BPM;
     bool                    bPaused;
 
