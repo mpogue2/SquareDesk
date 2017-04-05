@@ -2,6 +2,7 @@
 #define SONGSETTINGS_H_INCLUDED
 #include <QtSql/QSqlDatabase>
 #include <QtSql>
+#include <vector>
 
 // #define SONGSETTINGS_INCLUDE_SONG_ID_CACHE
 // #define SONGSETTINGS_INCLUDE_SONG_CACHE
@@ -25,7 +26,10 @@ class SongSettings
 {
 public:
     SongSettings();
-    void openDatabase(const QString &path, bool in_memory);
+    void openDatabase(const QString &path,
+                      const QString &mainRootDir,
+                      const QString &guestRootDir,
+                      bool in_memory);
     void closeDatabase();
     void saveSettings(const QString &filename,
                       const QString &filenameWithPath,
@@ -61,9 +65,11 @@ private:
     int current_session_id;
     
     void ensureSchema(TableDefinition *);
-    int getSongIDFromFilename(const QString &filename, const QString &filenameWithPath);
+    int getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized);
     int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);
+    QString removeRootDirs(const QString &filenameWithPath);
+
     
 #ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE
     std::map<QString,int> song_id_cache;
@@ -74,6 +80,7 @@ private:
 #ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
     std::map<QString, int> song_age_cache;
 #endif
+    std::vector<QString> root_directories;
     
 };
 

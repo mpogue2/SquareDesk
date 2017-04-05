@@ -2001,7 +2001,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
     if (refreshDatabase)
     {
-        songSettings.openDatabase(databaseDir, !saveSongPreferencesInConfig);
+        songSettings.openDatabase(databaseDir, mainRootDir, guestRootDir, !saveSongPreferencesInConfig);
     }
     // always gets rid of the old pathstack...
     if (pathStack) {
