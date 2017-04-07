@@ -1469,7 +1469,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.8.0a</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.8.1a</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
@@ -1802,7 +1802,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     loadCuesheet(MP3FileName);
 
     currentMP3filenameWithPath = MP3FileName;
-    
+
     currentSongType = songType;  // save it for session coloring on the analog clock later...
 
     QStringList pieces = MP3FileName.split( "/" );
