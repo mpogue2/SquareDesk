@@ -67,8 +67,8 @@ Source: {#DeployDirectory}\ps; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\iconengines\qsvgicon.dll; DestDir: "{app}\iconengines"; Flags: ignoreversion
 Source: {#DeployDirectory}\platforms\qwindows.dll; DestDir: "{app}\platforms"; Flags: ignoreversion
 Source: {#DeployDirectory}\plugins\imageformats\qico.dll; DestDir: "{app}\plugins\imageformats"; Flags: ignoreversion
-;Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
-Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}"; Flags: ignoreversion
+Source: {#DeployDirectory}\sqldrivers\qsqlite.dll; DestDir: "{app}\sqldrivers"; Flags: ignoreversion
+;Source: {#DeployDirectory}\qsqlite.dll; DestDir: "{app}"; Flags: ignoreversion
 
 Source: {#DeployDirectory}\Qt5Core.dll; DestDir: "{app}"; Flags: ignoreversion
 Source: {#DeployDirectory}\Qt5Gui.dll; DestDir: "{app}"; Flags: ignoreversion
