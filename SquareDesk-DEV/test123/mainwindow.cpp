@@ -142,7 +142,8 @@ MainWindow::MainWindow(QWidget *parent) :
     timerCountDown(NULL),
     trapKeypresses(true),
     sd(NULL),
-    firstTimeSongIsPlayed(false)
+    firstTimeSongIsPlayed(false),
+    loadingSong(false)
 {
 //    QSettings mySettings;
 //    QString settingsPath = mySettings.fileName();
@@ -182,6 +183,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->nextSongButton->setEnabled(false);
     ui->previousSongButton->setEnabled(false);
 
+     setCueSheetAdditionalControlsVisible(false);
     // ============
     ui->menuFile->addSeparator();
 
@@ -1291,13 +1293,105 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 }
 
 // --------------------------------1--------------------------------------
+void MainWindow::setCueSheetAdditionalControlsVisible(bool visible)
+{
+    // Really want to do this:
+    // ui->horizontalLayoutCueSheetAdditional->setVisible(false);
+
+    for(int i = 0; i < ui->horizontalLayoutCueSheetAdditional->count(); i++)
+    {
+        QWidget *qw = qobject_cast<QWidget*>(ui->horizontalLayoutCueSheetAdditional->itemAt(i)->widget());
+        if (qw)
+        {
+            qw->setVisible(visible);
+        }
+    }
+}
+bool MainWindow::cueSheetAdditionalControlsVisible()
+{
+    for(int i = 0; i < ui->horizontalLayoutCueSheetAdditional->count(); i++)
+    {
+        QWidget *qw = qobject_cast<QWidget*>(ui->horizontalLayoutCueSheetAdditional->itemAt(i)->widget());
+
+        if (qw)
+            return qw->isVisible();
+    }
+    return false;
+}    
+
+// --------------------------------1--------------------------------------
+
+void MainWindow::on_pushButtonShowHideCueSheetAdditional_clicked()
+{
+    bool visible = !cueSheetAdditionalControlsVisible();
+    qDebug() << "Setting additional controls to" << visible;
+    ui->pushButtonShowHideCueSheetAdditional->setText(visible ? "\u25BC" : "\u25B6");
+    setCueSheetAdditionalControlsVisible(visible);
+}
+
+
+double timeToDouble(const QString &str, bool *ok)
+{
+    double t = -1;
+    static QRegularExpression regex = QRegularExpression("((\\d+)\\:)?(\\d+(\\.\\d+)?)");
+    QRegularExpressionMatch match = regex.match(str);
+    if (match.hasMatch())
+    {
+        t = match.captured(3).toDouble(ok);
+        if (*ok)
+        {
+            if (match.captured(2).length())
+            {
+                t += 60 * match.captured(2).toDouble(ok);
+            }
+        }
+    }
+    return t;
+}
+
+QString doubleToTime(double t)
+{
+    double minutes = floor(t / 60);
+    double seconds = t - minutes * 60;
+    QString str = QString("%1:%2").arg(minutes).arg(seconds, 6, 'f', 3, '0');
+    return str;
+}
+
+
+void MainWindow::on_lineEditOutroTime_textChanged()
+{
+    bool ok = false;
+    double position = timeToDouble(ui->lineEditOutroTime->text(),&ok);
+    if (ok)
+    {
+        int length = ui->seekBarCuesheet->maximum();
+        double t = (double)((double)position / (double)length);
+        ui->seekBarCuesheet->SetOutro((float)t);
+        ui->seekBar->SetOutro((float)t);
+    }
+}
+void MainWindow::on_lineEditIntroTime_textChanged()
+{
+    bool ok = false;
+    double position = timeToDouble(ui->lineEditIntroTime->text(),&ok);
+    if (ok)
+    {
+        int length = ui->seekBarCuesheet->maximum();
+        double t = (double)((double)position / (double)length);
+        ui->seekBarCuesheet->SetIntro((float)t);
+        ui->seekBar->SetIntro((float)t);
+    }
+}
+
+// --------------------------------1--------------------------------------
 void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
     int length = ui->seekBarCuesheet->maximum();
     int position = ui->seekBarCuesheet->value();
-
-    ui->seekBarCuesheet->SetIntro((float)((float)position / (float)length));
-    ui->seekBar->SetIntro((float)((float)position / (float)length));
+    double t = (double)((double)position / (double)length);
+    ui->seekBarCuesheet->SetIntro((float)t);
+    ui->seekBar->SetIntro((float)t);
+    ui->lineEditIntroTime->setText(doubleToTime(position));
 }
 
 // --------------------------------1--------------------------------------
@@ -1307,8 +1401,10 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     int length = ui->seekBarCuesheet->maximum();
     int position = ui->seekBarCuesheet->value();
 
-    ui->seekBarCuesheet->SetOutro((float)((float)position / (float)length));
-    ui->seekBar->SetOutro((float)((float)position / (float)length));
+    double t = (double)((double)position / (double)length);
+    ui->seekBarCuesheet->SetOutro((float)t);
+    ui->seekBar->SetOutro((float)t);
+    ui->lineEditOutroTime->setText(doubleToTime(position));
 }
 
 // --------------------------------1--------------------------------------
@@ -1524,12 +1620,16 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
+               ui->lineEditIntroTime->hasFocus() ||
+               ui->lineEditOutroTime->hasFocus() ||
                ui->lineEditCountDownTimer->hasFocus() ||
                ui->songTable->isEditing() ||
                maybeMainWindow->console->hasFocus() )     ||
              ( (ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() ||
                 ui->titleSearch->hasFocus() ||
+                ui->lineEditIntroTime->hasFocus() ||
+                ui->lineEditOutroTime->hasFocus() ||
                 ui->lineEditCountDownTimer->hasFocus()) &&
                 (KeyEvent->key() == Qt::Key_Escape) )
            ) {
@@ -1798,6 +1898,7 @@ void MainWindow::loadCuesheet(QString MP3FileName)
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType)
 {
+    loadingSong = true;
     firstTimeSongIsPlayed = true;
     loadCuesheet(MP3FileName);
 
@@ -1935,8 +2036,15 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->pushButtonSetIntroTime->setEnabled(isSingingCall);  // if not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(isSingingCall);
+    
+    ui->lineEditIntroTime->setText("");
+    ui->lineEditOutroTime->setText("");
+    ui->lineEditIntroTime->setEnabled(isSingingCall);
+    ui->lineEditOutroTime->setEnabled(isSingingCall);
+    
 
     loadSettingsForSong(songTitle);
+    loadingSong = false;
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -3504,6 +3612,9 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 // ----------------------------------------------------------------------
 void MainWindow::saveCurrentSongSettings()
 {
+    if (loadingSong)
+        return;
+    
     QString currentSong = ui->nowPlayingLabel->text();
 
     if (!currentSong.isEmpty()) {
@@ -3542,6 +3653,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
+        
+        double length = (double)(ui->seekBarCuesheet->maximum());
+        ui->lineEditIntroTime->setText(doubleToTime(intro * length));
+        ui->lineEditOutroTime->setText(doubleToTime(outro * length));
     }
 }
 

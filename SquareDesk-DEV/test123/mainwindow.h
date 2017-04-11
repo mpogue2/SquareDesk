@@ -159,6 +159,12 @@ private slots:
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
 
+    void on_pushButtonShowHideCueSheetAdditional_clicked();
+    void on_lineEditOutroTime_textChanged();
+    void on_lineEditIntroTime_textChanged();
+    void setCueSheetAdditionalControlsVisible(bool visible);
+    bool cueSheetAdditionalControlsVisible();
+
     // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
     void timerCountUp_update();
     void timerCountDown_update();
@@ -358,6 +364,7 @@ private:
 
 
     bool firstTimeSongIsPlayed;
+    bool loadingSong; // guard to prevent text setting stuff from munging settings
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadMusic(int id);
     bool autoScrollLyricsEnabled;
