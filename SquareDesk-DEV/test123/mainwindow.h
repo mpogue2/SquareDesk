@@ -229,6 +229,7 @@ private slots:
     void on_actionDOWN_in_Playlist_triggered();
 
     void on_actionStartup_Wizard_triggered();
+    void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
 
 private:
     QAction *closeAct;  // WINDOWS only
@@ -271,7 +272,10 @@ private:
     void loadSettingsForSong(QString songTitle);
 
     void loadMP3File(QString filepath, QString songTitle, QString songType);
-    void loadCuesheet(QString MP3FileName);
+    void loadCuesheet(const QString &cuesheetFilename);
+    void loadCuesheets(const QString &MP3FileName);
+    void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
+    bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle );
 
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable

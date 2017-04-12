@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1191,6 +1191,9 @@
              </sizepolicy>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBoxCuesheetSelector"/>
           </item>
          </layout>
         </item>

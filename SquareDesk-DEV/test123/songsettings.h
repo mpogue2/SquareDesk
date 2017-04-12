@@ -35,18 +35,30 @@ public:
                       const QString &filenameWithPath,
                       const QString &songname,
                       int volume,
-                 int pitch,
-                 int temp,
-                 double introPos,
-                 double outroPos);
+                      int pitch,
+                      int temp,
+                      double introPos,
+                      double outroPos,
+                      const QString &cuesheetName);
+    
     bool loadSettings(const QString &filename,
                       const QString &filenameWithPath,
                       const QString &songname,
                       int &volume,
-                 int &pitch,
-                 int &temp,
-                 double &introPos,
-                 double &outroPos);
+                      int &pitch,
+                      int &temp,
+                      double &introPos,
+                      double &outroPos,
+                      QString &cuesheetName);
+
+    bool loadSettings(const QString &filename,
+                      const QString &filenameWithPath,
+                      const QString &songname,
+                      int &volume,
+                      int &pitch,
+                      int &temp,
+                      double &introPos,
+                      double &outroPos);
     void initializeSessionsModel();
     QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
