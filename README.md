@@ -24,7 +24,7 @@ it.
 
 Compact view for people using net books or other small screen devices.
 
-![Main Screenshot](http://danlyke.github.com/SquareDeskPlayer/images/TransportBar.png)
+![Compact View](http://danlyke.github.com/SquareDeskPlayer/images/CompactView.png)
 
 Provides a graphical front-end for "SD", with voice recognition (Mac & Windows so far).
 
