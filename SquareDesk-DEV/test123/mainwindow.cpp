@@ -4687,30 +4687,7 @@ void MainWindow::initSDtab() {
     // if the sequences directory doesn't exist, create it (but ask nicely first)
     QDir dir(sequencesDir);
     if (!dir.exists()) {
-        QMessageBox msgBox;
-        msgBox.setText("A 'sd' subdirectory to hold sd sequence files was not found in your Music Directory.");
-        msgBox.setInformativeText("Should I create one for you?");
-        msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-        msgBox.setDetailedText(QString("sd is an open-source square dance sequence designer that is built into SquareDesk."
-                                       " When sd writes a sequence to a file, it writes it to a file in the 'sd'"
-                                       " subdirectory of your Music Directory.  If you say 'yes' here, we'll create"
-                                       " that subdirectory for you.  If you say 'no', the sd tab will be disabled."
-                                       " Future versions of SquareDeskPlayer may offer more options."
-                                       ));
-        int ret = msgBox.exec();
-
-        switch (ret) {
-          case QMessageBox::No:
-            // TODO: remember this choice, and disable sd, but allow it to be reenabled later.
-            break;
-          case QMessageBox::Yes:
-            dir.mkpath(".");
-            break;
-          default:
-            // should never be reached
-            break;
-        }
+        dir.mkpath(".");
     }
 
 //    qDebug() << "sequencesDir:" << sequencesDir;
