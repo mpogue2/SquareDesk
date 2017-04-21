@@ -426,7 +426,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     // ----------
-    bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
+    bool lyricsEnabled = true;
     showLyricsTab = true;
     lyricsTabNumber = (showTimersTab ? 2 : 1);
     if (!lyricsEnabled) {
@@ -1323,7 +1323,7 @@ bool MainWindow::cueSheetAdditionalControlsVisible()
             return qw->isVisible();
     }
     return false;
-}    
+}
 
 // --------------------------------1--------------------------------------
 
@@ -1943,7 +1943,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QStrin
     labelnum.simplified();
     title = title.simplified();
     shortTitle = shortTitle.simplified();
-        
+
     return foundParts;
 }
 
@@ -1989,8 +1989,8 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     QString mp3ShortTitle = "";
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
-    
-    
+
+
     QList<QString> extensions;
     QString dot(".");
     for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
@@ -2018,7 +2018,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
         if (!foundExtension)
             continue;
-    
+
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
@@ -2035,7 +2035,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         QString title = "";
         QString shortTitle = "";
 
-        
+
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
         breakFilenameIntoParts(completeBaseName, label, labelnum, title, shortTitle);
 
@@ -2045,7 +2045,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //        qDebug() << "    label: " << label << " to " << mp3Label << " and num " << labelnum << " to " << mp3Labelnum;
 //        qDebug() << "    title: " << mp3Title << " to " << QString(label + "-" + labelnum);
 
-        // Minimum criteria: 
+        // Minimum criteria:
         if (completeBaseName.compare(mp3CompleteBaseName, Qt::CaseInsensitive) == 0
             || title.compare(mp3Title, Qt::CaseInsensitive) == 0
             || shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0
@@ -2056,7 +2056,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             || mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0
             )
         {
-            
+
             int score = extensionIndex
                 + (mp3CanonicalPath.compare(fi.canonicalPath(), Qt::CaseInsensitive) == 0 ? 10000 : 0)
                 + (mp3CompleteBaseName.compare(fi.completeBaseName(), Qt::CaseInsensitive) == 0 ? 1000 : 0)
@@ -2066,7 +2066,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
 
             qDebug() << "Matched " << filename << "/" << completeBaseName;
-            
+
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
             cswr->filename = filename;
             cswr->name = completeBaseName;
@@ -2116,7 +2116,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
 
     QHash<QString,QString> usedCuesheetNames;
     QString firstCuesheet("");
-    
+
     foreach (const QString &cuesheet, possibleCuesheets)
     {
         if (firstCuesheet.length() == 0)
@@ -2127,7 +2127,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
         QStringList section = cuesheetFileInfo.canonicalPath().split("/");
         QString type = section[section.length()-1];
         QString cuesheetBaseName(type + "/" + cuesheetFileInfo.fileName());
-        
+
         ui->comboBoxCuesheetSelector->addItem(usedCuesheetNames.contains(cuesheetBaseName) ? cuesheet : cuesheetBaseName,
                                               cuesheet);
         usedCuesheetNames.insert(cuesheetBaseName, cuesheet);
@@ -2288,12 +2288,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->pushButtonSetIntroTime->setEnabled(isSingingCall);  // if not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(isSingingCall);
-    
+
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
     ui->lineEditIntroTime->setEnabled(isSingingCall);
     ui->lineEditOutroTime->setEnabled(isSingingCall);
-    
+
 
     loadSettingsForSong(songTitle);
 }
@@ -2379,7 +2379,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 //        qDebug() << "looking for files in the mainRootDir";
         QDir rootDir1(mainRootDir);
         rootDir1.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
-       
+
         QStringList qsl;
         QString starDot("*.");
         for (size_t i = 0; i < sizeof(music_file_extensions) / sizeof(*music_file_extensions); ++i)
@@ -2523,7 +2523,7 @@ void MainWindow::loadMusicList()
         }
         if (!foundExtension)
             continue;
-        
+
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         s = sl1[1];  // everything else
@@ -2783,22 +2783,22 @@ void MainWindow::on_actionPreferences_triggered()
 
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
-        if (prefsManager.GetexperimentalCuesheetEnabled()) {
-            lyricsTabNumber = (showTimersTab ? 2 : 1);
-            if (!showLyricsTab) {
-                // iff the Lyrics tab was NOT showing, make it show up now
-                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
-            }
-            showLyricsTab = true;
-        }
-        else {
-            lyricsTabNumber = -1;  // not shown
-            if (showLyricsTab) {
-                // iff Lyrics tab was showing, remove it
-                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
-            }
-            showLyricsTab = false;
-        }
+//        if (prefsManager.GetexperimentalCuesheetEnabled()) {
+//            lyricsTabNumber = (showTimersTab ? 2 : 1);
+//            if (!showLyricsTab) {
+//                // iff the Lyrics tab was NOT showing, make it show up now
+//                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
+//            }
+//            showLyricsTab = true;
+//        }
+//        else {
+//            lyricsTabNumber = -1;  // not shown
+//            if (showLyricsTab) {
+//                // iff Lyrics tab was showing, remove it
+//                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
+//            }
+//            showLyricsTab = false;
+//        }
 
 //        qDebug() << "After Preferences:: lyricsTabNumber:" << lyricsTabNumber; // FIX
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -3817,14 +3817,14 @@ void MainWindow::saveCurrentSongSettings()
 {
     if (loadingSong)
         return;
-    
+
     QString currentSong = ui->nowPlayingLabel->text();
 
     if (!currentSong.isEmpty()) {
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
         int cuesheetIndex = ui->comboBoxCuesheetSelector->currentIndex();
-        QString cuesheetFilename = cuesheetIndex >= 0 ? 
+        QString cuesheetFilename = cuesheetIndex >= 0 ?
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
 
@@ -3851,7 +3851,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
     QString cuesheetName = "";
-    
+
     if (songSettings.loadSettings(currentMP3filename,
                                   currentMP3filenameWithPath,
                                   songTitle,
@@ -3864,7 +3864,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
-        
+
         double length = (double)(ui->seekBarCuesheet->maximum());
         ui->lineEditIntroTime->setText(doubleToTime(intro * length));
         ui->lineEditOutroTime->setText(doubleToTime(outro * length));
