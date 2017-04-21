@@ -27,6 +27,7 @@
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDesktopWidget>
+#include <QElapsedTimer>
 #include <QMap>
 #include <QMapIterator>
 #include <QProcess>
@@ -1980,6 +1981,9 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
+    QElapsedTimer timer;
+    timer.start();
+
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -2065,7 +2069,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 + (labelnum.compare(mp3Labelnum, Qt::CaseInsensitive) == 0 ? 10 : 0)
                 + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
 
-            qDebug() << "Matched " << filename << "/" << completeBaseName;
+            qDebug() << "Matched " << filename << "/" << completeBaseName << ", score = " << score;
 
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
             cswr->filename = filename;
@@ -2083,6 +2087,9 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         possibleCuesheets.append(cswr->filename);
         delete cswr;
     }
+
+    qDebug() << "time(FindPossibleCuesheets)=" << timer.elapsed() << " msec";
+    qDebug() << possibleCuesheets;
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName)
