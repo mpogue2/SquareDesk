@@ -176,6 +176,7 @@ RowDefinition song_rows[] =
     RowDefinition("volume", "int"),
     RowDefinition("introPos", "float"),
     RowDefinition("outroPos", "float"),
+    RowDefinition("last_cuesheet", "text"),
     RowDefinition(NULL, NULL),
 };
 
@@ -434,7 +435,8 @@ void SongSettings::saveSettings(const QString &filename,
                                 int pitch,
                                 int tempo,
                                 double introPos,
-                                double outroPos)
+                                double outroPos,
+                                const QString &cuesheetName)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int id = getSongIDFromFilename(filename, filenameWithPathNormalized);
@@ -442,11 +444,11 @@ void SongSettings::saveSettings(const QString &filename,
     QSqlQuery q(m_db);
     if (id == -1)
     {
-        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, introPos, outroPos, volume) VALUES (:filename, :songname, :name, :pitch, :tempo, :introPos, :outroPos, :volume)");
+        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, introPos, outroPos, volume, last_cuesheet) VALUES (:filename, :songname, :name, :pitch, :tempo, :introPos, :outroPos, :volume, :cuesheet)");
     }
     else
     {
-        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, introPos = :introPos, outroPos = :outroPos, volume = :volume WHERE filename = :filename");
+        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, introPos = :introPos, outroPos = :outroPos, volume = :volume, last_cuesheet = :cuesheet WHERE filename = :filename");
     }
     q.bindValue(":filename", filenameWithPathNormalized);
     q.bindValue(":songname", filename);
@@ -456,8 +458,31 @@ void SongSettings::saveSettings(const QString &filename,
     q.bindValue(":outroPos", outroPos);
     q.bindValue(":volume", volume);
     q.bindValue(":name", songname);
+    q.bindValue(":cuesheet", cuesheetName);
     exec("saveSettings", q);
 }
+
+bool SongSettings::loadSettings(const QString &filename,
+                      const QString &filenameWithPath,
+                      const QString &songname,
+                      int &volume,
+                      int &pitch,
+                      int &temp,
+                      double &introPos,
+                      double &outroPos)
+{
+    QString cuesheetName;
+    return loadSettings(filename,
+                        filenameWithPath,
+                        songname,
+                        volume,
+                        pitch,
+                        temp,
+                        introPos,
+                        outroPos,
+                        cuesheetName);
+}
+
 
 bool SongSettings::loadSettings(const QString &filename,
                                 const QString &filenameWithPath,
@@ -466,13 +491,14 @@ bool SongSettings::loadSettings(const QString &filename,
                                 int &pitch,
                                 int &tempo,
                                 double &introPos,
-                                double &outroPos)
+                                double &outroPos,
+                                QString &cuesheetName)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume FROM songs WHERE filename=:filename");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filenameWithPathNormalized);
         exec("loadSettings", q);
 
@@ -484,6 +510,7 @@ bool SongSettings::loadSettings(const QString &filename,
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
+            cuesheetName = q.value(6).toString();
         }
     }
     if (!foundResults)

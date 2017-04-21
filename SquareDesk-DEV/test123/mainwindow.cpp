@@ -570,6 +570,12 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
     }
 }
 
+void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
+{
+    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
+    loadCuesheet(cuesheetFilename);
+}
+
 
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
@@ -1825,6 +1831,10 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass.SetEq(2, (float)value);
 }
 
+static const char *music_file_extensions[] = { "mp3", "wav" };
+static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
+
+
 //QString capitalize(const QString &str)
 //{
 //    QString tmp = str;
@@ -1833,8 +1843,249 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
 //    tmp[0] = str[0].toUpper();
 //    return tmp;
 //}
+struct FilenameMatchers {
+    QRegularExpression regex;
+    int title_match;
+    int label_match;
+    int number_match;
+    int additional_title_match;
+};
 
-void MainWindow::loadCuesheet(QString MP3FileName)
+struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
+{
+    static struct FilenameMatchers best_guess_matches[] = {
+        { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3 },
+        { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2 },
+        { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2 },
+        { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2 },
+        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, 3 },
+        { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2 },
+        { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1 },
+//    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
+//    { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
+        { QRegularExpression("^(\\d+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },  // e.g. "123 - Chicken Plucker"
+        { QRegularExpression("^(\\d+\\.)(.*)$"), 2, 1, -1, -1 },            // e.g. "123.Chicken Plucker"
+//        { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1, -1 },           // I'm not sure what the ? does here (typo?)
+        { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
+        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
+                                                                    //    assume label on the left, if it's short and all caps/#s (1-5 chars long))
+        { QRegularExpression(), -1, -1, -1, -1 }
+    };
+    static struct FilenameMatchers label_first_matches[] = {
+        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "ABC123X - Chicken Plucker"
+        { QRegularExpression(), -1, -1, -1, -1 }
+    };
+    static struct FilenameMatchers filename_first_matches[] = {
+        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 1, 2, -1, -1 },    // e.g. "Chicken Plucker - ABC123X"
+        { QRegularExpression(), -1, -1, -1, -1 }
+    };
+
+    switch (songFilenameFormat) {
+        default:
+        case SongFilenameLabelDashName :
+            return label_first_matches;
+        case SongFilenameNameDashLabel :
+            return filename_first_matches;
+        case SongFilenameBestGuess :
+            return best_guess_matches;
+    }
+}
+
+
+bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle )
+{
+    bool foundParts = true;
+    int match_num = 0;
+    struct FilenameMatchers *matches = getFilenameMatchersForType(songFilenameFormat);
+
+    for (match_num = 0;
+         matches[match_num].label_match >= 0
+             && matches[match_num].title_match >= 0;
+         ++match_num) {
+        QRegularExpressionMatch match = matches[match_num].regex.match(s);
+        if (match.hasMatch()) {
+            if (matches[match_num].label_match >= 0) {
+                label = match.captured(matches[match_num].label_match);
+            }
+            if (matches[match_num].title_match >= 0) {
+                title = match.captured(matches[match_num].title_match);
+                shortTitle = title;
+                if (matches[match_num].additional_title_match >= 0) {
+                    title = title + " " + match.captured(matches[match_num].additional_title_match);
+                }
+            }
+//                qDebug() << s << "*** MATCHED ***" << matches[match_num].regex;
+//                qDebug() << "label:" << label << ", title:" << title;
+            break;
+        } else {
+//                qDebug() << s << "didn't match" << matches[match_num].regex;
+        }
+    }
+    if (!(matches[match_num].label_match >= 0
+          && matches[match_num].title_match >= 0)) {
+        label = "";
+        title = s;
+        foundParts = false;
+    }
+
+    label = label.simplified();
+
+    if (labelnum.length() == 0)
+    {
+        static QRegularExpression regexLabelPlusNum = QRegularExpression("^(\\w+)[\\- ](\\d+\\w?)$");
+        QRegularExpressionMatch match = regexLabelPlusNum.match(label);
+        if (match.hasMatch())
+        {
+            label = match.captured(1);
+            labelnum = match.captured(2);
+        }
+    }
+    labelnum.simplified();
+    title = title.simplified();
+    shortTitle = shortTitle.simplified();
+        
+    return foundParts;
+}
+
+class CuesheetWithRanking {
+public:
+    QString filename;
+    QString name;
+    int score;
+};
+
+static bool CompareCuesheetWithRanking(CuesheetWithRanking *a, CuesheetWithRanking *b)
+{
+    return a->score > b->score;
+}
+
+void MainWindow::loadCuesheet(const QString &cuesheetFilename)
+{
+    QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
+    if (cuesheetFilename.endsWith(".txt")) {
+        // text files are read in, converted to HTML, and sent to the Lyrics tab
+        QFile f1(cuesheetFilename);
+        f1.open(QIODevice::ReadOnly | QIODevice::Text);
+        QTextStream in(&f1);
+        QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
+        ui->textBrowserCueSheet->setText(html);
+        f1.close();
+    } else {
+        ui->textBrowserCueSheet->setSource(cuesheetUrl);
+    }
+
+}
+
+
+// TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
+void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
+{
+    QFileInfo mp3FileInfo(MP3Filename);
+    QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
+    QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
+    QString mp3Label = "";
+    QString mp3Labelnum = "";
+    QString mp3Title = "";
+    QString mp3ShortTitle = "";
+    breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Title, mp3ShortTitle);
+    QList<CuesheetWithRanking *> possibleRankings;
+    
+    
+    QList<QString> extensions;
+    QString dot(".");
+    for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
+    {
+        extensions.append(dot + cuesheet_file_extensions[i]);
+    }
+
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+        QString s = iter.next();
+        int extensionIndex = 0;
+
+        // Is this a file esxtension we recognize as a cuesheet file?
+        QListIterator<QString> extensionIterator(extensions);
+        bool foundExtension = false;
+        while (extensionIterator.hasNext())
+        {
+            extensionIndex++;
+            QString extension(extensionIterator.next());
+            if (s.endsWith(extension))
+            {
+                foundExtension = true;
+                break;
+            }
+        }
+        if (!foundExtension)
+            continue;
+    
+        QStringList sl1 = s.split("#!#");
+        QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString filename = sl1[1];  // everything else
+
+        QFileInfo fi(filename);
+
+        if (fi.canonicalPath() == musicRootPath && type.right(1) != "*") {
+            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
+            type = "";
+        }
+
+        QString label = "";
+        QString labelnum = "";
+        QString title = "";
+        QString shortTitle = "";
+
+        
+        QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
+        breakFilenameIntoParts(completeBaseName, label, labelnum, title, shortTitle);
+
+//        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
+//        qDebug() << "           " << title << " to " << mp3Title;
+//        qDebug() << "           " << shortTitle << " to " << mp3ShortTitle;
+//        qDebug() << "    label: " << label << " to " << mp3Label << " and num " << labelnum << " to " << mp3Labelnum;
+//        qDebug() << "    title: " << mp3Title << " to " << QString(label + "-" + labelnum);
+
+        // Minimum criteria: 
+        if (completeBaseName.compare(mp3CompleteBaseName, Qt::CaseInsensitive) == 0
+            || title.compare(mp3Title, Qt::CaseInsensitive) == 0
+            || shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0
+//            || (labelnum.length() > 0 && label.length() > 0
+//                &&  labelnum.compare(mp3Labelnum, Qt::CaseInsensitive)
+//                && label.compare(mp3Label, Qt::CaseInsensitive) == 0
+//                )
+            || mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0
+            )
+        {
+            
+            int score = extensionIndex
+                + (mp3CanonicalPath.compare(fi.canonicalPath(), Qt::CaseInsensitive) == 0 ? 10000 : 0)
+                + (mp3CompleteBaseName.compare(fi.completeBaseName(), Qt::CaseInsensitive) == 0 ? 1000 : 0)
+                + (title.compare(mp3Title, Qt::CaseInsensitive) == 0 ? 100 : 0)
+                + (shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0 ? 50 : 0)
+                + (labelnum.compare(mp3Labelnum, Qt::CaseInsensitive) == 0 ? 10 : 0)
+                + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
+
+            qDebug() << "Matched " << filename << "/" << completeBaseName;
+            
+            CuesheetWithRanking *cswr = new CuesheetWithRanking();
+            cswr->filename = filename;
+            cswr->name = completeBaseName;
+            cswr->score = score;
+            possibleRankings.append(cswr);
+        } /* end of if we minimally included this cuesheet */
+    } /* end of looping through all files we know about */
+
+    qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
+    QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
+    while (iterRanked.hasNext())
+    {
+        CuesheetWithRanking *cswr = iterRanked.next();
+        possibleCuesheets.append(cswr->filename);
+        delete cswr;
+    }
+}
+
+void MainWindow::loadCuesheets(const QString &MP3FileName)
 {
     hasLyrics = false;
 
@@ -1858,34 +2109,35 @@ void MainWindow::loadCuesheet(QString MP3FileName)
     ui->textBrowserCueSheet->setHtml(HTML);   // always clear out the existing lyrics on load
 #endif
 
-    int extensionPos = MP3FileName.lastIndexOf('.');
-    QString cuesheetFilenameBase(MP3FileName);
-    cuesheetFilenameBase.truncate(extensionPos + 1);
-    const char *extensions[] = { "htm", "html", "txt" };
+    QStringList possibleCuesheets;
+    findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
-    // FIX: comparison should be case insensitive (I have lots of files that differ only in case. They came that way.
-    for (size_t i = 0; i < sizeof(extensions) / sizeof(extensions[0]); ++i) {
-        QString cuesheetFilename = cuesheetFilenameBase + extensions[i];
-        if (QFile::exists(cuesheetFilename)) {
-            QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
-            if (QString(extensions[i]) == "txt") {
-                // text files are read in, converted to HTML, and sent to the Lyrics tab
-                QFile f1(cuesheetFilename);
-                f1.open(QIODevice::ReadOnly | QIODevice::Text);
-                QTextStream in(&f1);
-                QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
-                ui->textBrowserCueSheet->setText(html);
-                f1.close();
-            } else {
-                ui->textBrowserCueSheet->setSource(cuesheetUrl);
-            }
-            hasLyrics = true;
-            break;
+    ui->comboBoxCuesheetSelector->clear();
+
+    QHash<QString,QString> usedCuesheetNames;
+    QString firstCuesheet("");
+    
+    foreach (const QString &cuesheet, possibleCuesheets)
+    {
+        if (firstCuesheet.length() == 0)
+        {
+            firstCuesheet = cuesheet;
         }
+        QFileInfo cuesheetFileInfo(cuesheet);
+        QStringList section = cuesheetFileInfo.canonicalPath().split("/");
+        QString type = section[section.length()-1];
+        QString cuesheetBaseName(type + "/" + cuesheetFileInfo.fileName());
+        
+        ui->comboBoxCuesheetSelector->addItem(usedCuesheetNames.contains(cuesheetBaseName) ? cuesheet : cuesheetBaseName,
+                                              cuesheet);
+        usedCuesheetNames.insert(cuesheetBaseName, cuesheet);
     }
 
-    // TODO: also look in <music directory>/lyrics and /cuesheets, basically, look everywhere for a match
-    // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
+    if (firstCuesheet.length() > 0)
+    {
+        loadCuesheet(firstCuesheet);
+        hasLyrics = true;
+    }
 
     if (hasLyrics && lyricsTabNumber != -1) {
         ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
@@ -1898,9 +2150,9 @@ void MainWindow::loadCuesheet(QString MP3FileName)
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType)
 {
-    loadingSong = true;
+    RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
-    loadCuesheet(MP3FileName);
+    loadCuesheets(MP3FileName);
 
     currentMP3filenameWithPath = MP3FileName;
 
@@ -2044,7 +2296,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     
 
     loadSettingsForSong(songTitle);
-    loadingSong = false;
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -2103,6 +2354,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
     }
 }
 
+
 void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase)
 {
     QString databaseDir(mainRootDir + "/.squaredesk");
@@ -2127,10 +2379,18 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 //        qDebug() << "looking for files in the mainRootDir";
         QDir rootDir1(mainRootDir);
         rootDir1.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
-
+       
         QStringList qsl;
-        qsl.append("*.mp3");                // I only want MP3 files
-        qsl.append("*.wav");                //          or WAV files
+        QString starDot("*.");
+        for (size_t i = 0; i < sizeof(music_file_extensions) / sizeof(*music_file_extensions); ++i)
+        {
+            qsl.append(starDot + music_file_extensions[i]);
+        }
+        for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
+        {
+            qsl.append(starDot + cuesheet_file_extensions[i]);
+        }
+
         rootDir1.setNameFilters(qsl);
 
         findFilesRecursively(rootDir1, pathStack, "");  // appends to the pathstack
@@ -2170,53 +2430,6 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
 }
 
 
-struct FilenameMatchers {
-    QRegularExpression regex;
-    int title_match;
-    int label_match;
-    int number_match;
-    int additional_title_match;
-};
-
-struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
-{
-    static struct FilenameMatchers best_guess_matches[] = {
-        { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3 },
-        { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2 },
-        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, 3 },
-        { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1 },
-//    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
-//    { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
-        { QRegularExpression("^(\\d+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },  // e.g. "123 - Chicken Plucker"
-        { QRegularExpression("^(\\d+\\.)(.*)$"), 2, 1, -1, -1 },            // e.g. "123.Chicken Plucker"
-//        { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1, -1 },           // I'm not sure what the ? does here (typo?)
-        { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
-        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
-                                                                    //    assume label on the left, if it's short and all caps/#s (1-5 chars long))
-        { QRegularExpression(), -1, -1, -1, -1 }
-    };
-    static struct FilenameMatchers label_first_matches[] = {
-        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "ABC123X - Chicken Plucker"
-        { QRegularExpression(), -1, -1, -1, -1 }
-    };
-    static struct FilenameMatchers filename_first_matches[] = {
-        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 1, 2, -1, -1 },    // e.g. "Chicken Plucker - ABC123X"
-        { QRegularExpression(), -1, -1, -1, -1 }
-    };
-
-    switch (songFilenameFormat) {
-        default:
-        case SongFilenameLabelDashName :
-            return label_first_matches;
-        case SongFilenameNameDashLabel :
-            return filename_first_matches;
-        case SongFilenameBestGuess :
-            return best_guess_matches;
-    }
-}
 
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
@@ -2288,10 +2501,29 @@ void MainWindow::loadMusicList()
 
     QListIterator<QString> iter(*pathStack);
     QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
-
+    QList<QString> extensions;
+    QString dot(".");
+    for (size_t i = 0; i < sizeof(music_file_extensions) / sizeof(*music_file_extensions); ++i)
+    {
+        extensions.append(dot + music_file_extensions[i]);
+    }
 
     while (iter.hasNext()) {
         QString s = iter.next();
+
+        QListIterator<QString> extensionIterator(extensions);
+        bool foundExtension = false;
+        while (extensionIterator.hasNext())
+        {
+            QString extension(extensionIterator.next());
+            if (s.endsWith(extension))
+            {
+                foundExtension = true;
+            }
+        }
+        if (!foundExtension)
+            continue;
+        
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         s = sl1[1];  // everything else
@@ -2308,39 +2540,10 @@ void MainWindow::loadMusicList()
         QString label = "";
         QString labelnum = "";
         QString title = "";
+        QString shortTitle = "";
 
         s = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-
-        int match_num = 0;
-        struct FilenameMatchers *matches = getFilenameMatchersForType(songFilenameFormat);
-
-        for (match_num = 0;
-             matches[match_num].label_match >= 0
-                 && matches[match_num].title_match >= 0;
-             ++match_num) {
-            QRegularExpressionMatch match = matches[match_num].regex.match(s);
-            if (match.hasMatch()) {
-                if (matches[match_num].label_match >= 0) {
-                    label = match.captured(matches[match_num].label_match);
-                }
-                if (matches[match_num].title_match >= 0) {
-                    title = match.captured(matches[match_num].title_match);
-                    if (matches[match_num].additional_title_match >= 0) {
-                        title = title + " " + match.captured(matches[match_num].additional_title_match);
-                    }
-                }
-//                qDebug() << s << "*** MATCHED ***" << matches[match_num].regex;
-//                qDebug() << "label:" << label << ", title:" << title;
-                break;
-            } else {
-//                qDebug() << s << "didn't match" << matches[match_num].regex;
-            }
-        }
-        if (!(matches[match_num].label_match >= 0
-              && matches[match_num].title_match >= 0)) {
-            label = "";
-            title = s;
-        }
+        breakFilenameIntoParts(s, label, labelnum, title, shortTitle);
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
@@ -3620,6 +3823,10 @@ void MainWindow::saveCurrentSongSettings()
     if (!currentSong.isEmpty()) {
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
+        int cuesheetIndex = ui->comboBoxCuesheetSelector->currentIndex();
+        QString cuesheetFilename = cuesheetIndex >= 0 ? 
+            ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
+            : "";
 
         songSettings.saveSettings(currentMP3filename,
                                   currentMP3filenameWithPath,
@@ -3627,7 +3834,9 @@ void MainWindow::saveCurrentSongSettings()
                                   currentVolume,
                                   pitch, tempo,
                                   ui->seekBarCuesheet->GetIntro(),
-                                  ui->seekBarCuesheet->GetOutro());
+                                  ui->seekBarCuesheet->GetOutro(),
+                                  cuesheetFilename
+            );
         // TODO: Loop points!
     }
 
@@ -3641,12 +3850,14 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     int volume = ui->volumeSlider->value();
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
+    QString cuesheetName = "";
+    
     if (songSettings.loadSettings(currentMP3filename,
                                   currentMP3filenameWithPath,
                                   songTitle,
                                   volume,
                                   pitch, tempo,
-                                  intro, outro))
+                                  intro, outro, cuesheetName))
     {
         ui->pitchSlider->setValue(pitch);
         ui->tempoSlider->setValue(tempo);
@@ -3657,6 +3868,19 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         double length = (double)(ui->seekBarCuesheet->maximum());
         ui->lineEditIntroTime->setText(doubleToTime(intro * length));
         ui->lineEditOutroTime->setText(doubleToTime(outro * length));
+
+        if (cuesheetName.length() > 0)
+        {
+            for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
+            {
+                QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
+                if (itemName == cuesheetName)
+                {
+                    ui->comboBoxCuesheetSelector->setCurrentIndex(i);
+                    break;
+                }
+            }
+        }
     }
 }
 
