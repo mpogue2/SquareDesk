@@ -73,7 +73,6 @@ CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeExtras, MusicTypeExtras, "extras;xtras"
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeCalled, MusicTypeCalled, "vocal;vocals;called")
 
 CONFIG_ATTRIBUTE_BOOLEAN(EnableTimersTabCheckbox, experimentalTimersEnabled, false)
-CONFIG_ATTRIBUTE_BOOLEAN(EnableCuesheetTabCheckbox, experimentalCuesheetEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnablePitchTempoViewCheckbox, experimentalPitchTempoViewEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnableClockColoring,experimentalClockColoringEnabled, false)
 

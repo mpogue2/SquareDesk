@@ -95,7 +95,6 @@ void PreferencesDialog::setFontSizes()
 
     ui->musicDirHelpLabel->setFont(font);
     ui->timersHelpLabel->setFont(font);
-    ui->cuesheetHelpLabel->setFont(font);
     ui->pitchTempoHelpLabel->setFont(font);
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);

@@ -423,7 +423,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     // ----------
-    bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
+    bool lyricsEnabled = true;
     showLyricsTab = true;
     lyricsTabNumber = (showTimersTab ? 2 : 1);
     if (!lyricsEnabled) {
@@ -2808,22 +2808,22 @@ void MainWindow::on_actionPreferences_triggered()
 
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
-        if (prefsManager.GetexperimentalCuesheetEnabled()) {
-            lyricsTabNumber = (showTimersTab ? 2 : 1);
-            if (!showLyricsTab) {
-                // iff the Lyrics tab was NOT showing, make it show up now
-                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
-            }
-            showLyricsTab = true;
-        }
-        else {
-            lyricsTabNumber = -1;  // not shown
-            if (showLyricsTab) {
-                // iff Lyrics tab was showing, remove it
-                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
-            }
-            showLyricsTab = false;
-        }
+//        if (prefsManager.GetexperimentalCuesheetEnabled()) {
+//            lyricsTabNumber = (showTimersTab ? 2 : 1);
+//            if (!showLyricsTab) {
+//                // iff the Lyrics tab was NOT showing, make it show up now
+//                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
+//            }
+//            showLyricsTab = true;
+//        }
+//        else {
+//            lyricsTabNumber = -1;  // not shown
+//            if (showLyricsTab) {
+//                // iff Lyrics tab was showing, remove it
+//                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
+//            }
+//            showLyricsTab = false;
+//        }
 
 //        qDebug() << "After Preferences:: lyricsTabNumber:" << lyricsTabNumber; // FIX
         if (hasLyrics && lyricsTabNumber != -1) {
