@@ -283,10 +283,8 @@ private:
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // Lyrics stuff
     QString loadLyrics(QString MP3FileName);
-#endif
     int lyricsTabNumber;
     bool hasLyrics;
 

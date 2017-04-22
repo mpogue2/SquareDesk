@@ -1970,6 +1970,13 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
         ui->textBrowserCueSheet->setText(html);
         f1.close();
+    }
+    else if (cuesheetFilename.endsWith(".mp3")) {
+        QString embeddedID3Lyrics = loadLyrics(cuesheetFilename);
+        if (embeddedID3Lyrics != "") {
+            QString html(txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename));  // embed CSS, if found, since USLT is plain text
+            ui->textBrowserCueSheet->setHtml(html);
+        }
     } else {
         ui->textBrowserCueSheet->setSource(cuesheetUrl);
     }
@@ -1989,7 +1996,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     QString mp3ShortTitle = "";
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
-    
+
     
     QList<QString> extensions;
     QString dot(".");
@@ -2075,6 +2082,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         } /* end of if we minimally included this cuesheet */
     } /* end of looping through all files we know about */
 
+    QString mp3Lyrics = loadLyrics(MP3Filename);
+    if (mp3Lyrics.length())
+    {
+        possibleCuesheets.append(MP3Filename);
+    }
+
     qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
     QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
     while (iterRanked.hasNext())
@@ -2091,30 +2104,10 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
 
     QString HTML;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-    // priority order:
-    //   1) lyrics found by matching file names
-    //   2) lyrics found embedded in the USLT ID3 tag in the file itself
-    QString embeddedID3Lyrics = loadLyrics(MP3FileName);
-    if (embeddedID3Lyrics != "") {
-        HTML = txtToHTMLlyrics(embeddedID3Lyrics, MP3FileName);  // embed CSS, if found, since USLT is plain text
-        ui->textBrowserCueSheet->setHtml(HTML);
-        hasLyrics = true;
-    } else {
-        HTML = txtToHTMLlyrics(QString("No lyrics found for this song."), MP3FileName);  // The error message is styled with CSS, too, if present
-        ui->textBrowserCueSheet->setHtml(HTML);   // always clear out the existing lyrics on load
-    }
-#else
-    HTML = txtToHTMLlyrics(QString("No lyrics found for this song."), MP3FileName);  // The error message is styled with CSS, too, if present
-    ui->textBrowserCueSheet->setHtml(HTML);   // always clear out the existing lyrics on load
-#endif
-
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
-    ui->comboBoxCuesheetSelector->clear();
-
-    QHash<QString,QString> usedCuesheetNames;
+    
     QString firstCuesheet("");
     
     foreach (const QString &cuesheet, possibleCuesheets)
@@ -2123,14 +2116,13 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
         {
             firstCuesheet = cuesheet;
         }
-        QFileInfo cuesheetFileInfo(cuesheet);
-        QStringList section = cuesheetFileInfo.canonicalPath().split("/");
-        QString type = section[section.length()-1];
-        QString cuesheetBaseName(type + "/" + cuesheetFileInfo.fileName());
+
+        QString displayName = cuesheet;
+        if (displayName.startsWith(musicRootPath))
+            displayName.remove(0, musicRootPath.length());
         
-        ui->comboBoxCuesheetSelector->addItem(usedCuesheetNames.contains(cuesheetBaseName) ? cuesheet : cuesheetBaseName,
+        ui->comboBoxCuesheetSelector->addItem(displayName,
                                               cuesheet);
-        usedCuesheetNames.insert(cuesheetBaseName, cuesheet);
     }
 
     if (firstCuesheet.length() > 0)
@@ -3884,10 +3876,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     }
 }
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 // ------------------------------------------------------------------------------------------
 QString MainWindow::loadLyrics(QString MP3FileName)
 {
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 //    qDebug() << "Attempting to load lyrics for: " << MP3FileName;
 
     QString USLTlyrics;
@@ -3932,8 +3924,11 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 //    qDebug() << "Lyrics found: " << USLTlyrics;
 
     return (USLTlyrics);
-}
+#else
+    return QString();
 #endif
+    
+}
 
 // ------------------------------------------------------------------------
 QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
