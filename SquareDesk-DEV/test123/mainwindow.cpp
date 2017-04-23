@@ -72,7 +72,6 @@
 #include <iomanip>
 using namespace std;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 // TAGLIB stuff is MAC OS X and WIN32 only for now...
 #include <taglib/tlist.h>
 #include <taglib/fileref.h>
@@ -85,7 +84,7 @@ using namespace std;
 #include <taglib/id3v2frame.h>
 #include <taglib/id3v2header.h>
 
-#include <taglib/synchronizedlyricsframe.h>
+// #include <taglib/synchronizedlyricsframe.h>
 #include <taglib/unsynchronizedlyricsframe.h>
 #include <string>
 
@@ -97,7 +96,6 @@ using namespace std;
 
 using namespace TagLib;
 
-#endif
 // =================================================================================================
 // SquareDeskPlayer Keyboard Shortcuts:
 //
@@ -3880,7 +3878,6 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 // ------------------------------------------------------------------------------------------
 QString MainWindow::loadLyrics(QString MP3FileName)
 {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 //    qDebug() << "Attempting to load lyrics for: " << MP3FileName;
 
     QString USLTlyrics;
@@ -3925,9 +3922,6 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 //    qDebug() << "Lyrics found: " << USLTlyrics;
 
     return (USLTlyrics);
-#else
-    return QString();
-#endif
     
 }
 
