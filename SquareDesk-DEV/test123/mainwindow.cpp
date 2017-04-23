@@ -2109,6 +2109,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
 
     
     QString firstCuesheet("");
+    ui->comboBoxCuesheetSelector->clear();
     
     foreach (const QString &cuesheet, possibleCuesheets)
     {
