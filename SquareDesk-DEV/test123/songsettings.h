@@ -36,7 +36,8 @@ public:
                       const QString &songname,
                       int volume,
                       int pitch,
-                      int temp,
+                      int tempo,
+                      bool tempoIsBPM,
                       double introPos,
                       double outroPos,
                       const QString &cuesheetName);
@@ -46,7 +47,8 @@ public:
                       const QString &songname,
                       int &volume,
                       int &pitch,
-                      int &temp,
+                      int &tempo,
+                      bool &tempoIsBPM,
                       double &introPos,
                       double &outroPos,
                       QString &cuesheetName);
@@ -56,7 +58,8 @@ public:
                       const QString &songname,
                       int &volume,
                       int &pitch,
-                      int &temp,
+                      int &tempo,
+                      bool &tempoIsBPM,
                       double &introPos,
                       double &outroPos);
     void initializeSessionsModel();

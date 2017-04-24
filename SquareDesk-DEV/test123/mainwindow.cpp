@@ -2609,19 +2609,23 @@ void MainWindow::loadMusicList()
         int volume = 0;
         double intro = 0;
         double outro = 0;
+        bool loadedTempoIsPercent;
         songSettings.loadSettings(fi.completeBaseName(),
                                   origPath,
                                   title,
                                   volume,
                                   pitch, tempo,
+                                  loadedTempoIsPercent,
                                   intro, outro);
 
         addStringToLastRowOfSongTable(textCol, ui->songTable,
                                       QString("%1").arg(pitch),
                                       kPitchCol);
 
+        QString tempoStr = QString("%1").arg(tempo);
+        if (loadedTempoIsPercent) tempoStr += "%";
         addStringToLastRowOfSongTable(textCol, ui->songTable,
-                                      QString("%1").arg(tempo),
+                                      tempoStr,
                                       kTempoCol);
         // keep the path around, for loading in when we double click on it
         ui->songTable->item(ui->songTable->rowCount()-1, kPathCol)->setData(Qt::UserRole,
@@ -3854,6 +3858,7 @@ void MainWindow::saveCurrentSongSettings()
                                   currentSong,
                                   currentVolume,
                                   pitch, tempo,
+                                  !tempoIsBPM,
                                   ui->seekBarCuesheet->GetIntro(),
                                   ui->seekBarCuesheet->GetOutro(),
                                   cuesheetFilename
@@ -3872,12 +3877,14 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
     QString cuesheetName = "";
+    bool loadedTempoIsPercent;
 
     if (songSettings.loadSettings(currentMP3filename,
                                   currentMP3filenameWithPath,
                                   songTitle,
                                   volume,
                                   pitch, tempo,
+                                  loadedTempoIsPercent,
                                   intro, outro, cuesheetName))
     {
         ui->pitchSlider->setValue(pitch);

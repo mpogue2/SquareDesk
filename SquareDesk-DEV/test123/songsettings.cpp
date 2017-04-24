@@ -173,6 +173,7 @@ RowDefinition song_rows[] =
         "CREATE INDEX songs_name_idx ON songs(name)"),
     RowDefinition("pitch", "int"),
     RowDefinition("tempo", "int"),
+    RowDefinition("tempoIsPercent", "int"),
     RowDefinition("volume", "int"),
     RowDefinition("introPos", "float"),
     RowDefinition("outroPos", "float"),
@@ -434,6 +435,7 @@ void SongSettings::saveSettings(const QString &filename,
                                 int volume,
                                 int pitch,
                                 int tempo,
+                                bool tempoIsPercent,
                                 double introPos,
                                 double outroPos,
                                 const QString &cuesheetName)
@@ -444,16 +446,17 @@ void SongSettings::saveSettings(const QString &filename,
     QSqlQuery q(m_db);
     if (id == -1)
     {
-        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, introPos, outroPos, volume, last_cuesheet) VALUES (:filename, :songname, :name, :pitch, :tempo, :introPos, :outroPos, :volume, :cuesheet)");
+        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, tempoIsPercent, introPos, outroPos, volume, last_cuesheet) VALUES (:filename, :songname, :name, :pitch, :tempo, :tempoIsPercent, :introPos, :outroPos, :volume, :cuesheet)");
     }
     else
     {
-        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, introPos = :introPos, outroPos = :outroPos, volume = :volume, last_cuesheet = :cuesheet WHERE filename = :filename");
+        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, tempoIsPercent = :tempoIsPercent, introPos = :introPos, outroPos = :outroPos, volume = :volume, last_cuesheet = :cuesheet WHERE filename = :filename");
     }
     q.bindValue(":filename", filenameWithPathNormalized);
     q.bindValue(":songname", filename);
     q.bindValue(":pitch", pitch);
     q.bindValue(":tempo", tempo);
+    q.bindValue(":tempoIsPercent", tempoIsPercent);
     q.bindValue(":introPos", introPos);
     q.bindValue(":outroPos", outroPos);
     q.bindValue(":volume", volume);
@@ -462,12 +465,14 @@ void SongSettings::saveSettings(const QString &filename,
     exec("saveSettings", q);
 }
 
+
 bool SongSettings::loadSettings(const QString &filename,
                       const QString &filenameWithPath,
                       const QString &songname,
                       int &volume,
                       int &pitch,
-                      int &temp,
+                      int &tempo,
+                      bool &tempoIsPercent,
                       double &introPos,
                       double &outroPos)
 {
@@ -477,7 +482,8 @@ bool SongSettings::loadSettings(const QString &filename,
                         songname,
                         volume,
                         pitch,
-                        temp,
+                        tempo,
+                        tempoIsPercent,
                         introPos,
                         outroPos,
                         cuesheetName);
@@ -490,6 +496,7 @@ bool SongSettings::loadSettings(const QString &filename,
                                 int &volume,
                                 int &pitch,
                                 int &tempo,
+                                bool &tempoIsPercent,
                                 double &introPos,
                                 double &outroPos,
                                 QString &cuesheetName)
@@ -498,7 +505,7 @@ bool SongSettings::loadSettings(const QString &filename,
     bool foundResults = false;
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet FROM songs WHERE filename=:filename");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filenameWithPathNormalized);
         exec("loadSettings", q);
 
@@ -511,12 +518,13 @@ bool SongSettings::loadSettings(const QString &filename,
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
             cuesheetName = q.value(6).toString();
+            tempoIsPercent = q.value(7).toBool();
         }
     }
     if (!foundResults)
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume FROM songs WHERE filename=:filename");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, tempoIsPercent FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filename);
         exec("loadSettings", q);
 
@@ -528,12 +536,13 @@ bool SongSettings::loadSettings(const QString &filename,
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
+            tempoIsPercent = q.value(6).toBool();
         }
     }
     if (!foundResults)
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos FROM songs WHERE name=:name");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, tempoIsPercent FROM songs WHERE name=:name");
         q.bindValue(":name", songname);
         exec("loadSettings", q);
         while (q.next())
@@ -544,6 +553,7 @@ bool SongSettings::loadSettings(const QString &filename,
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
+            tempoIsPercent = q.value(6).toBool();
         }
     }
     return foundResults;
