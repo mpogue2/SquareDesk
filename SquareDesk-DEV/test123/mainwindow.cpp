@@ -587,44 +587,29 @@ void MainWindow::on_actionCompact_triggered(bool checked)
     bool visible = !checked;
     ui->actionCompact->setChecked(!visible);
 
-    QWidget *widgets[] =
+    for (int col = 0; col < ui->gridLayout_2->columnCount(); ++col)
     {
-        ui->pitchSlider,
-        ui->pitchLabel,
-        ui->tempoSlider,
-        ui->currentMixLabel,
-        ui->mixLabel,
-        ui->mixSlider,
-        ui->EQgroup,
-        ui->layoutWidget,
-        ui->bassSlider,
-        ui->trebleLabel,
-        ui->midrangeLabel,
-        ui->trebleSlider,
-        ui->bassLabel,
-        ui->midrangeSlider,
-        ui->currentPitchLabel,
-        ui->currentLocLabel,
-        ui->warningLabel,
-        ui->tempoLabel,
-        ui->volumeLabel,
-        ui->volumeSlider,
-        ui->currentVolumeLabel,
-        ui->currentTempoLabel,
-        analogClock,
-        NULL
-    };
-    for (int i = 0; widgets[i]; ++i)
-    {
-        if (visible)
+        for (int row = 2; row < ui->gridLayout_2->rowCount(); ++row)
         {
-            widgets[i]->show();
-        }
-        else
-        {
-            widgets[i]->hide();
+            QLayoutItem *layout_item = ui->gridLayout_2->itemAtPosition(row,col);
+            if (layout_item)
+            {
+                QWidget *widget = layout_item->widget();
+                if (widget)
+                {
+                    if (visible)
+                    {
+                        widget->show();
+                    }
+                    else
+                    {
+                        widget->hide();
+                    }
+                }
+            }
         }
     }
+    return;
 }
 
 
