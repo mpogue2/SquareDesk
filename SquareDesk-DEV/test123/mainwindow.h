@@ -252,6 +252,7 @@ private:
     int previousVolume;
 
     bool tempoIsBPM;
+    bool switchToLyricsOnPlay;
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);

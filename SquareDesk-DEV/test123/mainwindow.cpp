@@ -224,6 +224,7 @@ MainWindow::MainWindow(QWidget *parent) :
     currentState = kStopped;
     currentPitch = 0;
     tempoIsBPM = false;
+    switchToLyricsOnPlay = false;
 
     Info_Seekbar(false);
 
@@ -274,6 +275,8 @@ MainWindow::MainWindow(QWidget *parent) :
     guestRootPath = ""; // initially, no guest music
     guestVolume = "";   // and no guest volume present
     guestMode = "main"; // and not guest mode
+
+    switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // initial Guest Mode stuff works on Mac OS and WIN32 only
@@ -858,12 +861,15 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
-            for (int i = 0; i < ui->tabWidget->count(); ++i)
+            if (switchToLyricsOnPlay)
             {
-                if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))
+                for (int i = 0; i < ui->tabWidget->count(); ++i)
                 {
-                    ui->tabWidget->setCurrentIndex(i);
-                    break;
+                    if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))
+                    {
+                        ui->tabWidget->setCurrentIndex(i);
+                        break;
+                    }
                 }
             }
         }
@@ -2774,6 +2780,7 @@ void MainWindow::on_actionPreferences_triggered()
 
         findMusic(musicRootPath, "", "main",
                   oldSaveSongPreferencesInConfig || saveSongPreferencesInConfig); // always refresh the songTable after the Prefs dialog returns with OK
+        switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
         // Save the new value for music type colors --------
         patterColorString = prefsManager.GetpatterColorString();
