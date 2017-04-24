@@ -65,7 +65,7 @@ DEPENDPATH += $$PWD/
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
-else:unix: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3
+else:unix:!macx: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3
 
 win32 {
     RC_FILE = desk1d.rc
