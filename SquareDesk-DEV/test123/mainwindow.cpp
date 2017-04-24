@@ -27,6 +27,7 @@
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDesktopWidget>
+#include <QElapsedTimer>
 #include <QMap>
 #include <QMapIterator>
 #include <QProcess>
@@ -423,7 +424,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     // ----------
-    bool lyricsEnabled = prefsManager.GetexperimentalCuesheetEnabled();
+    bool lyricsEnabled = true;
     showLyricsTab = true;
     lyricsTabNumber = (showTimersTab ? 2 : 1);
     if (!lyricsEnabled) {
@@ -1999,6 +2000,9 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
+    QElapsedTimer timer;
+    timer.start();
+
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -2109,6 +2113,9 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         possibleCuesheets.append(cswr->filename);
         delete cswr;
     }
+
+    qDebug() << "time(FindPossibleCuesheets)=" << timer.elapsed() << " msec";
+    qDebug() << possibleCuesheets;
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName)
@@ -2808,22 +2815,22 @@ void MainWindow::on_actionPreferences_triggered()
 
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
-        if (prefsManager.GetexperimentalCuesheetEnabled()) {
-            lyricsTabNumber = (showTimersTab ? 2 : 1);
-            if (!showLyricsTab) {
-                // iff the Lyrics tab was NOT showing, make it show up now
-                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
-            }
-            showLyricsTab = true;
-        }
-        else {
-            lyricsTabNumber = -1;  // not shown
-            if (showLyricsTab) {
-                // iff Lyrics tab was showing, remove it
-                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
-            }
-            showLyricsTab = false;
-        }
+//        if (prefsManager.GetexperimentalCuesheetEnabled()) {
+//            lyricsTabNumber = (showTimersTab ? 2 : 1);
+//            if (!showLyricsTab) {
+//                // iff the Lyrics tab was NOT showing, make it show up now
+//                ui->tabWidget->insertTab((showTimersTab ? 2 : 1), tabmap.value(2).first, tabmap.value(2).second);  // bring it back now!
+//            }
+//            showLyricsTab = true;
+//        }
+//        else {
+//            lyricsTabNumber = -1;  // not shown
+//            if (showLyricsTab) {
+//                // iff Lyrics tab was showing, remove it
+//                ui->tabWidget->removeTab((showTimersTab ? 2 : 1));  // hidden, but we can bring it back later
+//            }
+//            showLyricsTab = false;
+//        }
 
 //        qDebug() << "After Preferences:: lyricsTabNumber:" << lyricsTabNumber; // FIX
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -4706,30 +4713,7 @@ void MainWindow::initSDtab() {
     // if the sequences directory doesn't exist, create it (but ask nicely first)
     QDir dir(sequencesDir);
     if (!dir.exists()) {
-        QMessageBox msgBox;
-        msgBox.setText("A 'sd' subdirectory to hold sd sequence files was not found in your Music Directory.");
-        msgBox.setInformativeText("Should I create one for you?");
-        msgBox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
-        msgBox.setDefaultButton(QMessageBox::Yes);
-        msgBox.setDetailedText(QString("sd is an open-source square dance sequence designer that is built into SquareDesk."
-                                       " When sd writes a sequence to a file, it writes it to a file in the 'sd'"
-                                       " subdirectory of your Music Directory.  If you say 'yes' here, we'll create"
-                                       " that subdirectory for you.  If you say 'no', the sd tab will be disabled."
-                                       " Future versions of SquareDeskPlayer may offer more options."
-                                       ));
-        int ret = msgBox.exec();
-
-        switch (ret) {
-          case QMessageBox::No:
-            // TODO: remember this choice, and disable sd, but allow it to be reenabled later.
-            break;
-          case QMessageBox::Yes:
-            dir.mkpath(".");
-            break;
-          default:
-            // should never be reached
-            break;
-        }
+        dir.mkpath(".");
     }
 
 //    qDebug() << "sequencesDir:" << sequencesDir;
