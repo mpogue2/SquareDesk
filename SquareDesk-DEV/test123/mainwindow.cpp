@@ -181,7 +181,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->nextSongButton->setEnabled(false);
     ui->previousSongButton->setEnabled(false);
 
-     setCueSheetAdditionalControlsVisible(false);
+    setCueSheetAdditionalControlsVisible(false);
     // ============
     ui->menuFile->addSeparator();
 
@@ -532,6 +532,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
+
+    QSettings settings;
+    if (settings.value("cueSheetAdditionalControlsVisible").toBool()
+        && !cueSheetAdditionalControlsVisible())
+    {
+        on_pushButtonShowHideCueSheetAdditional_clicked();
+    }
 }
 
 
@@ -1328,7 +1335,6 @@ bool MainWindow::cueSheetAdditionalControlsVisible()
 void MainWindow::on_pushButtonShowHideCueSheetAdditional_clicked()
 {
     bool visible = !cueSheetAdditionalControlsVisible();
-    qDebug() << "Setting additional controls to" << visible;
     ui->pushButtonShowHideCueSheetAdditional->setText(visible ? "\u25BC" : "\u25B6");
     setCueSheetAdditionalControlsVisible(visible);
 }
@@ -1552,11 +1558,13 @@ void MainWindow::closeEvent(QCloseEvent *event)
     if (true) {
         on_actionAutostart_playback_triggered();  // write AUTOPLAY setting back
         event->accept();  // OK to close, if user said "OK" or "SAVE"
-
+        saveCurrentSongSettings();
+        
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
         QSettings settings;
         settings.setValue("geometry", saveGeometry());
         settings.setValue("windowState", saveState());
+        settings.setValue("cueSheetAdditionalControlsVisible", cueSheetAdditionalControlsVisible());
         QMainWindow::closeEvent(event);
     }
     else {
@@ -2053,12 +2061,15 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         // Minimum criteria: 
         if (completeBaseName.compare(mp3CompleteBaseName, Qt::CaseInsensitive) == 0
             || title.compare(mp3Title, Qt::CaseInsensitive) == 0
-            || shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0
+            || (shortTitle.length() > 0
+                && shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0)
 //            || (labelnum.length() > 0 && label.length() > 0
 //                &&  labelnum.compare(mp3Labelnum, Qt::CaseInsensitive)
 //                && label.compare(mp3Label, Qt::CaseInsensitive) == 0
 //                )
-            || mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0
+            || (labelnum.length() > 0 && label.length() > 0
+                && mp3Title.length() > 0
+                && mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0)
             )
         {
             
@@ -2070,8 +2081,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 + (labelnum.compare(mp3Labelnum, Qt::CaseInsensitive) == 0 ? 10 : 0)
                 + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
 
-            qDebug() << "Matched " << filename << "/" << completeBaseName;
-            
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
             cswr->filename = filename;
             cswr->name = completeBaseName;
@@ -2133,9 +2142,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
     if (hasLyrics && lyricsTabNumber != -1) {
         ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
     } else {
+        ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
         ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
     }
-
 }
 
 
