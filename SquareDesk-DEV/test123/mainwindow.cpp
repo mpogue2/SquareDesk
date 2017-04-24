@@ -84,7 +84,6 @@ using namespace std;
 #include <taglib/id3v2frame.h>
 #include <taglib/id3v2header.h>
 
-// #include <taglib/synchronizedlyricsframe.h>
 #include <taglib/unsynchronizedlyricsframe.h>
 #include <string>
 
@@ -1328,7 +1327,7 @@ bool MainWindow::cueSheetAdditionalControlsVisible()
             return qw->isVisible();
     }
     return false;
-}    
+}
 
 // --------------------------------1--------------------------------------
 
@@ -1949,7 +1948,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QStrin
     labelnum.simplified();
     title = title.simplified();
     shortTitle = shortTitle.simplified();
-        
+
     return foundParts;
 }
 
@@ -2003,7 +2002,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
 
-    
+
     QList<QString> extensions;
     QString dot(".");
     for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
@@ -2031,7 +2030,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
         if (!foundExtension)
             continue;
-    
+
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
@@ -2048,7 +2047,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         QString title = "";
         QString shortTitle = "";
 
-        
+
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
         breakFilenameIntoParts(completeBaseName, label, labelnum, title, shortTitle);
 
@@ -2058,7 +2057,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //        qDebug() << "    label: " << label << " to " << mp3Label << " and num " << labelnum << " to " << mp3Labelnum;
 //        qDebug() << "    title: " << mp3Title << " to " << QString(label + "-" + labelnum);
 
-        // Minimum criteria: 
+        // Minimum criteria:
         if (completeBaseName.compare(mp3CompleteBaseName, Qt::CaseInsensitive) == 0
             || title.compare(mp3Title, Qt::CaseInsensitive) == 0
             || (shortTitle.length() > 0
@@ -2072,7 +2071,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 && mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0)
             )
         {
-            
+
             int score = extensionIndex
                 + (mp3CanonicalPath.compare(fi.canonicalPath(), Qt::CaseInsensitive) == 0 ? 10000 : 0)
                 + (mp3CompleteBaseName.compare(fi.completeBaseName(), Qt::CaseInsensitive) == 0 ? 1000 : 0)
@@ -2114,10 +2113,10 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
-    
+
     QString firstCuesheet("");
     ui->comboBoxCuesheetSelector->clear();
-    
+
     foreach (const QString &cuesheet, possibleCuesheets)
     {
         if (firstCuesheet.length() == 0)
@@ -2128,7 +2127,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
         QString displayName = cuesheet;
         if (displayName.startsWith(musicRootPath))
             displayName.remove(0, musicRootPath.length());
-        
+
         ui->comboBoxCuesheetSelector->addItem(displayName,
                                               cuesheet);
     }
@@ -2152,6 +2151,16 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 {
     RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
+
+    // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
+    QFileInfo fi(MP3FileName);
+    QString resolvedFilePath = fi.symLinkTarget(); // path with the symbolic links followed/removed
+    if (resolvedFilePath != "") {
+        MP3FileName = resolvedFilePath;
+    }
+
+//    qDebug() << "loadMP3File: MP3FileName=" << MP3FileName << ", resolved=" << resolvedFilePath;
+
     loadCuesheets(MP3FileName);
 
     currentMP3filenameWithPath = MP3FileName;
@@ -2288,12 +2297,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->pushButtonSetIntroTime->setEnabled(isSingingCall);  // if not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(isSingingCall);
-    
+
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
     ui->lineEditIntroTime->setEnabled(isSingingCall);
     ui->lineEditOutroTime->setEnabled(isSingingCall);
-    
+
 
     loadSettingsForSong(songTitle);
 }
@@ -2334,17 +2343,21 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 // this function stores the absolute paths of each file in a QVector
 void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix)
 {
+//    QElapsedTimer timer1;
+//    timer1.start();
+
 //    qDebug() << "FFR: rootDir =" << rootDir;
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
         QString s1 = it.next();
 //        qDebug() << "FFR:" << s1;
         // If alias, follow it.
-        QString resolvedFilePath = it.fileInfo().symLinkTarget(); // path with the symbolic links followed/removed
-        if (resolvedFilePath == "") {
-            // If NOT alias, then use the original fileName
-            resolvedFilePath = s1;
-        }
+//        QString resolvedFilePath = it.fileInfo().symLinkTarget(); // path with the symbolic links followed/removed
+//        if (resolvedFilePath == "") {
+//            // If NOT alias, then use the original fileName
+//            resolvedFilePath = s1;
+//        }
+        QString resolvedFilePath=s1;
 
         QFileInfo fi(s1);
         QStringList section = fi.canonicalPath().split("/");
@@ -2352,6 +2365,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                                                               // of where the alias is, not where the file is, and append "*" or not
         pathStack->append(type + "#!#" + resolvedFilePath);
     }
+//    qDebug() << "timer1:" << timer1.elapsed();
 }
 
 
@@ -2379,7 +2393,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 //        qDebug() << "looking for files in the mainRootDir";
         QDir rootDir1(mainRootDir);
         rootDir1.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
-       
+
         QStringList qsl;
         QString starDot("*.");
         for (size_t i = 0; i < sizeof(music_file_extensions) / sizeof(*music_file_extensions); ++i)
@@ -2523,7 +2537,7 @@ void MainWindow::loadMusicList()
         }
         if (!foundExtension)
             continue;
-        
+
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         s = sl1[1];  // everything else
@@ -3817,14 +3831,14 @@ void MainWindow::saveCurrentSongSettings()
 {
     if (loadingSong)
         return;
-    
+
     QString currentSong = ui->nowPlayingLabel->text();
 
     if (!currentSong.isEmpty()) {
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
         int cuesheetIndex = ui->comboBoxCuesheetSelector->currentIndex();
-        QString cuesheetFilename = cuesheetIndex >= 0 ? 
+        QString cuesheetFilename = cuesheetIndex >= 0 ?
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
 
@@ -3851,7 +3865,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
     QString cuesheetName = "";
-    
+
     if (songSettings.loadSettings(currentMP3filename,
                                   currentMP3filenameWithPath,
                                   songTitle,
@@ -3864,7 +3878,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
-        
+
         double length = (double)(ui->seekBarCuesheet->maximum());
         ui->lineEditIntroTime->setText(doubleToTime(intro * length));
         ui->lineEditOutroTime->setText(doubleToTime(outro * length));
@@ -3931,7 +3945,6 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 //    qDebug() << "Lyrics found: " << USLTlyrics;
 
     return (USLTlyrics);
-    
 }
 
 // ------------------------------------------------------------------------
