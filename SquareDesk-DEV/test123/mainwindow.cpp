@@ -872,7 +872,14 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
-
+            for (int i = 0; i < ui->tabWidget->count(); ++i)
+            {
+                if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))
+                {
+                    ui->tabWidget->setCurrentIndex(i);
+                    break;
+                }
+            }
         }
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != NULL) {
