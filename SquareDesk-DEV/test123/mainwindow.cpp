@@ -534,6 +534,21 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
+    {
+        ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
+        ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
+        // #define kCallListNameCol        2
+        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100); 
+        QHeaderView *headerView = ui->tableWidgetCallList->horizontalHeader();
+        headerView->setSectionResizeMode(kCallListOrderCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
+        headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
+        headerView->setStretchLastSection(false);
+        on_comboBoxCallListProgram_currentIndexChanged(0);
+    }
+
+
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
     QSettings settings;
@@ -581,6 +596,318 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
 }
+
+struct SquareDanceCall {
+    const char *num;
+    const char *name;
+};
+
+SquareDanceCall basic1_calls[] = {
+    {" 1", "Circle Left / Circle Right" },
+    {" 2", "Forward and Back" },
+    {" 3", "Dosado / Dosado to a Wave" },
+    {" 4", "Swing" },
+    {" 5", "Promenade Family" },
+    {" 5.a", "Couples (Full, 1/2, 3/4) " },
+    {" 5.b", "Single File Promenade " },
+    {" 5.c", "Wrong Way Promenade " },
+    {" 5.d", "Star Promenade" },
+    {" 6", "Allemande Left" },
+    {" 7", "Arm Turns" },
+    {" 8", "Right and Left Grand Family" },
+    {" 8.a", "Right and Left Grand " },
+    {" 8.b", "Weave the Ring" },
+    {" 8.c", "Wrong Way Grand" },
+    {" 9", "Left-Hand Star / Right-Hand Star" },
+    {"10", "Pass Thru" },
+    {"11", "Half Sashay Family" },
+    {"11.a", "Half Sashay" },
+    {"11.b", "Rollaway" },
+    {"11.c", "Ladies In, Men Sashay" },
+    {"12", "Turn Back Family " },
+    {"12.a", "U-Turn Back" },
+    {"12.b", "Backtrack" },
+    {"13", "Separate" },
+    {"13.a", "Around 1 or 2 to a Line " },
+    {"13.b", "Around 1 or 2 and Come Into the Middle}" },
+    {"14", "Split Two" },
+    {"15", "Courtesy Turn" },
+    {"16", "Ladies Chain Family" },
+    {"16.a", "Two Ladies Chain (Reg. & 3/4) " },
+    {"16.b", "Four Ladies Chain(Reg. & 3/4)" },
+    {"16.c", "Chain Down the Line" },
+    {"17", "Do Paso" },
+    {"18", "Lead Right" },
+    {"19", "Veer Left / Veer Right" },
+    {"20", "Bend the Line" },
+    {"21", "Circulate Family" },
+    {"21.a", "(Named Dancers) Circulate " },
+    {"21.b", "Couples Circulate" },
+    {"21.c", "All Eight Circulate" },
+    {"21.d", "Single File Circulate" },
+    {"21.e", "Split/Box Circulate" },
+    {"22", "Right and Left Thru" },
+    {"23", "Grand Square" },
+    {"24", "Star Thru" },
+    {"25", "California Twirl" },
+    {"26", "Walk Around the Corner" },
+    {"27", "See Saw" },
+    {"28", "Square Thru (1, 2, 3, 4) / Left Square Thru (1, 2, 3, 4)" },
+    {"29", "Circle to a Line" },
+    {"30", "Dive Thru" },
+};
+
+SquareDanceCall basic2_calls[] = {
+    {"31", "Wheel Around " },
+    {"32", "Thar Family" },
+    {"32.a", "Allemande Thar" },
+    {"32.b", "Allemande Left to an Allemande Thar " },
+    {"32.c", "Wrong Way Thar" },
+    {"33", "Slip the Clutch " },
+    {"34", "Shoot the Star / Shoot the Star Full Around " },
+    {"35", "Box the Gnat" },
+    {"36", "Trade Family" },
+    {"36.a", "(Named Dancers) Trade " },
+    {"36.b", "Couples Trade" },
+    {"36.c", "Partner Trade" },
+    {"37", "Ocean Wave Family" },
+    {"37.a", "Step to a Wave" },
+    {"37.b", "Balance" },
+    {"38", "Alamo Style" },
+    {"39", "Swing Thru / Left Swing Thru " },
+    {"40", "Run / Cross Run" },
+    {"41", "Pass the Ocean" },
+    {"42", "Extend" },
+    {"43", "Wheel and Deal" },
+    {"44", "Double Pass Thru" },
+    {"45", "First Couple Go Left/Right, Next Couple Go Left/Right " },
+    {"46", "Zoom" },
+    {"47", "Flutterwheel / Reverse Flutterwheel" },
+    {"48", "Sweep a Quarter " },
+    {"49", "Trade By" },
+    {"50", "Touch 1/4" },
+    {"51", "Ferris Wheel" },
+};
+
+SquareDanceCall mainstream_calls[] = {
+    {"52", "Cloverleaf" },
+    {"53", "Turn Thru" },
+    {"54", "Eight Chain Thru / Eight Chain 1, 2, 3, Etc." },
+    {"55", "Pass to the Center" },
+    {"56", "Single Hinge / Couples Hinge " },
+    {"57", "Centers In" },
+    {"58", "Cast Off 3/4" },
+    {"59", "Spin the Top" },
+    {"60", "Walk and Dodge" },
+    {"61", "Slide Thru" },
+    {"62", "Fold / Cross Fold" },
+    {"63", "Dixie Style to an Ocean Wave " },
+    {"64", "Spin Chain Thru" },
+    {"65", "Tag the Line (In/Out/Left/Right) " },
+    {"66", "Half Tag" },
+    {"67", "Scoot Back" },
+    {"68", "Recycle (From a Wave Only)" },
+};
+
+SquareDanceCall plus_calls[] = {
+    {" 1", "Acey Deucey" },
+    {" 2", "Teacup Chain" },
+    {" 3", "Ping Pong Circulate" },
+    {" 4", "Load the Boat" },
+    {" 5", "Peel Off" },
+    {" 6", "Linear Cycle (From Waves Only)" },
+    {" 7", "Coordinate" },
+    {" 8", "(Anything) & Spread" },
+    {" 9", "Spin Chain the Gears" },
+    {"10", "Track II" },
+    {"11", "(Anything) & Roll" },
+    {"12", "Follow Your Neighbor" },
+    {"13", "Fan the Top" },
+    {"14", "Explode the Wave" },
+    {"15", "Explode & (Anything) (From Waves Only)" },
+};
+
+SquareDanceCall a1_calls[] = {
+    {" 1", "Belles and Beaus (couples facing same direction only)" },
+    {" 2", "Brace Thru " },
+    {" 3", "Cross Trail Thru" },
+    {" 4", "Triple Trade" },
+    {" 5", "Triple Scoot" },
+    {" 6", "Grand Follow Your Neighbor" },
+    {" 7", "Quarter Thru" },
+    {" 8", "Wheel Thru" },
+    {" 9", "Turn and Deal (2-faced lines, lines facing out)" },
+    {"10", "Pass In/Out" },
+    {"11", "Chain Reaction (1/4 tag)" },
+    {"12", "Mix" },
+    {"13", "Lockit" },
+    {"14", "Right (Left) Roll to a Wave" },
+    {"15", "Cast a Shadow" },
+    {"16", "Six-Two Acey-Deucey" },
+    {"17", "Clover and (Anything)" },
+    {"18", "Turn and Deal (ocean waves & other Lines) " },
+    {"19", "Quarter In/Out" },
+    {"20", "Cross Over Circulate (two faced lines)" },
+    {"21", "Partner Tag" },
+    {"22", "Partner Hinge" },
+    {"23", "Horseshoe Turn" },
+    {"24", "Pass the Sea" },
+    {"25", "Split Square Thru" },
+    {"26", "Step and Slide" },
+    {"27", "Transfer the Column" },
+    {"28", "Cross Over Circulate (ocean waves & other lines)" },
+    {"29", "Swap Around" },
+    {"30", "Explode the Line" },
+    {"31", "As Couples Concept" },
+    {"32", "Ends Bend" },
+    {"33", "Square Chain Thru" },
+    {"34", "Scoot and Dodge" },
+    {"35", "Double Star Thru" },
+    {"36", "Left Wheel Thru" },
+    {"37", "(Anything) and Cross (Named Dancers) Cross" },
+    {"38", "Fractional Tops" },
+    {"39", "Three Quarter Thru" },
+    {"40", "Triple Star Thru" },
+    {"41", "Cycle and Wheel" },
+    {"42", "Grand Quarter Thru" },
+    {"43", "Grand Three Quarter Thru" },
+    {"44", "Explode and (Anything)" },
+    {"45", "Pair Off" },
+    {"46", "Reverse Swap Around" },
+    {"47", "Cross Clover and (Anything)" },
+    {"48", "Any Hand Concept" },
+    {"49", "Preface Items" },
+    {"50", "Split Square Chain Thru" },
+};
+
+SquareDanceCall a2_calls[] = {
+    {" 1", "Single Wheel" },
+    {" 2", "In Roll Circulate " },
+    {" 3", "Slip" },
+    {" 4", "Scoot and Weave" },
+    {" 5", "Split/Box Counter Rotate" },
+    {" 6", "Swing" },
+    {" 7", "Swing & Mix" },
+    {" 8", "Trade Circulate (waves only)" },
+    {" 9", "Motivate" },
+    {"10", "Switch the Wave" },
+    {"11", "Pass and Roll" },
+    {"12", "Scoot Chain Thru" },
+    {"13", "Slide" },
+    {"14", "Recycle (facing couples)" },
+    {"15", "Spin the Windmill " },
+    {"16", "Out Roll Circulate" },
+    {"17", "Switch to a Diamond (waves only)" },
+    {"18", "Hourglass Circulate " },
+    {"19", "Cut the Hourglass" },
+    {"20", "Flip the Hourglass" },
+    {"21", "Pass and Roll Your Neighbor" },
+    {"22", "Trade Circulate (two faced lines)" },
+    {"23", "Zig-Zag / Zag-Zig" },
+    {"24", "Checkmate the Column" },
+    {"25", "Mini-Busy" },
+    {"26", "Slither" },
+    {"27", "Trail Off" },
+    {"28", "Remake Family" },
+    {"28.a", "Remake" },
+    {"28.b", "Grand Remake" },
+    {"28.c", "Remake The Thar" },
+    {"29", "Switch to an Hourglass (waves only)" },
+    {"30", "Split / Box Transfer" },
+    {"31", "Diamond Chain Thru" },
+    {"32", "Peel & Trail (from completed DPT)" },
+    {"33", "Peel & Trail (Columns)" },
+    {"34", "Transfer and (Anything)" },
+    {"35", "All 4 Couples Concept (such as)" },
+    {"35.a", "All 4 Couples Star Thru " },
+    {"35.b", "All 4 Right and Left Thru" },
+    {"35.c", "All 4 Chase Right" },
+    {"36", "All 8 Concept (such as) " },
+    {"36.a", "All 8 Swing Thru" },
+    {"36.b", "All 8 Switch the Wave " },
+    {"36.c", "All 8 Walk and Dodge" },
+    {"36.d", "All 8 Mix" },
+    {"37", "Preface Items" },
+};
+
+
+static void AddItemsToCallList(QTableWidget *tableWidget,
+                               SquareDanceCall *calls, int count)
+{
+    int initialRowCount = tableWidget->rowCount();
+    tableWidget->setRowCount(initialRowCount + count);
+    for (int i = 0; i < count; ++i)
+    {
+        int row = initialRowCount + i;
+        QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
+        checkBoxItem->setCheckState(Qt::Unchecked);
+        tableWidget->setItem(row, kCallListCheckedCol, checkBoxItem);
+        
+        QTableWidgetItem *numberItem = new QTableWidgetItem(calls[i].num);
+        QTableWidgetItem *nameItem = new QTableWidgetItem(calls[i].name);
+
+        numberItem->setFlags(numberItem->flags() & ~Qt::ItemIsEditable);
+        nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+
+        tableWidget->setItem(row, kCallListOrderCol, numberItem);
+        tableWidget->setItem(row, kCallListNameCol, nameItem);
+
+        QTableWidgetItem *dateItem = new QTableWidgetItem("    -  -  ");
+        dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
+        tableWidget->setItem(row, kCallListWhenCheckedCol, dateItem);
+    }
+}
+
+
+void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
+{
+    if (kCallListCheckedCol == col)
+    {
+        QTableWidgetItem *dateItem;
+        if (ui->tableWidgetCallList->item(row,col)->checkState() == Qt::Checked)
+        {
+            QDateTime now(QDateTime::currentDateTime());
+            dateItem = new QTableWidgetItem(now.toString("yyyy-MM-dd"));
+        }
+        else
+        {
+            dateItem = new QTableWidgetItem("    -  -  ");
+        }
+        ui->tableWidgetCallList->setItem(row, kCallListWhenCheckedCol, dateItem);
+    }
+}
+
+void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex)
+{
+    ui->tableWidgetCallList->setRowCount(0);
+    ui->tableWidgetCallList->setSortingEnabled(false);
+    switch (currentIndex) 
+    {
+    case 0 :
+        AddItemsToCallList(ui->tableWidgetCallList,
+                           basic1_calls, sizeof(basic1_calls) / sizeof(*basic1_calls));
+        AddItemsToCallList(ui->tableWidgetCallList,
+                           basic2_calls, sizeof(basic2_calls) / sizeof(*basic2_calls));
+        break;
+    case 1 :
+        AddItemsToCallList(ui->tableWidgetCallList,
+                           mainstream_calls, sizeof(mainstream_calls) / sizeof(*mainstream_calls));
+        break;
+    case 2 :
+        AddItemsToCallList(ui->tableWidgetCallList,
+                           plus_calls, sizeof(plus_calls) / sizeof(*plus_calls));
+        break;
+    case 3 :
+        AddItemsToCallList(ui->tableWidgetCallList,
+                           a1_calls, sizeof(a1_calls) / sizeof(*a1_calls));
+        AddItemsToCallList(ui->tableWidgetCallList,
+                           a2_calls, sizeof(a2_calls) / sizeof(*a2_calls));
+        break;
+    }
+    ui->tableWidgetCallList->setSortingEnabled(true);
+    
+}
+
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
@@ -741,17 +1068,6 @@ void MainWindow::setFontSizes()
 #if defined(Q_OS_LINUX)
     QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");  // DAN, PLEASE ADJUST THIS
 #endif
-    ui->basicCallList1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->basicCallList2->setStyleSheet(styleForCallerlabDefinitions);
-    ui->basicCallList3->setStyleSheet(styleForCallerlabDefinitions);
-    ui->basicCallList4->setStyleSheet(styleForCallerlabDefinitions);
-    ui->plusCallList1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->plusCallList2->setStyleSheet(styleForCallerlabDefinitions);
-    ui->a1CallList1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->a1CallList2->setStyleSheet(styleForCallerlabDefinitions);
-    ui->a2CallList1->setStyleSheet(styleForCallerlabDefinitions);
-    ui->a2CallList2->setStyleSheet(styleForCallerlabDefinitions);
-
     font.setPointSize(preferredNowPlayingSize);
     ui->nowPlayingLabel->setFont(font);
 

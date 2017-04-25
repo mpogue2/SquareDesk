@@ -232,6 +232,8 @@ private slots:
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
+    void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
+    void on_tableWidgetCallList_cellChanged(int row, int col);
 
 private:
     QAction *closeAct;  // WINDOWS only
@@ -373,6 +375,7 @@ private:
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadMusic(int id);
     bool autoScrollLyricsEnabled;
+
 };
 
 // currentState:
@@ -392,6 +395,14 @@ private:
 // hidden columns:
 #define kPitchCol 5
 #define kTempoCol 6
+
+
+// columns in tableViewCallList
+#define kCallListOrderCol       0
+#define kCallListCheckedCol     1
+#define kCallListNameCol        2
+#define kCallListWhenCheckedCol 3
+
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time
