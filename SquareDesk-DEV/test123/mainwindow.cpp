@@ -2457,8 +2457,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
         QString displayName = cuesheet;
         if (displayName.startsWith(musicRootPath))
             displayName.remove(0, musicRootPath.length());
-
+        
         ui->comboBoxCuesheetSelector->addItem(displayName,
+                                              cuesheet);
     }
 
     if (firstCuesheet.length() > 0)

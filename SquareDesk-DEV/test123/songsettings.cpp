@@ -194,7 +194,7 @@ TableDefinition session_table("sessions", song_rows);
 RowDefinition song_play_rows[] =
 {
     RowDefinition("song_rowid", "int references songs(rowid)"),
-    RowDefinition("session_rowid", "int references songs(rowid)"),
+    RowDefinition("session_rowid", "int references session(rowid)"),
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
                   "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
     RowDefinition(NULL, NULL),
