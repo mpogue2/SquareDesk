@@ -557,10 +557,10 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="13" column="2">
+         <item row="13" column="2" colspan="3">
           <widget class="QCheckBox" name="checkBoxSwitchToLyricsOnPlay">
            <property name="text">
-            <string>Switch to Lyrics tab on first play</string>
+            <string>Switch to Lyrics tab on first play (when lyrics are available)</string>
            </property>
           </widget>
          </item>
