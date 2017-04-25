@@ -542,6 +542,10 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         on_pushButtonShowHideCueSheetAdditional_clicked();
     }
+
+    if (prefsManager.GetenableAutoAirplaneMode()) {
+        airplaneMode(true);
+    }
 }
 
 
@@ -661,6 +665,8 @@ void MainWindow::on_actionSunday_triggered(bool /* checked */)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(0);
     colorDlg.setOption(QColorDialog::NoButtons);
@@ -683,6 +689,9 @@ MainWindow::~MainWindow()
     }
 #endif
 
+    if (prefsManager.GetenableAutoAirplaneMode()) {
+        airplaneMode(false);
+    }
 }
 
 void MainWindow::setFontSizes()
@@ -1557,7 +1566,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         on_actionAutostart_playback_triggered();  // write AUTOPLAY setting back
         event->accept();  // OK to close, if user said "OK" or "SAVE"
         saveCurrentSongSettings();
-        
+
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
         QSettings settings;
         settings.setValue("geometry", saveGeometry());
@@ -2875,6 +2884,14 @@ void MainWindow::on_actionPreferences_triggered()
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
         loadMusicList();
+    }
+
+    if (prefsManager.GetenableAutoAirplaneMode()) {
+        // if the user JUST set the preference, turn Airplane Mode on RIGHT NOW (radios OFF).
+        airplaneMode(true);
+    } else {
+        // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
+        airplaneMode(false);
     }
 
     delete prefDialog;
@@ -4846,4 +4863,16 @@ void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     renderArea->setCoupleColoringScheme(action->text());
+}
+
+void MainWindow::airplaneMode(bool turnItOn) {
+#if defined(Q_OS_MAC)
+    char cmd[100];
+    if (turnItOn) {
+        sprintf(cmd, "osascript -e 'do shell script \"networksetup -setairportpower en0 off\"'\n");
+    } else {
+        sprintf(cmd, "osascript -e 'do shell script \"networksetup -setairportpower en0 on\"'\n");
+    }
+    system(cmd);
+#endif
 }

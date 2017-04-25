@@ -100,6 +100,8 @@ protected:
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
 
+    void airplaneMode(bool turnItOn);
+
 private slots:
     void sdActionTriggered(QAction * action);
 
