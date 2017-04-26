@@ -37,6 +37,7 @@
 #include <QDirIterator>
 #include <QList>
 #include <QListIterator>
+#include <QListWidget>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -234,6 +235,8 @@ private slots:
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
     void on_tableWidgetCallList_cellChanged(int row, int col);
+    void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
+    void on_lineEditChoreographySearch_textChanged();
 
 private:
     QAction *closeAct;  // WINDOWS only
@@ -285,6 +288,9 @@ private:
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
+    void loadChoreographyList();
+    void filterChoreography();
+    QStringList getUncheckedItemsFromCurrentCallList();
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 

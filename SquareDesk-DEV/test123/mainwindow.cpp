@@ -338,6 +338,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // used to store the file paths
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
+    loadChoreographyList();
 
     ui->songTable->setColumnWidth(kNumberCol,36);
     ui->songTable->setColumnWidth(kTypeCol,96);
@@ -1958,6 +1959,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
                ui->lineEditCountDownTimer->hasFocus() ||
+               ui->lineEditChoreographySearch->hasFocus() || 
                ui->songTable->isEditing() ||
                maybeMainWindow->console->hasFocus() )     ||
              ( (ui->labelSearch->hasFocus() ||
@@ -2457,7 +2459,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
         QString displayName = cuesheet;
         if (displayName.startsWith(musicRootPath))
             displayName.remove(0, musicRootPath.length());
-        
+
         ui->comboBoxCuesheetSelector->addItem(displayName,
                                               cuesheet);
     }
@@ -2990,6 +2992,238 @@ void MainWindow::loadMusicList()
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
     ui->statusBar->showMessage(msg1);
+}
+
+QString processSequence(const QString &title,
+                        QString sequence,
+                        const QStringList &include,
+                        const QStringList &exclude)
+{
+    static QRegularExpression regexEmpty("^\\s+$");
+    QRegularExpressionMatch match = regexEmpty.match(sequence);
+    if (match.hasMatch())
+    {
+        return QString();
+    }
+    
+    for (int i = 0; i < exclude.length(); ++i)
+    {
+        if (sequence.contains(exclude[i], Qt::CaseInsensitive))
+        {
+            return QString();
+        }
+    }
+    for (int i = 0; i < include.length(); ++i)
+    {
+        if (!sequence.contains(include[i], Qt::CaseInsensitive))
+        { 
+            return QString();
+        }
+    }
+    QRegExp regexpAmp("&");
+    QRegExp regexpLt("<");
+    QRegExp regexpGt(">");
+    QRegExp regexpApos("'");
+    QRegExp regexpNewline("\n");
+
+    sequence = sequence.replace(regexpAmp, "&amp;");
+    sequence = sequence.replace(regexpLt, "&lt;");
+    sequence = sequence.replace(regexpGt, "&gt;");
+    sequence = sequence.replace(regexpApos, "&apos;");
+    sequence = sequence.replace(regexpNewline, "<br/>\n");
+
+    return "<h1>" + title + "</h1>\n<p>" + sequence + "</p>\n";
+
+}
+
+QString extractSequencesFromFile(const QString &filename,
+                                 const QString &program,
+                                 const QStringList &include,
+                                 const QStringList &exclude)
+{
+    QFile file(filename);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    QTextStream in(&file);
+    bool isSDFile(false);
+    bool firstSDLine(false);
+    QString thisProgram = "";
+    QString title(program);
+
+    if (filename.contains(program, Qt::CaseInsensitive))
+    {
+        thisProgram = program;
+    }
+        
+    // Sun Jan 10 17:03:38 2016     Sd38.58:db38.58     Plus
+    static QRegularExpression regexIsSDFile("^(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\\s+" // Sun
+                                           "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\s+" // Jan
+                                           "\\d+\\s+\\d+\\:\\d+\\:\\d+\\s+\\d\\d\\d\\d\\s+" // 10 17:03:38 2016
+                                           "Sd\\d+\\.\\d+\\:db\\d+\\.\\d+\\s+" //Sd38.58:db38.58
+                                           "(\\w+)\\s*$"); // Plus
+
+    QString sequence;
+    QString results;
+    
+    while (!in.atEnd())
+    {
+        QString line(in.readLine());
+
+        QRegularExpressionMatch match = regexIsSDFile.match(line);
+        
+        if (match.hasMatch())
+        {
+            if (0 == thisProgram.compare(program, Qt::CaseInsensitive))
+            {
+                results += processSequence(title, sequence, include, exclude);
+            }
+            isSDFile = true;
+            firstSDLine = true;
+            thisProgram = match.captured(3);
+            sequence.clear();
+            title.clear();
+        }
+        else if (!isSDFile)
+        {
+            QString line_simplified = line.simplified();
+            if (line_simplified.startsWith("Basic", Qt::CaseInsensitive))
+            {
+                if (0 == thisProgram.compare(title, program, Qt::CaseInsensitive))
+                {
+                    results += processSequence(title, sequence, include, exclude);
+                }
+                thisProgram = "Basic";
+                sequence.clear();
+            }
+            else if (line_simplified.startsWith("+", Qt::CaseInsensitive)
+                || line_simplified.startsWith("Plus", Qt::CaseInsensitive))
+            {
+                if (0 == thisProgram.compare(title, program, Qt::CaseInsensitive))
+                {
+                    results += processSequence(title,sequence, include, exclude);
+                }
+                thisProgram = "Plus";
+                sequence.clear();
+            }
+            else if (line_simplified.length() == 0)
+            {
+                if (0 == thisProgram.compare(title, program, Qt::CaseInsensitive))
+                {
+                    results += processSequence(title,sequence, include, exclude);
+                }
+                sequence.clear();
+            }
+            else
+            {
+                sequence += line + "\n";
+            }
+            
+        }
+        else // is SD file
+        {
+            QString line_simplified = line.simplified();
+
+            if (firstSDLine)
+            {
+                if (line_simplified.length() == 0)
+                {
+                    firstSDLine = false;
+                }
+                else
+                {
+                    title += line;
+                }
+            }
+            else
+            {
+                if (!line_simplified.length() == 0)
+                {
+                    sequence += line + "\n";
+                }
+            }
+        }
+    }
+    results += processSequence(title,sequence, include, exclude);
+    return "<html><body>" + results + "</html></body>";
+}
+
+QStringList MainWindow::getUncheckedItemsFromCurrentCallList()
+{
+    QStringList uncheckedItems;
+    for (int row = 0; row < ui->tableWidgetCallList->rowCount(); ++row)
+    {
+        if (ui->tableWidgetCallList->item(row, kCallListCheckedCol)->checkState() == Qt::Unchecked)
+        {
+            uncheckedItems.append(ui->tableWidgetCallList->item(row, kCallListNameCol)->data(0).toString());
+        }
+    }
+    return uncheckedItems;
+}
+
+void MainWindow::filterChoreography()
+{
+    QStringList exclude(getUncheckedItemsFromCurrentCallList());
+    QString program = ui->comboBoxCallListProgram->currentText();
+    QStringList include = ui->lineEditChoreographySearch->text().split(" ");
+
+    if (ui->comboBoxChoreographySearchType->currentIndex() == 0)
+    {
+        exclude.clear();
+    }
+
+    QString sequences;
+    
+    for (int i = 0; i < ui->listWidgetChoreographyFiles->count()
+             && sequences.length() < 128000; ++i)
+    {
+        QListWidgetItem *item = ui->listWidgetChoreographyFiles->item(i);
+        if (item->checkState() == Qt::Checked)
+        {
+            QString filename = item->data(1).toString();
+            sequences += extractSequencesFromFile(filename, program,
+                                                  include, exclude)
+                + "\n\n";
+        }
+    }
+    ui->textBrowserChoreographySequences->setText(sequences);
+}
+
+
+void MainWindow::on_lineEditChoreographySearch_textChanged()
+{
+    filterChoreography();
+}
+
+void MainWindow::on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item)
+{
+    filterChoreography();
+}
+
+void MainWindow::loadChoreographyList()
+{
+    ui->listWidgetChoreographyFiles->clear();
+
+    QListIterator<QString> iter(*pathStack);
+    
+    while (iter.hasNext()) {
+        QString s = iter.next();
+
+        if (s.endsWith(".txt")
+            && (s.contains("sequence", Qt::CaseInsensitive)
+                || s.contains("singer", Qt::CaseInsensitive)))
+        {
+            QStringList sl1 = s.split("#!#");
+            QString type = sl1[0];  // the type (of original pathname, before following aliases)
+            QString origPath = sl1[1];  // everything else
+            
+            QFileInfo fi(s);
+//            QStringList section = fi.canonicalPath().split("/");
+            QString name = fi.completeBaseName();
+            QListWidgetItem *item = new QListWidgetItem(name);
+            item->setData(1,origPath);
+            item->setCheckState(Qt::Unchecked);
+            ui->listWidgetChoreographyFiles->addItem(item);
+        }
+    }
 }
 
 void MainWindow::on_labelSearch_textChanged()
