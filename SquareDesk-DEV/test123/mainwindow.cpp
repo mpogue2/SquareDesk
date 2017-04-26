@@ -3163,7 +3163,11 @@ void MainWindow::filterChoreography()
 {
     QStringList exclude(getUncheckedItemsFromCurrentCallList());
     QString program = ui->comboBoxCallListProgram->currentText();
-    QStringList include = ui->lineEditChoreographySearch->text().split(" ");
+    QStringList include = ui->lineEditChoreographySearch->text().split(",");
+    for (int i = 0; i < include.length(); ++i)
+    {
+        include[i] = include[i].simplified();
+    } 
 
     if (ui->comboBoxChoreographySearchType->currentIndex() == 0)
     {
