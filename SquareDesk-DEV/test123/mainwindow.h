@@ -254,6 +254,7 @@ private:
     int previousVolume;
 
     bool tempoIsBPM;
+    float baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
     bool switchToLyricsOnPlay;
 
     void Info_Volume(void);
@@ -274,6 +275,7 @@ private:
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
 
+    float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName);

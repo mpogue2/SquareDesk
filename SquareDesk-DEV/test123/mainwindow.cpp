@@ -1111,7 +1111,7 @@ void MainWindow::on_actionMute_triggered()
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
     if (tempoIsBPM) {
-        float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
+//        float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
         float desiredBPM = (float)value;            // desired BPM
         int newBASStempo = (int)(round(100.0*desiredBPM/baseBPM));
         cBass.SetTempo(newBASStempo);
@@ -2161,6 +2161,37 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
 }
 
 
+float MainWindow::getID3BPM(QString MP3FileName) {
+    MPEG::File *mp3file;
+    ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
+
+    mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
+    id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
+
+//    qDebug() << "mp3file: " << mp3file << ", id3: " << id3v2tag;
+
+    float theBPM = 0.0;
+
+    ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
+    for (; it != id3v2tag->frameList().end(); it++)
+    {
+//        cout << (*it)->frameID() << " - \"" << (*it)->toString() << "\"" << endl;
+//        cout << (*it)->frameID() << endl;
+
+        if ((*it)->frameID() == "TBPM")  // This is an Apple standard, which means it's everybody's standard now.
+        {
+//            qDebug() << "getID3BPM -- found a TBPM frame (Apple's embedded ID3 BPM string)!";
+            QString BPM((*it)->toString().toCString());
+//            qDebug() << "    BPM = " << BPM;
+            theBPM = BPM.toFloat();
+        }
+
+    }
+
+    return(theBPM);
+}
+
+
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType)
 {
     RecursionGuard recursion_guard(loadingSong);
@@ -2206,14 +2237,24 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     this->setWindowTitle(fn + QString(" - SquareDesk MP3 Player/Editor"));
 
     int length_sec = cBass.FileLength;
-    int songBPM = round(cBass.Stream_BPM);
+    int songBPM = round(cBass.Stream_BPM);  // libbass's idea of the BPM
+
+    // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
+    float songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
+
+    if (songBPM_ID3 != 0.0) {
+//        qDebug() << "embedded ID3/TBPM frame of " << (int)songBPM_ID3 << "overrides libbass BPM estimate of " << songBPM;
+        songBPM = (int)songBPM_ID3;
+    }
+
+    baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
 
     // Intentionally compare against a narrower range here than BPM detection, because BPM detection
     //   returns a number at the limits, when it's actually out of range.
     // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
     //
     // TODO: make the types for turning off BPM detection a preference
-    if ((songBPM>=125-10) && (songBPM<=125+10) && songType != "xtras") {
+    if ((songBPM>=125-15) && (songBPM<=125+15) && songType != "xtras") {
         tempoIsBPM = true;
         ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
 
