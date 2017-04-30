@@ -234,6 +234,8 @@ private slots:
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
 
     void changeApplicationState(Qt::ApplicationState state);
+    void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
+    // END SLOTS -----------
 
 private:
     QAction *closeAct;  // WINDOWS only

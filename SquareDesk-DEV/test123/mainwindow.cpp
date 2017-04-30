@@ -4663,6 +4663,13 @@ void MainWindow::readPSData()
     }
 }
 
+void MainWindow::showContextMenu(const QPoint &pt)
+{
+    QMenu *menu = currentSequenceWidget->createStandardContextMenu();
+    menu->exec(currentSequenceWidget->mapToGlobal(pt));
+    delete menu;
+}
+
 void MainWindow::initSDtab() {
 
 #ifndef POCKETSPHINXSUPPORT
@@ -4683,6 +4690,11 @@ void MainWindow::initSDtab() {
     currentSequenceWidget->setAlignment(Qt::AlignTop);
     currentSequenceWidget->setReadOnly(true);
     currentSequenceWidget->setFocusPolicy(Qt::NoFocus);  // do not allow this widget to get focus (console always has it)
+
+    // allow for cut/paste from the sequence window using Right-click
+    currentSequenceWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(currentSequenceWidget,SIGNAL(customContextMenuRequested(const QPoint&)),
+            this,SLOT(showContextMenu(const QPoint &)));
 
     ui->seqGridLayout->addWidget(currentSequenceWidget,0,0,1,1);
     ui->seqGridLayout->addWidget(console, 1,0,1,2);
