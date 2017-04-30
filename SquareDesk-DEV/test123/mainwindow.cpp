@@ -2980,11 +2980,11 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
             theItem->setText("");
 
-            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);  // clear out the hidden pitches, too
-            theItem2->setText("0");
+//            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);  // clear out the hidden pitches, too
+//            theItem2->setText("0");
 
-            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
-            theItem3->setText("0");
+//            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
+//            theItem3->setText("0");
         }
 
         QTextStream in(&inputFile);
@@ -3070,11 +3070,11 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
 
-                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-                            theItem2->setText("0");  // M3U doesn't have pitch yet
+//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
+//                            theItem2->setText("0");  // M3U doesn't have pitch yet
 
-                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-                            theItem3->setText("0");  // M3U doesn't have tempo yet
+//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+//                            theItem3->setText("0");  // M3U doesn't have tempo yet
 
                             match = true;
                         }
@@ -3112,6 +3112,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     PreferencesManager prefsManager;
     QString musicRootPath = prefsManager.GetmusicPath();
     QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
+//    qDebug() << "startingPlaylistDirectory =" << startingPlaylistDirectory;
     trapKeypresses = false;
     QString PlaylistFileName =
         QFileDialog::getOpenFileName(this,
@@ -3125,7 +3126,9 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
     QDir CurrentDir;
-    prefsManager.Setdefault_playlist_dir(CurrentDir.absoluteFilePath(PlaylistFileName));
+    QFileInfo fInfo(PlaylistFileName);
+    prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
+//    qDebug() << "Setting default playlist dir to: " << fInfo.absolutePath();
 
     // --------
     QString firstBadSongLine = "";
@@ -3389,8 +3392,11 @@ void MainWindow::on_actionSave_Playlist_triggered()
     }
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
-    QDir CurrentDir;
-    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
+//    QDir CurrentDir;
+//    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
+    QFileInfo fInfo(PlaylistFileName);
+    PreferencesManager prefsManager;
+    prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
     saveCurrentPlaylistToFile(PlaylistFileName);  // SAVE IT
 
