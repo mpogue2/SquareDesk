@@ -233,6 +233,8 @@ private slots:
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
 
+    void changeApplicationState(Qt::ApplicationState state);
+
 private:
     QAction *closeAct;  // WINDOWS only
 
@@ -375,6 +377,8 @@ private:
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadMusic(int id);
     bool autoScrollLyricsEnabled;
+
+    Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 };
 
 // currentState:

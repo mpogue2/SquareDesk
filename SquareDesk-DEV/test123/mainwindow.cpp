@@ -546,8 +546,17 @@ MainWindow::MainWindow(QWidget *parent) :
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(true);
     }
+
+    connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)),
+            this, SLOT(changeApplicationState(Qt::ApplicationState)));
+
 }
 
+void MainWindow::changeApplicationState(Qt::ApplicationState state)
+{
+    currentApplicationState = state;
+    microphoneStatusUpdate();  // this will disable the mics, if not Active state
+}
 
 void MainWindow::setCurrentSessionId(int id)
 {
@@ -4205,7 +4214,7 @@ void MainWindow::microphoneStatusUpdate() {
     int index = ui->tabWidget->currentIndex();
 
     if (ui->tabWidget->tabText(index) == "SD") {
-        if (voiceInputEnabled) {
+        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: red");
             ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
         } else {
@@ -4213,7 +4222,7 @@ void MainWindow::microphoneStatusUpdate() {
             ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
         }
     } else {
-        if (voiceInputEnabled) {
+        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
         } else {
@@ -4437,8 +4446,8 @@ void MainWindow::readPSData()
     // pocketsphinx has a valid string, send it to sd
     QByteArray s = ps->readAll();
 
-    if (!voiceInputEnabled) {
-        // if we're not on the sd tab, then voiceInput is disabled,
+    if (!voiceInputEnabled || currentApplicationState != Qt::ApplicationActive) {
+        // if we're not on the sd tab OR the app is not Active, then voiceInput is disabled,
         //  and we're going to read the data from PS and just throw it away.
         return;
     }
