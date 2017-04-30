@@ -2826,7 +2826,7 @@ void MainWindow::on_actionPreferences_triggered()
 {
     inPreferencesDialog = true;
     trapKeypresses = false;
-    on_stopButton_clicked();  // stop music, if it was playing...
+//    on_stopButton_clicked();  // stop music, if it was playing...
     PreferencesManager prefsManager;
 
     prefDialog = new PreferencesDialog;
