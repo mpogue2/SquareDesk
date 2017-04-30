@@ -1086,24 +1086,30 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
 // ----------------------------------------------------------------------
 void MainWindow::Info_Volume(void)
 {
-    if (cBass.Stream_Volume == 0) {
+    int volSliderPos = ui->volumeSlider->value();
+    if (volSliderPos == 0) {
         ui->currentVolumeLabel->setText("Mute");
     }
-    else if (cBass.Stream_Volume == 100) {
+    else if (volSliderPos == 100) {
         ui->currentVolumeLabel->setText("MAX");
     }
     else {
-        ui->currentVolumeLabel->setText(QString::number(cBass.Stream_Volume)+"%");
+        ui->currentVolumeLabel->setText(QString::number(volSliderPos)+"%");
     }
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::on_volumeSlider_valueChanged(int value)
 {
-    cBass.SetVolume(value);
-    currentVolume = value;
+    int voltageLevelToSet = 100.0*pow(10.0,((((float)value*0.8)+20)/2.0 - 50)/20.0);
+    if (value == 0) {
+        voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
+    }
+    cBass.SetVolume(voltageLevelToSet);  // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
+//    qDebug() << "in/out = " << value << voltageLevelToSet;
+    currentVolume = value;  // this will be saved with the song (0-100)
 
-    Info_Volume();
+    Info_Volume();  // update the slider text
 
     if (value == 0) {
         ui->actionMute->setText("Un&mute");
