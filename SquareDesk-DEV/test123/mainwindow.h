@@ -292,6 +292,9 @@ private:
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
+    QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
+    void saveCurrentPlaylistToFile(QString PlaylistFileName);
+
     // Lyrics stuff
     QString loadLyrics(QString MP3FileName);
     int lyricsTabNumber;

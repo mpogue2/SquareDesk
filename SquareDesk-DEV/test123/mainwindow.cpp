@@ -550,6 +550,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)),
             this, SLOT(changeApplicationState(Qt::ApplicationState)));
 
+    int songCount = 0;
+    QString firstBadSongLine;
+    QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+//    qDebug() << "CurrentPlaylistFileName = " << CurrentPlaylistFileName;
+    firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -674,6 +679,12 @@ void MainWindow::on_actionSunday_triggered(bool /* checked */)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    // Just before the app quits, save the current playlist state in "current.m3u", and it will be reloaded
+    //   when the app starts up again.
+    // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
+    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+    saveCurrentPlaylistToFile(PlaylistFileName);
+
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
@@ -2955,37 +2966,14 @@ QString MainWindow::removePrefix(QString prefix, QString s)
     return s2;
 }
 
-// PLAYLIST MANAGEMENT ===============================================
-void MainWindow::on_actionLoad_Playlist_triggered()
-{
-    on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
-
-    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
-    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
-    PreferencesManager prefsManager;
-    QString musicRootPath = prefsManager.GetmusicPath();
-    QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
-    trapKeypresses = false;
-    QString PlaylistFileName =
-        QFileDialog::getOpenFileName(this,
-                                     tr("Load Playlist"),
-                                     startingPlaylistDirectory,
-                                     tr("Playlist Files (*.m3u *.csv)"));
-    trapKeypresses = true;
-    if (PlaylistFileName.isNull()) {
-        return;  // user cancelled...so don't do anything, just return
-    }
-
-    // not null, so save it in Settings (File Dialog will open in same dir next time)
-    QDir CurrentDir;
-    prefsManager.Setdefault_playlist_dir(CurrentDir.absoluteFilePath(PlaylistFileName));
-
+// returns first song error, and also updates the songCount as it goes (2 return values)
+QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
     // --------
     QString firstBadSongLine = "";
-    int songCount = 0;
+//    int songCount = 0;
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
-        ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+//        ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
 
         // first, clear all the playlist numbers that are there now.
         for (int i = 0; i < ui->songTable->rowCount(); i++) {
@@ -3107,8 +3095,173 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     }
     else {
         // file didn't open...
-        return;
+        return("");
     }
+
+    return(firstBadSongLine);  // return error song (if any)
+}
+
+
+// PLAYLIST MANAGEMENT ===============================================
+void MainWindow::on_actionLoad_Playlist_triggered()
+{
+    on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
+
+    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+    PreferencesManager prefsManager;
+    QString musicRootPath = prefsManager.GetmusicPath();
+    QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
+    trapKeypresses = false;
+    QString PlaylistFileName =
+        QFileDialog::getOpenFileName(this,
+                                     tr("Load Playlist"),
+                                     startingPlaylistDirectory,
+                                     tr("Playlist Files (*.m3u *.csv)"));
+    trapKeypresses = true;
+    if (PlaylistFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    // not null, so save it in Settings (File Dialog will open in same dir next time)
+    QDir CurrentDir;
+    prefsManager.Setdefault_playlist_dir(CurrentDir.absoluteFilePath(PlaylistFileName));
+
+    // --------
+    QString firstBadSongLine = "";
+    int songCount = 0;
+    ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+    firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
+
+//    // --------
+//    QString firstBadSongLine = "";
+//    int songCount = 0;
+//    QFile inputFile(PlaylistFileName);
+//    if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
+//        ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+
+//        // first, clear all the playlist numbers that are there now.
+//        for (int i = 0; i < ui->songTable->rowCount(); i++) {
+//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//            theItem->setText("");
+
+//            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);  // clear out the hidden pitches, too
+//            theItem2->setText("0");
+
+//            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
+//            theItem3->setText("0");
+//        }
+
+//        QTextStream in(&inputFile);
+
+//        if (PlaylistFileName.endsWith(".csv")) {
+//            // CSV FILE =================================
+//            int lineCount = 1;
+
+//            QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
+
+//            while (!in.atEnd()) {
+//                QString line = in.readLine();
+//                if (line == "abspath") {
+//                    // V1 of the CSV file format has exactly one field, an absolute pathname in quotes
+//                }
+//                else if (line == "") {
+//                    // ignore, it's a blank line
+//                }
+//                else {
+//                    songCount++;  // it's a real song path
+//                    QStringList list1 = line.split(",");
+
+//                    list1[0].replace("\"","");  // get rid of all double quotes in the abspath
+//                    list1[1].replace("\"",
+//                                     "");  // get rid of all double quotes in the pitch (they should not be there at all, this is an INT)
+
+//                    bool match = false;
+//                    // exit the loop early, if we find a match
+//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+//                        if (list1[0] == pathToMP3) { // FIX: this is fragile, if songs are moved around
+//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//                            theItem->setText(QString::number(songCount));
+
+//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
+//                            theItem2->setText(list1[1].trimmed());
+
+//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+//                            theItem3->setText(list1[2].trimmed());
+
+//                            match = true;
+////                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
+////                            theItemAge->setText("***");
+//                        }
+//                    }
+//                    // if we had no match, remember the first non-matching song path
+//                    if (!match && firstBadSongLine == "") {
+//                        firstBadSongLine = line;
+//                    }
+
+//                }
+
+//                lineCount++;
+//            } // while
+//        }
+//        else {
+//            // M3U FILE =================================
+//            int lineCount = 1;
+
+//            while (!in.atEnd()) {
+//                QString line = in.readLine();
+
+//                if (line == "#EXTM3U") {
+//                    // ignore, it's the first line of the M3U file
+//                }
+//                else if (line == "") {
+//                    // ignore, it's a blank line
+//                }
+//                else if (line.at( 0 ) == '#' ) {
+//                    // it's a comment line
+//                    if (line.mid(0,7) == "#EXTINF") {
+//                        // it's information about the next line, ignore for now.
+//                    }
+//                }
+//                else {
+//                    songCount++;  // it's a real song path
+
+//                    bool match = false;
+//                    // exit the loop early, if we find a match
+//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+//                        if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
+//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//                            theItem->setText(QString::number(songCount));
+
+//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
+//                            theItem2->setText("0");  // M3U doesn't have pitch yet
+
+//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+//                            theItem3->setText("0");  // M3U doesn't have tempo yet
+
+//                            match = true;
+//                        }
+//                    }
+//                    // if we had no match, remember the first non-matching song path
+//                    if (!match && firstBadSongLine == "") {
+//                        firstBadSongLine = line;
+//                    }
+
+//                }
+
+//                lineCount++;
+//            }
+//        }
+
+//        inputFile.close();
+
+//    }
+//    else {
+//        // file didn't open...
+//        return;
+//    }
     sortByDefaultSortOrder();
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
     ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
@@ -3130,38 +3283,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
 }
 
-// TODO: strip off the root directory before saving...
-void MainWindow::on_actionSave_Playlist_triggered()
-{
-    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
-
-    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
-    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
-    QSettings MySettings; // Will be using application informations for correct location of your settings
-
-    QString startingPlaylistDirectory = MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
-    if (startingPlaylistDirectory.isNull()) {
-        // first time through, start at HOME
-        startingPlaylistDirectory = QDir::homePath();
-    }
-
-    QString preferred("CSV files (*.csv)");
-    trapKeypresses = false;
-    QString PlaylistFileName =
-        QFileDialog::getSaveFileName(this,
-                                     tr("Save Playlist"),
-                                     startingPlaylistDirectory,
-                                     tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
-                                     &preferred);  // preferred is CSV
-    trapKeypresses = true;
-    if (PlaylistFileName.isNull()) {
-        return;  // user cancelled...so don't do anything, just return
-    }
-
-    // not null, so save it in Settings (File Dialog will open in same dir next time)
-    QDir CurrentDir;
-    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
-
+// SAVE CURRENT PLAYLIST TO FILE
+void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     // --------
     QMap<int, QString> imports, importsPitch, importsTempo;
 
@@ -3198,7 +3321,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     QFile file(PlaylistFileName);
     if (PlaylistFileName.endsWith(".m3u")) {
-        if (file.open(QIODevice::ReadWrite)) {
+        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
             QTextStream stream(&file);
             stream << "#EXTM3U" << endl << endl;
 
@@ -3234,6 +3357,115 @@ void MainWindow::on_actionSave_Playlist_triggered()
             ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
         }
     }
+}
+
+
+// TODO: strip off the root directory before saving...
+void MainWindow::on_actionSave_Playlist_triggered()
+{
+    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+
+    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+    QSettings MySettings; // Will be using application informations for correct location of your settings
+
+    QString startingPlaylistDirectory = MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
+    if (startingPlaylistDirectory.isNull()) {
+        // first time through, start at HOME
+        startingPlaylistDirectory = QDir::homePath();
+    }
+
+    QString preferred("CSV files (*.csv)");
+    trapKeypresses = false;
+    QString PlaylistFileName =
+        QFileDialog::getSaveFileName(this,
+                                     tr("Save Playlist"),
+                                     startingPlaylistDirectory,
+                                     tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
+                                     &preferred);  // preferred is CSV
+    trapKeypresses = true;
+    if (PlaylistFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    // not null, so save it in Settings (File Dialog will open in same dir next time)
+    QDir CurrentDir;
+    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
+
+    saveCurrentPlaylistToFile(PlaylistFileName);  // SAVE IT
+
+//    // --------
+//    QMap<int, QString> imports, importsPitch, importsTempo;
+
+//    // Iterate over the songTable
+//    for (int i=0; i<ui->songTable->rowCount(); i++) {
+//        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//        QString playlistIndex = theItem->text();
+//        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+//        QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+//        QString pitch = ui->songTable->item(i,kPitchCol)->text();
+//        QString tempo = ui->songTable->item(i,kTempoCol)->text();
+
+//        if (playlistIndex != "") {
+//            // item HAS an index (that is, it is on the list, and has a place in the ordering)
+//            // TODO: reconcile int here with float elsewhere on insertion
+//            imports[playlistIndex.toInt()] = pathToMP3;
+//            importsPitch[playlistIndex.toInt()] = pitch;
+//            importsTempo[playlistIndex.toInt()] = tempo;
+//        }
+//    }
+
+//    // TODO: strip the initial part of the path off the Paths, e.g.
+//    //   /Users/mpogue/__squareDanceMusic/patter/C 117 - Restless Romp (Patter).mp3
+//    //   becomes
+//    //   patter/C 117 - Restless Romp (Patter).mp3
+//    //
+//    //   So, the remaining path is relative to the root music directory.
+//    //   When loading, first look at the patter and the rest
+//    //     if no match, try looking at the rest only
+//    //     if no match, then error (dialog?)
+//    //   Then on Save Playlist, write out the NEW patter and the rest
+
+//    // TODO: get rid of the single space, replace with nothing
+
+//    QFile file(PlaylistFileName);
+//    if (PlaylistFileName.endsWith(".m3u")) {
+//        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
+//            QTextStream stream(&file);
+//            stream << "#EXTM3U" << endl << endl;
+
+//            // list is auto-sorted here
+//            QMapIterator<int, QString> i(imports);
+//            while (i.hasNext()) {
+//                i.next();
+//                stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
+//                stream << i.value() << endl;
+//            }
+//            file.close();
+//        }
+//        else {
+//            ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
+//        }
+//    }
+//    else if (PlaylistFileName.endsWith(".csv")) {
+//        if (file.open(QIODevice::ReadWrite)) {
+//            QTextStream stream(&file);
+//            stream << "abspath,pitch,tempo" << endl;
+
+//            // list is auto-sorted here
+//            QMapIterator<int, QString> i(imports);
+//            while (i.hasNext()) {
+//                i.next();
+//                stream << "\"" << i.value() << "\"," <<
+//                       importsPitch[i.key()] << "," <<
+//                       importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
+//            }
+//            file.close();
+//        }
+//        else {
+//            ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
+//        }
+//    }
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
@@ -4781,7 +5013,7 @@ void MainWindow::initSDtab() {
     PreferencesManager prefsManager;
     QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
 
-    // if the sequences directory doesn't exist, create it (but ask nicely first)
+    // if the sequences directory doesn't exist, create it
     QDir dir(sequencesDir);
     if (!dir.exists()) {
         dir.mkpath(".");
