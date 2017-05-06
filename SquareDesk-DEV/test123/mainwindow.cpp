@@ -1706,8 +1706,18 @@ bool MainWindow::handleKeypress(int key, QString text)
             ui->typeSearch->clearFocus();
             ui->titleSearch->clearFocus();
             ui->lineEditCountDownTimer->clearFocus();
+
             // FIX: should we also stop editing of the songTable on ESC?
-            // NOTE: intentional fall thru here...ESC means STOP AND REWIND, just like S or END
+
+            // clear the search fields, too now, so that ESC means "GET ME OUT OF HERE".
+            ui->labelSearch->setText("");
+            ui->typeSearch->setText("");
+            ui->titleSearch->setText("");
+
+            if (currentState == kPlaying) {
+                on_playButton_clicked();  // we were playing, so PAUSE now.
+            }
+            break;
 
         case Qt::Key_End:  // FIX: should END go to the end of the song? or stop playback?
         case Qt::Key_S:
