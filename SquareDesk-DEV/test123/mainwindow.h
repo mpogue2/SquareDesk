@@ -51,6 +51,7 @@
 #include <QToolTip>
 #include <QVariant>
 #include <QWheelEvent>
+#include <QWidget>
 #include <QFileSystemWatcher>
 
 #include <QDateTime>
@@ -234,11 +235,16 @@ private slots:
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
 
     void changeApplicationState(Qt::ApplicationState state);
+    void focusChanged(QWidget *old, QWidget *now);
+
     void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
     // END SLOTS -----------
 
 private:
     QAction *closeAct;  // WINDOWS only
+    QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
+
+    bool justWentActive;
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;

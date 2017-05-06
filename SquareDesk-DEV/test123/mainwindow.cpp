@@ -38,6 +38,7 @@
 #include <QThread>
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <QWidget>
 
 #include "analogclock.h"
 #include "mainwindow.h"
@@ -146,6 +147,8 @@ MainWindow::MainWindow(QWidget *parent) :
 //    QSettings mySettings;
 //    QString settingsPath = mySettings.fileName();
 //    qDebug() << "settingsPath: " << settingsPath;
+
+    justWentActive = false;
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
@@ -550,6 +553,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)),
             this, SLOT(changeApplicationState(Qt::ApplicationState)));
 
+    connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
+            this, SLOT(focusChanged(QWidget*,QWidget*)));
+
     int songCount = 0;
     QString firstBadSongLine;
     QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
@@ -561,6 +567,31 @@ void MainWindow::changeApplicationState(Qt::ApplicationState state)
 {
     currentApplicationState = state;
     microphoneStatusUpdate();  // this will disable the mics, if not Active state
+
+    if (state == Qt::ApplicationActive) {
+        justWentActive = true;
+    }
+}
+
+void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
+{
+    // all this mess, just to restore NO FOCUS, after ApplicationActivate, if there was NO FOCUS
+    //   when going into Inactive state
+    if (!justWentActive && new1 == 0) {
+        oldFocusWidget = old1;  // GOING INACTIVE, RESTORE THIS ONE
+    } else if (justWentActive) {
+        if (oldFocusWidget == 0) {
+            if (QApplication::focusWidget() != 0) {
+                QApplication::focusWidget()->clearFocus();  // BOGUS
+            }
+        } else {
+            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE
+        }
+        justWentActive = false;  // this was a one-shot deal.
+    } else {
+        oldFocusWidget = new1;  // clicked on something, this is the one to restore
+    }
+
 }
 
 void MainWindow::setCurrentSessionId(int id)
@@ -1702,10 +1733,12 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_Escape:
             // ESC is special:  it always gets the music to stop, and gets you out of
             //   editing a search field or timer field.
-            ui->labelSearch->clearFocus();
-            ui->typeSearch->clearFocus();
-            ui->titleSearch->clearFocus();
-            ui->lineEditCountDownTimer->clearFocus();
+
+            oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore
+            if (QApplication::focusWidget() != NULL) {
+                QApplication::focusWidget()->clearFocus();  // clears the focus from ALL widgets
+            }
+            oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore, yes both of these are needed.
 
             // FIX: should we also stop editing of the songTable on ESC?
 
