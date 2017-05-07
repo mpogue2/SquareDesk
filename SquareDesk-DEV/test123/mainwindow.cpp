@@ -903,6 +903,9 @@ void MainWindow::on_stopButton_clicked()
 // ----------------------------------------------------------------------
 void MainWindow::on_playButton_clicked()
 {
+    if (!songLoaded) {
+        return;  // if there is no song loaded, no point in toggling anything.
+    }
     cBass.Play();  // currently paused, so start playing
     if (currentState == kStopped || currentState == kPaused) {
         if (firstTimeSongIsPlayed)
