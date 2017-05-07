@@ -88,6 +88,8 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
 bass_audio::bass_audio(void)
 {
     Stream = (HSTREAM)NULL;
+    FXStream = (HSTREAM)NULL;  // also initialize the FX stream
+
     Stream_State = (HSTREAM)NULL;
     Stream_Volume = 100; ///10000 (multipled on output)
     Stream_Tempo = 100;  // current tempo, relative to 100
@@ -388,4 +390,15 @@ void bass_audio::Stop(void)
     BASS_ChannelPause(Stream);
     StreamSetPosition(0);
     bPaused = true;
+}
+
+// ------------------------------------------------------------------
+void bass_audio::PlaySoundEffect(const char *filename, int volume) {
+    // OPEN THE STREAM FOR PLAYBACK ------------------------
+    if (FXStream != (HSTREAM)NULL) {
+        BASS_StreamFree(FXStream);                                                  // clean up the old stream
+    }
+    FXStream = BASS_StreamCreateFile(false, filename, 0, 0, 0);
+    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, (float)volume/100.0f);  // volume relative to 100% of Music
+    BASS_ChannelPlay(FXStream, true);                                           // play it all the way through
 }

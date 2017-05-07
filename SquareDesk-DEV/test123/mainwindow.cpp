@@ -2183,8 +2183,8 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         delete cswr;
     }
 
-    qDebug() << "time(FindPossibleCuesheets)=" << timer.elapsed() << " msec";
-    qDebug() << possibleCuesheets;
+//    qDebug() << "time(FindPossibleCuesheets)=" << timer.elapsed() << " msec";
+//    qDebug() << possibleCuesheets;
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName)
@@ -5224,4 +5224,26 @@ void MainWindow::airplaneMode(bool turnItOn) {
     }
     system(cmd);
 #endif
+}
+
+void MainWindow::on_action_1_triggered()
+{
+    playSFX(1);
+}
+
+void MainWindow::on_action_2_triggered()
+{
+    playSFX(2);
+}
+
+void MainWindow::on_action_3_triggered()
+{
+    playSFX(3);
+}
+
+void MainWindow::playSFX(int which) {
+    QString soundEffect = musicRootPath + "/soundfx/" + QString::number(which) + ".mp3";
+    if(QFileInfo(soundEffect).exists()) {
+        cBass.PlaySoundEffect(soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
+    }
 }

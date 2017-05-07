@@ -1460,7 +1460,7 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1479,6 +1479,14 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <property name="title">
      <string>&amp;Music</string>
     </property>
+    <widget class="QMenu" name="menuSound_FX">
+     <property name="title">
+      <string>Sound FX</string>
+     </property>
+     <addaction name="action_1"/>
+     <addaction name="action_2"/>
+     <addaction name="action_3"/>
+    </widget>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
@@ -1498,6 +1506,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="actionLoop"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
     <addaction name="actionAutostart_playback"/>
+    <addaction name="separator"/>
+    <addaction name="menuSound_FX"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Search"/>
    </widget>
@@ -2102,6 +2112,30 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="text">
     <string>Color only</string>
+   </property>
+  </action>
+  <action name="action_1">
+   <property name="text">
+    <string>#1</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>#2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>#3</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
    </property>
   </action>
  </widget>

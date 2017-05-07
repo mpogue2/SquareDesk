@@ -240,6 +240,12 @@ private slots:
     void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
     // END SLOTS -----------
 
+    void on_action_1_triggered();
+    void on_action_2_triggered();
+    void on_action_3_triggered();
+
+    void playSFX(int which);
+
 private:
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
