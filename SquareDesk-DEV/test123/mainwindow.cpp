@@ -2697,20 +2697,20 @@ void MainWindow::loadMusicList()
         if (cType.right(1)=="*") {
             cType.chop(1);  // remove the "*" for the purposes of coloring
         }
-//        if (cType == "xtras") {
+
         if (songTypeNamesForExtras.contains(cType)) {
             textCol = QColor(extrasColorString);
         }
-//        else if ((cType == "patter") || (cType == "hoedown")) {
         else if (songTypeNamesForPatter.contains(cType)) {
             textCol = QColor(patterColorString);
         }
-//        else if (cType == "singing") {
         else if (songTypeNamesForSinging.contains(cType)) {
             textCol = QColor(singingColorString);
         }
         else if (songTypeNamesForCalled.contains(cType)) {
             textCol = QColor(calledColorString);
+        } else {
+            textCol = QColor(Qt::black);  // if not a recognized type, color it black.
         }
 
         // look up origPath in the path2playlistNum map, and reset the s2 text to the user's playlist # setting (if any)
