@@ -5251,7 +5251,7 @@ void MainWindow::on_action_3_triggered()
 
 void MainWindow::playSFX(QString which) {
     QString soundEffect = musicRootPath + "/soundfx/" + which + ".mp3";
-    qDebug() << "PLAY SFX:" << soundEffect;
+//    qDebug() << "PLAY SFX:" << soundEffect;
     if(QFileInfo(soundEffect).exists()) {
         // play sound FX only if file exists...
         cBass.PlaySoundEffect(soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
