@@ -244,9 +244,11 @@ private slots:
     void on_action_2_triggered();
     void on_action_3_triggered();
 
-    void playSFX(int which);
+    void playSFX(QString which);
 
 private:
+    unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
+
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
 

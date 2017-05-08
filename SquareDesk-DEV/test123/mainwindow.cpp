@@ -1569,26 +1569,31 @@ void MainWindow::on_UIUpdateTimerTick(void)
     analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
 #endif
 
-#ifdef ORIGINALTIPTIMERWARNING
-    if (tipLengthTimerEnabled && analogClock->tipLengthAlarm && theType == PATTER) {
-        if (tipLengthAlarmAction == 0) {
-            ui->warningLabel->setText("LONG TIP!");
-        } else {
-            // TODO: optionally play a reminder tone
-        }
-    } else if (breakLengthTimerEnabled && analogClock->breakLengthAlarm) {
-        if (breakLengthAlarmAction == 0) {
-            ui->warningLabel->setText("BREAK OVER");
-        } else {
-            // TODO: optionally play a reminder tone
-            // TODO: optionally play the current song
-            // TODO: optionally play the next song
-        }
-    } else {
-        ui->warningLabel->setText("");
-    }
-#endif
+    // ------------------------
+    // Sounds associated with Tip and Break Timers (one-shots)
+    newTimerState = analogClock->currentTimerState;
+//    qDebug() << "oldTimerState:" << oldTimerState << "newTimerState:" << newTimerState <<
+//                "tipLengthAlarmAction" << tipLengthAlarmAction << "breakLengthAlarmAction" << breakLengthAlarmAction;
 
+    if ((newTimerState & LONGTIPTIMEREXPIRED)&&!(oldTimerState & LONGTIPTIMEREXPIRED)) {
+        // one-shot transitioned to Long Tip
+        switch (tipLengthAlarmAction) {
+        case 2: playSFX("long_tip"); break;
+        default: break;
+        }
+    }
+
+
+    if ((newTimerState & BREAKTIMEREXPIRED)&&!(oldTimerState & BREAKTIMEREXPIRED)) {
+        // one-shot transitioned to End of Break
+        switch (breakLengthAlarmAction) {
+        case 2: playSFX("break_over"); break;
+        default: break;
+        }
+    }
+    oldTimerState = newTimerState;
+
+    // -----------------------
     // about once a second, poll for volume changes
     newVolumeList = getCurrentVolumes();  // get the current state of the world
     qSort(newVolumeList);  // sort to allow direct comparison
@@ -5231,22 +5236,24 @@ void MainWindow::airplaneMode(bool turnItOn) {
 
 void MainWindow::on_action_1_triggered()
 {
-    playSFX(1);
+    playSFX("1");
 }
 
 void MainWindow::on_action_2_triggered()
 {
-    playSFX(2);
+    playSFX("2");
 }
 
 void MainWindow::on_action_3_triggered()
 {
-    playSFX(3);
+    playSFX("3");
 }
 
-void MainWindow::playSFX(int which) {
-    QString soundEffect = musicRootPath + "/soundfx/" + QString::number(which) + ".mp3";
+void MainWindow::playSFX(QString which) {
+    QString soundEffect = musicRootPath + "/soundfx/" + which + ".mp3";
+    qDebug() << "PLAY SFX:" << soundEffect;
     if(QFileInfo(soundEffect).exists()) {
+        // play sound FX only if file exists...
         cBass.PlaySoundEffect(soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
     }
 }

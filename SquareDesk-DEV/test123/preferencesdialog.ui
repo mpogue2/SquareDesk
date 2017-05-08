@@ -598,7 +598,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
            <item>
             <property name="text">
-             <string>play a reminder tone (NOT_IMPL).</string>
+             <string>play a reminder tone.</string>
             </property>
            </item>
            <item>
@@ -807,7 +807,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
            <item>
             <property name="text">
-             <string>play a reminder tone (NOT_IMPL).</string>
+             <string>play a reminder tone.</string>
             </property>
            </item>
           </widget>
