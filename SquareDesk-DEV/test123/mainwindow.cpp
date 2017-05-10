@@ -5055,6 +5055,7 @@ void MainWindow::initSDtab() {
     // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
     // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS
     // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
+    //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
     // TEST SD MANUALLY: ./sd
     QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
@@ -5084,6 +5085,7 @@ void MainWindow::initSDtab() {
     PSargs << "-dict" << pathToDict     // pronunciation dictionary
            << "-jsgf" << pathToJSGF     // language model
            << "-inmic" << "yes"         // use the built-in microphone
+           << "-remove_noise" << "yes"  // try turning on PS noise reduction
            << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
 //    qDebug() << pathToPS << PSargs;
