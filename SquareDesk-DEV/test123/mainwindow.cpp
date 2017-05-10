@@ -2495,7 +2495,10 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
         QStringList section = fi.canonicalPath().split("/");
         QString type = section[section.length()-1] + suffix;  // must be the last item in the path
                                                               // of where the alias is, not where the file is, and append "*" or not
-        pathStack->append(type + "#!#" + resolvedFilePath);
+        if (section[section.length()-1] != "soundfx") {
+            // add to the pathStack iff it's not a sound FX .mp3 file (those are internal)
+            pathStack->append(type + "#!#" + resolvedFilePath);
+        }
     }
 //    qDebug() << "timer1:" << timer1.elapsed();
 }
