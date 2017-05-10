@@ -899,13 +899,27 @@ void MainWindow::on_stopButton_clicked()
 }
 
 // ----------------------------------------------------------------------
+void MainWindow::randomizeFlashCall() {
+    int numCalls = flashCalls.length();
+    int newRandCallIndex;
+    do {
+        newRandCallIndex = qrand() % numCalls;
+    } while (newRandCallIndex == randCallIndex);
+    randCallIndex = newRandCallIndex;
+}
+
+// ----------------------------------------------------------------------
 void MainWindow::on_playButton_clicked()
 {
     if (!songLoaded) {
         return;  // if there is no song loaded, no point in toggling anything.
     }
+
     cBass.Play();  // currently paused, so start playing
     if (currentState == kStopped || currentState == kPaused) {
+        // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
+        randomizeFlashCall();
+
         if (firstTimeSongIsPlayed)
         {
             firstTimeSongIsPlayed = false;
@@ -1335,24 +1349,18 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         // TODO: right now this is hard-coded for Plus calls.  Need to add a preference to specify other levels (not
         //   mutually exclusive, either).
         int flashCallEverySeconds = 10;
-        int numCalls = flashCalls.length();
         if (currentPos_i % flashCallEverySeconds == 0 && currentPos_i != 0) {
             // Now pick a new random number, but don't pick the same one twice in a row.
             // TODO: should really do a permutation over all the allowed calls, with no repeats
             //   but this should be good enough for now, if the number of calls is sufficiently
             //   large.
-            // TODO: pick a new random call when PLAY is pressed.  Otherwise, we get the same call
-            //   for too long when STOP is pressed then PLAY is pressed.
-            int newRandCallIndex;
-            do {
-                newRandCallIndex = qrand() % numCalls;
-            } while (newRandCallIndex == randCallIndex);
-            randCallIndex = newRandCallIndex;
+            randomizeFlashCall();
         }
 
         if (prefsManager.GetenableFlashCalls()) {
-             if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
-                 // don't show any random calls until at least the end of the first N seconds
+             if (cBass.Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
+                 // if playing, and Patter type
+                 // TODO: don't show any random calls until at least the end of the first N seconds
                  ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
                  ui->nowPlayingLabel->setText(flashCalls[randCallIndex]);
              } else {

@@ -292,6 +292,8 @@ private:
 
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
+    void randomizeFlashCall();
+
 
     float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
