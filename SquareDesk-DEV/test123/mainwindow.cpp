@@ -3588,7 +3588,21 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     }
 
     int maxRow = ui->songTable->rowCount() - 1;
+
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
     row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    while (ui->songTable->isRowHidden(row) && row < maxRow) {
+        // keep bumping, until the next VISIBLE row is found, or we're at the END
+        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    }
+    if (ui->songTable->isRowHidden(row)) {
+        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
     ui->songTable->selectRow(row); // select new row!
 
     // load all the UI fields, as if we double-clicked on the new row
@@ -3639,7 +3653,22 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
         return;
     }
 
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
     row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+
+    while (ui->songTable->isRowHidden(row) && row > 0) {
+        // keep bumping backwards, until the previous VISIBLE row is found, or we're at the BEGINNING
+        row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+    }
+    if (ui->songTable->isRowHidden(row)) {
+        // if we try to go past the beginning of the VISIBLE rows, stick at the first visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
+
     ui->songTable->selectRow(row); // select new row!
 
     // load all the UI fields, as if we double-clicked on the new row
