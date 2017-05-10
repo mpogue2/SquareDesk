@@ -402,7 +402,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->mixSlider->setEnabled(true);
     ui->mixSlider->setValue(0);
-    ui->currentMixLabel->setText("50% L / 50% R");
+    ui->currentMixLabel->setText("100%L/100%R");
 
     // ...and the EQ sliders, too...
     ui->bassSlider->setEnabled(true);
@@ -1217,9 +1217,24 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
 // ----------------------------------------------------------------------
 void MainWindow::on_mixSlider_valueChanged(int value)
 {
-    int Rpercent = (int)(100.0*((float)value + 100.0)/200.0);
-    int Lpercent = 100-Rpercent;
-    QString s = QString::number(Lpercent) + "% L / " + QString::number(Rpercent) + "% R ";
+    int Lpercent, Rpercent;
+
+    // NOTE: we're misleading the user a bit here.  It SOUNDS like it's doing the right thing,
+    //   but under-the-covers we're implementing Constant Power, so the overall volume is (correctly)
+    //   held constant.  From the user's perspective, the use of Constant Power means sin/cos(), which is
+    //   not intuitive when converted to percent.  So, let's tell the user that it's all nicely linear
+    //   (which will agree with the user's ear), and let's do the Right Thing Anyway internally.
+
+    if (value < 0) {
+        Lpercent = 100;
+        Rpercent = 100 + value;
+    } else {
+        Rpercent = 100;
+        Lpercent = 100 - value;
+    }
+
+    QString s = QString::number(Lpercent) + "%L/" + QString::number(Rpercent) + "%R ";
+
     ui->currentMixLabel->setText(s);
     cBass.SetPan(value/100.0);
 }
