@@ -9,16 +9,6 @@
 // #define SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
 
 
-#ifdef SONGSETTINGS_INCLUDE_SONG_CACHE
-struct SongSetting {
-    int volume;
-    int pitch;
-    int tempo;
-    double introPos;
-    double outroPos;
-};
-#include <map>
-#endif
 
 
 class TableDefinition;
@@ -85,17 +75,6 @@ private:
     int getSessionIDFromName(const QString &name);
     QString removeRootDirs(const QString &filenameWithPath);
 
-    
-#ifdef SONGSETTINGS_INCLUDE_SONG_ID_CACHE
-    std::map<QString,int> song_id_cache;
-#endif
-#ifdef SONGSETTINGS_INCLUDE_SONG_CACHE
-    std::map<QString,SongSetting> song_cache;
-#endif
-#ifdef SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
-    std::map<QString, int> song_age_cache;
-#endif
-    std::vector<QString> root_directories;
     
 };
 
