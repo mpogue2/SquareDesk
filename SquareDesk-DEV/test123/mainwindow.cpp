@@ -331,8 +331,6 @@ MainWindow::MainWindow(QWidget *parent) :
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
     // -------------------------
-    saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
-
     setCurrentSessionId((SessionDefaultPractice ==
                          static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
                         ? 1 : songSettings.getCurrentSession());
@@ -2510,7 +2508,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
     if (refreshDatabase)
     {
-        songSettings.openDatabase(databaseDir, mainRootDir, guestRootDir, !saveSongPreferencesInConfig);
+        songSettings.openDatabase(databaseDir, mainRootDir, guestRootDir, false);
     }
     // always gets rid of the old pathstack...
     if (pathStack) {
@@ -2905,11 +2903,7 @@ void MainWindow::on_actionPreferences_triggered()
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
 
-        bool oldSaveSongPreferencesInConfig = saveSongPreferencesInConfig;
-        saveSongPreferencesInConfig = prefsManager.GetSongPreferencesInConfig();
-
-        findMusic(musicRootPath, "", "main",
-                  oldSaveSongPreferencesInConfig || saveSongPreferencesInConfig); // always refresh the songTable after the Prefs dialog returns with OK
+        findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
         // Save the new value for music type colors --------
