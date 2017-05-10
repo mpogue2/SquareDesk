@@ -99,7 +99,7 @@ void PreferencesDialog::setFontSizes()
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);
     ui->musicFormatHelpLabel->setFont(font);
-    ui->saveSongPrefsHelpLabel->setFont(font);
+//    ui->saveSongPrefsHelpLabel->setFont(font);
 
 }
 

@@ -49,6 +49,8 @@ AnalogClock::AnalogClock(QWidget *parent)
 
 //    typeTracker.printState("AnalogClock::AnalogClock()");
 
+    currentTimerState = TIMERNOTEXPIRED;
+
 }
 
 void AnalogClock::redrawTimerExpired()
@@ -73,17 +75,22 @@ void AnalogClock::redrawTimerExpired()
 
     // BREAK timer is a count-down timer to 00:00 (end of break)
     //   but it keeps on counting
+
+    // DEBUG: change to 1
+#define SECSPERMIN  60
+
     int breakLengthSecs = typeTracker.currentBreakLength();
-    int b_secs = breakLengthAlarmMinutes*60 - breakLengthSecs;  // seconds to go in the break; to debug, change 60 to 5
-    int b_mm = abs(b_secs/60);
-    int b_ss = abs(b_secs) - 60*abs(b_mm);  // always positive
+    int b_secs = breakLengthAlarmMinutes*SECSPERMIN - breakLengthSecs;  // seconds to go in the break; to debug, change 60 to 5
+    int b_mm = abs(b_secs/SECSPERMIN);
+    int b_ss = abs(b_secs) - SECSPERMIN*abs(b_mm);  // always positive
 
 //    qDebug() << "BREAK PIECES: " << breakLengthSecs << b_secs << b_mm << b_ss;
 
     // To debug, change 60 to 5
-    int maxPatterLength = tipLengthAlarmMinutes * 60;  // the user's preference for MAX PATTER LENGTH (converted to seconds)
-    int maxBreakLength = breakLengthAlarmMinutes * 60;  // the user's preference for MAX BREAK LENGTH (converted to seconds)
+    int maxPatterLength = tipLengthAlarmMinutes * SECSPERMIN;  // the user's preference for MAX PATTER LENGTH (converted to seconds)
+    int maxBreakLength = breakLengthAlarmMinutes * SECSPERMIN;  // the user's preference for MAX BREAK LENGTH (converted to seconds)
 
+    currentTimerState = TIMERNOTEXPIRED;  // clear clear
     if (timerLabel != NULL) {
         if (patterLengthSecs == -1 || !tipLengthTimerEnabled) {
             // if not patter, or the patter timer is disabled
@@ -97,6 +104,8 @@ void AnalogClock::redrawTimerExpired()
                 timerLabel->setVisible(true);
                 timerLabel->setStyleSheet("QLabel { color : blue; }");
                 timerLabel->setText(QString("BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+                currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
+                currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
             } else if (typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
                 // the break has expired.  We played something before the break, and we're currently in NONE state.
 //                qDebug() << "expired BREAK";
@@ -108,6 +117,8 @@ void AnalogClock::redrawTimerExpired()
                 } else {
                     timerLabel->setText(QString("-") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
                 }
+                currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
+                currentTimerState |= BREAKTIMEREXPIRED;  // set
                 // TODO: optionally play a sound, or start the next song
             } else {
                 // either we have 1 state known (e.g. NONE for 3600 secs), OR
@@ -121,12 +132,16 @@ void AnalogClock::redrawTimerExpired()
             timerLabel->setVisible(true);
             timerLabel->setStyleSheet("QLabel { color : black; }");
             timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
+            currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
         } else if (patterLengthSecs < maxPatterLength + 15) {  // it will be red for 15 seconds, before also starting to flash "LONG TIP"
 //            qDebug() << "patter OVER the time limit";
             // OVER THE TIME LIMIT, so make the time-in-patter RED.
             timerLabel->setVisible(true);
             timerLabel->setStyleSheet("QLabel { color : red; }");
             timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            currentTimerState |= LONGTIPTIMEREXPIRED;  // set
+            currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
             // TODO: play a sound, if enabled
         } else {
 //            qDebug() << "patter REALLY over the time limit";
@@ -139,6 +154,8 @@ void AnalogClock::redrawTimerExpired()
                 timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             }
             // TODO: play a more serious sound, if enabled
+            currentTimerState |= LONGTIPTIMEREXPIRED;  // set
+            currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
         }
     }
 
@@ -233,50 +250,6 @@ void AnalogClock::paintEvent(QPaintEvent *)
 #else
     int startMinute = time.second();
 #endif
-
-//    // OLDSTYLE: check for LONG PATTER ALARM -------
-//    // TODO: delete this section when NEWSTYLE section is fully debugged
-//    int numMinutesPatter = 0;
-
-//    for (int i = 0; i < 60; i++) {
-//        int currentMinute = startMinute - i;
-//        if (currentMinute < 0) {
-//            currentMinute += 60;
-//        }
-//        if (typeInMinute[currentMinute] == PATTER) {
-//            numMinutesPatter++;
-//        } else {
-//            break;  // break out of the for loop, because we're only looking at the first segment
-//        }
-//    }
-
-//    if (numMinutesPatter >= tipLengthAlarmMinutes) {
-//        tipLengthAlarm = true;
-//    } else {
-//        tipLengthAlarm = false;
-//    }
-
-
-//    // OLDSTYLE: check for END OF BREAK -------
-//    int numMinutesBreak = 0;
-
-//    for (int i = 0; i < 60; i++) {
-//        int currentMinute = startMinute - i;
-//        if (currentMinute < 0) {
-//            currentMinute += 60;
-//        }
-//        if (typeInMinute[currentMinute] == NONE) {
-//            numMinutesBreak++;
-//        } else {
-//            break;  // break out of the for loop, because we're only looking at the first segment
-//        }
-//    }
-
-//    if (numMinutesBreak >= breakLengthAlarmMinutes && numMinutesBreak < 60) {
-//        breakLengthAlarm = true;
-//    } else {
-//        breakLengthAlarm = false;
-//    }
 
     // SESSION SEGMENTS: what were we doing over the last hour?
     if (!coloringIsHidden) {

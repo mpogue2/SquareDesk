@@ -80,6 +80,10 @@
 #include "clickablelabel.h"
 #include "typetracker.h"
 
+#define TIMERNOTEXPIRED     (0x00)
+#define LONGTIPTIMEREXPIRED (0x01)
+#define BREAKTIMEREXPIRED   (0x02)
+
 // set to speed up the clock by 60X
 #define DEBUGCLOCK 1
 
@@ -107,6 +111,8 @@ public:
     int tipLengthAlarmMinutes;   // TODO: rename to patterLengthAlarmMinutes
     bool breakLengthTimerEnabled;
     int breakLengthAlarmMinutes;
+
+    unsigned int currentTimerState;  // contains bits for the LONG TIP timer and the BREAK TIMER
 
     void setTimerLabel(clickableLabel *theLabel);
 

@@ -52,6 +52,7 @@
 #include <QToolTip>
 #include <QVariant>
 #include <QWheelEvent>
+#include <QWidget>
 #include <QFileSystemWatcher>
 
 #include <QDateTime>
@@ -238,8 +239,25 @@ private slots:
     void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
     void on_lineEditChoreographySearch_textChanged();
 
+    void changeApplicationState(Qt::ApplicationState state);
+    void focusChanged(QWidget *old, QWidget *now);
+
+    void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
+    // END SLOTS -----------
+
+    void on_action_1_triggered();
+    void on_action_2_triggered();
+    void on_action_3_triggered();
+
+    void playSFX(QString which);
+
 private:
+    unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
+
     QAction *closeAct;  // WINDOWS only
+    QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
+
+    bool justWentActive;
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
@@ -259,6 +277,7 @@ private:
     int previousVolume;
 
     bool tempoIsBPM;
+    float baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
     bool switchToLyricsOnPlay;
 
     void Info_Volume(void);
@@ -278,7 +297,10 @@ private:
 
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
+    void randomizeFlashCall();
 
+
+    float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName);
@@ -294,6 +316,9 @@ private:
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
+    QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
+    void saveCurrentPlaylistToFile(QString PlaylistFileName);
+
     // Lyrics stuff
     QString loadLyrics(QString MP3FileName);
     int lyricsTabNumber;
@@ -303,7 +328,6 @@ private:
 
     QList<QString> *pathStack;
 
-    bool saveSongPreferencesInConfig;
     // Experimental Timer stuff
     QTimer *timerCountUp;
     qint64 timeCountUpZeroMs;
@@ -382,6 +406,7 @@ private:
     void setCurrentSessionIdReloadMusic(int id);
     bool autoScrollLyricsEnabled;
 
+    Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 };
 
 // currentState:

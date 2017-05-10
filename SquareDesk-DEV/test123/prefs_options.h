@@ -76,8 +76,6 @@ CONFIG_ATTRIBUTE_BOOLEAN(EnableTimersTabCheckbox, experimentalTimersEnabled, fal
 CONFIG_ATTRIBUTE_BOOLEAN(EnablePitchTempoViewCheckbox, experimentalPitchTempoViewEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnableClockColoring,experimentalClockColoringEnabled, false)
 
-CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSaveSongPreferencesInConfig,SongPreferencesInConfig, false)
-
 CONFIG_ATTRIBUTE_BOOLEAN(initialBPMcheckbox,tryToSetInitialBPM, false)
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwitchToLyricsOnPlay,switchToLyricsOnPlay, false)
 CONFIG_ATTRIBUTE_INT(initialBPMLineEdit,initialBPM, 125)
