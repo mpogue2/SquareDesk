@@ -178,6 +178,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
     ui->stopButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
 
+    ui->previousSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
+    ui->nextSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
+
     ui->playButton->setEnabled(false);
     ui->stopButton->setEnabled(false);
 
