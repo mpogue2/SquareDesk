@@ -251,6 +251,12 @@ private slots:
 
     void playSFX(QString which);
 
+    void on_actionRecent1_triggered();
+    void on_actionRecent2_triggered();
+    void on_actionRecent3_triggered();
+    void on_actionRecent4_triggered();
+    void on_actionClear_Recent_List_triggered();
+
 private:
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
@@ -316,10 +322,17 @@ private:
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
+    // Playlist stuff ----------
     QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
+    void finishLoadingPlaylist(QString PlaylistFileName);
+
     void saveCurrentPlaylistToFile(QString PlaylistFileName);
 
-    // Lyrics stuff
+    void loadRecentPlaylist(int num);
+    void updateRecentPlaylistMenu();
+    void addFilenameToRecentPlaylist(QString filename);
+
+    // Lyrics stuff ----------
     QString loadLyrics(QString MP3FileName);
     int lyricsTabNumber;
     bool hasLyrics;
@@ -328,7 +341,7 @@ private:
 
     QList<QString> *pathStack;
 
-    // Experimental Timer stuff
+    // Experimental Timer stuff ----------
     QTimer *timerCountUp;
     qint64 timeCountUpZeroMs;
     QTimer *timerCountDown;

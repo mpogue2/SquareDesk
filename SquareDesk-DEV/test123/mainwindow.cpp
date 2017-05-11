@@ -137,6 +137,7 @@ bass_audio cBass;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    oldFocusWidget(NULL),
     timerCountUp(NULL),
     timerCountDown(NULL),
     trapKeypresses(true),
@@ -283,6 +284,9 @@ MainWindow::MainWindow(QWidget *parent) :
     guestMode = "main"; // and not guest mode
 
     switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
+
+    updateRecentPlaylistMenu();
+    ui->actionClear_Recent_List->setEnabled(false);
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // initial Guest Mode stuff works on Mac OS and WIN32 only
@@ -570,7 +574,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)),
             this, SLOT(changeApplicationState(Qt::ApplicationState)));
-
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(focusChanged(QWidget*,QWidget*)));
 
@@ -3429,6 +3432,12 @@ QString MainWindow::removePrefix(QString prefix, QString s)
 
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
+
+//    qDebug() << "loadPlaylist: " << PlaylistFileName;
+    if (!PlaylistFileName.endsWith(".squaredesk/current.m3u")) {  // do not remember the initial persistent playlist
+        addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
+    }
+
     // --------
     QString firstBadSongLine = "";
 //    int songCount = 0;
@@ -3564,6 +3573,33 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
 
 // PLAYLIST MANAGEMENT ===============================================
+void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
+    // --------
+    QString firstBadSongLine = "";
+    int songCount = 0;
+    ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+    firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
+
+    sortByDefaultSortOrder();
+    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
+    ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
+
+    // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
+    // only do this, if there were no errors in loading the playlist numbers.
+    if (firstBadSongLine == "") {
+        ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
+        on_actionPrevious_Playlist_Item_triggered();
+    }
+
+    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
+    if (firstBadSongLine != "") {
+        // if there was a non-matching path, tell the user what the first one of those was
+        msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
+        ui->songTable->clearSelection(); // select nothing, if error
+    }
+    ui->statusBar->showMessage(msg1);
+}
+
 void MainWindow::on_actionLoad_Playlist_triggered()
 {
     on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
@@ -3591,159 +3627,32 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 //    qDebug() << "Setting default playlist dir to: " << fInfo.absolutePath();
 
-    // --------
-    QString firstBadSongLine = "";
-    int songCount = 0;
-    ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
-    firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
+    finishLoadingPlaylist(PlaylistFileName);
 
 //    // --------
 //    QString firstBadSongLine = "";
 //    int songCount = 0;
-//    QFile inputFile(PlaylistFileName);
-//    if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
-//        ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+//    ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+//    firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 
-//        // first, clear all the playlist numbers that are there now.
-//        for (int i = 0; i < ui->songTable->rowCount(); i++) {
-//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//            theItem->setText("");
+//    sortByDefaultSortOrder();
+//    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
+//    ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
 
-//            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);  // clear out the hidden pitches, too
-//            theItem2->setText("0");
-
-//            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
-//            theItem3->setText("0");
-//        }
-
-//        QTextStream in(&inputFile);
-
-//        if (PlaylistFileName.endsWith(".csv")) {
-//            // CSV FILE =================================
-//            int lineCount = 1;
-
-//            QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
-
-//            while (!in.atEnd()) {
-//                QString line = in.readLine();
-//                if (line == "abspath") {
-//                    // V1 of the CSV file format has exactly one field, an absolute pathname in quotes
-//                }
-//                else if (line == "") {
-//                    // ignore, it's a blank line
-//                }
-//                else {
-//                    songCount++;  // it's a real song path
-//                    QStringList list1 = line.split(",");
-
-//                    list1[0].replace("\"","");  // get rid of all double quotes in the abspath
-//                    list1[1].replace("\"",
-//                                     "");  // get rid of all double quotes in the pitch (they should not be there at all, this is an INT)
-
-//                    bool match = false;
-//                    // exit the loop early, if we find a match
-//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
-//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-//                        if (list1[0] == pathToMP3) { // FIX: this is fragile, if songs are moved around
-//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//                            theItem->setText(QString::number(songCount));
-
-//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-//                            theItem2->setText(list1[1].trimmed());
-
-//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-//                            theItem3->setText(list1[2].trimmed());
-
-//                            match = true;
-////                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
-////                            theItemAge->setText("***");
-//                        }
-//                    }
-//                    // if we had no match, remember the first non-matching song path
-//                    if (!match && firstBadSongLine == "") {
-//                        firstBadSongLine = line;
-//                    }
-
-//                }
-
-//                lineCount++;
-//            } // while
-//        }
-//        else {
-//            // M3U FILE =================================
-//            int lineCount = 1;
-
-//            while (!in.atEnd()) {
-//                QString line = in.readLine();
-
-//                if (line == "#EXTM3U") {
-//                    // ignore, it's the first line of the M3U file
-//                }
-//                else if (line == "") {
-//                    // ignore, it's a blank line
-//                }
-//                else if (line.at( 0 ) == '#' ) {
-//                    // it's a comment line
-//                    if (line.mid(0,7) == "#EXTINF") {
-//                        // it's information about the next line, ignore for now.
-//                    }
-//                }
-//                else {
-//                    songCount++;  // it's a real song path
-
-//                    bool match = false;
-//                    // exit the loop early, if we find a match
-//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
-//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-//                        if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
-//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//                            theItem->setText(QString::number(songCount));
-
-//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-//                            theItem2->setText("0");  // M3U doesn't have pitch yet
-
-//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-//                            theItem3->setText("0");  // M3U doesn't have tempo yet
-
-//                            match = true;
-//                        }
-//                    }
-//                    // if we had no match, remember the first non-matching song path
-//                    if (!match && firstBadSongLine == "") {
-//                        firstBadSongLine = line;
-//                    }
-
-//                }
-
-//                lineCount++;
-//            }
-//        }
-
-//        inputFile.close();
-
+//    // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
+//    // only do this, if there were no errors in loading the playlist numbers.
+//    if (firstBadSongLine == "") {
+//        ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
+//        on_actionPrevious_Playlist_Item_triggered();
 //    }
-//    else {
-//        // file didn't open...
-//        return;
+
+//    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
+//    if (firstBadSongLine != "") {
+//        // if there was a non-matching path, tell the user what the first one of those was
+//        msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
+//        ui->songTable->clearSelection(); // select nothing, if error
 //    }
-    sortByDefaultSortOrder();
-    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
-    ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
-
-    // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
-    // only do this, if there were no errors in loading the playlist numbers.
-    if (firstBadSongLine == "") {
-        ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
-        on_actionPrevious_Playlist_Item_triggered();
-    }
-
-    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
-    if (firstBadSongLine != "") {
-        // if there was a non-matching path, tell the user what the first one of those was
-        msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
-        ui->songTable->clearSelection(); // select nothing, if error
-    }
-    ui->statusBar->showMessage(msg1);
+//    ui->statusBar->showMessage(msg1);
 
 }
 
@@ -5691,4 +5600,90 @@ void MainWindow::playSFX(QString which) {
         // play sound FX only if file exists...
         cBass.PlaySoundEffect(soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
     }
+}
+
+void MainWindow::on_actionClear_Recent_List_triggered()
+{
+    QSettings settings;
+    QStringList recentFilePaths;  // empty list
+
+    settings.setValue("recentFiles", recentFilePaths);  // remember the new list
+    updateRecentPlaylistMenu();
+}
+
+void MainWindow::loadRecentPlaylist(int i) {
+
+    on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
+
+    QSettings settings;
+    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+
+    if (i < recentFilePaths.size()) {
+        // then we can do it
+        QString filename = recentFilePaths.at(i);
+        finishLoadingPlaylist(filename);
+
+        addFilenameToRecentPlaylist(filename);
+    }
+}
+
+void MainWindow::updateRecentPlaylistMenu() {
+    QSettings settings;
+    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+
+    int numRecentPlaylists = recentFilePaths.length();
+    ui->actionRecent1->setVisible(numRecentPlaylists >=1);
+    ui->actionRecent2->setVisible(numRecentPlaylists >=2);
+    ui->actionRecent3->setVisible(numRecentPlaylists >=3);
+    ui->actionRecent4->setVisible(numRecentPlaylists >=4);
+
+    if (numRecentPlaylists >= 1) {
+        ui->actionRecent1->setText(recentFilePaths.at(0));
+    }
+
+    QString playlistsPath = musicRootPath + "/playlists/";
+
+    switch(numRecentPlaylists) {
+        case 4: ui->actionRecent4->setText(QString(recentFilePaths.at(3)).replace(playlistsPath,""));  // intentional fall-thru
+        case 3: ui->actionRecent3->setText(QString(recentFilePaths.at(2)).replace(playlistsPath,""));  // intentional fall-thru
+        case 2: ui->actionRecent2->setText(QString(recentFilePaths.at(1)).replace(playlistsPath,""));  // intentional fall-thru
+        case 1: ui->actionRecent1->setText(QString(recentFilePaths.at(0)).replace(playlistsPath,""));  // intentional fall-thru
+        default: break;
+    }
+
+    ui->actionClear_Recent_List->setEnabled(numRecentPlaylists > 0);
+}
+
+void MainWindow::addFilenameToRecentPlaylist(QString filename) {
+    QSettings settings;
+    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+
+    recentFilePaths.removeAll(filename);  // remove if it exists already
+    recentFilePaths.prepend(filename);    // push it onto the front
+    while (recentFilePaths.size() > 4) {  // get rid of those that fell off the end
+            recentFilePaths.removeLast();
+    }
+
+    settings.setValue("recentFiles", recentFilePaths);  // remember the new list
+    updateRecentPlaylistMenu();
+}
+
+void MainWindow::on_actionRecent1_triggered()
+{
+    loadRecentPlaylist(0);
+}
+
+void MainWindow::on_actionRecent2_triggered()
+{
+    loadRecentPlaylist(1);
+}
+
+void MainWindow::on_actionRecent3_triggered()
+{
+    loadRecentPlaylist(2);
+}
+
+void MainWindow::on_actionRecent4_triggered()
+{
+    loadRecentPlaylist(3);
 }
