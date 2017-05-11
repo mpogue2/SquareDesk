@@ -1529,7 +1529,19 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <addaction name="actionUP_in_Playlist"/>
      <addaction name="actionDOWN_in_Playlist"/>
     </widget>
+    <widget class="QMenu" name="menuLoad_Recent_Playlist">
+     <property name="title">
+      <string>Load Recent Playlist</string>
+     </property>
+     <addaction name="actionRecent1"/>
+     <addaction name="actionRecent2"/>
+     <addaction name="actionRecent3"/>
+     <addaction name="actionRecent4"/>
+     <addaction name="separator"/>
+     <addaction name="actionClear_Recent_List"/>
+    </widget>
     <addaction name="actionLoad_Playlist"/>
+    <addaction name="menuLoad_Recent_Playlist"/>
     <addaction name="actionSave_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Playlist"/>
@@ -2136,6 +2148,31 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="shortcut">
     <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionRecent1">
+   <property name="text">
+    <string>recent1</string>
+   </property>
+  </action>
+  <action name="actionRecent2">
+   <property name="text">
+    <string>recent2</string>
+   </property>
+  </action>
+  <action name="actionRecent3">
+   <property name="text">
+    <string>recent3</string>
+   </property>
+  </action>
+  <action name="actionRecent4">
+   <property name="text">
+    <string>recent4</string>
+   </property>
+  </action>
+  <action name="actionClear_Recent_List">
+   <property name="text">
+    <string>Clear List</string>
    </property>
   </action>
  </widget>
