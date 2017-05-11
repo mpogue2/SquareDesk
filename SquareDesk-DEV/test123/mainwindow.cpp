@@ -137,12 +137,12 @@ bass_audio cBass;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    oldFocusWidget(NULL),
     timerCountUp(NULL),
     timerCountDown(NULL),
     trapKeypresses(true),
     sd(NULL),
     firstTimeSongIsPlayed(false),
-    oldFocusWidget(NULL),
     loadingSong(false)
 {
 //    QSettings mySettings;
