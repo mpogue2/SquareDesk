@@ -38,18 +38,14 @@ using namespace std;
 
 void SongSettings::exec(const char *where, QSqlQuery &q)
 {
-    if (!q.exec())
-    {
-        debugErrors(where, q);
-    }
+    q.exec();
+    debugErrors(where, q);
 }
 
 void SongSettings::exec(const char *where, QSqlQuery &q, const QString &str)
 {
-    if (!q.exec(str))
-    {
-        debugErrors(where, q);
-    }
+    q.exec(str);
+    debugErrors(where, q);
 }
 
 
@@ -406,13 +402,15 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
 QString SongSettings::getCallTaughtOn(const QString &program, const QString &call_name)
 {
     QSqlQuery q(m_db);
-    q.prepare("SELECT date(call_taught_on(dance_program, call_name, session_rowid) VALUES (:dance_program, :call_name, :session_rowid)");
+    q.prepare("SELECT date(taught_on, 'localtime') FROM call_taught_on WHERE dance_program= :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
     q.bindValue(":session_rowid", current_session_id);
     q.bindValue(":dance_program", program);    
     q.bindValue(":call_name", call_name);
+    qDebug() << "Searching for call taught on" << current_session_id << program << call_name;
     exec("getCallTaughtOn", q);
     if (q.next())
     {
+        qDebug() << "Found" << q.value(0).toString();
         return q.value(0).toString();
     }
     return QString("");
@@ -430,7 +428,7 @@ void SongSettings::setCallTaught(const QString &program, const QString &call_nam
 void SongSettings::deleteCallTaught(const QString &program, const QString &call_name)
 {
     QSqlQuery q(m_db);
-    q.prepare("DELETE FROM call_taught_on WHERES dance_program = :dance_program AND call_name = :call_name AND sesion_rowid = :session_rowid)");
+    q.prepare("DELETE FROM call_taught_on WHERE dance_program = :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
     q.bindValue(":session_rowid", current_session_id);
     q.bindValue(":dance_program", program);    
     q.bindValue(":call_name", call_name);

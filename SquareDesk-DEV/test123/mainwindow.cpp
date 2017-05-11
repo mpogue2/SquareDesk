@@ -554,8 +554,8 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
         headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
         headerView->setStretchLastSection(false);
-//        loadDanceProgramList();
-//        on_comboBoxCallListProgram_currentIndexChanged(0);
+        loadDanceProgramList();
+        on_comboBoxCallListProgram_currentIndexChanged(0);
     }
 
 
@@ -646,6 +646,7 @@ void MainWindow::setCurrentSessionIdReloadMusic(int id)
         ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName(),origPath).trimmed());
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
+    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());    
 }
 
 
@@ -674,7 +675,6 @@ static void AddItemToCallList(QTableWidget *tableWidget,
     QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
     checkBoxItem->setCheckState((taughtOn.isNull() || taughtOn.isEmpty()) ? Qt::Unchecked : Qt::Checked);
     tableWidget->setItem(row, kCallListCheckedCol, checkBoxItem);
-    qDebug() << number << name << taughtOn;
 }
 
 static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
@@ -682,7 +682,6 @@ static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, 
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
     
     tableWidget->setRowCount(0);
-    qDebug() << "Loading call list " << filename << "for program" << danceProgram;
     
     QFile inputFile(filename);
     if (inputFile.open(QIODevice::ReadOnly))
@@ -692,7 +691,6 @@ static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, 
         while (!in.atEnd())
         {
             line_number++;
-            qDebug() << "Reading " << line_number;
             QString line = in.readLine();
 
             QString number(QString("%1").arg(line_number, 2));
@@ -714,7 +712,6 @@ static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, 
         }
         inputFile.close();
     }
-    qDebug() << "Loaded";
 }
 
 
@@ -741,7 +738,6 @@ void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
 
 void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex)
 {
-    qDebug() << "Current index changed" << currentIndex;
     ui->tableWidgetCallList->setRowCount(0);
     ui->tableWidgetCallList->setSortingEnabled(false);
     QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
@@ -3140,7 +3136,7 @@ void MainWindow::on_lineEditChoreographySearch_textChanged()
     filterChoreography();
 }
 
-void MainWindow::on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item)
+void MainWindow::on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem * /* item */)
 {
     filterChoreography();
 }
@@ -3177,6 +3173,7 @@ void MainWindow::loadDanceProgramList()
 {
     ui->comboBoxCallListProgram->clear();
     QListIterator<QString> iter(*pathStack);
+    QStringList programs;
     
     while (iter.hasNext()) {
         QString s = iter.next();
@@ -3186,18 +3183,26 @@ void MainWindow::loadDanceProgramList()
             QStringList sl1 = s.split("#!#");
             QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
-            
-            QFileInfo fi(origPath);
-            QString name = fi.completeBaseName();
-            static const char str_danceprogram[] = "danceprogram_";
-            if (name.startsWith(str_danceprogram, Qt::CaseInsensitive))
-            {
-                name.remove(0, sizeof(str_danceprogram) - 1);
-                qDebug() << "Adding " << name << " / " << origPath;
-                ui->comboBoxCallListProgram->addItem(name, origPath);
-            }
+            programs << origPath;
         }
     }
+
+    programs.sort(Qt::CaseInsensitive);
+    QListIterator<QString> program(programs);
+    while (program.hasNext())
+    {
+        QString origPath = program.next();
+        QFileInfo fi(origPath);
+        QString name = fi.completeBaseName();
+        static const char str_danceprogram[] = "danceprogram_";
+        if (name.startsWith(str_danceprogram, Qt::CaseInsensitive))
+        {
+            name.remove(0, sizeof(str_danceprogram) - 1);
+            qDebug() << "Adding " << name << " / " << origPath;
+            ui->comboBoxCallListProgram->addItem(name, origPath);
+        }
+    }
+    
     if (ui->comboBoxCallListProgram->maxCount() == 0)
     {
         ui->comboBoxCallListProgram->addItem("<no dance programs found>", "");
