@@ -4,12 +4,6 @@
 #include <QtSql>
 #include <vector>
 
-// #define SONGSETTINGS_INCLUDE_SONG_ID_CACHE
-// #define SONGSETTINGS_INCLUDE_SONG_CACHE
-// #define SONGSETTINGS_INCLUDE_SONG_AGE_CACHE
-
-
-
 
 class TableDefinition;
 class SongSettings
@@ -59,6 +53,11 @@ public:
     QString getSongAge(const QString &filename, const QString &filenameWithPath);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
+    QString getCallTaughtOn(const QString &program, const QString &call_name);
+    void setCallTaught(const QString &program, const QString &call_name);
+    void deleteCallTaught(const QString &program, const QString &call_name);
+    void clearTaughtCalls();
+    
     
 private:
     void debugErrors(const char *where, QSqlQuery &q);
@@ -75,7 +74,7 @@ private:
     int getSessionIDFromName(const QString &name);
     QString removeRootDirs(const QString &filenameWithPath);
 
-    
+    std::vector<QString> root_directories;
 };
 
 /*     QString writeLocation = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);

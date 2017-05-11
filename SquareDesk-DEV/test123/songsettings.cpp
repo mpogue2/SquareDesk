@@ -202,6 +202,17 @@ RowDefinition song_play_rows[] =
 TableDefinition song_plays_table("song_plays", song_play_rows);
 
 
+RowDefinition call_taught_on_rows[] =
+{
+    RowDefinition("dance_program", "TEXT"),
+    RowDefinition("call_name", "TEXT"),
+    RowDefinition("session_rowid", "INT REFERENCES session(rowid)",
+                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid"),
+    RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
+    RowDefinition(NULL, NULL),
+};
+TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
+
 /*
 "CREATE TABLE play_history (
  id int auto_increment primary key,
@@ -272,6 +283,7 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&song_table);
     ensureSchema(&session_table);
     ensureSchema(&song_plays_table);
+    ensureSchema(&call_taught_on_table);
     {
         unsigned int sessions_available = 0;
         {
@@ -390,6 +402,49 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
     q.bindValue(":session_rowid", current_session_id);
     exec("markSongPlayed", q);
 }
+
+QString SongSettings::getCallTaughtOn(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("SELECT date(call_taught_on(dance_program, call_name, session_rowid) VALUES (:dance_program, :call_name, :session_rowid)");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("getCallTaughtOn", q);
+    if (q.next())
+    {
+        return q.value(0).toString();
+    }
+    return QString("");
+}
+
+void SongSettings::setCallTaught(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO call_taught_on(dance_program, call_name, session_rowid) VALUES (:dance_program, :call_name, :session_rowid)");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("setCallTaught", q);
+}
+void SongSettings::deleteCallTaught(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM call_taught_on WHERES dance_program = :dance_program AND call_name = :call_name AND sesion_rowid = :session_rowid)");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("deleteCallTaught", q);
+}
+
+void SongSettings::clearTaughtCalls()
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM call_taught_on WHERE session_rowid = :session_rowid");
+    q.bindValue(":session_rowid", current_session_id);
+    exec("clearTaughtCalls", q);
+}
+
 
 QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath)
 {

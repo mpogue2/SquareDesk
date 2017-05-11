@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1214,7 +1214,7 @@
       </widget>
       <widget class="QWidget" name="ALL">
        <attribute name="title">
-        <string>Callerlab Lists</string>
+        <string>Dance Programs</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
@@ -1235,28 +1235,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBoxCallListProgram">
-              <item>
-               <property name="text">
-                <string>Basic</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Mainstream</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Plus</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Advanced</string>
-               </property>
-              </item>
-             </widget>
+             <widget class="QComboBox" name="comboBoxCallListProgram"/>
             </item>
            </layout>
           </item>
@@ -1360,7 +1339,7 @@
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

@@ -405,6 +405,7 @@ private:
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadMusic(int id);
     bool autoScrollLyricsEnabled;
+    void loadDanceProgramList();
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 };
