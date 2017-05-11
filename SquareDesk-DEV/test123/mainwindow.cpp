@@ -142,6 +142,7 @@ MainWindow::MainWindow(QWidget *parent) :
     trapKeypresses(true),
     sd(NULL),
     firstTimeSongIsPlayed(false),
+    oldFocusWidget(NULL),
     loadingSong(false)
 {
 //    QSettings mySettings;
@@ -553,7 +554,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)),
             this, SLOT(changeApplicationState(Qt::ApplicationState)));
-
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(focusChanged(QWidget*,QWidget*)));
 
