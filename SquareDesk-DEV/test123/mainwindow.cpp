@@ -30,6 +30,9 @@
 #include <QElapsedTimer>
 #include <QMap>
 #include <QMapIterator>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QProcess>
 #include <QScrollBar>
 #include <QStandardPaths>
@@ -1675,7 +1678,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V0.8.1a</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk Player, V") + QString(VERSIONSTRING) + QString("a</h2>") +
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
@@ -5302,4 +5305,52 @@ void MainWindow::on_actionRecent3_triggered()
 void MainWindow::on_actionRecent4_triggered()
 {
     loadRecentPlaylist(3);
+}
+
+void MainWindow::on_actionCheck_for_Updates_triggered()
+{
+    QString latestVersionURL = "https://raw.githubusercontent.com/mpogue2/SquareDesk/master/latest";
+
+    QNetworkAccessManager* manager = new QNetworkAccessManager();
+
+    QUrl murl = latestVersionURL;
+    QNetworkReply *reply = manager->get(QNetworkRequest(murl));
+
+    QEventLoop loop;
+    connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+
+    QTimer timer;
+    connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit())); // just in case
+    timer.start(5000);
+
+    loop.exec();
+
+    QByteArray result = reply->readAll();
+
+    if ( reply->error() != QNetworkReply::NoError ) {
+//        qDebug() << "Request failed:" << reply->errorString();
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("<B>ERROR</B><P>Sorry, the GitHub server is not reachable right now.<P>" + reply->errorString());
+        msgBox.exec();
+        return;
+    }
+
+    // "latest" is of the form "X.Y.Z\n", so trim off the NL
+    QString latestVersionNumber = QString(result).trimmed();
+
+    if (latestVersionNumber == VERSIONSTRING) {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText("<B>You are running the latest version of SquareDesk.</B>");
+        msgBox.exec();
+    } else {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText("<H2>Newer version available</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
+                       "<P>Latest version of SquareDesk: " + latestVersionNumber +
+                       "<P><a href=\"https://github.com/mpogue2/SquareDesk/releases\">Download new version</a>");
+        msgBox.exec();
+    }
+
 }
