@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1313,7 +1313,10 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
-           <widget class="QTextBrowser" name="textBrowserChoreographySequences"/>
+           <widget class="QListWidget" name="listWidgetChoreography"/>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidgetChoreographySequences"/>
           </item>
           <item>
            <widget class="QListWidget" name="listWidgetChoreographyFiles">
@@ -2089,7 +2092,6 @@
   <tabstop>midrangeSlider</tabstop>
   <tabstop>songTable</tabstop>
   <tabstop>clearSearchButton</tabstop>
-  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>

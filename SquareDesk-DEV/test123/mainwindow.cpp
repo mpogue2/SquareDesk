@@ -2933,12 +2933,11 @@ void MainWindow::loadMusicList()
     ui->statusBar->showMessage(msg1);
 }
 
-QString processSequence(const QString &title,
-                        QString sequence,
+QString processSequence(QString sequence,
                         const QStringList &include,
                         const QStringList &exclude)
 {
-    static QRegularExpression regexEmpty("^\\s+$");
+    static QRegularExpression regexEmpty("^[\\s\\n]*$");
     QRegularExpressionMatch match = regexEmpty.match(sequence);
     if (match.hasMatch())
     {
@@ -2959,23 +2958,27 @@ QString processSequence(const QString &title,
             return QString();
         }
     }
-    QRegExp regexpAmp("&");
-    QRegExp regexpLt("<");
-    QRegExp regexpGt(">");
-    QRegExp regexpApos("'");
-    QRegExp regexpNewline("\n");
 
-    sequence = sequence.replace(regexpAmp, "&amp;");
-    sequence = sequence.replace(regexpLt, "&lt;");
-    sequence = sequence.replace(regexpGt, "&gt;");
-    sequence = sequence.replace(regexpApos, "&apos;");
-    sequence = sequence.replace(regexpNewline, "<br/>\n");
-
-    return "<h1>" + title + "</h1>\n<p>" + sequence + "</p>\n";
+    return sequence;
+    
+//    QRegExp regexpAmp("&");
+//    QRegExp regexpLt("<");
+//    QRegExp regexpGt(">");
+//    QRegExp regexpApos("'");
+//    QRegExp regexpNewline("\n");
+//
+//    sequence = sequence.replace(regexpAmp, "&amp;");
+//    sequence = sequence.replace(regexpLt, "&lt;");
+//    sequence = sequence.replace(regexpGt, "&gt;");
+//    sequence = sequence.replace(regexpApos, "&apos;");
+//    sequence = sequence.replace(regexpNewline, "<br/>\n");
+//
+//    return "<h1>" + title + "</h1>\n<p>" + sequence + "</p>\n";
 
 }
 
-QString extractSequencesFromFile(const QString &filename,
+void extractSequencesFromFile(QStringList &sequences,
+                                 const QString &filename,
                                  const QString &program,
                                  const QStringList &include,
                                  const QStringList &exclude)
@@ -3001,7 +3004,6 @@ QString extractSequencesFromFile(const QString &filename,
                                            "(\\w+)\\s*$"); // Plus
 
     QString sequence;
-    QString results;
     
     while (!in.atEnd())
     {
@@ -3013,7 +3015,7 @@ QString extractSequencesFromFile(const QString &filename,
         {
             if (0 == thisProgram.compare(program, Qt::CaseInsensitive))
             {
-                results += processSequence(title, sequence, include, exclude);
+                sequences << processSequence(sequence, include, exclude);
             }
             isSDFile = true;
             firstSDLine = true;
@@ -3028,7 +3030,7 @@ QString extractSequencesFromFile(const QString &filename,
             {
                 if (0 == thisProgram.compare(title, program, Qt::CaseInsensitive))
                 {
-                    results += processSequence(title, sequence, include, exclude);
+                    sequences << processSequence(sequence, include, exclude);
                 }
                 thisProgram = "Basic";
                 sequence.clear();
@@ -3038,7 +3040,7 @@ QString extractSequencesFromFile(const QString &filename,
             {
                 if (0 == thisProgram.compare(title, program, Qt::CaseInsensitive))
                 {
-                    results += processSequence(title,sequence, include, exclude);
+                    sequences << processSequence(sequence, include, exclude);
                 }
                 thisProgram = "Plus";
                 sequence.clear();
@@ -3047,7 +3049,7 @@ QString extractSequencesFromFile(const QString &filename,
             {
                 if (0 == thisProgram.compare(title, program, Qt::CaseInsensitive))
                 {
-                    results += processSequence(title,sequence, include, exclude);
+                    sequences << processSequence(sequence, include, exclude);
                 }
                 sequence.clear();
             }
@@ -3081,9 +3083,11 @@ QString extractSequencesFromFile(const QString &filename,
             }
         }
     }
-    results += processSequence(title,sequence, include, exclude);
-    return "<html><body>" + results + "</html></body>";
+    sequences << processSequence(sequence, include, exclude);
 }
+
+
+
 
 QStringList MainWindow::getUncheckedItemsFromCurrentCallList()
 {
@@ -3113,7 +3117,7 @@ void MainWindow::filterChoreography()
         exclude.clear();
     }
 
-    QString sequences;
+    QStringList sequences;
     
     for (int i = 0; i < ui->listWidgetChoreographyFiles->count()
              && sequences.length() < 128000; ++i)
@@ -3122,12 +3126,33 @@ void MainWindow::filterChoreography()
         if (item->checkState() == Qt::Checked)
         {
             QString filename = item->data(1).toString();
-            sequences += extractSequencesFromFile(filename, program,
-                                                  include, exclude)
-                + "\n\n";
+            extractSequencesFromFile(sequences, filename, program,
+                                     include, exclude);
         }
     }
-    ui->textBrowserChoreographySequences->setText(sequences);
+
+    ui->listWidgetChoreographySequences->clear();
+    for (auto sequence : sequences)
+    {
+        if (!sequence.isEmpty())
+        {
+            QListWidgetItem *item = new QListWidgetItem(sequence);
+            ui->listWidgetChoreographySequences->addItem(item);
+        }
+    }
+}
+
+void MainWindow::on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item)
+{
+    qDebug() << "Adding choreo item";
+    QListWidgetItem *choreoItem = new QListWidgetItem(item->text());
+    ui->listWidgetChoreography->addItem(choreoItem);
+}
+
+void MainWindow::on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item)
+{
+    qDebug() << "Removing choreo item";
+    ui->listWidgetChoreography->takeItem(ui->listWidgetChoreography->row(item));
 }
 
 

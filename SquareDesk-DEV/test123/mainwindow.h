@@ -256,6 +256,8 @@ private slots:
     void on_actionRecent3_triggered();
     void on_actionRecent4_triggered();
     void on_actionClear_Recent_List_triggered();
+    void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
 
 private:
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
