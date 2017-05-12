@@ -286,7 +286,6 @@ MainWindow::MainWindow(QWidget *parent) :
     switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
     updateRecentPlaylistMenu();
-    ui->actionClear_Recent_List->setEnabled(false);
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // initial Guest Mode stuff works on Mac OS and WIN32 only
@@ -5255,10 +5254,6 @@ void MainWindow::updateRecentPlaylistMenu() {
     ui->actionRecent2->setVisible(numRecentPlaylists >=2);
     ui->actionRecent3->setVisible(numRecentPlaylists >=3);
     ui->actionRecent4->setVisible(numRecentPlaylists >=4);
-
-    if (numRecentPlaylists >= 1) {
-        ui->actionRecent1->setText(recentFilePaths.at(0));
-    }
 
     QString playlistsPath = musicRootPath + "/playlists/";
 
