@@ -4701,9 +4701,11 @@ void MainWindow::readPSData()
     // pocketsphinx has a valid string, send it to sd
     QByteArray s = ps->readAll();
 
-    if (!voiceInputEnabled || currentApplicationState != Qt::ApplicationActive) {
-        // if we're not on the sd tab OR the app is not Active, then voiceInput is disabled,
+    int index = ui->tabWidget->currentIndex();
+    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) || (ui->tabWidget->tabText(index) != "SD")) {
+        // if voiceInput is explicitly disabled, or the app is not Active, we're not on the sd tab, then voiceInput is disabled,
         //  and we're going to read the data from PS and just throw it away.
+        // This is a cheesy way to do it.  We really should disable the mics somehow.
         return;
     }
 
