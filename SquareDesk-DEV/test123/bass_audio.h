@@ -83,12 +83,17 @@ public:
 
     int StreamGetVuMeter(void); // get VU meter level (mono)
 
+    // FX
+    void PlaySoundEffect(const char *filename, int volume = 100);
+
     DWORD                           Stream_State;  // intentionally public // FIX: add getStreamState()
     //-------------------------------------------------------------
 private:
     //-------------------------------------------------------------
     //-------------------------------------------------------------
     HSTREAM                         Stream;
+    HSTREAM                         FXStream;
+
     HFX fxEQ;     // dsp peaking eq handle
     //-------------------------------------------------------------
 };

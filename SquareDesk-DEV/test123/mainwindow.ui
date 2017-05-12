@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>782</width>
-    <height>744</height>
+    <height>603</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>5</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -203,6 +203,9 @@
           </property>
           <property name="placeholderText">
            <string>Type</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -1092,43 +1095,105 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="lryicsTab">
        <attribute name="title">
         <string>Lyrics</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="MySlider" name="seekBarCuesheet">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="tickPosition">
-               <enum>QSlider::TicksBothSides</enum>
-              </property>
-              <property name="tickInterval">
-               <number>10</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButtonSetIntroTime">
-              <property name="text">
-               <string>In</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButtonSetOutroTime">
-              <property name="text">
-               <string>Out</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QPushButton" name="pushButtonShowHideCueSheetAdditional">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>24</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string> 	▶ </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="MySlider" name="seekBarCuesheet">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksBothSides</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonSetIntroTime">
+            <property name="text">
+             <string>In</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonSetOutroTime">
+            <property name="text">
+             <string>Out</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayoutCueSheetAdditional">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>In:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditIntroTime">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Out</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditOutroTime">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBoxCuesheetSelector"/>
           </item>
          </layout>
         </item>
@@ -1149,239 +1214,121 @@
       </widget>
       <widget class="QWidget" name="ALL">
        <attribute name="title">
-        <string>Callerlab Lists</string>
+        <string>Dance Programs</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <widget class="QTabWidget" name="tabWidget_2">
-          <property name="currentIndex">
-           <number>0</number>
-          </property>
-          <widget class="QWidget" name="tab_2">
-           <attribute name="title">
-            <string>Basic (1-30)</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_13">
-            <item row="0" column="0">
-             <widget class="QLabel" name="basicCallList1">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="label_4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
               </property>
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== BASIC ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;1. Circle Left / Circle Right&lt;br/&gt;2. Forward and Back&lt;br/&gt;3. Dosado / Dosado to a Wave&lt;br/&gt;4. Swing&lt;br/&gt;5. Promenade Family&lt;br/&gt;--a. Couples (Full, 1/2, 3/4) &lt;br/&gt;--b. Single File Promenade &lt;br/&gt;--c. Wrong Way Promenade &lt;br/&gt;--d. Star Promenade&lt;br/&gt;6. Allemande Left&lt;br/&gt;7. Arm Turns&lt;br/&gt;8. Right and Left Grand Family&lt;br/&gt;--a. Right and Left Grand &lt;br/&gt;--b. Weave the Ring&lt;br/&gt;--c. Wrong Way Grand&lt;br/&gt;9. Left-Hand Star / Right-Hand Star&lt;br/&gt;10. Pass Thru&lt;br/&gt;11. Half Sashay Family&lt;br/&gt;--a. Half Sashay&lt;br/&gt;--b. Rollaway&lt;br/&gt;--c. Ladies In, Men Sashay&lt;br/&gt;12. Turn Back Family &lt;br/&gt;--a. U-Turn Back&lt;br/&gt;--b. Backtrack&lt;br/&gt;13. Separate&lt;br/&gt;--a. Around 1 or 2 to a Line &lt;br/&gt;--b. Around 1 or 2 and Come Into the Middle&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               <string>Program:</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="basicCallList2">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
+            <item>
+             <widget class="QComboBox" name="comboBoxCallListProgram"/>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="tableWidgetCallList">
+            <column>
+             <property name="text">
+              <string>Teach</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string> ✓</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Name</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Completed</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="sequencesTab">
+       <attribute name="title">
+        <string>Sequences</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_6">
+            <item>
+             <widget class="QLabel" name="label_5">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;14. Split Two&lt;br/&gt;15. Courtesy Turn&lt;br/&gt;16. Ladies Chain Family&lt;br/&gt;--a. Two Ladies Chain (Reg. &amp;amp; 3/4) &lt;br/&gt;--b. Four Ladies Chain(Reg. &amp;amp; 3/4)&lt;br/&gt;--c. Chain Down the Line&lt;br/&gt;17. Do Paso&lt;br/&gt;18. Lead Right&lt;br/&gt;19. Veer Left / Veer Right&lt;br/&gt;20. Bend the Line&lt;br/&gt;21. Circulate Family&lt;br/&gt;--a. (Named Dancers) Circulate &lt;br/&gt;--b. Couples Circulate&lt;br/&gt;--c. All Eight Circulate&lt;br/&gt;--d. Single File Circulate&lt;br/&gt;--e. Split/Box Circulate&lt;br/&gt;22. Right and Left Thru&lt;br/&gt;23. Grand Square&lt;br/&gt;24. Star Thru&lt;br/&gt;25. California Twirl&lt;br/&gt;26. Walk Around the Corner&lt;br/&gt;27. See Saw&lt;br/&gt;28. Square Thru (1, 2, 3, 4) / Left Square Thru (1, 2, 3, 4)&lt;br/&gt;29. Circle to a Line&lt;br/&gt;30. Dive Thru&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Search (&quot;,&quot; to separate phrases):</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEditChoreographySearch"/>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBoxChoreographySearchType">
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>0</height>
+               </size>
               </property>
+              <item>
+               <property name="text">
+                <string>All Sequences</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Only Taught Calls</string>
+               </property>
+              </item>
              </widget>
             </item>
            </layout>
-          </widget>
-          <widget class="QWidget" name="tab_3">
-           <attribute name="title">
-            <string>Basic (31-51)/MS (52-68)</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_14">
-            <item row="0" column="0">
-             <widget class="QLabel" name="basicCallList3">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;31. Wheel Around &lt;br/&gt;32. Thar Family&lt;br/&gt;--a. Allemande Thar&lt;br/&gt;--b. Allemande Left to an Allemande Thar &lt;br/&gt;--c. Wrong Way Thar&lt;br/&gt;33. Slip the Clutch &lt;br/&gt;34. Shoot the Star / Shoot the Star Full Around &lt;br/&gt;35. Box the Gnat&lt;br/&gt;36. Trade Family&lt;br/&gt;--a. (Named Dancers) Trade &lt;br/&gt;--b. Couples Trade&lt;br/&gt;--c. Partner Trade&lt;br/&gt;37. Ocean Wave Family&lt;br/&gt;--a. Step to a Wave&lt;br/&gt;--b. Balance&lt;br/&gt;38. Alamo Style&lt;br/&gt;39. Swing Thru / Left Swing Thru &lt;br/&gt;40. Run / Cross Run&lt;br/&gt;41. Pass the Ocean&lt;br/&gt;42. Extend&lt;br/&gt;43. Wheel and Deal&lt;br/&gt;44. Double Pass Thru&lt;br/&gt;45. First Couple Go Left/Right, Next Couple Go Left/Right &lt;br/&gt;46. Zoom&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="basicCallList4">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;47. Flutterwheel / Reverse Flutterwheel&lt;br/&gt;48. Sweep a Quarter &lt;br/&gt;49. Trade By&lt;br/&gt;50. Touch 1/4&lt;br/&gt;51. Ferris Wheel&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== MAINSTREAM ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;52. Cloverleaf&lt;br/&gt;53. Turn Thru&lt;br/&gt;54. Eight Chain Thru / Eight Chain 1, 2, 3, Etc.&lt;br/&gt;55. Pass to the Center&lt;br/&gt;56. Single Hinge / Couples Hinge &lt;br/&gt;57. Centers In&lt;br/&gt;58. Cast Off 3/4&lt;br/&gt;59. Spin the Top&lt;br/&gt;60. Walk and Dodge&lt;br/&gt;61. Slide Thru&lt;br/&gt;62. Fold / Cross Fold&lt;br/&gt;63. Dixie Style to an Ocean Wave &lt;br/&gt;64. Spin Chain Thru&lt;br/&gt;65. Tag the Line (In/Out/Left/Right) &lt;br/&gt;66. Half Tag&lt;br/&gt;67. Scoot Back&lt;br/&gt;68. Recycle (From a Wave Only)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tab_4">
-           <attribute name="title">
-            <string>Plus (1-29)</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_15">
-            <item row="0" column="0">
-             <widget class="QLabel" name="plusCallList1">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== PLUS ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;1. Acey Deucey&lt;br/&gt;2. Teacup Chain&lt;br/&gt;3. Ping Pong Circulate&lt;br/&gt;4. Load the Boat&lt;br/&gt;5. Peel Off&lt;br/&gt;6. Linear Cycle (From Waves Only)&lt;br/&gt;7. Coordinate&lt;br/&gt;8. (Anything) &amp;amp; Spread&lt;br/&gt;9. Spin Chain the Gears&lt;br/&gt;10. Track II&lt;br/&gt;11. (Anything) &amp;amp; Roll&lt;br/&gt;12. Follow Your Neighbor&lt;br/&gt;13. Fan the Top&lt;br/&gt;14. Explode the Wave&lt;br/&gt;15. Explode &amp;amp; (Anything) (From Waves Only)&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="plusCallList2">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;16. Relay the Deucey&lt;br/&gt;17. Peel the Top&lt;br/&gt;18. Diamond Circulate&lt;br/&gt;19. Single Circle to a Wave&lt;br/&gt;20. Trade the Wave&lt;br/&gt;21. Flip the Diamond&lt;br/&gt;22. Grand Swing Thru&lt;br/&gt;23. Crossfire&lt;br/&gt;24. All 8 Spin the Top&lt;br/&gt;25. Cut the Diamond&lt;br/&gt;26. Chase Right&lt;br/&gt;27. Dixie Grand&lt;br/&gt;28. 3/4 Tag the Line&lt;br/&gt;29. Spin Chain &amp;amp; Exchange the Gears&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="tab_5">
-           <attribute name="title">
-            <string>A1</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_16">
-            <item row="0" column="0">
-             <widget class="QLabel" name="a1CallList1">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== ADVANCED 1 ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;Any Hand Concept&lt;br/&gt;(Anything) and Cross&lt;br/&gt;(Named Dancers) Cross As Couples Concept&lt;br/&gt;Belles and Beaus (couple only)&lt;br/&gt;Brace Thru (formerly Half Breed Thru)&lt;br/&gt;Cast A Shadow&lt;br/&gt;Chain Reaction (1/4 tag only)&lt;br/&gt;Clover and (Anything)&lt;br/&gt;Cross Clover and (Anything) &lt;br/&gt;Cross Over Circulate&lt;br/&gt;Cross Trail Thru&lt;br/&gt;Cycle And Wheel&lt;br/&gt;Double Star Thru&lt;br/&gt;Triple Star Thru &lt;br/&gt;Ends Bend&lt;br/&gt;Explode and (Anything)&lt;br/&gt;Explode The Line&lt;br/&gt;Fractional Tops&lt;br/&gt;Quarter Top/Half the Top/Three Quarter Top&lt;br/&gt;Grand Follow Your Neighbor &lt;br/&gt;Horseshoe Turn&lt;br/&gt;Lockit&lt;br/&gt;Mix&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="a1CallList2">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;Pair Off&lt;br/&gt;Partner Hinge&lt;br/&gt;Partner Tag&lt;br/&gt;Pass In/Out&lt;br/&gt;Pass the Sea&lt;br/&gt;Quarter In/Out&lt;br/&gt;Quarter Thru / Three Quarter Thru&lt;br/&gt;Grand Quarter Thru&lt;br/&gt;Grand Three Quarter Thru&lt;br/&gt;Right (Left) Roll to a Wave &lt;br/&gt;Scoot and Dodge&lt;br/&gt;Six-Two Acey-Deucey &lt;br/&gt;Split Square Chain Thru &lt;br/&gt;Split Square Thru&lt;br/&gt;Square Chain Thru&lt;br/&gt;Step and Slide&lt;br/&gt;Swap Around&lt;br/&gt;Reverse Swap Around&lt;br/&gt;Transfer the Column&lt;br/&gt;Triple Cross&lt;br/&gt;Triple Scoot&lt;br/&gt;Triple Trade&lt;br/&gt;Turn and Deal&lt;br/&gt;Wheel Thru / Left Wheel Thru&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="A2">
-           <attribute name="title">
-            <string>A2</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_6">
-            <item row="0" column="0">
-             <widget class="QLabel" name="a2CallList1">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;font-weight:600;&quot;&gt;== ADVANCED 2 ==&lt;/span&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;All 4 Couples / All 8 Concept, such as:&lt;br/&gt;
-All 4 Couples Right and Left Thru &lt;br/&gt;
-All 4 Couples Star Thru&lt;br/&gt;
-All 4 Couples Chase Right&lt;br/&gt;
-All 8 Swing Thru&lt;br/&gt;
-All 8 Switch the Wave&lt;br/&gt;
-All 8 Walk and Dodge&lt;br/&gt;
-All 8 Mix&lt;br/&gt;
-Checkmate the Column &lt;br/&gt;
-Diamond Chain Thru &lt;br/&gt;
-Hourglass Circulate&lt;br/&gt;
-Cut/Flip the Hourglass &lt;br/&gt;
-In/Out Roll Circulate&lt;br/&gt;
-Mini-Busy&lt;br/&gt;
-Motivate&lt;br/&gt;
-Pass and Roll&lt;br/&gt;
-Pass and Roll Your Neighbor &lt;br/&gt;
-Peel and Trail&lt;br/&gt;
-Recycle (facing couples) &lt;br/&gt;
-Remake, Grand Remake, Remake The Thar&lt;br/&gt;
-Scoot and Weave&lt;br/&gt;
-Scoot Chain Thru&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="textFormat">
-               <enum>Qt::AutoText</enum>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="a2CallList2">
-              <property name="font">
-               <font>
-                <pointsize>11</pointsize>
-               </font>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;&lt;br/&gt;
-Single Wheel&lt;br/&gt;
-Slip / Slide / Swing / Slither &lt;br/&gt;
-Spin the Windmill &lt;br/&gt;
-Split/Box Counter Rotate &lt;br/&gt;
-Split/Box Transfer&lt;br/&gt;
-Swing and Mix&lt;br/&gt;
-Switch the Wave&lt;br/&gt;
-Switch to a Diamond/Hourglass (waves only) &lt;br/&gt;
-Trade Circulate&lt;br/&gt;
-Trail Off&lt;br/&gt;
-Transfer and (Anything)&lt;br/&gt;
-Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="scaledContents">
-               <bool>false</bool>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QListWidget" name="listWidgetChoreography"/>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidgetChoreographySequences"/>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidgetChoreographyFiles">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -1395,7 +1342,7 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1414,6 +1361,14 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <property name="title">
      <string>&amp;Music</string>
     </property>
+    <widget class="QMenu" name="menuSound_FX">
+     <property name="title">
+      <string>Sound FX</string>
+     </property>
+     <addaction name="action_1"/>
+     <addaction name="action_2"/>
+     <addaction name="action_3"/>
+    </widget>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
@@ -1433,6 +1388,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <addaction name="actionLoop"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
     <addaction name="actionAutostart_playback"/>
+    <addaction name="separator"/>
+    <addaction name="menuSound_FX"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Search"/>
    </widget>
@@ -1454,7 +1411,19 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <addaction name="actionUP_in_Playlist"/>
      <addaction name="actionDOWN_in_Playlist"/>
     </widget>
+    <widget class="QMenu" name="menuLoad_Recent_Playlist">
+     <property name="title">
+      <string>Load Recent Playlist</string>
+     </property>
+     <addaction name="actionRecent1"/>
+     <addaction name="actionRecent2"/>
+     <addaction name="actionRecent3"/>
+     <addaction name="actionRecent4"/>
+     <addaction name="separator"/>
+     <addaction name="actionClear_Recent_List"/>
+    </widget>
     <addaction name="actionLoad_Playlist"/>
+    <addaction name="menuLoad_Recent_Playlist"/>
     <addaction name="actionSave_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Playlist"/>
@@ -2039,6 +2008,55 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <string>Color only</string>
    </property>
   </action>
+  <action name="action_1">
+   <property name="text">
+    <string>#1</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>#2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>#3</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionRecent1">
+   <property name="text">
+    <string>recent1</string>
+   </property>
+  </action>
+  <action name="actionRecent2">
+   <property name="text">
+    <string>recent2</string>
+   </property>
+  </action>
+  <action name="actionRecent3">
+   <property name="text">
+    <string>recent3</string>
+   </property>
+  </action>
+  <action name="actionRecent4">
+   <property name="text">
+    <string>recent4</string>
+   </property>
+  </action>
+  <action name="actionClear_Recent_List">
+   <property name="text">
+    <string>Clear List</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -2074,7 +2092,6 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
   <tabstop>midrangeSlider</tabstop>
   <tabstop>songTable</tabstop>
   <tabstop>clearSearchButton</tabstop>
-  <tabstop>tabWidget</tabstop>
  </tabstops>
  <resources/>
  <connections/>

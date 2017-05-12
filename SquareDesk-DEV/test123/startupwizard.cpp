@@ -87,6 +87,14 @@ void StartupWizard::accept()
         dir5.mkpath(".");
     }
 
+    // always make this directory for soundfx
+    QString sfxDirName = outputDir + "/soundfx";
+//    qDebug() << "Making " << sdDirName;
+    QDir dir5b(sfxDirName);
+    if (!dir5b.exists()) {
+        dir5b.mkpath(".");
+    }
+
     // always make this directory for sd
     QString sdDirName = outputDir + "/sd";
 //    qDebug() << "Making " << sdDirName;
@@ -464,6 +472,7 @@ void ConclusionPage::initializePage()
     confirmText += "   " + field("outputDir").toString() + "/" + field("singingCallsDirName").toString() + " (for singing calls)\n";
     confirmText += "   " + field("outputDir").toString() + "/" + field("vocalsDirName").toString() + " (for vocals)\n";
     confirmText += "   " + field("outputDir").toString() + "/" + field("extrasDirName").toString() + " (for other music)\n";
+    confirmText += "   " + field("outputDir").toString() + "/soundfx (for sound effects)\n";
     confirmText += "   " + field("outputDir").toString() + "/playlists (for playlists)\n";
     confirmText += "   " + field("outputDir").toString() + "/sd (for sd output files)\n\n";
 //    confirmText += "   " + field("outputDir").toString() + "/.squaredesk (for internal SquareDesk files)\n\n";  // this will be our little secret

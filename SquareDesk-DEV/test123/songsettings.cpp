@@ -38,18 +38,14 @@ using namespace std;
 
 void SongSettings::exec(const char *where, QSqlQuery &q)
 {
-    if (!q.exec())
-    {
-        debugErrors(where, q);
-    }
+    q.exec();
+    debugErrors(where, q);
 }
 
 void SongSettings::exec(const char *where, QSqlQuery &q, const QString &str)
 {
-    if (!q.exec(str))
-    {
-        debugErrors(where, q);
-    }
+    q.exec(str);
+    debugErrors(where, q);
 }
 
 
@@ -173,9 +169,11 @@ RowDefinition song_rows[] =
         "CREATE INDEX songs_name_idx ON songs(name)"),
     RowDefinition("pitch", "int"),
     RowDefinition("tempo", "int"),
+    RowDefinition("tempoIsPercent", "int"),
     RowDefinition("volume", "int"),
     RowDefinition("introPos", "float"),
     RowDefinition("outroPos", "float"),
+    RowDefinition("last_cuesheet", "text"),
     RowDefinition(NULL, NULL),
 };
 
@@ -192,13 +190,24 @@ TableDefinition session_table("sessions", song_rows);
 RowDefinition song_play_rows[] =
 {
     RowDefinition("song_rowid", "int references songs(rowid)"),
-    RowDefinition("session_rowid", "int references songs(rowid)"),
+    RowDefinition("session_rowid", "int references session(rowid)"),
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
                   "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
     RowDefinition(NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
 
+
+RowDefinition call_taught_on_rows[] =
+{
+    RowDefinition("dance_program", "TEXT"),
+    RowDefinition("call_name", "TEXT"),
+    RowDefinition("session_rowid", "INT REFERENCES session(rowid)",
+                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid"),
+    RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
+    RowDefinition(NULL, NULL),
+};
+TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 
 /*
 "CREATE TABLE play_history (
@@ -270,6 +279,7 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&song_table);
     ensureSchema(&session_table);
     ensureSchema(&song_plays_table);
+    ensureSchema(&call_taught_on_table);
     {
         unsigned int sessions_available = 0;
         {
@@ -389,6 +399,51 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
     exec("markSongPlayed", q);
 }
 
+QString SongSettings::getCallTaughtOn(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("SELECT date(taught_on, 'localtime') FROM call_taught_on WHERE dance_program= :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    qDebug() << "Searching for call taught on" << current_session_id << program << call_name;
+    exec("getCallTaughtOn", q);
+    if (q.next())
+    {
+        qDebug() << "Found" << q.value(0).toString();
+        return q.value(0).toString();
+    }
+    return QString("");
+}
+
+void SongSettings::setCallTaught(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO call_taught_on(dance_program, call_name, session_rowid) VALUES (:dance_program, :call_name, :session_rowid)");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("setCallTaught", q);
+}
+void SongSettings::deleteCallTaught(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM call_taught_on WHERE dance_program = :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("deleteCallTaught", q);
+}
+
+void SongSettings::clearTaughtCalls()
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM call_taught_on WHERE session_rowid = :session_rowid");
+    q.bindValue(":session_rowid", current_session_id);
+    exec("clearTaughtCalls", q);
+}
+
+
 QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
@@ -433,8 +488,10 @@ void SongSettings::saveSettings(const QString &filename,
                                 int volume,
                                 int pitch,
                                 int tempo,
+                                bool tempoIsPercent,
                                 double introPos,
-                                double outroPos)
+                                double outroPos,
+                                const QString &cuesheetName)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int id = getSongIDFromFilename(filename, filenameWithPathNormalized);
@@ -442,22 +499,49 @@ void SongSettings::saveSettings(const QString &filename,
     QSqlQuery q(m_db);
     if (id == -1)
     {
-        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, introPos, outroPos, volume) VALUES (:filename, :songname, :name, :pitch, :tempo, :introPos, :outroPos, :volume)");
+        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, tempoIsPercent, introPos, outroPos, volume, last_cuesheet) VALUES (:filename, :songname, :name, :pitch, :tempo, :tempoIsPercent, :introPos, :outroPos, :volume, :cuesheet)");
     }
     else
     {
-        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, introPos = :introPos, outroPos = :outroPos, volume = :volume WHERE filename = :filename");
+        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, tempoIsPercent = :tempoIsPercent, introPos = :introPos, outroPos = :outroPos, volume = :volume, last_cuesheet = :cuesheet WHERE filename = :filename");
     }
     q.bindValue(":filename", filenameWithPathNormalized);
     q.bindValue(":songname", filename);
     q.bindValue(":pitch", pitch);
     q.bindValue(":tempo", tempo);
+    q.bindValue(":tempoIsPercent", tempoIsPercent);
     q.bindValue(":introPos", introPos);
     q.bindValue(":outroPos", outroPos);
     q.bindValue(":volume", volume);
     q.bindValue(":name", songname);
+    q.bindValue(":cuesheet", cuesheetName);
     exec("saveSettings", q);
 }
+
+
+bool SongSettings::loadSettings(const QString &filename,
+                      const QString &filenameWithPath,
+                      const QString &songname,
+                      int &volume,
+                      int &pitch,
+                      int &tempo,
+                      bool &tempoIsPercent,
+                      double &introPos,
+                      double &outroPos)
+{
+    QString cuesheetName;
+    return loadSettings(filename,
+                        filenameWithPath,
+                        songname,
+                        volume,
+                        pitch,
+                        tempo,
+                        tempoIsPercent,
+                        introPos,
+                        outroPos,
+                        cuesheetName);
+}
+
 
 bool SongSettings::loadSettings(const QString &filename,
                                 const QString &filenameWithPath,
@@ -465,14 +549,16 @@ bool SongSettings::loadSettings(const QString &filename,
                                 int &volume,
                                 int &pitch,
                                 int &tempo,
+                                bool &tempoIsPercent,
                                 double &introPos,
-                                double &outroPos)
+                                double &outroPos,
+                                QString &cuesheetName)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume FROM songs WHERE filename=:filename");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filenameWithPathNormalized);
         exec("loadSettings", q);
 
@@ -484,12 +570,14 @@ bool SongSettings::loadSettings(const QString &filename,
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
+            cuesheetName = q.value(6).toString();
+            tempoIsPercent = q.value(7).toBool();
         }
     }
     if (!foundResults)
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume FROM songs WHERE filename=:filename");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, tempoIsPercent FROM songs WHERE filename=:filename");
         q.bindValue(":filename", filename);
         exec("loadSettings", q);
 
@@ -501,12 +589,13 @@ bool SongSettings::loadSettings(const QString &filename,
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
+            tempoIsPercent = q.value(6).toBool();
         }
     }
     if (!foundResults)
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos FROM songs WHERE name=:name");
+        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, tempoIsPercent FROM songs WHERE name=:name");
         q.bindValue(":name", songname);
         exec("loadSettings", q);
         while (q.next())
@@ -517,6 +606,7 @@ bool SongSettings::loadSettings(const QString &filename,
             introPos = q.value(3).toFloat();
             outroPos = q.value(4).toFloat();
             volume = q.value(5).toInt();
+            tempoIsPercent = q.value(6).toBool();
         }
     }
     return foundResults;

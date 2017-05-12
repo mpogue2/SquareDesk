@@ -8,6 +8,7 @@ windowsBuild=X:/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_MSVC2013_32bi
 
 mkdir -p plugins/imageformats
 mkdir -p models/en-us
+mkdir -p sqldrivers
 
 echo "======== Copying executables from $windowsBuild..."
 cp $windowsBuild/SquareDeskPlayer.exe .
@@ -20,10 +21,10 @@ cp $windowsBuild/icu*54.dll .
 cp $windowsBuild/msvc*120.dll .
 cp $windowsBuild/msvcp140.dll .
 cp $windowsBuild/pocketsphinx.dll .
-cp $windowsBuild/qsqlite*.dll .
+cp $windowsBuild/sqldrivers/qsqlite*.dll .
 cp $windowsBuild/sdlib.dll .
 cp $windowsBuild/sphinxbase.dll .
-#cp $windowsBuild/tag*.dll .
+cp $windowsBuild/tag*.dll .
 cp $windowsBuild/vcruntime140.dll .
 cp $windowsBuild/zlib*.dll .
 cp $windowsBuild/plugins/imageformats/qico.dll ./plugins/imageformats
@@ -41,5 +42,12 @@ cp $windowsBuild/ps .
 echo "======== Running windeployqt..."
 PATH=$PATH:/cygdrive/c/Qt/5.7/msvc2015/bin
 windeployqt --no-translations --no-system-d3d-compiler ./SquareDeskPlayer.exe
+
+#cp $windowsBuild/qsqlite.dll .
+#cp $windowsBuild/Qt5Core.dll .
+
+cp $windowsBuild/Qt5Gui.dll .
+cp $windowsBuild/Qt5Sql.dll .
+cp $windowsBuild/Qt5Widgets.dll .
 
 echo "DONE."

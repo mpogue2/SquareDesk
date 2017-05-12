@@ -14,7 +14,7 @@ CC            = gcc
 CXX           = g++
 DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_CORE_LIB
 CFLAGS        = -m64 -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-CXXFLAGS      = -m64 -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+CXXFLAGS      = -m64 -pipe -O2 -std=c++0x -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 INCPATH       = -I. -I. -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtSql -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64
 QMAKE         = /usr/lib/x86_64-linux-gnu/qt5/bin/qmake
 DEL_FILE      = rm -f
@@ -36,7 +36,7 @@ DISTNAME      = SquareDeskPlayer1.0.0
 DISTDIR = /home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/.tmp/SquareDeskPlayer1.0.0
 LINK          = g++
 LFLAGS        = -m64 -Wl,-O1
-LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -lsqlite3 -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -63,7 +63,9 @@ SOURCES       = main.cpp \
 		typetracker.cpp \
 		console.cpp \
 		renderarea.cpp \
-		sdhighlighter.cpp qrc_resources.cpp \
+		sdhighlighter.cpp \
+		startupwizard.cpp qrc_resources.cpp \
+		qrc_startupwizard.cpp \
 		moc_mainwindow.cpp \
 		moc_preferencesdialog.cpp \
 		moc_levelmeter.cpp \
@@ -71,7 +73,8 @@ SOURCES       = main.cpp \
 		moc_clickablelabel.cpp \
 		moc_console.cpp \
 		moc_renderarea.cpp \
-		moc_sdhighlighter.cpp
+		moc_sdhighlighter.cpp \
+		moc_startupwizard.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		bass_audio.o \
@@ -88,7 +91,9 @@ OBJECTS       = main.o \
 		console.o \
 		renderarea.o \
 		sdhighlighter.o \
+		startupwizard.o \
 		qrc_resources.o \
+		qrc_startupwizard.o \
 		moc_mainwindow.o \
 		moc_preferencesdialog.o \
 		moc_levelmeter.o \
@@ -96,7 +101,8 @@ OBJECTS       = main.o \
 		moc_clickablelabel.o \
 		moc_console.o \
 		moc_renderarea.o \
-		moc_sdhighlighter.o
+		moc_sdhighlighter.o \
+		moc_startupwizard.o
 DIST          = LICENSE.GPL3 \
 		LICENSE.GPL2 \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -171,6 +177,7 @@ DIST          = LICENSE.GPL3 \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resolve_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_post.prf \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/c++11.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/warn_on.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources.prf \
@@ -204,7 +211,8 @@ DIST          = LICENSE.GPL3 \
 		console.h \
 		renderarea.h \
 		common.h \
-		sdhighlighter.h main.cpp \
+		sdhighlighter.h \
+		startupwizard.h main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
@@ -219,7 +227,8 @@ DIST          = LICENSE.GPL3 \
 		typetracker.cpp \
 		console.cpp \
 		renderarea.cpp \
-		sdhighlighter.cpp
+		sdhighlighter.cpp \
+		startupwizard.cpp
 QMAKE_TARGET  = SquareDeskPlayer
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = SquareDeskPlayer
@@ -322,6 +331,7 @@ Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.c
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resolve_config.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_post.prf \
+		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/c++11.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/warn_on.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources.prf \
@@ -335,6 +345,7 @@ Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.c
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf \
 		test123.pro \
 		resources.qrc \
+		startupwizard.qrc \
 		/usr/lib/x86_64-linux-gnu/libQt5Widgets.prl \
 		/usr/lib/x86_64-linux-gnu/libQt5Gui.prl \
 		/usr/lib/x86_64-linux-gnu/libQt5Sql.prl \
@@ -412,6 +423,7 @@ Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.c
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_pre.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resolve_config.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/default_post.prf:
+/usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/c++11.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/warn_on.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/qt.prf:
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/resources.prf:
@@ -425,6 +437,7 @@ Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.c
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/lex.prf:
 test123.pro:
 resources.qrc:
+startupwizard.qrc:
 /usr/lib/x86_64-linux-gnu/libQt5Widgets.prl:
 /usr/lib/x86_64-linux-gnu/libQt5Gui.prl:
 /usr/lib/x86_64-linux-gnu/libQt5Sql.prl:
@@ -443,9 +456,9 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents resources.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents resources.qrc startupwizard.qrc $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h startupwizard.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp startupwizard.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents macUtils.mm $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui preferencesdialog.ui $(DISTDIR)/
 
@@ -468,16 +481,26 @@ mocables: compiler_moc_header_make_all compiler_moc_source_make_all
 
 check: first
 
-compiler_rcc_make_all: qrc_resources.cpp
+compiler_rcc_make_all: qrc_resources.cpp qrc_startupwizard.cpp
 compiler_rcc_clean:
-	-$(DEL_FILE) qrc_resources.cpp
+	-$(DEL_FILE) qrc_resources.cpp qrc_startupwizard.cpp
 qrc_resources.cpp: resources.qrc \
 		Graphicrating-Koloria-Button-Rec.ico
 	/usr/lib/x86_64-linux-gnu/qt5/bin/rcc -name resources resources.qrc -o qrc_resources.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp
+qrc_startupwizard.cpp: startupwizard.qrc \
+		startupwizardimages/watermark2.png \
+		startupwizardimages/logo3.png \
+		startupwizardimages/background.png \
+		startupwizardimages/watermark1.png \
+		startupwizardimages/logo2.png \
+		startupwizardimages/banner.png \
+		startupwizardimages/logo1.png
+	/usr/lib/x86_64-linux-gnu/qt5/bin/rcc -name startupwizard startupwizard.qrc -o qrc_startupwizard.cpp
+
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
 moc_mainwindow.cpp: common_enums.h \
 		sdhighlighter.h \
 		common.h \
@@ -526,6 +549,9 @@ moc_sdhighlighter.cpp: common.h \
 		sdhighlighter.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include sdhighlighter.h -o moc_sdhighlighter.cpp
 
+moc_startupwizard.cpp: startupwizard.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include startupwizard.h -o moc_startupwizard.cpp
+
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
 compiler_uic_make_all: ui_mainwindow.h ui_preferencesdialog.h
@@ -567,7 +593,8 @@ main.o: main.cpp mainwindow.h \
 		console.h \
 		renderarea.h \
 		songsettings.h \
-		macUtils.h
+		macUtils.h \
+		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mainwindow.o: mainwindow.cpp analogclock.h \
@@ -592,7 +619,8 @@ mainwindow.o: mainwindow.cpp analogclock.h \
 		mytablewidget.h \
 		utility.h \
 		tablenumberitem.h \
-		prefsmanager.h
+		prefsmanager.h \
+		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
 bass_audio.o: bass_audio.cpp bass_audio.h \
@@ -651,8 +679,16 @@ sdhighlighter.o: sdhighlighter.cpp sdhighlighter.h \
 		common.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sdhighlighter.o sdhighlighter.cpp
 
+startupwizard.o: startupwizard.cpp prefsmanager.h \
+		prefs_options.h \
+		startupwizard.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o startupwizard.o startupwizard.cpp
+
 qrc_resources.o: qrc_resources.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_resources.o qrc_resources.cpp
+
+qrc_startupwizard.o: qrc_startupwizard.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qrc_startupwizard.o qrc_startupwizard.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
@@ -677,6 +713,9 @@ moc_renderarea.o: moc_renderarea.cpp
 
 moc_sdhighlighter.o: moc_sdhighlighter.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_sdhighlighter.o moc_sdhighlighter.cpp
+
+moc_startupwizard.o: moc_startupwizard.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_startupwizard.o moc_startupwizard.cpp
 
 ####### Install
 

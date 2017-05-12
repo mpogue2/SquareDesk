@@ -18,7 +18,7 @@ echo
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDeskPlayer"
-VERSION="0.4.5"
+VERSION="0.8.1"
 DMG_BACKGROUND_IMG="installer2.png"
 #MANUAL="SquareDeskManual.pdf"
 

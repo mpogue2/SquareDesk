@@ -73,13 +73,11 @@ CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeExtras, MusicTypeExtras, "extras;xtras"
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeCalled, MusicTypeCalled, "vocal;vocals;called")
 
 CONFIG_ATTRIBUTE_BOOLEAN(EnableTimersTabCheckbox, experimentalTimersEnabled, false)
-CONFIG_ATTRIBUTE_BOOLEAN(EnableCuesheetTabCheckbox, experimentalCuesheetEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnablePitchTempoViewCheckbox, experimentalPitchTempoViewEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnableClockColoring,experimentalClockColoringEnabled, false)
 
-CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSaveSongPreferencesInConfig,SongPreferencesInConfig, false)
-
 CONFIG_ATTRIBUTE_BOOLEAN(initialBPMcheckbox,tryToSetInitialBPM, false)
+CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwitchToLyricsOnPlay,switchToLyricsOnPlay, false)
 CONFIG_ATTRIBUTE_INT(initialBPMLineEdit,initialBPM, 125)
 
 CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
@@ -95,3 +93,5 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_playlist_dir, QDir::homePath())
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablevoiceinput, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableautoscrolllyrics, false);
+
+CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode, false)

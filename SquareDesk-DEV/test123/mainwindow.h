@@ -37,6 +37,7 @@
 #include <QDirIterator>
 #include <QList>
 #include <QListIterator>
+#include <QListWidget>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -51,6 +52,7 @@
 #include <QToolTip>
 #include <QVariant>
 #include <QWheelEvent>
+#include <QWidget>
 #include <QFileSystemWatcher>
 
 #include <QDateTime>
@@ -99,6 +101,8 @@ protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
+
+    void airplaneMode(bool turnItOn);
 
 private slots:
     void sdActionTriggered(QAction * action);
@@ -158,6 +162,12 @@ private slots:
     void on_pushButtonSetIntroTime_clicked();
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
+
+    void on_pushButtonShowHideCueSheetAdditional_clicked();
+    void on_lineEditOutroTime_textChanged();
+    void on_lineEditIntroTime_textChanged();
+    void setCueSheetAdditionalControlsVisible(bool visible);
+    bool cueSheetAdditionalControlsVisible();
 
     // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
     void timerCountUp_update();
@@ -223,9 +233,39 @@ private slots:
     void on_actionDOWN_in_Playlist_triggered();
 
     void on_actionStartup_Wizard_triggered();
+    void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
+    void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
+    void on_tableWidgetCallList_cellChanged(int row, int col);
+    void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
+    void on_lineEditChoreographySearch_textChanged();
+
+    void changeApplicationState(Qt::ApplicationState state);
+    void focusChanged(QWidget *old, QWidget *now);
+
+    void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
+    // END SLOTS -----------
+
+    void on_action_1_triggered();
+    void on_action_2_triggered();
+    void on_action_3_triggered();
+
+    void playSFX(QString which);
+
+    void on_actionRecent1_triggered();
+    void on_actionRecent2_triggered();
+    void on_actionRecent3_triggered();
+    void on_actionRecent4_triggered();
+    void on_actionClear_Recent_List_triggered();
+    void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
 
 private:
+    unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
+
     QAction *closeAct;  // WINDOWS only
+    QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
+
+    bool justWentActive;
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
@@ -245,6 +285,8 @@ private:
     int previousVolume;
 
     bool tempoIsBPM;
+    float baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
+    bool switchToLyricsOnPlay;
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);
@@ -263,20 +305,37 @@ private:
 
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
+    void randomizeFlashCall();
 
+
+    float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
-    void loadCuesheet(QString MP3FileName);
+    void loadCuesheet(const QString &cuesheetFilename);
+    void loadCuesheets(const QString &MP3FileName);
+    void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
+    bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle );
 
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
+    void loadChoreographyList();
+    void filterChoreography();
+    QStringList getUncheckedItemsFromCurrentCallList();
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-    // Lyrics stuff
+    // Playlist stuff ----------
+    QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
+    void finishLoadingPlaylist(QString PlaylistFileName);
+
+    void saveCurrentPlaylistToFile(QString PlaylistFileName);
+
+    void loadRecentPlaylist(int num);
+    void updateRecentPlaylistMenu();
+    void addFilenameToRecentPlaylist(QString filename);
+
+    // Lyrics stuff ----------
     QString loadLyrics(QString MP3FileName);
-#endif
     int lyricsTabNumber;
     bool hasLyrics;
 
@@ -284,8 +343,7 @@ private:
 
     QList<QString> *pathStack;
 
-    bool saveSongPreferencesInConfig;
-    // Experimental Timer stuff
+    // Experimental Timer stuff ----------
     QTimer *timerCountUp;
     qint64 timeCountUpZeroMs;
     QTimer *timerCountDown;
@@ -358,9 +416,13 @@ private:
 
 
     bool firstTimeSongIsPlayed;
+    bool loadingSong; // guard to prevent text setting stuff from munging settings
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadMusic(int id);
     bool autoScrollLyricsEnabled;
+    void loadDanceProgramList();
+
+    Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 };
 
 // currentState:
@@ -380,6 +442,14 @@ private:
 // hidden columns:
 #define kPitchCol 5
 #define kTempoCol 6
+
+
+// columns in tableViewCallList
+#define kCallListOrderCol       0
+#define kCallListCheckedCol     1
+#define kCallListNameCol        2
+#define kCallListWhenCheckedCol 3
+
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time
