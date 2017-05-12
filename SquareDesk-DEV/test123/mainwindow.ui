@@ -1356,6 +1356,8 @@
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
+    <addaction name="separator"/>
+    <addaction name="actionCheck_for_Updates"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -2055,6 +2057,11 @@
   <action name="actionClear_Recent_List">
    <property name="text">
     <string>Clear List</string>
+   </property>
+  </action>
+  <action name="actionCheck_for_Updates">
+   <property name="text">
+    <string>Check for Updates...</string>
    </property>
   </action>
  </widget>

@@ -74,6 +74,11 @@
 #include "macUtils.h"
 #endif
 
+// REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
+//  Also remember to change the "latest" file on GitHub!
+
+#define VERSIONSTRING "0.8.1"
+
 namespace Ui
 {
 class MainWindow;
@@ -258,6 +263,8 @@ private slots:
     void on_actionClear_Recent_List_triggered();
     void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
     void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
+
+    void on_actionCheck_for_Updates_triggered();
 
 private:
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
