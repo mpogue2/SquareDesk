@@ -1015,6 +1015,8 @@ void MainWindow::on_stopButton_clicked()
 // ----------------------------------------------------------------------
 void MainWindow::randomizeFlashCall() {
     int numCalls = flashCalls.length();
+    if (!numCalls)
+        return;
     int newRandCallIndex;
     do {
         newRandCallIndex = qrand() % numCalls;
