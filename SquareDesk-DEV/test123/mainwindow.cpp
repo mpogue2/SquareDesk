@@ -5376,7 +5376,8 @@ void MainWindow::playSFX(QString which) {
 //    qDebug() << "PLAY SFX:" << soundEffect;
     if(QFileInfo(soundEffect).exists()) {
         // play sound FX only if file exists...
-        cBass.PlaySoundEffect(soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
+        cBass.PlayOrStopSoundEffect(which.toInt(),
+                                    soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
     }
 }
 
