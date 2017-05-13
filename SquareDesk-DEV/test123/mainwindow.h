@@ -419,6 +419,14 @@ private:
     bool autoScrollLyricsEnabled;
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
+
+    // get/set microphone volume
+    int currentInputVolume;
+    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
+    void setInputVolume(int newVolume);     // set the input volume, ignores -1
+    void muteInputVolume();         // call this one
+    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
+
 };
 
 // currentState:

@@ -154,6 +154,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     justWentActive = false;
 
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+
+    if (prefsManager.GetenableAutoMicsOff()) {
+        currentInputVolume = getInputVolume();  // save current volume
+    //    qDebug() << "MainWindow::currentInputVolume: " << currentInputVolume;
+    }
+
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
     macUtils.disableScreensaver();
@@ -278,8 +285,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
-
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
     musicRootPath = prefsManager.GetmusicPath();
     guestRootPath = ""; // initially, no guest music
@@ -748,6 +753,10 @@ MainWindow::~MainWindow()
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(false);
+    }
+
+    if (prefsManager.GetenableAutoMicsOff()) {
+        unmuteInputVolume();  // if it was muted, it's now unmuted.
     }
 }
 
@@ -3040,6 +3049,11 @@ void MainWindow::on_actionPreferences_triggered()
         airplaneMode(false);
     }
 
+    if (prefsManager.GetenableAutoMicsOff()) {
+        microphoneStatusUpdate();
+    }
+
+
     delete prefDialog;
     prefDialog = NULL;
     inPreferencesDialog = false;  // FIX: might not need this anymore...
@@ -3740,6 +3754,91 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
     args << QFileInfo(filePath).absoluteDir().canonicalPath();
     QProcess::startDetached("xdg-open", args);
 #endif // ifdef Q_OS_LINUX
+}
+
+// ---------------------------------------------------------
+int MainWindow::getInputVolume()
+{
+#if defined(Q_OS_MAC)
+    QProcess getVolumeProcess;
+    QStringList args;
+    args << "-e";
+    args << "set ivol to input volume of (get volume settings)";
+
+    getVolumeProcess.start("osascript", args);
+    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
+    QString output(getVolumeProcess.readAllStandardOutput());
+
+    int vol = output.trimmed().toInt();
+
+    return(vol);
+#endif
+
+#if defined(Q_OS_WIN)
+    return(-1);
+#endif
+
+#ifdef Q_OS_LINUX
+    return(-1);
+#endif
+}
+
+void MainWindow::setInputVolume(int newVolume)
+{
+//    qDebug() << "    Setting input vol to: " << newVolume;
+#if defined(Q_OS_MAC)
+    if (newVolume != -1) {
+        QProcess getVolumeProcess;
+        QStringList args;
+        args << "-e";
+        args << "set volume input volume " + QString::number(newVolume);
+
+        getVolumeProcess.start("osascript", args);
+        getVolumeProcess.waitForFinished();
+        QString output(getVolumeProcess.readAllStandardOutput());
+
+//        qDebug() << "Output from setInputVolume" << output;
+    }
+#endif
+
+#if defined(Q_OS_WIN)
+#endif
+
+#ifdef Q_OS_LINUX
+#endif
+}
+
+void MainWindow::muteInputVolume()
+{
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    if (!prefsManager.GetenableAutoMicsOff()) {
+        return;
+    }
+
+//    qDebug() << "Muting microphone...";
+    int vol = getInputVolume();
+    if (vol > 0) {
+        // if not already muted, save the current volume (for later restore)
+        currentInputVolume = vol;
+//        qDebug() << "    previous vol: " << currentInputVolume;
+        setInputVolume(0);
+    }
+}
+
+void MainWindow::unmuteInputVolume()
+{
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    if (!prefsManager.GetenableAutoMicsOff()) {
+        return;
+    }
+
+    int vol = getInputVolume();
+    if (vol > 0) {
+        // the user has changed it, so don't muck with it!
+    } else {
+//        qDebug() << "Unmuting microphone... to: " << currentInputVolume;
+        setInputVolume(currentInputVolume);     // restore input from the mics
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -4475,17 +4574,21 @@ void MainWindow::microphoneStatusUpdate() {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: red");
             ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
+            unmuteInputVolume();
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
+            muteInputVolume();                      // disable all input from the mics
         }
     } else {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
+            muteInputVolume();                      // disable all input from the mics
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled");
+            muteInputVolume();                      // disable all input from the mics
         }
     }
 }
