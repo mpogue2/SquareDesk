@@ -259,6 +259,12 @@ private slots:
 
     void on_actionCheck_for_Updates_triggered();
 
+    void on_action_4_triggered();
+
+    void on_action_5_triggered();
+
+    void on_action_6_triggered();
+
 private:
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
@@ -426,6 +432,9 @@ private:
     void setInputVolume(int newVolume);     // set the input volume, ignores -1
     void muteInputVolume();         // call this one
     void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
+
+    // sound fx
+    QString soundFXarray[6];
 
 };
 

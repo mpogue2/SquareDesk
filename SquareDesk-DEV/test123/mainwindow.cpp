@@ -154,6 +154,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     justWentActive = false;
 
+    for (int i=0; i<6; i++) {
+        soundFXarray[i] = "";
+    }
+
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
     if (prefsManager.GetenableAutoMicsOff()) {
@@ -2141,7 +2145,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         QString s = iter.next();
         int extensionIndex = 0;
 
-        // Is this a file esxtension we recognize as a cuesheet file?
+        // Is this a file extension we recognize as a cuesheet file?
         QListIterator<QString> extensionIterator(extensions);
         bool foundExtension = false;
         while (extensionIterator.hasNext())
@@ -2511,7 +2515,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix)
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6])
 {
 //    QElapsedTimer timer1;
 //    timer1.start();
@@ -2536,7 +2540,27 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
         if (section[section.length()-1] != "soundfx") {
             // add to the pathStack iff it's not a sound FX .mp3 file (those are internal)
             pathStack->append(type + "#!#" + resolvedFilePath);
-        }
+        } else {
+            if (suffix != "*") {
+                // if it IS a sound FX file (and not GUEST MODE), then let's squirrel away the paths so we can play them later
+                QString path1 = resolvedFilePath;
+                QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
+                QStringList sections = baseName.split(".");
+                if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+//                    qDebug() << baseName << sections;
+                    switch (sections[0].toInt()) {
+                    case 1: ui->action_1->setText(sections[1]); break;
+                    case 2: ui->action_2->setText(sections[1]); break;
+                    case 3: ui->action_3->setText(sections[1]); break;
+                    case 4: ui->action_4->setText(sections[1]); break;
+                    case 5: ui->action_5->setText(sections[1]); break;
+                    case 6: ui->action_6->setText(sections[1]); break;
+                    default: break;
+                    }
+                soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
+                } // if
+            } // if
+        } // else
     }
 //    qDebug() << "timer1:" << timer1.elapsed();
 }
@@ -2580,7 +2604,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
         rootDir1.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir1, pathStack, "");  // appends to the pathstack
+        findFilesRecursively(rootDir1, pathStack, "", ui, soundFXarray);  // appends to the pathstack
     }
 
     if (guestRootDir != "" && (mode == "guest" || mode == "both")) {
@@ -2594,7 +2618,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
         qsl.append("*.wav");                //          or WAV files
         rootDir2.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir2, pathStack, "*");  // appends to the pathstack, "*" for "Guest"
+        findFilesRecursively(rootDir2, pathStack, "*", ui, soundFXarray);  // appends to the pathstack, "*" for "Guest"
     }
 
 }
@@ -5330,8 +5354,25 @@ void MainWindow::on_action_3_triggered()
     playSFX("3");
 }
 
+void MainWindow::on_action_4_triggered()
+{
+    playSFX("4");
+}
+
+void MainWindow::on_action_5_triggered()
+{
+    playSFX("5");
+}
+
+void MainWindow::on_action_6_triggered()
+{
+    playSFX("6");
+}
+
 void MainWindow::playSFX(QString which) {
-    QString soundEffect = musicRootPath + "/soundfx/" + which + ".mp3";
+//    QString soundEffect = musicRootPath + "/soundfx/" + which + ".mp3";
+    QString soundEffect = soundFXarray[which.toInt()-1];
+
 //    qDebug() << "PLAY SFX:" << soundEffect;
     if(QFileInfo(soundEffect).exists()) {
         // play sound FX only if file exists...
