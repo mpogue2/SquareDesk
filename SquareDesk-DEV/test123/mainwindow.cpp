@@ -4828,10 +4828,21 @@ void MainWindow::readPSData()
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
     s2 = s2.replace("once and a half","1-1/2");
+    s2 = s2.replace("one and a half","1-1/2");
+    s2 = s2.replace("two and a half","2-1/2");
+    s2 = s2.replace("three and a half","3-1/2");
+    s2 = s2.replace("four and a half","4-1/2");
+    s2 = s2.replace("five and a half","5-1/2");
+    s2 = s2.replace("six and a half","6-1/2");
+    s2 = s2.replace("seven and a half","7-1/2");
+    s2 = s2.replace("eight and a half","8-1/2");
+
     s2 = s2.replace("four quarters","4/4");
     s2 = s2.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
     s2 = s2.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
+    s2 = s2.replace("and a quarter more", "AND A QUARTER MORE");  // protect this.  Separate call, must NOT be "1/4"
     s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
+    s2 = s2.replace("AND A QUARTER MORE", "and a quarter more");  // protect this.  Separate call, must NOT be "1/4"
 
     // handle 1P2P
     s2 = s2.replace("one pee two pee","1P2P");

@@ -6,7 +6,7 @@ grammar plus;
 // FIX: "run" should not be accepted.  Only <WHO> run.
 
 public <S> = DO THE CENTERS PART OF LOAD THE BOAT 
-             | ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>]) 
+             | ([<WHO>] [<GODO>] [<EXPLODE>] [<LBRACKET>] <ONECALL> [<RBRACKET>] [<SWEEP> | <ROLL> | <SPREAD>] [<NUMBER> TIMES]) 
              | <SDCOMMAND>;
 
 // This line mostly controls the level, along with whether EXPLODE and SPREAD are active.
@@ -85,7 +85,6 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
 //            | WRONG WAY GRAND [RIGHT AND LEFT]
 //            | [MAKE A] <DIRECTION> HAND STAR
 //            | STAR PROMENADE
-//            | COURTESY TURN
 //            | LADIES CHAIN
 //            | DOPASO
 //            | GRAND SQUARE
@@ -102,6 +101,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
 //            | BALANCE
 
 <BASICCALL> = [LEFT] PASS THRU
+            | COURTESY TURN
             | HALF SASHAY
             | ROLLAWAY
             | U TURN BACK
@@ -111,6 +111,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
             | CHAIN DOWN THE LINE
             | LEAD <DIRECTION>
             | RIGHT (AND|A) LEFT THRU
+            | AND A QUARTER MORE
             | STAR THRU
             | CIRCLE TO A LINE
             | BEND THE LINE
@@ -155,6 +156,7 @@ public <S> = DO THE CENTERS PART OF LOAD THE BOAT
             | [LEFT] TURN THRU
             | EIGHT CHAIN THRU
             | EIGHT CHAIN <BIGNUMBER>
+            | EIGHT CHAIN <BIGNUMBER> AND A HALF
             | PASS TO THE CENTER
             | SPIN THE TOP
             | CENTERS IN
