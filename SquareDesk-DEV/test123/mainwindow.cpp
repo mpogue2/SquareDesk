@@ -5643,6 +5643,8 @@ void MainWindow::adjustFontSizes()
     QFont currentFont = ui->songTable->font();
     int currentFontPointSize = currentFont.pointSize();
 
+//    qDebug() << "currentFontPointSize: " << currentFontPointSize;
+
 //    ui->songTable->resizeColumnToContents(0);  // nope
     ui->songTable->resizeColumnToContents(1);
     ui->songTable->resizeColumnToContents(2);
@@ -5666,33 +5668,68 @@ void MainWindow::adjustFontSizes()
     ui->volumeLabel->setFont(currentFont);
     ui->mixLabel->setFont(currentFont);
 
+#define CURRENTSCALE (7.75)
+    int newCurrentWidth = CURRENTSCALE*currentFontPointSize;
+    ui->currentTempoLabel->setFont(currentFont);
+    ui->currentTempoLabel->setFixedWidth(newCurrentWidth);
+    ui->currentPitchLabel->setFont(currentFont);
+    ui->currentPitchLabel->setFixedWidth(newCurrentWidth);
+    ui->currentVolumeLabel->setFont(currentFont);
+    ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
+    ui->currentMixLabel->setFont(currentFont);
+    ui->currentMixLabel->setFixedWidth(newCurrentWidth);
+
     ui->statusBar->setFont(currentFont);
     ui->currentLocLabel->setFont(currentFont);
     ui->songLengthLabel->setFont(currentFont);
 
+    ui->currentLocLabel->setFixedWidth(3.0*currentFontPointSize);
+    ui->songLengthLabel->setFixedWidth(3.0*currentFontPointSize);
+
     ui->clearSearchButton->setFont(currentFont);
     ui->clearSearchButton->setFixedWidth(8*currentFontPointSize);
 
+    ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
+
     // these are special -- don't want them to get too big, even if user requests huge fonts
     currentFont.setPointSize(currentFontPointSize > 16 ? 16 : currentFontPointSize);  // no bigger than 20pt
-    ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
     ui->bassLabel->setFont(currentFont);
     ui->midrangeLabel->setFont(currentFont);
     ui->trebleLabel->setFont(currentFont);
     ui->EQgroup->setFont(currentFont);
 
+    // resize the icons for the buttons
+    int newIconDimension = (int)((float)currentFontPointSize*(24.0/13.0));
+    QSize newIconSize(newIconDimension, newIconDimension);
+    ui->stopButton->setIconSize(newIconSize);
+    ui->playButton->setIconSize(newIconSize);
+    ui->previousSongButton->setIconSize(newIconSize);
+    ui->nextSongButton->setIconSize(newIconSize);
+
     // these are special MEDIUM
-    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
+    int warningLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
+    currentFont.setPointSize((warningLabelFontSize));
+//    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
     ui->warningLabel->setFont(currentFont);
+    ui->warningLabel->setFixedWidth(4.6*warningLabelFontSize);
 
     // these are special BIG
-    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
+    int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
+    currentFont.setPointSize(nowPlayingLabelFontSize);
+//    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
     ui->nowPlayingLabel->setFont(currentFont);
+    ui->nowPlayingLabel->setFixedHeight(1.25*nowPlayingLabelFontSize);
+
+#define BUTTONSCALE (0.75)
+    ui->stopButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    ui->playButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    ui->previousSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    ui->nextSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
 }
 
-#define ZOOMINCREMENT (2)
-#define BIGGESTZOOM (26)
 #define SMALLESTZOOM (11)
+#define BIGGESTZOOM (25)
+#define ZOOMINCREMENT (2)
 
 void MainWindow::on_actionZoom_In_triggered()
 {
