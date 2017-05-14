@@ -348,6 +348,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // used to store the file paths
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
+    ui->listWidgetChoreographySequences->setStyleSheet(
+        "QListWidget::item { border-bottom: 1px solid black; }" );
     loadChoreographyList();
 
     ui->songTable->setColumnWidth(kNumberCol,36);
@@ -2961,7 +2963,7 @@ QString processSequence(QString sequence,
         }
     }
 
-    return sequence;
+    return sequence.trimmed();
     
 //    QRegExp regexpAmp("&");
 //    QRegExp regexpLt("<");
