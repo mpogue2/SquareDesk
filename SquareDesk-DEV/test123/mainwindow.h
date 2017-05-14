@@ -267,7 +267,16 @@ private slots:
 
     void on_actionStop_Sound_FX_triggered();
 
+    void on_actionZoom_In_triggered();
+
+    void on_actionZoom_Out_triggered();
+
+    void on_actionReset_triggered();
+
 private:
+    int preferredSmallFontSize;  // preferred font sizes
+    int preferredNowPlayingSize;
+
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
     QAction *closeAct;  // WINDOWS only
@@ -326,6 +335,8 @@ private:
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
+    void adjustFontSizes();
+    int col0_width;  // work around a Qt bug, wherein it does not track the width of the # column
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 

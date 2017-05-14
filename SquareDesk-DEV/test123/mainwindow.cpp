@@ -360,13 +360,17 @@ MainWindow::MainWindow(QWidget *parent) :
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
 
-    ui->songTable->setColumnWidth(kNumberCol,36);
-    ui->songTable->setColumnWidth(kTypeCol,96);
-    ui->songTable->setColumnWidth(kLabelCol,80);
-//  kTitleCol is always expandable, so don't set width here
-    ui->songTable->setColumnWidth(kAgeCol, 36);
-    ui->songTable->setColumnWidth(kPitchCol,50);
-    ui->songTable->setColumnWidth(kTempoCol,50);
+//    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+//    ui->songTable->setColumnWidth(kTypeCol,96);
+//    ui->songTable->setColumnWidth(kLabelCol,80);
+//////  kTitleCol is always expandable, so don't set width here
+//    ui->songTable->setColumnWidth(kAgeCol, 36);
+//    ui->songTable->setColumnWidth(kPitchCol,50);
+//    ui->songTable->setColumnWidth(kTempoCol,50);
+
+//    adjustFontSizes();  // now adjust to match contents ONCE
+
+//    ui->songTable->setColumnWidth(kNumberCol,36);
 
     // ----------
     pitchAndTempoHidden = !prefsManager.GetexperimentalPitchTempoViewEnabled();
@@ -578,6 +582,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
 //    qDebug() << "CurrentPlaylistFileName = " << CurrentPlaylistFileName;
     firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+
+    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+    ui->songTable->setColumnWidth(kTypeCol,96);
+    ui->songTable->setColumnWidth(kLabelCol,80);
+////  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kAgeCol, 36);
+    ui->songTable->setColumnWidth(kPitchCol,50);
+    ui->songTable->setColumnWidth(kTempoCol,50);
+
+    adjustFontSizes();  // now adjust to match contents ONCE
+    on_actionReset_triggered();  // set initial layout
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -768,8 +784,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::setFontSizes()
 {
-    int preferredSmallFontSize;
-    int preferredNowPlayingSize;
 #if defined(Q_OS_MAC)
     preferredSmallFontSize = 13;
     preferredNowPlayingSize = 27;
@@ -4211,11 +4225,17 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
     int x2,y2,w2,h2;
     int x3,y3,w3,h3;
 
+//    qDebug() << "columnHeaderResized()" << logicalIndex << newSize << ", # column width:" << ui->songTable->columnWidth(0) << col0_width;
+
     switch (logicalIndex) {
         case 0: // #
             // FIX: there's a bug here if the # column width is changed.  Qt doesn't seem to keep track of
             //  the correct size of the # column thereafter.  This is particularly visible on Win10, but it's
             //  also present on Mac OS X (Sierra).
+
+            // # column width is not tracked by Qt (BUG), so we have to do it manually
+            col0_width = newSize;
+
             x1 = newSize + 14;
             y1 = ui->typeSearch->y();
             w1 = ui->songTable->columnWidth(1) - 5;
@@ -4237,7 +4257,8 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
             break;
 
         case 1: // Type
-            x1 = ui->songTable->columnWidth(0) + 35;
+            // x1 = ui->songTable->columnWidth(0) + 35;
+            x1 = col0_width + 35;
             y1 = ui->typeSearch->y();
             w1 = newSize - 4;
             h1 = ui->typeSearch->height();
@@ -5615,4 +5636,94 @@ void MainWindow::on_actionStop_Sound_FX_triggered()
 {
     // whatever SFX are playing, stop them.
     cBass.StopAllSoundEffects();
+}
+
+void MainWindow::adjustFontSizes()
+{
+    QFont currentFont = ui->songTable->font();
+    int currentFontPointSize = currentFont.pointSize();
+
+//    ui->songTable->resizeColumnToContents(0);  // nope
+    ui->songTable->resizeColumnToContents(1);
+    ui->songTable->resizeColumnToContents(2);
+    // 3/4/5/6 = nope
+
+    ui->songTable->setColumnWidth(4, 3.5*currentFontPointSize);
+    ui->songTable->setColumnWidth(5, 3.5*currentFontPointSize);
+    ui->songTable->setColumnWidth(6, 4*currentFontPointSize);
+
+    ui->typeSearch->setFixedHeight(2*currentFontPointSize);
+    ui->labelSearch->setFixedHeight(2*currentFontPointSize);
+    ui->titleSearch->setFixedHeight(2*currentFontPointSize);
+
+    // set all the related fonts to the same size
+    ui->typeSearch->setFont(currentFont);
+    ui->labelSearch->setFont(currentFont);
+    ui->titleSearch->setFont(currentFont);
+
+    ui->tempoLabel->setFont(currentFont);
+    ui->pitchLabel->setFont(currentFont);
+    ui->volumeLabel->setFont(currentFont);
+    ui->mixLabel->setFont(currentFont);
+
+    ui->statusBar->setFont(currentFont);
+    ui->currentLocLabel->setFont(currentFont);
+    ui->songLengthLabel->setFont(currentFont);
+
+    ui->clearSearchButton->setFont(currentFont);
+    ui->clearSearchButton->setFixedWidth(8*currentFontPointSize);
+
+    // these are special -- don't want them to get too big, even if user requests huge fonts
+    currentFont.setPointSize(currentFontPointSize > 16 ? 16 : currentFontPointSize);  // no bigger than 20pt
+    ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
+    ui->bassLabel->setFont(currentFont);
+    ui->midrangeLabel->setFont(currentFont);
+    ui->trebleLabel->setFont(currentFont);
+    ui->EQgroup->setFont(currentFont);
+
+    // these are special MEDIUM
+    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
+    ui->warningLabel->setFont(currentFont);
+
+    // these are special BIG
+    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
+    ui->nowPlayingLabel->setFont(currentFont);
+}
+
+#define ZOOMINCREMENT (2)
+#define BIGGESTZOOM (26)
+#define SMALLESTZOOM (11)
+
+void MainWindow::on_actionZoom_In_triggered()
+{
+    QFont currentFont = ui->songTable->font();
+    int newPointSize = currentFont.pointSize() + ZOOMINCREMENT;
+    newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
+    newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();
+}
+
+void MainWindow::on_actionZoom_Out_triggered()
+{
+    QFont currentFont = ui->songTable->font();
+    int newPointSize = currentFont.pointSize() - ZOOMINCREMENT;
+    newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
+    newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();
+}
+
+void MainWindow::on_actionReset_triggered()
+{
+    QFont currentFont;  // system font, and system default point size
+    int newPointSize = currentFont.pointSize();  // start out with the default system font size
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();
 }

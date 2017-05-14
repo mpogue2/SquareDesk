@@ -1597,7 +1597,18 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
     <property name="title">
      <string>View</string>
     </property>
+    <widget class="QMenu" name="menuZoom">
+     <property name="title">
+      <string>Zoom</string>
+     </property>
+     <addaction name="actionZoom_In"/>
+     <addaction name="actionZoom_Out"/>
+     <addaction name="separator"/>
+     <addaction name="actionReset"/>
+    </widget>
     <addaction name="actionCompact"/>
+    <addaction name="separator"/>
+    <addaction name="menuZoom"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
@@ -2214,6 +2225,30 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
   <action name="actionStop_Sound_FX">
    <property name="text">
     <string>Stop Sound FX</string>
+   </property>
+  </action>
+  <action name="actionZoom_In">
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+8</string>
+   </property>
+  </action>
+  <action name="actionZoom_Out">
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+9</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
    </property>
   </action>
  </widget>
