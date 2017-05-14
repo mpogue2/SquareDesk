@@ -1313,12 +1313,6 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
-           <widget class="QListWidget" name="listWidgetChoreography"/>
-          </item>
-          <item>
-           <widget class="QListWidget" name="listWidgetChoreographySequences"/>
-          </item>
-          <item>
            <widget class="QListWidget" name="listWidgetChoreographyFiles">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -1327,6 +1321,12 @@
              </sizepolicy>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidgetChoreographySequences"/>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidgetChoreography"/>
           </item>
          </layout>
         </item>
