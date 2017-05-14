@@ -265,6 +265,8 @@ private slots:
 
     void on_action_6_triggered();
 
+    void on_actionStop_Sound_FX_triggered();
+
 private:
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
@@ -435,6 +437,7 @@ private:
 
     // sound fx
     QString soundFXarray[6];
+    void maybeInstallSoundFX();
 
 };
 

@@ -158,6 +158,8 @@ MainWindow::MainWindow(QWidget *parent) :
         soundFXarray[i] = "";
     }
 
+    maybeInstallSoundFX();
+
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 
     if (prefsManager.GetenableAutoMicsOff()) {
@@ -1800,6 +1802,8 @@ bool MainWindow::handleKeypress(int key, QString text)
             if (currentState == kPlaying) {
                 on_playButton_clicked();  // we were playing, so PAUSE now.
             }
+
+            cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
             break;
 
         case Qt::Key_End:  // FIX: should END go to the end of the song? or stop playback?
@@ -5370,14 +5374,20 @@ void MainWindow::on_action_6_triggered()
 }
 
 void MainWindow::playSFX(QString which) {
-//    QString soundEffect = musicRootPath + "/soundfx/" + which + ".mp3";
-    QString soundEffect = soundFXarray[which.toInt()-1];
+    QString soundEffectFile;
+
+    if (which.toInt() > 0) {
+        soundEffectFile = soundFXarray[which.toInt()-1];
+    } else {
+        // conversion failed, this is break_end or long_tip.mp3
+        soundEffectFile = musicRootPath + "/soundfx/" + which + ".mp3";
+    }
 
 //    qDebug() << "PLAY SFX:" << soundEffect;
-    if(QFileInfo(soundEffect).exists()) {
+    if(QFileInfo(soundEffectFile).exists()) {
         // play sound FX only if file exists...
         cBass.PlayOrStopSoundEffect(which.toInt(),
-                                    soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
+                                    soundEffectFile.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
     }
 }
 
@@ -5509,4 +5519,100 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
         msgBox.exec();
     }
 
+}
+
+void MainWindow::maybeInstallSoundFX() {
+
+#if defined(Q_OS_MAC)
+    QString pathFromAppDirPathToStarterSet = "/../soundfx";
+#elif defined(Q_OS_WIN32)
+    // WARNING: untested
+    QString pathFromAppDirPathToStarterSet = "/soundfx";
+#elif defined(Q_OS_LINUX)
+    // WARNING: untested
+    QString pathFromAppDirPathToStarterSet = "/soundfx";
+#endif
+
+    // Let's make a "soundfx" directory in the Music Directory, if it doesn't exist already
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString soundfxDir = musicDirPath + "/soundfx";
+
+    // if the soundfx directory doesn't exist, create it (always, automatically)
+    QDir dir(soundfxDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");  // make it
+
+        // and populate it with the starter set, if it didn't exist already
+        // check for break_over.mp3 and copy it in, if it doesn't exist already
+        QFile breakOverSound(soundfxDir + "/break_over.mp3");
+        if (!breakOverSound.exists()) {
+//            qDebug() << "copying in a break over sound starter file";
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
+            QString destination = soundfxDir + "/break_over.mp3";
+//            qDebug() << "COPY from: " << source << " to " << destination;
+            QFile::copy(source, destination);
+        }
+
+        // check for long_tip.mp3 and copy it in, if it doesn't exist already
+        QFile longTipSound(soundfxDir + "/long_tip.mp3");
+        if (!longTipSound.exists()) {
+//            qDebug() << "copying in a long tip sound starter file";
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
+            QString destination = soundfxDir + "/long_tip.mp3";
+//            qDebug() << "COPY from: " << source << " to " << destination;
+            QFile::copy(source, destination);
+        }
+
+        // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist
+        // although this code is now only executed when the soundfx directory didn't exist yet, I'm
+        //   leaving it here, in case it changes to "every time the program starts".  In which case, we
+        //   only want to copy files into the soundfx directory if there aren't already files there.
+        //   It might seem like overkill right now (and it is, right now).
+        bool foundSoundFXfile[6];
+        for (int i=0; i<6; i++) {
+            foundSoundFXfile[i] = false;
+        }
+
+        QDirIterator it(soundfxDir);
+        while(it.hasNext()) {
+            QString s1 = it.next();
+            //        qDebug() << "soundfx file:" << s1 << ", rootDir: " << rootDir;
+
+            QString baseName = s1.replace(soundfxDir,"");
+            QStringList sections = baseName.split(".");
+
+            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+                //            qDebug() << "     found a valid soundfx file" << baseName << sections;
+                foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
+            }
+        } // while
+
+        QString starterSet[6] = {
+            "1.whistle.mp3",
+            "2.clown_honk.mp3",
+            "3.submarine.mp3",
+            "4.applause.mp3",
+            "5.fanfare.mp3",
+            "6.fade.mp3"
+        };
+        for (int i=0; i<6; i++) {
+            if (!foundSoundFXfile[i]) {
+//                qDebug() << "copying in a soundFX starter file: " << i+1;
+                QString destination = soundfxDir + "/" + starterSet[i];
+                QFile dest(destination);
+                if (!dest.exists()) {
+                    QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
+//                    qDebug() << "COPY from: " << source << " to " << destination;
+                    QFile::copy(source, destination);
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::on_actionStop_Sound_FX_triggered()
+{
+    // whatever SFX are playing, stop them.
+    cBass.StopAllSoundEffects();
 }

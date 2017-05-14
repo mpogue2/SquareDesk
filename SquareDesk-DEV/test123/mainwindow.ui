@@ -1491,6 +1491,8 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
      <addaction name="action_4"/>
      <addaction name="action_5"/>
      <addaction name="action_6"/>
+     <addaction name="separator"/>
+     <addaction name="actionStop_Sound_FX"/>
     </widget>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
@@ -2207,6 +2209,11 @@ Zig Zag / Zag Zig&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</s
    </property>
    <property name="shortcut">
     <string>Ctrl+6</string>
+   </property>
+  </action>
+  <action name="actionStop_Sound_FX">
+   <property name="text">
+    <string>Stop Sound FX</string>
    </property>
   </action>
  </widget>

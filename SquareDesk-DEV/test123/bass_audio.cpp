@@ -418,3 +418,12 @@ void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volu
     BASS_ChannelPlay(FXStream, true);                                           // play it all the way through
     currentSoundEffectID = which;
 }
+
+void bass_audio::StopAllSoundEffects() {
+    if (FXStream != (HSTREAM)NULL &&
+        BASS_ChannelIsActive(FXStream)==BASS_ACTIVE_PLAYING) {
+
+        BASS_ChannelStop(FXStream);  // stop the current stream
+        currentSoundEffectID = 0;    // nothing playing now
+    }
+}

@@ -152,7 +152,7 @@ macx {
 
     first.depends = $(first) copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
-    export(first.depends)
+    #export(first.depends)
     export(copydata1.commands)
     export(copydata2.commands)
     export(copydata3.commands)
@@ -164,6 +164,32 @@ macx {
     export(copydata8.commands)
 
     QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+
+    # SOUNDFX STARTER SET --------------------------------------------
+    copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+
+    first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
+
+    export(first.depends)
+    export(copydata10.commands)
+    export(copydata11a.commands)
+    export(copydata11b.commands)
+    export(copydata11c.commands)
+    export(copydata11d.commands)
+    export(copydata11e.commands)
+    export(copydata11f.commands)
+    export(copydata11g.commands)
+    export(copydata11h.commands)
+
+    QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
 }
 
 win32 {
@@ -194,11 +220,36 @@ win32 {
     export(copydata10.commands)
 
     QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+
+    # SOUNDFX STARTER SET --------------------------------------------
+    copydata10b.commands = if not exist $$shell_path($$OUT_PWD/release/soundfx) mkdir $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11a.commands = xcopy /q /y $$shell_path($$PWD/soundfx/1.whistle.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11b.commands = xcopy /q /y $$shell_path($$PWD/soundfx/2.clown_honk.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11c.commands = xcopy /q /y $$shell_path($$PWD/soundfx/3.submarine.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11d.commands = xcopy /q /y $$shell_path($$PWD/soundfx/4.applause.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11e.commands = xcopy /q /y $$shell_path($$PWD/soundfx/5.fanfare.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11f.commands = xcopy /q /y $$shell_path($$PWD/soundfx/6.fade.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11g.commands = xcopy /q /y $$shell_path($$PWD/soundfx/break_over.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata11h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/long_tip.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+
+    first.depends += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
+
+    export(first.depends)
+    export(copydata10b.commands)
+    export(copydata11a.commands)
+    export(copydata11b.commands)
+    export(copydata11c.commands)
+    export(copydata11d.commands)
+    export(copydata11e.commands)
+    export(copydata11f.commands)
+    export(copydata11g.commands)
+    export(copydata11h.commands)
+
+    QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
 }
 
 RESOURCES += resources.qrc
 RESOURCES += startupwizard.qrc
-
 
 #DISTFILES += \
 #    README.txt
