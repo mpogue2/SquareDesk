@@ -2137,8 +2137,8 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
-    QElapsedTimer timer;
-    timer.start();
+//    QElapsedTimer timer;
+//    timer.start();
 
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
@@ -2638,7 +2638,6 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
         findFilesRecursively(rootDir2, pathStack, "*", ui, soundFXarray);  // appends to the pathstack, "*" for "Guest"
     }
-
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -2668,6 +2667,8 @@ void MainWindow::filterMusic()
     QString type = ui->typeSearch->text();
     QString title = ui->titleSearch->text();
 
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
+
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString songType = ui->songTable->item(i,kTypeCol)->text();
@@ -2695,6 +2696,8 @@ void MainWindow::filterMusic()
 #else /* ifdef CUSTOM_FILTER */
     loadMusicList();
 #endif /* else ifdef CUSTOM_FILTER */
+
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
 // --------------------------------------------------------------------------------
