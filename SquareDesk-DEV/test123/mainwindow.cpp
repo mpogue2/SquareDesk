@@ -883,7 +883,8 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->seekBarCuesheet->SetLoop(true);
 
         double songLength = cBass.FileLength;
-        cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
+        cBass.SetLoop(songLength * ui->seekBarCuesheet->GetIntro(),
+                      songLength * ui->seekBarCuesheet->GetOutro()); // FIX: use parameters in the MP3 file
 
     }
     else {
@@ -938,6 +939,10 @@ void MainWindow::on_stopButton_clicked()
 // ----------------------------------------------------------------------
 void MainWindow::randomizeFlashCall() {
     int numCalls = flashCalls.length();
+
+    if (numCalls == 0)
+        return;
+    
     int newRandCallIndex;
     do {
         newRandCallIndex = qrand() % numCalls;
