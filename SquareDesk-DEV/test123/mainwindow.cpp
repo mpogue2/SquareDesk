@@ -883,9 +883,7 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->seekBarCuesheet->SetLoop(true);
 
         double songLength = cBass.FileLength;
-        cBass.SetLoop(songLength * ui->seekBarCuesheet->GetIntro(),
-                      songLength * ui->seekBarCuesheet->GetOutro()); // FIX: use parameters in the MP3 file
-
+        cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
     }
     else {
         ui->actionLoop->setChecked(false);
