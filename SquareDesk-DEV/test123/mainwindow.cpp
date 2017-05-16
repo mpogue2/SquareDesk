@@ -2168,12 +2168,18 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
     QString mp3Label = "";
     QString mp3Labelnum = "";
+    QString mp3Labelnum_short = "";
     QString mp3Labelnum_extra = "";
     QString mp3Title = "";
     QString mp3ShortTitle = "";
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
 
+    mp3Labelnum_short = mp3Labelnum;
+    while (mp3Labelnum_short.length() > 0 && mp3Labelnum_short[0] == '0')
+    {
+        mp3Labelnum_short.remove(0,1);
+    }
 
     QList<QString> extensions;
     QString dot(".");
@@ -2223,11 +2229,18 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
         breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
-
+        QString labelnum_short = labelnum;
+        while (labelnum_short.length() > 0 && labelnum_short[0] == '0')
+        {
+            labelnum_short.remove(0,1);
+        }
+        
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
 //        qDebug() << "           " << title << " to " << mp3Title;
 //        qDebug() << "           " << shortTitle << " to " << mp3ShortTitle;
-//        qDebug() << "    label: " << label << " to " << mp3Label << " and num " << labelnum << " to " << mp3Labelnum;
+//        qDebug() << "    label: " << label << " to " << mp3Label <<
+//            " and num " << labelnum << " to " << mp3Labelnum <<
+//            " short num " << labelnum_short << " to " << mp3Labelnum_short;
 //        qDebug() << "    title: " << mp3Title << " to " << QString(label + "-" + labelnum);
 
         // Minimum criteria:
@@ -2235,10 +2248,10 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             || title.compare(mp3Title, Qt::CaseInsensitive) == 0
             || (shortTitle.length() > 0
                 && shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0)
-//            || (labelnum.length() > 0 && label.length() > 0
-//                &&  labelnum.compare(mp3Labelnum, Qt::CaseInsensitive)
-//                && label.compare(mp3Label, Qt::CaseInsensitive) == 0
-//                )
+            || (labelnum_short.length() > 0 && label.length() > 0
+                &&  labelnum_short.compare(mp3Labelnum_short, Qt::CaseInsensitive) == 0
+                && label.compare(mp3Label, Qt::CaseInsensitive) == 0
+                )
             || (labelnum.length() > 0 && label.length() > 0
                 && mp3Title.length() > 0
                 && mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0)
@@ -2251,6 +2264,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 + (title.compare(mp3Title, Qt::CaseInsensitive) == 0 ? 100 : 0)
                 + (shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0 ? 50 : 0)
                 + (labelnum.compare(mp3Labelnum, Qt::CaseInsensitive) == 0 ? 10 : 0)
+                + (labelnum_short.compare(mp3Labelnum_short, Qt::CaseInsensitive) == 0 ? 7 : 0)
                 + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
 
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
