@@ -1998,36 +1998,37 @@ struct FilenameMatchers {
     int title_match;
     int label_match;
     int number_match;
+    int additional_label_match;
     int additional_title_match;
 };
 
 struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
 {
     static struct FilenameMatchers best_guess_matches[] = {
-        { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3 },
-        { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2 },
-        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, 3 },
-        { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1 },
-//    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
-//    { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
-        { QRegularExpression("^(\\d+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },  // e.g. "123 - Chicken Plucker"
-        { QRegularExpression("^(\\d+\\.)(.*)$"), 2, 1, -1, -1 },            // e.g. "123.Chicken Plucker"
-//        { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1, -1 },           // I'm not sure what the ? does here (typo?)
-        { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
-        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
+        { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3, -1 },
+        { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, -1, 3 },
+        { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1, -1 },
+//    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
+//    { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
+        { QRegularExpression("^(\\d+)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },  // e.g. "123 - Chicken Plucker"
+        { QRegularExpression("^(\\d+\\.)(.*)$"), 2, 1, -1, -1, -1 },            // e.g. "123.Chicken Plucker"
+//        { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1, -1, -1 },           // ? is a non-greedy match (So that "A - B - C", first group only matches "A")
+        { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
+        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
                                                                     //    assume label on the left, if it's short and all caps/#s (1-5 chars long))
-        { QRegularExpression(), -1, -1, -1, -1 }
+        { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
     static struct FilenameMatchers label_first_matches[] = {
-        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "ABC123X - Chicken Plucker"
-        { QRegularExpression(), -1, -1, -1, -1 }
+        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "ABC123X - Chicken Plucker"
+        { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
     static struct FilenameMatchers filename_first_matches[] = {
-        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 1, 2, -1, -1 },    // e.g. "Chicken Plucker - ABC123X"
-        { QRegularExpression(), -1, -1, -1, -1 }
+        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 1, 2, -1, -1, -1 },    // e.g. "Chicken Plucker - ABC123X"
+        { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
 
     switch (songFilenameFormat) {
@@ -2042,7 +2043,10 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
 }
 
 
-bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle )
+bool MainWindow::breakFilenameIntoParts(const QString &s,
+                                        QString &label, QString &labelnum,
+                                        QString &labelnum_extra,
+                                        QString &title, QString &shortTitle )
 {
     bool foundParts = true;
     int match_num = 0;
@@ -2060,9 +2064,16 @@ bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QStrin
             if (matches[match_num].title_match >= 0) {
                 title = match.captured(matches[match_num].title_match);
                 shortTitle = title;
-                if (matches[match_num].additional_title_match >= 0) {
-                    title = title + " " + match.captured(matches[match_num].additional_title_match);
-                }
+            }
+            if (matches[match_num].number_match >= 0) {
+                labelnum = match.captured(matches[match_num].number_match);
+            }
+            if (matches[match_num].additional_label_match >= 0) {
+                labelnum_extra = match.captured(matches[match_num].additional_label_match);
+            }
+            if (matches[match_num].additional_title_match >= 0
+                && !match.captured(matches[match_num].additional_title_match).isEmpty()) {
+                title += " " + match.captured(matches[match_num].additional_title_match);
             }
 //                qDebug() << s << "*** MATCHED ***" << matches[match_num].regex;
 //                qDebug() << "label:" << label << ", title:" << title;
@@ -2082,12 +2093,20 @@ bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QStrin
 
     if (labelnum.length() == 0)
     {
-        static QRegularExpression regexLabelPlusNum = QRegularExpression("^(\\w+)[\\- ](\\d+\\w?)$");
+        static QRegularExpression regexLabelPlusNum = QRegularExpression("^(\\w+)[\\- ](\\d+)(\\w?)$");
         QRegularExpressionMatch match = regexLabelPlusNum.match(label);
         if (match.hasMatch())
         {
             label = match.captured(1);
             labelnum = match.captured(2);
+            if (labelnum_extra.length() == 0)
+            {
+                labelnum_extra = match.captured(3);
+            }
+            else
+            {
+                labelnum = labelnum + match.captured(3);
+            }
         }
     }
     labelnum.simplified();
@@ -2145,9 +2164,10 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
     QString mp3Label = "";
     QString mp3Labelnum = "";
+    QString mp3Labelnum_extra = "";
     QString mp3Title = "";
     QString mp3ShortTitle = "";
-    breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Title, mp3ShortTitle);
+    breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
 
 
@@ -2193,11 +2213,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         QString label = "";
         QString labelnum = "";
         QString title = "";
+        QString labelnum_extra;
         QString shortTitle = "";
 
 
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-        breakFilenameIntoParts(completeBaseName, label, labelnum, title, shortTitle);
+        breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
 
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
 //        qDebug() << "           " << title << " to " << mp3Title;
@@ -2771,11 +2792,13 @@ void MainWindow::loadMusicList()
         QStringList section = fi.canonicalPath().split("/");
         QString label = "";
         QString labelnum = "";
+        QString labelnum_extra = "";
         QString title = "";
         QString shortTitle = "";
 
         s = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-        breakFilenameIntoParts(s, label, labelnum, title, shortTitle);
+        breakFilenameIntoParts(s, label, labelnum, labelnum_extra, title, shortTitle);
+        labelnum += labelnum_extra;
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 

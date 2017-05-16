@@ -330,7 +330,8 @@ private:
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName);
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
-    bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle );
+    bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
+                                QString &title, QString &shortTitle );
 
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
