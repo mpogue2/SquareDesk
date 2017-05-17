@@ -80,7 +80,7 @@ public:
         bool ok2 = false;
         double f2 = str2.toDouble(&ok2);
 
-        qDebug() << "foo: " << str1 << str2 << (f1 < f2);
+//        qDebug() << "foo: " << str1 << str2 << (f1 < f2);
 
         return f1 < f2;
     }
