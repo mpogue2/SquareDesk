@@ -5758,7 +5758,7 @@ void MainWindow::adjustFontSizes()
     currentFont.setPointSize((warningLabelFontSize));
 //    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
     ui->warningLabel->setFont(currentFont);
-    ui->warningLabel->setFixedWidth(4.6*warningLabelFontSize);
+    ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
 
     // these are special BIG
     int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
