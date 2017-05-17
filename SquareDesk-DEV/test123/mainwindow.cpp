@@ -940,7 +940,7 @@ void MainWindow::randomizeFlashCall() {
 
     if (numCalls == 0)
         return;
-    
+
     int newRandCallIndex;
     do {
         newRandCallIndex = qrand() % numCalls;
@@ -976,8 +976,10 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
-            if (switchToLyricsOnPlay)
+            if (switchToLyricsOnPlay &&
+                    (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
             {
+                // switch to Lyrics tab ONLY for singing calls or vocals
                 for (int i = 0; i < ui->tabWidget->count(); ++i)
                 {
                     if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))
@@ -2234,7 +2236,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         {
             labelnum_short.remove(0,1);
         }
-        
+
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
 //        qDebug() << "           " << title << " to " << mp3Title;
 //        qDebug() << "           " << shortTitle << " to " << mp3ShortTitle;
@@ -2513,7 +2515,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     songLoaded = true;
     Info_Seekbar(true);
 
-    if (songType == "patter") {
+//    if (songType == "patter") {
+    if (songTypeNamesForPatter.contains(songType)) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
     }
     else {
@@ -5755,7 +5758,7 @@ void MainWindow::adjustFontSizes()
     currentFont.setPointSize((warningLabelFontSize));
 //    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
     ui->warningLabel->setFont(currentFont);
-    ui->warningLabel->setFixedWidth(4.6*warningLabelFontSize);
+    ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
 
     // these are special BIG
     int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
