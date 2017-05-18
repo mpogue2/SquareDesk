@@ -49,7 +49,7 @@
 #include "utility.h"
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
-
+#include "danceprograms.h"
 #define CUSTOM_FILTER
 #include "startupwizard.h"
 
@@ -348,8 +348,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // used to store the file paths
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     ui->listWidgetChoreographySequences->setStyleSheet(
-        "QListWidget::item { border-bottom: 1px solid black; }" );
+         "QListWidget::item { border-bottom: 1px solid black; }" );
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     loadChoreographyList();
 
     ui->songTable->setColumnWidth(kNumberCol,36);
@@ -1847,8 +1849,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->titleSearch->hasFocus() ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->lineEditCountDownTimer->hasFocus() ||
-               ui->lineEditChoreographySearch->hasFocus() || 
+               ui->lineEditChoreographySearch->hasFocus() ||
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT               
                ui->songTable->isEditing() ||
                maybeMainWindow->console->hasFocus() )     ||
              ( (ui->labelSearch->hasFocus() ||
@@ -3112,6 +3116,7 @@ void MainWindow::filterChoreography()
 {
     QStringList exclude(getUncheckedItemsFromCurrentCallList());
     QString program = ui->comboBoxCallListProgram->currentText();
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
     QStringList include = ui->lineEditChoreographySearch->text().split(",");
     for (int i = 0; i < include.length(); ++i)
     {
@@ -3146,16 +3151,18 @@ void MainWindow::filterChoreography()
             ui->listWidgetChoreographySequences->addItem(item);
         }
     }
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
 }
 
-void MainWindow::on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item)
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+void MainWindow::on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem * /* item */)
 {
     qDebug() << "Adding choreo item";
     QListWidgetItem *choreoItem = new QListWidgetItem(item->text());
     ui->listWidgetChoreography->addItem(choreoItem);
 }
 
-void MainWindow::on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item)
+void MainWindow::on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem * /* item */)
 {
     qDebug() << "Removing choreo item";
     ui->listWidgetChoreography->takeItem(ui->listWidgetChoreography->row(item));
@@ -3171,9 +3178,11 @@ void MainWindow::on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem * /*
 {
     filterChoreography();
 }
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
 
 void MainWindow::loadChoreographyList()
 {
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
     ui->listWidgetChoreographyFiles->clear();
 
     QListIterator<QString> iter(*pathStack);
@@ -3198,7 +3207,27 @@ void MainWindow::loadChoreographyList()
             ui->listWidgetChoreographyFiles->addItem(item);
         }
     }
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
 }
+
+
+static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
+                                   const char *filename,
+                                   const char *fileLines[])
+{
+    QString outputFile = outputDir.canonicalPath() + "/" + filename;
+    QFile file(outputFile);
+    if (file.open(QIODevice::ReadWrite)) {
+        QTextStream stream(&file);
+        for (int i = 0; fileLines[i]; ++i)
+        {
+            stream << fileLines[i] << endl;
+        }
+        programs << outputFile;
+    }
+}
+
+
 
 void MainWindow::loadDanceProgramList()
 {
@@ -3214,10 +3243,30 @@ void MainWindow::loadDanceProgramList()
             QStringList sl1 = s.split("#!#");
             QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
-            programs << origPath;
+            QFileInfo fi(origPath);
+            if (fi.dir().canonicalPath().endsWith("/reference"))
+            {
+                programs << origPath;
+            }
         }
     }
 
+    if (programs.length() == 0)
+    {
+        QString referencePath = musicRootPath + "/reference";
+        QDir outputDir(referencePath);
+        if (!outputDir.exists())
+        {
+            outputDir.mkpath(".");
+        }
+
+        addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt", danceprogram_basic1);
+        addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt", danceprogram_basic2);
+        addToProgramsAndWriteTextFile(programs, outputDir, "030.plus.txt", danceprogram_plus);
+        addToProgramsAndWriteTextFile(programs, outputDir, "040.a1.txt", danceprogram_a1);
+        addToProgramsAndWriteTextFile(programs, outputDir, "050.a2.txt", danceprogram_a2);
+        
+    }
     programs.sort(Qt::CaseInsensitive);
     QListIterator<QString> program(programs);
     while (program.hasNext())
@@ -3225,13 +3274,12 @@ void MainWindow::loadDanceProgramList()
         QString origPath = program.next();
         QFileInfo fi(origPath);
         QString name = fi.completeBaseName();
-        static const char str_danceprogram[] = "danceprogram_";
-        if (name.startsWith(str_danceprogram, Qt::CaseInsensitive))
+        int j = name.indexOf('.');
+        if (-1 != j)
         {
-            name.remove(0, sizeof(str_danceprogram) - 1);
-            qDebug() << "Adding " << name << " / " << origPath;
-            ui->comboBoxCallListProgram->addItem(name, origPath);
+            name.remove(0, j + 1);
         }
+        ui->comboBoxCallListProgram->addItem(name, origPath);
     }
     
     if (ui->comboBoxCallListProgram->maxCount() == 0)

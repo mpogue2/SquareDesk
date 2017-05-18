@@ -406,11 +406,9 @@ QString SongSettings::getCallTaughtOn(const QString &program, const QString &cal
     q.bindValue(":session_rowid", current_session_id);
     q.bindValue(":dance_program", program);    
     q.bindValue(":call_name", call_name);
-    qDebug() << "Searching for call taught on" << current_session_id << program << call_name;
     exec("getCallTaughtOn", q);
     if (q.next())
     {
-        qDebug() << "Found" << q.value(0).toString();
         return q.value(0).toString();
     }
     return QString("");

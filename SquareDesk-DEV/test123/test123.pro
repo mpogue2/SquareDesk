@@ -27,6 +27,7 @@ SOURCES += main.cpp\
     console.cpp \
     renderarea.cpp \
     sdhighlighter.cpp \
+    danceprograms.cpp \
     startupwizard.cpp
 
 HEADERS  += mainwindow.h \

@@ -241,8 +241,13 @@ private slots:
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
     void on_tableWidgetCallList_cellChanged(int row, int col);
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
     void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
     void on_lineEditChoreographySearch_textChanged();
+    void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+
 
     void changeApplicationState(Qt::ApplicationState state);
     void focusChanged(QWidget *old, QWidget *now);
@@ -261,9 +266,6 @@ private slots:
     void on_actionRecent3_triggered();
     void on_actionRecent4_triggered();
     void on_actionClear_Recent_List_triggered();
-    void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
-    void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
-
     void on_actionCheck_for_Updates_triggered();
 
 private:
