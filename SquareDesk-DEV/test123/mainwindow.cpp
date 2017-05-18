@@ -967,12 +967,9 @@ void MainWindow::on_playButton_clicked()
             songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
             QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
             QModelIndexList selected = selectionModel->selectedRows();
-            int row = -1;
-            if (selected.count() == 1) {
-                // exactly 1 row was selected (good)
-                QModelIndex index = selected.at(0);
-                row = index.row();
-//                ui->songTable->item(row, kAgeCol)->setText("  0");
+            int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+            if (row != -1)
+            {
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
