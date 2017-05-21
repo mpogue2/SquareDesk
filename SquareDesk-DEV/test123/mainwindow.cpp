@@ -3262,9 +3262,10 @@ void MainWindow::loadDanceProgramList()
 
         addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt", danceprogram_basic1);
         addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt", danceprogram_basic2);
-        addToProgramsAndWriteTextFile(programs, outputDir, "030.plus.txt", danceprogram_plus);
-        addToProgramsAndWriteTextFile(programs, outputDir, "040.a1.txt", danceprogram_a1);
-        addToProgramsAndWriteTextFile(programs, outputDir, "050.a2.txt", danceprogram_a2);
+        addToProgramsAndWriteTextFile(programs, outputDir, "030.mainstream.txt", danceprogram_mainstream);
+        addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt", danceprogram_plus);
+        addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt", danceprogram_a1);
+        addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt", danceprogram_a2);
         
     }
     programs.sort(Qt::CaseInsensitive);

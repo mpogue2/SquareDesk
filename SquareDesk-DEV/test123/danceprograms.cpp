@@ -90,6 +90,28 @@ const char *danceprogram_basic2[] = {
     "51, Ferris Wheel",
     NULL
 };
+
+const char *danceprogram_mainstream[] = {
+    "52, Cloverleaf",
+    "53, Turn Thru",
+    "54, Eight Chain Thru / Eight Chain 1, 2, 3, Etc.",
+    "55, Pass to the Center",
+    "56, Single Hinge / Couples Hinge ",
+    "57, Centers In",
+    "58, Cast Off 3/4",
+    "59, Spin the Top",
+    "60, Walk and Dodge",
+    "61, Slide Thru",
+    "62, Fold / Cross Fold",
+    "63, Dixie Style to an Ocean Wave ",
+    "64, Spin Chain Thru",
+    "65, Tag the Line (In/Out/Left/Right) ",
+    "66, Half Tag",
+    "67, Scoot Back",
+    "68, Recycle (From a Wave Only)",
+    NULL,
+};
+
 const char *danceprogram_plus[] = {
     " 1, Acey Deucey",
     " 2, Teacup Chain",
