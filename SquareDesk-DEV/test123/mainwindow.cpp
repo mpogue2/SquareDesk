@@ -720,12 +720,50 @@ static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, 
     }
 }
 
+void breakDanceProgramIntoParts(const QString &filename,
+                                QString &name,
+                                QString &program)
+{
+    QFileInfo fi(filename);
+    name = fi.completeBaseName();
+    program = name;
+    int j = name.indexOf('.');
+    if (-1 != j)
+    {
+        bool isSortOrder = true;
+        for (int i = 0; i < j; ++i)
+        {
+            if (!name[i].isDigit())
+            {
+                isSortOrder = false;
+            }
+        }
+        if (!isSortOrder)
+        {
+            program = name.left(j);
+        }
+        name.remove(0, j + 1);
+        j = name.indexOf('.');
+        if (-1 != j && isSortOrder)
+        {
+            program = name.left(j);
+            name.remove(0, j + 1);
+        }
+    }
+    
+}
+
 
 void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
 {
     if (kCallListCheckedCol == col)
     {
-        QString danceProgram = ui->comboBoxCallListProgram->currentText();
+        int currentIndex = ui->comboBoxCallListProgram->currentIndex();
+        QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
+        QString displayName;
+        QString danceProgram;
+        breakDanceProgramIntoParts(programFilename, displayName, danceProgram);
+        
         QString callName = ui->tableWidgetCallList->item(row,kCallListNameCol)->text();
         
         if (ui->tableWidgetCallList->item(row,col)->checkState() == Qt::Checked)
@@ -749,7 +787,11 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
     QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
     if (!programFilename.isNull() && !programFilename.isEmpty())
     {
-        loadCallList(songSettings, ui->tableWidgetCallList, ui->comboBoxCallListProgram->currentText(), programFilename);
+        QString name;
+        QString program;
+        breakDanceProgramIntoParts(programFilename, name, program);
+            
+        loadCallList(songSettings, ui->tableWidgetCallList, program, programFilename);
     }
     ui->tableWidgetCallList->setSortingEnabled(true);
     
@@ -3229,6 +3271,7 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
 
 
 
+
 void MainWindow::loadDanceProgramList()
 {
     ui->comboBoxCallListProgram->clear();
@@ -3273,13 +3316,9 @@ void MainWindow::loadDanceProgramList()
     while (program.hasNext())
     {
         QString origPath = program.next();
-        QFileInfo fi(origPath);
-        QString name = fi.completeBaseName();
-        int j = name.indexOf('.');
-        if (-1 != j)
-        {
-            name.remove(0, j + 1);
-        }
+        QString name;
+        QString program;
+        breakDanceProgramIntoParts(origPath, name, program);
         ui->comboBoxCallListProgram->addItem(name, origPath);
     }
     
