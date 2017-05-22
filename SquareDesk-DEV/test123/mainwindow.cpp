@@ -749,6 +749,10 @@ void breakDanceProgramIntoParts(const QString &filename,
             program = name.left(j);
             name.remove(0, j + 1);
         }
+        else
+        {
+            program = name;
+        }
     }
     
 }
