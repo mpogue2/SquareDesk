@@ -84,7 +84,10 @@ public:
     int StreamGetVuMeter(void); // get VU meter level (mono)
 
     // FX
-    void PlaySoundEffect(const char *filename, int volume = 100);
+    void PlayOrStopSoundEffect(int which, const char *filename, int volume = 100);
+    void StopAllSoundEffects();
+
+    int  currentSoundEffectID;
 
     DWORD                           Stream_State;  // intentionally public // FIX: add getStreamState()
     //-------------------------------------------------------------

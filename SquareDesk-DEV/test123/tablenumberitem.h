@@ -45,6 +45,17 @@ public:
         QString str1 = text();
         QString str2 = other.text();
 
+        // tempos can have percent signs.  For comparisons, just remove them, and prepend a big number.
+        //   sort order is then 0, 100, 123, ... 137, 0%, 80%, 100%.
+        if (str1.contains('%')) {
+            str1.replace("%","");
+            str1 = "100" + str1;
+        }
+        if (str2.contains('%')) {
+            str2.replace("%","");
+            str2 = "100" + str2;
+        }
+
         if (str1 == " " || str1 == "") {
             str1 = "9999999.9";
         }
@@ -68,6 +79,8 @@ public:
 
         bool ok2 = false;
         double f2 = str2.toDouble(&ok2);
+
+//        qDebug() << "foo: " << str1 << str2 << (f1 < f2);
 
         return f1 < f2;
     }

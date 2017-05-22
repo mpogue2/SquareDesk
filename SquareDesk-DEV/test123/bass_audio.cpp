@@ -111,6 +111,8 @@ bass_audio::bass_audio(void)
     loopToPoint_sec = -1.0;
     startPoint_bytes = 0;
     endPoint_bytes = 0;
+
+    currentSoundEffectID = 0;    // no soundFX playing now
 }
 
 // ------------------------------------------------------------------
@@ -393,7 +395,20 @@ void bass_audio::Stop(void)
 }
 
 // ------------------------------------------------------------------
-void bass_audio::PlaySoundEffect(const char *filename, int volume) {
+void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volume) {
+//    printf("SFXID: %d, which: %d\n", currentSoundEffectID, which);
+//    printf("FXStream: %x, Active: %d\n\n", FXStream, BASS_ChannelIsActive(FXStream)==BASS_ACTIVE_PLAYING);
+//    fflush(stdout);
+
+    if (which == currentSoundEffectID &&
+            FXStream != (HSTREAM)NULL &&
+            BASS_ChannelIsActive(FXStream)==BASS_ACTIVE_PLAYING) {
+        // if the user pressed the same key again, while playing back...
+        BASS_ChannelStop(FXStream);  // stop the current stream
+        currentSoundEffectID = 0;    // nothing playing now
+        return;
+    }
+
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     if (FXStream != (HSTREAM)NULL) {
         BASS_StreamFree(FXStream);                                                  // clean up the old stream
@@ -401,4 +416,14 @@ void bass_audio::PlaySoundEffect(const char *filename, int volume) {
     FXStream = BASS_StreamCreateFile(false, filename, 0, 0, 0);
     BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, (float)volume/100.0f);  // volume relative to 100% of Music
     BASS_ChannelPlay(FXStream, true);                                           // play it all the way through
+    currentSoundEffectID = which;
+}
+
+void bass_audio::StopAllSoundEffects() {
+    if (FXStream != (HSTREAM)NULL &&
+        BASS_ChannelIsActive(FXStream)==BASS_ACTIVE_PLAYING) {
+
+        BASS_ChannelStop(FXStream);  // stop the current stream
+        currentSoundEffectID = 0;    // nothing playing now
+    }
 }

@@ -154,6 +154,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     justWentActive = false;
 
+    for (int i=0; i<6; i++) {
+        soundFXarray[i] = "";
+    }
+
+    maybeInstallSoundFX();
+
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+
+    if (prefsManager.GetenableAutoMicsOff()) {
+        currentInputVolume = getInputVolume();  // save current volume
+    //    qDebug() << "MainWindow::currentInputVolume: " << currentInputVolume;
+    }
+
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
     macUtils.disableScreensaver();
@@ -279,8 +292,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-
     musicRootPath = prefsManager.GetmusicPath();
     guestRootPath = ""; // initially, no guest music
     guestVolume = "";   // and no guest volume present
@@ -354,13 +365,17 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     loadChoreographyList();
 
-    ui->songTable->setColumnWidth(kNumberCol,36);
-    ui->songTable->setColumnWidth(kTypeCol,96);
-    ui->songTable->setColumnWidth(kLabelCol,80);
-//  kTitleCol is always expandable, so don't set width here
-    ui->songTable->setColumnWidth(kAgeCol, 36);
-    ui->songTable->setColumnWidth(kPitchCol,50);
-    ui->songTable->setColumnWidth(kTempoCol,50);
+//    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+//    ui->songTable->setColumnWidth(kTypeCol,96);
+//    ui->songTable->setColumnWidth(kLabelCol,80);
+//////  kTitleCol is always expandable, so don't set width here
+//    ui->songTable->setColumnWidth(kAgeCol, 36);
+//    ui->songTable->setColumnWidth(kPitchCol,50);
+//    ui->songTable->setColumnWidth(kTempoCol,50);
+
+//    adjustFontSizes();  // now adjust to match contents ONCE
+
+//    ui->songTable->setColumnWidth(kNumberCol,36);
 
     // ----------
     pitchAndTempoHidden = !prefsManager.GetexperimentalPitchTempoViewEnabled();
@@ -588,6 +603,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
 //    qDebug() << "CurrentPlaylistFileName = " << CurrentPlaylistFileName;
     firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+
+    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+    ui->songTable->setColumnWidth(kTypeCol,96);
+    ui->songTable->setColumnWidth(kLabelCol,80);
+////  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kAgeCol, 36);
+    ui->songTable->setColumnWidth(kPitchCol,50);
+    ui->songTable->setColumnWidth(kTempoCol,50);
+
+    adjustFontSizes();  // now adjust to match contents ONCE
+    on_actionReset_triggered();  // set initial layout
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -918,12 +945,14 @@ MainWindow::~MainWindow()
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(false);
     }
+
+    if (prefsManager.GetenableAutoMicsOff()) {
+        unmuteInputVolume();  // if it was muted, it's now unmuted.
+    }
 }
 
 void MainWindow::setFontSizes()
 {
-    int preferredSmallFontSize;
-    int preferredNowPlayingSize;
 #if defined(Q_OS_MAC)
     preferredSmallFontSize = 13;
     preferredNowPlayingSize = 27;
@@ -1013,7 +1042,6 @@ void MainWindow::on_loopButton_toggled(bool checked)
 
         double songLength = cBass.FileLength;
         cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
-
     }
     else {
         ui->actionLoop->setChecked(false);
@@ -1069,6 +1097,7 @@ void MainWindow::randomizeFlashCall() {
     int numCalls = flashCalls.length();
     if (!numCalls)
         return;
+
     int newRandCallIndex;
     do {
         newRandCallIndex = qrand() % numCalls;
@@ -1095,17 +1124,16 @@ void MainWindow::on_playButton_clicked()
             songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
             QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
             QModelIndexList selected = selectionModel->selectedRows();
-            int row = -1;
-            if (selected.count() == 1) {
-                // exactly 1 row was selected (good)
-                QModelIndex index = selected.at(0);
-                row = index.row();
-//                ui->songTable->item(row, kAgeCol)->setText("  0");
+            int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+            if (row != -1)
+            {
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
-            if (switchToLyricsOnPlay)
+            if (switchToLyricsOnPlay &&
+                    (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
             {
+                // switch to Lyrics tab ONLY for singing calls or vocals
                 for (int i = 0; i < ui->tabWidget->count(); ++i)
                 {
                     if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))
@@ -1950,6 +1978,8 @@ bool MainWindow::handleKeypress(int key, QString text)
             if (currentState == kPlaying) {
                 on_playButton_clicked();  // we were playing, so PAUSE now.
             }
+
+            cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
             break;
 
         case Qt::Key_End:  // FIX: should END go to the end of the song? or stop playback?
@@ -2130,36 +2160,38 @@ struct FilenameMatchers {
     int title_match;
     int label_match;
     int number_match;
+    int additional_label_match;
     int additional_title_match;
 };
 
 struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
 {
     static struct FilenameMatchers best_guess_matches[] = {
-        { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3 },
-        { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2 },
-        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, 3 },
-        { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2 },
-        { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1 },
-//    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
-//    { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
-        { QRegularExpression("^(\\d+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },  // e.g. "123 - Chicken Plucker"
-        { QRegularExpression("^(\\d+\\.)(.*)$"), 2, 1, -1, -1 },            // e.g. "123.Chicken Plucker"
-//        { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1, -1 },           // I'm not sure what the ? does here (typo?)
-        { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
-        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
+        { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3, -1 },
+        { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, -1, 3 },
+        { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
+        { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1, -1 },
+//    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
+//    { QRegularExpression("^(\\d+\\.)(.*)$"), 2, -1, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
+        { QRegularExpression("^(\\d+)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },  // e.g. "123 - Chicken Plucker"
+        { QRegularExpression("^(\\d+\\.)(.*)$"), 2, 1, -1, -1, -1 },            // e.g. "123.Chicken Plucker"
+//        { QRegularExpression("^(.*?) - (.*)$"), 2, 1, -1, -1, -1 },           // ? is a non-greedy match (So that "A - B - C", first group only matches "A")
+        { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
+        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*(\\d+)([a-zA-Z]{1,2})?\\s*-\\s*(.*?)\\s*(\\(.*\\))?$"), 4, 1, 2, 3, 5 }, // SIR 705b - Papa Was A Rollin Stone (Instrumental).mp3
+        { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
                                                                     //    assume label on the left, if it's short and all caps/#s (1-5 chars long))
-        { QRegularExpression(), -1, -1, -1, -1 }
+        { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
     static struct FilenameMatchers label_first_matches[] = {
-        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 2, 1, -1, -1 },    // e.g. "ABC123X - Chicken Plucker"
-        { QRegularExpression(), -1, -1, -1, -1 }
+        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "ABC123X - Chicken Plucker"
+        { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
     static struct FilenameMatchers filename_first_matches[] = {
-        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 1, 2, -1, -1 },    // e.g. "Chicken Plucker - ABC123X"
-        { QRegularExpression(), -1, -1, -1, -1 }
+        { QRegularExpression("^(.*)\\s*-\\s*(.*)$"), 1, 2, -1, -1, -1 },    // e.g. "Chicken Plucker - ABC123X"
+        { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
 
     switch (songFilenameFormat) {
@@ -2174,7 +2206,10 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
 }
 
 
-bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle )
+bool MainWindow::breakFilenameIntoParts(const QString &s,
+                                        QString &label, QString &labelnum,
+                                        QString &labelnum_extra,
+                                        QString &title, QString &shortTitle )
 {
     bool foundParts = true;
     int match_num = 0;
@@ -2192,9 +2227,16 @@ bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QStrin
             if (matches[match_num].title_match >= 0) {
                 title = match.captured(matches[match_num].title_match);
                 shortTitle = title;
-                if (matches[match_num].additional_title_match >= 0) {
-                    title = title + " " + match.captured(matches[match_num].additional_title_match);
-                }
+            }
+            if (matches[match_num].number_match >= 0) {
+                labelnum = match.captured(matches[match_num].number_match);
+            }
+            if (matches[match_num].additional_label_match >= 0) {
+                labelnum_extra = match.captured(matches[match_num].additional_label_match);
+            }
+            if (matches[match_num].additional_title_match >= 0
+                && !match.captured(matches[match_num].additional_title_match).isEmpty()) {
+                title += " " + match.captured(matches[match_num].additional_title_match);
             }
 //                qDebug() << s << "*** MATCHED ***" << matches[match_num].regex;
 //                qDebug() << "label:" << label << ", title:" << title;
@@ -2214,12 +2256,20 @@ bool MainWindow::breakFilenameIntoParts(const QString &s, QString &label, QStrin
 
     if (labelnum.length() == 0)
     {
-        static QRegularExpression regexLabelPlusNum = QRegularExpression("^(\\w+)[\\- ](\\d+\\w?)$");
+        static QRegularExpression regexLabelPlusNum = QRegularExpression("^(\\w+)[\\- ](\\d+)(\\w?)$");
         QRegularExpressionMatch match = regexLabelPlusNum.match(label);
         if (match.hasMatch())
         {
             label = match.captured(1);
             labelnum = match.captured(2);
+            if (labelnum_extra.length() == 0)
+            {
+                labelnum_extra = match.captured(3);
+            }
+            else
+            {
+                labelnum = labelnum + match.captured(3);
+            }
         }
     }
     labelnum.simplified();
@@ -2269,19 +2319,26 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
-    QElapsedTimer timer;
-    timer.start();
+//    QElapsedTimer timer;
+//    timer.start();
 
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
     QString mp3Label = "";
     QString mp3Labelnum = "";
+    QString mp3Labelnum_short = "";
+    QString mp3Labelnum_extra = "";
     QString mp3Title = "";
     QString mp3ShortTitle = "";
-    breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Title, mp3ShortTitle);
+    breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
 
+    mp3Labelnum_short = mp3Labelnum;
+    while (mp3Labelnum_short.length() > 0 && mp3Labelnum_short[0] == '0')
+    {
+        mp3Labelnum_short.remove(0,1);
+    }
 
     QList<QString> extensions;
     QString dot(".");
@@ -2295,7 +2352,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         QString s = iter.next();
         int extensionIndex = 0;
 
-        // Is this a file esxtension we recognize as a cuesheet file?
+        // Is this a file extension we recognize as a cuesheet file?
         QListIterator<QString> extensionIterator(extensions);
         bool foundExtension = false;
         while (extensionIterator.hasNext())
@@ -2325,16 +2382,24 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         QString label = "";
         QString labelnum = "";
         QString title = "";
+        QString labelnum_extra;
         QString shortTitle = "";
 
 
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-        breakFilenameIntoParts(completeBaseName, label, labelnum, title, shortTitle);
+        breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
+        QString labelnum_short = labelnum;
+        while (labelnum_short.length() > 0 && labelnum_short[0] == '0')
+        {
+            labelnum_short.remove(0,1);
+        }
 
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
 //        qDebug() << "           " << title << " to " << mp3Title;
 //        qDebug() << "           " << shortTitle << " to " << mp3ShortTitle;
-//        qDebug() << "    label: " << label << " to " << mp3Label << " and num " << labelnum << " to " << mp3Labelnum;
+//        qDebug() << "    label: " << label << " to " << mp3Label <<
+//            " and num " << labelnum << " to " << mp3Labelnum <<
+//            " short num " << labelnum_short << " to " << mp3Labelnum_short;
 //        qDebug() << "    title: " << mp3Title << " to " << QString(label + "-" + labelnum);
 
         // Minimum criteria:
@@ -2342,10 +2407,10 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             || title.compare(mp3Title, Qt::CaseInsensitive) == 0
             || (shortTitle.length() > 0
                 && shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0)
-//            || (labelnum.length() > 0 && label.length() > 0
-//                &&  labelnum.compare(mp3Labelnum, Qt::CaseInsensitive)
-//                && label.compare(mp3Label, Qt::CaseInsensitive) == 0
-//                )
+            || (labelnum_short.length() > 0 && label.length() > 0
+                &&  labelnum_short.compare(mp3Labelnum_short, Qt::CaseInsensitive) == 0
+                && label.compare(mp3Label, Qt::CaseInsensitive) == 0
+                )
             || (labelnum.length() > 0 && label.length() > 0
                 && mp3Title.length() > 0
                 && mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0)
@@ -2358,6 +2423,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 + (title.compare(mp3Title, Qt::CaseInsensitive) == 0 ? 100 : 0)
                 + (shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0 ? 50 : 0)
                 + (labelnum.compare(mp3Labelnum, Qt::CaseInsensitive) == 0 ? 10 : 0)
+                + (labelnum_short.compare(mp3Labelnum_short, Qt::CaseInsensitive) == 0 ? 7 : 0)
                 + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
 
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
@@ -2606,7 +2672,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     songLoaded = true;
     Info_Seekbar(true);
 
-    if (songType == "patter") {
+//    if (songType == "patter") {
+    if (songTypeNamesForPatter.contains(songType)) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
     }
     else {
@@ -2665,7 +2732,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix)
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6])
 {
 //    QElapsedTimer timer1;
 //    timer1.start();
@@ -2684,13 +2751,33 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
         QString resolvedFilePath=s1;
 
         QFileInfo fi(s1);
-        QStringList section = fi.canonicalPath().split("/");
+        QStringList section = fi.path().split("/");
         QString type = section[section.length()-1] + suffix;  // must be the last item in the path
                                                               // of where the alias is, not where the file is, and append "*" or not
         if (section[section.length()-1] != "soundfx") {
             // add to the pathStack iff it's not a sound FX .mp3 file (those are internal)
             pathStack->append(type + "#!#" + resolvedFilePath);
-        }
+        } else {
+            if (suffix != "*") {
+                // if it IS a sound FX file (and not GUEST MODE), then let's squirrel away the paths so we can play them later
+                QString path1 = resolvedFilePath;
+                QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
+                QStringList sections = baseName.split(".");
+                if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+//                    qDebug() << baseName << sections;
+                    switch (sections[0].toInt()) {
+                    case 1: ui->action_1->setText(sections[1]); break;
+                    case 2: ui->action_2->setText(sections[1]); break;
+                    case 3: ui->action_3->setText(sections[1]); break;
+                    case 4: ui->action_4->setText(sections[1]); break;
+                    case 5: ui->action_5->setText(sections[1]); break;
+                    case 6: ui->action_6->setText(sections[1]); break;
+                    default: break;
+                    }
+                soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
+                } // if
+            } // if
+        } // else
     }
 //    qDebug() << "timer1:" << timer1.elapsed();
 }
@@ -2734,7 +2821,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
         rootDir1.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir1, pathStack, "");  // appends to the pathstack
+        findFilesRecursively(rootDir1, pathStack, "", ui, soundFXarray);  // appends to the pathstack
     }
 
     if (guestRootDir != "" && (mode == "guest" || mode == "both")) {
@@ -2748,9 +2835,8 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
         qsl.append("*.wav");                //          or WAV files
         rootDir2.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir2, pathStack, "*");  // appends to the pathstack, "*" for "Guest"
+        findFilesRecursively(rootDir2, pathStack, "*", ui, soundFXarray);  // appends to the pathstack, "*" for "Guest"
     }
-
 }
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
@@ -2780,6 +2866,8 @@ void MainWindow::filterMusic()
     QString type = ui->typeSearch->text();
     QString title = ui->titleSearch->text();
 
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
+
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString songType = ui->songTable->item(i,kTypeCol)->text();
@@ -2807,6 +2895,8 @@ void MainWindow::filterMusic()
 #else /* ifdef CUSTOM_FILTER */
     loadMusicList();
 #endif /* else ifdef CUSTOM_FILTER */
+
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
 // --------------------------------------------------------------------------------
@@ -2880,11 +2970,13 @@ void MainWindow::loadMusicList()
         QStringList section = fi.canonicalPath().split("/");
         QString label = "";
         QString labelnum = "";
+        QString labelnum_extra = "";
         QString title = "";
         QString shortTitle = "";
 
         s = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-        breakFilenameIntoParts(s, label, labelnum, title, shortTitle);
+        breakFilenameIntoParts(s, label, labelnum, labelnum_extra, title, shortTitle);
+        labelnum += labelnum_extra;
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
@@ -3546,6 +3638,11 @@ void MainWindow::on_actionPreferences_triggered()
         // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
         airplaneMode(false);
     }
+
+    if (prefsManager.GetenableAutoMicsOff()) {
+        microphoneStatusUpdate();
+    }
+
 
     delete prefDialog;
     prefDialog = NULL;
@@ -4249,6 +4346,91 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 #endif // ifdef Q_OS_LINUX
 }
 
+// ---------------------------------------------------------
+int MainWindow::getInputVolume()
+{
+#if defined(Q_OS_MAC)
+    QProcess getVolumeProcess;
+    QStringList args;
+    args << "-e";
+    args << "set ivol to input volume of (get volume settings)";
+
+    getVolumeProcess.start("osascript", args);
+    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
+    QString output(getVolumeProcess.readAllStandardOutput());
+
+    int vol = output.trimmed().toInt();
+
+    return(vol);
+#endif
+
+#if defined(Q_OS_WIN)
+    return(-1);
+#endif
+
+#ifdef Q_OS_LINUX
+    return(-1);
+#endif
+}
+
+void MainWindow::setInputVolume(int newVolume)
+{
+//    qDebug() << "    Setting input vol to: " << newVolume;
+#if defined(Q_OS_MAC)
+    if (newVolume != -1) {
+        QProcess getVolumeProcess;
+        QStringList args;
+        args << "-e";
+        args << "set volume input volume " + QString::number(newVolume);
+
+        getVolumeProcess.start("osascript", args);
+        getVolumeProcess.waitForFinished();
+        QString output(getVolumeProcess.readAllStandardOutput());
+
+//        qDebug() << "Output from setInputVolume" << output;
+    }
+#endif
+
+#if defined(Q_OS_WIN)
+#endif
+
+#ifdef Q_OS_LINUX
+#endif
+}
+
+void MainWindow::muteInputVolume()
+{
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    if (!prefsManager.GetenableAutoMicsOff()) {
+        return;
+    }
+
+//    qDebug() << "Muting microphone...";
+    int vol = getInputVolume();
+    if (vol > 0) {
+        // if not already muted, save the current volume (for later restore)
+        currentInputVolume = vol;
+//        qDebug() << "    previous vol: " << currentInputVolume;
+        setInputVolume(0);
+    }
+}
+
+void MainWindow::unmuteInputVolume()
+{
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    if (!prefsManager.GetenableAutoMicsOff()) {
+        return;
+    }
+
+    int vol = getInputVolume();
+    if (vol > 0) {
+        // the user has changed it, so don't muck with it!
+    } else {
+//        qDebug() << "Unmuting microphone... to: " << currentInputVolume;
+        setInputVolume(currentInputVolume);     // restore input from the mics
+    }
+}
+
 // ----------------------------------------------------------------------
 int MainWindow::selectedSongRow() {
     QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
@@ -4591,11 +4773,17 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
     int x2,y2,w2,h2;
     int x3,y3,w3,h3;
 
+//    qDebug() << "columnHeaderResized()" << logicalIndex << newSize << ", # column width:" << ui->songTable->columnWidth(0) << col0_width;
+
     switch (logicalIndex) {
         case 0: // #
             // FIX: there's a bug here if the # column width is changed.  Qt doesn't seem to keep track of
             //  the correct size of the # column thereafter.  This is particularly visible on Win10, but it's
             //  also present on Mac OS X (Sierra).
+
+            // # column width is not tracked by Qt (BUG), so we have to do it manually
+            col0_width = newSize;
+
             x1 = newSize + 14;
             y1 = ui->typeSearch->y();
             w1 = ui->songTable->columnWidth(1) - 5;
@@ -4617,7 +4805,8 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
             break;
 
         case 1: // Type
-            x1 = ui->songTable->columnWidth(0) + 35;
+            // x1 = ui->songTable->columnWidth(0) + 35;
+            x1 = col0_width + 35;
             y1 = ui->typeSearch->y();
             w1 = newSize - 4;
             h1 = ui->typeSearch->height();
@@ -4982,17 +5171,21 @@ void MainWindow::microphoneStatusUpdate() {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: red");
             ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
+            unmuteInputVolume();
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
+            muteInputVolume();                      // disable all input from the mics
         }
     } else {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
+            muteInputVolume();                      // disable all input from the mics
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled");
+            muteInputVolume();                      // disable all input from the mics
         }
     }
 }
@@ -5232,10 +5425,21 @@ void MainWindow::readPSData()
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
     s2 = s2.replace("once and a half","1-1/2");
+    s2 = s2.replace("one and a half","1-1/2");
+    s2 = s2.replace("two and a half","2-1/2");
+    s2 = s2.replace("three and a half","3-1/2");
+    s2 = s2.replace("four and a half","4-1/2");
+    s2 = s2.replace("five and a half","5-1/2");
+    s2 = s2.replace("six and a half","6-1/2");
+    s2 = s2.replace("seven and a half","7-1/2");
+    s2 = s2.replace("eight and a half","8-1/2");
+
     s2 = s2.replace("four quarters","4/4");
     s2 = s2.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
     s2 = s2.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
+    s2 = s2.replace("and a quarter more", "AND A QUARTER MORE");  // protect this.  Separate call, must NOT be "1/4"
     s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
+    s2 = s2.replace("AND A QUARTER MORE", "and a quarter more");  // protect this.  Separate call, must NOT be "1/4"
 
     // handle 1P2P
     s2 = s2.replace("one pee two pee","1P2P");
@@ -5723,12 +5927,36 @@ void MainWindow::on_action_3_triggered()
     playSFX("3");
 }
 
+void MainWindow::on_action_4_triggered()
+{
+    playSFX("4");
+}
+
+void MainWindow::on_action_5_triggered()
+{
+    playSFX("5");
+}
+
+void MainWindow::on_action_6_triggered()
+{
+    playSFX("6");
+}
+
 void MainWindow::playSFX(QString which) {
-    QString soundEffect = musicRootPath + "/soundfx/" + which + ".mp3";
+    QString soundEffectFile;
+
+    if (which.toInt() > 0) {
+        soundEffectFile = soundFXarray[which.toInt()-1];
+    } else {
+        // conversion failed, this is break_end or long_tip.mp3
+        soundEffectFile = musicRootPath + "/soundfx/" + which + ".mp3";
+    }
+
 //    qDebug() << "PLAY SFX:" << soundEffect;
-    if(QFileInfo(soundEffect).exists()) {
+    if(QFileInfo(soundEffectFile).exists()) {
         // play sound FX only if file exists...
-        cBass.PlaySoundEffect(soundEffect.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
+        cBass.PlayOrStopSoundEffect(which.toInt(),
+                                    soundEffectFile.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
     }
 }
 
@@ -5860,4 +6088,227 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
         msgBox.exec();
     }
 
+}
+
+void MainWindow::maybeInstallSoundFX() {
+
+#if defined(Q_OS_MAC)
+    QString pathFromAppDirPathToStarterSet = "/../soundfx";
+#elif defined(Q_OS_WIN32)
+    // WARNING: untested
+    QString pathFromAppDirPathToStarterSet = "/soundfx";
+#elif defined(Q_OS_LINUX)
+    // WARNING: untested
+    QString pathFromAppDirPathToStarterSet = "/soundfx";
+#endif
+
+    // Let's make a "soundfx" directory in the Music Directory, if it doesn't exist already
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString soundfxDir = musicDirPath + "/soundfx";
+
+    // if the soundfx directory doesn't exist, create it (always, automatically)
+    QDir dir(soundfxDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");  // make it
+
+        // and populate it with the starter set, if it didn't exist already
+        // check for break_over.mp3 and copy it in, if it doesn't exist already
+        QFile breakOverSound(soundfxDir + "/break_over.mp3");
+        if (!breakOverSound.exists()) {
+//            qDebug() << "copying in a break over sound starter file";
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
+            QString destination = soundfxDir + "/break_over.mp3";
+//            qDebug() << "COPY from: " << source << " to " << destination;
+            QFile::copy(source, destination);
+        }
+
+        // check for long_tip.mp3 and copy it in, if it doesn't exist already
+        QFile longTipSound(soundfxDir + "/long_tip.mp3");
+        if (!longTipSound.exists()) {
+//            qDebug() << "copying in a long tip sound starter file";
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
+            QString destination = soundfxDir + "/long_tip.mp3";
+//            qDebug() << "COPY from: " << source << " to " << destination;
+            QFile::copy(source, destination);
+        }
+
+        // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist
+        // although this code is now only executed when the soundfx directory didn't exist yet, I'm
+        //   leaving it here, in case it changes to "every time the program starts".  In which case, we
+        //   only want to copy files into the soundfx directory if there aren't already files there.
+        //   It might seem like overkill right now (and it is, right now).
+        bool foundSoundFXfile[6];
+        for (int i=0; i<6; i++) {
+            foundSoundFXfile[i] = false;
+        }
+
+        QDirIterator it(soundfxDir);
+        while(it.hasNext()) {
+            QString s1 = it.next();
+            //        qDebug() << "soundfx file:" << s1 << ", rootDir: " << rootDir;
+
+            QString baseName = s1.replace(soundfxDir,"");
+            QStringList sections = baseName.split(".");
+
+            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+                //            qDebug() << "     found a valid soundfx file" << baseName << sections;
+                foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
+            }
+        } // while
+
+        QString starterSet[6] = {
+            "1.whistle.mp3",
+            "2.clown_honk.mp3",
+            "3.submarine.mp3",
+            "4.applause.mp3",
+            "5.fanfare.mp3",
+            "6.fade.mp3"
+        };
+        for (int i=0; i<6; i++) {
+            if (!foundSoundFXfile[i]) {
+//                qDebug() << "copying in a soundFX starter file: " << i+1;
+                QString destination = soundfxDir + "/" + starterSet[i];
+                QFile dest(destination);
+                if (!dest.exists()) {
+                    QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
+//                    qDebug() << "COPY from: " << source << " to " << destination;
+                    QFile::copy(source, destination);
+                }
+            }
+        }
+    }
+}
+
+void MainWindow::on_actionStop_Sound_FX_triggered()
+{
+    // whatever SFX are playing, stop them.
+    cBass.StopAllSoundEffects();
+}
+
+void MainWindow::adjustFontSizes()
+{
+    QFont currentFont = ui->songTable->font();
+    int currentFontPointSize = currentFont.pointSize();
+
+//    qDebug() << "currentFontPointSize: " << currentFontPointSize;
+
+//    ui->songTable->resizeColumnToContents(0);  // nope
+    ui->songTable->resizeColumnToContents(1);
+    ui->songTable->resizeColumnToContents(2);
+    // 3/4/5/6 = nope
+
+    ui->songTable->setColumnWidth(4, 3.5*currentFontPointSize);
+    ui->songTable->setColumnWidth(5, 3.5*currentFontPointSize);
+    ui->songTable->setColumnWidth(6, 4*currentFontPointSize);
+
+    ui->typeSearch->setFixedHeight(2*currentFontPointSize);
+    ui->labelSearch->setFixedHeight(2*currentFontPointSize);
+    ui->titleSearch->setFixedHeight(2*currentFontPointSize);
+
+    // set all the related fonts to the same size
+    ui->typeSearch->setFont(currentFont);
+    ui->labelSearch->setFont(currentFont);
+    ui->titleSearch->setFont(currentFont);
+
+    ui->tempoLabel->setFont(currentFont);
+    ui->pitchLabel->setFont(currentFont);
+    ui->volumeLabel->setFont(currentFont);
+    ui->mixLabel->setFont(currentFont);
+
+#define CURRENTSCALE (7.75)
+    int newCurrentWidth = CURRENTSCALE*currentFontPointSize;
+    ui->currentTempoLabel->setFont(currentFont);
+    ui->currentTempoLabel->setFixedWidth(newCurrentWidth);
+    ui->currentPitchLabel->setFont(currentFont);
+    ui->currentPitchLabel->setFixedWidth(newCurrentWidth);
+    ui->currentVolumeLabel->setFont(currentFont);
+    ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
+    ui->currentMixLabel->setFont(currentFont);
+    ui->currentMixLabel->setFixedWidth(newCurrentWidth);
+
+    ui->statusBar->setFont(currentFont);
+    ui->currentLocLabel->setFont(currentFont);
+    ui->songLengthLabel->setFont(currentFont);
+
+    ui->currentLocLabel->setFixedWidth(3.0*currentFontPointSize);
+    ui->songLengthLabel->setFixedWidth(3.0*currentFontPointSize);
+
+    ui->clearSearchButton->setFont(currentFont);
+    ui->clearSearchButton->setFixedWidth(8*currentFontPointSize);
+
+    ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
+
+    // these are special -- don't want them to get too big, even if user requests huge fonts
+    currentFont.setPointSize(currentFontPointSize > 16 ? 16 : currentFontPointSize);  // no bigger than 20pt
+    ui->bassLabel->setFont(currentFont);
+    ui->midrangeLabel->setFont(currentFont);
+    ui->trebleLabel->setFont(currentFont);
+    ui->EQgroup->setFont(currentFont);
+
+    // resize the icons for the buttons
+    int newIconDimension = (int)((float)currentFontPointSize*(24.0/13.0));
+    QSize newIconSize(newIconDimension, newIconDimension);
+    ui->stopButton->setIconSize(newIconSize);
+    ui->playButton->setIconSize(newIconSize);
+    ui->previousSongButton->setIconSize(newIconSize);
+    ui->nextSongButton->setIconSize(newIconSize);
+
+    // these are special MEDIUM
+    int warningLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
+    currentFont.setPointSize((warningLabelFontSize));
+//    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
+    ui->warningLabel->setFont(currentFont);
+    ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
+
+    // these are special BIG
+    int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
+    currentFont.setPointSize(nowPlayingLabelFontSize);
+//    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
+    ui->nowPlayingLabel->setFont(currentFont);
+    ui->nowPlayingLabel->setFixedHeight(1.25*nowPlayingLabelFontSize);
+
+#define BUTTONSCALE (0.75)
+    ui->stopButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    ui->playButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    ui->previousSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    ui->nextSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+}
+
+#define SMALLESTZOOM (11)
+#define BIGGESTZOOM (25)
+#define ZOOMINCREMENT (2)
+
+void MainWindow::on_actionZoom_In_triggered()
+{
+    QFont currentFont = ui->songTable->font();
+    int newPointSize = currentFont.pointSize() + ZOOMINCREMENT;
+    newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
+    newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();
+}
+
+void MainWindow::on_actionZoom_Out_triggered()
+{
+    QFont currentFont = ui->songTable->font();
+    int newPointSize = currentFont.pointSize() - ZOOMINCREMENT;
+    newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
+    newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();
+}
+
+void MainWindow::on_actionReset_triggered()
+{
+    QFont currentFont;  // system font, and system default point size
+    int newPointSize = currentFont.pointSize();  // start out with the default system font size
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();
 }

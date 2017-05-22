@@ -295,6 +295,11 @@
               <height>22</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
             </property>
@@ -1305,6 +1310,11 @@
      <addaction name="action_1"/>
      <addaction name="action_2"/>
      <addaction name="action_3"/>
+     <addaction name="action_4"/>
+     <addaction name="action_5"/>
+     <addaction name="action_6"/>
+     <addaction name="separator"/>
+     <addaction name="actionStop_Sound_FX"/>
     </widget>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
@@ -1409,7 +1419,18 @@
     <property name="title">
      <string>View</string>
     </property>
+    <widget class="QMenu" name="menuZoom">
+     <property name="title">
+      <string>Zoom</string>
+     </property>
+     <addaction name="actionZoom_In"/>
+     <addaction name="actionZoom_Out"/>
+     <addaction name="separator"/>
+     <addaction name="actionReset"/>
+    </widget>
     <addaction name="actionCompact"/>
+    <addaction name="separator"/>
+    <addaction name="menuZoom"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
@@ -1997,6 +2018,59 @@
   <action name="actionCheck_for_Updates">
    <property name="text">
     <string>Check for Updates...</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>#4</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+4</string>
+   </property>
+  </action>
+  <action name="action_5">
+   <property name="text">
+    <string>#5</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+5</string>
+   </property>
+  </action>
+  <action name="action_6">
+   <property name="text">
+    <string>#6</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+6</string>
+   </property>
+  </action>
+  <action name="actionStop_Sound_FX">
+   <property name="text">
+    <string>Stop Sound FX</string>
+   </property>
+  </action>
+  <action name="actionZoom_In">
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+8</string>
+   </property>
+  </action>
+  <action name="actionZoom_Out">
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+9</string>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="text">
+    <string>Reset</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
    </property>
   </action>
  </widget>

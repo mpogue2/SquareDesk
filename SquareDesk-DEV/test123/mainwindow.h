@@ -268,7 +268,24 @@ private slots:
     void on_actionClear_Recent_List_triggered();
     void on_actionCheck_for_Updates_triggered();
 
+    void on_action_4_triggered();
+
+    void on_action_5_triggered();
+
+    void on_action_6_triggered();
+
+    void on_actionStop_Sound_FX_triggered();
+
+    void on_actionZoom_In_triggered();
+
+    void on_actionZoom_Out_triggered();
+
+    void on_actionReset_triggered();
+
 private:
+    int preferredSmallFontSize;  // preferred font sizes
+    int preferredNowPlayingSize;
+
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
     QAction *closeAct;  // WINDOWS only
@@ -322,7 +339,8 @@ private:
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName);
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
-    bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &title, QString &shortTitle );
+    bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
+                                QString &title, QString &shortTitle );
 
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
@@ -330,6 +348,8 @@ private:
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
+    void adjustFontSizes();
+    int col0_width;  // work around a Qt bug, wherein it does not track the width of the # column
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
@@ -432,6 +452,18 @@ private:
     void loadDanceProgramList();
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
+
+    // get/set microphone volume
+    int currentInputVolume;
+    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
+    void setInputVolume(int newVolume);     // set the input volume, ignores -1
+    void muteInputVolume();         // call this one
+    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
+
+    // sound fx
+    QString soundFXarray[6];
+    void maybeInstallSoundFX();
+
 };
 
 // currentState:
