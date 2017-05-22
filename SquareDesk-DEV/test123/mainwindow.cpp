@@ -2372,6 +2372,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
 
+    currentMP3filenameWithPath = MP3FileName;
+
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
     QFileInfo fi(MP3FileName);
     QString resolvedFilePath = fi.symLinkTarget(); // path with the symbolic links followed/removed
@@ -2382,8 +2384,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 //    qDebug() << "loadMP3File: MP3FileName=" << MP3FileName << ", resolved=" << resolvedFilePath;
 
     loadCuesheets(MP3FileName);
-
-    currentMP3filenameWithPath = MP3FileName;
 
     currentSongType = songType;  // save it for session coloring on the analog clock later...
 
