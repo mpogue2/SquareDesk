@@ -2171,7 +2171,7 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2, -1 },
         { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
         { QRegularExpression("^([A-Z]?[0-9][A-Z]+[\\- ]?\\d+)([MV]?)[ -]+(.*)$"), 3, 1, -1, 2, -1 },
-        { QRegularExpression("^(.*) - ([A-Z]{1,5}+[\\- ]\\d+)( .*)?$"), 1, 2, -1, -1, 3 },
+        { QRegularExpression("^(.*) - ([A-Z]{1,5}+)[\\- ](\\d+)( .*)?$"), 1, 2, 3, -1, 4 },
         { QRegularExpression("^([A-Z]+ ?\\d+)([ab])?[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
         { QRegularExpression("^([A-Z]+\\-\\d+)\\-(.*)/"), 2, 1, -1, -1, -1 },
 //    { QRegularExpression("^(\\d+) - (.*)$"), 2, -1, -1, -1, -1 },         // first -1 prematurely ended the search (typo?)
@@ -2182,7 +2182,9 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         { QRegularExpression("^([A-Z]{1,5}+[\\- ]*\\d+[A-Z]*)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 }, // e.g. "ABC 123-Chicken Plucker"
         { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*(\\d+)([a-zA-Z]{1,2})?\\s*-\\s*(.*?)\\s*(\\(.*\\))?$"), 4, 1, 2, 3, 5 }, // SIR 705b - Papa Was A Rollin Stone (Instrumental).mp3
         { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
-                                                                    //    assume label on the left, if it's short and all caps/#s (1-5 chars long))
+        { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Z]{1,5})(\\d{1,5})\\s*(\\(.*\\))?$"), 1, 2, 3, -1, 4 },    // e.g. "A Summer Song - CHIC3002 (female vocals)
+        { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7})-(\\d{1,5})(\\-?([AB]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor-4936B"
+
         { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
     static struct FilenameMatchers label_first_matches[] = {
@@ -2238,8 +2240,8 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
                 && !match.captured(matches[match_num].additional_title_match).isEmpty()) {
                 title += " " + match.captured(matches[match_num].additional_title_match);
             }
-//                qDebug() << s << "*** MATCHED ***" << matches[match_num].regex;
-//                qDebug() << "label:" << label << ", title:" << title;
+            qDebug() << s << "*** MATCHED ***" << match_num << ":" << matches[match_num].regex;
+            qDebug() << "label:" << label << ", title:" << title;
             break;
         } else {
 //                qDebug() << s << "didn't match" << matches[match_num].regex;
