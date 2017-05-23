@@ -2240,8 +2240,8 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
                 && !match.captured(matches[match_num].additional_title_match).isEmpty()) {
                 title += " " + match.captured(matches[match_num].additional_title_match);
             }
-            qDebug() << s << "*** MATCHED ***" << match_num << ":" << matches[match_num].regex;
-            qDebug() << "label:" << label << ", title:" << title;
+//            qDebug() << s << "*** MATCHED ***" << match_num << ":" << matches[match_num].regex;
+//            qDebug() << "label:" << label << ", title:" << title;
             break;
         } else {
 //                qDebug() << s << "didn't match" << matches[match_num].regex;
