@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1414,6 +1414,8 @@
     <addaction name="actionFriday"/>
     <addaction name="actionSaturday"/>
     <addaction name="actionSunday"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_All_Ages"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -2071,6 +2073,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="actionShow_All_Ages">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show All Ages</string>
    </property>
   </action>
  </widget>

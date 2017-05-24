@@ -209,6 +209,7 @@ private slots:
     void microphoneStatusUpdate();
 
 
+    void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionPractice_triggered(bool checked);
     void on_actionMonday_triggered(bool checked);
     void on_actionTuesday_triggered(bool checked);
@@ -447,7 +448,8 @@ private:
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings
     void setCurrentSessionId(int id);
-    void setCurrentSessionIdReloadMusic(int id);
+    void setCurrentSessionIdReloadSongAges(int id);
+    void reloadSongAges(bool show_all_sessions);
     bool autoScrollLyricsEnabled;
     void loadDanceProgramList();
 

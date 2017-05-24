@@ -670,15 +670,24 @@ void MainWindow::setCurrentSessionId(int id)
     songSettings.setCurrentSession(id);
 }
 
-void MainWindow::setCurrentSessionIdReloadMusic(int id)
+void MainWindow::reloadSongAges(bool show_all_ages)
 {
-    setCurrentSessionId(id);
+    ui->songTable->setSortingEnabled(false);
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QFileInfo fi(origPath);
-        ui->songTable->item(i,kAgeCol)->setText(songSettings.getSongAge(fi.completeBaseName(),origPath).trimmed());
+        QString age = songSettings.getSongAge(fi.completeBaseName(),origPath, show_all_ages);
+
+        ui->songTable->item(i,kAgeCol)->setText(age);
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
+    ui->songTable->setSortingEnabled(true);
+}
+
+void MainWindow::setCurrentSessionIdReloadSongAges(int id)
+{
+    setCurrentSessionId(id);
+    reloadSongAges(ui->actionShow_All_Ages->isChecked());
     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());    
 }
 
@@ -867,45 +876,49 @@ void MainWindow::on_actionCompact_triggered(bool checked)
 }
 
 
+void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
+{
+    reloadSongAges(checked);
+}
 
 void MainWindow::on_actionPractice_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(1);
+    setCurrentSessionIdReloadSongAges(1);
 }
 
 void MainWindow::on_actionMonday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(2);
+    setCurrentSessionIdReloadSongAges(2);
 }
 
 void MainWindow::on_actionTuesday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(3);
+    setCurrentSessionIdReloadSongAges(3);
 }
 
 void MainWindow::on_actionWednesday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(4);
+    setCurrentSessionIdReloadSongAges(4);
 }
 
 void MainWindow::on_actionThursday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(5);
+    setCurrentSessionIdReloadSongAges(5);
 }
 
 void MainWindow::on_actionFriday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(6);
+    setCurrentSessionIdReloadSongAges(6);
 }
 
 void MainWindow::on_actionSaturday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(7);
+    setCurrentSessionIdReloadSongAges(7);
 }
 
 void MainWindow::on_actionSunday_triggered(bool /* checked */)
 {
-    setCurrentSessionIdReloadMusic(8);
+    setCurrentSessionIdReloadSongAges(8);
 }
 
 
@@ -1124,12 +1137,16 @@ void MainWindow::on_playButton_clicked()
             songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
             QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
             QModelIndexList selected = selectionModel->selectedRows();
+
+            ui->songTable->setSortingEnabled(false);
             int row = getSelectionRowForFilename(currentMP3filenameWithPath);
             if (row != -1)
             {
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
+            ui->songTable->setSortingEnabled(true);
+            
             if (switchToLyricsOnPlay &&
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
             {
@@ -1318,11 +1335,13 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
 
     saveCurrentSongSettings();
     // update the hidden pitch column
+    ui->songTable->setSortingEnabled(false);
     int row = getSelectionRowForFilename(currentMP3filenameWithPath);
     if (row != -1)
     {
         ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
     }
+    ui->songTable->setSortingEnabled(true);
 }
 
 // ----------------------------------------------------------------------
@@ -1395,6 +1414,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
 
     saveCurrentSongSettings();
     // update the hidden tempo column
+    ui->songTable->setSortingEnabled(false);
     int row = getSelectionRowForFilename(currentMP3filenameWithPath);
     if (row != -1)
     {
@@ -1405,6 +1425,8 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
             ui->songTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
         }
     }
+    ui->songTable->setSortingEnabled(true);
+    
 }
 
 // ----------------------------------------------------------------------
@@ -2870,6 +2892,8 @@ void MainWindow::filterMusic()
 
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
 
+    ui->songTable->setSortingEnabled(false);
+    
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString songType = ui->songTable->item(i,kTypeCol)->text();
@@ -2894,6 +2918,7 @@ void MainWindow::filterMusic()
         }
         ui->songTable->setRowHidden(i, !show);
     }
+    ui->songTable->setSortingEnabled(true);
 #else /* ifdef CUSTOM_FILTER */
     loadMusicList();
 #endif /* else ifdef CUSTOM_FILTER */
@@ -2940,6 +2965,7 @@ void MainWindow::loadMusicList()
     {
         extensions.append(dot + music_file_extensions[i]);
     }
+    bool show_all_ages = ui->actionShow_All_Ages->isChecked();
 
     while (iter.hasNext()) {
         QString s = iter.next();
@@ -3016,7 +3042,10 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, songSettings.getSongAge(fi.completeBaseName(), origPath), kAgeCol);
+        addStringToLastRowOfSongTable(textCol, ui->songTable,
+                                      songSettings.getSongAge(fi.completeBaseName(), origPath,
+                                                              show_all_ages),
+                                      kAgeCol);
 
         int pitch = 0;
         int tempo = 0;

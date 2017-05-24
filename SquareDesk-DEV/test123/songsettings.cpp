@@ -393,6 +393,7 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int song_rowid = getSongIDFromFilename(filename, filenameWithPathNormalized);
     QSqlQuery q(m_db);
+    qDebug() << "Marking song played" << filename << song_rowid;
     q.prepare("INSERT INTO song_plays(song_rowid,session_rowid) VALUES (:song_rowid, :session_rowid)");
     q.bindValue(":song_rowid", song_rowid);
     q.bindValue(":session_rowid", current_session_id);
@@ -411,7 +412,7 @@ QString SongSettings::getCallTaughtOn(const QString &program, const QString &cal
     {
         return q.value(0).toString();
     }
-    return QString("");
+    return QString("   ");
 }
 
 void SongSettings::setCallTaught(const QString &program, const QString &call_name)
@@ -441,16 +442,23 @@ void SongSettings::clearTaughtCalls()
     exec("clearTaughtCalls", q);
 }
 
-
-QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath)
+QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
-    const char sql[] = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1";
+    QString sql = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE ";
+    if (!show_all_sessions)
+    {
+        sql += "session_rowid = :session_rowid AND ";
+    }
+    
+    sql += "songs.filename = :filename ORDER BY played_on DESC LIMIT 1";
+    
     {
         QSqlQuery q(m_db);
         q.prepare(sql);
         q.bindValue(":filename", filenameWithPathNormalized);
-        q.bindValue(":session_rowid", current_session_id);
+        if (show_all_sessions)
+            q.bindValue(":session_rowid", current_session_id);
         exec("getSongAge", q);
 
         if (q.next())
@@ -465,7 +473,8 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
         QSqlQuery q(m_db);
         q.prepare(sql);
         q.bindValue(":filename", filename);
-        q.bindValue(":session_rowid", current_session_id);
+        if (show_all_sessions)
+            q.bindValue(":session_rowid", current_session_id);
         exec("getSongAge", q);
 
         if (q.next())

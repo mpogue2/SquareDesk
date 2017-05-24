@@ -50,7 +50,7 @@ public:
     QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
-    QString getSongAge(const QString &filename, const QString &filenameWithPath);
+    QString getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
     QString getCallTaughtOn(const QString &program, const QString &call_name);
