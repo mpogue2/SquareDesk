@@ -128,6 +128,20 @@ const char *danceprogram_plus[] = {
     "13, Fan the Top",
     "14, Explode the Wave",
     "15, Explode & (Anything) (From Waves Only)",
+    "16, Relay the Deucey",
+    "17, Peel the Top",
+    "18, Diamond Circulate",
+    "19, Single Circle to a Wave",
+    "20, Trade the Wave ",
+    "21, Flip the Diamond",
+    "22, Grand Swing Thru",
+    "23, Crossfire",
+    "24, All 8 Spin the Top",
+    "25, Cut the Diamond",
+    "26, Chase Right",
+    "27, Dixie Grand",
+    "28, 3/4 Tag the Line",
+    "29, Spin Chain and Exchange the Gears    ",
     NULL
 };
 const char *danceprogram_a1[] = {
