@@ -393,7 +393,6 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int song_rowid = getSongIDFromFilename(filename, filenameWithPathNormalized);
     QSqlQuery q(m_db);
-    qDebug() << "Marking song played" << filename << song_rowid;
     q.prepare("INSERT INTO song_plays(song_rowid,session_rowid) VALUES (:song_rowid, :session_rowid)");
     q.bindValue(":song_rowid", song_rowid);
     q.bindValue(":session_rowid", current_session_id);
@@ -444,10 +443,10 @@ void SongSettings::clearTaughtCalls()
 
 void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions)
 {
-    QString sql("SELECT julianday('now') - MAX(played_on), filename FROM song_plays JOIN songs ON song_plays.song_rowid=songs.row_id");
-    if (show_all_sessions)
+    QString sql("SELECT filename, julianday('now') - julianday(max(played_on)) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    if (!show_all_sessions)
         sql += " WHERE session_rowid = :session_rowid";
-    
+    sql += " GROUP BY songs.rowid";
     QSqlQuery q(m_db);
     q.prepare(sql);
     q.bindValue(":session_rowid", current_session_id);
@@ -455,9 +454,9 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
     exec("songAges", q);
     while (q.next())
     {
-        int age = q.value(0).toInt();
+        int age = q.value(1).toInt();
         QString str(QString("%1").arg(age, 3));
-        ages[q.value(1).toString()] = str;
+        ages[q.value(0).toString()] = str;
     }
 }
 

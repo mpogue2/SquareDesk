@@ -53,6 +53,7 @@ HEADERS  += mainwindow.h \
     renderarea.h \
     common.h \
     sdhighlighter.h \
+    danceprograms.h \
     startupwizard.h
 
 FORMS    += mainwindow.ui \

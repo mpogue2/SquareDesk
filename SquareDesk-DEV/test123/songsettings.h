@@ -50,6 +50,7 @@ public:
     QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
+    void getSongAges(QHash<QString,QString> &ages, bool show_all_sessions);
     QString getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
@@ -57,6 +58,7 @@ public:
     void setCallTaught(const QString &program, const QString &call_name);
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls();
+    QString removeRootDirs(const QString &filenameWithPath);
     
     
 private:
@@ -72,7 +74,6 @@ private:
     int getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized);
     int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);
-    QString removeRootDirs(const QString &filenameWithPath);
 
     std::vector<QString> root_directories;
 };

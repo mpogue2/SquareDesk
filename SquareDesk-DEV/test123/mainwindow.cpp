@@ -672,13 +672,16 @@ void MainWindow::setCurrentSessionId(int id)
 
 void MainWindow::reloadSongAges(bool show_all_ages)
 {
+    QHash<QString,QString> ages;
+    songSettings.getSongAges(ages, show_all_ages);
+    
     ui->songTable->setSortingEnabled(false);
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-        QFileInfo fi(origPath);
-        QString age = songSettings.getSongAge(fi.completeBaseName(),origPath, show_all_ages);
-
-        ui->songTable->item(i,kAgeCol)->setText(age);
+        QString path = songSettings.removeRootDirs(origPath);
+        QHash<QString,QString>::const_iterator age = ages.constFind(path);
+        
+        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : age.value());
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
     ui->songTable->setSortingEnabled(true);
@@ -3326,14 +3329,12 @@ void MainWindow::filterChoreography()
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
 void MainWindow::on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem * /* item */)
 {
-    qDebug() << "Adding choreo item";
     QListWidgetItem *choreoItem = new QListWidgetItem(item->text());
     ui->listWidgetChoreography->addItem(choreoItem);
 }
 
 void MainWindow::on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem * /* item */)
 {
-    qDebug() << "Removing choreo item";
     ui->listWidgetChoreography->takeItem(ui->listWidgetChoreography->row(item));
 }
 
