@@ -49,6 +49,8 @@
 #include "utility.h"
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
+#include "importdialog.h"
+#include "exportdialog.h"
 
 #define CUSTOM_FILTER
 #include "startupwizard.h"
@@ -3004,6 +3006,34 @@ void MainWindow::on_checkBoxStartOnPlay_clicked()
     prefsManager.Setstartcountuptimeronplay(ui->checkBoxStartOnPlay->isChecked());
 }
 
+
+void MainWindow::on_actionImport_triggered()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    ImportDialog *importDialog = new ImportDialog();
+    int dialogCode = importDialog->exec();
+    RecursionGuard keypress_guard(trapKeypresses);
+    if (dialogCode == QDialog::Accepted)
+    {
+    }
+    delete importDialog;
+    importDialog = NULL;
+}
+
+void MainWindow::on_actionExport_triggered()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    ExportDialog *exportDialog = new ExportDialog();
+    int dialogCode = exportDialog->exec();
+    RecursionGuard keypress_guard(trapKeypresses);
+    if (dialogCode == QDialog::Accepted)
+    {
+    }
+    delete exportDialog;
+    exportDialog = NULL;
+}
 
 // --------------------------------------------------------
 void MainWindow::on_actionPreferences_triggered()

@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ExportDialog</class>
+ <widget class="QDialog" name="ExportDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>649</width>
+    <height>392</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Export Song Settings</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>280</x>
+     <y>340</y>
+     <width>341</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>601</width>
+     <height>293</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>File:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1" colspan="2">
+     <widget class="QLabel" name="labelFileName">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QPushButton" name="pushButtonChooseFile">
+      <property name="text">
+       <string>Choose...</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Format</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="comboBoxTabOrCSV">
+      <item>
+       <property name="text">
+        <string>Tab Separated</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Comma Separated</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QComboBox" name="comboBoxFirstRow">
+      <item>
+       <property name="text">
+        <string>First Row Is Headers</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>All Rows Are Data</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Song Name:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnSongName">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QComboBox" name="comboBoxFormatSongName">
+      <item>
+       <property name="text">
+        <string>Full Path Name</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Relative Path Name</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>File Name</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Publisher-Number - Song Name</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Song Name</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Pitch:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnPitch">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>Tempo:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnTempo">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>Intro:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnIntro">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Outro:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnOutro">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="7" column="0">
+     <widget class="QLabel" name="label_8">
+      <property name="text">
+       <string>Volume:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnVolume">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QLabel" name="label_9">
+      <property name="text">
+       <string>Cuesheet Path:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1" colspan="2">
+     <widget class="QComboBox" name="comboBoxColumnCuesheet">
+      <item>
+       <property name="text">
+        <string>Column 1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 5</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Column 7</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="8" column="3">
+     <widget class="QComboBox" name="comboBoxFormatCuesheet">
+      <item>
+       <property name="text">
+        <string>Relative</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Absolute</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>ExportDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ExportDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -155,6 +155,8 @@ private slots:
 
     void on_actionAutostart_playback_triggered();
     void on_actionPreferences_triggered();
+    void on_actionImport_triggered();
+    void on_actionExport_triggered();
 
     void on_pushButtonCountDownTimerStartStop_clicked();
     void on_pushButtonCountDownTimerReset_clicked();
