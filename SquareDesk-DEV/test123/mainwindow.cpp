@@ -3255,7 +3255,7 @@ void extractSequencesFromFile(QStringList &sequences,
             }
             else
             {
-                if (!line_simplified.length() == 0)
+                if (!(line_simplified.length() == 0))
                 {
                     sequence += line + "\n";
                 }
