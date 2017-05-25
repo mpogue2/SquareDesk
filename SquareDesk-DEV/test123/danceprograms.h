@@ -1,5 +1,5 @@
 #ifndef DANCEPROGRAMS_H_INCLUDED
-#define DANCEPROGRAMS_H_INCLUDEDD
+#define DANCEPROGRAMS_H_INCLUDED
 
 extern const char *danceprogram_basic1[];
 extern const char *danceprogram_basic2[];
