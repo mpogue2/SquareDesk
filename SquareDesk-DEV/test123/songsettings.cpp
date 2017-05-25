@@ -412,7 +412,7 @@ QString SongSettings::getCallTaughtOn(const QString &program, const QString &cal
     {
         return q.value(0).toString();
     }
-    return QString("   ");
+    return QString("");
 }
 
 void SongSettings::setCallTaught(const QString &program, const QString &call_name)
