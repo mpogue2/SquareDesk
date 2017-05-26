@@ -169,7 +169,6 @@ private slots:
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
 
-    void on_pushButtonShowHideCueSheetAdditional_clicked();
     void on_lineEditOutroTime_textChanged();
     void on_lineEditIntroTime_textChanged();
     void setCueSheetAdditionalControlsVisible(bool visible);
