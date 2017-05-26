@@ -565,12 +565,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QSettings settings;
 
-    
+
     {
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
         // #define kCallListNameCol        2
-        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100); 
+        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
         QHeaderView *headerView = ui->tableWidgetCallList->horizontalHeader();
         headerView->setSectionResizeMode(kCallListOrderCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
@@ -671,7 +671,7 @@ void MainWindow::reloadSongAges(bool show_all_ages)
 {
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
-    
+
     ui->songTable->setSortingEnabled(false);
     ui->songTable->hide();
 
@@ -679,6 +679,7 @@ void MainWindow::reloadSongAges(bool show_all_ages)
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
+
         ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : age.value());
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
@@ -690,7 +691,7 @@ void MainWindow::setCurrentSessionIdReloadSongAges(int id)
 {
     setCurrentSessionId(id);
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
-    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());    
+    on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
 }
 
 
@@ -725,9 +726,9 @@ static void AddItemToCallList(QTableWidget *tableWidget,
 static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
 {
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
-    
+
     tableWidget->setRowCount(0);
-    
+
     QFile inputFile(filename);
     if (inputFile.open(QIODevice::ReadOnly))
     {
@@ -740,7 +741,7 @@ static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, 
 
             QString number(QString("%1").arg(line_number, 2));
             QString name(line);
-            
+
             QRegularExpressionMatch match = regex_numberCommaName.match(line);
             if (match.hasMatch())
             {
@@ -793,7 +794,7 @@ void breakDanceProgramIntoParts(const QString &filename,
             program = name;
         }
     }
-    
+
 }
 
 
@@ -806,9 +807,9 @@ void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
         QString displayName;
         QString danceProgram;
         breakDanceProgramIntoParts(programFilename, displayName, danceProgram);
-        
+
         QString callName = ui->tableWidgetCallList->item(row,kCallListNameCol)->text();
-        
+
         if (ui->tableWidgetCallList->item(row,col)->checkState() == Qt::Checked)
         {
             songSettings.setCallTaught(danceProgram, callName);
@@ -833,20 +834,22 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
         QString name;
         QString program;
         breakDanceProgramIntoParts(programFilename, name, program);
-            
+
         loadCallList(songSettings, ui->tableWidgetCallList, program, programFilename);
         QSettings settings;
         settings.setValue("lastCallListDanceProgram",program);
     }
     ui->tableWidgetCallList->setSortingEnabled(true);
-    
+
 }
 
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
-    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
-    loadCuesheet(cuesheetFilename);
+    if (currentIndex != -1) {
+        QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
+        loadCuesheet(cuesheetFilename);
+    }
 }
 
 
@@ -1152,7 +1155,7 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
             }
             ui->songTable->setSortingEnabled(true);
-            
+
             if (switchToLyricsOnPlay &&
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
             {
@@ -1432,7 +1435,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         }
     }
     ui->songTable->setSortingEnabled(true);
-    
+
 }
 
 // ----------------------------------------------------------------------
@@ -1710,7 +1713,7 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
                                   QMessageBox::Yes|QMessageBox::No);
   if (reply == QMessageBox::Yes) {
       songSettings.clearTaughtCalls(danceProgram);
-      on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());    
+      on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
   } else {
   }
 }
@@ -1963,7 +1966,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->lineEditCountDownTimer->hasFocus() ||
                ui->lineEditChoreographySearch->hasFocus() ||
-#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT               
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
                maybeMainWindow->console->hasFocus() )     ||
              ( (ui->labelSearch->hasFocus() ||
@@ -2908,7 +2911,7 @@ void MainWindow::filterMusic()
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
 
     ui->songTable->setSortingEnabled(false);
-    
+
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString songType = ui->songTable->item(i,kTypeCol)->text();
@@ -3137,7 +3140,7 @@ QString processSequence(QString sequence,
     {
         return QString();
     }
-    
+
     for (int i = 0; i < exclude.length(); ++i)
     {
         if (sequence.contains(exclude[i], Qt::CaseInsensitive))
@@ -3148,13 +3151,13 @@ QString processSequence(QString sequence,
     for (int i = 0; i < include.length(); ++i)
     {
         if (!sequence.contains(include[i], Qt::CaseInsensitive))
-        { 
+        {
             return QString();
         }
     }
 
     return sequence.trimmed();
-    
+
 //    QRegExp regexpAmp("&");
 //    QRegExp regexpLt("<");
 //    QRegExp regexpGt(">");
@@ -3189,7 +3192,7 @@ void extractSequencesFromFile(QStringList &sequences,
     {
         thisProgram = program;
     }
-        
+
     // Sun Jan 10 17:03:38 2016     Sd38.58:db38.58     Plus
     static QRegularExpression regexIsSDFile("^(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\\s+" // Sun
                                            "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\s+" // Jan
@@ -3198,13 +3201,13 @@ void extractSequencesFromFile(QStringList &sequences,
                                            "(\\w+)\\s*$"); // Plus
 
     QString sequence;
-    
+
     while (!in.atEnd())
     {
         QString line(in.readLine());
 
         QRegularExpressionMatch match = regexIsSDFile.match(line);
-        
+
         if (match.hasMatch())
         {
             if (0 == thisProgram.compare(program, Qt::CaseInsensitive))
@@ -3251,7 +3254,7 @@ void extractSequencesFromFile(QStringList &sequences,
             {
                 sequence += line + "\n";
             }
-            
+
         }
         else // is SD file
         {
@@ -3300,12 +3303,12 @@ void MainWindow::filterChoreography()
 {
     QStringList exclude(getUncheckedItemsFromCurrentCallList());
     QString program = ui->comboBoxCallListProgram->currentText();
-#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     QStringList include = ui->lineEditChoreographySearch->text().split(",");
     for (int i = 0; i < include.length(); ++i)
     {
         include[i] = include[i].simplified();
-    } 
+    }
 
     if (ui->comboBoxChoreographySearchType->currentIndex() == 0)
     {
@@ -3313,7 +3316,7 @@ void MainWindow::filterChoreography()
     }
 
     QStringList sequences;
-    
+
     for (int i = 0; i < ui->listWidgetChoreographyFiles->count()
              && sequences.length() < 128000; ++i)
     {
@@ -3335,10 +3338,10 @@ void MainWindow::filterChoreography()
             ui->listWidgetChoreographySequences->addItem(item);
         }
     }
-#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 }
 
-#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 void MainWindow::on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem * /* item */)
 {
     QListWidgetItem *choreoItem = new QListWidgetItem(item->text());
@@ -3360,15 +3363,15 @@ void MainWindow::on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem * /*
 {
     filterChoreography();
 }
-#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 
 void MainWindow::loadChoreographyList()
 {
-#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     ui->listWidgetChoreographyFiles->clear();
 
     QListIterator<QString> iter(*pathStack);
-    
+
     while (iter.hasNext()) {
         QString s = iter.next();
 
@@ -3379,7 +3382,7 @@ void MainWindow::loadChoreographyList()
             QStringList sl1 = s.split("#!#");
             QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
-            
+
             QFileInfo fi(origPath);
 //            QStringList section = fi.canonicalPath().split("/");
             QString name = fi.completeBaseName();
@@ -3389,7 +3392,7 @@ void MainWindow::loadChoreographyList()
             ui->listWidgetChoreographyFiles->addItem(item);
         }
     }
-#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 }
 
 
@@ -3418,7 +3421,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     QListIterator<QString> iter(*pathStack);
     QStringList programs;
 
-    
+
     while (iter.hasNext()) {
         QString s = iter.next();
 
@@ -3450,7 +3453,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
         addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt", danceprogram_plus);
         addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt", danceprogram_a1);
         addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt", danceprogram_a2);
-        
+
     }
     programs.sort(Qt::CaseInsensitive);
     QListIterator<QString> program(programs);
@@ -3462,7 +3465,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
         breakDanceProgramIntoParts(origPath, name, program);
         ui->comboBoxCallListProgram->addItem(name, origPath);
     }
-    
+
     if (ui->comboBoxCallListProgram->maxCount() == 0)
     {
         ui->comboBoxCallListProgram->addItem("<no dance programs found>", "");
