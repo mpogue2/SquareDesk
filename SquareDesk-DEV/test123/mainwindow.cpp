@@ -578,20 +578,10 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
         headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
         headerView->setStretchLastSection(false);
-        loadDanceProgramList();
+        QString lastDanceProgram(settings.value("lastCallListDanceProgram").toString());
+        loadDanceProgramList(lastDanceProgram);
 
         bool setProgram = false;
-        for (int i = 0; i < ui->comboBoxCallListProgram->count(); ++i)
-        {
-            if (ui->comboBoxCallListProgram->itemText(i) == settings.value("lastCallListDanceProgram"))
-            {
-                ui->comboBoxCallListProgram->setCurrentIndex(i);
-                setProgram = true;
-                break;
-            }
-        }
-        if (!setProgram)
-            on_comboBoxCallListProgram_currentIndexChanged(0);
     }
 
 
@@ -3433,11 +3423,12 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
 
 
 
-void MainWindow::loadDanceProgramList()
+void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 {
     ui->comboBoxCallListProgram->clear();
     QListIterator<QString> iter(*pathStack);
     QStringList programs;
+
     
     while (iter.hasNext()) {
         QString s = iter.next();
@@ -3487,7 +3478,15 @@ void MainWindow::loadDanceProgramList()
     {
         ui->comboBoxCallListProgram->addItem("<no dance programs found>", "");
     }
-    qDebug() << "LOaded";
+
+    for (int i = 0; i < ui->comboBoxCallListProgram->count(); ++i)
+    {
+        if (ui->comboBoxCallListProgram->itemText(i) == lastDanceProgram)
+        {
+            ui->comboBoxCallListProgram->setCurrentIndex(i);
+            break;
+        }
+    }
 }
 
 void MainWindow::on_labelSearch_textChanged()

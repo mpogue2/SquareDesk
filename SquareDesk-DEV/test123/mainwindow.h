@@ -452,7 +452,7 @@ private:
     void setCurrentSessionIdReloadSongAges(int id);
     void reloadSongAges(bool show_all_sessions);
     bool autoScrollLyricsEnabled;
-    void loadDanceProgramList();
+    void loadDanceProgramList(QString lastDanceProgram);
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 
