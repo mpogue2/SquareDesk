@@ -673,14 +673,16 @@ void MainWindow::reloadSongAges(bool show_all_ages)
     songSettings.getSongAges(ages, show_all_ages);
     
     ui->songTable->setSortingEnabled(false);
+    ui->songTable->hide();
+
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
-        
         ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : age.value());
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
     }
+    ui->songTable->show();
     ui->songTable->setSortingEnabled(true);
 }
 
@@ -717,6 +719,7 @@ static void AddItemToCallList(QTableWidget *tableWidget,
     QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
     checkBoxItem->setCheckState((taughtOn.isNull() || taughtOn.isEmpty()) ? Qt::Unchecked : Qt::Checked);
     tableWidget->setItem(row, kCallListCheckedCol, checkBoxItem);
+    tableWidget->item(row, kCallListCheckedCol)->setTextAlignment(Qt::AlignCenter);
 }
 
 static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
