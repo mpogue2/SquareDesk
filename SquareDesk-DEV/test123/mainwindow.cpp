@@ -564,6 +564,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
+    QSettings settings;
+
+    
     {
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
@@ -576,13 +579,24 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
         headerView->setStretchLastSection(false);
         loadDanceProgramList();
-        on_comboBoxCallListProgram_currentIndexChanged(0);
+
+        bool setProgram = false;
+        for (int i = 0; i < ui->comboBoxCallListProgram->count(); ++i)
+        {
+            if (ui->comboBoxCallListProgram->itemText(i) == settings.value("lastCallListDanceProgram"))
+            {
+                ui->comboBoxCallListProgram->setCurrentIndex(i);
+                setProgram = true;
+                break;
+            }
+        }
+        if (!setProgram)
+            on_comboBoxCallListProgram_currentIndexChanged(0);
     }
 
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
-    QSettings settings;
     if (settings.value("cueSheetAdditionalControlsVisible").toBool()
         && !cueSheetAdditionalControlsVisible())
     {
@@ -835,6 +849,8 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
         breakDanceProgramIntoParts(programFilename, name, program);
             
         loadCallList(songSettings, ui->tableWidgetCallList, program, programFilename);
+        QSettings settings;
+        settings.setValue("lastCallListDanceProgram",program);
     }
     ui->tableWidgetCallList->setSortingEnabled(true);
     
@@ -1700,6 +1716,23 @@ void MainWindow::on_lineEditIntroTime_textChanged()
         ui->seekBarCuesheet->SetIntro((float)t);
         ui->seekBar->SetIntro((float)t);
     }
+}
+
+void MainWindow::on_pushButtonClearTaughtCalls_clicked()
+{
+    QString danceProgram(ui->comboBoxCallListProgram->currentText());
+    QMessageBox::StandardButton reply;
+
+    reply = QMessageBox::question(this, "Clear Taught Calls",
+                                  "Do you really want to clear all taught calls for the " +
+                                   danceProgram +
+                                  " dance program for the current session?",
+                                  QMessageBox::Yes|QMessageBox::No);
+  if (reply == QMessageBox::Yes) {
+      songSettings.clearTaughtCalls(danceProgram);
+      on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());    
+  } else {
+  }
 }
 
 // --------------------------------1--------------------------------------

@@ -57,7 +57,7 @@ public:
     QString getCallTaughtOn(const QString &program, const QString &call_name);
     void setCallTaught(const QString &program, const QString &call_name);
     void deleteCallTaught(const QString &program, const QString &call_name);
-    void clearTaughtCalls();
+    void clearTaughtCalls(const QString &program);
     QString removeRootDirs(const QString &filenameWithPath);
     
     

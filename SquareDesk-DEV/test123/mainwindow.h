@@ -157,6 +157,7 @@ private slots:
     void on_actionAutostart_playback_triggered();
     void on_actionPreferences_triggered();
 
+    void on_pushButtonClearTaughtCalls_clicked();
     void on_pushButtonCountDownTimerStartStop_clicked();
     void on_pushButtonCountDownTimerReset_clicked();
     void on_pushButtonCountUpTimerStartStop_clicked();

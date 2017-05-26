@@ -433,11 +433,12 @@ void SongSettings::deleteCallTaught(const QString &program, const QString &call_
     exec("deleteCallTaught", q);
 }
 
-void SongSettings::clearTaughtCalls()
+void SongSettings::clearTaughtCalls(const QString &program)
 {
     QSqlQuery q(m_db);
-    q.prepare("DELETE FROM call_taught_on WHERE session_rowid = :session_rowid");
+    q.prepare("DELETE FROM call_taught_on WHERE session_rowid = :session_rowid AND dance_program = :dance_program");
     q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);
     exec("clearTaughtCalls", q);
 }
 
