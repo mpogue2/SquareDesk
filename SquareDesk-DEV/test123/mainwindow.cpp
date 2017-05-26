@@ -2860,17 +2860,14 @@ void MainWindow::loadMusicList()
 
         int pitch = 0;
         int tempo = 0;
-        int volume = 0;
-        double intro = 0;
-        double outro = 0;
-        bool loadedTempoIsPercent;
-        songSettings.loadSettings(fi.completeBaseName(),
-                                  origPath,
-                                  title,
-                                  volume,
-                                  pitch, tempo,
-                                  loadedTempoIsPercent,
-                                  intro, outro);
+        bool loadedTempoIsPercent(false);
+        SongSetting settings;
+        songSettings.loadSettings(origPath,
+                                  settings);
+        
+        if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        if (settings.isSetTempoIsPercent()) { loadedTempoIsPercent = settings.getTempoIsPercent(); }
 
         addStringToLastRowOfSongTable(textCol, ui->songTable,
                                       QString("%1").arg(pitch),
@@ -4399,16 +4396,22 @@ void MainWindow::saveCurrentSongSettings()
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
 
-        songSettings.saveSettings(currentMP3filename,
-                                  currentMP3filenameWithPath,
-                                  currentSong,
-                                  currentVolume,
-                                  pitch, tempo,
-                                  !tempoIsBPM,
-                                  ui->seekBarCuesheet->GetIntro(),
-                                  ui->seekBarCuesheet->GetOutro(),
-                                  cuesheetFilename
-            );
+        SongSetting setting;
+        setting.setFilename(currentMP3filename);
+        setting.setFilenameWithPath(currentMP3filenameWithPath);
+        setting.setSongname(currentSong);
+        setting.setVolume(currentVolume);
+        setting.setPitch(pitch);
+        setting.setTempo(tempo);
+        setting.setTempoIsPercent(!tempoIsBPM);
+        setting.setIntroPos(ui->seekBarCuesheet->GetIntro());
+        setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
+        setting.setIntroOutroIsTimeBased(false);
+        setting.setCuesheetName(cuesheetFilename);
+        setting.setSongLength((double)(ui->seekBarCuesheet->maximum()));
+
+        songSettings.saveSettings(currentMP3filenameWithPath,
+                                  setting);
         // TODO: Loop points!
     }
 
@@ -4423,25 +4426,42 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
     QString cuesheetName = "";
-    bool loadedTempoIsPercent;
 
-    if (songSettings.loadSettings(currentMP3filename,
-                                  currentMP3filenameWithPath,
-                                  songTitle,
-                                  volume,
-                                  pitch, tempo,
-                                  loadedTempoIsPercent,
-                                  intro, outro, cuesheetName))
+    SongSetting settings;
+    settings.setFilename(currentMP3filename);
+    settings.setFilenameWithPath(currentMP3filenameWithPath);
+    settings.setSongname(songTitle);
+    settings.setVolume(volume);
+    settings.setPitch(pitch);
+    settings.setTempo(tempo);
+    settings.setIntroPos(intro);
+    settings.setOutroPos(outro);
+
+    if (songSettings.loadSettings(currentMP3filenameWithPath,
+                                  settings))
     {
+        if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        if (settings.isSetVolume()) { volume = settings.getVolume(); }
+        if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
+        if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
+
+        double length = (double)(ui->seekBarCuesheet->maximum());
+        if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
+        {
+            intro = intro / length;
+            outro = outro / length;
+        }
+        
         ui->pitchSlider->setValue(pitch);
         ui->tempoSlider->setValue(tempo);
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
 
-        double length = (double)(ui->seekBarCuesheet->maximum());
         ui->lineEditIntroTime->setText(doubleToTime(intro * length));
         ui->lineEditOutroTime->setText(doubleToTime(outro * length));
+
 
         if (cuesheetName.length() > 0)
         {

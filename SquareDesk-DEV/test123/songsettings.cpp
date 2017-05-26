@@ -178,6 +178,8 @@ RowDefinition song_rows[] =
     RowDefinition("introPos", "float"),
     RowDefinition("outroPos", "float"),
     RowDefinition("last_cuesheet", "text"),
+    RowDefinition("songLength", "float"),
+    RowDefinition("introOutroIsTimeBased", "int"),
     RowDefinition(NULL, NULL),
 };
 
@@ -428,132 +430,171 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
 }
 
 
+SongSetting::SongSetting()
+    :
+    m_filename(),
+    set_filename(false),
+    m_filenameWithPath(),
+    set_filenameWithPath(false),
+    m_songname(),
+    set_songname(false),
+    m_volume(),
+    set_volume(false),
+    m_pitch(),
+    set_pitch(false),
+    m_tempo(),
+    set_tempo(false),
+    m_tempoIsPercent(),
+    set_tempoIsPercent(false),
+    m_introPos(),
+    set_introPos(false),
+    m_outroPos(),
+    set_outroPos(false),
+    m_cuesheetName(),
+    set_cuesheetName(false)
+{
+}
 
-void SongSettings::saveSettings(const QString &filename,
-                                const QString &filenameWithPath,
-                                const QString &songname,
-                                int volume,
-                                int pitch,
-                                int tempo,
-                                bool tempoIsPercent,
-                                double introPos,
-                                double outroPos,
-                                const QString &cuesheetName)
+
+void SongSettings::saveSettings(const QString &filenameWithPath,
+                                const SongSetting &settings)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
-    int id = getSongIDFromFilename(filename, filenameWithPathNormalized);
+    int id = getSongIDFromFilename(settings.getFilename(), filenameWithPathNormalized);
 
+    QStringList fields;
+    if (settings.isSetFilename()) { fields.append("songname" ); }
+    if (settings.isSetPitch()) { fields.append("pitch" ); }
+    if (settings.isSetTempo()) { fields.append("tempo" ); }
+    if (settings.isSetTempoIsPercent()) { fields.append("tempoIsPercent" ); }
+    if (settings.isSetIntroPos()) { fields.append("introPos" ); }
+    if (settings.isSetOutroPos()) { fields.append("outroPos" ); }
+    if (settings.isSetVolume()) { fields.append("volume" ); }
+    if (settings.isSetSongname()) { fields.append("name" ); }
+    if (settings.isSetSongLength()) { fields.append("songLength" ); }
+    if (settings.isSetIntroOutroIsTimeBased()) { fields.append("introOutroIsTimeBased" ); }
+    
+    
     QSqlQuery q(m_db);
     if (id == -1)
     {
-        q.prepare("INSERT INTO songs(filename,songname, name, pitch, tempo, tempoIsPercent, introPos, outroPos, volume, last_cuesheet) VALUES (:filename, :songname, :name, :pitch, :tempo, :tempoIsPercent, :introPos, :outroPos, :volume, :cuesheet)");
+        QString sql("INSERT INTO songs(");
+        {
+            QListIterator<QString> iter(fields);
+            bool first = true;
+            while (iter.hasNext())
+            {
+                QString s = iter.next();
+                if (!first) { sql += ","; }
+                first = false;
+                sql += s;
+            }
+        }
+        sql += ") VALUES (";
+        {
+            QListIterator<QString> iter(fields);
+            bool first = true;
+            while (iter.hasNext())
+            {
+                QString s = iter.next();
+                if (!first) { sql += ","; }
+                first = false;
+                sql += ":" + s;
+            }
+        }
+        sql += ")";
+        q.prepare(sql);
     }
     else
     {
-        q.prepare("UPDATE songs SET name = :name, songname = :songname, pitch = :pitch, tempo = :tempo, tempoIsPercent = :tempoIsPercent, introPos = :introPos, outroPos = :outroPos, volume = :volume, last_cuesheet = :cuesheet WHERE filename = :filename");
+        QString sql("UPDATE songs SET ");
+        {
+            QListIterator<QString> iter(fields);
+            bool first = true;
+            while (iter.hasNext())
+            {
+                QString s = iter.next();
+                if (!first) { sql += ","; }
+                first = false;
+                sql += s + " = :" + s;
+            }
+        }
+        sql += " WHERE rowid = :rowid";
+        q.prepare(sql);
+        q.bindValue(":rowid", id);
     }
+    
     q.bindValue(":filename", filenameWithPathNormalized);
-    q.bindValue(":songname", filename);
-    q.bindValue(":pitch", pitch);
-    q.bindValue(":tempo", tempo);
-    q.bindValue(":tempoIsPercent", tempoIsPercent);
-    q.bindValue(":introPos", introPos);
-    q.bindValue(":outroPos", outroPos);
-    q.bindValue(":volume", volume);
-    q.bindValue(":name", songname);
-    q.bindValue(":cuesheet", cuesheetName);
+    q.bindValue(":songname", settings.getFilename() );
+    q.bindValue(":pitch", settings.getPitch() );
+    q.bindValue(":tempo", settings.getTempo() );
+    q.bindValue(":tempoIsPercent", settings.getTempoIsPercent() );
+    q.bindValue(":introPos", settings.getIntroPos() );
+    q.bindValue(":outroPos", settings.getOutroPos() );
+    q.bindValue(":volume", settings.getVolume() );
+    q.bindValue(":name", settings.getSongname() );
+    q.bindValue(":cuesheet", settings.getCuesheetName() );
+    q.bindValue(":songLength", settings.getSongLength() );
+    q.bindValue(":introOutroIsTimeBased", settings.getIntroOutroIsTimeBased() );
+
     exec("saveSettings", q);
 }
 
 
-bool SongSettings::loadSettings(const QString &filename,
-                      const QString &filenameWithPath,
-                      const QString &songname,
-                      int &volume,
-                      int &pitch,
-                      int &tempo,
-                      bool &tempoIsPercent,
-                      double &introPos,
-                      double &outroPos)
+void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
 {
-    QString cuesheetName;
-    return loadSettings(filename,
-                        filenameWithPath,
-                        songname,
-                        volume,
-                        pitch,
-                        tempo,
-                        tempoIsPercent,
-                        introPos,
-                        outroPos,
-                        cuesheetName);
+    if (!q.value(1).isNull()) { settings.setPitch(q.value(1).toInt()); };
+    if (!q.value(2).isNull()) { settings.setTempo(q.value(2).toInt()); };
+    if (!q.value(3).isNull()) { settings.setIntroPos(q.value(3).toFloat()); };
+    if (!q.value(4).isNull()) { settings.setOutroPos(q.value(4).toFloat()); };
+    if (!q.value(5).isNull()) { settings.setVolume(q.value(5).toInt()); };
+    if (!q.value(6).isNull()) { settings.setCuesheetName(q.value(6).toString()); };
+    if (!q.value(7).isNull()) { settings.setTempoIsPercent(q.value(7).toBool()); };
+    if (!q.value(8).isNull()) { settings.setSongLength(q.value(8).toFloat()); };
+    if (!q.value(9).isNull()) { settings.setIntroOutroIsTimeBased(q.value(9).toBool()); };
 }
 
-
-bool SongSettings::loadSettings(const QString &filename,
-                                const QString &filenameWithPath,
-                                const QString &songname,
-                                int &volume,
-                                int &pitch,
-                                int &tempo,
-                                bool &tempoIsPercent,
-                                double &introPos,
-                                double &outroPos,
-                                QString &cuesheetName)
+bool SongSettings::loadSettings(const QString &filenameWithPath,
+                                SongSetting &settings)
 {
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent FROM songs WHERE filename=:filename");
+        q.prepare(baseSql + "filename=:filename");
         q.bindValue(":filename", filenameWithPathNormalized);
         exec("loadSettings", q);
 
         while (q.next())
         {
             foundResults = true;
-            pitch = q.value(1).toInt();
-            tempo = q.value(2).toInt();
-            introPos = q.value(3).toFloat();
-            outroPos = q.value(4).toFloat();
-            volume = q.value(5).toInt();
-            cuesheetName = q.value(6).toString();
-            tempoIsPercent = q.value(7).toBool();
+            setSongSettingFromSQLQuery(q, settings);
         }
     }
-    if (!foundResults)
+    if (!foundResults && settings.isSetFilename())
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, volume, tempoIsPercent FROM songs WHERE filename=:filename");
-        q.bindValue(":filename", filename);
+        q.prepare(baseSql + " WHERE filename=:filename");
+        q.bindValue(":filename", settings.getFilename());
         exec("loadSettings", q);
 
         while (q.next())
         {
             foundResults = true;
-            pitch = q.value(1).toInt();
-            tempo = q.value(2).toInt();
-            introPos = q.value(3).toFloat();
-            outroPos = q.value(4).toFloat();
-            volume = q.value(5).toInt();
-            tempoIsPercent = q.value(6).toBool();
+            setSongSettingFromSQLQuery(q, settings);
         }
     }
-    if (!foundResults)
+    if (!foundResults && settings.isSetSongname())
     {
         QSqlQuery q(m_db);
-        q.prepare("SELECT filename, pitch, tempo, introPos, outroPos, tempoIsPercent FROM songs WHERE name=:name");
-        q.bindValue(":name", songname);
+        q.prepare(baseSql + " WHERE name=:name");
+        q.bindValue(":name", settings.getSongname());
         exec("loadSettings", q);
         while (q.next())
         {
             foundResults = true;
-            pitch = q.value(1).toInt();
-            tempo = q.value(2).toInt();
-            introPos = q.value(3).toFloat();
-            outroPos = q.value(4).toFloat();
-            volume = q.value(5).toInt();
-            tempoIsPercent = q.value(6).toBool();
+            setSongSettingFromSQLQuery(q, settings);
         }
     }
     return foundResults;

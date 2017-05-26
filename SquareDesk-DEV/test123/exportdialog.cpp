@@ -45,8 +45,7 @@ void ExportDialog::on_pushButtonChooseFile_clicked()
 {
     QString filename =
         QFileDialog::getSaveFileName(this, tr("Select Export File"),
-                                     QDir::homePath(),
-                                     QFileDialog::DontResolveSymlinks);
+                                     QDir::homePath());
 
     if (filename.isNull()) {
         return;  // user cancelled the "Select Base Directory for Music" dialog...so don't do anything, just return

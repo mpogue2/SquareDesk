@@ -12,10 +12,10 @@ MAKEFILE      = Makefile
 
 CC            = gcc
 CXX           = g++
-DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_CORE_LIB
+DEFINES       = -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB
 CFLAGS        = -m64 -pipe -O2 -Wall -W -D_REENTRANT -fPIC $(DEFINES)
 CXXFLAGS      = -m64 -pipe -O2 -std=c++0x -Wall -W -D_REENTRANT -fPIC $(DEFINES)
-INCPATH       = -I. -I. -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtSql -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64
+INCPATH       = -I. -I. -isystem /usr/include/x86_64-linux-gnu/qt5 -isystem /usr/include/x86_64-linux-gnu/qt5/QtWidgets -isystem /usr/include/x86_64-linux-gnu/qt5/QtGui -isystem /usr/include/x86_64-linux-gnu/qt5/QtSql -isystem /usr/include/x86_64-linux-gnu/qt5/QtNetwork -isystem /usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64
 QMAKE         = /usr/lib/x86_64-linux-gnu/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -33,10 +33,10 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = SquareDeskPlayer1.0.0
-DISTDIR = /home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/.tmp/SquareDeskPlayer1.0.0
+DISTDIR = /home/danlyke/code/SquareDesk/SquareDesk-DEV/test123/.tmp/SquareDeskPlayer1.0.0
 LINK          = g++
 LFLAGS        = -m64 -Wl,-O1
-LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Network -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -52,6 +52,8 @@ SOURCES       = main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
+		importdialog.cpp \
+		exportdialog.cpp \
 		mytablewidget.cpp \
 		tablenumberitem.cpp \
 		myslider.cpp \
@@ -67,6 +69,8 @@ SOURCES       = main.cpp \
 		startupwizard.cpp qrc_resources.cpp \
 		qrc_startupwizard.cpp \
 		moc_mainwindow.cpp \
+		moc_importdialog.cpp \
+		moc_exportdialog.cpp \
 		moc_preferencesdialog.cpp \
 		moc_levelmeter.cpp \
 		moc_analogclock.cpp \
@@ -79,6 +83,8 @@ OBJECTS       = main.o \
 		mainwindow.o \
 		bass_audio.o \
 		preferencesdialog.o \
+		importdialog.o \
+		exportdialog.o \
 		mytablewidget.o \
 		tablenumberitem.o \
 		myslider.o \
@@ -95,6 +101,8 @@ OBJECTS       = main.o \
 		qrc_resources.o \
 		qrc_startupwizard.o \
 		moc_mainwindow.o \
+		moc_importdialog.o \
+		moc_exportdialog.o \
 		moc_preferencesdialog.o \
 		moc_levelmeter.o \
 		moc_analogclock.o \
@@ -195,6 +203,8 @@ DIST          = LICENSE.GPL3 \
 		bass_audio.h \
 		myslider.h \
 		bassmix.h \
+		importdialog.h \
+		exportdialog.h \
 		preferencesdialog.h \
 		utility.h \
 		mytablewidget.h \
@@ -216,6 +226,8 @@ DIST          = LICENSE.GPL3 \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
+		importdialog.cpp \
+		exportdialog.cpp \
 		mytablewidget.cpp \
 		tablenumberitem.cpp \
 		myslider.cpp \
@@ -256,7 +268,7 @@ first: all
 
 ####### Build rules
 
-$(TARGET): ui_mainwindow.h ui_preferencesdialog.h $(OBJECTS)  
+$(TARGET): ui_mainwindow.h ui_importdialog.h ui_exportdialog.h ui_preferencesdialog.h $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.conf /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -349,6 +361,7 @@ Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.c
 		/usr/lib/x86_64-linux-gnu/libQt5Widgets.prl \
 		/usr/lib/x86_64-linux-gnu/libQt5Gui.prl \
 		/usr/lib/x86_64-linux-gnu/libQt5Sql.prl \
+		/usr/lib/x86_64-linux-gnu/libQt5Network.prl \
 		/usr/lib/x86_64-linux-gnu/libQt5Core.prl
 	$(QMAKE) -o Makefile test123.pro
 /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf:
@@ -441,6 +454,7 @@ startupwizard.qrc:
 /usr/lib/x86_64-linux-gnu/libQt5Widgets.prl:
 /usr/lib/x86_64-linux-gnu/libQt5Gui.prl:
 /usr/lib/x86_64-linux-gnu/libQt5Sql.prl:
+/usr/lib/x86_64-linux-gnu/libQt5Network.prl:
 /usr/lib/x86_64-linux-gnu/libQt5Core.prl:
 qmake: FORCE
 	@$(QMAKE) -o Makefile test123.pro
@@ -457,10 +471,10 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources.qrc startupwizard.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h startupwizard.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp startupwizard.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h importdialog.h exportdialog.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h startupwizard.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp importdialog.cpp exportdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp startupwizard.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents macUtils.mm $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.ui preferencesdialog.ui $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.ui importdialog.ui exportdialog.ui preferencesdialog.ui $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -498,9 +512,9 @@ qrc_startupwizard.cpp: startupwizard.qrc \
 		startupwizardimages/logo1.png
 	/usr/lib/x86_64-linux-gnu/qt5/bin/rcc -name startupwizard startupwizard.qrc -o qrc_startupwizard.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_importdialog.cpp moc_exportdialog.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_importdialog.cpp moc_exportdialog.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
 moc_mainwindow.cpp: common_enums.h \
 		sdhighlighter.h \
 		common.h \
@@ -519,49 +533,64 @@ moc_mainwindow.cpp: common_enums.h \
 		songsettings.h \
 		macUtils.h \
 		mainwindow.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+
+moc_importdialog.cpp: common_enums.h \
+		default_colors.h \
+		importdialog.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include importdialog.h -o moc_importdialog.cpp
+
+moc_exportdialog.cpp: common_enums.h \
+		exportdialog.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include exportdialog.h -o moc_exportdialog.cpp
 
 moc_preferencesdialog.cpp: common_enums.h \
 		default_colors.h \
 		prefs_options.h \
 		preferencesdialog.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include preferencesdialog.h -o moc_preferencesdialog.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include preferencesdialog.h -o moc_preferencesdialog.cpp
 
 moc_levelmeter.cpp: levelmeter.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include levelmeter.h -o moc_levelmeter.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include levelmeter.h -o moc_levelmeter.cpp
 
 moc_analogclock.cpp: clickablelabel.h \
 		typetracker.h \
 		analogclock.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include analogclock.h -o moc_analogclock.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include analogclock.h -o moc_analogclock.cpp
 
 moc_clickablelabel.cpp: clickablelabel.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include clickablelabel.h -o moc_clickablelabel.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include clickablelabel.h -o moc_clickablelabel.cpp
 
 moc_console.cpp: console.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include console.h -o moc_console.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include console.h -o moc_console.cpp
 
 moc_renderarea.cpp: common.h \
 		renderarea.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include renderarea.h -o moc_renderarea.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include renderarea.h -o moc_renderarea.cpp
 
 moc_sdhighlighter.cpp: common.h \
 		sdhighlighter.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include sdhighlighter.h -o moc_sdhighlighter.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include sdhighlighter.h -o moc_sdhighlighter.cpp
 
 moc_startupwizard.cpp: startupwizard.h
-	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDeskPlayer/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include startupwizard.h -o moc_startupwizard.cpp
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include startupwizard.h -o moc_startupwizard.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all: ui_mainwindow.h ui_preferencesdialog.h
+compiler_uic_make_all: ui_mainwindow.h ui_importdialog.h ui_exportdialog.h ui_preferencesdialog.h
 compiler_uic_clean:
-	-$(DEL_FILE) ui_mainwindow.h ui_preferencesdialog.h
+	-$(DEL_FILE) ui_mainwindow.h ui_importdialog.h ui_exportdialog.h ui_preferencesdialog.h
 ui_mainwindow.h: mainwindow.ui \
 		myslider.h \
 		mytablewidget.h \
 		clickablelabel.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/uic mainwindow.ui -o ui_mainwindow.h
+
+ui_importdialog.h: importdialog.ui
+	/usr/lib/x86_64-linux-gnu/qt5/bin/uic importdialog.ui -o ui_importdialog.h
+
+ui_exportdialog.h: exportdialog.ui
+	/usr/lib/x86_64-linux-gnu/qt5/bin/uic exportdialog.ui -o ui_exportdialog.h
 
 ui_preferencesdialog.h: preferencesdialog.ui
 	/usr/lib/x86_64-linux-gnu/qt5/bin/uic preferencesdialog.ui -o ui_preferencesdialog.h
@@ -620,6 +649,8 @@ mainwindow.o: mainwindow.cpp analogclock.h \
 		utility.h \
 		tablenumberitem.h \
 		prefsmanager.h \
+		importdialog.h \
+		exportdialog.h \
 		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
@@ -634,6 +665,17 @@ preferencesdialog.o: preferencesdialog.cpp preferencesdialog.h \
 		prefs_options.h \
 		ui_preferencesdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o preferencesdialog.o preferencesdialog.cpp
+
+importdialog.o: importdialog.cpp importdialog.h \
+		common_enums.h \
+		default_colors.h \
+		ui_importdialog.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o importdialog.o importdialog.cpp
+
+exportdialog.o: exportdialog.cpp exportdialog.h \
+		common_enums.h \
+		ui_exportdialog.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o exportdialog.o exportdialog.cpp
 
 mytablewidget.o: mytablewidget.cpp mytablewidget.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mytablewidget.o mytablewidget.cpp
@@ -692,6 +734,12 @@ qrc_startupwizard.o: qrc_startupwizard.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
+
+moc_importdialog.o: moc_importdialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_importdialog.o moc_importdialog.cpp
+
+moc_exportdialog.o: moc_exportdialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_exportdialog.o moc_exportdialog.cpp
 
 moc_preferencesdialog.o: moc_preferencesdialog.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_preferencesdialog.o moc_preferencesdialog.cpp
