@@ -206,7 +206,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->nextSongButton->setEnabled(false);
     ui->previousSongButton->setEnabled(false);
 
-    setCueSheetAdditionalControlsVisible(false);
     // ============
     ui->menuFile->addSeparator();
 
@@ -564,11 +563,6 @@ MainWindow::MainWindow(QWidget *parent) :
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
     QSettings settings;
-    if (settings.value("cueSheetAdditionalControlsVisible").toBool()
-        && !cueSheetAdditionalControlsVisible())
-    {
-        on_pushButtonShowHideCueSheetAdditional_clicked();
-    }
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(true);
@@ -672,6 +666,7 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
     bool visible = !checked;
+    setCueSheetAdditionalControlsVisible(visible);
     ui->actionCompact->setChecked(!visible);
 
     for (int col = 0; col < ui->gridLayout_2->columnCount(); ++col)
@@ -1461,13 +1456,6 @@ bool MainWindow::cueSheetAdditionalControlsVisible()
 
 // --------------------------------1--------------------------------------
 
-void MainWindow::on_pushButtonShowHideCueSheetAdditional_clicked()
-{
-    bool visible = !cueSheetAdditionalControlsVisible();
-    ui->pushButtonShowHideCueSheetAdditional->setText(visible ? "\u25BC" : "\u25B6");
-    setCueSheetAdditionalControlsVisible(visible);
-}
-
 
 double timeToDouble(const QString &str, bool *ok)
 {
@@ -1698,7 +1686,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
         QSettings settings;
         settings.setValue("geometry", saveGeometry());
         settings.setValue("windowState", saveState());
-        settings.setValue("cueSheetAdditionalControlsVisible", cueSheetAdditionalControlsVisible());
         QMainWindow::closeEvent(event);
     }
     else {
