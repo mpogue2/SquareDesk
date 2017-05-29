@@ -40,6 +40,17 @@ namespace Ui
 class ExportDialog;
 }
 
+enum ColumnExportData
+{
+    ExportDataFileName = 0,
+    ExportDataPitch,
+    ExportDataTempo,
+    ExportDataIntro,
+    ExportDataOutro,
+    ExportDataVolume,
+    ExportDataCuesheetPath
+};
+
 class ExportDialog : public QDialog
 {
     Q_OBJECT
