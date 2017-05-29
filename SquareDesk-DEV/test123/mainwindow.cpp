@@ -580,7 +580,7 @@ MainWindow::MainWindow(QWidget *parent) :
         QString lastDanceProgram(settings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
 
-        bool setProgram = false;
+//        bool setProgram = false;
     }
 
 
