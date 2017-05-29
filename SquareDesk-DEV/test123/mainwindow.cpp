@@ -6272,6 +6272,8 @@ void MainWindow::adjustFontSizes()
     ui->volumeLabel->setFont(currentFont);
     ui->mixLabel->setFont(currentFont);
 
+    currentSequenceWidget->setFont(currentFont); // In the SD tab, follow the user-selected font size
+
 #define CURRENTSCALE (7.75)
     int newCurrentWidth = CURRENTSCALE*currentFontPointSize;
     ui->currentTempoLabel->setFont(currentFont);
