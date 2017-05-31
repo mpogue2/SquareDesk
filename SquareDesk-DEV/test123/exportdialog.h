@@ -40,16 +40,8 @@ namespace Ui
 class ExportDialog;
 }
 
-enum ColumnExportData
-{
-    ExportDataFileName = 0,
-    ExportDataPitch,
-    ExportDataTempo,
-    ExportDataIntro,
-    ExportDataOutro,
-    ExportDataVolume,
-    ExportDataCuesheetPath
-};
+
+class SongSettings;
 
 class ExportDialog : public QDialog
 {
@@ -58,6 +50,7 @@ class ExportDialog : public QDialog
 public:
     explicit ExportDialog(QWidget *parent = 0);
     ~ExportDialog();
+    void exportSongs(SongSettings &settings, QList<QString> *musicFilenames);
 
 private slots:
     void on_pushButtonChooseFile_clicked();

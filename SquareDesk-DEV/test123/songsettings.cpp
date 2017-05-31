@@ -368,6 +368,11 @@ void SongSettings::initializeSessionsModel()
 
 }
 
+QString SongSettings::primaryRootDir()
+{
+    return root_directories[0];
+}
+
 QString SongSettings::removeRootDirs(const QString &filenameWithPath)
 {
     QString filenameWithPathNormalized(filenameWithPath);

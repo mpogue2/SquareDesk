@@ -26,6 +26,7 @@
 #include "importdialog.h"
 #include "ui_importdialog.h"
 #include "QFileDialog"
+#include "utility.h"
 
 ImportDialog::ImportDialog(QWidget *parent) :
     QDialog(parent),
@@ -138,3 +139,138 @@ void ImportDialog::on_pushButtonChooseFile_clicked()
     ui->labelFileName->setText(filename);
 }
 
+void ImportDialog::readImportFile(SongSettings &settings,
+                                  QFile &file,
+                                  QMap<QString, SongSetting> &songSettingsByFilename)
+{
+    char separator = (ui->comboBoxTabOrCSV->currentIndex() == 0) ? '\t' : ',';
+
+    while (!file.atEnd())
+    {
+        QString line;
+        while (!file.atEnd() && line.isEmpty())
+        {
+            line = file.readLine().trimmed();
+        }
+        if (line.isEmpty() || file.atEnd())
+            continue;
+        
+        QStringList fields = line.split(separator);
+
+        QString filename;
+        SongSetting setting;
+
+        if (fields.size() > ui->comboBoxColumnSongName->currentIndex())
+            filename = fields[ui->comboBoxColumnSongName->currentIndex()];
+
+        if (fields.size() > ui->comboBoxColumnTempo->currentIndex())
+        {
+            QString v(fields[ui->comboBoxColumnTempo->currentIndex()]);
+            qDebug() << "Setting " << filename << " Tempo " << " to " << v;
+            QString v1 = v.replace("%","");
+
+            if (v1 != v) setting.setTempoIsPercent(true);
+            
+            int t = v1.toInt();
+            if (t)
+                setting.setTempo(t);
+            switch (ui->comboBoxFormatTempo->currentIndex())
+            {
+            case 1:
+                setting.setTempoIsPercent(true);
+                break;
+            case 2:
+                setting.setTempoIsPercent(false);
+                break;
+            }
+        }
+        if (fields.size() > ui->comboBoxColumnPitch->currentIndex())
+        {
+            QString v(fields[ui->comboBoxColumnPitch->currentIndex()]);
+            int t = v.toInt();
+            qDebug() << "Setting " << filename << " Pitch " << " to " << t;
+            if (t)
+                setting.setPitch(t);
+        }
+        if (fields.size() > ui->comboBoxColumnIntro->currentIndex())
+        {
+            QString v(fields[ui->comboBoxColumnIntro->currentIndex()]);
+            double d = timeToDouble(v);
+            qDebug() << "Setting " << filename << " Intro " << " to " << d;
+            setting.setIntroPos(d);
+            setting.setIntroOutroIsTimeBased(true);
+        }
+        if (fields.size() > ui->comboBoxColumnOutro->currentIndex())
+        {
+            QString v(fields[ui->comboBoxColumnOutro->currentIndex()]);
+            double d = timeToDouble(v);
+            setting.setOutroPos(d);
+            qDebug() << "Setting " << filename << " Outro " << " to " << d;
+            setting.setIntroOutroIsTimeBased(true);
+        }
+        if (fields.size() > ui->comboBoxColumnVolume->currentIndex())
+        {
+            QString v(fields[ui->comboBoxColumnVolume->currentIndex()]);
+            qDebug() << "Setting " << filename << " Volume " << " to " << v;
+            int t = v.toInt();
+            if (t)
+                setting.setVolume(t);
+        }
+        if (fields.size() > ui->comboBoxColumnCuesheet->currentIndex())
+        {
+            QString v(fields[ui->comboBoxColumnCuesheet->currentIndex()]);
+            qDebug() << "Setting " << filename << " Cuesheet " << " to " << v;
+            if (!v.isEmpty())
+            {
+                if (ui->comboBoxFormatCuesheet->currentIndex() == 0)
+                    v = settings.primaryRootDir() + v;
+                setting.setCuesheetName(v);
+            }
+        }
+        if (!filename.isNull() && !filename.isEmpty())
+            songSettingsByFilename[filename] = setting;
+    }
+}
+
+
+void ImportDialog::importSongs(SongSettings &settings, QList<QString>* musicFilenames)
+{
+    QString filename(ui->labelFileName->text());
+
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Could not open " << filename;
+        return;
+    }
+
+    
+    QString line;
+
+    if (ui->comboBoxFirstRow->currentIndex() == 0)
+    {
+        while (!file.atEnd() && line.isEmpty())
+        {
+            line = file.readLine().trimmed();
+        }
+    }
+
+    QMap<QString, SongSetting> songSettingsByFilename;
+    readImportFile(settings, file, songSettingsByFilename);
+
+    QListIterator<QString> iter(*musicFilenames);
+    while (iter.hasNext())
+    {
+        QString s(iter.next());
+        QStringList sl1 = s.split("#!#");
+        QString filename(sl1[1]);
+        QString altfilename(settings.removeRootDirs(filename));
+        if (songSettingsByFilename.contains(filename))
+        {
+            settings.saveSettings(filename,songSettingsByFilename[filename]);
+        }
+        else if (songSettingsByFilename.contains(altfilename))
+        {
+            settings.saveSettings(filename,songSettingsByFilename[altfilename]);
+        }
+    }
+}

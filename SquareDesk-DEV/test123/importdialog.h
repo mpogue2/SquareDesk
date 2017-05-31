@@ -32,9 +32,11 @@
 #include <QDebug>
 #include <QSettings>
 #include <QValidator>
+#include <QMap>
 
 #include "common_enums.h"
 #include "default_colors.h"
+#include "songsettings.h"
 
 namespace Ui
 {
@@ -48,6 +50,11 @@ class ImportDialog : public QDialog
 public:
     explicit ImportDialog(QWidget *parent = 0);
     ~ImportDialog();
+    void importSongs(SongSettings &settings, QList<QString>* musicFilenames);
+private:
+    void readImportFile(SongSettings &settings, QFile &file,
+                        QMap<QString, SongSetting> &songSettingsByFilename);
+    
 
 private slots:
     void on_pushButtonChooseFile_clicked();

@@ -23,9 +23,10 @@
 **
 ****************************************************************************/
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef UTILITY_H_INCLUDED
+#define UTILITY_H_INCLUDED
 
+#include <QString>
 class RecursionGuard
 {
 private:
@@ -42,6 +43,8 @@ public:
     }
 };
 
+QString doubleToTime(double t);
+double timeToDouble(QString t);
 
-#endif // ifndef UTILITY_H
+#endif // ifndef UTILITY_H_INCLUDED
 

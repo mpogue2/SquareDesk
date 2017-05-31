@@ -96,6 +96,8 @@ public:
     QString getSongAge(const QString &filename, const QString &filenameWithPath);
     void markSongPlayed(const QString &filename, const QString &filenameWithPath);
 
+    QString removeRootDirs(const QString &filenameWithPath);
+    QString primaryRootDir();
     
 private:
     void debugErrors(const char *where, QSqlQuery &q);
@@ -110,7 +112,6 @@ private:
     int getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized);
     int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);
-    QString removeRootDirs(const QString &filenameWithPath);
 
     std::vector<QString> root_directories;
 };

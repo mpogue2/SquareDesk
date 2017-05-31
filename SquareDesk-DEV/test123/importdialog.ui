@@ -52,7 +52,7 @@
     <item row="0" column="1" colspan="2">
      <widget class="QLabel" name="labelFileName">
       <property name="text">
-       <string>TextLabel</string>
+       <string/>
       </property>
      </widget>
     </item>
@@ -146,25 +146,6 @@
       <item>
        <property name="text">
         <string>Column 7</string>
-       </property>
-      </item>
-     </widget>
-    </item>
-    <item row="2" column="3">
-     <widget class="QComboBox" name="comboBoxFormatSongName">
-      <item>
-       <property name="text">
-        <string>Path Name</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>File Name</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Best Guess</string>
        </property>
       </item>
      </widget>
@@ -265,6 +246,11 @@
         <string>Column 7</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>None</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item row="4" column="3">
@@ -333,6 +319,11 @@
         <string>Column 7</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>None</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item row="6" column="0">
@@ -380,6 +371,11 @@
       <item>
        <property name="text">
         <string>Column 7</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>None</string>
        </property>
       </item>
      </widget>
@@ -431,6 +427,11 @@
         <string>Column 7</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>None</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item row="8" column="0">
@@ -478,6 +479,11 @@
       <item>
        <property name="text">
         <string>Column 7</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>None</string>
        </property>
       </item>
      </widget>

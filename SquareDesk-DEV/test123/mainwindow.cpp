@@ -1476,13 +1476,6 @@ double timeToDouble(const QString &str, bool *ok)
     return t;
 }
 
-QString doubleToTime(double t)
-{
-    double minutes = floor(t / 60);
-    double seconds = t - minutes * 60;
-    QString str = QString("%1:%2").arg(minutes).arg(seconds, 6, 'f', 3, '0');
-    return str;
-}
 
 
 void MainWindow::on_lineEditOutroTime_textChanged()
@@ -3000,6 +2993,7 @@ void MainWindow::on_actionImport_triggered()
     RecursionGuard keypress_guard(trapKeypresses);
     if (dialogCode == QDialog::Accepted)
     {
+        importDialog->importSongs(songSettings, pathStack);
     }
     delete importDialog;
     importDialog = NULL;
@@ -3014,6 +3008,7 @@ void MainWindow::on_actionExport_triggered()
     RecursionGuard keypress_guard(trapKeypresses);
     if (dialogCode == QDialog::Accepted)
     {
+        exportDialog->exportSongs(songSettings, pathStack);
     }
     delete exportDialog;
     exportDialog = NULL;

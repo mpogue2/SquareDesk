@@ -23,30 +23,26 @@
 **
 ****************************************************************************/
 
-#ifndef COMMON_ENUMS_H
-#define COMMON_ENUMS_H
+#include "utility.h"
+#include <QStringList>
 
-enum SongFilenameMatchingType {
-    SongFilenameLabelDashName = 1,
-    SongFilenameNameDashLabel,
-    SongFilenameBestGuess
-};
-
-enum SessionDefaultType {
-    SessionDefaultPractice = 1,
-    SessionDefaultDOW
-};
-
-enum ColumnExportData
+QString doubleToTime(double t)
 {
-    ExportDataFileName = 0,
-    ExportDataPitch,
-    ExportDataTempo,
-    ExportDataIntro,
-    ExportDataOutro,
-    ExportDataVolume,
-    ExportDataCuesheetPath,
-    ExportDataNone
-};
+    double minutes = floor(t / 60);
+    double seconds = t - minutes * 60;
+    QString str = QString("%1:%2").arg(minutes).arg(seconds, 6, 'f', 3, '0');
+    return str;
+}
 
-#endif // ifndef COMMON_ENUMS_H
+
+double timeToDouble(QString t)
+{
+    QStringList l = t.split(':');
+    double d = 0;
+    for (int i = 0; i < l.count(); ++i)
+    {
+        d *= 60;
+        d += l[i].toDouble();
+    }
+    return d;
+}
