@@ -2994,6 +2994,7 @@ void MainWindow::on_actionImport_triggered()
     if (dialogCode == QDialog::Accepted)
     {
         importDialog->importSongs(songSettings, pathStack);
+        loadMusicList();
     }
     delete importDialog;
     importDialog = NULL;
