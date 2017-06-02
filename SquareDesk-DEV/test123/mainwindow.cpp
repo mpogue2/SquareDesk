@@ -2358,6 +2358,79 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 }
 
 
+QStringList splitIntoWords(const QString &str)
+{
+    static QRegExp regexNotAlnum(QRegExp("\\W+"));
+    static QRegularExpression regexLettersAndNumbers("^([A-Z]+)([0-9].*)$");
+    static QRegularExpression regexNumbersAndLetters("^([0-9]+)([A-Z].*)$");
+    QStringList words = str.split(regexNotAlnum);
+    for (int i = 0; i < words.length(); ++i)
+    {
+        bool splitFurther = true;
+
+        while (splitFurther)
+        {
+            splitFurther = false;
+            QRegularExpressionMatch match(regexLettersAndNumbers.match(words[i]));
+            if (match.hasMatch())
+            {
+                words.append(match.captured(1));
+                words[i] = match.captured(2);
+                splitFurther = true;
+            }
+            match = regexNumbersAndLetters.match(words[i]);
+            if (match.hasMatch())
+            {
+                splitFurther = true;
+                words.append(match.captured(1));
+                words[i] = match.captured(2);
+            }
+        }
+    }
+    words.sort(Qt::CaseInsensitive);
+    return words;
+}
+
+int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList l2)
+{
+    int i1 = 0, i2 = 0;
+    int score = 0;
+
+    while (i1 < l1.length() &&  i2 < l2.length())
+    {
+        int comp = l1[i1].compare(l2[i2], Qt::CaseInsensitive);
+        if (comp == 0)
+        {
+            ++score;
+            ++i1;
+            ++i2;
+        }
+        else if (comp < 0)
+        {
+            ++i1;
+        }
+        else
+        {
+            ++i2;
+        }
+    }
+    if (l1.length() >= 2 && l2.length() >= 2 &&
+        (
+            (score > ((l1.length() + l2.length()) / 4))
+            || (score >= l1.length())
+            || (score >= l2.length())
+            )
+        )
+    {
+        QString s1 = l1.join("-");
+        QString s2 = l2.join("-");
+//        qDebug() << "Score" << score << " / " << l1.length() << "/" << l2.length() << " s1: " << s1 << " s2: " << s2;
+        return score * 500 - 100 * (abs(l1.length()) - l2.length());
+    }
+    else
+        return 0;
+}
+
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
@@ -2376,6 +2449,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
 
+    QStringList mp3Words = splitIntoWords(mp3CompleteBaseName);
     mp3Labelnum_short = mp3Labelnum;
     while (mp3Labelnum_short.length() > 0 && mp3Labelnum_short[0] == '0')
     {
@@ -2430,6 +2504,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
         breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
+        QStringList words = splitIntoWords(completeBaseName);
         QString labelnum_short = labelnum;
         while (labelnum_short.length() > 0 && labelnum_short[0] == '0')
         {
@@ -2443,7 +2518,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //            " and num " << labelnum << " to " << mp3Labelnum <<
 //            " short num " << labelnum_short << " to " << mp3Labelnum_short;
 //        qDebug() << "    title: " << mp3Title << " to " << QString(label + "-" + labelnum);
-
+        int score = 0;
         // Minimum criteria:
         if (completeBaseName.compare(mp3CompleteBaseName, Qt::CaseInsensitive) == 0
             || title.compare(mp3Title, Qt::CaseInsensitive) == 0
@@ -2459,7 +2534,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             )
         {
 
-            int score = extensionIndex
+            score = extensionIndex
                 + (mp3CanonicalPath.compare(fi.canonicalPath(), Qt::CaseInsensitive) == 0 ? 10000 : 0)
                 + (mp3CompleteBaseName.compare(fi.completeBaseName(), Qt::CaseInsensitive) == 0 ? 1000 : 0)
                 + (title.compare(mp3Title, Qt::CaseInsensitive) == 0 ? 100 : 0)
@@ -2474,6 +2549,14 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             cswr->score = score;
             possibleRankings.append(cswr);
         } /* end of if we minimally included this cuesheet */
+        else if ((score = compareSortedWordListsForRelevance(mp3Words, words)) > 0)
+        {
+            CuesheetWithRanking *cswr = new CuesheetWithRanking();
+            cswr->filename = filename;
+            cswr->name = completeBaseName;
+            cswr->score = score;
+            possibleRankings.append(cswr);
+        }
     } /* end of looping through all files we know about */
 
     QString mp3Lyrics = loadLyrics(MP3Filename);
@@ -2495,6 +2578,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //    qDebug() << possibleCuesheets;
 }
 
+    
 void MainWindow::loadCuesheets(const QString &MP3FileName)
 {
     hasLyrics = false;
