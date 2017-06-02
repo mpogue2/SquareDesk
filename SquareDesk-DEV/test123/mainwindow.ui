@@ -1268,7 +1268,7 @@
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1537,9 +1537,6 @@
    <property name="text">
     <string>Speed Up</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl++</string>
-   </property>
   </action>
   <action name="actionSlow_Down">
    <property name="enabled">
@@ -1547,9 +1544,6 @@
    </property>
    <property name="text">
     <string>Slow Down</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+-</string>
    </property>
   </action>
   <action name="actionSave">
@@ -2042,7 +2036,7 @@
     <string>Zoom In</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+8</string>
+    <string>Ctrl+=</string>
    </property>
   </action>
   <action name="actionZoom_Out">
@@ -2050,7 +2044,7 @@
     <string>Zoom Out</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+9</string>
+    <string>Ctrl+-</string>
    </property>
   </action>
   <action name="actionReset">
