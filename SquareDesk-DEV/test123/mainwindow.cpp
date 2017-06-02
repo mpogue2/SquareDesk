@@ -2059,10 +2059,12 @@ bool MainWindow::handleKeypress(int key, QString text)
 
         case Qt::Key_Plus:
         case Qt::Key_Equal:
-            on_actionSpeed_Up_triggered();
+            ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
+            on_tempoSlider_valueChanged(ui->tempoSlider->value());
             break;
         case Qt::Key_Minus:
-            on_actionSlow_Down_triggered();
+            ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
+            on_tempoSlider_valueChanged(ui->tempoSlider->value());
             break;
 
         case Qt::Key_K:
@@ -2113,12 +2115,15 @@ bool MainWindow::handleKeypress(int key, QString text)
 // ------------------------------------------------------------------------
 void MainWindow::on_actionSpeed_Up_triggered()
 {
+//    qDebug() << "on_actionSpeed_Up_triggered";
+//    on_actionZoom_In_triggered();
     ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
     on_tempoSlider_valueChanged(ui->tempoSlider->value());
 }
 
 void MainWindow::on_actionSlow_Down_triggered()
 {
+//    on_actionZoom_Out_triggered();
     ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
     on_tempoSlider_valueChanged(ui->tempoSlider->value());
 }
