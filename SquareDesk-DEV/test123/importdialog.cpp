@@ -1,6 +1,4 @@
-/****************************************************************************
-**
-** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+/* Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk/SquareDeskPlayer application.
@@ -43,6 +41,70 @@ ImportDialog::~ImportDialog()
 }
 
 
+QStringList splitCSV(const QString &str)
+{
+    QStringList fields;
+    int pos = 0;
+    QString result;
+
+    while (pos < str.length())
+    {
+        while (pos < str.length() && str[pos].isSpace())
+            pos++;
+        if (str[pos] == '"')
+        {
+            pos++;
+            int startPos = pos;
+            while (pos < str.length() && str[pos] != '"')
+            {
+                if (str[pos] == '\\')
+                {
+                    result = result + str.mid(startPos, pos - startPos - 1);
+                    ++pos;
+                    if (pos < str.length())
+                    {
+                        if (str[pos] == 'r')
+                            result = result + '\r';
+                        else if (str[pos] == 'n')
+                            result = result + '\n';
+                        else if (str[pos] == 't')
+                            result = result + '\t';
+                        else
+                            result = result + str[pos];
+                        pos++;
+                    }
+                    startPos = pos;
+                }
+                ++pos;
+            }
+            if (startPos < pos)
+                result = result + str.mid(startPos, pos - startPos);
+        }
+        else
+        {
+            int startPos = pos;
+            pos = str.indexOf(',', pos);
+            if (pos == -1)
+                pos = str.length();
+            
+            if (startPos < pos)
+                result = result + str.mid(startPos, pos - startPos);
+         }
+        
+        if (str[pos] == ',')
+        {
+            fields << result.trimmed();
+            result.clear();
+        }
+            
+        pos++;
+    }
+    fields << result;
+    return fields;
+}
+
+
+
 QStringList readLine(QFile &file, bool tab_separator)
 {
     QStringList list;
@@ -50,12 +112,15 @@ QStringList readLine(QFile &file, bool tab_separator)
 
     while (!file.atEnd() && line.isEmpty())
     {
-        line = file.readLine().simplified();
+        line = file.readLine().trimmed();
     }
 
     if (!file.atEnd())
     {
-        list = line.split(tab_separator ? '\t' : ',');
+        if (tab_separator)
+            list = line.split((char)(9));
+        else
+            list = splitCSV(line);
     }       
     return list;
 }
@@ -106,11 +171,10 @@ void ImportDialog::on_pushButtonChooseFile_clicked()
     if (!file.atEnd())
     {
         fieldsTabs = line.split((char)(9));
-        fieldsCommas = line.split(',');
+        fieldsCommas = splitCSV(line);
     }
 
     bool usesTabs = (fieldsTabs.length() > fieldsCommas.length());
-    // qDebug() << "usesTabs " << usesTabs << " " << fieldsTabs.length() << "/" << fieldsCommas.length();
     ui->comboBoxTabOrCSV->setCurrentIndex(usesTabs ? 0 : 1);
     QStringList &fields(usesTabs ? fieldsTabs : fieldsCommas);
 
@@ -143,19 +207,9 @@ void ImportDialog::readImportFile(SongSettings &settings,
                                   QFile &file,
                                   QMap<QString, SongSetting> &songSettingsByFilename)
 {
-    char separator = (ui->comboBoxTabOrCSV->currentIndex() == 0) ? '\t' : ',';
-
     while (!file.atEnd())
     {
-        QString line;
-        while (!file.atEnd() && line.isEmpty())
-        {
-            line = file.readLine().trimmed();
-        }
-        if (line.isEmpty() || file.atEnd())
-            continue;
-        
-        QStringList fields = line.split(separator);
+        QStringList fields = readLine(file, ui->comboBoxTabOrCSV->currentIndex() == 0);
 
         QString filename;
         SongSetting setting;
