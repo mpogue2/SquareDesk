@@ -111,10 +111,10 @@ void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFile
                         switch (ui->comboBoxFormatSongName->currentIndex())
                         {
                         case 0: // Relative path name
-                            stream << settings.removeRootDirs(filename);
+                            stream << "\"" << settings.removeRootDirs(filename) << "\"";
                             break;
                         case 1: // Full path
-                            stream << filename;
+                            stream  << "\"" << filename << "\"";
                             break;
                         }
                         break;
@@ -162,10 +162,10 @@ void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFile
                         switch (ui->comboBoxFormatSongName->currentIndex())
                         {
                         case 0: // Relative path name
-                            stream << settings.removeRootDirs(setting.getCuesheetName());
+                            stream  << "\"" << settings.removeRootDirs(setting.getCuesheetName()) << "\"";
                             break;
                         case 1: // Full path
-                            stream << setting.getCuesheetName();
+                            stream  << "\"" << setting.getCuesheetName() << "\"";
                             break;
                         }
                         break;
