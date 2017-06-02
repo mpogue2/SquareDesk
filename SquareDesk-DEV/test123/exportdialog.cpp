@@ -97,23 +97,24 @@ void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFile
             QString s(musicFilenameIter.next());
             QStringList sl1 = s.split("#!#");
             QString filename = sl1[1];  // everything else
-            
+
             SongSetting setting;
             if (settings.loadSettings(filename, setting))
-            { 
+            {
                 for (int i = 0; i < outputFieldCount; ++i)
                 {
                     if (i > 0) stream << separator;
-                    
+
                     switch (outputFields[i])
                     {
                     case ExportDataFileName :
                         switch (ui->comboBoxFormatSongName->currentIndex())
                         {
                         case 0: // Relative path name
-                            stream << settings.removeRootDirs(filename);
+                            stream << "\"" << settings.removeRootDirs(filename) << "\"";
+                            break;
                         case 1: // Full path
-                            stream << filename;
+                            stream  << "\"" << filename << "\"";
                             break;
                         }
                         break;
@@ -161,9 +162,10 @@ void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFile
                         switch (ui->comboBoxFormatSongName->currentIndex())
                         {
                         case 0: // Relative path name
-                            stream << settings.removeRootDirs(setting.getCuesheetName());
+                            stream  << "\"" << settings.removeRootDirs(setting.getCuesheetName()) << "\"";
+                            break;
                         case 1: // Full path
-                            stream << setting.getCuesheetName();
+                            stream  << "\"" << setting.getCuesheetName() << "\"";
                             break;
                         }
                         break;

@@ -27,6 +27,8 @@
 #define UTILITY_H_INCLUDED
 
 #include <QString>
+#include <math.h>
+
 class RecursionGuard
 {
 private:
