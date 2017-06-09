@@ -2188,7 +2188,7 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass.SetEq(2, (float)value);
 }
 
-static const char *music_file_extensions[] = { "mp3", "wav" };
+static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
 
 
@@ -2583,7 +2583,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //    qDebug() << possibleCuesheets;
 }
 
-    
+
 void MainWindow::loadCuesheets(const QString &MP3FileName)
 {
     hasLyrics = false;
