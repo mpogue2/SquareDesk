@@ -242,12 +242,12 @@ private slots:
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
     void on_tableWidgetCallList_cellChanged(int row, int col);
-#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
     void on_lineEditChoreographySearch_textChanged();
     void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
     void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
-#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT    
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 
 
     void changeApplicationState(Qt::ApplicationState state);
@@ -283,6 +283,12 @@ private slots:
 
     void on_actionReset_triggered();
 
+    void on_actionAge_toggled(bool arg1);
+
+    void on_actionPitch_toggled(bool arg1);
+
+    void on_actionTempo_toggled(bool arg1);
+
 private:
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;
@@ -301,7 +307,6 @@ private:
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF
-    bool pitchAndTempoHidden;   // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
     bool clockColoringHidden;   // EXPERIMENTAL CLOCK COLORING STUFF
 
     QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
@@ -389,7 +394,7 @@ private:
 
     QString removePrefix(QString prefix, QString s);
 
-    void updatePitchTempoView();
+    void updateSongTableColumnView();
     void setFontSizes();
 
     int selectedSongRow();  // returns -1 if none selected

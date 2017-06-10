@@ -377,8 +377,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    ui->songTable->setColumnWidth(kNumberCol,36);
 
     // ----------
-    pitchAndTempoHidden = !prefsManager.GetexperimentalPitchTempoViewEnabled();
-    updatePitchTempoView(); // update the actual view of these 2 columns in the songTable
+    updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
 
     // ----------
     clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
@@ -394,6 +393,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
+
+    on_actionAge_toggled(prefsManager.GetshowAgeColumn());
+    on_actionPitch_toggled(prefsManager.GetshowPitchColumn());
+    on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
 
 // voice input is only available on MAC OS X and Win32 right now...
 #ifdef POCKETSPHINXSUPPORT
@@ -1026,30 +1029,24 @@ void MainWindow::setFontSizes()
 }
 
 // ----------------------------------------------------------------------
-void MainWindow::updatePitchTempoView()
+void MainWindow::updateSongTableColumnView()
 {
-    if (pitchAndTempoHidden) {
-        ui->songTable->setColumnHidden(kAgeCol,true); // hide the age column
-        ui->songTable->setColumnHidden(kPitchCol,true); // hide the pitch column
-        ui->songTable->setColumnHidden(kTempoCol,true); // hide the tempo column
-    }
-    else {
+    PreferencesManager prefsManager;
 
-        ui->songTable->setColumnHidden(kAgeCol,false); // show the age column
-        ui->songTable->setColumnHidden(kPitchCol,false); // show the pitch column
-        ui->songTable->setColumnHidden(kTempoCol,false); // show the tempo column
+    ui->songTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
+    ui->songTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
+    ui->songTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
 
-        // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
-        QHeaderView *headerView = ui->songTable->horizontalHeader();
-        headerView->setSectionResizeMode(kNumberCol, QHeaderView::Interactive);
-        headerView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
-        headerView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
-        headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
-        headerView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
-        headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
-        headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
-        headerView->setStretchLastSection(false);
-    }
+    // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
+    QHeaderView *headerView = ui->songTable->horizontalHeader();
+    headerView->setSectionResizeMode(kNumberCol, QHeaderView::Interactive);
+    headerView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
+    headerView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
+    headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+    headerView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
+    headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
+    headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
+    headerView->setStretchLastSection(false);
 }
 
 
@@ -3729,11 +3726,6 @@ void MainWindow::on_actionPreferences_triggered()
         } else {
             ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
         }
-
-        // ----------------------------------------------------------------
-        // Save the new value for experimentalPitchTempoViewEnabled --------
-        pitchAndTempoHidden = !prefsManager.GetexperimentalPitchTempoViewEnabled();
-        updatePitchTempoView();  // update the columns in songTable, as per the user's NEW setting
 
         // -----------------------------------------------------------------------
         // Save the new settings for experimental break and patter timers --------
@@ -6458,4 +6450,37 @@ void MainWindow::on_actionReset_triggered()
     ui->songTable->setFont(currentFont);
 
     adjustFontSizes();
+}
+
+void MainWindow::on_actionAge_toggled(bool checked)
+{
+    ui->actionAge->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showAgeColumn setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.SetshowAgeColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionPitch_toggled(bool checked)
+{
+    ui->actionPitch->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showAgeColumn setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.SetshowPitchColumn(checked);
+
+    updateSongTableColumnView();
+}
+
+void MainWindow::on_actionTempo_toggled(bool checked)
+{
+    ui->actionTempo->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showAgeColumn setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.SetshowTempoColumn(checked);
+
+    updateSongTableColumnView();
 }

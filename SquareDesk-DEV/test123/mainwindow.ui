@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1416,9 +1416,19 @@
      <addaction name="separator"/>
      <addaction name="actionReset"/>
     </widget>
+    <widget class="QMenu" name="menuColumns">
+     <property name="title">
+      <string>Columns</string>
+     </property>
+     <addaction name="actionAge"/>
+     <addaction name="actionPitch"/>
+     <addaction name="actionTempo"/>
+    </widget>
     <addaction name="actionCompact"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
+    <addaction name="separator"/>
+    <addaction name="menuColumns"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
@@ -2061,6 +2071,30 @@
    </property>
    <property name="text">
     <string>Show All Ages</string>
+   </property>
+  </action>
+  <action name="actionAge">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Age</string>
+   </property>
+  </action>
+  <action name="actionPitch">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Pitch</string>
+   </property>
+  </action>
+  <action name="actionTempo">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tempo</string>
    </property>
   </action>
  </widget>
