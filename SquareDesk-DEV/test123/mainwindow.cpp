@@ -146,7 +146,8 @@ MainWindow::MainWindow(QWidget *parent) :
     trapKeypresses(true),
     sd(NULL),
     firstTimeSongIsPlayed(false),
-    loadingSong(false)
+    loadingSong(false),
+    totalZoom(0)
 {
 //    QSettings mySettings;
 //    QString settingsPath = mySettings.fileName();
@@ -2354,7 +2355,42 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             ui->textBrowserCueSheet->setHtml(html);
         }
     } else {
-        ui->textBrowserCueSheet->setSource(cuesheetUrl);
+//        qDebug() << "loading lyrics file: " << cuesheetFilename;
+//        ui->textBrowserCueSheet->setSource(cuesheetUrl);
+
+        // read the CSS file (if any)
+        PreferencesManager prefsManager;
+        QString musicDirPath = prefsManager.GetmusicPath();
+        QString lyricsDir = musicDirPath + "/lyrics";
+
+        QFile css(lyricsDir + "/cuesheet2.css");  // cuesheet2.css is located in the LYRICS directory (NOTE: GLOBAL! All others are now IGNORED)
+
+        QString cssString;
+        if ( css.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in1(&css);
+            cssString = in1.readAll();  // read the entire CSS file, if it exists
+            css.close();
+        }
+
+//        qDebug() << "CSS: " << cssString;
+
+        // read in the HTML for the cuesheet
+        QFile f1(cuesheetFilename);
+        QString cuesheet;
+        if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            QTextStream in(&f1);
+            cuesheet = in.readAll();  // read the entire CSS file, if it exists
+
+//            qDebug() << "cuesheet: " << cuesheet;
+
+            // set the CSS
+            ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
+
+            // set the HTML for the cuesheet itself (must set CSS first)
+            ui->textBrowserCueSheet->setHtml(cuesheet);
+            f1.close();
+        }
+
     }
 
 }
@@ -5133,7 +5169,7 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     bool fileIsOpen = false;
     QFile f1(filedir + "/cuesheet2.css");  // This is the SqView convention for a CSS file
     if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        // if there's a "cuesheet2.csv" file in the same directory as the .txt file,
+        // if there's a "cuesheet2.css" file in the same directory as the .txt file,
         //   then we're going to embed it into the HTML representation of the .txt file,
         //   so that the font preferences therein apply.
         fileIsOpen = true;
@@ -6424,6 +6460,13 @@ void MainWindow::on_actionZoom_In_triggered()
     int newPointSize = currentFont.pointSize() + ZOOMINCREMENT;
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+
+    if (newPointSize > currentFont.pointSize()) {
+        ui->textBrowserCueSheet->zoomIn(2*ZOOMINCREMENT);
+        totalZoom += 2*ZOOMINCREMENT;
+//        qDebug() << "zooming in, totalZoom is now:" << totalZoom;
+    }
+
     currentFont.setPointSize(newPointSize);
     ui->songTable->setFont(currentFont);
 
@@ -6436,6 +6479,13 @@ void MainWindow::on_actionZoom_Out_triggered()
     int newPointSize = currentFont.pointSize() - ZOOMINCREMENT;
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+
+    if (newPointSize < currentFont.pointSize()) {
+        ui->textBrowserCueSheet->zoomOut(2*ZOOMINCREMENT);
+        totalZoom -= 2*ZOOMINCREMENT;
+//        qDebug() << "zooming out, totalZoom is now:" << totalZoom;
+    }
+
     currentFont.setPointSize(newPointSize);
     ui->songTable->setFont(currentFont);
 
@@ -6448,6 +6498,9 @@ void MainWindow::on_actionReset_triggered()
     int newPointSize = currentFont.pointSize();  // start out with the default system font size
     currentFont.setPointSize(newPointSize);
     ui->songTable->setFont(currentFont);
+
+    ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane
+    totalZoom = 0;
 
     adjustFontSizes();
 }

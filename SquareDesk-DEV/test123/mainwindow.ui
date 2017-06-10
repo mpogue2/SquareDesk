@@ -1176,7 +1176,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QTextBrowser" name="textBrowserCueSheet"/>
+         <widget class="QTextEdit" name="textBrowserCueSheet"/>
         </item>
        </layout>
       </widget>
