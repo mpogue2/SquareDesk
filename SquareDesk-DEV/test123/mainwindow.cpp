@@ -1994,6 +1994,8 @@ bool MainWindow::handleKeypress(int key, QString text)
         return false;
     }
 
+    int currentTab = 0;
+
     switch (key) {
 
         case Qt::Key_Escape:
@@ -2097,9 +2099,23 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
-        case Qt::Key_L:
-            on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
-            break;
+    case Qt::Key_L:
+        on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
+        break;
+
+    case Qt::Key_T:
+        currentTab = ui->tabWidget->currentIndex();
+        if (currentTab == 0) {
+            // if Music tab active, go to Lyrics tab
+            ui->tabWidget->setCurrentIndex(1);
+        } else if (currentTab == 1) {
+            // if Lyrics tab active, go to Music tab
+            ui->tabWidget->setCurrentIndex(0);
+        } else {
+            // if currently some other tab, just go to the Music tab
+            ui->tabWidget->setCurrentIndex(0);
+        }
+        break;
 
         default:
 //            qDebug() << "unhandled key:" << key;
