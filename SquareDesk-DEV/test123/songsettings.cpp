@@ -38,18 +38,14 @@ using namespace std;
 
 void SongSettings::exec(const char *where, QSqlQuery &q)
 {
-    if (!q.exec())
-    {
-        debugErrors(where, q);
-    }
+    q.exec();
+    debugErrors(where, q);
 }
 
 void SongSettings::exec(const char *where, QSqlQuery &q, const QString &str)
 {
-    if (!q.exec(str))
-    {
-        debugErrors(where, q);
-    }
+    q.exec(str);
+    debugErrors(where, q);
 }
 
 
@@ -196,13 +192,24 @@ TableDefinition session_table("sessions", song_rows);
 RowDefinition song_play_rows[] =
 {
     RowDefinition("song_rowid", "int references songs(rowid)"),
-    RowDefinition("session_rowid", "int references songs(rowid)"),
+    RowDefinition("session_rowid", "int references session(rowid)"),
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
                   "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
     RowDefinition(NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
 
+
+RowDefinition call_taught_on_rows[] =
+{
+    RowDefinition("dance_program", "TEXT"),
+    RowDefinition("call_name", "TEXT"),
+    RowDefinition("session_rowid", "INT REFERENCES session(rowid)",
+                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid"),
+    RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
+    RowDefinition(NULL, NULL),
+};
+TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 
 /*
 "CREATE TABLE play_history (
@@ -274,6 +281,7 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&song_table);
     ensureSchema(&session_table);
     ensureSchema(&song_plays_table);
+    ensureSchema(&call_taught_on_table);
     {
         unsigned int sessions_available = 0;
         {
@@ -398,10 +406,79 @@ void SongSettings::markSongPlayed(const QString &filename, const QString &filena
     exec("markSongPlayed", q);
 }
 
-QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath)
+QString SongSettings::getCallTaughtOn(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("SELECT date(taught_on, 'localtime') FROM call_taught_on WHERE dance_program= :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("getCallTaughtOn", q);
+    if (q.next())
+    {
+        return q.value(0).toString();
+    }
+    return QString("");
+}
+
+void SongSettings::setCallTaught(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("INSERT INTO call_taught_on(dance_program, call_name, session_rowid) VALUES (:dance_program, :call_name, :session_rowid)");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("setCallTaught", q);
+}
+void SongSettings::deleteCallTaught(const QString &program, const QString &call_name)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM call_taught_on WHERE dance_program = :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);    
+    q.bindValue(":call_name", call_name);
+    exec("deleteCallTaught", q);
+}
+
+void SongSettings::clearTaughtCalls(const QString &program)
+{
+    QSqlQuery q(m_db);
+    q.prepare("DELETE FROM call_taught_on WHERE session_rowid = :session_rowid AND dance_program = :dance_program");
+    q.bindValue(":session_rowid", current_session_id);
+    q.bindValue(":dance_program", program);
+    exec("clearTaughtCalls", q);
+}
+
+void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions)
+{
+    QString sql("SELECT filename, julianday('now') - julianday(max(played_on)) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    if (!show_all_sessions)
+        sql += " WHERE session_rowid = :session_rowid";
+    sql += " GROUP BY songs.rowid";
+    QSqlQuery q(m_db);
+    q.prepare(sql);
+    q.bindValue(":session_rowid", current_session_id);
+    
+    exec("songAges", q);
+    while (q.next())
+    {
+        int age = q.value(1).toInt();
+        QString str(QString("%1").arg(age, 3));
+        ages[q.value(0).toString()] = str;
+    }
+}
+
+QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions)
 {
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
-    const char sql[] = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE session_rowid = :session_rowid and songs.filename = :filename ORDER BY played_on DESC LIMIT 1";
+    QString sql = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE ";
+    if (!show_all_sessions)
+    {
+        sql += "session_rowid = :session_rowid AND ";
+    }
+    
+    sql += "songs.filename = :filename ORDER BY played_on DESC LIMIT 1";
+
     {
         QSqlQuery q(m_db);
         q.prepare(sql);

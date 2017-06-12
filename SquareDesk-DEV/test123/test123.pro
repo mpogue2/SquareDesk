@@ -30,6 +30,7 @@ SOURCES += main.cpp\
     renderarea.cpp \
     sdhighlighter.cpp \
     utility.cpp \
+    danceprograms.cpp \
     startupwizard.cpp
 
 HEADERS  += mainwindow.h \
@@ -57,6 +58,7 @@ HEADERS  += mainwindow.h \
     renderarea.h \
     common.h \
     sdhighlighter.h \
+    danceprograms.h \
     startupwizard.h
 
     FORMS    += mainwindow.ui \

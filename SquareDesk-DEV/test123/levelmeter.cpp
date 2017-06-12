@@ -150,12 +150,20 @@ void LevelMeter::paintEvent(QPaintEvent *event)
     Q_UNUSED(event)
 
     QPainter painter(this);
-    painter.fillRect(rect(), Qt::lightGray);  // background color of VU Meter
+
+#if defined(Q_OS_MAC)
+    painter.fillRect(rect(), QColor(225,225,225));  // background color of VU Meter
+#elif defined(Q_OS_WIN)
+    painter.fillRect(rect(), QColor(225,225,225));
+#else  // Q_OS_LINUX
+    painter.fillRect(rect(), QColor(225,225,225));
+#endif
 
     // 10 bars, painted from left to right
     // 6 green, 2 yellow, 2 red
     QColor barColor;
-    const unsigned int numBoxes = 20;
+    QColor noBarColor;  // color to use, if level is not that high
+    const unsigned int numBoxes = 10;
     for (unsigned int i = 0; i < numBoxes; i++) {
         QRect bar = rect();
         int bot = rect().left() + ((float)(i)/(float)numBoxes)*rect().width();
@@ -163,23 +171,29 @@ void LevelMeter::paintEvent(QPaintEvent *event)
 
         bar.setLeft(top);
         bar.setRight(bot);
-        bar.setTop(1);
-        bar.setBottom(rect().bottom()-1);
+        bar.setTop(1 + 5);
+        bar.setBottom(rect().bottom()-1 - 5);
+
+        int noBarLevel = 120;
 
         if (i < 0.6 * numBoxes) {
             barColor = Qt::green;
+            noBarColor = QColor(0,noBarLevel,0);
         }
         else if (i < 0.8 * numBoxes) {
             barColor = Qt::yellow;
+            noBarColor = QColor(noBarLevel,noBarLevel,0);
         }
         else {
             barColor = Qt::red;
+            noBarColor = QColor(noBarLevel,0,0);
         }
         if (m_decayedPeakLevel*(float)numBoxes >= (i+1)) {
             painter.fillRect(bar, barColor);
         }
         else {
-            break;  // break out of the for loop early, if no more boxes to draw
+//            break;  // break out of the for loop early, if no more boxes to draw
+            painter.fillRect(bar, noBarColor);
         }
     }
 

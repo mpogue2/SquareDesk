@@ -66,6 +66,8 @@ SOURCES       = main.cpp \
 		console.cpp \
 		renderarea.cpp \
 		sdhighlighter.cpp \
+		utility.cpp \
+		danceprograms.cpp \
 		startupwizard.cpp qrc_resources.cpp \
 		qrc_startupwizard.cpp \
 		moc_mainwindow.cpp \
@@ -97,6 +99,8 @@ OBJECTS       = main.o \
 		console.o \
 		renderarea.o \
 		sdhighlighter.o \
+		utility.o \
+		danceprograms.o \
 		startupwizard.o \
 		qrc_resources.o \
 		qrc_startupwizard.o \
@@ -222,6 +226,7 @@ DIST          = LICENSE.GPL3 \
 		renderarea.h \
 		common.h \
 		sdhighlighter.h \
+		danceprograms.h \
 		startupwizard.h main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
@@ -240,6 +245,8 @@ DIST          = LICENSE.GPL3 \
 		console.cpp \
 		renderarea.cpp \
 		sdhighlighter.cpp \
+		utility.cpp \
+		danceprograms.cpp \
 		startupwizard.cpp
 QMAKE_TARGET  = SquareDeskPlayer
 DESTDIR       = #avoid trailing-slash linebreak
@@ -471,8 +478,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources.qrc startupwizard.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h importdialog.h exportdialog.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h startupwizard.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp importdialog.cpp exportdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp startupwizard.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h importdialog.h exportdialog.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h danceprograms.h startupwizard.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp importdialog.cpp exportdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp utility.cpp danceprograms.cpp startupwizard.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents macUtils.mm $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui importdialog.ui exportdialog.ui preferencesdialog.ui $(DISTDIR)/
 
@@ -537,6 +544,7 @@ moc_mainwindow.cpp: common_enums.h \
 
 moc_importdialog.cpp: common_enums.h \
 		default_colors.h \
+		songsettings.h \
 		importdialog.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include importdialog.h -o moc_importdialog.cpp
 
@@ -651,6 +659,7 @@ mainwindow.o: mainwindow.cpp analogclock.h \
 		prefsmanager.h \
 		importdialog.h \
 		exportdialog.h \
+		danceprograms.h \
 		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
@@ -669,12 +678,16 @@ preferencesdialog.o: preferencesdialog.cpp preferencesdialog.h \
 importdialog.o: importdialog.cpp importdialog.h \
 		common_enums.h \
 		default_colors.h \
-		ui_importdialog.h
+		songsettings.h \
+		ui_importdialog.h \
+		utility.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o importdialog.o importdialog.cpp
 
 exportdialog.o: exportdialog.cpp exportdialog.h \
 		common_enums.h \
-		ui_exportdialog.h
+		ui_exportdialog.h \
+		songsettings.h \
+		utility.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o exportdialog.o exportdialog.cpp
 
 mytablewidget.o: mytablewidget.cpp mytablewidget.h
@@ -720,6 +733,12 @@ renderarea.o: renderarea.cpp renderarea.h \
 sdhighlighter.o: sdhighlighter.cpp sdhighlighter.h \
 		common.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sdhighlighter.o sdhighlighter.cpp
+
+utility.o: utility.cpp utility.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utility.o utility.cpp
+
+danceprograms.o: danceprograms.cpp danceprograms.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o danceprograms.o danceprograms.cpp
 
 startupwizard.o: startupwizard.cpp prefsmanager.h \
 		prefs_options.h \

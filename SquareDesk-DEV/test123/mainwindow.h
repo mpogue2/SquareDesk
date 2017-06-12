@@ -37,6 +37,7 @@
 #include <QDirIterator>
 #include <QList>
 #include <QListIterator>
+#include <QListWidget>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QMouseEvent>
@@ -158,6 +159,7 @@ private slots:
     void on_actionImport_triggered();
     void on_actionExport_triggered();
 
+    void on_pushButtonClearTaughtCalls_clicked();
     void on_pushButtonCountDownTimerStartStop_clicked();
     void on_pushButtonCountDownTimerReset_clicked();
     void on_pushButtonCountUpTimerStartStop_clicked();
@@ -209,6 +211,7 @@ private slots:
     void microphoneStatusUpdate();
 
 
+    void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionPractice_triggered(bool checked);
     void on_actionMonday_triggered(bool checked);
     void on_actionTuesday_triggered(bool checked);
@@ -239,6 +242,15 @@ private slots:
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
+    void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
+    void on_tableWidgetCallList_cellChanged(int row, int col);
+#ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
+    void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
+    void on_lineEditChoreographySearch_textChanged();
+    void on_listWidgetChoreographySequences_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
+#endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
+
 
     void changeApplicationState(Qt::ApplicationState state);
     void focusChanged(QWidget *old, QWidget *now);
@@ -257,7 +269,6 @@ private slots:
     void on_actionRecent3_triggered();
     void on_actionRecent4_triggered();
     void on_actionClear_Recent_List_triggered();
-
     void on_actionCheck_for_Updates_triggered();
 
     void on_action_4_triggered();
@@ -273,6 +284,12 @@ private slots:
     void on_actionZoom_Out_triggered();
 
     void on_actionReset_triggered();
+
+    void on_actionAge_toggled(bool arg1);
+
+    void on_actionPitch_toggled(bool arg1);
+
+    void on_actionTempo_toggled(bool arg1);
 
 private:
     int preferredSmallFontSize;  // preferred font sizes
@@ -292,7 +309,6 @@ private:
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF
-    bool pitchAndTempoHidden;   // EXPERIMENTAL PITCH/TEMPO VIEW STUFF
     bool clockColoringHidden;   // EXPERIMENTAL CLOCK COLORING STUFF
 
     QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
@@ -337,6 +353,9 @@ private:
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
+    void loadChoreographyList();
+    void filterChoreography();
+    QStringList getUncheckedItemsFromCurrentCallList();
     void adjustFontSizes();
     int col0_width;  // work around a Qt bug, wherein it does not track the width of the # column
 
@@ -377,7 +396,7 @@ private:
 
     QString removePrefix(QString prefix, QString s);
 
-    void updatePitchTempoView();
+    void updateSongTableColumnView();
     void setFontSizes();
 
     int selectedSongRow();  // returns -1 if none selected
@@ -436,8 +455,10 @@ private:
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings
     void setCurrentSessionId(int id);
-    void setCurrentSessionIdReloadMusic(int id);
+    void setCurrentSessionIdReloadSongAges(int id);
+    void reloadSongAges(bool show_all_sessions);
     bool autoScrollLyricsEnabled;
+    void loadDanceProgramList(QString lastDanceProgram);
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 
@@ -451,6 +472,8 @@ private:
     // sound fx
     QString soundFXarray[6];
     void maybeInstallSoundFX();
+
+    int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 
 };
 
@@ -471,6 +494,14 @@ private:
 // hidden columns:
 #define kPitchCol 5
 #define kTempoCol 6
+
+
+// columns in tableViewCallList
+#define kCallListOrderCol       0
+#define kCallListCheckedCol     1
+#define kCallListNameCol        2
+#define kCallListWhenCheckedCol 3
+
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time
