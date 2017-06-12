@@ -3657,11 +3657,14 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "0") {
+    if (tempo != "0" && tempo != "0%") {
         // iff tempo is known, then update the table
         QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
         int tempoInt = tempo2.toInt();
-        ui->tempoSlider->setValue(tempoInt);
+        if (tempoInt !=0)
+        {
+            ui->tempoSlider->setValue(tempoInt);
+        }
     }
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
