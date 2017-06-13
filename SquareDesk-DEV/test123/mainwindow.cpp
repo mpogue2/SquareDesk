@@ -2873,6 +2873,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->lineEditOutroTime->setText("");
     ui->lineEditIntroTime->setEnabled(isSingingCall);
     ui->lineEditOutroTime->setEnabled(isSingingCall);
+    ui->seekBarCuesheet->SetDefaultIntroOutroPositions();
+    ui->seekBar->SetDefaultIntroOutroPositions();
 
 
     loadSettingsForSong(songTitle);
@@ -5105,10 +5107,6 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
 
-        double length = (double)(ui->seekBarCuesheet->maximum());
-        ui->lineEditIntroTime->setText(doubleToTime(intro * length));
-        ui->lineEditOutroTime->setText(doubleToTime(outro * length));
-
         if (cuesheetName.length() > 0)
         {
             for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
@@ -5122,6 +5120,9 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             }
         }
     }
+    double length = (double)(ui->seekBarCuesheet->maximum());
+    ui->lineEditIntroTime->setText(doubleToTime(intro * length));
+    ui->lineEditOutroTime->setText(doubleToTime(outro * length));
 }
 
 // ------------------------------------------------------------------------------------------

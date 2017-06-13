@@ -31,10 +31,15 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
 {
     drawLoopPoints = false;
     singingCall = false;
+    SetDefaultIntroOutroPositions();
+    origin = 0;
+}
+
+void MySlider::SetDefaultIntroOutroPositions()
+{
     float defaultSingerLengthInBeats = (64 * 7 + 24);
     introPosition = (float)(16 / defaultSingerLengthInBeats);
     outroPosition = (float)(1.0 - 8 / defaultSingerLengthInBeats );
-    origin = 0;
 }
 
 void MySlider::SetLoop(bool b)

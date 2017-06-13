@@ -43,6 +43,7 @@ public:
     void SetOutro(float outro);
     float GetIntro() const;
     float GetOutro() const;
+    void SetDefaultIntroOutroPositions();
 
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);
