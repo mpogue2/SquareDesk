@@ -267,6 +267,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //Set UI update
     cBass.SetVolume(100);
     currentVolume = 100;
+    previousVolume = 100;
     Info_Volume();
 
     // VU Meter -----
@@ -5070,7 +5071,7 @@ void MainWindow::saveCurrentSongSettings()
         songSettings.saveSettings(currentMP3filename,
                                   currentMP3filenameWithPath,
                                   currentSong,
-                                  currentVolume,
+                                  (currentVolume == 0) ? previousVolume : currentVolume,
                                   pitch, tempo,
                                   !tempoIsBPM,
                                   ui->seekBarCuesheet->GetIntro(),
