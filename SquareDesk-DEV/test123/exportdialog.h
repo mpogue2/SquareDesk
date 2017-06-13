@@ -60,4 +60,10 @@ private:
     Ui::ExportDialog *ui;
 };
 
+void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> *musicFilenames,
+                    int outputFieldCount, enum ColumnExportData outputFields[],
+                    char separator,
+                    bool includeHeaderNames,
+                    bool relativePathNames);
+
 #endif // EXPORTDIALOG_H

@@ -56,15 +56,130 @@ void ExportDialog::on_pushButtonChooseFile_clicked()
     ui->labelFileName->setText(filename);
 }
 
+static void outputString(QTextStream &stream, const QString &str, bool quote)
+{
+    if (!quote)
+    {
+        stream << str;
+    }
+    else
+    {
+        QString quotedString(str);
+        quotedString.replace("\"", "\\\"");
+        stream << "\"" << str << "\"";
+    }
+}
+
+void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> *musicFilenames,
+                    int outputFieldCount, enum ColumnExportData outputFields[],
+                    char separator,
+                    bool includeHeaderNames,
+                    bool relativePathNames)
+{
+    const char *headerNames[] = { "Filename", "Pitch", "Tempo", "Intro", "Outro", "Volume", "Cuesheet", "None" };
+    if (includeHeaderNames)
+    {
+        for (int i = 0; i < outputFieldCount; ++i)
+        {
+            if (i > 0) stream << separator;
+            stream << headerNames[outputFields[i]];
+        }
+        stream << endl;
+    }
+    
+    QListIterator<QString> musicFilenameIter(*musicFilenames);
+    while (musicFilenameIter.hasNext())
+    {
+        QString s(musicFilenameIter.next());
+        QStringList sl1 = s.split("#!#");
+        QString filename = sl1[1];  // everything else
+
+        SongSetting setting;
+        if (settings.loadSettings(filename, setting))
+        {
+            for (int i = 0; i < outputFieldCount; ++i)
+            {
+                if (i > 0) stream << separator;
+                
+                switch (outputFields[i])
+                {
+                case ExportDataFileName :
+                    if (relativePathNames)
+                    {
+                        outputString(stream, settings.removeRootDirs(filename), ',' == separator);
+                    }
+                    else
+                    {
+                        outputString(stream, filename, ',' == separator);
+                    }
+                    break;
+                case ExportDataPitch :
+                    if (setting.isSetPitch())
+                        stream << setting.getPitch();
+                    break;
+                case ExportDataTempo :
+                    if (setting.isSetTempo())
+                        stream << setting.getTempo();
+                    if (setting.getTempoIsPercent())
+                        stream << '%';
+                    break;
+                case ExportDataIntro :
+                    if (setting.isSetIntroOutroIsTimeBased())
+                    {
+                        if (setting.getIntroOutroIsTimeBased())
+                        {
+                            stream << doubleToTime(setting.getIntroPos());
+                        }
+                        else if (setting.isSetSongLength())
+                        {
+                            stream << doubleToTime(setting.getIntroPos() * setting.getSongLength());
+                        }
+                    }
+                    break;
+                case ExportDataOutro :
+                    if (setting.isSetIntroOutroIsTimeBased())
+                    {
+                        if (setting.getIntroOutroIsTimeBased())
+                        {
+                            stream << doubleToTime(setting.getOutroPos());
+                        }
+                        else if (setting.isSetSongLength())
+                        {
+                            stream << doubleToTime(setting.getOutroPos() * setting.getSongLength());
+                        }
+                    }
+                    break;
+                case ExportDataVolume :
+                    if (setting.isSetVolume())
+                        stream << setting.getVolume();
+                    break;
+                case ExportDataCuesheetPath :
+                    if (relativePathNames)
+                    {
+                        outputString(stream, settings.removeRootDirs(setting.getCuesheetName()),  ',' == separator);
+                    }
+                    else
+                    {
+                        outputString(stream, setting.getCuesheetName(), ',' == separator);
+                    }
+                    break;
+                case ExportDataNone :
+                    break;
+                }
+            } // end of iterating through fields
+            stream << endl;
+        } // end of if we could load settings for this file
+    } // end of while iterating through filenames
+}
+
 void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFilenames)
 {
     QString filename(ui->labelFileName->text());
     QFile file( filename );
-    if ( file.open(QIODevice::ReadWrite) )
+    if ( file.open(QIODevice::WriteOnly) )
     {
         QTextStream stream( &file );
 
-        const char *headerNames[] = { "Filename", "Pitch", "Tempo", "Intro", "Outro", "Volume", "Cuesheet", "None" };
         enum ColumnExportData outputFields[7];
         int outputFieldCount = sizeof(outputFields) / sizeof(*outputFields);
         char separator = (ui->comboBoxTabOrCSV->currentIndex() == 0) ? '\t' : ',';
@@ -81,100 +196,11 @@ void ExportDialog::exportSongs(SongSettings &settings, QList<QString> *musicFile
         {
             outputFieldCount--;
         }
-        if (ui->comboBoxFirstRow->currentIndex() == 0)
-        {
-            for (int i = 0; i < outputFieldCount; ++i)
-            {
-                if (i > 0) stream << separator;
-                stream << headerNames[outputFields[i]];
-            }
-            stream << endl;
-        }
+        exportSongList(stream, settings, musicFilenames,
+                       outputFieldCount, outputFields,
+                       separator,
+                       0 == ui->comboBoxFirstRow->currentIndex(),
+                       0 == ui->comboBoxFormatSongName->currentIndex());
 
-        QListIterator<QString> musicFilenameIter(*musicFilenames);
-        while (musicFilenameIter.hasNext())
-        {
-            QString s(musicFilenameIter.next());
-            QStringList sl1 = s.split("#!#");
-            QString filename = sl1[1];  // everything else
-
-            SongSetting setting;
-            if (settings.loadSettings(filename, setting))
-            {
-                for (int i = 0; i < outputFieldCount; ++i)
-                {
-                    if (i > 0) stream << separator;
-
-                    switch (outputFields[i])
-                    {
-                    case ExportDataFileName :
-                        switch (ui->comboBoxFormatSongName->currentIndex())
-                        {
-                        case 0: // Relative path name
-                            stream << "\"" << settings.removeRootDirs(filename) << "\"";
-                            break;
-                        case 1: // Full path
-                            stream  << "\"" << filename << "\"";
-                            break;
-                        }
-                        break;
-                    case ExportDataPitch :
-                        if (setting.isSetPitch())
-                            stream << setting.getPitch();
-                        break;
-                    case ExportDataTempo :
-                        if (setting.isSetTempo())
-                            stream << setting.getTempo();
-                        if (setting.getTempoIsPercent())
-                            stream << '%';
-                        break;
-                    case ExportDataIntro :
-                        if (setting.isSetIntroOutroIsTimeBased())
-                        {
-                            if (setting.getIntroOutroIsTimeBased())
-                            {
-                                stream << doubleToTime(setting.getIntroPos());
-                            }
-                            else if (setting.isSetSongLength())
-                            {
-                                stream << doubleToTime(setting.getIntroPos() * setting.getSongLength());
-                            }
-                        }
-                        break;
-                    case ExportDataOutro :
-                        if (setting.isSetIntroOutroIsTimeBased())
-                        {
-                            if (setting.getIntroOutroIsTimeBased())
-                            {
-                                stream << doubleToTime(setting.getOutroPos());
-                            }
-                            else if (setting.isSetSongLength())
-                            {
-                                stream << doubleToTime(setting.getOutroPos() * setting.getSongLength());
-                            }
-                        }
-                        break;
-                    case ExportDataVolume :
-                        if (setting.isSetVolume())
-                            stream << setting.getVolume();
-                        break;
-                    case ExportDataCuesheetPath :
-                        switch (ui->comboBoxFormatSongName->currentIndex())
-                        {
-                        case 0: // Relative path name
-                            stream  << "\"" << settings.removeRootDirs(setting.getCuesheetName()) << "\"";
-                            break;
-                        case 1: // Full path
-                            stream  << "\"" << setting.getCuesheetName() << "\"";
-                            break;
-                        }
-                        break;
-                    case ExportDataNone :
-                        break;
-                    }
-                } // end of iterating through fields
-                stream << endl;
-            } // end of if we could load settings for this file
-        } // end of while iterating through filenames
     } // end of successful open
 }

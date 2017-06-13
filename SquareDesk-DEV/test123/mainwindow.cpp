@@ -3719,15 +3719,51 @@ void MainWindow::on_actionExport_triggered()
 {
     RecursionGuard dialog_guard(inPreferencesDialog);
 
-    ExportDialog *exportDialog = new ExportDialog();
-    int dialogCode = exportDialog->exec();
-    RecursionGuard keypress_guard(trapKeypresses);
-    if (dialogCode == QDialog::Accepted)
+    if (true)
     {
-        exportDialog->exportSongs(songSettings, pathStack);
+        QString filename =
+            QFileDialog::getSaveFileName(this, tr("Select Export File"),
+                                         QDir::homePath(),
+                                         tr("Tab Separated (*.tsv);;Comma Separated (*.csv)"));
+        if (!filename.isNull())
+        {
+            QFile file( filename );
+            if ( file.open(QIODevice::WriteOnly) )
+            {
+                QTextStream stream( &file );
+                
+                enum ColumnExportData outputFields[7];
+                int outputFieldCount = sizeof(outputFields) / sizeof(*outputFields);
+                char separator = filename.endsWith(".csv", Qt::CaseInsensitive) ? ',' :
+                    '\t';
+                
+                outputFields[0] = ExportDataFileName;
+                outputFields[1] = ExportDataPitch;
+                outputFields[2] = ExportDataTempo;
+                outputFields[3] = ExportDataIntro;
+                outputFields[4] = ExportDataOutro;
+                outputFields[5] = ExportDataVolume;
+                outputFields[6] = ExportDataCuesheetPath;
+
+                exportSongList(stream, songSettings, pathStack,
+                               outputFieldCount, outputFields,
+                               separator,
+                               true, false);
+            }
+        }
     }
-    delete exportDialog;
-    exportDialog = NULL;
+    else
+    {
+        ExportDialog *exportDialog = new ExportDialog();
+        int dialogCode = exportDialog->exec();
+        RecursionGuard keypress_guard(trapKeypresses);
+        if (dialogCode == QDialog::Accepted)
+        {
+            exportDialog->exportSongs(songSettings, pathStack);
+        }
+        delete exportDialog;
+        exportDialog = NULL;
+    }
 }
 
 // --------------------------------------------------------

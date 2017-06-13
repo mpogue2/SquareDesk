@@ -560,6 +560,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     QSqlQuery q(m_db);
     if (id == -1)
     {
+        fields.append("filename");
         QString sql("INSERT INTO songs(");
         {
             QListIterator<QString> iter(fields);
@@ -605,7 +606,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
         q.prepare(sql);
         q.bindValue(":rowid", id);
     }
-    
+
     q.bindValue(":filename", filenameWithPathNormalized);
     q.bindValue(":songname", settings.getFilename() );
     q.bindValue(":pitch", settings.getPitch() );
