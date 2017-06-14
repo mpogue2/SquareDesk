@@ -177,6 +177,25 @@ void bass_audio::SetEq(int band, float val)
     BASS_FXSetParameters(fxEQ, &eq);
 }
 
+// *******************
+// http://bass.radio42.com/help/html/ee197eac-8482-1f9a-e0e1-8ec9e4feda9b.htm
+void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *user)
+{
+    Q_UNUSED(handle)
+    Q_UNUSED(data)
+    Q_UNUSED(user)
+//    qDebug() << "FADE IS DONE.";
+    DWORD Stream_State = BASS_ChannelIsActive(channel);
+    if (Stream_State == BASS_ACTIVE_PLAYING) {
+//        qDebug() << "     Pausing playback";
+        // if active, PAUSE the stream
+        BASS_ChannelPause(channel);
+
+        ((bass_audio*)user)->StreamGetPosition();
+        ((bass_audio*)user)->bPaused = true;
+    }
+}
+
 // ------------------------------------------------------------------
 void bass_audio::StreamCreate(const char *filepath)
 {
@@ -273,6 +292,10 @@ void bass_audio::StreamCreate(const char *filepath)
 
     // ALWAYS do channel processing
     gMono_dsp = BASS_ChannelSetDSP(Stream, &DSP_Mono, 0, 1);
+
+    // when the fade is done, call a SYNCPROC that pauses playback
+    DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
+    Q_UNUSED(handle)
 }
 
 // ------------------------------------------------------------------
@@ -365,6 +388,10 @@ void bass_audio::Play(void)
     switch (Stream_State) {
         // Play
         case BASS_ACTIVE_STOPPED:
+            // put the volume back where it was, now that we're paused.
+//            qDebug() << "PLAY: Setting volume back to" << 1.0;
+            BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+
             // if stopped (initial load or reached EOS), start from
             //  wherever the currentposition is (set by the slider)
             BASS_ChannelPlay(Stream, false);
@@ -372,6 +399,10 @@ void bass_audio::Play(void)
             break;
         // Resume
         case BASS_ACTIVE_PAUSED:
+            // put the volume back where it was, now that we're paused.
+//            qDebug() << "RESUME: Setting volume back to" << 1.0;
+            BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+
             BASS_ChannelPlay(Stream, false);
             StreamGetPosition();
             break;
@@ -393,6 +424,16 @@ void bass_audio::Stop(void)
     StreamSetPosition(0);
     bPaused = true;
 }
+
+void bass_audio::FadeOutAndPause(void) {
+    Stream_State = BASS_ChannelIsActive(Stream);
+    if (Stream_State == BASS_ACTIVE_PLAYING) {
+//        qDebug() << "starting fade...current streamvolume is " << Stream_Volume;
+
+        BASS_ChannelSlideAttribute(Stream, BASS_ATTRIB_VOL, 0.0, 3000);  // fade to 0 in 3s
+    }
+}
+
 
 // ------------------------------------------------------------------
 void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volume) {

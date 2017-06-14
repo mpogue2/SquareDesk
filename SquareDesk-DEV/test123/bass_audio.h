@@ -80,6 +80,7 @@ public:
     //Controls
     void Play(void);
     void Stop(void);
+    void FadeOutAndPause(void);
 
     int StreamGetVuMeter(void); // get VU meter level (mono)
 

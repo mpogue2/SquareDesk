@@ -1799,6 +1799,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
     // update the session coloring analog clock
     QTime time = QTime::currentTime();
     int theType = NONE;
+//    qDebug() << "Stream_State:" << cBass.Stream_State; //FIX
     if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
@@ -1819,7 +1820,16 @@ void MainWindow::on_UIUpdateTimerTick(void)
         }
 
         analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
+    } else if (cBass.Stream_State == BASS_ACTIVE_PAUSED) {
+        // if we paused due to FADE, for example...
+        // FIX: this could be factored out, it's used twice.
+        ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+        ui->actionPlay->setText("Play");
+        currentState = kPaused;
+        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
+
+
 #ifndef DEBUGCLOCK
     analogClock->setSegment(time.hour(), time.minute(), time.second(), theType);  // always called once per second
 #else
@@ -2100,23 +2110,27 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
-    case Qt::Key_L:
-        on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
-        break;
+        case Qt::Key_Y:
+            cBass.FadeOutAndPause();
+            break;
 
-    case Qt::Key_T:
-        currentTab = ui->tabWidget->currentIndex();
-        if (currentTab == 0) {
-            // if Music tab active, go to Lyrics tab
-            ui->tabWidget->setCurrentIndex(1);
-        } else if (currentTab == 1) {
-            // if Lyrics tab active, go to Music tab
-            ui->tabWidget->setCurrentIndex(0);
-        } else {
-            // if currently some other tab, just go to the Music tab
-            ui->tabWidget->setCurrentIndex(0);
-        }
-        break;
+        case Qt::Key_L:
+            on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
+            break;
+
+        case Qt::Key_T:
+            currentTab = ui->tabWidget->currentIndex();
+            if (currentTab == 0) {
+                // if Music tab active, go to Lyrics tab
+                ui->tabWidget->setCurrentIndex(1);
+            } else if (currentTab == 1) {
+                // if Lyrics tab active, go to Music tab
+                ui->tabWidget->setCurrentIndex(0);
+            } else {
+                // if currently some other tab, just go to the Music tab
+                ui->tabWidget->setCurrentIndex(0);
+            }
+            break;
 
         default:
 //            qDebug() << "unhandled key:" << key;
