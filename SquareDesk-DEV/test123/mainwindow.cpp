@@ -49,6 +49,9 @@
 #include "utility.h"
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
+#include "importdialog.h"
+#include "exportdialog.h"
+
 #include "danceprograms.h"
 #define CUSTOM_FILTER
 #include "startupwizard.h"
@@ -1666,13 +1669,6 @@ double timeToDouble(const QString &str, bool *ok)
     return t;
 }
 
-QString doubleToTime(double t)
-{
-    double minutes = floor(t / 60);
-    double seconds = t - minutes * 60;
-    QString str = QString("%1:%2").arg(minutes).arg(seconds, 6, 'f', 3, '0');
-    return str;
-}
 
 
 void MainWindow::on_lineEditOutroTime_textChanged()
@@ -2890,7 +2886,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->lineEditOutroTime->setEnabled(isSingingCall);
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions();
     ui->seekBar->SetDefaultIntroOutroPositions();
-
+    cBass.SetVolume(100);
+    currentVolume = 100;
+    previousVolume = 100;
+    Info_Volume();
 
     loadSettingsForSong(songTitle);
 }
@@ -3222,17 +3221,14 @@ void MainWindow::loadMusicList()
 
         int pitch = 0;
         int tempo = 0;
-        int volume = 0;
-        double intro = 0;
-        double outro = 0;
-        bool loadedTempoIsPercent;
-        songSettings.loadSettings(fi.completeBaseName(),
-                                  origPath,
-                                  title,
-                                  volume,
-                                  pitch, tempo,
-                                  loadedTempoIsPercent,
-                                  intro, outro);
+        bool loadedTempoIsPercent(false);
+        SongSetting settings;
+        songSettings.loadSettings(origPath,
+                                  settings);
+        
+        if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        if (settings.isSetTempoIsPercent()) { loadedTempoIsPercent = settings.getTempoIsPercent(); }
 
         addStringToLastRowOfSongTable(textCol, ui->songTable,
                                       QString("%1").arg(pitch),
@@ -3722,6 +3718,73 @@ void MainWindow::on_checkBoxStartOnPlay_clicked()
     prefsManager.Setstartcountuptimeronplay(ui->checkBoxStartOnPlay->isChecked());
 }
 
+
+void MainWindow::on_actionImport_triggered()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    ImportDialog *importDialog = new ImportDialog();
+    int dialogCode = importDialog->exec();
+    RecursionGuard keypress_guard(trapKeypresses);
+    if (dialogCode == QDialog::Accepted)
+    {
+        importDialog->importSongs(songSettings, pathStack);
+        loadMusicList();
+    }
+    delete importDialog;
+    importDialog = NULL;
+}
+
+void MainWindow::on_actionExport_triggered()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    if (true)
+    {
+        QString filename =
+            QFileDialog::getSaveFileName(this, tr("Select Export File"),
+                                         QDir::homePath(),
+                                         tr("Tab Separated (*.tsv);;Comma Separated (*.csv)"));
+        if (!filename.isNull())
+        {
+            QFile file( filename );
+            if ( file.open(QIODevice::WriteOnly) )
+            {
+                QTextStream stream( &file );
+                
+                enum ColumnExportData outputFields[7];
+                int outputFieldCount = sizeof(outputFields) / sizeof(*outputFields);
+                char separator = filename.endsWith(".csv", Qt::CaseInsensitive) ? ',' :
+                    '\t';
+                
+                outputFields[0] = ExportDataFileName;
+                outputFields[1] = ExportDataPitch;
+                outputFields[2] = ExportDataTempo;
+                outputFields[3] = ExportDataIntro;
+                outputFields[4] = ExportDataOutro;
+                outputFields[5] = ExportDataVolume;
+                outputFields[6] = ExportDataCuesheetPath;
+
+                exportSongList(stream, songSettings, pathStack,
+                               outputFieldCount, outputFields,
+                               separator,
+                               true, false);
+            }
+        }
+    }
+    else
+    {
+        ExportDialog *exportDialog = new ExportDialog();
+        int dialogCode = exportDialog->exec();
+        RecursionGuard keypress_guard(trapKeypresses);
+        if (dialogCode == QDialog::Accepted)
+        {
+            exportDialog->exportSongs(songSettings, pathStack);
+        }
+        delete exportDialog;
+        exportDialog = NULL;
+    }
+}
 
 // --------------------------------------------------------
 void MainWindow::on_actionPreferences_triggered()
@@ -5082,16 +5145,22 @@ void MainWindow::saveCurrentSongSettings()
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
 
-        songSettings.saveSettings(currentMP3filename,
-                                  currentMP3filenameWithPath,
-                                  currentSong,
-                                  (currentVolume == 0) ? previousVolume : currentVolume,
-                                  pitch, tempo,
-                                  !tempoIsBPM,
-                                  ui->seekBarCuesheet->GetIntro(),
-                                  ui->seekBarCuesheet->GetOutro(),
-                                  cuesheetFilename
-            );
+        SongSetting setting;
+        setting.setFilename(currentMP3filename);
+        setting.setFilenameWithPath(currentMP3filenameWithPath);
+        setting.setSongname(currentSong);
+        setting.setVolume(currentVolume);
+        setting.setPitch(pitch);
+        setting.setTempo(tempo);
+        setting.setTempoIsPercent(!tempoIsBPM);
+        setting.setIntroPos(ui->seekBarCuesheet->GetIntro());
+        setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
+        setting.setIntroOutroIsTimeBased(false);
+        setting.setCuesheetName(cuesheetFilename);
+        setting.setSongLength((double)(ui->seekBarCuesheet->maximum()));
+
+        songSettings.saveSettings(currentMP3filenameWithPath,
+                                  setting);
         // TODO: Loop points!
     }
 
@@ -5106,21 +5175,41 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
     QString cuesheetName = "";
-    bool loadedTempoIsPercent;
 
-    if (songSettings.loadSettings(currentMP3filename,
-                                  currentMP3filenameWithPath,
-                                  songTitle,
-                                  volume,
-                                  pitch, tempo,
-                                  loadedTempoIsPercent,
-                                  intro, outro, cuesheetName))
+    SongSetting settings;
+    settings.setFilename(currentMP3filename);
+    settings.setFilenameWithPath(currentMP3filenameWithPath);
+    settings.setSongname(songTitle);
+    settings.setVolume(volume);
+    settings.setPitch(pitch);
+    settings.setTempo(tempo);
+    settings.setIntroPos(intro);
+    settings.setOutroPos(outro);
+
+    if (songSettings.loadSettings(currentMP3filenameWithPath,
+                                  settings))
     {
+        if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        if (settings.isSetVolume()) { volume = settings.getVolume(); }
+        if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
+        if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
+
+        double length = (double)(ui->seekBarCuesheet->maximum());
+        if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
+        {
+            intro = intro / length;
+            outro = outro / length;
+        }
+        
         ui->pitchSlider->setValue(pitch);
         ui->tempoSlider->setValue(tempo);
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
+
+        ui->lineEditIntroTime->setText(doubleToTime(intro * length));
+        ui->lineEditOutroTime->setText(doubleToTime(outro * length));
 
         if (cuesheetName.length() > 0)
         {

@@ -1279,6 +1279,8 @@
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
+    <addaction name="actionImport"/>
+    <addaction name="actionExport"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
@@ -2063,6 +2065,26 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="actionImport_Song_Data">
+   <property name="text">
+    <string>Song Data</string>
+   </property>
+  </action>
+  <action name="actionExport_Song_Data">
+   <property name="text">
+    <string>Export Song Data</string>
+   </property>
+  </action>
+  <action name="actionImport">
+   <property name="text">
+    <string>Import...</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+     <string>Export...</string>
    </property>
   </action>
   <action name="actionShow_All_Ages">

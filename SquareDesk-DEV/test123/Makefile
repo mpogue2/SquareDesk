@@ -52,6 +52,8 @@ SOURCES       = main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
+		importdialog.cpp \
+		exportdialog.cpp \
 		mytablewidget.cpp \
 		tablenumberitem.cpp \
 		myslider.cpp \
@@ -64,9 +66,13 @@ SOURCES       = main.cpp \
 		console.cpp \
 		renderarea.cpp \
 		sdhighlighter.cpp \
+		utility.cpp \
+		danceprograms.cpp \
 		startupwizard.cpp qrc_resources.cpp \
 		qrc_startupwizard.cpp \
 		moc_mainwindow.cpp \
+		moc_importdialog.cpp \
+		moc_exportdialog.cpp \
 		moc_preferencesdialog.cpp \
 		moc_levelmeter.cpp \
 		moc_analogclock.cpp \
@@ -79,6 +85,8 @@ OBJECTS       = main.o \
 		mainwindow.o \
 		bass_audio.o \
 		preferencesdialog.o \
+		importdialog.o \
+		exportdialog.o \
 		mytablewidget.o \
 		tablenumberitem.o \
 		myslider.o \
@@ -91,10 +99,14 @@ OBJECTS       = main.o \
 		console.o \
 		renderarea.o \
 		sdhighlighter.o \
+		utility.o \
+		danceprograms.o \
 		startupwizard.o \
 		qrc_resources.o \
 		qrc_startupwizard.o \
 		moc_mainwindow.o \
+		moc_importdialog.o \
+		moc_exportdialog.o \
 		moc_preferencesdialog.o \
 		moc_levelmeter.o \
 		moc_analogclock.o \
@@ -195,6 +207,8 @@ DIST          = LICENSE.GPL3 \
 		bass_audio.h \
 		myslider.h \
 		bassmix.h \
+		importdialog.h \
+		exportdialog.h \
 		preferencesdialog.h \
 		utility.h \
 		mytablewidget.h \
@@ -212,10 +226,13 @@ DIST          = LICENSE.GPL3 \
 		renderarea.h \
 		common.h \
 		sdhighlighter.h \
+		danceprograms.h \
 		startupwizard.h main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
+		importdialog.cpp \
+		exportdialog.cpp \
 		mytablewidget.cpp \
 		tablenumberitem.cpp \
 		myslider.cpp \
@@ -228,6 +245,8 @@ DIST          = LICENSE.GPL3 \
 		console.cpp \
 		renderarea.cpp \
 		sdhighlighter.cpp \
+		utility.cpp \
+		danceprograms.cpp \
 		startupwizard.cpp
 QMAKE_TARGET  = SquareDeskPlayer
 DESTDIR       = #avoid trailing-slash linebreak
@@ -256,7 +275,7 @@ first: all
 
 ####### Build rules
 
-$(TARGET): ui_mainwindow.h ui_preferencesdialog.h $(OBJECTS)  
+$(TARGET): ui_mainwindow.h ui_importdialog.h ui_exportdialog.h ui_preferencesdialog.h $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: test123.pro /usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64/qmake.conf /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
@@ -459,10 +478,10 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources.qrc startupwizard.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h startupwizard.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp startupwizard.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h importdialog.h exportdialog.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h danceprograms.h startupwizard.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp importdialog.cpp exportdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp utility.cpp danceprograms.cpp startupwizard.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents macUtils.mm $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.ui preferencesdialog.ui $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.ui importdialog.ui exportdialog.ui preferencesdialog.ui $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -500,9 +519,9 @@ qrc_startupwizard.cpp: startupwizard.qrc \
 		startupwizardimages/logo1.png
 	/usr/lib/x86_64-linux-gnu/qt5/bin/rcc -name startupwizard startupwizard.qrc -o qrc_startupwizard.cpp
 
-compiler_moc_header_make_all: moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
+compiler_moc_header_make_all: moc_mainwindow.cpp moc_importdialog.cpp moc_exportdialog.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) moc_mainwindow.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
+	-$(DEL_FILE) moc_mainwindow.cpp moc_importdialog.cpp moc_exportdialog.cpp moc_preferencesdialog.cpp moc_levelmeter.cpp moc_analogclock.cpp moc_clickablelabel.cpp moc_console.cpp moc_renderarea.cpp moc_sdhighlighter.cpp moc_startupwizard.cpp
 moc_mainwindow.cpp: common_enums.h \
 		sdhighlighter.h \
 		common.h \
@@ -522,6 +541,16 @@ moc_mainwindow.cpp: common_enums.h \
 		macUtils.h \
 		mainwindow.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
+
+moc_importdialog.cpp: common_enums.h \
+		default_colors.h \
+		songsettings.h \
+		importdialog.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include importdialog.h -o moc_importdialog.cpp
+
+moc_exportdialog.cpp: common_enums.h \
+		exportdialog.h
+	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include exportdialog.h -o moc_exportdialog.cpp
 
 moc_preferencesdialog.cpp: common_enums.h \
 		default_colors.h \
@@ -556,14 +585,20 @@ moc_startupwizard.cpp: startupwizard.h
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all: ui_mainwindow.h ui_preferencesdialog.h
+compiler_uic_make_all: ui_mainwindow.h ui_importdialog.h ui_exportdialog.h ui_preferencesdialog.h
 compiler_uic_clean:
-	-$(DEL_FILE) ui_mainwindow.h ui_preferencesdialog.h
+	-$(DEL_FILE) ui_mainwindow.h ui_importdialog.h ui_exportdialog.h ui_preferencesdialog.h
 ui_mainwindow.h: mainwindow.ui \
 		myslider.h \
 		mytablewidget.h \
 		clickablelabel.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/uic mainwindow.ui -o ui_mainwindow.h
+
+ui_importdialog.h: importdialog.ui
+	/usr/lib/x86_64-linux-gnu/qt5/bin/uic importdialog.ui -o ui_importdialog.h
+
+ui_exportdialog.h: exportdialog.ui
+	/usr/lib/x86_64-linux-gnu/qt5/bin/uic exportdialog.ui -o ui_exportdialog.h
 
 ui_preferencesdialog.h: preferencesdialog.ui
 	/usr/lib/x86_64-linux-gnu/qt5/bin/uic preferencesdialog.ui -o ui_preferencesdialog.h
@@ -622,6 +657,9 @@ mainwindow.o: mainwindow.cpp analogclock.h \
 		utility.h \
 		tablenumberitem.h \
 		prefsmanager.h \
+		importdialog.h \
+		exportdialog.h \
+		danceprograms.h \
 		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o mainwindow.cpp
 
@@ -636,6 +674,21 @@ preferencesdialog.o: preferencesdialog.cpp preferencesdialog.h \
 		prefs_options.h \
 		ui_preferencesdialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o preferencesdialog.o preferencesdialog.cpp
+
+importdialog.o: importdialog.cpp importdialog.h \
+		common_enums.h \
+		default_colors.h \
+		songsettings.h \
+		ui_importdialog.h \
+		utility.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o importdialog.o importdialog.cpp
+
+exportdialog.o: exportdialog.cpp exportdialog.h \
+		common_enums.h \
+		ui_exportdialog.h \
+		songsettings.h \
+		utility.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o exportdialog.o exportdialog.cpp
 
 mytablewidget.o: mytablewidget.cpp mytablewidget.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mytablewidget.o mytablewidget.cpp
@@ -681,6 +734,12 @@ sdhighlighter.o: sdhighlighter.cpp sdhighlighter.h \
 		common.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o sdhighlighter.o sdhighlighter.cpp
 
+utility.o: utility.cpp utility.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o utility.o utility.cpp
+
+danceprograms.o: danceprograms.cpp danceprograms.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o danceprograms.o danceprograms.cpp
+
 startupwizard.o: startupwizard.cpp prefsmanager.h \
 		prefs_options.h \
 		startupwizard.h
@@ -694,6 +753,12 @@ qrc_startupwizard.o: qrc_startupwizard.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp
+
+moc_importdialog.o: moc_importdialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_importdialog.o moc_importdialog.cpp
+
+moc_exportdialog.o: moc_exportdialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_exportdialog.o moc_exportdialog.cpp
 
 moc_preferencesdialog.o: moc_preferencesdialog.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_preferencesdialog.o moc_preferencesdialog.cpp

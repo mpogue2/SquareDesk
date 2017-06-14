@@ -23,30 +23,47 @@
 **
 ****************************************************************************/
 
-#ifndef COMMON_ENUMS_H
-#define COMMON_ENUMS_H
+#ifndef EXPORTDIALOG_H
+#define EXPORTDIALOG_H
 
-enum SongFilenameMatchingType {
-    SongFilenameLabelDashName = 1,
-    SongFilenameNameDashLabel,
-    SongFilenameBestGuess
-};
+#include <QDialog>
+#include <QFileDialog>
+#include <QDir>
+#include <QDebug>
+#include <QSettings>
+#include <QValidator>
 
-enum SessionDefaultType {
-    SessionDefaultPractice = 1,
-    SessionDefaultDOW
-};
+#include "common_enums.h"
 
-enum ColumnExportData
+namespace Ui
 {
-    ExportDataFileName = 0,
-    ExportDataPitch,
-    ExportDataTempo,
-    ExportDataIntro,
-    ExportDataOutro,
-    ExportDataVolume,
-    ExportDataCuesheetPath,
-    ExportDataNone
+class ExportDialog;
+}
+
+
+class SongSettings;
+
+class ExportDialog : public QDialog
+{
+    Q_OBJECT
+
+public:
+    explicit ExportDialog(QWidget *parent = 0);
+    ~ExportDialog();
+    void exportSongs(SongSettings &settings, QList<QString> *musicFilenames);
+
+private slots:
+    void on_pushButtonChooseFile_clicked();
+     
+
+private:
+    Ui::ExportDialog *ui;
 };
 
-#endif // ifndef COMMON_ENUMS_H
+void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> *musicFilenames,
+                    int outputFieldCount, enum ColumnExportData outputFields[],
+                    char separator,
+                    bool includeHeaderNames,
+                    bool relativePathNames);
+
+#endif // EXPORTDIALOG_H

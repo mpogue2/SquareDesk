@@ -15,6 +15,8 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     bass_audio.cpp \
     preferencesdialog.cpp \
+    importdialog.cpp \
+    exportdialog.cpp \
     mytablewidget.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
@@ -27,6 +29,7 @@ SOURCES += main.cpp\
     console.cpp \
     renderarea.cpp \
     sdhighlighter.cpp \
+    utility.cpp \
     danceprograms.cpp \
     startupwizard.cpp
 
@@ -36,6 +39,8 @@ HEADERS  += mainwindow.h \
     bass_audio.h \
     myslider.h \
     bassmix.h \
+    importdialog.h \
+    exportdialog.h \
     preferencesdialog.h \
     utility.h \
     mytablewidget.h \
@@ -56,7 +61,9 @@ HEADERS  += mainwindow.h \
     danceprograms.h \
     startupwizard.h
 
-FORMS    += mainwindow.ui \
+    FORMS    += mainwindow.ui \
+    importdialog.ui \
+    exportdialog.ui \
     preferencesdialog.ui
 
 INCLUDEPATH += $$PWD/
