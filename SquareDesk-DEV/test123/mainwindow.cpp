@@ -3802,6 +3802,7 @@ void MainWindow::on_actionPreferences_triggered()
 
     prefDialog = new PreferencesDialog;
     prefsManager.populatePreferencesDialog(prefDialog);
+    prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
 
     // modal dialog
     int dialogCode = prefDialog->exec();
@@ -3906,21 +3907,22 @@ void MainWindow::on_actionPreferences_triggered()
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-        loadMusicList();
-    }
+        if (prefDialog->songTableReloadNeeded) {
+            loadMusicList();
+        }
 
-    if (prefsManager.GetenableAutoAirplaneMode()) {
-        // if the user JUST set the preference, turn Airplane Mode on RIGHT NOW (radios OFF).
-        airplaneMode(true);
-    } else {
-        // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
-        airplaneMode(false);
-    }
+        if (prefsManager.GetenableAutoAirplaneMode()) {
+            // if the user JUST set the preference, turn Airplane Mode on RIGHT NOW (radios OFF).
+            airplaneMode(true);
+        } else {
+            // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
+            airplaneMode(false);
+        }
 
-    if (prefsManager.GetenableAutoMicsOff()) {
-        microphoneStatusUpdate();
+        if (prefsManager.GetenableAutoMicsOff()) {
+            microphoneStatusUpdate();
+        }
     }
-
 
     delete prefDialog;
     prefDialog = NULL;

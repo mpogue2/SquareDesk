@@ -51,6 +51,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
+    songTableReloadNeeded = false;
+
     ui->setupUi(this);
 
     // validator for initial BPM setting
@@ -114,6 +116,8 @@ void PreferencesDialog::on_chooseMusicPathButton_clicked()
         return;  // user cancelled the "Select Base Directory for Music" dialog...so don't do anything, just return
     }
 
+    songTableReloadNeeded = true;  // change to Music Directory requires reload of the songTable
+
     ui->musicPath->setText(dir);
     musicPath = dir;
 }
@@ -136,6 +140,8 @@ void PreferencesDialog::on_calledColorButton_clicked()
         ui->calledColorButton->setAutoFillBackground(true);
         ui->calledColorButton->setFlat(true);
         ui->calledColorButton->setText(calledColorString);  // remember it in the control's text
+
+        songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
 
@@ -155,6 +161,8 @@ void PreferencesDialog::on_extrasColorButton_clicked()
         ui->extrasColorButton->setAutoFillBackground(true);
         ui->extrasColorButton->setFlat(true);
         ui->extrasColorButton->setText(extrasColorString);  // remember it in the control's text
+
+        songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
 
@@ -174,6 +182,8 @@ void PreferencesDialog::on_patterColorButton_clicked()
         ui->patterColorButton->setAutoFillBackground(true);
         ui->patterColorButton->setFlat(true);
         ui->patterColorButton->setText(patterColorString);  // remember it in the control's text
+
+        songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
 
@@ -193,6 +203,8 @@ void PreferencesDialog::on_singingColorButton_clicked()
         ui->singingColorButton->setAutoFillBackground(true);
         ui->singingColorButton->setFlat(true);
         ui->singingColorButton->setText(singingColorString);  // remember it in the control's text
+
+        songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
 
@@ -254,4 +266,24 @@ void PreferencesDialog::on_initialBPMLineEdit_textChanged(const QString &arg1)
     } else {
         ui->initialBPMLineEdit->setStyleSheet(COLOR_STYLE.arg(notOKcolor.name()));
     }
+}
+
+void PreferencesDialog::on_lineEditMusicTypePatter_textChanged(const QString &arg1)
+{
+    songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
+}
+
+void PreferencesDialog::on_lineEditMusicTypeExtras_textChanged(const QString &arg1)
+{
+    songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
+}
+
+void PreferencesDialog::on_lineEditMusicTypeSinging_textChanged(const QString &arg1)
+{
+    songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
+}
+
+void PreferencesDialog::on_lineEditMusicTypeCalled_textChanged(const QString &arg1)
+{
+    songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
 }

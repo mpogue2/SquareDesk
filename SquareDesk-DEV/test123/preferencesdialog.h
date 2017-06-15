@@ -54,6 +54,8 @@ public:
 
     QValidator *validator;
 
+    bool songTableReloadNeeded;
+
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
 //    QColor patterColor;
 //    QColor singingColor;
@@ -91,6 +93,14 @@ private slots:
     void on_singingColorButton_clicked();
 
     void on_initialBPMLineEdit_textChanged(const QString &arg1);
+
+    void on_lineEditMusicTypePatter_textChanged(const QString &arg1);
+
+    void on_lineEditMusicTypeExtras_textChanged(const QString &arg1);
+
+    void on_lineEditMusicTypeSinging_textChanged(const QString &arg1);
+
+    void on_lineEditMusicTypeCalled_textChanged(const QString &arg1);
 
 private:
     Ui::PreferencesDialog *ui;
