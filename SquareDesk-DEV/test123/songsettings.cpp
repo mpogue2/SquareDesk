@@ -578,6 +578,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetOutroPos()) { fields.append("outroPos" ); }
     if (settings.isSetVolume()) { fields.append("volume" ); }
     if (settings.isSetSongname()) { fields.append("name" ); }
+    if (settings.isSetCuesheetName()) { fields.append("last_cuesheet" ); }  // ADDED ********
     if (settings.isSetSongLength()) { fields.append("songLength" ); }
     if (settings.isSetIntroOutroIsTimeBased()) { fields.append("introOutroIsTimeBased" ); }
 
@@ -641,7 +642,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":outroPos", settings.getOutroPos() );
     q.bindValue(":volume", settings.getVolume() );
     q.bindValue(":name", settings.getSongname() );
-    q.bindValue(":cuesheet", settings.getCuesheetName() );
+    q.bindValue(":last_cuesheet", settings.getCuesheetName() );
     q.bindValue(":songLength", settings.getSongLength() );
     q.bindValue(":introOutroIsTimeBased", settings.getIntroOutroIsTimeBased() );
 

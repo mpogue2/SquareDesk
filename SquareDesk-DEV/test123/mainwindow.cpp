@@ -5159,6 +5159,8 @@ void MainWindow::saveCurrentSongSettings()
         setting.setCuesheetName(cuesheetFilename);
         setting.setSongLength((double)(ui->seekBarCuesheet->maximum()));
 
+//        qDebug() << "Saving settings: " << setting;
+
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
         // TODO: Loop points!
@@ -5198,6 +5200,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
         if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
+        if (settings.isSetCuesheetName()) { cuesheetName = settings.getCuesheetName(); } // ADDED *****
 
         double length = (double)(ui->seekBarCuesheet->maximum());
         if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
@@ -5220,8 +5223,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
             {
                 QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
+//                qDebug() << "i: " << i << ", itemName: " << itemName;
                 if (itemName == cuesheetName)
                 {
+//                    qDebug() << "matched!";
                     ui->comboBoxCuesheetSelector->setCurrentIndex(i);
                     break;
                 }
