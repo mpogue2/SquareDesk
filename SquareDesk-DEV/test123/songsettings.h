@@ -71,6 +71,8 @@ public:
     double getSongLength() const { return m_songLength; }
     bool isSetSongLength() const { return set_songLength; }
     void setSongLength(double p) { m_songLength = p; set_songLength = true; }
+
+    friend QDebug operator<<(QDebug dbg, const SongSetting &setting);  // DEBUG
 };
 
 
@@ -88,7 +90,7 @@ public:
                       const SongSetting &settings);
     bool loadSettings(const QString &filenameWithPath,
                       SongSetting &settings);
-    
+
     void initializeSessionsModel();
     QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
@@ -104,8 +106,8 @@ public:
     void setCallTaught(const QString &program, const QString &call_name);
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls(const QString &program);
-    
-    
+
+
 private:
     void debugErrors(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q);
@@ -114,7 +116,7 @@ private:
     bool databaseOpened;
     QSqlDatabase m_db;
     int current_session_id;
-    
+
     void ensureSchema(TableDefinition *);
     int getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized);
     int getSongIDFromFilenameAlone(const QString &filename);

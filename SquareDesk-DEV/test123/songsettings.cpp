@@ -261,7 +261,7 @@ void SongSettings::openDatabase(const QString& path,
     else
     {
         QDir dir(path);
-    
+
         if (!dir.exists())
         {
             dir.mkpath(".");
@@ -411,7 +411,7 @@ QString SongSettings::getCallTaughtOn(const QString &program, const QString &cal
     QSqlQuery q(m_db);
     q.prepare("SELECT date(taught_on, 'localtime') FROM call_taught_on WHERE dance_program= :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
     q.bindValue(":session_rowid", current_session_id);
-    q.bindValue(":dance_program", program);    
+    q.bindValue(":dance_program", program);
     q.bindValue(":call_name", call_name);
     exec("getCallTaughtOn", q);
     if (q.next())
@@ -426,7 +426,7 @@ void SongSettings::setCallTaught(const QString &program, const QString &call_nam
     QSqlQuery q(m_db);
     q.prepare("INSERT INTO call_taught_on(dance_program, call_name, session_rowid) VALUES (:dance_program, :call_name, :session_rowid)");
     q.bindValue(":session_rowid", current_session_id);
-    q.bindValue(":dance_program", program);    
+    q.bindValue(":dance_program", program);
     q.bindValue(":call_name", call_name);
     exec("setCallTaught", q);
 }
@@ -435,7 +435,7 @@ void SongSettings::deleteCallTaught(const QString &program, const QString &call_
     QSqlQuery q(m_db);
     q.prepare("DELETE FROM call_taught_on WHERE dance_program = :dance_program AND call_name = :call_name AND session_rowid = :session_rowid");
     q.bindValue(":session_rowid", current_session_id);
-    q.bindValue(":dance_program", program);    
+    q.bindValue(":dance_program", program);
     q.bindValue(":call_name", call_name);
     exec("deleteCallTaught", q);
 }
@@ -458,7 +458,7 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
     QSqlQuery q(m_db);
     q.prepare(sql);
     q.bindValue(":session_rowid", current_session_id);
-    
+
     exec("songAges", q);
     while (q.next())
     {
@@ -476,7 +476,7 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
     {
         sql += "session_rowid = :session_rowid AND ";
     }
-    
+
     sql += "songs.filename = :filename ORDER BY played_on DESC LIMIT 1";
 
     {
@@ -533,8 +533,33 @@ SongSetting::SongSetting()
     m_outroPos(),
     set_outroPos(false),
     m_cuesheetName(),
-    set_cuesheetName(false)
+    set_cuesheetName(false),
+    m_introOutroIsTimeBased(false),     // init to false, because this is a new column and if not present, it's not time-based
+    set_introOutroIsTimeBased(false),   // all of the set_* should be false here, I think.
+    m_songLength(0.0),                  // init to zero, and this will blow up if used for division
+    set_songLength(false)               // all of the set_* should be false here, I think.
 {
+}
+
+QDebug operator<<(QDebug dbg, const SongSetting &setting)
+{
+    QDebugStateSaver stateSaver(dbg);
+    dbg.nospace() << "SongSetting(" <<
+                     "\n    filename: " << setting.m_filename << "," << setting.set_filename << ";" <<
+                     "\n    filenameWithPath: " << setting.m_filenameWithPath << "," << setting.set_filenameWithPath << ";" <<
+                     "\n    songname: " << setting.m_songname << "," << setting.set_songname << ";" <<
+                     "\n    volume: " << setting.m_volume << "," << setting.set_volume << ";" <<
+                     "\n    pitch: " << setting.m_pitch << "," << setting.set_pitch << ";" <<
+                     "\n    tempo: " << setting.m_tempo << "," << setting.set_tempo << ";" <<
+                     "\n    tempoIsPercent: " << setting.m_tempoIsPercent << "," << setting.set_tempoIsPercent << ";" <<
+                     "\n    introPos: " << setting.m_introPos << "," << setting.set_introPos << ";" <<
+                     "\n    outroPos: " << setting.m_outroPos << "," << setting.set_outroPos << ";" <<
+                     "\n    cuesheetName: " << setting.m_cuesheetName << "," << setting.set_cuesheetName <<
+                     "\n    introOutroIsTimeBased: " << setting.m_introOutroIsTimeBased << "," << setting.set_introOutroIsTimeBased <<
+                     "\n    songLength: " << setting.m_songLength << "," << setting.set_songLength << ")";
+
+
+    return dbg;
 }
 
 
@@ -555,8 +580,8 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetSongname()) { fields.append("name" ); }
     if (settings.isSetSongLength()) { fields.append("songLength" ); }
     if (settings.isSetIntroOutroIsTimeBased()) { fields.append("introOutroIsTimeBased" ); }
-    
-    
+
+
     QSqlQuery q(m_db);
     if (id == -1)
     {

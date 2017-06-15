@@ -59,7 +59,8 @@ HEADERS  += mainwindow.h \
     common.h \
     sdhighlighter.h \
     danceprograms.h \
-    startupwizard.h
+    startupwizard.h \
+    songsettings.h
 
     FORMS    += mainwindow.ui \
     importdialog.ui \

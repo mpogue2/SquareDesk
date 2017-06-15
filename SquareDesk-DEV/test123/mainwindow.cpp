@@ -3225,7 +3225,7 @@ void MainWindow::loadMusicList()
         SongSetting settings;
         songSettings.loadSettings(origPath,
                                   settings);
-        
+
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
         if (settings.isSetTempo()) { tempo = settings.getTempo(); }
         if (settings.isSetTempoIsPercent()) { loadedTempoIsPercent = settings.getTempoIsPercent(); }
@@ -3751,12 +3751,12 @@ void MainWindow::on_actionExport_triggered()
             if ( file.open(QIODevice::WriteOnly) )
             {
                 QTextStream stream( &file );
-                
+
                 enum ColumnExportData outputFields[7];
                 int outputFieldCount = sizeof(outputFields) / sizeof(*outputFields);
                 char separator = filename.endsWith(".csv", Qt::CaseInsensitive) ? ',' :
                     '\t';
-                
+
                 outputFields[0] = ExportDataFileName;
                 outputFields[1] = ExportDataPitch;
                 outputFields[2] = ExportDataTempo;
@@ -5186,9 +5186,13 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     settings.setIntroPos(intro);
     settings.setOutroPos(outro);
 
+//    qDebug() << "settings before loadSettings(): " << settings;
+
     if (songSettings.loadSettings(currentMP3filenameWithPath,
                                   settings))
     {
+//        qDebug() << "settings after loadSettings(): " << settings;
+
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
         if (settings.isSetTempo()) { tempo = settings.getTempo(); }
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
@@ -5201,7 +5205,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             intro = intro / length;
             outro = outro / length;
         }
-        
+
         ui->pitchSlider->setValue(pitch);
         ui->tempoSlider->setValue(tempo);
         ui->volumeSlider->setValue(volume);
