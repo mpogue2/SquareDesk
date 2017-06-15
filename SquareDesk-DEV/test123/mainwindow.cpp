@@ -2017,13 +2017,19 @@ bool MainWindow::handleKeypress(int key, QString text)
 
             // FIX: should we also stop editing of the songTable on ESC?
 
-            // clear the search fields, too now, so that ESC means "GET ME OUT OF HERE".
-            ui->labelSearch->setText("");
-            ui->typeSearch->setText("");
-            ui->titleSearch->setText("");
-
-            if (currentState == kPlaying) {
-                on_playButton_clicked();  // we were playing, so PAUSE now.
+            if (ui->labelSearch->text() != "" || ui->typeSearch->text() != "" || ui->titleSearch->text() != "") {
+                // clear the search fields, if there was something in them.  (First press of ESCAPE).
+                ui->labelSearch->setText("");
+                ui->typeSearch->setText("");
+                ui->titleSearch->setText("");
+            } else {
+                // if the search fields were already clear, then this is the second press of ESCAPE (or the first press
+                //   of ESCAPE when the search function was not being used).  So, ONLY NOW do we Stop Playback.
+                // So, GET ME OUT OF HERE is now "ESC ESC", or "Hit ESC a couple of times".
+                //    and, CLEAR SEARCH is just ESC (or click on the Clear Search button).
+                if (currentState == kPlaying) {
+                    on_playButton_clicked();  // we were playing, so PAUSE now.
+                }
             }
 
             cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
