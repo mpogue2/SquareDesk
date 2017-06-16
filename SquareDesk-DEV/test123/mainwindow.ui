@@ -1320,6 +1320,8 @@
     <addaction name="actionSpeed_Up"/>
     <addaction name="actionSlow_Down"/>
     <addaction name="separator"/>
+    <addaction name="actionFade_Out"/>
+    <addaction name="separator"/>
     <addaction name="actionLoop"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
     <addaction name="actionAutostart_playback"/>
@@ -2084,7 +2086,7 @@
   </action>
   <action name="actionExport">
    <property name="text">
-     <string>Export...</string>
+    <string>Export...</string>
    </property>
   </action>
   <action name="actionShow_All_Ages">
@@ -2117,6 +2119,14 @@
    </property>
    <property name="text">
     <string>Tempo</string>
+   </property>
+  </action>
+  <action name="actionFade_Out">
+   <property name="text">
+    <string>Fade Out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>

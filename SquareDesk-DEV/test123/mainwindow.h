@@ -292,6 +292,8 @@ private slots:
 
     void on_actionTempo_toggled(bool arg1);
 
+    void on_actionFade_Out_triggered();
+
 private:
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;

@@ -139,6 +139,7 @@ using namespace TagLib;
 // pitch down               Cmd-D, D                    Ctrl-D, D, Alt-M-D                D
 // go faster                +,=                         +,=                               R
 // go slower                -                           -                                 E
+// Fade Out                 Cmd-Y, Y
 // Loop                     Cmd-L, L
 // force mono                                           Alt-M-F
 // Autostart Playback
@@ -6349,4 +6350,9 @@ void MainWindow::on_actionTempo_toggled(bool checked)
     prefsManager.SetshowTempoColumn(checked);
 
     updateSongTableColumnView();
+}
+
+void MainWindow::on_actionFade_Out_triggered()
+{
+    cBass.FadeOutAndPause();
 }
