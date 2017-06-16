@@ -115,10 +115,17 @@ using namespace TagLib;
 // Quit                     Cmd-Q                       Ctrl-F4, Alt-F-E
 //
 // PLAYLIST MENU
-// Load Playlist
+// Load Playlist            Cmd-E
+// Load Recent Playlist
 // Save Playlist
+// Add to Playlist TOP      Shft-Cmd-LeftArrow
+// Add to Playlist BOT      Shft-Cmd-RightArrow
+// Move Song UP             Shft-Cmd-UpArrow
+// Move Song DOWN           Shft-Cmd-DownArrow
+// Remove from Playlist     Shft-Cmd-DEL
 // Next Song                K                            K                                K
 // Prev Song
+// Continuous Play
 //
 // MUSIC MENU
 // play/pause               space                       space, Alt-M-P                    space
@@ -128,12 +135,25 @@ using namespace TagLib;
 //                                                        Alt-M-A/Alt-M-B
 // volume up/down           Cmd-UP/DOWN,UP/DOWN         Ctrl-UP/DOWN, UP/DOWN             N/B
 // mute                     Cmd-M, M                    Ctrl-M, M
-// go faster                Cmd-+,+,=                   Ctrl-+,+,=                        R
-// go slower                Cmd--,-                     Ctrl--,-                          E
-// force mono                                           Alt-M-F
-// clear search             Cmd-/                       Alt-M-S
 // pitch up                 Cmd-U, U                    Ctrl-U, U, Alt-M-U                F
 // pitch down               Cmd-D, D                    Ctrl-D, D, Alt-M-D                D
+// go faster                +,=                         +,=                               R
+// go slower                -                           -                                 E
+// Loop                     Cmd-L, L
+// force mono                                           Alt-M-F
+// Autostart Playback
+// Sound FX                 Cmd-1 thru 6
+// clear search             ESC, Cmd-/                  Alt-M-S
+//
+// LYRICS MENU
+// Auto-scroll cuesheet
+//
+// SD MENU
+// Enable Input             Cmd-I
+//
+// VIEW MENU
+// Zoom IN/OUT              Cmd-=, Cmd-Minus
+// Reset Zoom               Cmd-0
 
 // GLOBALS:
 bass_audio cBass;
@@ -152,10 +172,6 @@ MainWindow::MainWindow(QWidget *parent) :
     loadingSong(false),
     totalZoom(0)
 {
-//    QSettings mySettings;
-//    QString settingsPath = mySettings.fileName();
-//    qDebug() << "settingsPath: " << settingsPath;
-
     justWentActive = false;
 
     for (int i=0; i<6; i++) {
@@ -168,7 +184,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (prefsManager.GetenableAutoMicsOff()) {
         currentInputVolume = getInputVolume();  // save current volume
-    //    qDebug() << "MainWindow::currentInputVolume: " << currentInputVolume;
     }
 
     // Disable ScreenSaver while SquareDesk is running
@@ -369,18 +384,6 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     loadChoreographyList();
 
-//    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
-//    ui->songTable->setColumnWidth(kTypeCol,96);
-//    ui->songTable->setColumnWidth(kLabelCol,80);
-//////  kTitleCol is always expandable, so don't set width here
-//    ui->songTable->setColumnWidth(kAgeCol, 36);
-//    ui->songTable->setColumnWidth(kPitchCol,50);
-//    ui->songTable->setColumnWidth(kTempoCol,50);
-
-//    adjustFontSizes();  // now adjust to match contents ONCE
-
-//    ui->songTable->setColumnWidth(kNumberCol,36);
-
     // ----------
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
 
@@ -474,8 +477,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
     ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
-//    qDebug() << "MainWindow():: lyricsTabNumber:" << lyricsTabNumber; // FIX
-
 
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -540,14 +541,11 @@ MainWindow::MainWindow(QWidget *parent) :
         QStringList lineparts = line.split(',');
         QString level = lineparts[0];
         QString call = lineparts[1].replace("\"","");
-//        qDebug() << "call: " << call << ", level: " << level;
 
         if (level == "plus") {
             flashCalls.append(call);
         }
     }
-
-//    qDebug() << "flashCalls:" << flashCalls;
 
     currentSongType = "";
     currentSongTitle = "";
@@ -587,8 +585,6 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setStretchLastSection(false);
         QString lastDanceProgram(settings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
-
-//        bool setProgram = false;
     }
 
 
@@ -606,13 +602,12 @@ MainWindow::MainWindow(QWidget *parent) :
     int songCount = 0;
     QString firstBadSongLine;
     QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
-//    qDebug() << "CurrentPlaylistFileName = " << CurrentPlaylistFileName;
     firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
 
     ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
     ui->songTable->setColumnWidth(kTypeCol,96);
     ui->songTable->setColumnWidth(kLabelCol,80);
-////  kTitleCol is always expandable, so don't set width here
+//  kTitleCol is always expandable, so don't set width here
     ui->songTable->setColumnWidth(kAgeCol, 36);
     ui->songTable->setColumnWidth(kPitchCol,50);
     ui->songTable->setColumnWidth(kTempoCol,50);
@@ -701,8 +696,6 @@ void MainWindow::setCurrentSessionIdReloadSongAges(int id)
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
 }
-
-
 
 static void AddItemToCallList(QTableWidget *tableWidget,
                               const QString &number, const QString &name,
@@ -848,7 +841,6 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
         settings.setValue("lastCallListDanceProgram",program);
     }
     ui->tableWidgetCallList->setSortingEnabled(true);
-
 }
 
 
@@ -1377,9 +1369,8 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
     if (value == 0) {
         voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
     }
-    cBass.SetVolume(voltageLevelToSet);  // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
-//    qDebug() << "in/out = " << value << voltageLevelToSet;
-    currentVolume = value;  // this will be saved with the song (0-100)
+    cBass.SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
+    currentVolume = value;                  // this will be saved with the song (0-100)
 
     Info_Volume();  // update the slider text
 
@@ -1409,7 +1400,6 @@ void MainWindow::on_actionMute_triggered()
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
     if (tempoIsBPM) {
-//        float baseBPM = (float)cBass.Stream_BPM;    // original detected BPM
         float desiredBPM = (float)value;            // desired BPM
         int newBASStempo = (int)(round(100.0*desiredBPM/baseBPM));
         cBass.SetTempo(newBASStempo);
@@ -1835,8 +1825,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
     // ------------------------
     // Sounds associated with Tip and Break Timers (one-shots)
     newTimerState = analogClock->currentTimerState;
-//    qDebug() << "oldTimerState:" << oldTimerState << "newTimerState:" << newTimerState <<
-//                "tipLengthAlarmAction" << tipLengthAlarmAction << "breakLengthAlarmAction" << breakLengthAlarmAction;
 
     if ((newTimerState & LONGTIPTIMEREXPIRED)&&!(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
@@ -1845,7 +1833,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
         default: break;
         }
     }
-
 
     if ((newTimerState & BREAKTIMEREXPIRED)&&!(oldTimerState & BREAKTIMEREXPIRED)) {
         // one-shot transitioned to End of Break
@@ -1861,11 +1848,8 @@ void MainWindow::on_UIUpdateTimerTick(void)
     newVolumeList = getCurrentVolumes();  // get the current state of the world
     qSort(newVolumeList);  // sort to allow direct comparison
     if(lastKnownVolumeList == newVolumeList){
-//        qDebug() << "no change to volume list...";
+        // This space intentionally blank.
     } else {
-//        qDebug() << "***** change to volume list...";
-//        qDebug() << "old volume list:" << lastKnownVolumeList;
-//        qDebug() << "new volume list:" << newVolumeList;
         on_newVolumeMounted();
     }
     lastKnownVolumeList = newVolumeList;
@@ -1930,27 +1914,6 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = (QKeyEvent *)Event;
 
-//        qDebug() << "mainwindow::GlobalEventFilter:" << KeyEvent;
-//        qDebug() << "KeyEvent->key() = " << KeyEvent->key() << "Qt::Key_Escape =" << Qt::Key_Escape;
-//        if (ui->labelSearch->hasFocus()) {
-//            qDebug() << "labelSearch has focus.";
-//        } else if (ui->typeSearch->hasFocus()) {
-//            qDebug() << "typeSearch has focus.";
-//        } else if (ui->titleSearch->hasFocus()) {
-//            qDebug() << "titleSearch has focus.";
-//        } else if (ui->lineEditCountDownTimer->hasFocus()) {
-//            qDebug() << "lineEditCountDownTimer has focus.";
-//        } else if (ui->songTable->isEditing()) {
-//            qDebug() << "songTable is being edited.";
-//        } else if (((MainWindow *)(((QApplication *)Object)->activeWindow()))->console->hasFocus()) {
-//            qDebug() << "console has focus.";
-//        } else if (((MainWindow *)(((QApplication *)Object)->activeWindow()))->currentSequenceWidget->hasFocus()) {
-//            qDebug() << "currentSequenceWidget has focus.";
-//        } else {
-//            qDebug() << "something else has focus, or there is no focus right now.";
-//        }
-
-//        QString currentWindowName = ((((QApplication *)Object)->activeWindow()))->objectName();
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>(((QApplication *)Object)->activeWindow());
         if (maybeMainWindow == 0) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
@@ -2006,8 +1969,8 @@ bool MainWindow::handleKeypress(int key, QString text)
     switch (key) {
 
         case Qt::Key_Escape:
-            // ESC is special:  it always gets the music to stop, and gets you out of
-            //   editing a search field or timer field.
+            // ESC is special:  it always gets you out of editing a search field or timer field, and it can
+            //   also STOP the music (second press, worst case)
 
             oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore
             if (QApplication::focusWidget() != NULL) {
@@ -2146,15 +2109,12 @@ bool MainWindow::handleKeypress(int key, QString text)
 // ------------------------------------------------------------------------
 void MainWindow::on_actionSpeed_Up_triggered()
 {
-//    qDebug() << "on_actionSpeed_Up_triggered";
-//    on_actionZoom_In_triggered();
     ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
     on_tempoSlider_valueChanged(ui->tempoSlider->value());
 }
 
 void MainWindow::on_actionSlow_Down_triggered()
 {
-//    on_actionZoom_Out_triggered();
     ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
     on_tempoSlider_valueChanged(ui->tempoSlider->value());
 }
@@ -2223,14 +2183,6 @@ static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
 
 
-//QString capitalize(const QString &str)
-//{
-//    QString tmp = str;
-//    // if you want to ensure all other letters are lowercase:
-//    tmp = tmp.toLower();
-//    tmp[0] = str[0].toUpper();
-//    return tmp;
-//}
 struct FilenameMatchers {
     QRegularExpression regex;
     int title_match;
@@ -2316,8 +2268,6 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
                 && !match.captured(matches[match_num].additional_title_match).isEmpty()) {
                 title += " " + match.captured(matches[match_num].additional_title_match);
             }
-//            qDebug() << s << "*** MATCHED ***" << match_num << ":" << matches[match_num].regex;
-//            qDebug() << "label:" << label << ", title:" << title;
             break;
         } else {
 //                qDebug() << s << "didn't match" << matches[match_num].regex;
@@ -2388,9 +2338,6 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             ui->textBrowserCueSheet->setHtml(html);
         }
     } else {
-//        qDebug() << "loading lyrics file: " << cuesheetFilename;
-//        ui->textBrowserCueSheet->setSource(cuesheetUrl);
-
         // read the CSS file (if any)
         PreferencesManager prefsManager;
         QString musicDirPath = prefsManager.GetmusicPath();
@@ -2405,16 +2352,12 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             css.close();
         }
 
-//        qDebug() << "CSS: " << cssString;
-
         // read in the HTML for the cuesheet
         QFile f1(cuesheetFilename);
         QString cuesheet;
         if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
             QTextStream in(&f1);
             cuesheet = in.readAll();  // read the entire CSS file, if it exists
-
-//            qDebug() << "cuesheet: " << cuesheet;
 
             // set the CSS
             ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
@@ -2505,9 +2448,6 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
-//    QElapsedTimer timer;
-//    timer.start();
-
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -2645,8 +2585,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         delete cswr;
     }
 
-//    qDebug() << "time(FindPossibleCuesheets)=" << timer.elapsed() << " msec";
-//    qDebug() << possibleCuesheets;
 }
 
 
@@ -2700,21 +2638,14 @@ float MainWindow::getID3BPM(QString MP3FileName) {
     mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
     id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
 
-//    qDebug() << "mp3file: " << mp3file << ", id3: " << id3v2tag;
-
     float theBPM = 0.0;
 
     ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
     for (; it != id3v2tag->frameList().end(); it++)
     {
-//        cout << (*it)->frameID() << " - \"" << (*it)->toString() << "\"" << endl;
-//        cout << (*it)->frameID() << endl;
-
         if ((*it)->frameID() == "TBPM")  // This is an Apple standard, which means it's everybody's standard now.
         {
-//            qDebug() << "getID3BPM -- found a TBPM frame (Apple's embedded ID3 BPM string)!";
             QString BPM((*it)->toString().toCString());
-//            qDebug() << "    BPM = " << BPM;
             theBPM = BPM.toFloat();
         }
 
@@ -2737,8 +2668,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     if (resolvedFilePath != "") {
         MP3FileName = resolvedFilePath;
     }
-
-//    qDebug() << "loadMP3File: MP3FileName=" << MP3FileName << ", resolved=" << resolvedFilePath;
 
     loadCuesheets(MP3FileName);
 
@@ -2775,7 +2704,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     float songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
 
     if (songBPM_ID3 != 0.0) {
-//        qDebug() << "embedded ID3/TBPM frame of " << (int)songBPM_ID3 << "overrides libbass BPM estimate of " << songBPM;
         songBPM = (int)songBPM_ID3;
     }
 
@@ -2792,8 +2720,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
-//        ui->tempoSlider->setValue(songBPM);
-//        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
 
         PreferencesManager prefsManager;
         bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
@@ -2869,8 +2795,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     songLoaded = true;
     Info_Seekbar(true);
 
-//    if (songType == "patter") {
-    if (songTypeNamesForPatter.contains(songType)) {
+    if (songTypeNamesForPatter.contains(songType)) {  // NOTE: Consider && if songlength < 5min
         on_loopButton_toggled(true); // default is to loop, if type is patter
     }
     else {
@@ -2936,20 +2861,9 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 // this function stores the absolute paths of each file in a QVector
 void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6])
 {
-//    QElapsedTimer timer1;
-//    timer1.start();
-
-//    qDebug() << "FFR: rootDir =" << rootDir;
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
         QString s1 = it.next();
-//        qDebug() << "FFR:" << s1;
-        // If alias, follow it.
-//        QString resolvedFilePath = it.fileInfo().symLinkTarget(); // path with the symbolic links followed/removed
-//        if (resolvedFilePath == "") {
-//            // If NOT alias, then use the original fileName
-//            resolvedFilePath = s1;
-//        }
         QString resolvedFilePath=s1;
 
         QFileInfo fi(s1);
@@ -2966,22 +2880,20 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
                 QStringList sections = baseName.split(".");
                 if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
-//                    qDebug() << baseName << sections;
                     switch (sections[0].toInt()) {
-                    case 1: ui->action_1->setText(sections[1]); break;
-                    case 2: ui->action_2->setText(sections[1]); break;
-                    case 3: ui->action_3->setText(sections[1]); break;
-                    case 4: ui->action_4->setText(sections[1]); break;
-                    case 5: ui->action_5->setText(sections[1]); break;
-                    case 6: ui->action_6->setText(sections[1]); break;
-                    default: break;
+                        case 1: ui->action_1->setText(sections[1]); break;
+                        case 2: ui->action_2->setText(sections[1]); break;
+                        case 3: ui->action_3->setText(sections[1]); break;
+                        case 4: ui->action_4->setText(sections[1]); break;
+                        case 5: ui->action_5->setText(sections[1]); break;
+                        case 6: ui->action_6->setText(sections[1]); break;
+                        default: break;
                     }
                 soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
                 } // if
             } // if
         } // else
     }
-//    qDebug() << "timer1:" << timer1.elapsed();
 }
 
 
@@ -3006,7 +2918,6 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
     // mode == "both": look in both places for MP3 files (e.g. merge guest into main)
     if (mode == "main" || mode == "both") {
         // looks for files in the mainRootDir --------
-//        qDebug() << "looking for files in the mainRootDir";
         QDir rootDir1(mainRootDir);
         rootDir1.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
 
@@ -3028,7 +2939,6 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
     if (guestRootDir != "" && (mode == "guest" || mode == "both")) {
         // looks for files in the guestRootDir --------
-//        qDebug() << "looking for files in the guestRootDir";
         QDir rootDir2(guestRootDir);
         rootDir2.setFilter(QDir::Files | QDir::Dirs | QDir::NoDot | QDir::NoDotDot);
 
@@ -4083,12 +3993,6 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
 
-//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-//                            theItem2->setText("0");  // M3U doesn't have pitch yet
-
-//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-//                            theItem3->setText("0");  // M3U doesn't have tempo yet
-
                             match = true;
                         }
                     }
@@ -4152,7 +4056,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     PreferencesManager prefsManager;
     QString musicRootPath = prefsManager.GetmusicPath();
     QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
-//    qDebug() << "startingPlaylistDirectory =" << startingPlaylistDirectory;
+
     trapKeypresses = false;
     QString PlaylistFileName =
         QFileDialog::getOpenFileName(this,
@@ -4168,35 +4072,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     QDir CurrentDir;
     QFileInfo fInfo(PlaylistFileName);
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
-//    qDebug() << "Setting default playlist dir to: " << fInfo.absolutePath();
 
     finishLoadingPlaylist(PlaylistFileName);
-
-//    // --------
-//    QString firstBadSongLine = "";
-//    int songCount = 0;
-//    ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
-//    firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
-
-//    sortByDefaultSortOrder();
-//    ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
-//    ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
-
-//    // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
-//    // only do this, if there were no errors in loading the playlist numbers.
-//    if (firstBadSongLine == "") {
-//        ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
-//        on_actionPrevious_Playlist_Item_triggered();
-//    }
-
-//    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
-//    if (firstBadSongLine != "") {
-//        // if there was a non-matching path, tell the user what the first one of those was
-//        msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
-//        ui->songTable->clearSelection(); // select nothing, if error
-//    }
-//    ui->statusBar->showMessage(msg1);
-
 }
 
 // SAVE CURRENT PLAYLIST TO FILE
@@ -4233,8 +4110,6 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     //     if no match, then error (dialog?)
     //   Then on Save Playlist, write out the NEW patter and the rest
 
-    // TODO: get rid of the single space, replace with nothing
-
     QFile file(PlaylistFileName);
     if (PlaylistFileName.endsWith(".m3u")) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
@@ -4263,6 +4138,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             QMapIterator<int, QString> i(imports);
             while (i.hasNext()) {
                 i.next();
+                // pathname can't have double quotes in it, so no need to do double double quotes
                 stream << "\"" << i.value() << "\"," <<
                        importsPitch[i.key()] << "," <<
                        importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
@@ -4305,86 +4181,11 @@ void MainWindow::on_actionSave_Playlist_triggered()
     }
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
-//    QDir CurrentDir;
-//    MySettings.setValue(DEFAULT_PLAYLIST_DIR_KEY, CurrentDir.absoluteFilePath(PlaylistFileName));
     QFileInfo fInfo(PlaylistFileName);
     PreferencesManager prefsManager;
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
     saveCurrentPlaylistToFile(PlaylistFileName);  // SAVE IT
-
-//    // --------
-//    QMap<int, QString> imports, importsPitch, importsTempo;
-
-//    // Iterate over the songTable
-//    for (int i=0; i<ui->songTable->rowCount(); i++) {
-//        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//        QString playlistIndex = theItem->text();
-//        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-//        QString songTitle = ui->songTable->item(i,kTitleCol)->text();
-//        QString pitch = ui->songTable->item(i,kPitchCol)->text();
-//        QString tempo = ui->songTable->item(i,kTempoCol)->text();
-
-//        if (playlistIndex != "") {
-//            // item HAS an index (that is, it is on the list, and has a place in the ordering)
-//            // TODO: reconcile int here with float elsewhere on insertion
-//            imports[playlistIndex.toInt()] = pathToMP3;
-//            importsPitch[playlistIndex.toInt()] = pitch;
-//            importsTempo[playlistIndex.toInt()] = tempo;
-//        }
-//    }
-
-//    // TODO: strip the initial part of the path off the Paths, e.g.
-//    //   /Users/mpogue/__squareDanceMusic/patter/C 117 - Restless Romp (Patter).mp3
-//    //   becomes
-//    //   patter/C 117 - Restless Romp (Patter).mp3
-//    //
-//    //   So, the remaining path is relative to the root music directory.
-//    //   When loading, first look at the patter and the rest
-//    //     if no match, try looking at the rest only
-//    //     if no match, then error (dialog?)
-//    //   Then on Save Playlist, write out the NEW patter and the rest
-
-//    // TODO: get rid of the single space, replace with nothing
-
-//    QFile file(PlaylistFileName);
-//    if (PlaylistFileName.endsWith(".m3u")) {
-//        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
-//            QTextStream stream(&file);
-//            stream << "#EXTM3U" << endl << endl;
-
-//            // list is auto-sorted here
-//            QMapIterator<int, QString> i(imports);
-//            while (i.hasNext()) {
-//                i.next();
-//                stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
-//                stream << i.value() << endl;
-//            }
-//            file.close();
-//        }
-//        else {
-//            ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
-//        }
-//    }
-//    else if (PlaylistFileName.endsWith(".csv")) {
-//        if (file.open(QIODevice::ReadWrite)) {
-//            QTextStream stream(&file);
-//            stream << "abspath,pitch,tempo" << endl;
-
-//            // list is auto-sorted here
-//            QMapIterator<int, QString> i(imports);
-//            while (i.hasNext()) {
-//                i.next();
-//                stream << "\"" << i.value() << "\"," <<
-//                       importsPitch[i.key()] << "," <<
-//                       importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
-//            }
-//            file.close();
-//        }
-//        else {
-//            ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
-//        }
-//    }
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
@@ -4576,30 +4377,24 @@ void MainWindow::on_songTable_itemSelectionChanged()
         int playlistItemCount = PlaylistItemCount();
 
         if (currentNumberText == "") {
-//            qDebug() << "not in a playlist";
             // if not in a Playlist then we can add it at Top or Bottom, that's it.
             ui->actionAt_TOP->setEnabled(true);
             ui->actionAt_BOTTOM->setEnabled(true);
         } else {
-//            qDebug() << "in a playlist";
             ui->actionRemove_from_Playlist->setEnabled(true);  // can remove it
 
             // current item is on the Playlist already
             if (playlistItemCount > 1) {
-//                qDebug() << "more than one item on the playlist";
                 // more than one item on the list
                 if (currentNumberInt == 1) {
-//                   qDebug() << "first item on the playlist";
 //                     it's the first item, and there's more than one item on the list, so moves make sense
                     ui->actionAt_BOTTOM->setEnabled(true);
                     ui->actionDOWN_in_Playlist->setEnabled(true);
                 } else if (currentNumberInt == playlistItemCount) {
-//                    qDebug() << "last item on the playlist";
                     // it's the last item, and there's more than one item on the list, so moves make sense
                     ui->actionAt_TOP->setEnabled(true);
                     ui->actionUP_in_Playlist->setEnabled(true);
                 } else {
-//                    qDebug() << "middle item on the playlist";
                     // it's somewhere in the middle, and there's more than one item on the list, so moves make sense
                     ui->actionAt_TOP->setEnabled(true);
                     ui->actionAt_BOTTOM->setEnabled(true);
@@ -4607,7 +4402,6 @@ void MainWindow::on_songTable_itemSelectionChanged()
                     ui->actionDOWN_in_Playlist->setEnabled(true);
                 }
             } else {
-//                qDebug() << "one item on the playlist, and this is it.";
                 // One item on the playlist, and this is it.
                 // Can't move up/down or to top/bottom.
                 // Can remove it, though.
@@ -4693,7 +4487,6 @@ int MainWindow::getInputVolume()
 
 void MainWindow::setInputVolume(int newVolume)
 {
-//    qDebug() << "    Setting input vol to: " << newVolume;
 #if defined(Q_OS_MAC)
     if (newVolume != -1) {
         QProcess getVolumeProcess;
@@ -4704,8 +4497,6 @@ void MainWindow::setInputVolume(int newVolume)
         getVolumeProcess.start("osascript", args);
         getVolumeProcess.waitForFinished();
         QString output(getVolumeProcess.readAllStandardOutput());
-
-//        qDebug() << "Output from setInputVolume" << output;
     }
 #endif
 
@@ -4723,12 +4514,10 @@ void MainWindow::muteInputVolume()
         return;
     }
 
-//    qDebug() << "Muting microphone...";
     int vol = getInputVolume();
     if (vol > 0) {
         // if not already muted, save the current volume (for later restore)
         currentInputVolume = vol;
-//        qDebug() << "    previous vol: " << currentInputVolume;
         setInputVolume(0);
     }
 }
@@ -4744,7 +4533,6 @@ void MainWindow::unmuteInputVolume()
     if (vol > 0) {
         // the user has changed it, so don't muck with it!
     } else {
-//        qDebug() << "Unmuting microphone... to: " << currentInputVolume;
         setInputVolume(currentInputVolume);     // restore input from the mics
     }
 }
@@ -4773,7 +4561,6 @@ int MainWindow::PlaylistItemCount() {
             playlistItemCount++;
         }
     }
-//    qDebug() << "items in the playlist:" << playlistItemCount;
     return (playlistItemCount);
 }
 
@@ -4788,8 +4575,6 @@ void MainWindow::PlaylistItemToTop() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-//    qDebug() << "PlaylistItemToTop(): " << selectedRow << currentNumberText;
-
     if (currentNumberText == "") {
         // add to list, and make it the #1
 
@@ -4801,7 +4586,6 @@ void MainWindow::PlaylistItemToTop() {
             if (playlistIndex != "") {
                 // if a # was set, increment it
                 QString newIndex = QString::number(playlistIndex.toInt()+1);
-//                qDebug() << "old, new:" << playlistIndex << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -4844,7 +4628,6 @@ void MainWindow::PlaylistItemToBottom() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-//    qDebug() << "PlaylistItemToBottom(): " << selectedRow << currentNumberText;
     int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
 
     if (currentNumberText == "") {
@@ -4852,20 +4635,6 @@ void MainWindow::PlaylistItemToBottom() {
 
         // Iterate over the entire songTable, not touching every item
         // TODO: turn off sorting
-
-//        for (int i=0; i<ui->songTable->rowCount(); i++) {
-//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//            QString playlistIndex = theItem->text();  // this is the playlist #
-//            if (playlistIndex != "") {
-//                playlistItemCount++;
-//                // if a # was set, increment it
-////                QString newIndex = QString::number(playlistIndex.toInt()+1);
-////                qDebug() << "old, new:" << playlistIndex << newIndex;
-////                ui->songTable->item(i,kNumberCol)->setText(newIndex);
-//            }
-//        }
-
-//        ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
         // TODO: turn on sorting again
 
@@ -4881,7 +4650,6 @@ void MainWindow::PlaylistItemToBottom() {
                 if (playlistIndexInt > currentNumberInt) {
                     // if a # was set and more, decrement it
                     QString newIndex = QString::number(playlistIndexInt-1);
-//                    qDebug() << "old, new:" << playlistIndexText << newIndex;
                     ui->songTable->item(i,kNumberCol)->setText(newIndex);
                 }
             }
@@ -4903,8 +4671,6 @@ void MainWindow::PlaylistItemMoveUp() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-//    qDebug() << "PlaylistMoveUp(): " << selectedRow << currentNumberText;
-
     // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
     // TODO: turn off sorting
 
@@ -4915,7 +4681,6 @@ void MainWindow::PlaylistItemMoveUp() {
             int playlistIndexInt = playlistIndex.toInt();
             if (playlistIndexInt == currentNumberInt - 1) {
                 QString newIndex = QString::number(playlistIndex.toInt()+1);
-//                qDebug() << "old, new:" << playlistIndex << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -4937,8 +4702,6 @@ void MainWindow::PlaylistItemMoveDown() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-//    qDebug() << "PlaylistMoveUDown(): " << selectedRow << currentNumberText;
-
     // add to list, and make it the bottom
 
     // Iterate over the entire songTable, find the item just BELOW this one, and move it UP (only)
@@ -4951,7 +4714,6 @@ void MainWindow::PlaylistItemMoveDown() {
             int playlistIndexInt = playlistIndex.toInt();
             if (playlistIndexInt == currentNumberInt + 1) {
                 QString newIndex = QString::number(playlistIndex.toInt()-1);
-//                qDebug() << "old, new:" << playlistIndex << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -4973,8 +4735,6 @@ void MainWindow::PlaylistItemRemove() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-//    qDebug() << "PlaylistItemRemove(): " << selectedRow << currentNumberText;
-
     // already on the list
     // Iterate over the entire songTable, decrementing items BELOW this item
     // TODO: turn off sorting
@@ -4986,7 +4746,6 @@ void MainWindow::PlaylistItemRemove() {
             if (playlistIndexInt > currentNumberInt) {
                 // if a # was set and more, decrement it
                 QString newIndex = QString::number(playlistIndexInt-1);
-//                qDebug() << "old, new:" << playlistIndexText << newIndex;
                 ui->songTable->item(i,kNumberCol)->setText(newIndex);
             }
         }
@@ -5008,11 +4767,9 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 
         if (selectedRow != -1) {
             // if a single row was selected
-//            ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch));
             QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
             int currentNumberInt = currentNumberText.toInt();
             int playlistItemCount = PlaylistItemCount();
-//            qDebug() << "currentNumberText: " << currentNumberText << "100: " << QString::number(100);
 
             if (currentNumberText == "") {
                 if (playlistItemCount == 0) {
@@ -5091,8 +4848,6 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
     int x2,y2,w2,h2;
     int x3,y3,w3,h3;
 
-//    qDebug() << "columnHeaderResized()" << logicalIndex << newSize << ", # column width:" << ui->songTable->columnWidth(0) << col0_width;
-
     switch (logicalIndex) {
         case 0: // #
             // FIX: there's a bug here if the # column width is changed.  Qt doesn't seem to keep track of
@@ -5123,7 +4878,6 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
             break;
 
         case 1: // Type
-            // x1 = ui->songTable->columnWidth(0) + 35;
             x1 = col0_width + 35;
             y1 = ui->typeSearch->y();
             w1 = newSize - 4;
@@ -5133,7 +4887,6 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 
             x2 = x1 + w1 + 6;
             y2 = ui->labelSearch->y();
-//        w2 = ui->labelSearch->width();
             w2 = ui->songTable->columnWidth(2) - 6;
             h2 = ui->labelSearch->height();
             ui->labelSearch->setGeometry(x2,y2,w2,h2);
@@ -5205,11 +4958,8 @@ void MainWindow::saveCurrentSongSettings()
         setting.setCuesheetName(cuesheetFilename);
         setting.setSongLength((double)(ui->seekBarCuesheet->maximum()));
 
-//        qDebug() << "Saving settings: " << setting;
-
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
-        // TODO: Loop points!
     }
 
 
@@ -5234,13 +4984,9 @@ void MainWindow::loadSettingsForSong(QString songTitle)
     settings.setIntroPos(intro);
     settings.setOutroPos(outro);
 
-//    qDebug() << "settings before loadSettings(): " << settings;
-
     if (songSettings.loadSettings(currentMP3filenameWithPath,
                                   settings))
     {
-//        qDebug() << "settings after loadSettings(): " << settings;
-
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
         if (settings.isSetTempo()) { tempo = settings.getTempo(); }
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
@@ -5269,10 +5015,8 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             for (int i = 0; i < ui->comboBoxCuesheetSelector->count(); ++i)
             {
                 QString itemName = ui->comboBoxCuesheetSelector->itemData(i).toString();
-//                qDebug() << "i: " << i << ", itemName: " << itemName;
                 if (itemName == cuesheetName)
                 {
-//                    qDebug() << "matched!";
                     ui->comboBoxCuesheetSelector->setCurrentIndex(i);
                     break;
                 }
@@ -5287,8 +5031,6 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 // ------------------------------------------------------------------------------------------
 QString MainWindow::loadLyrics(QString MP3FileName)
 {
-//    qDebug() << "Attempting to load lyrics for: " << MP3FileName;
-
     QString USLTlyrics;
 
     MPEG::File *mp3file;
@@ -5297,14 +5039,9 @@ QString MainWindow::loadLyrics(QString MP3FileName)
     mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
     id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
 
-//    qDebug() << "mp3file: " << mp3file << ", id3: " << id3v2tag;
-
     ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
     for (; it != id3v2tag->frameList().end(); it++)
     {
-//        cout << (*it)->frameID() << " - \"" << (*it)->toString() << "\"" << endl;
-//        cout << (*it)->frameID() << endl;
-
         if ((*it)->frameID() == "SYLT")
         {
 //            qDebug() << "LOAD LYRICS -- found an SYLT frame!";
@@ -5316,19 +5053,9 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 
             ID3v2::UnsynchronizedLyricsFrame* usltFrame = (ID3v2::UnsynchronizedLyricsFrame*)(*it);
             USLTlyrics = usltFrame->text().toCString();
-
-//            QString lyrics0 = dialog->lyrics.replace(QRegExp("^<br>\\[header\\]"),"[header]");
-//            QString lyrics1 = "<HTML><BODY style=\"font-family:arial;color:#000000;font-size:200%\">" + theUSLTLyrics;
-//            QString lyrics2 = lyrics1.replace("[header]","<FONT size=\"+3\" face=\"Arial\">");
-//            QString lyrics3 = lyrics2.replace("[lyrics]","<FONT color=\"#F51B67\"> <span>");
-//            QString lyrics4 = lyrics3.replace("[¤]","'"); // .replace("<br><br>","<br>");
-//            qDebug() << "PROCESSED RESULT = '" << lyrics3.toStdString() << "'" << endl;
         }
 
     }
-
-//    qDebug() << "END OF FRAME LIST ***************";
-//    qDebug() << "Lyrics found: " << USLTlyrics;
 
     return (USLTlyrics);
 }
@@ -5338,7 +5065,6 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     QStringList pieces = filePathname.split( "/" );
     pieces.pop_back(); // get rid of actual filename, keep the path
     QString filedir = pieces.join("/"); // FIX: MAC SPECIFIC?
-//    qDebug() << "filePathname:" << filePathname << ", filedir" << filedir;
 
     // TODO: we could get fancy, and keep looking in parent directories until we
     //  find a CSS file, or until we hit the musicRootPath.  That allows for an overall
@@ -5367,8 +5093,6 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     HTML += "<BODY>\n" + text + "</BODY>\n";
     HTML += "</HTML>\n";
 
-//        qDebug() << "incoming:" << text << ", outgoing:" << HTML;
-
     if (fileIsOpen) {
         f1.close();
     }
@@ -5383,17 +5107,12 @@ QStringList MainWindow::getCurrentVolumes() {
 #if defined(Q_OS_MAC)
     foreach (const QStorageInfo &storageVolume, QStorageInfo::mountedVolumes()) {
             if (storageVolume.isValid() && storageVolume.isReady()) {
-//                qDebug() << "name:" << storageVolume.name() << ", device:" << storageVolume.device();
-//                qDebug() << "fileSystemType:" << storageVolume.fileSystemType();
-//                qDebug() << "size:" << storageVolume.bytesTotal()/1000/1000 << "MB";
-//                qDebug() << "availableSize:" << storageVolume.bytesAvailable()/1000/1000 << "MB";
             volumeDirList.append(storageVolume.name());}
     }
 #endif
 
 #if defined(Q_OS_WIN32)
     foreach (const QFileInfo &fileinfo, QDir::drives()) {
-//        qDebug() << fileinfo.absoluteFilePath();
         volumeDirList.append(fileinfo.absoluteFilePath());
     }
 #endif
@@ -5416,7 +5135,6 @@ void MainWindow::on_newVolumeMounted() {
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S NEW (if more than 1)
         newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
         foreach (const QString &item, newVolumes) {
-//            qDebug() << "MERGING IN NEW VOLUME:" << item;
             newVolume = item;  // first item is the volume added
         }
 
@@ -5450,10 +5168,8 @@ void MainWindow::on_newVolumeMounted() {
 
             QFileInfo fi(d);
             QStringList section = fi.canonicalFilePath().split("/");  // expand
-//            qDebug() << "d" << d << "section.length():" << section.length() << "section" << section;
             if (section.length() >= 1) {
                 QString dirName = section[section.length()-1];
-//                qDebug() << "dirName:" << dirName;
 
                 if (dirName.compare("squaredancemusic",Qt::CaseInsensitive) == 0) { // exact match, but case-insensitive
                     foundSquareDeskMusicDir = true;
@@ -5480,7 +5196,6 @@ void MainWindow::on_newVolumeMounted() {
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
         goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
         foreach (const QString &item, goneVolumes) {
-//            qDebug() << "REMOVING GUEST VOLUME:" << item;
             goneVolume = item;
         }
 
@@ -5492,7 +5207,7 @@ void MainWindow::on_newVolumeMounted() {
         guestRootPath = "";
         findMusic(musicRootPath, "", guestMode, false);  // get the filenames from the user's directories
     } else {
-        qDebug() << "No volume added/lost by the time we got here. I give up. :-(";
+//        qDebug() << "No volume added/lost by the time we got here. I give up. :-(";
         return;
     }
 
@@ -5502,7 +5217,6 @@ void MainWindow::on_newVolumeMounted() {
 }
 
 void MainWindow::on_warningLabel_clicked() {
-    // TODO: clear the timer
     analogClock->resetPatter();
 }
 
@@ -5548,14 +5262,10 @@ void MainWindow::writeSDData(const QByteArray &data)
         // console has data, send to sd
         QString d = data;
         d.replace("\r","\n");
-//        qDebug() << "writeSDData() to SD:" << data << d.toUtf8();
         if (d.at(d.length()-1) == '\n') {
-//            qDebug() << "writeSDData1:" << d.toUtf8();
             sd->write(d.toUtf8());
-//            sd->write(d.toUtf8() + "\x15refresh display\n"); // assumes no errors (doesn't work if errors)
             sd->waitForBytesWritten();
         } else {
-//            qDebug() << "writeSDData2:" << d.toUtf8();
             sd->write(d.toUtf8());
             sd->waitForBytesWritten();
         }
@@ -5566,7 +5276,6 @@ void MainWindow::readSDData()
 {
     // sd has data, send to console
     QByteArray s = sd->readAll();
-//    qDebug() << "readData() from sd:" << s;
 
     s = s.replace("\r\n","\n");  // This should be safe on all platforms, but is required for Win32
 
@@ -5599,10 +5308,8 @@ void MainWindow::readSDData()
     QString lastPrompt;
 
     // TODO: deal with multiple resolve lines
-//    qDebug() << "unedited data:" << uneditedData;
     QString errorLine;
     QString resolveLine;
-//    QString copyrightText;
     copyrightText = "";
     bool grabResolve = false;
 
@@ -5647,7 +5354,6 @@ void MainWindow::readSDData()
                    line.contains("Enter comment:") ||
                    line.contains("Do you want to write it anyway?")) {
             // PROMPTS
-//            editedData += line;  // no NL
             lastPrompt = errorLine + line;  // this is a bold idea.  treat this as the last prompt, too.
         } else if (line.startsWith("SD --") || line.contains("Copyright") || line.contains("Gildea")) {
             copyrightText += line + "\n";
@@ -5660,18 +5366,13 @@ void MainWindow::readSDData()
         } else if (line.contains("-->")) {
             // suppress output, but record it
             lastPrompt = errorLine + line;  // this is a bold idea.  show last error only.
-//            qDebug() << "lastPrompt:" << lastPrompt;
         } else {
             editedData += line;  // no layout lines make it into here
             editedData += "\n";  // no layout lines make it into here
         }
     }
 
-//    qDebug() << "RESOLVE:" << resolveLine;
-
     editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
-//    qDebug() << "editedData:" << editedData;
-//    qDebug() << "copyrightText:" << copyrightText;
 
     // echo is needed for entering the level and entering comments, but NOT wanted after that
     if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
@@ -5680,7 +5381,6 @@ void MainWindow::readSDData()
         console->setLocalEchoEnabled(false);
     }
 
-//    qDebug() << "currentSequence:" << currentSequence;
     // capitalize all the words in each call
     for (int i=0; i < currentSequence.length(); i++ ) {
         QString current = currentSequence.at(i);
@@ -5711,15 +5411,11 @@ void MainWindow::readSDData()
     QScrollBar *sb = currentSequenceWidget->verticalScrollBar();
     sb->setValue(sb->maximum());
 
-    //editedData.chop(1);  // no last NL
-//    qDebug() << "edited data:" << editedData;
-
     console->clear();
     console->putData(QByteArray(editedData.toLatin1()));
 
     // look at unedited last line to see if there's a prompt
     if (lines[lines.length()-1].contains("-->")) {
-//        qDebug() << "Found prompt:" << lines[lines.length()-1];
         QString formation;
         QRegExp r1( "[(](.*)[)]-->" );
         int pos = r1.indexIn( lines[lines.length()-1] );
@@ -5729,10 +5425,6 @@ void MainWindow::readSDData()
         renderArea->setFormation(formation);
     }
 
-//    qDebug() << "lastLayout1:" << lastLayout1;
-//    qDebug() << "lastFormatList:" << lastFormatList;
-
-//    qDebug() << "lastPrompt:" << lastPrompt;
     if (lastPrompt.contains("Enter startup command>")) {
         renderArea->setLayout1("");
         renderArea->setLayout2(QStringList());      // show squared up dancers
@@ -5763,8 +5455,6 @@ void MainWindow::readPSData()
         // This is a cheesy way to do it.  We really should disable the mics somehow.
         return;
     }
-
-//    qDebug() << "data from PS:" << s;
 
     // NLU --------------------------------------------
     // This section does the impedance match between what you can say and the exact wording that sd understands.
@@ -5866,14 +5556,11 @@ void MainWindow::readPSData()
         QRegExp explodeAndNotRollCall("^explode and (.*)");
 
         if (s2.indexOf(explodeAndRollCall) != -1) {
-//            qDebug() << "path1" << s2;
             s2 = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll\n";
         } else if (s2.indexOf(explodeAndNotRollCall) != -1) {
-//            qDebug() << "path2" << s2;
             // not a roll, for sure.  Must be a naked "explode and <anything>\n"
             s2 = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]\n";
         } else {
-//            qDebug() << "not explode.";
         }
     }
 
@@ -5899,21 +5586,6 @@ void MainWindow::readPSData()
 
     // handle the <anything> and sweep case
     // FIX: this needs to add center boys, etc, but that messes up the QRegExp
-//    QString who = QString("(^[heads|sides|centers|ends|outsides|insides|couples|everybody") +
-////                  QString("center boys|end boys|outside boys|inside boys|all four boys|") +
-////                  QString("center girls|end girls|outside girls|inside girls|all four girls|") +
-////                  QString("center men|end men|outside men|inside men|all four men|") +
-////                  QString("center ladies|end ladies|outside ladies|inside ladies|all four ladies") +
-//                  QString("]*)");
-////    qDebug() << "who:" << who;
-//    QRegExp andSweepCall(QString("<who>[ ]*(.*) and sweep.*").replace("<who>",who));
-////    qDebug() << "andSweepCall" << andSweepCall;
-//    if (s2.indexOf(andSweepCall) != -1) {
-////        qDebug() << "CAPTURED:" << andSweepCall.capturedTexts();
-//        s2 = andSweepCall.cap(1) + " [" + andSweepCall.cap(2) + "] and sweep 1/4\n";
-//        s2 = s2.replace(QRegExp("^ "),""); // trim off possibly extra starting space
-//        s2 = s2.replace("[ ","[");  // trim off possibly extra space because (.*) was greedy...
-//    }
 
     // <ANYTHING> AND SWEEP (A | ONE) QUARTER [MORE]
     QRegExp andSweepPart(" and sweep.*");
@@ -5951,12 +5623,8 @@ void MainWindow::readPSData()
         sd->write("y\n");
         sd->waitForBytesWritten();
 
-//        sd->write("heads start\n");   // THIS IS OPTIONAL.  For now, don't do it -- user needs to say it.
-//        sd->waitForBytesWritten();
-
     } else if (s2 == "undo last call\n") {
         // TODO: put more synonyms of this in...
-//        qDebug() << "sending to SD: \"undo last call\n\"";
 #if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
 #endif
@@ -5980,7 +5648,6 @@ void MainWindow::readPSData()
 #endif
         sd->waitForBytesWritten();
     } else if (s2 != "\n") {
-//        qDebug() << "sending to SD:" << s2;
         sd->write(s2.toLatin1());
         sd->waitForBytesWritten();
     }
@@ -6064,16 +5731,12 @@ void MainWindow::initSDtab() {
            << "-remove_noise" << "yes"  // try turning on PS noise reduction
            << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
-//    qDebug() << pathToPS << PSargs;
-
     ps = new QProcess(Q_NULLPTR);
 
     ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
     ps->start(pathToPS, PSargs);
 
-//    qDebug() << "Waiting to start ps...";
     ps->waitForStarted();
-//    qDebug() << "   started.";
 
     connect(ps,   &QProcess::readyReadStandardOutput,
             this, &MainWindow::readPSData);                 // output data from ps
@@ -6112,33 +5775,17 @@ void MainWindow::initSDtab() {
         dir.mkpath(".");
     }
 
-//    qDebug() << "sequencesDir:" << sequencesDir;
-
     sd->setWorkingDirectory(sequencesDir);
     sd->setProcessChannelMode(QProcess::MergedChannels);
-//    qDebug() << "pathToSD:" << pathToSD << ", args:" << SDargs;
     sd->start(pathToSD, SDargs);
 
-//    qDebug() << "Waiting to start sd...";
     if (sd->waitForStarted() == false) {
         qDebug() << "ERROR: sd did not start properly.";
     } else {
 //        qDebug() << "sd started.";
     }
 
-    // DEBUG: Send a couple of startup calls to SD...
-//    if (true) {
-//        sd->write("heads start\n\r");  // DEBUG
-//        sd->waitForBytesWritten();
-//        sd->write("square thru 4\n"); // DEBUG
-//        sd->waitForBytesWritten();
-//    } else {
-//        sd->write("just as they are\n");
-//        sd->waitForBytesWritten();
-//    }
-
     connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData);  // output data from sd
-//    connect(sd, &QProcess::readyReadStandardError, this, &MainWindow::readSDData);  // Not needed, now that we merged the output channels
     connect(console, &Console::getData, this, &MainWindow::writeSDData);      // input data to sd
 
     highlighter = new Highlighter(console->document());
@@ -6304,7 +5951,6 @@ void MainWindow::playSFX(QString which) {
         soundEffectFile = musicRootPath + "/soundfx/" + which + ".mp3";
     }
 
-//    qDebug() << "PLAY SFX:" << soundEffect;
     if(QFileInfo(soundEffectFile).exists()) {
         // play sound FX only if file exists...
         cBass.PlayOrStopSoundEffect(which.toInt(),
@@ -6415,7 +6061,6 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     QByteArray result = reply->readAll();
 
     if ( reply->error() != QNetworkReply::NoError ) {
-//        qDebug() << "Request failed:" << reply->errorString();
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.setText("<B>ERROR</B><P>Sorry, the GitHub server is not reachable right now.<P>" + reply->errorString());
@@ -6468,7 +6113,6 @@ void MainWindow::maybeInstallSoundFX() {
         // check for break_over.mp3 and copy it in, if it doesn't exist already
         QFile breakOverSound(soundfxDir + "/break_over.mp3");
         if (!breakOverSound.exists()) {
-//            qDebug() << "copying in a break over sound starter file";
             QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
             QString destination = soundfxDir + "/break_over.mp3";
 //            qDebug() << "COPY from: " << source << " to " << destination;
@@ -6478,10 +6122,8 @@ void MainWindow::maybeInstallSoundFX() {
         // check for long_tip.mp3 and copy it in, if it doesn't exist already
         QFile longTipSound(soundfxDir + "/long_tip.mp3");
         if (!longTipSound.exists()) {
-//            qDebug() << "copying in a long tip sound starter file";
             QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
             QString destination = soundfxDir + "/long_tip.mp3";
-//            qDebug() << "COPY from: " << source << " to " << destination;
             QFile::copy(source, destination);
         }
 
@@ -6498,13 +6140,11 @@ void MainWindow::maybeInstallSoundFX() {
         QDirIterator it(soundfxDir);
         while(it.hasNext()) {
             QString s1 = it.next();
-            //        qDebug() << "soundfx file:" << s1 << ", rootDir: " << rootDir;
 
             QString baseName = s1.replace(soundfxDir,"");
             QStringList sections = baseName.split(".");
 
             if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
-                //            qDebug() << "     found a valid soundfx file" << baseName << sections;
                 foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
             }
         } // while
@@ -6519,12 +6159,10 @@ void MainWindow::maybeInstallSoundFX() {
         };
         for (int i=0; i<6; i++) {
             if (!foundSoundFXfile[i]) {
-//                qDebug() << "copying in a soundFX starter file: " << i+1;
                 QString destination = soundfxDir + "/" + starterSet[i];
                 QFile dest(destination);
                 if (!dest.exists()) {
                     QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
-//                    qDebug() << "COPY from: " << source << " to " << destination;
                     QFile::copy(source, destination);
                 }
             }
@@ -6611,14 +6249,12 @@ void MainWindow::adjustFontSizes()
     // these are special MEDIUM
     int warningLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
     currentFont.setPointSize((warningLabelFontSize));
-//    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
     ui->warningLabel->setFont(currentFont);
     ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
 
     // these are special BIG
     int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
     currentFont.setPointSize(nowPlayingLabelFontSize);
-//    currentFont.setPointSize((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
     ui->nowPlayingLabel->setFont(currentFont);
     ui->nowPlayingLabel->setFixedHeight(1.25*nowPlayingLabelFontSize);
 
@@ -6643,7 +6279,6 @@ void MainWindow::on_actionZoom_In_triggered()
     if (newPointSize > currentFont.pointSize()) {
         ui->textBrowserCueSheet->zoomIn(2*ZOOMINCREMENT);
         totalZoom += 2*ZOOMINCREMENT;
-//        qDebug() << "zooming in, totalZoom is now:" << totalZoom;
     }
 
     currentFont.setPointSize(newPointSize);
@@ -6662,7 +6297,6 @@ void MainWindow::on_actionZoom_Out_triggered()
     if (newPointSize < currentFont.pointSize()) {
         ui->textBrowserCueSheet->zoomOut(2*ZOOMINCREMENT);
         totalZoom -= 2*ZOOMINCREMENT;
-//        qDebug() << "zooming out, totalZoom is now:" << totalZoom;
     }
 
     currentFont.setPointSize(newPointSize);
