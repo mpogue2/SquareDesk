@@ -155,6 +155,9 @@ using namespace TagLib;
 // VIEW MENU
 // Zoom IN/OUT              Cmd-=, Cmd-Minus
 // Reset Zoom               Cmd-0
+//
+// OTHER (Not in a menu)
+// Toggle between Music/Lyrics  T
 
 // GLOBALS:
 bass_audio cBass;
