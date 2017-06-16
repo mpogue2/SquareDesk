@@ -3935,6 +3935,69 @@ QString MainWindow::removePrefix(QString prefix, QString s)
     return s2;
 }
 
+// Adapted from: https://github.com/hnaohiro/qt-csv/blob/master/csv.cpp
+QStringList MainWindow::parseCSV(const QString &string)
+{
+    enum State {Normal, Quote} state = Normal;
+    QStringList fields;
+    QString value;
+
+    for (int i = 0; i < string.size(); i++)
+    {
+        QChar current = string.at(i);
+
+        // Normal state
+        if (state == Normal)
+        {
+            // Comma
+            if (current == ',')
+            {
+                // Save field
+                fields.append(value);
+                value.clear();
+            }
+
+            // Double-quote
+            else if (current == '"')
+                state = Quote;
+
+            // Other character
+            else
+                value += current;
+        }
+
+        // In-quote state
+        else if (state == Quote)
+        {
+            // Another double-quote
+            if (current == '"')
+            {
+                if (i+1 < string.size())
+                {
+                    QChar next = string.at(i+1);
+
+                    // A double double-quote?
+                    if (next == '"')
+                    {
+                        value += '"';
+                        i++;
+                    }
+                    else
+                        state = Normal;
+                }
+            }
+
+            // Other character
+            else
+                value += current;
+        }
+    }
+    if (!value.isEmpty())
+        fields.append(value);
+
+    return fields;
+}
+
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
 
@@ -3945,21 +4008,13 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
     // --------
     QString firstBadSongLine = "";
-//    int songCount = 0;
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
-//        ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
 
         // first, clear all the playlist numbers that are there now.
         for (int i = 0; i < ui->songTable->rowCount(); i++) {
             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
             theItem->setText("");
-
-//            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);  // clear out the hidden pitches, too
-//            theItem2->setText("0");
-
-//            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);  // clear out the hidden tempos, too
-//            theItem3->setText("0");
         }
 
         QTextStream in(&inputFile);
@@ -3972,6 +4027,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
             while (!in.atEnd()) {
                 QString line = in.readLine();
+
                 if (line == "abspath") {
                     // V1 of the CSV file format has exactly one field, an absolute pathname in quotes
                 }
@@ -3980,17 +4036,17 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                 }
                 else {
                     songCount++;  // it's a real song path
-                    QStringList list1 = line.split(",");
 
-                    list1[0].replace("\"","");  // get rid of all double quotes in the abspath
-                    list1[1].replace("\"",
-                                     "");  // get rid of all double quotes in the pitch (they should not be there at all, this is an INT)
+                    QStringList list1 = parseCSV(line);  // This is more robust than split(). Handles commas inside double quotes, double double quotes, etc.
 
                     bool match = false;
                     // exit the loop early, if we find a match
                     for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+
                         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-                        if (list1[0] == pathToMP3) { // FIX: this is fragile, if songs are moved around
+
+                        if (list1[0] == pathToMP3) { // FIX: this is fragile, if songs are moved around, since absolute paths are used.
+
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
 
@@ -4001,8 +4057,6 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                             theItem3->setText(list1[2].trimmed());
 
                             match = true;
-//                            QTableWidgetItem *theItemAge = ui->songTable->item(i,kAgeCol);
-//                            theItemAge->setText("***");
                         }
                     }
                     // if we had no match, remember the first non-matching song path
