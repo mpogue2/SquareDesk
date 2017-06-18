@@ -270,20 +270,24 @@ void PreferencesDialog::on_initialBPMLineEdit_textChanged(const QString &arg1)
 
 void PreferencesDialog::on_lineEditMusicTypePatter_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
 }
 
 void PreferencesDialog::on_lineEditMusicTypeExtras_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
 }
 
 void PreferencesDialog::on_lineEditMusicTypeSinging_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
 }
 
 void PreferencesDialog::on_lineEditMusicTypeCalled_textChanged(const QString &arg1)
 {
+    Q_UNUSED(arg1)
     songTableReloadNeeded = true;  // change to folder names requires reload of the songTable
 }
