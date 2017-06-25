@@ -2363,6 +2363,17 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             QTextStream in(&f1);
             cuesheet = in.readAll();  // read the entire CSS file, if it exists
 
+            if (cuesheet.contains("charset=windows-1252")) {
+                // this is very likely to be an HTML file converted from MS WORD,
+                //   and it still uses windows-1252 encoding.
+
+                f1.seek(0);  // go back to the beginning of the file
+
+                QByteArray win1252bytes(f1.readAll());  // and read it again (as bytes this time)
+                QTextCodec *codec = QTextCodec::codecForName("windows-1252");  // FROM win-1252 bytes
+                cuesheet = codec->toUnicode(win1252bytes);                     // TO Unicode QString
+            }
+
             // set the CSS
             ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
 
