@@ -3033,7 +3033,7 @@ void MainWindow::filterMusic()
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
-    ui->songTable->setSortingEnabled(false);
+    startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
 
     // Need to remember the PL# mapping here, and reapply it after the filter
     // left = path, right = number string
@@ -3200,7 +3200,7 @@ void MainWindow::loadMusicList()
 #endif /* ifdef CUSTOM_FILTER */
 
     sortByDefaultSortOrder();
-    ui->songTable->setSortingEnabled(true);
+    stopLongSongTableOperation("loadMusicList");  // for performance, sorting on again and show
 
     QString msg1;
     if (guestMode == "main") {
@@ -4037,15 +4037,17 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
 // PLAYLIST MANAGEMENT ===============================================
 void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
+
+    startLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, hide and sorting off
+
     // --------
     QString firstBadSongLine = "";
     int songCount = 0;
-    ui->songTable->setSortingEnabled(false);  // sorting must be disabled to clear
+
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 
     sortByDefaultSortOrder();
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
-    ui->songTable->setSortingEnabled(true);  // sorting must be disabled to clear
 
     // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
     // only do this, if there were no errors in loading the playlist numbers.
@@ -4053,6 +4055,8 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
         ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
         on_actionPrevious_Playlist_Item_triggered();
     }
+
+    stopLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, sorting on again and show
 
     QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
     if (firstBadSongLine != "") {
@@ -4428,8 +4432,9 @@ void MainWindow::on_songTable_itemSelectionChanged()
 
 void MainWindow::on_actionClear_Playlist_triggered()
 {
+    startLongSongTableOperation("on_actionClear_Playlist_triggered");  // for performance, hide and sorting off
+
     // Iterate over the songTable
-    ui->songTable->setSortingEnabled(false);  // must turn sorting off, or else sorting on # will not clear all
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         theItem->setText(""); // clear out the current list
@@ -4439,7 +4444,8 @@ void MainWindow::on_actionClear_Playlist_triggered()
     }
 
     sortByDefaultSortOrder();
-    ui->songTable->setSortingEnabled(true);  // reenable sorting
+
+    stopLongSongTableOperation("on_actionClear_Playlist_triggered");  // for performance, sorting on again and show
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 }
@@ -6370,4 +6376,29 @@ void MainWindow::on_actionTempo_toggled(bool checked)
 void MainWindow::on_actionFade_Out_triggered()
 {
     cBass.FadeOutAndPause();
+}
+
+// For improving as well as measuring performance of long songTable operations
+// The hide() really gets most of the benefit:
+//
+//                                          no hide()   with hide()
+// loadMusicList                             129ms      112ms
+// finishLoadingPlaylist (50 items list)    3227ms     1154ms
+// clear playlist                           2119ms      147ms
+//
+void MainWindow::startLongSongTableOperation(QString s) {
+    Q_UNUSED(s)
+//    t1.start();  // DEBUG
+
+    ui->songTable->hide();
+    ui->songTable->setSortingEnabled(false);
+}
+
+void MainWindow::stopLongSongTableOperation(QString s) {
+    Q_UNUSED(s)
+
+    ui->songTable->setSortingEnabled(true);
+    ui->songTable->show();
+
+//    qDebug() << s << ": " << t1.elapsed() << "ms.";  // DEBUG
 }
