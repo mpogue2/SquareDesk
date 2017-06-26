@@ -4150,7 +4150,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         }
     }
     else if (PlaylistFileName.endsWith(".csv")) {
-        if (file.open(QIODevice::ReadWrite)) {
+        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
             stream << "abspath,pitch,tempo" << endl;
 
@@ -4158,6 +4158,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             QMapIterator<int, QString> i(imports);
             while (i.hasNext()) {
                 i.next();
+//                qDebug() << "path:" << i.value();
                 // pathname can't have double quotes in it, so no need to do double double quotes
                 stream << "\"" << i.value() << "\"," <<
                        importsPitch[i.key()] << "," <<
