@@ -1551,6 +1551,9 @@
    <property name="text">
     <string>Speed Up</string>
    </property>
+   <property name="shortcut">
+    <string>+</string>
+   </property>
   </action>
   <action name="actionSlow_Down">
    <property name="enabled">
@@ -1558,6 +1561,9 @@
    </property>
    <property name="text">
     <string>Slow Down</string>
+   </property>
+   <property name="shortcut">
+    <string>-</string>
    </property>
   </action>
   <action name="actionSave">
