@@ -4144,6 +4144,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
                 stream << i.value() << endl;
             }
             file.close();
+            addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
@@ -4165,6 +4166,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
                        importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
             }
             file.close();
+            addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
