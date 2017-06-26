@@ -2017,6 +2017,7 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_Period:  // for SqView compatibility ("restart")
             on_stopButton_clicked();
             on_playButton_clicked();
+            on_warningLabel_clicked();  // also reset the Patter Timer to zero
             break;
 
         case Qt::Key_Right:

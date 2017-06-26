@@ -353,7 +353,7 @@ void AnalogClock::setTimerLabel(clickableLabel *theLabel)
 
 void AnalogClock::resetPatter(void)
 {
-    timerLabel->setText("00:00");
+    timerLabel->setText("PT=00:00");
     typeTracker.addStop();
 }
 
