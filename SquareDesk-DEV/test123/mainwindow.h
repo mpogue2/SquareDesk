@@ -77,7 +77,7 @@
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.8.2alpha2"
+#define VERSIONSTRING "0.8.2alpha3"
 
 namespace Ui
 {

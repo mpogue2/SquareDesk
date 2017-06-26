@@ -3912,9 +3912,7 @@ QStringList MainWindow::parseCSV(const QString &string)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
 
 //    qDebug() << "loadPlaylist: " << PlaylistFileName;
-    if (!PlaylistFileName.endsWith(".squaredesk/current.m3u")) {  // do not remember the initial persistent playlist
-        addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
-    }
+    addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
 
     // --------
     QString firstBadSongLine = "";
@@ -6032,17 +6030,19 @@ void MainWindow::updateRecentPlaylistMenu() {
 }
 
 void MainWindow::addFilenameToRecentPlaylist(QString filename) {
-    QSettings settings;
-    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+    if (!filename.endsWith(".squaredesk/current.m3u")) {  // do not remember the initial persistent playlist
+        QSettings settings;
+        QStringList recentFilePaths = settings.value("recentFiles").toStringList();
 
-    recentFilePaths.removeAll(filename);  // remove if it exists already
-    recentFilePaths.prepend(filename);    // push it onto the front
-    while (recentFilePaths.size() > 4) {  // get rid of those that fell off the end
+        recentFilePaths.removeAll(filename);  // remove if it exists already
+        recentFilePaths.prepend(filename);    // push it onto the front
+        while (recentFilePaths.size() > 4) {  // get rid of those that fell off the end
             recentFilePaths.removeLast();
-    }
+        }
 
-    settings.setValue("recentFiles", recentFilePaths);  // remember the new list
-    updateRecentPlaylistMenu();
+        settings.setValue("recentFiles", recentFilePaths);  // remember the new list
+        updateRecentPlaylistMenu();
+    }
 }
 
 void MainWindow::on_actionRecent1_triggered()
