@@ -818,15 +818,23 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
     RecursionGuard guard(cuesheetEditorReactingToCursorMovement);    
-    ui->pushButtonCueSheetEditHeader->setChecked(f.fontPointSize() == 14);
+//    ui->pushButtonCueSheetEditHeader->setChecked(f.fontPointSize() == 14);
     ui->pushButtonCueSheetEditItalic->setChecked(f.fontItalic());
     ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
 }
 
-void MainWindow::on_pushButtonCueSheetEditHeader_toggled(bool /* checked */)
+void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
 {
     if (!cuesheetEditorReactingToCursorMovement)
-    {
+    {        
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+        if (!cursor.hasComplexSelection())
+        {
+            QString selectedText = cursor.selectedText();
+            cursor.removeSelectedText();
+            cursor.insertHtml("<h1>" + selectedText + "</h1>");
+            // cursor.movePosition(QTextCursor::Left, QText::MoveAnchor, 
+        }
 //    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
     }
 }

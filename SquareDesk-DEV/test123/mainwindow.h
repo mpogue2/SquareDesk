@@ -177,7 +177,7 @@ private slots:
 
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
-    void on_pushButtonCueSheetEditHeader_toggled(bool checked);
+    void on_pushButtonCueSheetEditHeader_clicked(bool checked);
     void on_pushButtonCueSheetEditItalic_toggled(bool checked);
     void on_pushButtonCueSheetEditBold_toggled(bool checked);
     void on_pushButtonCueSheetEditSave_clicked();
