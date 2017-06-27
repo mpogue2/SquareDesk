@@ -180,6 +180,7 @@ private slots:
     void on_pushButtonCueSheetEditHeader_toggled(bool checked);
     void on_pushButtonCueSheetEditItalic_toggled(bool checked);
     void on_pushButtonCueSheetEditBold_toggled(bool checked);
+    void on_pushButtonCueSheetEditSave_clicked();
 
     
     void setCueSheetAdditionalControlsVisible(bool visible);
@@ -316,6 +317,7 @@ private:
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath, guestRootPath, guestVolume, guestMode;
+    QString lastCuesheetSavePath;
     enum SongFilenameMatchingType songFilenameFormat;
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
@@ -352,11 +354,10 @@ private:
     void loadSettingsForSong(QString songTitle);
     void randomizeFlashCall();
 
-
     float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(const QString &cuesheetFilename);
-    void loadCuesheets(const QString &MP3FileName);
+    void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
@@ -465,6 +466,7 @@ private:
 
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings
+    bool cuesheetEditorReactingToCursorMovement;
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadSongAges(int id);
     void reloadSongAges(bool show_all_sessions);

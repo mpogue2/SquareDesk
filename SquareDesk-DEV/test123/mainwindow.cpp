@@ -161,6 +161,9 @@ using namespace TagLib;
 
 // GLOBALS:
 bass_audio cBass;
+static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
+static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
+
 
 
 // ----------------------------------------------------------------------
@@ -168,12 +171,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(NULL),
+    lastCuesheetSavePath(),
     timerCountUp(NULL),
     timerCountDown(NULL),
     trapKeypresses(true),
     sd(NULL),
     firstTimeSongIsPlayed(false),
     loadingSong(false),
+    cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0)
 {
     justWentActive = false;
@@ -811,25 +816,108 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
+    RecursionGuard guard(cuesheetEditorReactingToCursorMovement);    
     ui->pushButtonCueSheetEditHeader->setChecked(f.fontPointSize() == 14);
     ui->pushButtonCueSheetEditItalic->setChecked(f.fontItalic());
     ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
 }
 
-void MainWindow::on_pushButtonCueSheetEditHeader_toggled(bool checked)
+void MainWindow::on_pushButtonCueSheetEditHeader_toggled(bool /* checked */)
 {
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
 //    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
+    }
 }
 
 void MainWindow::on_pushButtonCueSheetEditItalic_toggled(bool checked)
 {
-    ui->textBrowserCueSheet->setFontItalic(checked);
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        ui->textBrowserCueSheet->setFontItalic(checked);
+    }
 }
 
 void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
 {
-    ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
+    }
 }
+
+static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFilename)
+{
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+        QString s = iter.next();
+        QStringList sl1 = s.split("#!#");
+        QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString filename = sl1[1];  // everything else
+        if (filename == checkFilename)
+            return true;
+    }
+    return false;
+}
+      
+
+void MainWindow::on_pushButtonCueSheetEditSave_clicked()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    QFileInfo fi(currentMP3filenameWithPath);
+
+    if (lastCuesheetSavePath.isNull() || lastCuesheetSavePath.length() == 0)
+        lastCuesheetSavePath = musicRootPath;
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    tr("Select Cue Sheet"),
+                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
+                                                    tr("HTML (*.html)"));
+    if (!filename.isNull())
+    {
+        bool needs_extension = true;
+        for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
+        {
+            QString ext(".");
+            ext.append(cuesheet_file_extensions[i]);
+            if (filename.endsWith(ext))
+            {
+                needs_extension = false;
+                break;
+            }
+        }
+        if (needs_extension)
+        {
+            filename += ".html";
+        }
+        
+        QFile file( filename );
+        QFileInfo fi(filename);
+        lastCuesheetSavePath = fi.canonicalPath();
+        
+        if ( file.open(QIODevice::WriteOnly) )
+        {
+            // Make sure the destructor gets called before we try to load this file...
+            {
+                QTextStream stream( &file );
+                stream << ui->textBrowserCueSheet->toHtml();
+                stream.flush();
+            }
+            
+            if (!isFileInPathStack(pathStack, filename))
+            {
+                QFileInfo fi(filename);
+                QStringList section = fi.path().split("/");
+                QString type = section[section.length()-1];  // must be the last item in the path
+                qDebug() << "Adding " + type + "#!#" + filename;
+                pathStack->append(type + "#!#" + filename);
+            }
+            loadCuesheets(currentMP3filenameWithPath, filename);
+            saveCurrentSongSettings();
+        }
+    }
+}
+
+
 
 // ----------------------------------------------------------------------
 void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
@@ -879,8 +967,9 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
-    if (currentIndex != -1) {
+    if (currentIndex != -1 && !cuesheetEditorReactingToCursorMovement) {
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
+        qDebug() << "Setting cuesheet index to " << currentIndex << " / " << cuesheetFilename;
         loadCuesheet(cuesheetFilename);
     }
 }
@@ -2214,9 +2303,6 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass.SetEq(2, (float)value);
 }
 
-static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
-static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
-
 
 struct FilenameMatchers {
     QRegularExpression regex;
@@ -2388,6 +2474,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         }
 
         // read in the HTML for the cuesheet
+        qDebug() << "Loading cuesheet" << cuesheetFilename;
         QFile f1(cuesheetFilename);
         QString cuesheet;
         if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -2634,7 +2721,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 }
 
 
-void MainWindow::loadCuesheets(const QString &MP3FileName)
+void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
 {
     hasLyrics = false;
 
@@ -2643,15 +2730,19 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
+    int defaultCuesheetIndex = 0;
 
-    QString firstCuesheet("");
+
+    QString firstCuesheet(preferredCuesheet);
     ui->comboBoxCuesheetSelector->clear();
 
     foreach (const QString &cuesheet, possibleCuesheets)
     {
-        if (firstCuesheet.length() == 0)
+        RecursionGuard guard(cuesheetEditorReactingToCursorMovement);    
+        if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
+            && cuesheet == preferredCuesheet)
         {
-            firstCuesheet = cuesheet;
+            defaultCuesheetIndex = ui->comboBoxCuesheetSelector->count();
         }
 
         QString displayName = cuesheet;
@@ -2662,9 +2753,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
                                               cuesheet);
     }
 
-    if (firstCuesheet.length() > 0)
+    if (ui->comboBoxCuesheetSelector->count() > 0)
     {
-        loadCuesheet(firstCuesheet);
+        on_comboBoxCuesheetSelector_currentIndexChanged(defaultCuesheetIndex);
         hasLyrics = true;
     }
 
