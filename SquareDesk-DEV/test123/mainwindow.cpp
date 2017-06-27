@@ -802,7 +802,36 @@ void breakDanceProgramIntoParts(const QString &filename,
 
 }
 
+// ----------------------------------------------------------------------
+// Text editor stuff
 
+void MainWindow::on_textBrowserCueSheet_selectionChanged()
+{
+}
+
+void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
+{
+    ui->pushButtonCueSheetEditHeader->setChecked(f.fontPointSize() == 14);
+    ui->pushButtonCueSheetEditItalic->setChecked(f.fontItalic());
+    ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
+}
+
+void MainWindow::on_pushButtonCueSheetEditHeader_toggled(bool checked)
+{
+//    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
+}
+
+void MainWindow::on_pushButtonCueSheetEditItalic_toggled(bool checked)
+{
+    ui->textBrowserCueSheet->setFontItalic(checked);
+}
+
+void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
+{
+    ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
+}
+
+// ----------------------------------------------------------------------
 void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
 {
     if (kCallListCheckedCol == col)
@@ -1933,6 +1962,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
+               ui->textBrowserCueSheet->hasFocus() ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
