@@ -4993,6 +4993,11 @@ void MainWindow::saveCurrentSongSettings()
         setting.setCuesheetName(cuesheetFilename);
         setting.setSongLength((double)(ui->seekBarCuesheet->maximum()));
 
+        setting.setTreble( ui->trebleSlider->value() );
+        setting.setBass( ui->bassSlider->value() );
+        setting.setMidrange( ui->midrangeSlider->value() );
+        setting.setMix( ui->mixSlider->value() );
+        
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
     }
@@ -5057,6 +5062,46 @@ void MainWindow::loadSettingsForSong(QString songTitle)
                 }
             }
         }
+        if (settings.isSetTreble())
+        {
+            ui->trebleSlider->setValue(settings.getTreble() );
+        }
+        else
+        {
+            ui->trebleSlider->setValue(0) ;
+        }
+        if (settings.isSetBass())
+        {
+            ui->bassSlider->setValue( settings.getBass() );
+        }
+        else
+        {
+            ui->bassSlider->setValue(0);
+        }
+        if (settings.isSetMidrange())
+        {
+            ui->midrangeSlider->setValue( settings.getMidrange() );
+        }
+        else
+        {
+            ui->midrangeSlider->setValue(0);
+        }
+        if (settings.isSetMix())
+        {
+            ui->mixSlider->setValue( settings.getMix() );
+        }
+        else
+        {
+            ui->mixSlider->setValue(0);
+        }
+        
+    }
+    else
+    {
+        ui->trebleSlider->setValue(0);
+        ui->bassSlider->setValue(0);
+        ui->midrangeSlider->setValue(0);
+        ui->mixSlider->setValue(0);
     }
     double length = (double)(ui->seekBarCuesheet->maximum());
     ui->lineEditIntroTime->setText(doubleToTime(intro * length));

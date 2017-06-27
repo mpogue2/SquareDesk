@@ -176,6 +176,11 @@ RowDefinition song_rows[] =
     RowDefinition("last_cuesheet", "text"),
     RowDefinition("songLength", "float"),
     RowDefinition("introOutroIsTimeBased", "int"),
+    RowDefinition("treble", "int"),
+    RowDefinition("bass", "int"),
+    RowDefinition("midrange", "int"),
+    RowDefinition("mix", "int"),
+    
     RowDefinition(NULL, NULL),
 };
 
@@ -537,7 +542,15 @@ SongSetting::SongSetting()
     m_introOutroIsTimeBased(false),     // init to false, because this is a new column and if not present, it's not time-based
     set_introOutroIsTimeBased(false),   // all of the set_* should be false here, I think.
     m_songLength(0.0),                  // init to zero, and this will blow up if used for division
-    set_songLength(false)               // all of the set_* should be false here, I think.
+    set_songLength(false),               // all of the set_* should be false here, I think.
+    m_treble(0),
+    set_treble(false),
+    m_bass(0),
+    set_bass(false),
+    m_midrange(0),
+    set_midrange(false),
+    m_mix(0),
+    set_mix(false)
 {
 }
 
@@ -581,7 +594,10 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetCuesheetName()) { fields.append("last_cuesheet" ); }  // ADDED ********
     if (settings.isSetSongLength()) { fields.append("songLength" ); }
     if (settings.isSetIntroOutroIsTimeBased()) { fields.append("introOutroIsTimeBased" ); }
-
+    if (settings.isSetTreble()) { fields.append("treble"); }
+    if (settings.isSetBass()) { fields.append("bass"); }
+    if (settings.isSetMidrange()) { fields.append("midrange"); }
+    if (settings.isSetMix()) { fields.append("mix"); }
 
     QSqlQuery q(m_db);
     if (id == -1)
@@ -645,6 +661,10 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":last_cuesheet", settings.getCuesheetName() );
     q.bindValue(":songLength", settings.getSongLength() );
     q.bindValue(":introOutroIsTimeBased", settings.getIntroOutroIsTimeBased() );
+    q.bindValue(":treble", settings.getTreble());
+    q.bindValue(":bass", settings.getBass());
+    q.bindValue(":midrange", settings.getMidrange());
+    q.bindValue(":mix", settings.getMix());
 
     exec("saveSettings", q);
 }
@@ -661,12 +681,17 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(7).isNull()) { settings.setTempoIsPercent(q.value(7).toBool()); };
     if (!q.value(8).isNull()) { settings.setSongLength(q.value(8).toFloat()); };
     if (!q.value(9).isNull()) { settings.setIntroOutroIsTimeBased(q.value(9).toBool()); };
+
+    if (!q.value(10).isNull()) { settings.setTreble(q.value(10).toInt()); }
+    if (!q.value(11).isNull()) { settings.setBass(q.value(11).toInt()); }
+    if (!q.value(12).isNull()) { settings.setMidrange(q.value(12).toInt()); }
+    if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {
