@@ -596,6 +596,7 @@ MainWindow::MainWindow(QWidget *parent) :
         loadDanceProgramList(lastDanceProgram);
     }
 
+    lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
@@ -2003,6 +2004,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
         QSettings settings;
+        settings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
         settings.setValue("geometry", saveGeometry());
         settings.setValue("windowState", saveState());
         QMainWindow::closeEvent(event);
