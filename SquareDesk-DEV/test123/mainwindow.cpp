@@ -4094,10 +4094,23 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     finishLoadingPlaylist(PlaylistFileName);
 }
 
+struct PlaylistExportRecord
+{
+    int index;
+    QString title;
+    QString pitch;
+    QString tempo;
+};
+
+static bool comparePlaylistExportRecord(const PlaylistExportRecord &a, const PlaylistExportRecord &b)
+{
+    return a.index < b.index;
+}
+
 // SAVE CURRENT PLAYLIST TO FILE
 void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     // --------
-    QMap<int, QString> imports, importsPitch, importsTempo;
+    QList<PlaylistExportRecord> exports;
 
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
@@ -4107,16 +4120,20 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString pitch = ui->songTable->item(i,kPitchCol)->text();
         QString tempo = ui->songTable->item(i,kTempoCol)->text();
-
+       
         if (playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
             // TODO: reconcile int here with float elsewhere on insertion
-            imports[playlistIndex.toInt()] = pathToMP3;
-            importsPitch[playlistIndex.toInt()] = pitch;
-            importsTempo[playlistIndex.toInt()] = tempo;
+            PlaylistExportRecord rec;
+            rec.index = playlistIndex.toInt();
+            rec.title = songTitle;
+            rec.pitch = pitch;
+            rec.tempo = tempo;
+            exports.append(rec);
         }
     }
 
+    qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);
     // TODO: strip the initial part of the path off the Paths, e.g.
     //   /Users/mpogue/__squareDanceMusic/patter/C 117 - Restless Romp (Patter).mp3
     //   becomes
@@ -4135,11 +4152,10 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             stream << "#EXTM3U" << endl << endl;
 
             // list is auto-sorted here
-            QMapIterator<int, QString> i(imports);
-            while (i.hasNext()) {
-                i.next();
+            foreach (const PlaylistExportRecord &rec, exports)
+            {
                 stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
-                stream << i.value() << endl;
+                stream << rec.title << endl;
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -4153,15 +4169,11 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             QTextStream stream(&file);
             stream << "abspath,pitch,tempo" << endl;
 
-            // list is auto-sorted here
-            QMapIterator<int, QString> i(imports);
-            while (i.hasNext()) {
-                i.next();
-//                qDebug() << "path:" << i.value();
-                // pathname can't have double quotes in it, so no need to do double double quotes
-                stream << "\"" << i.value() << "\"," <<
-                       importsPitch[i.key()] << "," <<
-                       importsTempo[i.key()] << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
+            foreach (const PlaylistExportRecord &rec, exports)
+            {
+                stream << "\"" << rec.title << "\"," <<
+                    rec.pitch << "," <<
+                    rec.tempo << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
