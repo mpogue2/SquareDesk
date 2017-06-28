@@ -597,7 +597,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
-
+    
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
@@ -879,7 +879,7 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
     RecursionGuard dialog_guard(inPreferencesDialog);
     QFileInfo fi(currentMP3filenameWithPath);
 
-    if (lastCuesheetSavePath.isNull() || lastCuesheetSavePath.length() == 0)
+    if (lastCuesheetSavePath.isEmpty())
         lastCuesheetSavePath = musicRootPath;
     QString filename = QFileDialog::getSaveFileName(this,
                                                     tr("Select Cue Sheet"),
@@ -3856,7 +3856,7 @@ void MainWindow::on_actionExport_triggered()
 // --------------------------------------------------------
 void MainWindow::on_actionPreferences_triggered()
 {
-    inPreferencesDialog = true;
+    RecursionGuard dialog_guard(inPreferencesDialog);
     trapKeypresses = false;
 //    on_stopButton_clicked();  // stop music, if it was playing...
     PreferencesManager prefsManager;
@@ -3971,7 +3971,6 @@ void MainWindow::on_actionPreferences_triggered()
 
     delete prefDialog;
     prefDialog = NULL;
-    inPreferencesDialog = false;  // FIX: might not need this anymore...
 }
 
 QString MainWindow::removePrefix(QString prefix, QString s)
