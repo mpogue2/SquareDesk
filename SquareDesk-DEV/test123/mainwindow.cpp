@@ -1746,30 +1746,66 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 }
 
 // --------------------------------1--------------------------------------
+
+// blame https://stackoverflow.com/questions/4065378/qt-get-children-from-layout
+bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
+{
+   if (layout == NULL or widget == NULL)
+      return false;
+
+   if (layout->indexOf(widget) >= 0)
+      return true;
+
+   foreach(QObject *o, layout->children())
+   {
+      if (isChildWidgetOfAnyLayout((QLayout*)o,widget))
+         return true;
+   }
+
+   return false;
+}
+
+void setVisibleWidgetsInLayout(QLayout *layout, bool visible)
+{
+   if (layout == NULL)
+      return;
+
+   QWidget *pw = layout->parentWidget();
+   if (pw == NULL)
+      return;
+
+   foreach(QWidget *w, pw->findChildren<QWidget*>())
+   {
+      if (isChildWidgetOfAnyLayout(layout,w))
+          w->setVisible(visible);
+   }
+}
+
+bool isVisibleWidgetsInLayout(QLayout *layout)
+{
+   if (layout == NULL)
+      return false;
+
+   QWidget *pw = layout->parentWidget();
+   if (pw == NULL)
+      return false;
+
+   foreach(QWidget *w, pw->findChildren<QWidget*>())
+   {
+      if (isChildWidgetOfAnyLayout(layout,w))
+          return w->isVisible();
+   }
+}
+
+
 void MainWindow::setCueSheetAdditionalControlsVisible(bool visible)
 {
-    // Really want to do this:
-    // ui->horizontalLayoutCueSheetAdditional->setVisible(false);
-
-    for(int i = 0; i < ui->horizontalLayoutCueSheetAdditional->count(); i++)
-    {
-        QWidget *qw = qobject_cast<QWidget*>(ui->horizontalLayoutCueSheetAdditional->itemAt(i)->widget());
-        if (qw)
-        {
-            qw->setVisible(visible);
-        }
-    }
+    setVisibleWidgetsInLayout(ui->verticalLayoutCueSheetAdditional, visible);
 }
+
 bool MainWindow::cueSheetAdditionalControlsVisible()
 {
-    for(int i = 0; i < ui->horizontalLayoutCueSheetAdditional->count(); i++)
-    {
-        QWidget *qw = qobject_cast<QWidget*>(ui->horizontalLayoutCueSheetAdditional->itemAt(i)->widget());
-
-        if (qw)
-            return qw->isVisible();
-    }
-    return false;
+    return isVisibleWidgetsInLayout(ui->verticalLayoutCueSheetAdditional);
 }
 
 // --------------------------------1--------------------------------------
