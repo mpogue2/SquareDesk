@@ -817,7 +817,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
-    RecursionGuard guard(cuesheetEditorReactingToCursorMovement);    
+    RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
 //    ui->pushButtonCueSheetEditHeader->setChecked(f.fontPointSize() == 14);
     ui->pushButtonCueSheetEditItalic->setChecked(f.fontItalic());
     ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
@@ -826,14 +826,14 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
 {
     if (!cuesheetEditorReactingToCursorMovement)
-    {        
+    {
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
         if (!cursor.hasComplexSelection())
         {
             QString selectedText = cursor.selectedText();
             cursor.removeSelectedText();
-            cursor.insertHtml("<h1>" + selectedText + "</h1>");
-            // cursor.movePosition(QTextCursor::Left, QText::MoveAnchor, 
+            cursor.insertHtml("<p CLASS=\"hdr\">" + selectedText + "</p>");
+            // cursor.movePosition(QTextCursor::Left, QText::MoveAnchor,
         }
 //    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
     }
@@ -868,7 +868,7 @@ static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFil
     }
     return false;
 }
-      
+
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
@@ -898,11 +898,11 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
         {
             filename += ".html";
         }
-        
+
         QFile file( filename );
         QFileInfo fi(filename);
         lastCuesheetSavePath = fi.canonicalPath();
-        
+
         if ( file.open(QIODevice::WriteOnly) )
         {
             // Make sure the destructor gets called before we try to load this file...
@@ -911,7 +911,7 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
                 stream << ui->textBrowserCueSheet->toHtml();
                 stream.flush();
             }
-            
+
             if (!isFileInPathStack(pathStack, filename))
             {
                 QFileInfo fi(filename);
@@ -2748,7 +2748,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
     foreach (const QString &cuesheet, possibleCuesheets)
     {
-        RecursionGuard guard(cuesheetEditorReactingToCursorMovement);    
+        RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
         if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
             && cuesheet == preferredCuesheet)
         {

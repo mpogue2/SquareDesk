@@ -1179,6 +1179,12 @@
          <layout class="QHBoxLayout" name="horizontalLayoutCuesheetEdit">
           <item>
            <widget class="QPushButton" name="pushButtonCueSheetEditHeader">
+            <property name="maximumSize">
+             <size>
+              <width>80</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="text">
              <string>Header</string>
             </property>
@@ -1197,6 +1203,8 @@
             </property>
             <property name="font">
              <font>
+              <family>Verdana</family>
+              <pointsize>12</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -1220,13 +1228,22 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="font">
              <font>
+              <family>Verdana</family>
+              <pointsize>12</pointsize>
               <italic>true</italic>
+              <kerning>false</kerning>
              </font>
             </property>
             <property name="text">
-             <string>I</string>
+             <string> I </string>
             </property>
             <property name="checkable">
              <bool>true</bool>
@@ -1235,6 +1252,19 @@
              <bool>false</bool>
             </property>
            </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <widget class="QPushButton" name="pushButtonCueSheetEditSave">
@@ -1338,7 +1368,7 @@
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
