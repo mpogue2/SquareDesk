@@ -625,6 +625,10 @@ MainWindow::MainWindow(QWidget *parent) :
     adjustFontSizes();  // now adjust to match contents ONCE
     on_actionReset_triggered();  // set initial layout
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
+
+    QPalette* palette1 = new QPalette();
+    palette1->setColor(QPalette::ButtonText, Qt::red);
+    ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)

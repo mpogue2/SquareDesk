@@ -1185,6 +1185,13 @@
               <height>16777215</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <pointsize>13</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Header</string>
             </property>
