@@ -73,6 +73,25 @@ void PreferencesManager::Set##name(bool value)           \
 }
 
 // ------------------------------------------------------------------------
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(name, default)     \
+int PreferencesManager::Get##name()                      \
+{                                                        \
+    QString value = MySettings.value(#name).toString();  \
+    if (value.isNull())                                  \
+    {                                                    \
+        value = default;                                 \
+        Set##name(default);                              \
+    }                                                    \
+    return value.toInt();                                \
+}                                                        \
+                                                         \
+void PreferencesManager::Set##name(int value)        \
+{                                                        \
+    MySettings.setValue(#name, value);                   \
+}
+
+
+// ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_STRING(control, name, default) \
     QString PreferencesManager::Get##name()             \
 {                                                       \
@@ -171,27 +190,36 @@ void PreferencesManager::Set##name(int value)          \
 #undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
+
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS
 
 
 void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog)
 {
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(name, default)
+
 #define CONFIG_ATTRIBUTE_STRING(control, name, default) prefDialog->Set##name(Get##name());
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) prefDialog->Set##name(Get##name());
 #define CONFIG_ATTRIBUTE_INT(control, name, default) prefDialog->Set##name(Get##name());
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) prefDialog->Set##name(Get##name());
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) prefDialog->Set##name(Get##name());
+
     #include "prefs_options.h"
+
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS
+
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
 #undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
-#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
-#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+
     MySettings.sync();
 }
 
@@ -200,18 +228,24 @@ void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *p
 {
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(name, default)
+
 #define CONFIG_ATTRIBUTE_STRING(control, name, default) Set##name(prefDialog->Get##name());
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) Set##name(prefDialog->Get##name());
 #define CONFIG_ATTRIBUTE_INT(control, name, default) Set##name(prefDialog->Get##name());
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) Set##name(prefDialog->Get##name());
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) Set##name(prefDialog->Get##name());
+
     #include "prefs_options.h"
+
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS
+
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
 #undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
-#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
-#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
     MySettings.sync();
 }

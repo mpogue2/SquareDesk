@@ -359,7 +359,11 @@ private:
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
+
     void adjustFontSizes();
+    void usePersistentFontSize();
+    void persistNewFontSize(int points);
+
     int col0_width;  // work around a Qt bug, wherein it does not track the width of the # column
 
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)

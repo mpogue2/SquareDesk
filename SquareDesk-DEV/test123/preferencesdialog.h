@@ -70,18 +70,24 @@ public:
 
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name,default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name,default)
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(name,default)
+
 #define CONFIG_ATTRIBUTE_STRING(control, name, default) QString Get##name(); void Set##name(QString value);
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) bool Get##name(); void Set##name(bool value);
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) int Get##name(); void Set##name(int value);
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) QString Get##name(); void Set##name(QString value);
 #define CONFIG_ATTRIBUTE_INT(control, name, default) int Get##name(); void Set##name(int value);
+
     #include "prefs_options.h"
+
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS
+
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
-#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
-#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
 #undef CONFIG_ATTRIBUTE_INT
 
 private slots:

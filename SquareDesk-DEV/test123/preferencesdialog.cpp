@@ -213,6 +213,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
 
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name,default)
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name,default)
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(name,default)
 
 #define CONFIG_ATTRIBUTE_STRING(control, name, default)                 \
     QString PreferencesDialog::Get##name() { return ui->control->text(); } \
@@ -245,13 +246,16 @@ void PreferencesDialog::on_singingColorButton_clicked()
     void PreferencesDialog::Set##name(int value) { ui->control->setText(QString::number(value)); }
 
 #include "prefs_options.h"
+
 #undef CONFIG_ATTRIBUTE_STRING
 #undef CONFIG_ATTRIBUTE_BOOLEAN
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_INT
+
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS
 
 void PreferencesDialog::on_initialBPMLineEdit_textChanged(const QString &arg1)
 {

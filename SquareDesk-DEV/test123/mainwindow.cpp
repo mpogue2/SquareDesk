@@ -616,8 +616,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kPitchCol,50);
     ui->songTable->setColumnWidth(kTempoCol,50);
 
+    usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
+
     adjustFontSizes();  // now adjust to match contents ONCE
-    on_actionReset_triggered();  // set initial layout
+    //on_actionReset_triggered();  // set initial layout
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
@@ -4120,7 +4122,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString pitch = ui->songTable->item(i,kPitchCol)->text();
         QString tempo = ui->songTable->item(i,kTempoCol)->text();
-       
+
         if (playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)
             // TODO: reconcile int here with float elsewhere on insertion
@@ -4997,7 +4999,7 @@ void MainWindow::saveCurrentSongSettings()
         setting.setBass( ui->bassSlider->value() );
         setting.setMidrange( ui->midrangeSlider->value() );
         setting.setMix( ui->mixSlider->value() );
-        
+
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
     }
@@ -5094,7 +5096,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         {
             ui->mixSlider->setValue(0);
         }
-        
+
     }
     else
     {
@@ -6351,6 +6353,35 @@ void MainWindow::adjustFontSizes()
 #define BIGGESTZOOM (25)
 #define ZOOMINCREMENT (2)
 
+void MainWindow::usePersistentFontSize() {
+    PreferencesManager prefsManager;
+
+    int newPointSize = prefsManager.GetsongTableFontSize(); // gets the persisted value
+    if (newPointSize == 0) {
+        newPointSize = 13;  // default backstop, if not set properly
+    }
+
+    // ensure it is a reasonable size...
+    newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
+    newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
+
+    //qDebug() << "usePersistentFontSize: " << newPointSize;
+
+    QFont currentFont = ui->songTable->font();  // set the font size in the songTable
+    currentFont.setPointSize(newPointSize);
+    ui->songTable->setFont(currentFont);
+
+    adjustFontSizes();  // use that font size to scale everything else (relative)
+}
+
+
+void MainWindow::persistNewFontSize(int points) {
+    PreferencesManager prefsManager;
+
+    prefsManager.SetsongTableFontSize(points);  // persist this
+//    qDebug() << "persisting new font size: " << points;
+}
+
 void MainWindow::on_actionZoom_In_triggered()
 {
     QFont currentFont = ui->songTable->font();
@@ -6365,6 +6396,8 @@ void MainWindow::on_actionZoom_In_triggered()
 
     currentFont.setPointSize(newPointSize);
     ui->songTable->setFont(currentFont);
+
+    persistNewFontSize(newPointSize);
 
     adjustFontSizes();
 }
@@ -6384,6 +6417,8 @@ void MainWindow::on_actionZoom_Out_triggered()
     currentFont.setPointSize(newPointSize);
     ui->songTable->setFont(currentFont);
 
+    persistNewFontSize(newPointSize);
+
     adjustFontSizes();
 }
 
@@ -6397,6 +6432,7 @@ void MainWindow::on_actionReset_triggered()
     ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane
     totalZoom = 0;
 
+    persistNewFontSize(newPointSize);
     adjustFontSizes();
 }
 
