@@ -104,6 +104,12 @@ void PreferencesDialog::setFontSizes()
 
 }
 
+void PreferencesDialog::on_comboBoxMusicFormat_currentIndexChanged(int /* currentIndex */)
+{
+    songTableReloadNeeded = true;
+}
+
+
 void PreferencesDialog::on_chooseMusicPathButton_clicked()
 {
     QString dir =
