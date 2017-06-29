@@ -838,7 +838,9 @@ void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
         {
             QString selectedText = cursor.selectedText();
             cursor.removeSelectedText();
-            cursor.insertHtml("<p CLASS=\"hdr\">" + selectedText + "</p>");
+            cursor.insertHtml("<p CLASS=\"hdr\">");
+            cursor.insertText(selectedText);
+            cursor.insertHtml("</p>");
             // cursor.movePosition(QTextCursor::Left, QText::MoveAnchor,
         }
 //    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
@@ -984,7 +986,6 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 {
     if (currentIndex != -1 && !cuesheetEditorReactingToCursorMovement) {
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
-        qDebug() << "Setting cuesheet index to " << currentIndex << " / " << cuesheetFilename;
         loadCuesheet(cuesheetFilename);
     }
 }
@@ -2526,7 +2527,6 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         }
 
         // read in the HTML for the cuesheet
-        qDebug() << "Loading cuesheet" << cuesheetFilename;
         QFile f1(cuesheetFilename);
         QString cuesheet;
         if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -2808,6 +2808,10 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     if (ui->comboBoxCuesheetSelector->count() > 0)
     {
         ui->comboBoxCuesheetSelector->setCurrentIndex(defaultCuesheetIndex);
+        // if it was zero, we didn't load it because the index didn't change,
+        // and we skipped loading it above. Sooo...
+        if (0 == defaultCuesheetIndex)
+            on_comboBoxCuesheetSelector_currentIndexChanged(0);
         hasLyrics = true;
     }
 
