@@ -2805,7 +2805,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
     if (ui->comboBoxCuesheetSelector->count() > 0)
     {
-        on_comboBoxCuesheetSelector_currentIndexChanged(defaultCuesheetIndex);
+        ui->comboBoxCuesheetSelector->setCurrentIndex(defaultCuesheetIndex);
         hasLyrics = true;
     }
 
