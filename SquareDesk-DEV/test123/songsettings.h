@@ -32,6 +32,16 @@ private:
     bool set_introOutroIsTimeBased;
     double m_songLength;
     bool set_songLength;
+
+    int m_treble;
+    bool set_treble;
+    int m_bass;
+    bool set_bass;
+    int m_midrange;
+    bool set_midrange;
+    int m_mix;
+    bool set_mix;
+
 public:
     SongSetting();
     QString getFilename() const { return m_filename; }
@@ -72,6 +82,19 @@ public:
     bool isSetSongLength() const { return set_songLength; }
     void setSongLength(double p) { m_songLength = p; set_songLength = true; }
 
+    int getTreble() const { return m_treble; }
+    bool isSetTreble() const { return set_treble; }
+    void setTreble(int p) { m_treble = p; set_treble = true; }
+    int getBass() const { return m_bass; }
+    bool isSetBass() const { return set_bass; }
+    void setBass(int p) { m_bass = p; set_bass = true; }
+    int getMidrange() const { return m_midrange; }
+    bool isSetMidrange() const { return set_midrange; }
+    void setMidrange(int p) { m_midrange = p; set_midrange = true; }
+    int getMix() const { return m_mix; }
+    bool isSetMix() const { return set_mix; }
+    void setMix(int p) { m_mix = p; set_mix = true; }
+    
     friend QDebug operator<<(QDebug dbg, const SongSetting &setting);  // DEBUG
 };
 
