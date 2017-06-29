@@ -988,6 +988,15 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
     }
 }
 
+void MainWindow::on_menuLyrics_aboutToShow()
+{
+    ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
+}
+
+void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
+{
+    on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex());
+}
 
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
@@ -2553,7 +2562,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         }
 
     }
-
+    ui->textBrowserCueSheet->document()->setModified(false);
 }
 
 
