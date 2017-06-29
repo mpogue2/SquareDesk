@@ -838,9 +838,7 @@ void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
         {
             QString selectedText = cursor.selectedText();
             cursor.removeSelectedText();
-            cursor.insertHtml("<p CLASS=\"hdr\">");
-            cursor.insertText(selectedText);
-            cursor.insertHtml("</p>");
+            cursor.insertHtml("<p CLASS=\"hdr\">" + selectedText.toHtmlEscaped()+ "</p>");
             // cursor.movePosition(QTextCursor::Left, QText::MoveAnchor,
         }
 //    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
@@ -1798,6 +1796,7 @@ bool isVisibleWidgetsInLayout(QLayout *layout)
       if (isChildWidgetOfAnyLayout(layout,w))
           return w->isVisible();
    }
+   return false;
 }
 
 
@@ -2527,6 +2526,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         }
 
         // read in the HTML for the cuesheet
+
         QFile f1(cuesheetFilename);
         QString cuesheet;
         if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
