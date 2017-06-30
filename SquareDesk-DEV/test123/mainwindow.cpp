@@ -631,6 +631,23 @@ MainWindow::MainWindow(QWidget *parent) :
     QPalette* palette1 = new QPalette();
     palette1->setColor(QPalette::ButtonText, Qt::red);
     ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
+
+    QPalette* palette2 = new QPalette();
+    palette2->setColor(QPalette::ButtonText, QColor("#0000FF"));
+    ui->pushButtonCueSheetEditArtist->setPalette(*palette2);
+
+    QPalette* palette3 = new QPalette();
+    palette3->setColor(QPalette::ButtonText, QColor("#60C060"));
+    ui->pushButtonCueSheetEditLabel->setPalette(*palette3);
+
+//    QPalette* palette4 = new QPalette();
+//    palette4->setColor(QPalette::Background, QColor("#FFC0CB"));
+//    ui->pushButtonCueSheetEditLyrics->setPalette(*palette4);
+
+    ui->pushButtonCueSheetEditLyrics->setAutoFillBackground(true);
+    ui->pushButtonCueSheetEditLyrics->setStyleSheet(
+                "background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;"
+                );
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -916,7 +933,11 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
                 QTextStream stream( &file );
                 QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
 
+#if defined(Q_OS_MAC)
                 QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
+#else
+                QString postProcessedCuesheet = editedCuesheet;
+#endif
 
                 stream << postProcessedCuesheet;
                 stream.flush();
