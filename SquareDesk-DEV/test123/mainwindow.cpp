@@ -836,7 +836,12 @@ void breakDanceProgramIntoParts(const QString &filename,
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
 {
+//    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+//    QString selectedText = cursor.selectedText();
+//    qDebug() << "New selected text: '" << selectedText << "'";
 }
+
+// TODO: can't make a doc from scratch yet.
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
@@ -875,6 +880,76 @@ void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
         ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
+    }
+}
+
+// TODO: these 3 don't work yet!
+void MainWindow::on_pushButtonCueSheetEditTitle_toggled(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+        if (!cursor.hasComplexSelection())
+        {
+            // TODO: remove <SPAN class="title"></SPAN> from entire rest of the document (title is a singleton)
+            QString selectedText = cursor.selectedText();
+            cursor.removeSelectedText();
+            cursor.insertHtml("<P class=\"title\">" + selectedText.toHtmlEscaped() + "</P>");
+        } else {
+            qDebug() << "Sorry, on_pushButtonCueSheetEditTitle_toggled has complex selection...";
+        }
+    }
+}
+
+void MainWindow::on_pushButtonCueSheetEditArtist_toggled(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+        if (!cursor.hasComplexSelection())
+        {
+            // TODO: remove <SPAN class="artist"></SPAN> from entire rest of the document (artist is a singleton)
+            QString selectedText = cursor.selectedText();
+            cursor.removeSelectedText();
+            cursor.insertHtml("<P class=\"artist\">" + selectedText.toHtmlEscaped() + "</P>");
+        } else {
+            qDebug() << "Sorry, on_pushButtonCueSheetEditArtist_toggled has complex selection...";
+        }
+    }
+}
+
+void MainWindow::on_pushButtonCueSheetEditLabel_toggled(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+        if (!cursor.hasComplexSelection())
+        {
+            // TODO: remove <SPAN class="label"></SPAN> from entire rest of the document (label is a singleton)
+            QString selectedText = cursor.selectedText();
+            cursor.removeSelectedText();
+            cursor.insertHtml("<P class=\"label\">" + selectedText.toHtmlEscaped() + "</P>");
+        } else {
+            qDebug() << "Sorry, on_pushButtonCueSheetEditLabel_toggled has complex selection...";
+        }
+    }
+}
+
+void MainWindow::on_pushButtonCueSheetEditLyrics_toggled(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+        if (!cursor.hasComplexSelection())
+        {
+            QString selectedText = cursor.selectedText();
+            cursor.removeSelectedText();
+            cursor.insertHtml("<P class=\"lyrics\">" + selectedText.toHtmlEscaped() + "</P>");
+        }
     }
 }
 
@@ -2635,9 +2710,9 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // now the semantic replacement.
     // assumes that QTextEdit spits out spans in a consistent way
     // TODO: allow embedded NL (due to line wrapping)
-    cuesheet3.replace(QRegExp("<SPAN style=[\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000; background-color:#ffffe0;\">"),
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000; background-color:#ffffe0;\">"),
                              "<SPAN class=\"hdr\">");
-    cuesheet3.replace(QRegExp("<SPAN style=[\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),
                              "<SPAN class=\"lyrics\">");
     cuesheet3.replace("<P style=\"\">","<P>");
 
@@ -2707,6 +2782,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             }
 
             // set the CSS
+            qDebug().noquote() << "***** CSS:\n" << cssString;
             ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
 
 #if defined(Q_OS_MAC)

@@ -189,6 +189,12 @@ private slots:
     void on_pushButtonCueSheetEditHeader_clicked(bool checked);
     void on_pushButtonCueSheetEditItalic_toggled(bool checked);
     void on_pushButtonCueSheetEditBold_toggled(bool checked);
+
+    void on_pushButtonCueSheetEditTitle_toggled(bool checked);
+    void on_pushButtonCueSheetEditArtist_toggled(bool checked);
+    void on_pushButtonCueSheetEditLabel_toggled(bool checked);
+    void on_pushButtonCueSheetEditLyrics_toggled(bool checked);
+
     void on_pushButtonCueSheetEditSave_clicked();
 
 

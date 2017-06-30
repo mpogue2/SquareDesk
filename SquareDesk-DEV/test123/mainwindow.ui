@@ -1295,6 +1295,9 @@
               <property name="text">
                <string>Lyrics</string>
               </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
