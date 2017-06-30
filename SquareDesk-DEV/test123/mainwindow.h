@@ -109,6 +109,7 @@ public:
     QStringList parseCSV(const QString &string);
 #if defined(Q_OS_MAC)
     QString tidyHTML(QString s);  // return the tidied HTML
+    QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 #endif
 
 protected:

@@ -914,7 +914,11 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
             // Make sure the destructor gets called before we try to load this file...
             {
                 QTextStream stream( &file );
-                stream << ui->textBrowserCueSheet->toHtml();
+                QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+
+                QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
+
+                stream << postProcessedCuesheet;
                 stream.flush();
             }
 
@@ -2576,6 +2580,56 @@ QString MainWindow::tidyHTML(QString cuesheet) {
 //    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
 
     return(cuesheet_tidied);
+}
+
+// ------------------------
+QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
+    // margin-top:12px;
+    // margin-bottom:12px;
+    // margin-left:0px;
+    // margin-right:0px;
+    // -qt-block-indent:0;
+    // text-indent:0px;
+    // line-height:100%;
+    // KEEP: background-color:#ffffe0;
+    cuesheet
+            .replace(QRegExp("margin-top:[0-9]+px;"), "")
+            .replace(QRegExp("margin-bottom:[0-9]+px;"), "")
+            .replace(QRegExp("margin-left:[0-9]+px;"), "")
+            .replace(QRegExp("margin-right:[0-9]+px;"), "")
+            .replace(QRegExp("text-indent:[0-9]+px;"), "")
+            .replace(QRegExp("line-height:[0-9]+%;"), "")
+            .replace(QRegExp("-qt-block-indent:[0-9]+;"), "")
+            ;
+
+    // get rid of unwanted QTextEdit tags
+    QRegExp styleRegExp("(<STYLE.*</STYLE>)|(<META.*>)");
+    styleRegExp.setMinimal(true);
+    styleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet.replace(styleRegExp,"");  // don't be greedy
+
+    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
+    QString cuesheet3 = tidyHTML(cuesheet);
+
+    // now the semantic replacement.
+    // assumes that QTextEdit spits out spans in a consistent way
+    // TODO: allow embedded NL (due to line wrapping)
+    cuesheet3.replace(QRegExp("<SPAN style=[\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000; background-color:#ffffe0;\">"),
+                             "<SPAN class=\"hdr\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),
+                             "<SPAN class=\"lyrics\">");
+    cuesheet3.replace("<P style=\"\">","<P>");
+
+    // TODO: bold -- <SPAN style="font-family:'Verdana'; font-size:large; font-weight:600; color:#000000;">
+    // TODO: italic -- TBD
+    // TODO: get rid of style="background-color:#ffffe0;, yellowish, put at top once
+    // TODO: get rid of these, use body: <SPAN style="font-family:'Verdana'; font-size:large; color:#000000;">
+
+    // tidy it one final time before writing it to a file
+    QString cuesheet4 = tidyHTML(cuesheet3);
+
+    qDebug().noquote() << "***** postProcess 2: " << cuesheet4;
+    return(cuesheet4);
 }
 #endif
 
