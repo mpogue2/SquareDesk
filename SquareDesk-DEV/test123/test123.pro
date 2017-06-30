@@ -60,7 +60,13 @@ HEADERS  += mainwindow.h \
     sdhighlighter.h \
     danceprograms.h \
     startupwizard.h \
-    songsettings.h
+    songsettings.h \
+    buffio.h \
+    platform.h \
+    tidy.h \
+    tidybuffio.h \
+    tidyenum.h \
+    tidyplatform.h
 
     FORMS    += mainwindow.ui \
     importdialog.ui \
@@ -108,11 +114,11 @@ win32:CONFIG(release, debug|release): {
 macx {
     # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
     # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib  $$PWD/libtidy.dylib
     LIBS += -framework CoreFoundation
     LIBS += -framework AppKit
     mylib.path = Contents/MacOS
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib $$PWD/libtidy.dylib
     QMAKE_BUNDLE_DATA += mylib
 
     # TAGLIB ----------------------------------------

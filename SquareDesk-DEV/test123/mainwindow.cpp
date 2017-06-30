@@ -597,7 +597,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
-    
+
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
@@ -2492,6 +2492,93 @@ static bool CompareCuesheetWithRanking(CuesheetWithRanking *a, CuesheetWithRanki
     return a->score > b->score;
 }
 
+#if defined(Q_OS_MAC)
+QString MainWindow::tidyHTML(QString cuesheet) {
+    // EXPERIMENTAL:  Let's try tidying it first.
+    // first get rid of <L> and </L>
+    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
+
+    // convert to a c_string, for HTML-TIDY
+    char* tidyInput;
+    string csheet = cuesheet.toStdString();
+    tidyInput = new char [csheet.size()+1];
+    strcpy( tidyInput, csheet.c_str() );
+
+    qDebug().noquote() << "\n***** TidyInput:" << QString((char *)tidyInput);
+
+    TidyBuffer output;// = {0};
+    TidyBuffer errbuf;// = {0};
+    tidyBufInit(&output);
+    tidyBufInit(&errbuf);
+    int rc = -1;
+    Bool ok;
+
+    // TODO: error handling here...using GOTO!
+
+    TidyDoc tdoc = tidyCreate();
+    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
+    }
+//    if (ok) {
+//        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
+//    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
+    }
+    if ( ok )
+        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
+    if ( rc >= 0 )
+        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
+    if ( rc >= 0 )
+        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
+    if ( rc >= 0 )
+        rc = tidyRunDiagnostics( tdoc );               // Kvetch
+    if ( rc > 1 )                                    // If error, force output.
+        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+    if ( rc >= 0 )
+        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
+
+    QString cuesheet_tidied;
+    if ( rc >= 0 )
+    {
+        if ( rc > 0 )
+            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
+        qDebug().noquote() << "\n***** Result:" << QString((char*)output.bp);
+        cuesheet_tidied = QString((char*)output.bp);
+    }
+    else
+        qDebug() << "Severe error:" << rc;
+
+    tidyBufFree( &output );
+    tidyBufFree( &errbuf );
+    tidyRelease( tdoc );
+
+    // get rid of TIDY cruft
+//    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
+
+    return(cuesheet_tidied);
+}
+#endif
+
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
@@ -2547,8 +2634,17 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             // set the CSS
             ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
 
+#if defined(Q_OS_MAC)
+            // HTML-TIDY IT ON INPUT *********
+            QString cuesheet_tidied = tidyHTML(cuesheet);
+#else
+            QString cuesheet_tidied = cuesheet;  // LINUX, WINDOWS
+#endif
+
+            // ----------------------
             // set the HTML for the cuesheet itself (must set CSS first)
-            ui->textBrowserCueSheet->setHtml(cuesheet);
+//            ui->textBrowserCueSheet->setHtml(cuesheet);
+            ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
             f1.close();
         }
 

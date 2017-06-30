@@ -72,6 +72,10 @@
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
+#include <tidy.h>
+#include <tidybuffio.h>
+#include <stdio.h>
+#include <errno.h>
 #endif
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
@@ -103,6 +107,10 @@ public:
     QActionGroup *sdActionGroup1;
 
     QStringList parseCSV(const QString &string);
+#if defined(Q_OS_MAC)
+    QString tidyHTML(QString s);  // return the tidied HTML
+#endif
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
@@ -182,7 +190,7 @@ private slots:
     void on_pushButtonCueSheetEditBold_toggled(bool checked);
     void on_pushButtonCueSheetEditSave_clicked();
 
-    
+
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
 
