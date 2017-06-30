@@ -1501,6 +1501,7 @@
      <string>Lyrics</string>
     </property>
     <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="actionLyricsCueSheetRevert_Edits"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -2244,6 +2245,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionLyricsCueSheetRevert_Edits">
+   <property name="text">
+    <string>Revert Edits</string>
    </property>
   </action>
  </widget>
