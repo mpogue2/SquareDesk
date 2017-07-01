@@ -646,7 +646,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->pushButtonCueSheetEditLyrics->setAutoFillBackground(true);
     ui->pushButtonCueSheetEditLyrics->setStyleSheet(
-                "background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;"
+                "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
+                "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
                 );
 }
 
