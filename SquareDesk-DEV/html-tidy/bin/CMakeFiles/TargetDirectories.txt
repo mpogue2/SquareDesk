@@ -1,0 +1,13 @@
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/install/local.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/list_install_components.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/edit_cache.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/rebuild_cache.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/package_source.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/install/strip.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/package.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/man.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/tidy-share.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/install.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/test71.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/tidy.dir
+/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/html-tidy/bin/CMakeFiles/tidy-static.dir

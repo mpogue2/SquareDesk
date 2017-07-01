@@ -127,7 +127,7 @@ extern "C" {
 /** inline */                                      FN(TIDYCUSTOMINLINE_STRING)     \
 /** pre */                                         FN(TIDYCUSTOMPRE_STRING)        \
 
-
+    
 /** These messages are used to generate additional dialogue style output from
  ** Tidy when certain conditions exist, and provide more verbose explanations
  ** than the short report.
@@ -725,7 +725,7 @@ typedef enum
     TidyCR          /**< Use Macintosh style: CR */
 } TidyLineEnding;
 
-
+    
 /** TidyEncodingOptions option values specify the input and/or output encoding.
  ** @remark This enum's starting value is guaranteed to remain stable.
  */
@@ -1407,7 +1407,7 @@ typedef enum
     FOREACH_MSG_MISC(MAKE_ENUM)
     FOREACH_DIALOG_MSG(MAKE_ENUM)
     FOREACH_REPORT_MSG(MAKE_ENUM)
-
+    
 #if SUPPORT_ACCESSIBILITY_CHECKS
     /* Defined in `access.h` */
     FOREACH_ACCESS_MSG(MAKE_ENUM)

@@ -36,7 +36,7 @@ DISTNAME      = SquareDeskPlayer1.0.0
 DISTDIR = /home/danlyke/code/SquareDesk/SquareDesk-DEV/test123/.tmp/SquareDeskPlayer1.0.0
 LINK          = g++
 LFLAGS        = -m64 -Wl,-O1
-LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Network -lQt5Core -lGL -lpthread 
+LIBS          = $(SUBLIBS) -L/usr/X11R6/lib64 -L/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidy -lQt5Widgets -lQt5Gui -lQt5Sql -lQt5Network -lQt5Core -lGL -lpthread 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -227,7 +227,14 @@ DIST          = LICENSE.GPL3 \
 		common.h \
 		sdhighlighter.h \
 		danceprograms.h \
-		startupwizard.h main.cpp \
+		startupwizard.h \
+		songsettings.h \
+		buffio.h \
+		platform.h \
+		tidy.h \
+		tidybuffio.h \
+		tidyenum.h \
+		tidyplatform.h main.cpp \
 		mainwindow.cpp \
 		bass_audio.cpp \
 		preferencesdialog.cpp \
@@ -478,7 +485,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents resources.qrc startupwizard.qrc $(DISTDIR)/
-	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h importdialog.h exportdialog.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h danceprograms.h startupwizard.h $(DISTDIR)/
+	$(COPY_FILE) --parents mainwindow.h bass.h bass_fx.h bass_audio.h myslider.h bassmix.h importdialog.h exportdialog.h preferencesdialog.h utility.h mytablewidget.h tablenumberitem.h levelmeter.h analogclock.h common_enums.h prefs_options.h prefsmanager.h default_colors.h macUtils.h clickablelabel.h typetracker.h console.h renderarea.h common.h sdhighlighter.h danceprograms.h startupwizard.h songsettings.h buffio.h platform.h tidy.h tidybuffio.h tidyenum.h tidyplatform.h $(DISTDIR)/
 	$(COPY_FILE) --parents main.cpp mainwindow.cpp bass_audio.cpp preferencesdialog.cpp importdialog.cpp exportdialog.cpp mytablewidget.cpp tablenumberitem.cpp myslider.cpp levelmeter.cpp analogclock.cpp prefsmanager.cpp clickablelabel.cpp songsettings.cpp typetracker.cpp console.cpp renderarea.cpp sdhighlighter.cpp utility.cpp danceprograms.cpp startupwizard.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents macUtils.mm $(DISTDIR)/
 	$(COPY_FILE) --parents mainwindow.ui importdialog.ui exportdialog.ui preferencesdialog.ui $(DISTDIR)/
@@ -539,6 +546,10 @@ moc_mainwindow.cpp: common_enums.h \
 		renderarea.h \
 		songsettings.h \
 		macUtils.h \
+		tidy.h \
+		tidyplatform.h \
+		tidyenum.h \
+		tidybuffio.h \
 		mainwindow.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
@@ -631,6 +642,10 @@ main.o: main.cpp mainwindow.h \
 		renderarea.h \
 		songsettings.h \
 		macUtils.h \
+		tidy.h \
+		tidyplatform.h \
+		tidyenum.h \
+		tidybuffio.h \
 		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
@@ -652,6 +667,10 @@ mainwindow.o: mainwindow.cpp analogclock.h \
 		renderarea.h \
 		songsettings.h \
 		macUtils.h \
+		tidy.h \
+		tidyplatform.h \
+		tidyenum.h \
+		tidybuffio.h \
 		ui_mainwindow.h \
 		mytablewidget.h \
 		utility.h \

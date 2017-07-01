@@ -8,6 +8,9 @@
 
   This file is included by tidy.h, and need not
   be included sepearately. It sets a number of
+  
+  This file is included by tidy.h, and need not 
+  be included sepearately. It sets a number of 
   default defines, and a PLATFORM_NAME, and includes
   the most common system headers.
 
@@ -36,10 +39,10 @@ extern "C" {
 
 /*
   Uncomment the following #define if your
-  system supports the call getpwnam().
+  system supports the call getpwnam(). 
   E.g. Unix and Linux.
 
-  It enables tidy to find files named
+  It enables tidy to find files named 
   ~your/foo for use in the HTML_TIDY environment
   variable or CONFIG_FILE or USER_CONFIGFILE or
   on the command line: -config ~joebob/tidy.cfg
@@ -150,6 +153,7 @@ extern "C" {
 #endif
 
 /* Convenience defines for Windows platforms */
+
 
 #if defined(WINDOWS) || defined(_WIN32)
 
@@ -502,9 +506,9 @@ extern "C" {
 
 #if (defined(_USRDLL) || defined(_WINDLL) || defined(BUILD_SHARED_LIB)) && !defined(TIDY_EXPORT) && !defined(TIDY_STATIC)
 #ifdef BUILDING_SHARED_LIB
-#define TIDY_EXPORT __declspec( dllexport )
+#define TIDY_EXPORT __declspec( dllexport ) 
 #else
-#define TIDY_EXPORT __declspec( dllimport )
+#define TIDY_EXPORT __declspec( dllimport ) 
 #endif
 #else
 #define TIDY_EXPORT extern

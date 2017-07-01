@@ -1,0 +1,1 @@
+gcc test.c -ltidy -L. -I../include -o test

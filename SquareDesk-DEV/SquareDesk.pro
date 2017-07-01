@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
-SUBDIRS = taglib test123
+SUBDIRS = taglib test123 \
+    html-tidy
 
 mac {
 # sd and sdApp are MAC OS X ONLY for now.

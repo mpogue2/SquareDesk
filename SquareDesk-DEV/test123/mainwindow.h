@@ -72,7 +72,11 @@
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
+#include <stdio.h>
+#include <errno.h>
 #endif
+#include <tidy.h>
+#include <tidybuffio.h>
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
@@ -103,6 +107,9 @@ public:
     QActionGroup *sdActionGroup1;
 
     QStringList parseCSV(const QString &string);
+    QString tidyHTML(QString s);  // return the tidied HTML
+    QString postProcessHTMLtoSemanticHTML(QString cuesheet);
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
@@ -177,12 +184,21 @@ private slots:
 
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
-    void on_pushButtonCueSheetEditHeader_clicked(bool checked);
+
+    // toggles
     void on_pushButtonCueSheetEditItalic_toggled(bool checked);
     void on_pushButtonCueSheetEditBold_toggled(bool checked);
+
+    // clicks
+    void on_pushButtonCueSheetEditHeader_clicked(bool checked);
+    void on_pushButtonCueSheetEditTitle_clicked(bool checked);
+    void on_pushButtonCueSheetEditArtist_clicked(bool checked);
+    void on_pushButtonCueSheetEditLabel_clicked(bool checked);
+    void on_pushButtonCueSheetEditLyrics_clicked(bool checked);
+    void showHTML();
+
     void on_pushButtonCueSheetEditSave_clicked();
 
-    
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
 
