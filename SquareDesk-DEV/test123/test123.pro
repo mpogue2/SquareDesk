@@ -138,6 +138,11 @@ macx {
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
     QMAKE_MAC_SDK = macosx10.12
 
+    # LYRICS TEMPLATE --------------------------------------------
+    # Copy the lyrics.template.html file to the right place
+    copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
+    copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
+
     # SD --------------------------------------------
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
     #  (inside the SquareDeskPlayer.app bundle)
@@ -166,9 +171,11 @@ macx {
     copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
 
-    first.depends = $(first) copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    first.depends = $(first) copydata0a copydata0b copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     #export(first.depends)
+    export(copydata0a.commands)
+    export(copydata0b.commands)
     export(copydata1.commands)
     export(copydata2.commands)
     export(copydata3.commands)
@@ -179,7 +186,7 @@ macx {
     export(copydata7.commands)
     export(copydata8.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     # SOUNDFX STARTER SET --------------------------------------------
     copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
@@ -275,7 +282,9 @@ OBJECTIVE_SOURCES += \
 
 DISTFILES += \
     LICENSE.GPL3 \
-    LICENSE.GPL2
+    LICENSE.GPL2 \
+    cuesheet2.css \
+    lyrics.template.html
 
 CONFIG += c++11
 

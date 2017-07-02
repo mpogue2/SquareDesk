@@ -3128,8 +3128,34 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     if (hasLyrics && lyricsTabNumber != -1) {
         ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
     } else {
-        ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
         ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+
+#if defined(Q_OS_MAC)
+        QString appPath = QApplication::applicationFilePath();
+        QString lyricsTemplatePath = appPath + "/Contents/Resources/lyrics.template.html";
+        lyricsTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#elif defined(Q_OS_WIN32)
+        // TODO: There has to be a better way to do this.
+        QString appPath = QApplication::applicationFilePath();
+        QString lyricsTemplatePath = appPath + "/lyrics.template.html";
+        lyricsTemplatePath.replace("SquareDeskPlayer.exe/","");
+#endif
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+        QFile file(lyricsTemplatePath);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug() << "Could not open 'lyrics.template.html' file.";
+            qDebug() << "looked here:" << lyricsTemplatePath;
+            return;  // NOTE: early return, couldn't find template file
+        } else {
+            QString lyricsTemplate(file.readAll());
+            file.close();
+            ui->textBrowserCueSheet->setHtml(lyricsTemplate);
+        }
+#else
+        // LINUX
+        ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
+#endif
     }
 }
 
