@@ -872,7 +872,7 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
             cursor.select(QTextCursor::BlockUnderCursor);
             selectedText = cursor.selectedText();
         }
-        
+
         if (!selectedText.isEmpty())
         {
             cursor.removeSelectedText();
@@ -974,8 +974,9 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 
     if (lastCuesheetSavePath.isEmpty())
         lastCuesheetSavePath = musicRootPath;
+
     QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Select Cue Sheet"),
+                                                    tr("Save Cue Sheet"),
                                                     lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
                                                     tr("HTML (*.html)"));
     if (!filename.isNull())
@@ -996,9 +997,11 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
             filename += ".html";
         }
 
-        QFile file( filename );
-        QFileInfo fi(filename);
-        lastCuesheetSavePath = fi.canonicalPath();
+        QFile file(filename);
+        QDir d = QFileInfo(file).absoluteDir();
+        QString directoryName = d.absolutePath();  // directory of the saved filename
+
+        lastCuesheetSavePath = directoryName;
 
         if ( file.open(QIODevice::WriteOnly) )
         {
