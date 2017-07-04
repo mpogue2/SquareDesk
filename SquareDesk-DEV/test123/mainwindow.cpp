@@ -859,18 +859,35 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
     ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
 }
 
+static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
+{
+    qDebug() << "setSelectedTextToClass: " << blockClass;
+    QTextCursor cursor = editor->textCursor();
+    if (!cursor.hasComplexSelection())
+    {
+        // TODO: remove <SPAN class="title"></SPAN> from entire rest of the document (title is a singleton)
+        QString selectedText = cursor.selectedText();
+        if (selectedText.isEmpty())
+        {
+            cursor.select(QTextCursor::BlockUnderCursor);
+            selectedText = cursor.selectedText();
+        }
+        
+        if (!selectedText.isEmpty())
+        {
+            cursor.removeSelectedText();
+            cursor.insertHtml("<P class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</P>");
+        }
+    } else {
+        qDebug() << "Sorry, on_pushButtonCueSheetEdit...: " + blockClass + ": Title_toggled has complex selection...";
+    }
+}
+
 void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
 {
     if (!cuesheetEditorReactingToCursorMovement)
     {
-        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-        if (!cursor.hasComplexSelection())
-        {
-            QString selectedText = cursor.selectedText();
-            cursor.removeSelectedText();
-            cursor.insertHtml("<p CLASS=\"hdr\">" + selectedText.toHtmlEscaped()+ "</p>");
-            // cursor.movePosition(QTextCursor::Left, QText::MoveAnchor,
-        }
+        setSelectedTextToClass(ui->textBrowserCueSheet, "hdr");
 //    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
     }
 //    showHTML();
@@ -894,21 +911,13 @@ void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
 //    showHTML();
 }
 
+
 void MainWindow::on_pushButtonCueSheetEditTitle_clicked(bool checked)
 {
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
-        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-        if (!cursor.hasComplexSelection())
-        {
-            // TODO: remove <SPAN class="title"></SPAN> from entire rest of the document (title is a singleton)
-            QString selectedText = cursor.selectedText();
-            cursor.removeSelectedText();
-            cursor.insertHtml("<P class=\"title\">" + selectedText.toHtmlEscaped() + "</P>");
-        } else {
-            qDebug() << "Sorry, on_pushButtonCueSheetEditTitle_toggled has complex selection...";
-        }
+        setSelectedTextToClass(ui->textBrowserCueSheet, "title");
     }
 //    showHTML();
 }
@@ -918,16 +927,7 @@ void MainWindow::on_pushButtonCueSheetEditArtist_clicked(bool checked)
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
-        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-        if (!cursor.hasComplexSelection())
-        {
-            // TODO: remove <SPAN class="artist"></SPAN> from entire rest of the document (artist is a singleton)
-            QString selectedText = cursor.selectedText();
-            cursor.removeSelectedText();
-            cursor.insertHtml("<P class=\"artist\">" + selectedText.toHtmlEscaped() + "</P>");
-        } else {
-            qDebug() << "Sorry, on_pushButtonCueSheetEditArtist_toggled has complex selection...";
-        }
+        setSelectedTextToClass(ui->textBrowserCueSheet, "artist");
     }
 //    showHTML();
 }
@@ -937,16 +937,7 @@ void MainWindow::on_pushButtonCueSheetEditLabel_clicked(bool checked)
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
-        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-        if (!cursor.hasComplexSelection())
-        {
-            // TODO: remove <SPAN class="label"></SPAN> from entire rest of the document (label is a singleton)
-            QString selectedText = cursor.selectedText();
-            cursor.removeSelectedText();
-            cursor.insertHtml("<P class=\"label\">" + selectedText.toHtmlEscaped() + "</P>");
-        } else {
-            qDebug() << "Sorry, on_pushButtonCueSheetEditLabel_toggled has complex selection...";
-        }
+        setSelectedTextToClass(ui->textBrowserCueSheet, "label");
     }
 //    showHTML();
 }
@@ -956,13 +947,7 @@ void MainWindow::on_pushButtonCueSheetEditLyrics_clicked(bool checked)
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
-        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-        if (!cursor.hasComplexSelection())
-        {
-            QString selectedText = cursor.selectedText();
-            cursor.removeSelectedText();
-            cursor.insertHtml("<P class=\"lyrics\">" + selectedText.toHtmlEscaped() + "</P>");
-        }
+        setSelectedTextToClass(ui->textBrowserCueSheet, "lyrics");
     }
 //    showHTML();
 }
