@@ -252,7 +252,7 @@ private slots:
 
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
-    
+
     void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
     void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
     void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
@@ -321,6 +321,8 @@ private slots:
     void on_actionTempo_toggled(bool arg1);
 
     void on_actionFade_Out_triggered();
+
+    void on_printButton_clicked();
 
 private:
     int preferredSmallFontSize;  // preferred font sizes

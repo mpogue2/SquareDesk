@@ -43,6 +43,9 @@
 #include <QStandardItem>
 #include <QWidget>
 
+#include <QPrinter>
+#include <QPrintDialog>
+
 #include "analogclock.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -6995,4 +6998,14 @@ void MainWindow::stopLongSongTableOperation(QString s) {
     ui->songTable->show();
 
 //    qDebug() << s << ": " << t1.elapsed() << "ms.";  // DEBUG
+}
+
+void MainWindow::on_printButton_clicked()
+{
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+    ui->textBrowserCueSheet->print(&printer);
 }

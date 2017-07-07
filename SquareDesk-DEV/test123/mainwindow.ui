@@ -1396,6 +1396,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QPushButton" name="printButton">
+              <property name="text">
+               <string>Print...</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
