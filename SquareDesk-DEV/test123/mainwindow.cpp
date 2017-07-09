@@ -34,6 +34,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
+#include <QProgressDialog>
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QStorageInfo>
@@ -55,7 +56,11 @@
 #include "danceprograms.h"
 #define CUSTOM_FILTER
 #include "startupwizard.h"
+#include "downloadmanager.h"
 
+#if defined(Q_OS_MAC)
+#include "JlCompress.h"
+#endif
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -6501,4 +6506,127 @@ void MainWindow::stopLongSongTableOperation(QString s) {
     ui->songTable->show();
 
 //    qDebug() << s << ": " << t1.elapsed() << "ms.";  // DEBUG
+}
+
+void MainWindow::on_actionDownload_Cuesheets_triggered()
+{
+#if defined(Q_OS_MAC)
+
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString lyricsDirPath = musicDirPath + "/lyrics";
+
+    QDir lyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+
+    if (lyricsDir.exists()) {
+//        qDebug() << "You already have the latest cuesheets downloaded.  Are you sure you want to download them again (erasing any edits you made)?";
+
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText(QString("You already have the latest lyrics files: '") + CURRENTSQVIEWLYRICSNAME + "'");
+        msgBox.setInformativeText("Are you sure?  This will overwrite any lyrics that you have edited in that folder.");
+        QPushButton *downloadButton = msgBox.addButton(tr("Download Anyway"), QMessageBox::AcceptRole);
+        QPushButton *abortButton = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+        msgBox.exec();
+
+        if (msgBox.clickedButton() == downloadButton) {
+            // Download
+//            qDebug() << "DOWNLOAD WILL PROCEED NORMALLY.";
+        } else if (msgBox.clickedButton() == abortButton) {
+            // Abort
+//            qDebug() << "ABORTING DOWNLOAD.";
+            return;
+        }
+    }
+
+    Downloader *d = new Downloader(this);
+
+    QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
+//    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
+
+    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
+
+    d->doDownload(lyricsZipFileURL, lyricsZipFileName);  // download URL and put it into lyricsZipFileName
+
+    QObject::connect(d,SIGNAL(downloadFinished()), this, SLOT(lyricsDownloadEnd()));
+    QObject::connect(d,SIGNAL(downloadFinished()), d, SLOT(deleteLater()));
+
+    // PROGRESS BAR ---------------------
+    // assume ~10MB
+    progressDialog = new QProgressDialog("Downloading lyrics...", "Cancel Download", 0, 100, this);
+    connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelProgress()));
+    progressTimer = new QTimer(this);
+    connect(progressTimer, SIGNAL(timeout()), this, SLOT(makeProgress()));
+    progressTotal = 0.0;
+    progressTimer->start(500);  // once per second
+#endif
+}
+
+void MainWindow::makeProgress() {
+#if defined(Q_OS_MAC)
+    if (progressTotal < 80) {
+        progressTotal += 10.0;
+    } else if (progressTotal < 90) {
+        progressTotal += 1.0;
+    } else if (progressTotal < 98) {
+        progressTotal += 0.25;
+    } // else no progress for you.
+
+//    qDebug() << "making progress..." << progressTotal;
+
+    progressDialog->setValue((unsigned int)progressTotal);
+#endif
+}
+
+void MainWindow::cancelProgress() {
+#if defined(Q_OS_MAC)
+//    qDebug() << "cancelling progress...";
+    progressTimer->stop();
+    progressTotal = 0;
+#endif
+}
+
+
+void MainWindow::lyricsDownloadEnd() {
+#if defined(Q_OS_MAC)
+//    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
+
+//    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString lyricsDirPath = musicDirPath + "/lyrics";
+    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
+
+    QString destinationDir = lyricsDirPath;
+
+    // extract the ZIP file
+    QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
+
+    if (extracted.empty()) {
+//        qDebug() << "There was a problem extracting the files.  No files extracted.";
+        return;  // and don't delete the ZIP file, for debugging
+    }
+
+//    qDebug() << "DELETING ZIP FILE...";
+    QFile file(lyricsZipFileName);
+    file.remove();
+
+    QDir currentLyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+    if (currentLyricsDir.exists()) {
+//        qDebug() << "Refused to overwrite existing cuesheets, renamed to: " << lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup";
+        QFile::rename(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME, lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup");
+    }
+
+//    qDebug() << "RENAMING Text/ TO SqViewCueSheets_2017.03.14/ ...";
+    QFile::rename(lyricsDirPath + "/Text", lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+
+    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
+    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+    loadMusicList(); // and filter them into the songTable
+
+//    qDebug() << "DONE DOWNLOADING LATEST LYRICS: " << CURRENTSQVIEWLYRICSNAME << "\n";
+
+    progressDialog->setValue(100);  // kill the progress bar
+    progressTimer->stop();
+#endif
 }

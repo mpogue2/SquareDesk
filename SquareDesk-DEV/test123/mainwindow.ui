@@ -1284,6 +1284,7 @@
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
+    <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
     <addaction name="actionCheck_for_Updates"/>
    </widget>
@@ -2133,6 +2134,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionDownload_Cuesheets">
+   <property name="text">
+    <string>Download Lyrics...</string>
    </property>
   </action>
  </widget>
