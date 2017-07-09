@@ -111,6 +111,14 @@ void StartupWizard::accept()
         dir7.mkpath(".");
     }
 
+    // always make this directory for lyrics
+    QString lyricsDirName = outputDir + "/lyrics";
+//    qDebug() << "Making " << playlistsDirName;
+    QDir dir75(lyricsDirName);
+    if (!dir75.exists()) {
+        dir75.mkpath(".");
+    }
+
     // always make this directory for internal housekeeping files
     QString squaredeskDirName = outputDir + "/.squaredesk";
 //    qDebug() << "Making " << squaredeskDirName;
@@ -472,6 +480,7 @@ void ConclusionPage::initializePage()
     confirmText += "   " + field("outputDir").toString() + "/" + field("singingCallsDirName").toString() + " (for singing calls)\n";
     confirmText += "   " + field("outputDir").toString() + "/" + field("vocalsDirName").toString() + " (for vocals)\n";
     confirmText += "   " + field("outputDir").toString() + "/" + field("extrasDirName").toString() + " (for other music)\n";
+    confirmText += "   " + field("outputDir").toString() + "/lyrics (for cuesheets and lyrics editor preferences)\n";
     confirmText += "   " + field("outputDir").toString() + "/soundfx (for sound effects)\n";
     confirmText += "   " + field("outputDir").toString() + "/playlists (for playlists)\n";
     confirmText += "   " + field("outputDir").toString() + "/sd (for sd output files)\n\n";

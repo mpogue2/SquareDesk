@@ -5960,6 +5960,10 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
+        loadMusicList();
+
+        // install soundFX if not already present
+        maybeInstallSoundFX();
 
         // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.
         // initSDtab();  // sd directory has changed, so startup everything again.
@@ -6192,66 +6196,66 @@ void MainWindow::maybeInstallSoundFX() {
     QDir dir(soundfxDir);
     if (!dir.exists()) {
         dir.mkpath(".");  // make it
-
-        // and populate it with the starter set, if it didn't exist already
-        // check for break_over.mp3 and copy it in, if it doesn't exist already
-        QFile breakOverSound(soundfxDir + "/break_over.mp3");
-        if (!breakOverSound.exists()) {
-            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
-            QString destination = soundfxDir + "/break_over.mp3";
-//            qDebug() << "COPY from: " << source << " to " << destination;
-            QFile::copy(source, destination);
-        }
-
-        // check for long_tip.mp3 and copy it in, if it doesn't exist already
-        QFile longTipSound(soundfxDir + "/long_tip.mp3");
-        if (!longTipSound.exists()) {
-            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
-            QString destination = soundfxDir + "/long_tip.mp3";
-            QFile::copy(source, destination);
-        }
-
-        // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist
-        // although this code is now only executed when the soundfx directory didn't exist yet, I'm
-        //   leaving it here, in case it changes to "every time the program starts".  In which case, we
-        //   only want to copy files into the soundfx directory if there aren't already files there.
-        //   It might seem like overkill right now (and it is, right now).
-        bool foundSoundFXfile[6];
-        for (int i=0; i<6; i++) {
-            foundSoundFXfile[i] = false;
-        }
-
-        QDirIterator it(soundfxDir);
-        while(it.hasNext()) {
-            QString s1 = it.next();
-
-            QString baseName = s1.replace(soundfxDir,"");
-            QStringList sections = baseName.split(".");
-
-            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
-                foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
-            }
-        } // while
-
-        QString starterSet[6] = {
-            "1.whistle.mp3",
-            "2.clown_honk.mp3",
-            "3.submarine.mp3",
-            "4.applause.mp3",
-            "5.fanfare.mp3",
-            "6.fade.mp3"
-        };
-        for (int i=0; i<6; i++) {
-            if (!foundSoundFXfile[i]) {
-                QString destination = soundfxDir + "/" + starterSet[i];
-                QFile dest(destination);
-                if (!dest.exists()) {
-                    QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
-                    QFile::copy(source, destination);
-                }
-            }
-        }
     }
+
+    // and populate it with the starter set, if it didn't exist already
+    // check for break_over.mp3 and copy it in, if it doesn't exist already
+    QFile breakOverSound(soundfxDir + "/break_over.mp3");
+    if (!breakOverSound.exists()) {
+        QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
+        QString destination = soundfxDir + "/break_over.mp3";
+        //            qDebug() << "COPY from: " << source << " to " << destination;
+        QFile::copy(source, destination);
+    }
+
+    // check for long_tip.mp3 and copy it in, if it doesn't exist already
+    QFile longTipSound(soundfxDir + "/long_tip.mp3");
+    if (!longTipSound.exists()) {
+        QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
+        QString destination = soundfxDir + "/long_tip.mp3";
+        QFile::copy(source, destination);
+    }
+
+    // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist,
+    // which is checked when the App starts, and when the Startup Wizard finishes setup.  In which case, we
+    //   only want to copy files into the soundfx directory if there aren't already files there.
+    //   It might seem like overkill right now (and it is, right now).
+    bool foundSoundFXfile[6];
+    for (int i=0; i<6; i++) {
+        foundSoundFXfile[i] = false;
+    }
+
+    QDirIterator it(soundfxDir);
+    while(it.hasNext()) {
+        QString s1 = it.next();
+
+        QString baseName = s1.replace(soundfxDir,"");
+        QStringList sections = baseName.split(".");
+
+        if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+            foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
+        }
+    } // while
+
+    QString starterSet[6] = {
+        "1.whistle.mp3",
+        "2.clown_honk.mp3",
+        "3.submarine.mp3",
+        "4.applause.mp3",
+        "5.fanfare.mp3",
+        "6.fade.mp3"
+    };
+    for (int i=0; i<6; i++) {
+        if (!foundSoundFXfile[i]) {
+            QString destination = soundfxDir + "/" + starterSet[i];
+            QFile dest(destination);
+            if (!dest.exists()) {
+                QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
+                QFile::copy(source, destination);
+            }
+        }
+    } // for
+
 }
 
 void MainWindow::on_actionStop_Sound_FX_triggered()
