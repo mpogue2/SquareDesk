@@ -2807,6 +2807,38 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         QString musicDirPath = prefsManager.GetmusicPath();
         QString lyricsDir = musicDirPath + "/lyrics";
 
+        // if the lyrics directory doesn't exist, create it
+        QDir dir(lyricsDir);
+        if (!dir.exists()) {
+            dir.mkpath(".");
+        }
+
+        // now check for the cuesheet2.css file... ---------------
+        QString cuesheetCSSDestPath = lyricsDir + "/cuesheet2.css";
+        QFile cuesheetCSSDestFile(cuesheetCSSDestPath);
+
+#if defined(Q_OS_MAC)
+        QString appPath = QApplication::applicationFilePath();
+        QString cuesheet2SrcPath = appPath + "/Contents/Resources/cuesheet2.css";
+        cuesheet2SrcPath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#elif defined(Q_OS_WIN32)
+        // TODO: There has to be a better way to do this.
+        QString appPath = QApplication::applicationFilePath();
+        QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
+        cuesheet2SrcPath.replace("SquareDeskPlayer.exe/","");
+#else
+        qWarning() << "Warning: cuesheet2 path is almost certainly wrong here for Linux.";
+        QString appPath = QApplication::applicationFilePath();
+        QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
+        cuesheet2SrcPath.replace("SquareDeskPlayer/","");
+#endif
+
+        if (!cuesheetCSSDestFile.exists()) {
+            // copy in a cuesheet2 file, if there's not one there already
+            QFile::copy(cuesheet2SrcPath, cuesheetCSSDestPath);  // copy one in
+        }
+
+        // Now, open it. ---------------
         QFile css(lyricsDir + "/cuesheet2.css");  // cuesheet2.css is located in the LYRICS directory (NOTE: GLOBAL! All others are now IGNORED)
 
         QString cssString;
