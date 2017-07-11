@@ -5546,7 +5546,6 @@ void MainWindow::saveCurrentSongSettings()
                                   setting);
         if (ui->checkBoxAutoSaveLyrics->isChecked())
         {
-            qDebug() << "Writing cuesheet" << cuesheetFilename;
             writeCuesheet(cuesheetFilename);
         }
     }
