@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1390,6 +1390,13 @@
              </spacer>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkBoxEditLyrics">
+              <property name="text">
+               <string>Edit</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditSave">
               <property name="text">
                <string>Save As...</string>
@@ -1397,9 +1404,16 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="printButton">
+              <widget class="QPushButton" name="printButton">
+                <property name="text">
+                  <string>Print...</string>
+                </property>
+              </widget>
+            </item>
+            <item>
+              <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
               <property name="text">
-               <string>Print...</string>
+               <string>Auto-Save</string>
               </property>
              </widget>
             </item>
@@ -1500,7 +1514,7 @@
      <x>0</x>
      <y>0</y>
      <width>782</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

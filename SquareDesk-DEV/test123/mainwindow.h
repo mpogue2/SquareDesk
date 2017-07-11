@@ -75,8 +75,8 @@
 #include <stdio.h>
 #include <errno.h>
 #endif
-#include <tidy.h>
-#include <tidybuffio.h>
+#include <tidy/tidy.h>
+#include <tidy/tidybuffio.h>
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
@@ -182,6 +182,7 @@ private slots:
     void on_lineEditOutroTime_textChanged();
     void on_lineEditIntroTime_textChanged();
 
+    void on_checkBoxEditLyrics_stateChanged( Qt::CheckState checkState );
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
 
@@ -371,6 +372,7 @@ private:
     QString currentSongTitle;
     int randCallIndex;     // for Flash Calls
 
+    void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
     void randomizeFlashCall();

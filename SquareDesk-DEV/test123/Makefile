@@ -549,10 +549,6 @@ moc_mainwindow.cpp: common_enums.h \
 		renderarea.h \
 		songsettings.h \
 		macUtils.h \
-		tidy.h \
-		tidyplatform.h \
-		tidyenum.h \
-		tidybuffio.h \
 		mainwindow.h
 	/usr/lib/x86_64-linux-gnu/qt5/bin/moc $(DEFINES) -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++-64 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/test123 -I/home/danlyke/code/SquareDesk/SquareDesk-DEV/local -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtPrintSupport -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtSql -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I/usr/include/c++/5 -I/usr/include/x86_64-linux-gnu/c++/5 -I/usr/include/c++/5/backward -I/usr/lib/gcc/x86_64-linux-gnu/5/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/5/include-fixed -I/usr/include/x86_64-linux-gnu -I/usr/include mainwindow.h -o moc_mainwindow.cpp
 
@@ -645,10 +641,6 @@ main.o: main.cpp mainwindow.h \
 		renderarea.h \
 		songsettings.h \
 		macUtils.h \
-		tidy.h \
-		tidyplatform.h \
-		tidyenum.h \
-		tidybuffio.h \
 		startupwizard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
@@ -670,10 +662,6 @@ mainwindow.o: mainwindow.cpp analogclock.h \
 		renderarea.h \
 		songsettings.h \
 		macUtils.h \
-		tidy.h \
-		tidyplatform.h \
-		tidyenum.h \
-		tidybuffio.h \
 		ui_mainwindow.h \
 		mytablewidget.h \
 		utility.h \

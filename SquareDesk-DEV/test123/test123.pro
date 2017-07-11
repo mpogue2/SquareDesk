@@ -63,14 +63,15 @@ HEADERS  += mainwindow.h \
     songsettings.h \
     buffio.h \
     platform.h \
+    platform.h
 
     FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
     preferencesdialog.ui
 
-INCLUDEPATH += $$PWD/ $$PWD/../local
-DEPENDPATH += $$PWD/ $$PWD/../local
+INCLUDEPATH += $$PWD/ $$PWD/../local/include
+DEPENDPATH += $$PWD/ $$PWD/../local/include
 
 # NOTE: there is no debug version of libbass
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3

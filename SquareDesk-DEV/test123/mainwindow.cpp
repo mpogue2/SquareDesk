@@ -845,6 +845,11 @@ void MainWindow::showHTML() {
 //    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
+void MainWindow::on_checkBoxEditLyrics_stateChanged( Qt::CheckState /* checkState */ )
+{
+    /* bool checked = (checkState != Qt::Unchecked); */
+}
+
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
 {
 //    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
@@ -969,6 +974,60 @@ static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFil
     return false;
 }
 
+void MainWindow::writeCuesheet(QString filename)
+{
+    bool needs_extension = true;
+    for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
+    {
+        QString ext(".");
+        ext.append(cuesheet_file_extensions[i]);
+        if (filename.endsWith(ext))
+        {
+            needs_extension = false;
+            break;
+        }
+    }
+    if (needs_extension)
+    {
+        filename += ".html";
+    }
+
+    QFile file(filename);
+    QDir d = QFileInfo(file).absoluteDir();
+    QString directoryName = d.absolutePath();  // directory of the saved filename
+
+    lastCuesheetSavePath = directoryName;
+    
+    if ( file.open(QIODevice::WriteOnly) )
+    {
+        // Make sure the destructor gets called before we try to load this file...
+        {
+            QTextStream stream( &file );
+//                qDebug() << "************** SAVE FILE ***************";
+            showHTML();
+            
+            QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+//                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
+            
+            QString tEditedCuesheet = tidyHTML(editedCuesheet);
+//                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
+            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+//                qDebug().noquote() << "***** WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
+
+            stream << postProcessedCuesheet;
+            stream.flush();
+        }
+
+        if (!isFileInPathStack(pathStack, filename))
+        {
+            QFileInfo fi(filename);
+            QStringList section = fi.path().split("/");
+            QString type = section[section.length()-1];  // must be the last item in the path
+//                qDebug() << "Adding " + type + "#!#" + filename;
+            pathStack->append(type + "#!#" + filename);
+        }
+    }
+}
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
@@ -984,59 +1043,9 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
                                                     tr("HTML (*.html)"));
     if (!filename.isNull())
     {
-        bool needs_extension = true;
-        for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
-        {
-            QString ext(".");
-            ext.append(cuesheet_file_extensions[i]);
-            if (filename.endsWith(ext))
-            {
-                needs_extension = false;
-                break;
-            }
-        }
-        if (needs_extension)
-        {
-            filename += ".html";
-        }
-
-        QFile file(filename);
-        QDir d = QFileInfo(file).absoluteDir();
-        QString directoryName = d.absolutePath();  // directory of the saved filename
-
-        lastCuesheetSavePath = directoryName;
-
-        if ( file.open(QIODevice::WriteOnly) )
-        {
-            // Make sure the destructor gets called before we try to load this file...
-            {
-                QTextStream stream( &file );
-//                qDebug() << "************** SAVE FILE ***************";
-                showHTML();
-
-                QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-//                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
-
-                QString tEditedCuesheet = tidyHTML(editedCuesheet);
-//                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
-                QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
-//                qDebug().noquote() << "***** WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
-
-                stream << postProcessedCuesheet;
-                stream.flush();
-            }
-
-            if (!isFileInPathStack(pathStack, filename))
-            {
-                QFileInfo fi(filename);
-                QStringList section = fi.path().split("/");
-                QString type = section[section.length()-1];  // must be the last item in the path
-//                qDebug() << "Adding " + type + "#!#" + filename;
-                pathStack->append(type + "#!#" + filename);
-            }
-            loadCuesheets(currentMP3filenameWithPath, filename);
-            saveCurrentSongSettings();
-        }
+        writeCuesheet(filename);
+        loadCuesheets(currentMP3filenameWithPath, filename);
+        saveCurrentSongSettings();
     }
 }
 
@@ -2220,7 +2229,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
-               ui->textBrowserCueSheet->hasFocus() ||
+               (ui->textBrowserCueSheet->hasFocus() && ui->checkBoxEditLyrics->isChecked()) ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
@@ -5535,6 +5544,11 @@ void MainWindow::saveCurrentSongSettings()
 
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
+        if (ui->checkBoxAutoSaveLyrics->isChecked())
+        {
+            qDebug() << "Writing cuesheet" << cuesheetFilename;
+            writeCuesheet(cuesheetFilename);
+        }
     }
 
 
