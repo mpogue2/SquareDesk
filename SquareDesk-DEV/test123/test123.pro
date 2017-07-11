@@ -63,25 +63,31 @@ HEADERS  += mainwindow.h \
     songsettings.h \
     buffio.h \
     platform.h \
-    tidy.h \
-    tidybuffio.h \
-    tidyenum.h \
-    tidyplatform.h
 
     FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
     preferencesdialog.ui
 
-INCLUDEPATH += $$PWD/
-DEPENDPATH += $$PWD/
+INCLUDEPATH += $$PWD/ $$PWD/../local
+DEPENDPATH += $$PWD/ $$PWD/../local
 
 # NOTE: there is no debug version of libbass
 #win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
 #else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
-else:unix:!macx: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidy
+else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
+
+unix:!macx: {
+html-tidy.target = html-tidy
+html-tidy.commands = cd $$PWD/../html-tidy/build/cmake && \
+   cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/../../../local && \
+   make && make install
+
+QMAKE_EXTRA_TARGETS += html-tidy
+PRE_TARGETDEPS += html-tidy
+}
 
 win32 {
     RC_FILE = desk1d.rc
