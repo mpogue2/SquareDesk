@@ -34,6 +34,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcess>
+#include <QProgressDialog>
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QStorageInfo>
@@ -58,7 +59,11 @@
 #include "danceprograms.h"
 #define CUSTOM_FILTER
 #include "startupwizard.h"
+#include "downloadmanager.h"
 
+#if defined(Q_OS_MAC)
+#include "JlCompress.h"
+#endif
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
@@ -6506,6 +6511,10 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
+        loadMusicList();
+
+        // install soundFX if not already present
+        maybeInstallSoundFX();
 
         // FIX: When SD directory is changed, we need to kill and restart SD, or SD output will go to the old directory.
         // initSDtab();  // sd directory has changed, so startup everything again.
@@ -6738,66 +6747,66 @@ void MainWindow::maybeInstallSoundFX() {
     QDir dir(soundfxDir);
     if (!dir.exists()) {
         dir.mkpath(".");  // make it
-
-        // and populate it with the starter set, if it didn't exist already
-        // check for break_over.mp3 and copy it in, if it doesn't exist already
-        QFile breakOverSound(soundfxDir + "/break_over.mp3");
-        if (!breakOverSound.exists()) {
-            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
-            QString destination = soundfxDir + "/break_over.mp3";
-//            qDebug() << "COPY from: " << source << " to " << destination;
-            QFile::copy(source, destination);
-        }
-
-        // check for long_tip.mp3 and copy it in, if it doesn't exist already
-        QFile longTipSound(soundfxDir + "/long_tip.mp3");
-        if (!longTipSound.exists()) {
-            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
-            QString destination = soundfxDir + "/long_tip.mp3";
-            QFile::copy(source, destination);
-        }
-
-        // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist
-        // although this code is now only executed when the soundfx directory didn't exist yet, I'm
-        //   leaving it here, in case it changes to "every time the program starts".  In which case, we
-        //   only want to copy files into the soundfx directory if there aren't already files there.
-        //   It might seem like overkill right now (and it is, right now).
-        bool foundSoundFXfile[6];
-        for (int i=0; i<6; i++) {
-            foundSoundFXfile[i] = false;
-        }
-
-        QDirIterator it(soundfxDir);
-        while(it.hasNext()) {
-            QString s1 = it.next();
-
-            QString baseName = s1.replace(soundfxDir,"");
-            QStringList sections = baseName.split(".");
-
-            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
-                foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
-            }
-        } // while
-
-        QString starterSet[6] = {
-            "1.whistle.mp3",
-            "2.clown_honk.mp3",
-            "3.submarine.mp3",
-            "4.applause.mp3",
-            "5.fanfare.mp3",
-            "6.fade.mp3"
-        };
-        for (int i=0; i<6; i++) {
-            if (!foundSoundFXfile[i]) {
-                QString destination = soundfxDir + "/" + starterSet[i];
-                QFile dest(destination);
-                if (!dest.exists()) {
-                    QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
-                    QFile::copy(source, destination);
-                }
-            }
-        }
     }
+
+    // and populate it with the starter set, if it didn't exist already
+    // check for break_over.mp3 and copy it in, if it doesn't exist already
+    QFile breakOverSound(soundfxDir + "/break_over.mp3");
+    if (!breakOverSound.exists()) {
+        QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/break_over.mp3";
+        QString destination = soundfxDir + "/break_over.mp3";
+        //            qDebug() << "COPY from: " << source << " to " << destination;
+        QFile::copy(source, destination);
+    }
+
+    // check for long_tip.mp3 and copy it in, if it doesn't exist already
+    QFile longTipSound(soundfxDir + "/long_tip.mp3");
+    if (!longTipSound.exists()) {
+        QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
+        QString destination = soundfxDir + "/long_tip.mp3";
+        QFile::copy(source, destination);
+    }
+
+    // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist,
+    // which is checked when the App starts, and when the Startup Wizard finishes setup.  In which case, we
+    //   only want to copy files into the soundfx directory if there aren't already files there.
+    //   It might seem like overkill right now (and it is, right now).
+    bool foundSoundFXfile[6];
+    for (int i=0; i<6; i++) {
+        foundSoundFXfile[i] = false;
+    }
+
+    QDirIterator it(soundfxDir);
+    while(it.hasNext()) {
+        QString s1 = it.next();
+
+        QString baseName = s1.replace(soundfxDir,"");
+        QStringList sections = baseName.split(".");
+
+        if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+            foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
+        }
+    } // while
+
+    QString starterSet[6] = {
+        "1.whistle.mp3",
+        "2.clown_honk.mp3",
+        "3.submarine.mp3",
+        "4.applause.mp3",
+        "5.fanfare.mp3",
+        "6.fade.mp3"
+    };
+    for (int i=0; i<6; i++) {
+        if (!foundSoundFXfile[i]) {
+            QString destination = soundfxDir + "/" + starterSet[i];
+            QFile dest(destination);
+            if (!dest.exists()) {
+                QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/" + starterSet[i];
+                QFile::copy(source, destination);
+            }
+        }
+    } // for
+
 }
 
 void MainWindow::on_actionStop_Sound_FX_triggered()
@@ -7053,4 +7062,127 @@ void MainWindow::on_printButton_clicked()
         return;
     }
     ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionDownload_Cuesheets_triggered()
+{
+#if defined(Q_OS_MAC)
+
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString lyricsDirPath = musicDirPath + "/lyrics";
+
+    QDir lyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+
+    if (lyricsDir.exists()) {
+//        qDebug() << "You already have the latest cuesheets downloaded.  Are you sure you want to download them again (erasing any edits you made)?";
+
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText(QString("You already have the latest lyrics files: '") + CURRENTSQVIEWLYRICSNAME + "'");
+        msgBox.setInformativeText("Are you sure?  This will overwrite any lyrics that you have edited in that folder.");
+        QPushButton *downloadButton = msgBox.addButton(tr("Download Anyway"), QMessageBox::AcceptRole);
+        QPushButton *abortButton = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+        msgBox.exec();
+
+        if (msgBox.clickedButton() == downloadButton) {
+            // Download
+//            qDebug() << "DOWNLOAD WILL PROCEED NORMALLY.";
+        } else if (msgBox.clickedButton() == abortButton) {
+            // Abort
+//            qDebug() << "ABORTING DOWNLOAD.";
+            return;
+        }
+    }
+
+    Downloader *d = new Downloader(this);
+
+    QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
+//    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
+
+    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
+
+    d->doDownload(lyricsZipFileURL, lyricsZipFileName);  // download URL and put it into lyricsZipFileName
+
+    QObject::connect(d,SIGNAL(downloadFinished()), this, SLOT(lyricsDownloadEnd()));
+    QObject::connect(d,SIGNAL(downloadFinished()), d, SLOT(deleteLater()));
+
+    // PROGRESS BAR ---------------------
+    // assume ~10MB
+    progressDialog = new QProgressDialog("Downloading lyrics...", "Cancel Download", 0, 100, this);
+    connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelProgress()));
+    progressTimer = new QTimer(this);
+    connect(progressTimer, SIGNAL(timeout()), this, SLOT(makeProgress()));
+    progressTotal = 0.0;
+    progressTimer->start(500);  // once per second
+#endif
+}
+
+void MainWindow::makeProgress() {
+#if defined(Q_OS_MAC)
+    if (progressTotal < 80) {
+        progressTotal += 10.0;
+    } else if (progressTotal < 90) {
+        progressTotal += 1.0;
+    } else if (progressTotal < 98) {
+        progressTotal += 0.25;
+    } // else no progress for you.
+
+//    qDebug() << "making progress..." << progressTotal;
+
+    progressDialog->setValue((unsigned int)progressTotal);
+#endif
+}
+
+void MainWindow::cancelProgress() {
+#if defined(Q_OS_MAC)
+//    qDebug() << "cancelling progress...";
+    progressTimer->stop();
+    progressTotal = 0;
+#endif
+}
+
+
+void MainWindow::lyricsDownloadEnd() {
+#if defined(Q_OS_MAC)
+//    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
+
+//    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString lyricsDirPath = musicDirPath + "/lyrics";
+    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
+
+    QString destinationDir = lyricsDirPath;
+
+    // extract the ZIP file
+    QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
+
+    if (extracted.empty()) {
+//        qDebug() << "There was a problem extracting the files.  No files extracted.";
+        return;  // and don't delete the ZIP file, for debugging
+    }
+
+//    qDebug() << "DELETING ZIP FILE...";
+    QFile file(lyricsZipFileName);
+    file.remove();
+
+    QDir currentLyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+    if (currentLyricsDir.exists()) {
+//        qDebug() << "Refused to overwrite existing cuesheets, renamed to: " << lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup";
+        QFile::rename(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME, lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup");
+    }
+
+//    qDebug() << "RENAMING Text/ TO SqViewCueSheets_2017.03.14/ ...";
+    QFile::rename(lyricsDirPath + "/Text", lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+
+    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
+    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+    loadMusicList(); // and filter them into the songTable
+
+//    qDebug() << "DONE DOWNLOADING LATEST LYRICS: " << CURRENTSQVIEWLYRICSNAME << "\n";
+
+    progressDialog->setValue(100);  // kill the progress bar
+    progressTimer->stop();
+#endif
 }

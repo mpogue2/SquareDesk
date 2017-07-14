@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     sdhighlighter.cpp \
     utility.cpp \
     danceprograms.cpp \
-    startupwizard.cpp
+    startupwizard.cpp \
+    downloadmanager.cpp
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -61,9 +62,8 @@ HEADERS  += mainwindow.h \
     danceprograms.h \
     startupwizard.h \
     songsettings.h \
-    buffio.h \
     platform.h \
-    platform.h
+    downloadmanager.h
 
     FORMS    += mainwindow.ui \
     importdialog.ui \
@@ -125,8 +125,14 @@ macx {
     LIBS += -framework CoreFoundation
     LIBS += -framework AppKit
     mylib.path = Contents/MacOS
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib $$PWD/libtidy.dylib
+    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib $$PWD/libtidy.dylib $$PWD/libquazip.1.dylib
     QMAKE_BUNDLE_DATA += mylib
+
+    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
+    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
+    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
+
+    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
 
     # TAGLIB ----------------------------------------
     LIBS += -L$$OUT_PWD/../taglib -ltaglib

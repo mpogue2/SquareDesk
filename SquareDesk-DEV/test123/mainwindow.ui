@@ -1530,6 +1530,7 @@
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
+    <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
     <addaction name="actionCheck_for_Updates"/>
    </widget>
@@ -2385,6 +2386,11 @@
   <action name="actionLyricsCueSheetRevert_Edits">
    <property name="text">
     <string>Revert Edits</string>
+   </property>
+  </action>
+  <action name="actionDownload_Cuesheets">
+   <property name="text">
+    <string>Download Lyrics...</string>
    </property>
   </action>
  </widget>

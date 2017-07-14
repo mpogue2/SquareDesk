@@ -44,6 +44,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QProcess>
+#include <QProgressDialog>
 #include <QProxyStyle>
 #include <QSettings>
 #include <QSlider>
@@ -82,6 +83,10 @@
 //  Also remember to change the "latest" file on GitHub!
 
 #define VERSIONSTRING "0.8.2alpha3"
+
+// cuesheets are assumed to be at the top level of the SquareDesk repo, and they
+//   will be fetched from there.
+#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
 
 namespace Ui
 {
@@ -286,6 +291,12 @@ private slots:
     void focusChanged(QWidget *old, QWidget *now);
 
     void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
+
+    void lyricsDownloadEnd();
+    void makeProgress();
+    void cancelProgress();
+
+
     // END SLOTS -----------
 
     void on_action_1_triggered();
@@ -324,6 +335,7 @@ private slots:
     void on_actionFade_Out_triggered();
 
     void on_printButton_clicked();
+    void on_actionDownload_Cuesheets_triggered();
 
 private:
     int preferredSmallFontSize;  // preferred font sizes
@@ -518,6 +530,10 @@ private:
     QElapsedTimer t1;  // used for simple timing operations
     void startLongSongTableOperation(QString s);
     void stopLongSongTableOperation(QString s);  // use the same string each time
+
+    QProgressDialog *progressDialog;
+    QTimer *progressTimer;
+    float progressTotal;
 };
 
 // currentState:

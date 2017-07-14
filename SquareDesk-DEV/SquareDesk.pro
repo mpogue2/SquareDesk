@@ -7,7 +7,9 @@ mac {
 # sd and sdApp are MAC OS X ONLY for now.
 #   sd needs to be compiled outside of Qt, I think,
 #   or under cygwin.
-SUBDIRS += sd sdApp
+#
+# quazip is Mac OS X only right now, for downloading and unpacking lyrics files...
+SUBDIRS += sd sdApp quazip
 sd.subdir = sd
 sdApp.subdir = sdApp
 
