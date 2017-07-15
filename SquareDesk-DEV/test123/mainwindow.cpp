@@ -44,6 +44,9 @@
 #include <QStandardItem>
 #include <QWidget>
 
+#include <QPrinter>
+#include <QPrintDialog>
+
 #include "analogclock.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -166,6 +169,9 @@ using namespace TagLib;
 
 // GLOBALS:
 bass_audio cBass;
+static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
+static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
+
 
 
 // ----------------------------------------------------------------------
@@ -173,12 +179,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(NULL),
+    lastCuesheetSavePath(),
     timerCountUp(NULL),
     timerCountDown(NULL),
     trapKeypresses(true),
     sd(NULL),
     firstTimeSongIsPlayed(false),
     loadingSong(false),
+    cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0)
 {
     justWentActive = false;
@@ -596,6 +604,7 @@ MainWindow::MainWindow(QWidget *parent) :
         loadDanceProgramList(lastDanceProgram);
     }
 
+    lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
 
@@ -626,6 +635,28 @@ MainWindow::MainWindow(QWidget *parent) :
     adjustFontSizes();  // now adjust to match contents ONCE
     //on_actionReset_triggered();  // set initial layout
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
+
+    QPalette* palette1 = new QPalette();
+    palette1->setColor(QPalette::ButtonText, Qt::red);
+    ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
+
+    QPalette* palette2 = new QPalette();
+    palette2->setColor(QPalette::ButtonText, QColor("#0000FF"));
+    ui->pushButtonCueSheetEditArtist->setPalette(*palette2);
+
+    QPalette* palette3 = new QPalette();
+    palette3->setColor(QPalette::ButtonText, QColor("#60C060"));
+    ui->pushButtonCueSheetEditLabel->setPalette(*palette3);
+
+//    QPalette* palette4 = new QPalette();
+//    palette4->setColor(QPalette::Background, QColor("#FFC0CB"));
+//    ui->pushButtonCueSheetEditLyrics->setPalette(*palette4);
+
+    ui->pushButtonCueSheetEditLyrics->setAutoFillBackground(true);
+    ui->pushButtonCueSheetEditLyrics->setStyleSheet(
+                "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
+                "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
+                );
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -809,7 +840,207 @@ void breakDanceProgramIntoParts(const QString &filename,
 
 }
 
+// ----------------------------------------------------------------------
+// Text editor stuff
 
+void MainWindow::showHTML() {
+    QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+    QString tEditedCuesheet = tidyHTML(editedCuesheet);
+    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+//    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
+}
+
+void MainWindow::on_checkBoxEditLyrics_stateChanged( int /* checkState */ )
+{
+    /* bool checked = (checkState != Qt::Unchecked); */
+}
+
+void MainWindow::on_textBrowserCueSheet_selectionChanged()
+{
+//    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+//    QString selectedText = cursor.selectedText();
+//    qDebug() << "New selected text: '" << selectedText << "'";
+}
+
+// TODO: can't make a doc from scratch yet.
+
+void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
+{
+    RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
+//    ui->pushButtonCueSheetEditHeader->setChecked(f.fontPointSize() == 14);
+    ui->pushButtonCueSheetEditItalic->setChecked(f.fontItalic());
+    ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
+}
+
+static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
+{
+//    qDebug() << "setSelectedTextToClass: " << blockClass;
+    QTextCursor cursor = editor->textCursor();
+    if (!cursor.hasComplexSelection())
+    {
+        // TODO: remove <SPAN class="title"></SPAN> from entire rest of the document (title is a singleton)
+        QString selectedText = cursor.selectedText();
+        if (selectedText.isEmpty())
+        {
+            cursor.select(QTextCursor::BlockUnderCursor);
+            selectedText = cursor.selectedText();
+        }
+
+        if (!selectedText.isEmpty())
+        {
+            cursor.removeSelectedText();
+            cursor.insertHtml("<P class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</P>");
+        }
+    } else {
+        qDebug() << "Sorry, on_pushButtonCueSheetEdit...: " + blockClass + ": Title_toggled has complex selection...";
+    }
+}
+
+void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
+{
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        setSelectedTextToClass(ui->textBrowserCueSheet, "hdr");
+//    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
+    }
+//    showHTML();
+}
+
+void MainWindow::on_pushButtonCueSheetEditItalic_toggled(bool checked)
+{
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        ui->textBrowserCueSheet->setFontItalic(checked);
+    }
+//    showHTML();
+}
+
+void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
+{
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
+    }
+//    showHTML();
+}
+
+
+void MainWindow::on_pushButtonCueSheetEditTitle_clicked(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        setSelectedTextToClass(ui->textBrowserCueSheet, "title");
+    }
+//    showHTML();
+}
+
+void MainWindow::on_pushButtonCueSheetEditArtist_clicked(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        setSelectedTextToClass(ui->textBrowserCueSheet, "artist");
+    }
+//    showHTML();
+}
+
+void MainWindow::on_pushButtonCueSheetEditLabel_clicked(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        setSelectedTextToClass(ui->textBrowserCueSheet, "label");
+    }
+//    showHTML();
+}
+
+void MainWindow::on_pushButtonCueSheetEditLyrics_clicked(bool checked)
+{
+    Q_UNUSED(checked)
+    if (!cuesheetEditorReactingToCursorMovement)
+    {
+        setSelectedTextToClass(ui->textBrowserCueSheet, "lyrics");
+    }
+//    showHTML();
+}
+
+static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFilename)
+{
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+        QString s = iter.next();
+        QStringList sl1 = s.split("#!#");
+        QString type = sl1[0];  // the type (of original pathname, before following aliases)
+        QString filename = sl1[1];  // everything else
+        if (filename == checkFilename)
+            return true;
+    }
+    return false;
+}
+
+void MainWindow::writeCuesheet(QString filename)
+{
+    bool needs_extension = true;
+    for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
+    {
+        QString ext(".");
+        ext.append(cuesheet_file_extensions[i]);
+        if (filename.endsWith(ext))
+        {
+            needs_extension = false;
+            break;
+        }
+    }
+    if (needs_extension)
+    {
+        filename += ".html";
+    }
+
+    QFile file(filename);
+    QDir d = QFileInfo(file).absoluteDir();
+    QString directoryName = d.absolutePath();  // directory of the saved filename
+
+    lastCuesheetSavePath = directoryName;
+
+    if ( file.open(QIODevice::WriteOnly) )
+    {
+        // Make sure the destructor gets called before we try to load this file...
+        {
+            QTextStream stream( &file );
+//                qDebug() << "************** SAVE FILE ***************";
+            showHTML();
+
+            QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+//                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
+
+            QString tEditedCuesheet = tidyHTML(editedCuesheet);
+//                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
+            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+//                qDebug().noquote() << "***** WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
+
+            stream << postProcessedCuesheet;
+            stream.flush();
+        }
+
+        if (!isFileInPathStack(pathStack, filename))
+        {
+            QFileInfo fi(filename);
+            QStringList section = fi.path().split("/");
+            QString type = section[section.length()-1];  // must be the last item in the path
+//                qDebug() << "Adding " + type + "#!#" + filename;
+            pathStack->append(type + "#!#" + filename);
+        }
+    }
+}
+
+void MainWindow::on_pushButtonCueSheetEditSave_clicked()
+{
+    on_actionSave_Lyrics_As_triggered();
+}
+
+
+// ----------------------------------------------------------------------
 void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
 {
     if (kCallListCheckedCol == col)
@@ -857,12 +1088,22 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
-    if (currentIndex != -1) {
+    if (currentIndex != -1 && !cuesheetEditorReactingToCursorMovement) {
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
         loadCuesheet(cuesheetFilename);
     }
 }
 
+void MainWindow::on_menuLyrics_aboutToShow()
+{
+    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified());
+    ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
+}
+
+void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
+{
+    on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex());
+}
 
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
@@ -1622,30 +1863,67 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 }
 
 // --------------------------------1--------------------------------------
+
+// blame https://stackoverflow.com/questions/4065378/qt-get-children-from-layout
+bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
+{
+   if (layout == NULL or widget == NULL)
+      return false;
+
+   if (layout->indexOf(widget) >= 0)
+      return true;
+
+   foreach(QObject *o, layout->children())
+   {
+      if (isChildWidgetOfAnyLayout((QLayout*)o,widget))
+         return true;
+   }
+
+   return false;
+}
+
+void setVisibleWidgetsInLayout(QLayout *layout, bool visible)
+{
+   if (layout == NULL)
+      return;
+
+   QWidget *pw = layout->parentWidget();
+   if (pw == NULL)
+      return;
+
+   foreach(QWidget *w, pw->findChildren<QWidget*>())
+   {
+      if (isChildWidgetOfAnyLayout(layout,w))
+          w->setVisible(visible);
+   }
+}
+
+bool isVisibleWidgetsInLayout(QLayout *layout)
+{
+   if (layout == NULL)
+      return false;
+
+   QWidget *pw = layout->parentWidget();
+   if (pw == NULL)
+      return false;
+
+   foreach(QWidget *w, pw->findChildren<QWidget*>())
+   {
+      if (isChildWidgetOfAnyLayout(layout,w))
+          return w->isVisible();
+   }
+   return false;
+}
+
+
 void MainWindow::setCueSheetAdditionalControlsVisible(bool visible)
 {
-    // Really want to do this:
-    // ui->horizontalLayoutCueSheetAdditional->setVisible(false);
-
-    for(int i = 0; i < ui->horizontalLayoutCueSheetAdditional->count(); i++)
-    {
-        QWidget *qw = qobject_cast<QWidget*>(ui->horizontalLayoutCueSheetAdditional->itemAt(i)->widget());
-        if (qw)
-        {
-            qw->setVisible(visible);
-        }
-    }
+    setVisibleWidgetsInLayout(ui->verticalLayoutCueSheetAdditional, visible);
 }
+
 bool MainWindow::cueSheetAdditionalControlsVisible()
 {
-    for(int i = 0; i < ui->horizontalLayoutCueSheetAdditional->count(); i++)
-    {
-        QWidget *qw = qobject_cast<QWidget*>(ui->horizontalLayoutCueSheetAdditional->itemAt(i)->widget());
-
-        if (qw)
-            return qw->isVisible();
-    }
-    return false;
+    return isVisibleWidgetsInLayout(ui->verticalLayoutCueSheetAdditional);
 }
 
 // --------------------------------1--------------------------------------
@@ -1892,6 +2170,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
         QSettings settings;
+        settings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
         settings.setValue("geometry", saveGeometry());
         settings.setValue("windowState", saveState());
         QMainWindow::closeEvent(event);
@@ -1940,6 +2219,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
+               (ui->textBrowserCueSheet->hasFocus() && ui->checkBoxEditLyrics->isChecked()) ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
@@ -2191,9 +2471,6 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass.SetEq(2, (float)value);
 }
 
-static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
-static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
-
 
 struct FilenameMatchers {
     QRegularExpression regex;
@@ -2331,6 +2608,180 @@ static bool CompareCuesheetWithRanking(CuesheetWithRanking *a, CuesheetWithRanki
     return a->score > b->score;
 }
 
+QString MainWindow::tidyHTML(QString cuesheet) {
+
+    // first get rid of <L> and </L>.  Those are ILLEGAL.
+    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
+
+    // then get rid of <NOBR> and </NOBR>, NOT SUPPORTED BY W3C.
+    cuesheet.replace("<NOBR>","",Qt::CaseInsensitive).replace("</NOBR>","",Qt::CaseInsensitive);
+
+    // and &nbsp; too...let the layout engine do its thing.
+    cuesheet.replace("&nbsp;"," ");
+
+    // convert to a c_string, for HTML-TIDY
+    char* tidyInput;
+    string csheet = cuesheet.toStdString();
+    tidyInput = new char [csheet.size()+1];
+    strcpy( tidyInput, csheet.c_str() );
+
+//    qDebug().noquote() << "\n***** TidyInput:\n" << QString((char *)tidyInput);
+
+    TidyBuffer output;// = {0};
+    TidyBuffer errbuf;// = {0};
+    tidyBufInit(&output);
+    tidyBufInit(&errbuf);
+    int rc = -1;
+    Bool ok;
+
+    // TODO: error handling here...using GOTO!
+
+    TidyDoc tdoc = tidyCreate();
+    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
+    }
+//    if (ok) {
+//        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
+//    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
+    }
+    if ( ok )
+        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
+    if ( rc >= 0 )
+        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
+    if ( rc >= 0 )
+        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
+    if ( rc >= 0 )
+        rc = tidyRunDiagnostics( tdoc );               // Kvetch
+    if ( rc > 1 )                                    // If error, force output.
+        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+    if ( rc >= 0 )
+        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
+
+    QString cuesheet_tidied;
+    if ( rc >= 0 )
+    {
+        if ( rc > 0 ) {
+//            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
+//        qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
+        }
+        cuesheet_tidied = QString((char*)output.bp);
+    }
+    else
+        qDebug() << "Severe error:" << rc;
+
+    tidyBufFree( &output );
+    tidyBufFree( &errbuf );
+    tidyRelease( tdoc );
+
+    // get rid of TIDY cruft
+//    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
+
+    return(cuesheet_tidied);
+}
+
+// ------------------------
+QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
+    // margin-top:12px;
+    // margin-bottom:12px;
+    // margin-left:0px;
+    // margin-right:0px;
+    // -qt-block-indent:0;
+    // text-indent:0px;
+    // line-height:100%;
+    // KEEP: background-color:#ffffe0;
+    cuesheet
+            .replace(QRegExp("margin-top:[0-9]+px;"), "")
+            .replace(QRegExp("margin-bottom:[0-9]+px;"), "")
+            .replace(QRegExp("margin-left:[0-9]+px;"), "")
+            .replace(QRegExp("margin-right:[0-9]+px;"), "")
+            .replace(QRegExp("text-indent:[0-9]+px;"), "")
+            .replace(QRegExp("line-height:[0-9]+%;"), "")
+            .replace(QRegExp("-qt-block-indent:[0-9]+;"), "")
+            ;
+
+    // get rid of unwanted QTextEdit tags
+    QRegExp styleRegExp("(<STYLE.*</STYLE>)|(<META.*>)");
+    styleRegExp.setMinimal(true);
+    styleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet.replace(styleRegExp,"");  // don't be greedy
+
+//    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
+    QString cuesheet3 = tidyHTML(cuesheet);
+
+    // now the semantic replacement.
+    // assumes that QTextEdit spits out spans in a consistent way
+    // TODO: allow embedded NL (due to line wrapping)
+    // NOTE: background color is optional here, because I got rid of the the spec for it in BODY
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"hdr\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),  // background-color required for lyrics
+                             "<SPAN class=\"lyrics\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"label\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"artist\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"title\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                                     "<SPAN style=\"font-weight: Bold;\">");
+
+    cuesheet3.replace("<P style=\"\">","<P>");
+    cuesheet3.replace("<P style=\"background-color:#ffffe0;\">","<P>");  // background color already defaults via the BODY statement
+    cuesheet3.replace("<BODY bgcolor=\"#FFFFE0\" style=\"font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;\">","<BODY>");  // must go back to USER'S choices in cuesheet2.css
+
+    // multi-step replacement
+//    qDebug().noquote() << "***** REALLY BEFORE:\n" << cuesheet3;
+    //      <SPAN style="font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffffe0;">
+    cuesheet3.replace(QRegExp("\"font-family:'Verdana'; font-size:large; color:#000000;( background-color:#ffffe0;)*\""),"\"XXXXX\""); // must go back to USER'S choices in cuesheet2.css
+//    qDebug().noquote() << "***** BEFORE:\n" << cuesheet3;
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"XXXXX\">"),"<SPAN>");
+//    qDebug().noquote() << "***** AFTER:\n" << cuesheet3;
+
+    // now replace null SPAN tags
+    QRegExp nullStyleRegExp("<SPAN>(.*)</SPAN>");
+    nullStyleRegExp.setMinimal(true);
+    nullStyleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet3.replace(nullStyleRegExp,"\\1");  // don't be greedy, and replace <SPAN>foo</SPAN> with foo
+
+    // TODO: bold -- <SPAN style="font-family:'Verdana'; font-size:large; font-weight:600; color:#000000;">
+    // TODO: italic -- TBD
+    // TODO: get rid of style="background-color:#ffffe0;, yellowish, put at top once
+    // TODO: get rid of these, use body: <SPAN style="font-family:'Verdana'; font-size:large; color:#000000;">
+
+    // put the <link rel="STYLESHEET" type="text/css" href="cuesheet2.css"> back in
+    if (!cuesheet3.contains("<link",Qt::CaseInsensitive)) {
+//        qDebug() << "Putting the <LINK> back in...";
+        cuesheet3.replace("</TITLE>","</TITLE><LINK rel=\"STYLESHEET\" type=\"text/css\" href=\"cuesheet2.css\">");
+    }
+    // tidy it one final time before writing it to a file (gets rid of blank SPAN's, among other things)
+    QString cuesheet4 = tidyHTML(cuesheet3);
+
+
+//    qDebug().noquote() << "***** postProcess 2: " << cuesheet4;
+    return(cuesheet4);
+}
+
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
@@ -2355,6 +2806,38 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         QString musicDirPath = prefsManager.GetmusicPath();
         QString lyricsDir = musicDirPath + "/lyrics";
 
+        // if the lyrics directory doesn't exist, create it
+        QDir dir(lyricsDir);
+        if (!dir.exists()) {
+            dir.mkpath(".");
+        }
+
+        // now check for the cuesheet2.css file... ---------------
+        QString cuesheetCSSDestPath = lyricsDir + "/cuesheet2.css";
+        QFile cuesheetCSSDestFile(cuesheetCSSDestPath);
+
+#if defined(Q_OS_MAC)
+        QString appPath = QApplication::applicationFilePath();
+        QString cuesheet2SrcPath = appPath + "/Contents/Resources/cuesheet2.css";
+        cuesheet2SrcPath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#elif defined(Q_OS_WIN32)
+        // TODO: There has to be a better way to do this.
+        QString appPath = QApplication::applicationFilePath();
+        QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
+        cuesheet2SrcPath.replace("SquareDeskPlayer.exe/","");
+#else
+        qWarning() << "Warning: cuesheet2 path is almost certainly wrong here for Linux.";
+        QString appPath = QApplication::applicationFilePath();
+        QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
+        cuesheet2SrcPath.replace("SquareDeskPlayer/","");
+#endif
+
+        if (!cuesheetCSSDestFile.exists()) {
+            // copy in a cuesheet2 file, if there's not one there already
+            QFile::copy(cuesheet2SrcPath, cuesheetCSSDestPath);  // copy one in
+        }
+
+        // Now, open it. ---------------
         QFile css(lyricsDir + "/cuesheet2.css");  // cuesheet2.css is located in the LYRICS directory (NOTE: GLOBAL! All others are now IGNORED)
 
         QString cssString;
@@ -2365,6 +2848,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         }
 
         // read in the HTML for the cuesheet
+
         QFile f1(cuesheetFilename);
         QString cuesheet;
         if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -2383,15 +2867,25 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             }
 
             // set the CSS
+//            qDebug().noquote() << "***** CSS:\n" << cssString;
             ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
 
+#if defined(Q_OS_MAC)
+            // HTML-TIDY IT ON INPUT *********
+            QString cuesheet_tidied = tidyHTML(cuesheet);
+#else
+            QString cuesheet_tidied = cuesheet;  // LINUX, WINDOWS
+#endif
+
+            // ----------------------
             // set the HTML for the cuesheet itself (must set CSS first)
-            ui->textBrowserCueSheet->setHtml(cuesheet);
+//            ui->textBrowserCueSheet->setHtml(cuesheet);
+            ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
             f1.close();
         }
 
     }
-
+    ui->textBrowserCueSheet->document()->setModified(false);
 }
 
 
@@ -2611,7 +3105,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 }
 
 
-void MainWindow::loadCuesheets(const QString &MP3FileName)
+void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
 {
     hasLyrics = false;
 
@@ -2620,15 +3114,19 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
+    int defaultCuesheetIndex = 0;
 
-    QString firstCuesheet("");
+
+    QString firstCuesheet(preferredCuesheet);
     ui->comboBoxCuesheetSelector->clear();
 
     foreach (const QString &cuesheet, possibleCuesheets)
     {
-        if (firstCuesheet.length() == 0)
+        RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
+        if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
+            && cuesheet == preferredCuesheet)
         {
-            firstCuesheet = cuesheet;
+            defaultCuesheetIndex = ui->comboBoxCuesheetSelector->count();
         }
 
         QString displayName = cuesheet;
@@ -2639,17 +3137,47 @@ void MainWindow::loadCuesheets(const QString &MP3FileName)
                                               cuesheet);
     }
 
-    if (firstCuesheet.length() > 0)
+    if (ui->comboBoxCuesheetSelector->count() > 0)
     {
-        loadCuesheet(firstCuesheet);
+        ui->comboBoxCuesheetSelector->setCurrentIndex(defaultCuesheetIndex);
+        // if it was zero, we didn't load it because the index didn't change,
+        // and we skipped loading it above. Sooo...
+        if (0 == defaultCuesheetIndex)
+            on_comboBoxCuesheetSelector_currentIndexChanged(0);
         hasLyrics = true;
     }
 
     if (hasLyrics && lyricsTabNumber != -1) {
         ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
     } else {
-        ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
         ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+
+#if defined(Q_OS_MAC)
+        QString appPath = QApplication::applicationFilePath();
+        QString lyricsTemplatePath = appPath + "/Contents/Resources/lyrics.template.html";
+        lyricsTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#elif defined(Q_OS_WIN32)
+        // TODO: There has to be a better way to do this.
+        QString appPath = QApplication::applicationFilePath();
+        QString lyricsTemplatePath = appPath + "/lyrics.template.html";
+        lyricsTemplatePath.replace("SquareDeskPlayer.exe/","");
+#endif
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+        QFile file(lyricsTemplatePath);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            qDebug() << "Could not open 'lyrics.template.html' file.";
+            qDebug() << "looked here:" << lyricsTemplatePath;
+            return;  // NOTE: early return, couldn't find template file
+        } else {
+            QString lyricsTemplate(file.readAll());
+            file.close();
+            ui->textBrowserCueSheet->setHtml(lyricsTemplate);
+        }
+#else
+        // LINUX
+        ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
+#endif
     }
 }
 
@@ -3728,7 +4256,7 @@ void MainWindow::on_actionExport_triggered()
 // --------------------------------------------------------
 void MainWindow::on_actionPreferences_triggered()
 {
-    inPreferencesDialog = true;
+    RecursionGuard dialog_guard(inPreferencesDialog);
     trapKeypresses = false;
 //    on_stopButton_clicked();  // stop music, if it was playing...
     PreferencesManager prefsManager;
@@ -3843,7 +4371,6 @@ void MainWindow::on_actionPreferences_triggered()
 
     delete prefDialog;
     prefDialog = NULL;
-    inPreferencesDialog = false;  // FIX: might not need this anymore...
 }
 
 QString MainWindow::removePrefix(QString prefix, QString s)
@@ -5007,6 +5534,10 @@ void MainWindow::saveCurrentSongSettings()
 
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
+        if (ui->checkBoxAutoSaveLyrics->isChecked())
+        {
+            writeCuesheet(cuesheetFilename);
+        }
     }
 
 
@@ -5310,10 +5841,24 @@ void MainWindow::on_warningLabel_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
+        // SD Tab ---------------
         if (console != 0) {
             console->setFocus();
         }
+        ui->actionSave_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics_As->setDisabled(true);
+        ui->actionPrint_Lyrics->setDisabled(true);
+    } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+        // Lyrics Tab ---------------
+        ui->actionPrint_Lyrics->setDisabled(false);
+        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
+        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+    } else  {
+        ui->actionPrint_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics_As->setDisabled(true);
     }
+
     microphoneStatusUpdate();
 }
 
@@ -6629,4 +7174,60 @@ void MainWindow::lyricsDownloadEnd() {
     progressDialog->setValue(100);  // kill the progress bar
     progressTimer->stop();
 #endif
+}
+
+void MainWindow::on_printButton_clicked()
+{
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+    ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionPrint_Lyrics_triggered()
+{
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+    ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionSave_Lyrics_triggered()
+{
+    // Save cuesheet to the current cuesheet filename...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+    if (!cuesheetFilename.isNull())
+    {
+        writeCuesheet(cuesheetFilename);
+        loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
+        saveCurrentSongSettings();
+    }
+
+}
+
+void MainWindow::on_actionSave_Lyrics_As_triggered()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    QFileInfo fi(currentMP3filenameWithPath);
+
+    if (lastCuesheetSavePath.isEmpty())
+        lastCuesheetSavePath = musicRootPath;
+
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    tr("Save Cue Sheet"),
+                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
+                                                    tr("HTML (*.html)"));
+    if (!filename.isNull())
+    {
+        writeCuesheet(filename);
+        loadCuesheets(currentMP3filenameWithPath, filename);
+        saveCurrentSongSettings();
+    }
 }

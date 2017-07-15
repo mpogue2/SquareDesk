@@ -108,6 +108,8 @@ private slots:
 
     void on_lineEditMusicTypeCalled_textChanged(const QString &arg1);
 
+    void on_comboBoxMusicFormat_currentIndexChanged(int /* currentIndex */);
+
 private:
     Ui::PreferencesDialog *ui;
 };

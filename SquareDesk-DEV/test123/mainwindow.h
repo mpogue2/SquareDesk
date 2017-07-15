@@ -73,7 +73,11 @@
 
 #if defined(Q_OS_MAC)
 #include "macUtils.h"
+#include <stdio.h>
+#include <errno.h>
 #endif
+#include <tidy/tidy.h>
+#include <tidy/tidybuffio.h>
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
@@ -108,6 +112,9 @@ public:
     QActionGroup *sdActionGroup1;
 
     QStringList parseCSV(const QString &string);
+    QString tidyHTML(QString s);  // return the tidied HTML
+    QString postProcessHTMLtoSemanticHTML(QString cuesheet);
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
@@ -179,6 +186,25 @@ private slots:
 
     void on_lineEditOutroTime_textChanged();
     void on_lineEditIntroTime_textChanged();
+
+    void on_checkBoxEditLyrics_stateChanged( int checkState );
+    void on_textBrowserCueSheet_selectionChanged();
+    void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
+
+    // toggles
+    void on_pushButtonCueSheetEditItalic_toggled(bool checked);
+    void on_pushButtonCueSheetEditBold_toggled(bool checked);
+
+    // clicks
+    void on_pushButtonCueSheetEditHeader_clicked(bool checked);
+    void on_pushButtonCueSheetEditTitle_clicked(bool checked);
+    void on_pushButtonCueSheetEditArtist_clicked(bool checked);
+    void on_pushButtonCueSheetEditLabel_clicked(bool checked);
+    void on_pushButtonCueSheetEditLyrics_clicked(bool checked);
+    void showHTML();
+
+    void on_pushButtonCueSheetEditSave_clicked();
+
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
 
@@ -229,6 +255,9 @@ private slots:
 
     void on_actionCompact_triggered(bool checked);
     void on_actionAuto_scroll_during_playback_toggled(bool arg1);
+
+    void on_menuLyrics_aboutToShow();
+    void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
 
     void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
     void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
@@ -307,6 +336,14 @@ private slots:
 
     void on_actionDownload_Cuesheets_triggered();
 
+    void on_printButton_clicked();
+
+    void on_actionPrint_Lyrics_triggered();
+
+    void on_actionSave_Lyrics_triggered();
+
+    void on_actionSave_Lyrics_As_triggered();
+
 private:
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;
@@ -321,6 +358,7 @@ private:
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
     QString musicRootPath, guestRootPath, guestVolume, guestMode;
+    QString lastCuesheetSavePath;
     enum SongFilenameMatchingType songFilenameFormat;
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
@@ -353,15 +391,15 @@ private:
     QString currentSongTitle;
     int randCallIndex;     // for Flash Calls
 
+    void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
     void randomizeFlashCall();
 
-
     float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(const QString &cuesheetFilename);
-    void loadCuesheets(const QString &MP3FileName);
+    void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
@@ -474,6 +512,7 @@ private:
 
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings
+    bool cuesheetEditorReactingToCursorMovement;
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadSongAges(int id);
     void reloadSongAges(bool show_all_sessions);
