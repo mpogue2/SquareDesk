@@ -74,21 +74,9 @@ INCLUDEPATH += $$PWD/ $$PWD/../local/include
 DEPENDPATH += $$PWD/ $$PWD/../local/include
 
 # NOTE: there is no debug version of libbass
-#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32 -lsqlite3
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
+win32: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
-
-unix:!macx: {
-html-tidy.target = html-tidy
-html-tidy.commands = cd $$PWD/../html-tidy/build/cmake && \
-   cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/../../../local && \
-   make && make install
-
-QMAKE_EXTRA_TARGETS += html-tidy
-PRE_TARGETDEPS += html-tidy
-}
+# macx: see below...
 
 win32 {
     RC_FILE = desk1d.rc
@@ -121,11 +109,14 @@ win32:CONFIG(release, debug|release): {
 macx {
     # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
     # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib  $$PWD/libtidy.dylib
+    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    LIBS += $$PWD/../local/lib/libtidy.5.dylib
     LIBS += -framework CoreFoundation
     LIBS += -framework AppKit
+
     mylib.path = Contents/MacOS
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib $$PWD/libtidy.dylib
+    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
     QMAKE_BUNDLE_DATA += mylib
 
     # TAGLIB ----------------------------------------
