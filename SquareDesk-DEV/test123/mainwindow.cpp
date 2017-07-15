@@ -2189,8 +2189,10 @@ void MainWindow::aboutBox()
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
-                   QString("<a href=\"http://www.lynette.org/sd\">sd</a>, and ") +
-                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>.") +
+                   QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
+                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
+                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, and ") +
+                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>.") +
                    QString("<p>Thanks to: <a href=\"http://all8.com\">all8.com</a>"));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
