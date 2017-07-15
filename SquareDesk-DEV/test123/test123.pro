@@ -117,7 +117,7 @@ macx {
     mylib.path = Contents/MacOS
     mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     mylib.files += $$PWD/../local/lib/libtidy.5.dylib
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib $$PWD/libquazip.1.dylib
+    mylib.files += $$PWD/libquazip.1.dylib
     QMAKE_BUNDLE_DATA += mylib
 
     # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
