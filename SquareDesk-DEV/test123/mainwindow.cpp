@@ -869,7 +869,7 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 
 static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 {
-    qDebug() << "setSelectedTextToClass: " << blockClass;
+//    qDebug() << "setSelectedTextToClass: " << blockClass;
     QTextCursor cursor = editor->textCursor();
     if (!cursor.hasComplexSelection())
     {
@@ -1031,24 +1031,8 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
-    RecursionGuard dialog_guard(inPreferencesDialog);
-    QFileInfo fi(currentMP3filenameWithPath);
-
-    if (lastCuesheetSavePath.isEmpty())
-        lastCuesheetSavePath = musicRootPath;
-
-    QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save Cue Sheet"),
-                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
-                                                    tr("HTML (*.html)"));
-    if (!filename.isNull())
-    {
-        writeCuesheet(filename);
-        loadCuesheets(currentMP3filenameWithPath, filename);
-        saveCurrentSongSettings();
-    }
+    on_actionSave_Lyrics_As_triggered();
 }
-
 
 
 // ----------------------------------------------------------------------
@@ -1107,6 +1091,7 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 
 void MainWindow::on_menuLyrics_aboutToShow()
 {
+    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified());
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -5851,10 +5836,24 @@ void MainWindow::on_warningLabel_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
+        // SD Tab ---------------
         if (console != 0) {
             console->setFocus();
         }
+        ui->actionSave_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics_As->setDisabled(true);
+        ui->actionPrint_Lyrics->setDisabled(true);
+    } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+        // Lyrics Tab ---------------
+        ui->actionPrint_Lyrics->setDisabled(false);
+        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
+        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+    } else  {
+        ui->actionPrint_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics_As->setDisabled(true);
     }
+
     microphoneStatusUpdate();
 }
 
@@ -7053,4 +7052,50 @@ void MainWindow::on_printButton_clicked()
         return;
     }
     ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionPrint_Lyrics_triggered()
+{
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+    ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionSave_Lyrics_triggered()
+{
+    // Save cuesheet to the current cuesheet filename...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+    if (!cuesheetFilename.isNull())
+    {
+        writeCuesheet(cuesheetFilename);
+        loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
+        saveCurrentSongSettings();
+    }
+
+}
+
+void MainWindow::on_actionSave_Lyrics_As_triggered()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    QFileInfo fi(currentMP3filenameWithPath);
+
+    if (lastCuesheetSavePath.isEmpty())
+        lastCuesheetSavePath = musicRootPath;
+
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    tr("Save Cue Sheet"),
+                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
+                                                    tr("HTML (*.html)"));
+    if (!filename.isNull())
+    {
+        writeCuesheet(filename);
+        loadCuesheets(currentMP3filenameWithPath, filename);
+        saveCurrentSongSettings();
+    }
 }

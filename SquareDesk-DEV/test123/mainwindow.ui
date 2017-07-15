@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
+    <width>876</width>
     <height>603</height>
    </rect>
   </property>
@@ -1404,14 +1404,14 @@
              </widget>
             </item>
             <item>
-              <widget class="QPushButton" name="printButton">
-                <property name="text">
-                  <string>Print...</string>
-                </property>
-              </widget>
+             <widget class="QPushButton" name="printButton">
+              <property name="text">
+               <string>Print...</string>
+              </property>
+             </widget>
             </item>
             <item>
-              <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
+             <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
               <property name="text">
                <string>Auto-Save</string>
               </property>
@@ -1513,8 +1513,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>782</width>
-     <height>27</height>
+     <width>876</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1635,8 +1635,14 @@
     <property name="title">
      <string>Lyrics</string>
     </property>
-    <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="actionSave_Lyrics"/>
+    <addaction name="actionSave_Lyrics_As"/>
+    <addaction name="separator"/>
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
+    <addaction name="separator"/>
+    <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="separator"/>
+    <addaction name="actionPrint_Lyrics"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -2385,6 +2391,29 @@
   <action name="actionLyricsCueSheetRevert_Edits">
    <property name="text">
     <string>Revert Edits</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="text">
+    <string>Print...</string>
+   </property>
+  </action>
+  <action name="actionSave_Lyrics">
+   <property name="text">
+    <string>Save Lyrics</string>
+   </property>
+  </action>
+  <action name="actionSave_Lyrics_As">
+   <property name="text">
+    <string>Save Lyrics As...</string>
+   </property>
+  </action>
+  <action name="actionPrint_Lyrics">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Print Lyrics...</string>
    </property>
   </action>
  </widget>

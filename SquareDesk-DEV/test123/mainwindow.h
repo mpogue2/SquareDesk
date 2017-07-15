@@ -325,6 +325,12 @@ private slots:
 
     void on_printButton_clicked();
 
+    void on_actionPrint_Lyrics_triggered();
+
+    void on_actionSave_Lyrics_triggered();
+
+    void on_actionSave_Lyrics_As_triggered();
+
 private:
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;
