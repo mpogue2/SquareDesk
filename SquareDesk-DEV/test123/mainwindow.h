@@ -182,7 +182,7 @@ private slots:
     void on_lineEditOutroTime_textChanged();
     void on_lineEditIntroTime_textChanged();
 
-    void on_checkBoxEditLyrics_stateChanged( Qt::CheckState checkState );
+    void on_checkBoxEditLyrics_stateChanged( int checkState );
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
 

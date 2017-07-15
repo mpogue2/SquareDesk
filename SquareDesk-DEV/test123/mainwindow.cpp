@@ -845,7 +845,7 @@ void MainWindow::showHTML() {
 //    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
-void MainWindow::on_checkBoxEditLyrics_stateChanged( Qt::CheckState /* checkState */ )
+void MainWindow::on_checkBoxEditLyrics_stateChanged( int /* checkState */ )
 {
     /* bool checked = (checkState != Qt::Unchecked); */
 }
@@ -997,7 +997,7 @@ void MainWindow::writeCuesheet(QString filename)
     QString directoryName = d.absolutePath();  // directory of the saved filename
 
     lastCuesheetSavePath = directoryName;
-    
+
     if ( file.open(QIODevice::WriteOnly) )
     {
         // Make sure the destructor gets called before we try to load this file...
@@ -1005,10 +1005,10 @@ void MainWindow::writeCuesheet(QString filename)
             QTextStream stream( &file );
 //                qDebug() << "************** SAVE FILE ***************";
             showHTML();
-            
+
             QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
 //                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
-            
+
             QString tEditedCuesheet = tidyHTML(editedCuesheet);
 //                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
             QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
