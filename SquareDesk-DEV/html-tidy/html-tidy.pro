@@ -43,3 +43,8 @@ html-tidy.commands = cd $$PWD/../html-tidy/build/cmake && \
 QMAKE_EXTRA_TARGETS += html-tidy
 PRE_TARGETDEPS += html-tidy
 }
+
+HEADERS += \
+    include/tidy.h
+
+SOURCES +=
