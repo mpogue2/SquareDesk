@@ -1325,6 +1325,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="pushButtonCueSheetClearFormatting">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Clear Line Format</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="Line" name="line">
               <property name="orientation">
                <enum>Qt::Vertical</enum>

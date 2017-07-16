@@ -39,6 +39,7 @@
 #include <QStandardPaths>
 #include <QStorageInfo>
 #include <QTextDocument>
+#include <QTextDocumentFragment>
 #include <QThread>
 #include <QStandardItemModel>
 #include <QStandardItem>
@@ -862,6 +863,8 @@ void MainWindow::on_checkBoxEditLyrics_stateChanged( int checkState )
     ui->pushButtonCueSheetEditLyrics->setEnabled(checked);
     ui->pushButtonCueSheetEditBold->setEnabled(checked);
     ui->pushButtonCueSheetEditItalic->setEnabled(checked);
+
+    ui->pushButtonCueSheetClearFormatting->setEnabled(checked);  // this one is special.
 }
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
@@ -869,9 +872,57 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 //    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 //    QString selectedText = cursor.selectedText();
 //    qDebug() << "New selected text: '" << selectedText << "'";
+
+    // the Clear Line Format is only available when the cursor is somewhere on a line,
+    //  but is not selecting any text AND editing is enabled (i.e. the lock is UNLOCKED).
+    //  Formatting will be cleared on that line only.  This is the best we can do right now, I think,
+    //  given the limitations of QTextEdit (which is not a general HTML editor).
+    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+    QString selectedText = cursor.selectedText();
+    ui->pushButtonCueSheetClearFormatting->setEnabled(selectedText.isEmpty() && ui->checkBoxEditLyrics->isChecked());
 }
 
 // TODO: can't make a doc from scratch yet.
+
+void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
+{
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+
+        // NOTE: in this initial version, Clear Line Format works just on
+        //  the line that the cursor is on.  I'm not sure how to make it work
+        //  on a selected block of text only.  It does not work properly when
+        //  the current selection spans across lines.
+
+        cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+
+        // now look at it as HTML
+        QString selected = cursor.selection().toHtml();
+//        qDebug() << "cursor.selection(): " << selected;
+
+        // Qt gives us a whole HTML doc here.  Strip off all the parts we don't want.
+        QRegExp startSpan("<span.*>");
+        startSpan.setMinimal(true);  // don't be greedy!
+
+        selected.replace(QRegExp("<.*<!--StartFragment-->"),"")
+                .replace(QRegExp("<!--EndFragment-->.*</html>"),"")
+                .replace(startSpan,"")
+                .replace("</span>","")
+                ;
+//        qDebug() << "current replacement: " << selected;
+
+        // WARNING: this might have a dependency on cuesheet2.css's definition of BODY text.
+        QString HTMLreplacement =
+                "<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">" +
+                selected +
+                "</span>";
+
+        cursor.beginEditBlock(); // start of grouping for UNDO purposes
+        cursor.removeSelectedText();  // remove the rich text...
+//        cursor.insertText(selected);  // ...and put back in the stripped-down text
+        cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
+        cursor.endEditBlock(); // end of grouping for UNDO purposes
+}
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
@@ -885,6 +936,7 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 {
 //    qDebug() << "setSelectedTextToClass: " << blockClass;
     QTextCursor cursor = editor->textCursor();
+
     if (!cursor.hasComplexSelection())
     {
         // TODO: remove <SPAN class="title"></SPAN> from entire rest of the document (title is a singleton)

@@ -344,6 +344,8 @@ private slots:
 
     void on_actionSave_Lyrics_As_triggered();
 
+    void on_pushButtonCueSheetClearFormatting_clicked();
+
 private:
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;
