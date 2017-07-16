@@ -656,6 +656,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButtonCueSheetEditLyrics->setStyleSheet(
                 "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
                 "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
+                "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
                 );
 }
 
@@ -850,9 +851,17 @@ void MainWindow::showHTML() {
 //    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
-void MainWindow::on_checkBoxEditLyrics_stateChanged( int /* checkState */ )
+void MainWindow::on_checkBoxEditLyrics_stateChanged( int checkState )
 {
-    /* bool checked = (checkState != Qt::Unchecked); */
+    bool checked = (checkState != Qt::Unchecked);
+
+    ui->pushButtonCueSheetEditTitle->setEnabled(checked);
+    ui->pushButtonCueSheetEditLabel->setEnabled(checked);
+    ui->pushButtonCueSheetEditArtist->setEnabled(checked);
+    ui->pushButtonCueSheetEditHeader->setEnabled(checked);
+    ui->pushButtonCueSheetEditLyrics->setEnabled(checked);
+    ui->pushButtonCueSheetEditBold->setEnabled(checked);
+    ui->pushButtonCueSheetEditItalic->setEnabled(checked);
 }
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()

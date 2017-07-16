@@ -1181,6 +1181,9 @@
            <layout class="QHBoxLayout" name="horizontalLayoutCuesheetEdit">
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditTitle">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1211,6 +1214,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditLabel">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1239,6 +1245,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditArtist">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1273,6 +1282,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditHeader">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>80</width>
@@ -1296,6 +1308,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditLyrics">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="font">
                <font>
                 <family>Verdana</family>
@@ -1318,6 +1333,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditBold">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1345,6 +1363,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditItalic">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
