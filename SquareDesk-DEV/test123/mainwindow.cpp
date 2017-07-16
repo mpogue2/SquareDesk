@@ -891,15 +891,21 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
         QString selectedText = cursor.selectedText();
         if (selectedText.isEmpty())
         {
-            cursor.select(QTextCursor::BlockUnderCursor);
+            // if cursor is not selecting any text, make the change apply to the entire line (vs block)
+            cursor.movePosition(QTextCursor::StartOfLine);
+            cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
             selectedText = cursor.selectedText();
         }
 
         if (!selectedText.isEmpty())
         {
+            cursor.beginEditBlock(); // start of grouping for UNDO purposes
             cursor.removeSelectedText();
             cursor.insertHtml("<P class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</P>");
+            cursor.endEditBlock(); // end of grouping for UNDO purposes
         }
+
+
     } else {
         qDebug() << "Sorry, on_pushButtonCueSheetEdit...: " + blockClass + ": Title_toggled has complex selection...";
     }
