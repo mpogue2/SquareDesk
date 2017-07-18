@@ -39,6 +39,7 @@
 #include <QStandardPaths>
 #include <QStorageInfo>
 #include <QTextDocument>
+#include <QTextDocumentFragment>
 #include <QThread>
 #include <QStandardItemModel>
 #include <QStandardItem>
@@ -656,6 +657,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButtonCueSheetEditLyrics->setStyleSheet(
                 "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
                 "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
+                "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
                 );
 }
 
@@ -850,9 +852,19 @@ void MainWindow::showHTML() {
 //    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
-void MainWindow::on_checkBoxEditLyrics_stateChanged( Qt::CheckState /* checkState */ )
+void MainWindow::on_checkBoxEditLyrics_stateChanged( int checkState )
 {
-    /* bool checked = (checkState != Qt::Unchecked); */
+    bool checked = (checkState != Qt::Unchecked);
+
+    ui->pushButtonCueSheetEditTitle->setEnabled(checked);
+    ui->pushButtonCueSheetEditLabel->setEnabled(checked);
+    ui->pushButtonCueSheetEditArtist->setEnabled(checked);
+    ui->pushButtonCueSheetEditHeader->setEnabled(checked);
+    ui->pushButtonCueSheetEditLyrics->setEnabled(checked);
+    ui->pushButtonCueSheetEditBold->setEnabled(checked);
+    ui->pushButtonCueSheetEditItalic->setEnabled(checked);
+
+    ui->pushButtonCueSheetClearFormatting->setEnabled(checked);  // this one is special.
 }
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
@@ -860,9 +872,57 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 //    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 //    QString selectedText = cursor.selectedText();
 //    qDebug() << "New selected text: '" << selectedText << "'";
+
+    // the Clear Line Format is only available when the cursor is somewhere on a line,
+    //  but is not selecting any text AND editing is enabled (i.e. the lock is UNLOCKED).
+    //  Formatting will be cleared on that line only.  This is the best we can do right now, I think,
+    //  given the limitations of QTextEdit (which is not a general HTML editor).
+    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+    QString selectedText = cursor.selectedText();
+    ui->pushButtonCueSheetClearFormatting->setEnabled(selectedText.isEmpty() && ui->checkBoxEditLyrics->isChecked());
 }
 
 // TODO: can't make a doc from scratch yet.
+
+void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
+{
+        QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+
+        // NOTE: in this initial version, Clear Line Format works just on
+        //  the line that the cursor is on.  I'm not sure how to make it work
+        //  on a selected block of text only.  It does not work properly when
+        //  the current selection spans across lines.
+
+        cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+
+        // now look at it as HTML
+        QString selected = cursor.selection().toHtml();
+//        qDebug() << "cursor.selection(): " << selected;
+
+        // Qt gives us a whole HTML doc here.  Strip off all the parts we don't want.
+        QRegExp startSpan("<span.*>");
+        startSpan.setMinimal(true);  // don't be greedy!
+
+        selected.replace(QRegExp("<.*<!--StartFragment-->"),"")
+                .replace(QRegExp("<!--EndFragment-->.*</html>"),"")
+                .replace(startSpan,"")
+                .replace("</span>","")
+                ;
+//        qDebug() << "current replacement: " << selected;
+
+        // WARNING: this might have a dependency on cuesheet2.css's definition of BODY text.
+        QString HTMLreplacement =
+                "<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">" +
+                selected +
+                "</span>";
+
+        cursor.beginEditBlock(); // start of grouping for UNDO purposes
+        cursor.removeSelectedText();  // remove the rich text...
+//        cursor.insertText(selected);  // ...and put back in the stripped-down text
+        cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
+        cursor.endEditBlock(); // end of grouping for UNDO purposes
+}
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
@@ -874,23 +934,30 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 
 static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 {
-    qDebug() << "setSelectedTextToClass: " << blockClass;
+//    qDebug() << "setSelectedTextToClass: " << blockClass;
     QTextCursor cursor = editor->textCursor();
+
     if (!cursor.hasComplexSelection())
     {
         // TODO: remove <SPAN class="title"></SPAN> from entire rest of the document (title is a singleton)
         QString selectedText = cursor.selectedText();
         if (selectedText.isEmpty())
         {
-            cursor.select(QTextCursor::BlockUnderCursor);
+            // if cursor is not selecting any text, make the change apply to the entire line (vs block)
+            cursor.movePosition(QTextCursor::StartOfLine);
+            cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
             selectedText = cursor.selectedText();
         }
 
         if (!selectedText.isEmpty())
         {
+            cursor.beginEditBlock(); // start of grouping for UNDO purposes
             cursor.removeSelectedText();
             cursor.insertHtml("<P class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</P>");
+            cursor.endEditBlock(); // end of grouping for UNDO purposes
         }
+
+
     } else {
         qDebug() << "Sorry, on_pushButtonCueSheetEdit...: " + blockClass + ": Title_toggled has complex selection...";
     }
@@ -1002,7 +1069,7 @@ void MainWindow::writeCuesheet(QString filename)
     QString directoryName = d.absolutePath();  // directory of the saved filename
 
     lastCuesheetSavePath = directoryName;
-    
+
     if ( file.open(QIODevice::WriteOnly) )
     {
         // Make sure the destructor gets called before we try to load this file...
@@ -1010,10 +1077,10 @@ void MainWindow::writeCuesheet(QString filename)
             QTextStream stream( &file );
 //                qDebug() << "************** SAVE FILE ***************";
             showHTML();
-            
+
             QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
 //                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
-            
+
             QString tEditedCuesheet = tidyHTML(editedCuesheet);
 //                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
             QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
@@ -1036,24 +1103,8 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
-    RecursionGuard dialog_guard(inPreferencesDialog);
-    QFileInfo fi(currentMP3filenameWithPath);
-
-    if (lastCuesheetSavePath.isEmpty())
-        lastCuesheetSavePath = musicRootPath;
-
-    QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save Cue Sheet"),
-                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
-                                                    tr("HTML (*.html)"));
-    if (!filename.isNull())
-    {
-        writeCuesheet(filename);
-        loadCuesheets(currentMP3filenameWithPath, filename);
-        saveCurrentSongSettings();
-    }
+    on_actionSave_Lyrics_As_triggered();
 }
-
 
 
 // ----------------------------------------------------------------------
@@ -1112,6 +1163,7 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 
 void MainWindow::on_menuLyrics_aboutToShow()
 {
+    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified());
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -2204,8 +2256,10 @@ void MainWindow::aboutBox()
                    QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
-                   QString("<a href=\"http://www.lynette.org/sd\">sd</a>, and ") +
-                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>.") +
+                   QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
+                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
+                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, and ") +
+                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>.") +
                    QString("<p>Thanks to: <a href=\"http://all8.com\">all8.com</a>"));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
@@ -2885,7 +2939,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 //            qDebug().noquote() << "***** CSS:\n" << cssString;
             ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) || defined(Q_OS_LINUX)
             // HTML-TIDY IT ON INPUT *********
             QString cuesheet_tidied = tidyHTML(cuesheet);
 #else
@@ -5856,10 +5910,24 @@ void MainWindow::on_warningLabel_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
+        // SD Tab ---------------
         if (console != 0) {
             console->setFocus();
         }
+        ui->actionSave_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics_As->setDisabled(true);
+        ui->actionPrint_Lyrics->setDisabled(true);
+    } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+        // Lyrics Tab ---------------
+        ui->actionPrint_Lyrics->setDisabled(false);
+        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
+        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+    } else  {
+        ui->actionPrint_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics->setDisabled(true);
+        ui->actionSave_Lyrics_As->setDisabled(true);
     }
+
     microphoneStatusUpdate();
 }
 
@@ -7054,15 +7122,6 @@ void MainWindow::stopLongSongTableOperation(QString s) {
 //    qDebug() << s << ": " << t1.elapsed() << "ms.";  // DEBUG
 }
 
-void MainWindow::on_printButton_clicked()
-{
-    QPrinter printer;
-    QPrintDialog printDialog(&printer, this);
-    if (printDialog.exec() == QDialog::Rejected) {
-        return;
-    }
-    ui->textBrowserCueSheet->print(&printer);
-}
 
 void MainWindow::on_actionDownload_Cuesheets_triggered()
 {
@@ -7185,4 +7244,60 @@ void MainWindow::lyricsDownloadEnd() {
     progressDialog->setValue(100);  // kill the progress bar
     progressTimer->stop();
 #endif
+}
+
+void MainWindow::on_printButton_clicked()
+{
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+    ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionPrint_Lyrics_triggered()
+{
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+    ui->textBrowserCueSheet->print(&printer);
+}
+
+void MainWindow::on_actionSave_Lyrics_triggered()
+{
+    // Save cuesheet to the current cuesheet filename...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+    if (!cuesheetFilename.isNull())
+    {
+        writeCuesheet(cuesheetFilename);
+        loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
+        saveCurrentSongSettings();
+    }
+
+}
+
+void MainWindow::on_actionSave_Lyrics_As_triggered()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    QFileInfo fi(currentMP3filenameWithPath);
+
+    if (lastCuesheetSavePath.isEmpty())
+        lastCuesheetSavePath = musicRootPath;
+
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    tr("Save Cue Sheet"),
+                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
+                                                    tr("HTML (*.html)"));
+    if (!filename.isNull())
+    {
+        writeCuesheet(filename);
+        loadCuesheets(currentMP3filenameWithPath, filename);
+        saveCurrentSongSettings();
+    }
 }

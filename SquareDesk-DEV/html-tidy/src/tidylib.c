@@ -182,7 +182,7 @@ void          tidyDocRelease( TidyDocImpl* doc )
         TY_(FreeConfig)( doc );
         TY_(FreeAttrTable)( doc );
         TY_(FreeTags)( doc );
-        /*\ 
+        /*\
          *  Issue #186 - Now FreeNode depend on the doctype, so the lexer is needed
          *  to determine which hash is to be used, so free it last.
         \*/
@@ -482,7 +482,7 @@ ctmbstr TIDY_CALL       tidyOptGetCurrPick( TidyDoc tdoc, TidyOptionId optId )
         uint ix = 0;
         uint pick = tidyOptGetInt( tdoc, optId );
         const PickListItem *item = NULL;
-        
+
         // loop through the picklist until index matches the value
         while ( (item = &(*option->pickList)[ ix ]) && item->label && ix<pick )
         {
@@ -491,7 +491,7 @@ ctmbstr TIDY_CALL       tidyOptGetCurrPick( TidyDoc tdoc, TidyOptionId optId )
         if ( ix==pick && item->label )
             return item->label;
     }
-    
+
     return NULL;
 }
 
@@ -647,7 +647,7 @@ Bool TIDY_CALL tidyOptCopyConfig( TidyDoc to, TidyDoc from )
 
 /* I/O and Message handling interface
 **
-** By default, Tidy will define, create and use instance of input and output 
+** By default, Tidy will define, create and use instance of input and output
 ** handlers for standard C buffered I/O (i.e. FILE* stdin, FILE* stdout and
 ** FILE* stderr for content input, content output and diagnostic output,
 ** respectively.  A FILE* cfgFile input handler will be used for config files.
@@ -974,12 +974,12 @@ int TIDY_CALL        tidyDetectedHtmlVersion( TidyDoc ARG_UNUSED(tdoc) )
 
 Bool TIDY_CALL        tidyDetectedXhtml( TidyDoc ARG_UNUSED(tdoc) )
 {
-    TidyDocImpl* impl = tidyDocToImpl( tdoc ); 
+    TidyDocImpl* impl = tidyDocToImpl( tdoc );
     return impl->lexer->isvoyager;
 }
 Bool TIDY_CALL        tidyDetectedGenericXml( TidyDoc ARG_UNUSED(tdoc) )
 {
-    TidyDocImpl* impl = tidyDocToImpl( tdoc ); 
+    TidyDocImpl* impl = tidyDocToImpl( tdoc );
     return impl->xmlDetected;
 }
 
@@ -1413,7 +1413,7 @@ int         TY_(DocParseStream)( TidyDocImpl* doc, StreamIn* in )
 
     if (doc->givenDoctype)
         TidyDocFree(doc, doc->givenDoctype);
-    /*\ 
+    /*\
      *  Issue #186 - Now FreeNode depend on the doctype, so the lexer is needed
      *  to determine which hash is to be used, so free it last.
     \*/
@@ -1576,7 +1576,7 @@ static Bool nodeHasAlignAttr( Node *node )
  *  and error output is given regardless of the new option, and ensure that
  *  cleanup takes place. This provides mostly consistent Tidy behavior even with
  *  the introduction of this new option. Note that strings have changed, though,
- *  in order to maintain consistency with the `--strict-tags-attributes` 
+ *  in order to maintain consistency with the `--strict-tags-attributes`
  *  messages.
  *
  *  See also: http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#obsolete
@@ -1644,7 +1644,7 @@ void TY_(CheckHTML5)( TidyDocImpl* doc, Node* node )
             }
         } else
         if ( nodeIsBASEFONT(node) ) {
-            /* basefont: CSS equivalent 'font-size', 'font-family' and 'color' 
+            /* basefont: CSS equivalent 'font-size', 'font-family' and 'color'
              * on body or class on each subsequent element.
              * Difficult - If it is the first body element, then could consider
              * adding that to the <body> as a whole, else could perhaps apply it
@@ -1748,7 +1748,7 @@ void TY_(CheckHTML5)( TidyDocImpl* doc, Node* node )
 
         if (node->content)
             TY_(CheckHTML5)( doc, node->content );
-        
+
         node = node->next;
     }
 }
@@ -1861,7 +1861,7 @@ void TY_(CheckHTMLTagsAttribsVersions)( TidyDocImpl* doc, Node* node )
 
         if (node->content)
             TY_(CheckHTMLTagsAttribsVersions)( doc, node->content );
-        
+
         node = node->next;
     }
 }
@@ -2112,9 +2112,9 @@ int         tidyDocCleanAndRepair( TidyDocImpl* doc )
        it can ever be, so we can start detecting things that shouldn't
        be in this version of HTML
      */
-    if (doc->lexer) 
+    if (doc->lexer)
     {
-        /*\ 
+        /*\
          *  Issue #429 #426 - These services can only be used
          *  when there is a document loaded, ie a lexer created.
          *  But really should not be calling a Clean and Repair
@@ -2610,13 +2610,13 @@ const tidyLocaleMapItem* TIDY_CALL getNextWindowsLanguage( TidyIterator* iter )
 }
 
 
-const ctmbstr TIDY_CALL TidyLangWindowsName( const tidyLocaleMapItem *item )
+ctmbstr TIDY_CALL TidyLangWindowsName( const tidyLocaleMapItem *item )
 {
     return TY_(TidyLangWindowsName)( (tidyLocaleMapItemImpl*)(item) );
 }
 
 
-const ctmbstr TIDY_CALL TidyLangPosixName( const tidyLocaleMapItem *item )
+ctmbstr TIDY_CALL TidyLangPosixName( const tidyLocaleMapItem *item )
 {
     return TY_(TidyLangPosixName)( (tidyLocaleMapItemImpl*)(item) );
 }

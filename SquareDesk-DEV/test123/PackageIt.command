@@ -9,8 +9,22 @@ if [ -d "$dir" ]; then
   cd "$dir"
 fi
 
+echo $dir
+
 # the macdeployqt step!
 # cd build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug/ 
+
+# if errors about can't find libs, try:
+# cd to the app/Contents/MacOS
+# otool -L SquareDeskPlayer
+# install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
+# install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
+# otool -L SquareDeskPlayer
+#
+# These errors can be ignored, they are false dependencies:
+# ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
+# ERROR: no file at "/usr/local/lib/libpq.5.dylib"
+
 echo Now running Mac Deploy Qt step...
  ~/Qt/5.7/clang_64/bin/macdeployqt SquareDeskPlayer.app 
 echo Mac Deploy Qt step done.
@@ -18,7 +32,7 @@ echo
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDeskPlayer"
-VERSION="0.8.1"
+VERSION="0.8.2alpha4"
 DMG_BACKGROUND_IMG="installer2.png"
 #MANUAL="SquareDeskManual.pdf"
 

@@ -82,7 +82,7 @@
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.8.2alpha3"
+#define VERSIONSTRING "0.8.2alpha4"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -187,7 +187,7 @@ private slots:
     void on_lineEditOutroTime_textChanged();
     void on_lineEditIntroTime_textChanged();
 
-    void on_checkBoxEditLyrics_stateChanged( Qt::CheckState checkState );
+    void on_checkBoxEditLyrics_stateChanged( int checkState );
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
 
@@ -334,8 +334,17 @@ private slots:
 
     void on_actionFade_Out_triggered();
 
-    void on_printButton_clicked();
     void on_actionDownload_Cuesheets_triggered();
+
+    void on_printButton_clicked();
+
+    void on_actionPrint_Lyrics_triggered();
+
+    void on_actionSave_Lyrics_triggered();
+
+    void on_actionSave_Lyrics_As_triggered();
+
+    void on_pushButtonCueSheetClearFormatting_clicked();
 
 private:
     int preferredSmallFontSize;  // preferred font sizes

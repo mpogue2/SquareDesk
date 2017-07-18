@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
+    <width>876</width>
     <height>603</height>
    </rect>
   </property>
@@ -1181,6 +1181,9 @@
            <layout class="QHBoxLayout" name="horizontalLayoutCuesheetEdit">
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditTitle">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1211,6 +1214,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditLabel">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1239,6 +1245,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditArtist">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1273,6 +1282,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditHeader">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>80</width>
@@ -1296,6 +1308,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditLyrics">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="font">
                <font>
                 <family>Verdana</family>
@@ -1310,6 +1325,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="pushButtonCueSheetClearFormatting">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Clear Line Format</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="Line" name="line">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -1318,6 +1343,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditBold">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1345,6 +1373,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonCueSheetEditItalic">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1404,14 +1435,14 @@
              </widget>
             </item>
             <item>
-              <widget class="QPushButton" name="printButton">
-                <property name="text">
-                  <string>Print...</string>
-                </property>
-              </widget>
+             <widget class="QPushButton" name="printButton">
+              <property name="text">
+               <string>Print...</string>
+              </property>
+             </widget>
             </item>
             <item>
-              <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
+             <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
               <property name="text">
                <string>Auto-Save</string>
               </property>
@@ -1513,8 +1544,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>782</width>
-     <height>27</height>
+     <width>876</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1636,8 +1667,14 @@
     <property name="title">
      <string>Lyrics</string>
     </property>
-    <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="actionSave_Lyrics"/>
+    <addaction name="actionSave_Lyrics_As"/>
+    <addaction name="separator"/>
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
+    <addaction name="separator"/>
+    <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="separator"/>
+    <addaction name="actionPrint_Lyrics"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -2383,14 +2420,38 @@
     <string>Ctrl+Y</string>
    </property>
   </action>
+  <action name="actionDownload_Cuesheets">
+   <property name="text">
+    <string>Download Lyrics...</string>
+   </property>
+  </action>
   <action name="actionLyricsCueSheetRevert_Edits">
    <property name="text">
     <string>Revert Edits</string>
    </property>
   </action>
-  <action name="actionDownload_Cuesheets">
+  <action name="actionPrint">
    <property name="text">
-    <string>Download Lyrics...</string>
+    <string>Print...</string>
+   </property>
+  </action>
+  <action name="actionSave_Lyrics">
+   <property name="text">
+    <string>Save Lyrics</string>
+   </property>
+  </action>
+  <action name="actionSave_Lyrics_As">
+   <property name="text">
+    <string>Save Lyrics As...</string>
+   </property>
+  </action>
+  <action name="actionPrint_Lyrics">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Print Lyrics...</string>
+>>>>>>> 39b0f0a0dbf91aaf79f2bccd35d955344ec7e691
    </property>
   </action>
  </widget>
