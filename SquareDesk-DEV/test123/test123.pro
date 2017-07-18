@@ -77,16 +77,6 @@ win32: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
 else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
 # macx: see below...
 
-unix:!macx: {
-html-tidy.target = html-tidy
-html-tidy.commands = mkdir -p $$PWD/../local/bin $$PWD/../local/lib $$PWD/../local/include && \
-   cd $$PWD/../html-tidy/build/cmake && \
-   cmake ../../ -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$$PWD/../../../local && \
-   make && make install
-QMAKE_EXTRA_TARGETS += html-tidy
-PRE_TARGETDEPS += html-tidy
-}
-
 win32 {
     RC_FILE = desk1d.rc
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
