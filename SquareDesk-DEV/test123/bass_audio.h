@@ -99,5 +99,7 @@ private:
     HSTREAM                         FXStream;
 
     HFX fxEQ;     // dsp peaking eq handle
+
+    HSYNC  syncHandle;
     //-------------------------------------------------------------
 };

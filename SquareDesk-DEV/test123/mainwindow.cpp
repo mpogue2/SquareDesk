@@ -1376,7 +1376,11 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->seekBarCuesheet->SetLoop(true);
 
         double songLength = cBass.FileLength;
-        cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
+//        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
+
+//        cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
+        cBass.SetLoop(songLength * ui->seekBar->GetOutro(),
+                      songLength * ui->seekBar->GetIntro());
     }
     else {
         ui->actionLoop->setChecked(false);
@@ -1804,7 +1808,7 @@ QString MainWindow::position2String(int position, bool pad = false)
 void InitializeSeekBar(MySlider *seekBar)
 {
     seekBar->setMinimum(0);
-    seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: tricky, counts on == below
+    seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: TRICKY, counts on == below
     seekBar->setTickInterval(10);  // 10 seconds per tick
 }
 void SetSeekBarPosition(MySlider *seekBar, int currentPos_i)
@@ -1853,7 +1857,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
         int fileLen_i = (int)cBass.FileLength;
 
-        if (currentPos_i == fileLen_i) {  // NOTE: tricky, counts on -1 above
+        if (currentPos_i == fileLen_i) {  // NOTE: TRICKY, counts on -1 above
             // avoids the problem of manual seek to max slider value causing auto-STOP
             if (!ui->actionContinuous_Play->isChecked()) {
                 on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
@@ -2012,10 +2016,9 @@ double timeToDouble(const QString &str, bool *ok)
             }
         }
     }
+//    qDebug() << "timeToDouble: " << str << ", out: " << t;
     return t;
 }
-
-
 
 void MainWindow::on_lineEditOutroTime_textChanged()
 {
@@ -2023,22 +2026,34 @@ void MainWindow::on_lineEditOutroTime_textChanged()
     double position = timeToDouble(ui->lineEditOutroTime->text(),&ok);
     if (ok)
     {
-        int length = ui->seekBarCuesheet->maximum();
-        double t = (double)((double)position / (double)length);
+        double length = cBass.FileLength;
+        double t = position/length;
+
         ui->seekBarCuesheet->SetOutro((float)t);
         ui->seekBar->SetOutro((float)t);
+
+//        qDebug() << "on_lineEditOutroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
+
+        on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
     }
 }
+
 void MainWindow::on_lineEditIntroTime_textChanged()
 {
     bool ok = false;
     double position = timeToDouble(ui->lineEditIntroTime->text(),&ok);
+
     if (ok)
     {
-        int length = ui->seekBarCuesheet->maximum();
-        double t = (double)((double)position / (double)length);
+        double length = cBass.FileLength;
+        double t = position/length;
+
         ui->seekBarCuesheet->SetIntro((float)t);
         ui->seekBar->SetIntro((float)t);
+
+//        qDebug() << "on_lineEditIntroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
+
+        on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
     }
 }
 
@@ -2060,27 +2075,56 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
 }
 
 // --------------------------------1--------------------------------------
+void MainWindow::getCurrentPointInStream(double *tt, double *pos) {
+    double position, length;
+
+    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+        // if we're playing, this is accurate to sub-second.
+        cBass.StreamGetPosition(); // snapshot the current position
+        position = cBass.Current_Position;
+        length = cBass.FileLength;  // always use the value with maximum precision
+
+        qDebug() << "     PLAYING length: " << length << ", position: " << position;
+    } else {
+        // if we're NOT playing, this is accurate to the second.
+        position = (double)(ui->seekBarCuesheet->value());
+        length = ui->seekBarCuesheet->maximum();
+        qDebug() << "     NOT PLAYING length: " << length << ", position: " << position;
+    }
+
+    double t = (double)((double)position / (double)length);
+    qDebug() << "     T: " << t;
+
+    // return values
+    *tt = t;
+    *pos = position;
+}
+
+// --------------------------------1--------------------------------------
 void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
-    int length = ui->seekBarCuesheet->maximum();
-    int position = ui->seekBarCuesheet->value();
-    double t = (double)((double)position / (double)length);
-    ui->seekBarCuesheet->SetIntro((float)t);
+    double t, position;
+    getCurrentPointInStream(&t, &position);
+
+    ui->lineEditIntroTime->setText(doubleToTime(position));  // NOTE: This MUST be done first, because otherwise it messes up the blue bracket position due to conversions
+    ui->seekBarCuesheet->SetIntro((float)t);  // after the events are done, do this.
     ui->seekBar->SetIntro((float)t);
-    ui->lineEditIntroTime->setText(doubleToTime(position));
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
 // --------------------------------1--------------------------------------
 
 void MainWindow::on_pushButtonSetOutroTime_clicked()
 {
-    int length = ui->seekBarCuesheet->maximum();
-    int position = ui->seekBarCuesheet->value();
+    double t, position;
+    getCurrentPointInStream(&t, &position);
 
-    double t = (double)((double)position / (double)length);
-    ui->seekBarCuesheet->SetOutro((float)t);
+    ui->lineEditOutroTime->setText(doubleToTime(position));    // NOTE: This MUST be done first, because otherwise it messes up the blue bracket position due to conversions
+    ui->seekBarCuesheet->SetOutro((float)t);  // after the events are done, do this.
     ui->seekBar->SetOutro((float)t);
-    ui->lineEditOutroTime->setText(doubleToTime(position));
+
+    on_loopButton_toggled(ui->actionLoop->isChecked());  // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
 // --------------------------------1--------------------------------------
@@ -3415,28 +3459,46 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     songLoaded = true;
     Info_Seekbar(true);
 
-    if (songTypeNamesForPatter.contains(songType)) {  // NOTE: Consider && if songlength < 5min
-        on_loopButton_toggled(true); // default is to loop, if type is patter
-    }
-    else {
-        // not patter, so Loop mode defaults to OFF
-        on_loopButton_toggled(false); // default is to loop, if type is patter
-    }
-
     bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
                          songTypeNamesForCalled.contains(songType);
-    ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
-    ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
 
-    ui->pushButtonSetIntroTime->setEnabled(isSingingCall);  // if not singing call, buttons will be greyed out on Lyrics tab
-    ui->pushButtonSetOutroTime->setEnabled(isSingingCall);
+    bool isPatter = songTypeNamesForPatter.contains(songType);
 
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
-    ui->lineEditIntroTime->setEnabled(isSingingCall);
-    ui->lineEditOutroTime->setEnabled(isSingingCall);
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions();
     ui->seekBar->SetDefaultIntroOutroPositions();
+
+    ui->lineEditIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
+    ui->lineEditOutroTime->setEnabled(true);
+
+    ui->pushButtonSetIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
+    ui->pushButtonSetOutroTime->setEnabled(true);
+
+    if (isPatter) {
+        on_loopButton_toggled(true); // default is to loop, if type is patter
+        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
+        ui->pushButtonSetIntroTime->setText("Start Loop");
+        ui->pushButtonSetOutroTime->setText("End Loop");
+    } else {
+        // singing call or vocals or xtras, so Loop mode defaults to OFF
+        on_loopButton_toggled(false); // default is to loop, if type is patter
+        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
+        ui->pushButtonSetIntroTime->setText("In");
+        ui->pushButtonSetOutroTime->setText("Out");
+    }
+
+    ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+    ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+
+//    ui->pushButtonSetIntroTime->setEnabled(isSingingCall);  // if not singing call, buttons will be greyed out on Lyrics tab
+//    ui->pushButtonSetOutroTime->setEnabled(isSingingCall);
+
+//    ui->lineEditIntroTime->setText("");
+//    ui->lineEditOutroTime->setText("");
+//    ui->lineEditIntroTime->setEnabled(isSingingCall);
+//    ui->lineEditOutroTime->setEnabled(isSingingCall);
+
     cBass.SetVolume(100);
     currentVolume = 100;
     previousVolume = 100;

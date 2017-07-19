@@ -113,6 +113,8 @@ bass_audio::bass_audio(void)
     endPoint_bytes = 0;
 
     currentSoundEffectID = 0;    // no soundFX playing now
+
+    syncHandle = 0;  // means "no handle"
 }
 
 // ------------------------------------------------------------------
@@ -357,6 +359,9 @@ void CALLBACK MySyncProc(HSYNC handle, DWORD channel, DWORD data, void *user)
 // ------------------------------------------------------------------
 void bass_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
 {
+    ClearLoop(); // clear the existing loop (if one exists), so we don't end up with more than 1 at a time
+
+//    qDebug() << "Loop from " << fromPoint_sec << " to " << toPoint_sec;
     loopFromPoint_sec = fromPoint_sec;
     loopToPoint_sec = toPoint_sec;
 
@@ -364,13 +369,22 @@ void bass_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
     endPoint_bytes = (QWORD)(BASS_ChannelSeconds2Bytes(Stream, toPoint_sec));
     // TEST
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_POS, startPoint_bytes, MySyncProc, &endPoint_bytes);
-    Q_UNUSED(handle)
+    // Q_UNUSED(handle)
+    syncHandle = (HSYNC)handle;  // save the handle
 }
 
 void bass_audio::ClearLoop()
 {
+//    qDebug() << "Loop points cleared";
     loopFromPoint_sec = loopToPoint_sec = 0.0;
     startPoint_bytes = endPoint_bytes = 0;
+
+    if (syncHandle) {
+        if (!BASS_ChannelRemoveSync(Stream, syncHandle)) {
+            qDebug() << "ERROR: BASS_ChannelRemoveSync()";
+        }
+        syncHandle = 0; // no sync set right now
+    }
 }
 
 void bass_audio::SetMono(bool on)

@@ -102,21 +102,23 @@ void MySlider::paintEvent(QPaintEvent *e)
         pen.setColor(Qt::blue);
         painter.setPen(pen);
 
-        float from = 0.9f;
-        QLineF line1(from * width + offset, 3,          from * width + offset, height-4);
-        QLineF line2(from * width + offset, 3,          from * width + offset - 5, 3);
-        QLineF line3(from * width + offset, height-4,   from * width + offset - 5, height-4);
-        painter.drawLine(line1);
-        painter.drawLine(line2);
-        painter.drawLine(line3);
-
-        float to = 0.1f;
+        // float to = 0.1f;
+        float to = introPosition;
         QLineF line4(to * width + offset, 3,          to * width + offset, height-4);
         QLineF line5(to * width + offset, 3,          to * width + offset + 5, 3);
         QLineF line6(to * width + offset, height-4,   to * width + offset + 5, height-4);
         painter.drawLine(line4);
         painter.drawLine(line5);
         painter.drawLine(line6);
+
+        // float from = 0.9f;
+        float from = outroPosition;
+        QLineF line1(from * width + offset, 3,          from * width + offset, height-4);
+        QLineF line2(from * width + offset, 3,          from * width + offset - 5, 3);
+        QLineF line3(from * width + offset, height-4,   from * width + offset - 5, height-4);
+        painter.drawLine(line1);
+        painter.drawLine(line2);
+        painter.drawLine(line3);
     }
 
     if (singingCall) {
