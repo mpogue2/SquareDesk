@@ -36,8 +36,9 @@ win32: {
 unix:!macx: {
 # Linux
 html-tidy.target = html-tidy
-html-tidy.commands = cd $$PWD/../html-tidy/build/cmake && \
-   cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/../../../local && \
+html-tidy.commands = mkdir -p $$PWD/../local/lib $$PWD/../local/include $$PWD/../local/bin && \
+   cd $$PWD/../html-tidy/build/cmake && \
+   cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$$PWD/../local && \
    make && make install
 
 QMAKE_EXTRA_TARGETS += html-tidy

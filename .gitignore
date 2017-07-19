@@ -7,3 +7,9 @@ qrc_resources.cpp
 ui_*.h
 build-*
 /SquareDesk-DEV/local/
+/SquareDesk-DEV/taglib/libtaglib.a
+/SquareDesk-DEV/taglib/taglib/Makefile
+/SquareDesk-DEV/Makefile
+/SquareDesk-DEV/html-tidy/Makefile
+
+
