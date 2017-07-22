@@ -337,8 +337,6 @@ private slots:
 
     void on_actionDownload_Cuesheets_triggered();
 
-    void on_printButton_clicked();
-
     void on_actionPrint_Lyrics_triggered();
 
     void on_actionSave_Lyrics_triggered();

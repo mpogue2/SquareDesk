@@ -1452,13 +1452,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="printButton">
-              <property name="text">
-               <string>Print...</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
               <property name="text">
                <string>Auto-Save</string>

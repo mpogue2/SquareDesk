@@ -7379,16 +7379,6 @@ void MainWindow::lyricsDownloadEnd() {
 #endif
 }
 
-void MainWindow::on_printButton_clicked()
-{
-    QPrinter printer;
-    QPrintDialog printDialog(&printer, this);
-    if (printDialog.exec() == QDialog::Rejected) {
-        return;
-    }
-    ui->textBrowserCueSheet->print(&printer);
-}
-
 void MainWindow::on_actionPrint_Lyrics_triggered()
 {
     QPrinter printer;
