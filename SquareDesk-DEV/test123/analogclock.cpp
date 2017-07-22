@@ -51,6 +51,7 @@ AnalogClock::AnalogClock(QWidget *parent)
 
     currentTimerState = TIMERNOTEXPIRED;
 
+    singingCallSection = "";
 }
 
 void AnalogClock::redrawTimerExpired()
@@ -96,7 +97,16 @@ void AnalogClock::redrawTimerExpired()
             // if not patter, or the patter timer is disabled
             if (breakLengthSecs == -1 || !breakLengthTimerEnabled) {
                 // AND if also it's not break or the break timer is disabled
-                timerLabel->setVisible(false);  // make the timerLabel disappear
+                //timerLabel->setVisible(false);  // make the timerLabel disappear
+                // it's either a singing call, or we're stopped.  Leave it VISIBLE.
+                if (singingCallSection != "") {
+                    timerLabel->setVisible(true);  // make the timerLabel appear
+                    timerLabel->setText(singingCallSection);
+                    timerLabel->setAlignment(Qt::AlignHCenter);
+                } else {
+                    timerLabel->setVisible(false);  // make the timerLabel disappear
+                    timerLabel->setAlignment(Qt::AlignLeft);
+                }
             } else if (breakLengthSecs < maxBreakLength && typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
                 // it is for sure a BREAK, the break timer is enabled, and it's under the break time limit,
                 //   and we played something before the break, and we're currently in state NONE (NOTE: can't use patter or singing calls or extras as break music)
@@ -357,3 +367,7 @@ void AnalogClock::resetPatter(void)
     typeTracker.addStop();
 }
 
+void AnalogClock::setSingingCallSection(QString s)
+{
+    singingCallSection = s;
+}

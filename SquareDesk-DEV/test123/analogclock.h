@@ -115,6 +115,8 @@ public:
     unsigned int currentTimerState;  // contains bits for the LONG TIP timer and the BREAK TIMER
 
     void setTimerLabel(clickableLabel *theLabel);
+    void setSingingCallSection(QString s);
+    QString singingCallSection;
 
     clickableLabel *timerLabel;
     TypeTracker typeTracker;

@@ -1903,6 +1903,45 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
 
+        // singing call sections
+        if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
+            double introLength = timeToDouble(ui->lineEditIntroTime->text());
+            double outroTime = timeToDouble(ui->lineEditOutroTime->text());
+            double outroLength = fileLen_i-outroTime;
+
+            int section;
+            if (currentPos_i < introLength) {
+                section = 0; // intro
+            } else if (currentPos_i > outroTime) {
+                section = 8;  // tag
+            } else {
+                section = 1.0 + 7.0*((currentPos_i - introLength)/(fileLen_i-(introLength+outroLength)));
+                if (section > 8 || section < 0) {
+                    section = 0; // needed for the time before fields are fully initialized
+                }
+            }
+
+            QStringList sectionName;
+            sectionName << "Intro" << "Opener" << "Figure 1" << "Figure 2"
+                        << "Break" << "Figure 3" << "Figure 4" << "Closer" << "Tag";
+
+            if (cBass.Stream_State == BASS_ACTIVE_PLAYING &&
+                    (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType))) {
+                // if singing call OR called, then tell the clock to show the section type
+                analogClock->setSingingCallSection(sectionName[section]);
+            } else {
+                // else tell the clock that there isn't a section type
+                analogClock->setSingingCallSection("");
+            }
+
+//            qDebug() << "currentPos:" << currentPos_i << ", fileLen: " << fileLen_i
+//                     << "outroTime:" << outroTime
+//                     << "introLength:" << introLength
+//                     << "outroLength:" << outroLength
+//                     << "section: " << section
+//                     << "sectionName[section]: " << sectionName[section];
+        }
+
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
         // FLASH CALL FEATURE ======================================
         // TODO: do this only if patter? -------------------
@@ -2217,7 +2256,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
         currentState = kPaused;
         ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
-
 
 #ifndef DEBUGCLOCK
     analogClock->setSegment(time.hour(), time.minute(), time.second(), theType);  // always called once per second
