@@ -2382,12 +2382,12 @@
   </action>
   <action name="actionImport">
    <property name="text">
-    <string>Import...</string>
+    <string>Import Song Data...</string>
    </property>
   </action>
   <action name="actionExport">
    <property name="text">
-    <string>Export...</string>
+    <string>Export Song Data...</string>
    </property>
   </action>
   <action name="actionShow_All_Ages">
