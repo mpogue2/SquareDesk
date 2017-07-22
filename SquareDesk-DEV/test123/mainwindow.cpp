@@ -4861,7 +4861,8 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             // TODO: reconcile int here with float elsewhere on insertion
             PlaylistExportRecord rec;
             rec.index = playlistIndex.toInt();
-            rec.title = songTitle;
+//            rec.title = songTitle;
+            rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
             rec.pitch = pitch;
             rec.tempo = tempo;
             exports.append(rec);
