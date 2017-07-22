@@ -189,7 +189,6 @@ private slots:
     void on_lineEditOutroTime_textChanged();
     void on_lineEditIntroTime_textChanged();
 
-    void on_checkBoxEditLyrics_stateChanged( int checkState );
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
 
@@ -347,6 +346,8 @@ private slots:
     void on_actionSave_Lyrics_As_triggered();
 
     void on_pushButtonCueSheetClearFormatting_clicked();
+
+    void on_toolButtonEditLyrics_toggled(bool checked);
 
 private:
     int preferredSmallFontSize;  // preferred font sizes

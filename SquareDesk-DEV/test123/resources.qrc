@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Graphicrating-Koloria-Button-Rec.ico</file>
+        <file>graphics/lock_icon.png</file>
+        <file>graphics/unlock_icon.png</file>
     </qresource>
 </RCC>

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>876</width>
+    <width>1027</width>
     <height>603</height>
    </rect>
   </property>
@@ -1421,9 +1421,26 @@
              </spacer>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBoxEditLyrics">
+             <widget class="QToolButton" name="toolButtonEditLyrics">
               <property name="text">
-               <string>Edit</string>
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset resource="resources.qrc">
+                <normaloff>:/graphics/lock_icon.png</normaloff>
+                <normalon>:/graphics/unlock_icon.png</normalon>:/graphics/lock_icon.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>false</bool>
               </property>
              </widget>
             </item>
@@ -1544,7 +1561,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>876</width>
+     <width>1027</width>
      <height>22</height>
     </rect>
    </property>
@@ -2451,7 +2468,6 @@
    </property>
    <property name="text">
     <string>Print Lyrics...</string>
->>>>>>> 39b0f0a0dbf91aaf79f2bccd35d955344ec7e691
    </property>
   </action>
  </widget>
@@ -2490,6 +2506,8 @@
   <tabstop>songTable</tabstop>
   <tabstop>clearSearchButton</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

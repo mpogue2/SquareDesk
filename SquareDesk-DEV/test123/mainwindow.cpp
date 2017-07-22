@@ -402,6 +402,8 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     loadChoreographyList();
 
+    ui->toolButtonEditLyrics->setStyleSheet("QToolButton { border: 1px solid #575757; border-radius: 4px; background-color: palette(base); }");  // turn off border
+
     // ----------
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
 
@@ -852,7 +854,7 @@ void MainWindow::showHTML() {
 //    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
-void MainWindow::on_checkBoxEditLyrics_stateChanged( int checkState )
+void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
 {
     bool checked = (checkState != Qt::Unchecked);
 
@@ -879,7 +881,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
     //  given the limitations of QTextEdit (which is not a general HTML editor).
     QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
     QString selectedText = cursor.selectedText();
-    ui->pushButtonCueSheetClearFormatting->setEnabled(selectedText.isEmpty() && ui->checkBoxEditLyrics->isChecked());
+    ui->pushButtonCueSheetClearFormatting->setEnabled(selectedText.isEmpty() && ui->toolButtonEditLyrics->isChecked());
 }
 
 // TODO: can't make a doc from scratch yet.
@@ -2332,7 +2334,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
-               (ui->textBrowserCueSheet->hasFocus() && ui->checkBoxEditLyrics->isChecked()) ||
+               (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
@@ -7363,3 +7365,4 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
         saveCurrentSongSettings();
     }
 }
+
