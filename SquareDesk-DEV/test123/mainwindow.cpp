@@ -961,6 +961,7 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 
 
     } else {
+        // this should only happen for tables, which we really don't support yet.
         qDebug() << "Sorry, on_pushButtonCueSheetEdit...: " + blockClass + ": Title_toggled has complex selection...";
     }
 }
@@ -1097,7 +1098,7 @@ void MainWindow::writeCuesheet(QString filename)
             QFileInfo fi(filename);
             QStringList section = fi.path().split("/");
             QString type = section[section.length()-1];  // must be the last item in the path
-//                qDebug() << "Adding " + type + "#!#" + filename;
+//            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStack";
             pathStack->append(type + "#!#" + filename);
         }
     }
@@ -2086,16 +2087,16 @@ void MainWindow::getCurrentPointInStream(double *tt, double *pos) {
         position = cBass.Current_Position;
         length = cBass.FileLength;  // always use the value with maximum precision
 
-        qDebug() << "     PLAYING length: " << length << ", position: " << position;
+//        qDebug() << "     PLAYING length: " << length << ", position: " << position;
     } else {
         // if we're NOT playing, this is accurate to the second.
         position = (double)(ui->seekBarCuesheet->value());
         length = ui->seekBarCuesheet->maximum();
-        qDebug() << "     NOT PLAYING length: " << length << ", position: " << position;
+//        qDebug() << "     NOT PLAYING length: " << length << ", position: " << position;
     }
 
     double t = (double)((double)position / (double)length);
-    qDebug() << "     T: " << t;
+//    qDebug() << "     T: " << t;
 
     // return values
     *tt = t;
@@ -2804,8 +2805,9 @@ QString MainWindow::tidyHTML(QString cuesheet) {
         }
         cuesheet_tidied = QString((char*)output.bp);
     }
-    else
+    else {
         qDebug() << "Severe error:" << rc;
+    }
 
     tidyBufFree( &output );
     tidyBufFree( &errbuf );
@@ -3608,12 +3610,26 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
         QString resolvedFilePath=s1;
 
         QFileInfo fi(s1);
+
+        // Option A: first sub-folder is the type of the song.
+        // Examples:
+        //    <musicDir>/foo/*.mp3 is of type "foo"
+        //    <musicDir>/foo/bar/music.mp3 is of type "foo"
+        //    <musicDir>/foo/bar/ ... /baz/music.mp3 is of type "foo"
+        //    <musicDir>/music.mp3 is of type ""
+
+        QString newType = (fi.path().replace(rootDir.path() + "/","").split("/"))[0];
         QStringList section = fi.path().split("/");
-        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
-                                                              // of where the alias is, not where the file is, and append "*" or not
+
+//        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
+//                                                              // of where the alias is, not where the file is, and append "*" or not
+//        qDebug() << "FFR: " << fi.path() << rootDir.path() << type << newType;
         if (section[section.length()-1] != "soundfx") {
+//            qDebug() << "findFilesRecursively() adding " + type + "#!#" + resolvedFilePath + " to pathStack";
+//            pathStack->append(type + "#!#" + resolvedFilePath);
+
             // add to the pathStack iff it's not a sound FX .mp3 file (those are internal)
-            pathStack->append(type + "#!#" + resolvedFilePath);
+            pathStack->append(newType + "#!#" + resolvedFilePath);
         } else {
             if (suffix != "*") {
                 // if it IS a sound FX file (and not GUEST MODE), then let's squirrel away the paths so we can play them later
@@ -4499,7 +4515,7 @@ void MainWindow::on_actionPreferences_triggered()
         lyricsTabNumber = (showTimersTab ? 2 : 1);
 
         bool isPatter = songTypeNamesForPatter.contains(currentSongType);
-        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;
+//        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;
 
         if (isPatter) {
             if (hasLyrics && lyricsTabNumber != -1) {
