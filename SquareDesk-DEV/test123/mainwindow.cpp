@@ -1481,7 +1481,7 @@ void MainWindow::on_playButton_clicked()
                 // switch to Lyrics tab ONLY for singing calls or vocals
                 for (int i = 0; i < ui->tabWidget->count(); ++i)
                 {
-                    if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))
+                    if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))  // do not switch if *Patter or Patter (using Lyrics tab for written Patter)
                     {
                         ui->tabWidget->setCurrentIndex(i);
                         break;
@@ -2468,16 +2468,18 @@ bool MainWindow::handleKeypress(int key, QString text)
 
         case Qt::Key_PageDown:
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
+            //   or if Patter is currently showing and patter is loaded
             tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
-            if (tabTitle.endsWith("*Lyrics")) {
+            if (tabTitle.endsWith("*Lyrics") || tabTitle.endsWith("*Patter")) {
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() + 200);
             }
             break;
 
         case Qt::Key_PageUp:
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
+            //   or if Patter is currently showing and patter is loaded
             tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
-            if (tabTitle.endsWith("*Lyrics")) {
+            if (tabTitle.endsWith("*Lyrics") || tabTitle.endsWith("*Patter")) {
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() - 200);
             }
             break;
@@ -2970,7 +2972,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             QTextStream in(&f1);
             cuesheet = in.readAll();  // read the entire CSS file, if it exists
 
-            if (cuesheet.contains("charset=windows-1252")) {
+            if (cuesheet.contains("charset=windows-1252") || cuesheetFilename.contains("GP 956")) {  // WARNING: HACK HERE
                 // this is very likely to be an HTML file converted from MS WORD,
                 //   and it still uses windows-1252 encoding.
 
@@ -2980,6 +2982,11 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
                 QTextCodec *codec = QTextCodec::codecForName("windows-1252");  // FROM win-1252 bytes
                 cuesheet = codec->toUnicode(win1252bytes);                     // TO Unicode QString
             }
+
+//            qDebug() << "Cuesheet: " << cuesheet;
+            cuesheet.replace("\xB4","'");  // replace wacky apostrophe, which doesn't display well in QEditText
+            // NOTE: o-umlaut is already translated (incorrectly) here to \xB4, too.  There's not much we
+            //   can do with non UTF-8 HTML files that aren't otherwise marked as to encoding.
 
             // set the CSS
 //            qDebug().noquote() << "***** CSS:\n" << cssString;
@@ -3262,38 +3269,86 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
         hasLyrics = true;
     }
 
-    if (hasLyrics && lyricsTabNumber != -1) {
-        ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
-    } else {
-        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+    // be careful here.  The Lyrics tab can now be the Patter tab.
+    bool isPatter = songTypeNamesForPatter.contains(currentSongType);
 
-#if defined(Q_OS_MAC)
-        QString appPath = QApplication::applicationFilePath();
-        QString lyricsTemplatePath = appPath + "/Contents/Resources/lyrics.template.html";
-        lyricsTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
-#elif defined(Q_OS_WIN32)
-        // TODO: There has to be a better way to do this.
-        QString appPath = QApplication::applicationFilePath();
-        QString lyricsTemplatePath = appPath + "/lyrics.template.html";
-        lyricsTemplatePath.replace("SquareDeskPlayer.exe/","");
-#endif
+//    qDebug() << "loadCuesheets: " << currentSongType << isPatter;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-        QFile file(lyricsTemplatePath);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qDebug() << "Could not open 'lyrics.template.html' file.";
-            qDebug() << "looked here:" << lyricsTemplatePath;
-            return;  // NOTE: early return, couldn't find template file
+    if (isPatter) {
+        // ----- PATTER -----
+        if (hasLyrics && lyricsTabNumber != -1) {
+//            qDebug() << "loadCuesheets 2: " << "setting to *";
+            ui->tabWidget->setTabText(lyricsTabNumber, "*Patter");
         } else {
-            QString lyricsTemplate(file.readAll());
-            file.close();
-            ui->textBrowserCueSheet->setHtml(lyricsTemplate);
-        }
-#else
-        // LINUX
-        ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
-#endif
-    }
+//            qDebug() << "loadCuesheets 2: " << "setting to NOT *";
+            ui->tabWidget->setTabText(lyricsTabNumber, "Patter");
+
+    #if defined(Q_OS_MAC)
+            QString appPath = QApplication::applicationFilePath();
+            QString patterTemplatePath = appPath + "/Contents/Resources/patter.template.html";
+            patterTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
+    #elif defined(Q_OS_WIN32)
+            // TODO: There has to be a better way to do this.
+            QString appPath = QApplication::applicationFilePath();
+            QString patterTemplatePath = appPath + "/patter.template.html";
+            patterTemplatePath.replace("SquareDeskPlayer.exe/","");
+    #else
+            // Linux
+    #endif
+
+    #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+            QFile file(patterTemplatePath);
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                qDebug() << "Could not open 'patter.template.html' file.";
+                qDebug() << "looked here:" << patterTemplatePath;
+                return;  // NOTE: early return, couldn't find template file
+            } else {
+                QString patterTemplate(file.readAll());
+                file.close();
+                ui->textBrowserCueSheet->setHtml(patterTemplate);
+            }
+    #else
+            // LINUX
+            ui->textBrowserCueSheet->setHtml("No patter found for this song.");
+    #endif
+        } // else (sequence could not be found)
+    } else {
+        // ----- SINGING CALL -----
+        if (hasLyrics && lyricsTabNumber != -1) {
+            ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
+        } else {
+            ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+
+    #if defined(Q_OS_MAC)
+            QString appPath = QApplication::applicationFilePath();
+            QString lyricsTemplatePath = appPath + "/Contents/Resources/lyrics.template.html";
+            lyricsTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
+    #elif defined(Q_OS_WIN32)
+            // TODO: There has to be a better way to do this.
+            QString appPath = QApplication::applicationFilePath();
+            QString lyricsTemplatePath = appPath + "/lyrics.template.html";
+            lyricsTemplatePath.replace("SquareDeskPlayer.exe/","");
+    #else
+            // Linux
+    #endif
+
+    #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+            QFile file(lyricsTemplatePath);
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                qDebug() << "Could not open 'lyrics.template.html' file.";
+                qDebug() << "looked here:" << lyricsTemplatePath;
+                return;  // NOTE: early return, couldn't find template file
+            } else {
+                QString lyricsTemplate(file.readAll());
+                file.close();
+                ui->textBrowserCueSheet->setHtml(lyricsTemplate);
+            }
+    #else
+            // LINUX
+            ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
+    #endif
+        } // else (lyrics could not be found)
+    } // isPatter
 }
 
 
@@ -3335,9 +3390,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         MP3FileName = resolvedFilePath;
     }
 
-    loadCuesheets(MP3FileName);
-
     currentSongType = songType;  // save it for session coloring on the analog clock later...
+
+    ui->toolButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
+
+    loadCuesheets(MP3FileName);
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
@@ -3479,13 +3536,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     if (isPatter) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
-        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
+//        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
         ui->pushButtonSetIntroTime->setText("Start Loop");
         ui->pushButtonSetOutroTime->setText("End Loop");
     } else {
         // singing call or vocals or xtras, so Loop mode defaults to OFF
         on_loopButton_toggled(false); // default is to loop, if type is patter
-        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
+//        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
         ui->pushButtonSetIntroTime->setText("In");
         ui->pushButtonSetOutroTime->setText("Out");
     }
@@ -4441,10 +4498,21 @@ void MainWindow::on_actionPreferences_triggered()
         // Show the Lyrics tab, if it is enabled now
         lyricsTabNumber = (showTimersTab ? 2 : 1);
 
-        if (hasLyrics && lyricsTabNumber != -1) {
-            ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
+        bool isPatter = songTypeNamesForPatter.contains(currentSongType);
+        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;
+
+        if (isPatter) {
+            if (hasLyrics && lyricsTabNumber != -1) {
+                ui->tabWidget->setTabText(lyricsTabNumber, "*Patter");
+            } else {
+                ui->tabWidget->setTabText(lyricsTabNumber, "Patter");
+            }
         } else {
-            ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+            if (hasLyrics && lyricsTabNumber != -1) {
+                ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
+            } else {
+                ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+            }
         }
 
         // -----------------------------------------------------------------------
@@ -5981,7 +6049,8 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         ui->actionSave_Lyrics->setDisabled(true);
         ui->actionSave_Lyrics_As->setDisabled(true);
         ui->actionPrint_Lyrics->setDisabled(true);
-    } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+    } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
+               ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
         // Lyrics Tab ---------------
         ui->actionPrint_Lyrics->setDisabled(false);
         ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes

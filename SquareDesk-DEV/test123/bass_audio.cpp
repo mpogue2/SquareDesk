@@ -381,7 +381,7 @@ void bass_audio::ClearLoop()
 
     if (syncHandle) {
         if (!BASS_ChannelRemoveSync(Stream, syncHandle)) {
-            qDebug() << "ERROR: BASS_ChannelRemoveSync()";
+            // qDebug() << "ERROR: BASS_ChannelRemoveSync()";  // FIX: revisit this later...
         }
         syncHandle = 0; // no sync set right now
     }
