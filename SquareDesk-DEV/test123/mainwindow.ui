@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1666,6 +1666,8 @@
     <property name="title">
      <string>SD</string>
     </property>
+    <addaction name="actionSave_SD_Sequence_As"/>
+    <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
     <addaction name="separator"/>
     <addaction name="actionNormal"/>
@@ -2461,6 +2463,11 @@
    </property>
    <property name="text">
     <string>Print Lyrics...</string>
+   </property>
+  </action>
+  <action name="actionSave_SD_Sequence_As">
+   <property name="text">
+    <string>Save SD Sequence As...</string>
    </property>
   </action>
  </widget>

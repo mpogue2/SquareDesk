@@ -347,6 +347,8 @@ private slots:
 
     void on_toolButtonEditLyrics_toggled(bool checked);
 
+    void on_actionSave_SD_Sequence_As_triggered();
+
 private:
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;

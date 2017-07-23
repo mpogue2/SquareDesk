@@ -583,10 +583,12 @@ MainWindow::MainWindow(QWidget *parent) :
     sdActionGroup1 = new QActionGroup(this);
     sdActionGroup1->setExclusive(true);
 
-    sdActionGroup1->addAction(actions[2]);  // NORMAL
-    sdActionGroup1->addAction(actions[3]);  // Color only
-    sdActionGroup1->addAction(actions[4]);  // Mental image
-    sdActionGroup1->addAction(actions[5]);  // Sight
+    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
+    //   Is there a better way to do this?
+    sdActionGroup1->addAction(actions[4]);  // NORMAL
+    sdActionGroup1->addAction(actions[5]);  // Color only
+    sdActionGroup1->addAction(actions[6]);  // Mental image
+    sdActionGroup1->addAction(actions[7]);  // Sight
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
@@ -7501,3 +7503,25 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
     }
 }
 
+
+void MainWindow::on_actionSave_SD_Sequence_As_triggered()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString sequenceFilename = QFileDialog::getSaveFileName(this,
+                                                    tr("Save SD Sequence"),
+                                                    musicRootPath + "/sd/sequence.txt",
+                                                    tr("TXT (*.txt)"));
+    if (!sequenceFilename.isNull())
+    {
+        QFile file(sequenceFilename);
+        if ( file.open(QIODevice::WriteOnly) )
+        {
+            QTextStream stream( &file );
+            stream << currentSequenceWidget->toPlainText();
+            stream.flush();
+            file.close();
+        }
+    }
+}
