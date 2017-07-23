@@ -362,6 +362,7 @@ private:
     bool inPreferencesDialog;
     QString musicRootPath, guestRootPath, guestVolume, guestMode;
     QString lastCuesheetSavePath;
+    QString loadedCuesheetName;
     enum SongFilenameMatchingType songFilenameFormat;
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF

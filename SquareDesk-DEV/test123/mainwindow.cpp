@@ -190,6 +190,7 @@ MainWindow::MainWindow(QWidget *parent) :
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0)
 {
+    loadedCuesheetName = "";
     justWentActive = false;
 
     for (int i=0; i<6; i++) {
@@ -1166,7 +1167,8 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 
 void MainWindow::on_menuLyrics_aboutToShow()
 {
-    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified());
+    // only allow Save if it's not a template, and the doc was modified
+    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetName.contains(".template.html"));
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -2941,6 +2943,8 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
+    loadedCuesheetName = ""; // nothing loaded yet
+
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
     if (cuesheetFilename.endsWith(".txt")) {
         // text files are read in, converted to HTML, and sent to the Lyrics tab
@@ -2949,6 +2953,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         QTextStream in(&f1);
         QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
         ui->textBrowserCueSheet->setText(html);
+        loadedCuesheetName = cuesheetFilename;
         f1.close();
     }
     else if (cuesheetFilename.endsWith(".mp3")) {
@@ -2956,6 +2961,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         if (embeddedID3Lyrics != "") {
             QString html(txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename));  // embed CSS, if found, since USLT is plain text
             ui->textBrowserCueSheet->setHtml(html);
+            loadedCuesheetName = cuesheetFilename;
         }
     } else {
         // read the CSS file (if any)
@@ -3043,6 +3049,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             // set the HTML for the cuesheet itself (must set CSS first)
 //            ui->textBrowserCueSheet->setHtml(cuesheet);
             ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
+            loadedCuesheetName = cuesheetFilename;
             f1.close();
         }
 
@@ -3277,7 +3284,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
     int defaultCuesheetIndex = 0;
-
+    loadedCuesheetName = ""; // nothing loaded yet
 
     QString firstCuesheet(preferredCuesheet);
     ui->comboBoxCuesheetSelector->clear();
@@ -3316,6 +3323,12 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
     if (isPatter) {
         // ----- PATTER -----
+        ui->menuLyrics->setTitle("Patter");
+        ui->actionPrint_Lyrics->setText("Print Patter...");
+        ui->actionSave_Lyrics->setText("Save Patter");
+        ui->actionSave_Lyrics_As->setText("Save Patter As...");
+        ui->actionAuto_scroll_during_playback->setText("Auto-scroll Patter");
+
         if (hasLyrics && lyricsTabNumber != -1) {
 //            qDebug() << "loadCuesheets 2: " << "setting to *";
             ui->tabWidget->setTabText(lyricsTabNumber, "*Patter");
@@ -3346,6 +3359,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
                 QString patterTemplate(file.readAll());
                 file.close();
                 ui->textBrowserCueSheet->setHtml(patterTemplate);
+                loadedCuesheetName = patterTemplatePath;
             }
     #else
             // LINUX
@@ -3354,6 +3368,12 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
         } // else (sequence could not be found)
     } else {
         // ----- SINGING CALL -----
+        ui->menuLyrics->setTitle("Lyrics");
+        ui->actionPrint_Lyrics->setText("Print Lyrics...");
+        ui->actionSave_Lyrics->setText("Save Lyrics");
+        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
+        ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
+
         if (hasLyrics && lyricsTabNumber != -1) {
             ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
         } else {
@@ -3382,6 +3402,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
                 QString lyricsTemplate(file.readAll());
                 file.close();
                 ui->textBrowserCueSheet->setHtml(lyricsTemplate);
+                loadedCuesheetName = lyricsTemplatePath;
             }
     #else
             // LINUX
