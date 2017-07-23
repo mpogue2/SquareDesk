@@ -2765,6 +2765,10 @@ public:
 
 static bool CompareCuesheetWithRanking(CuesheetWithRanking *a, CuesheetWithRanking *b)
 {
+    if (a->score == b->score) {
+        return a->name < b->name;  // if scores are equal, sort names lexicographically (note: should be QCollator numericMode() for natural sort order)
+    }
+    // else:
     return a->score > b->score;
 }
 
