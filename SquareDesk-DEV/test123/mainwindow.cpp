@@ -190,7 +190,7 @@ MainWindow::MainWindow(QWidget *parent) :
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0)
 {
-    loadedCuesheetName = "";
+    loadedCuesheetNameWithPath = "";
     justWentActive = false;
 
     for (int i=0; i<6; i++) {
@@ -1170,7 +1170,7 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 void MainWindow::on_menuLyrics_aboutToShow()
 {
     // only allow Save if it's not a template, and the doc was modified
-    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetName.contains(".template.html"));
+    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -2945,7 +2945,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
-    loadedCuesheetName = ""; // nothing loaded yet
+    loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
     if (cuesheetFilename.endsWith(".txt")) {
@@ -2955,7 +2955,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         QTextStream in(&f1);
         QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
         ui->textBrowserCueSheet->setText(html);
-        loadedCuesheetName = cuesheetFilename;
+        loadedCuesheetNameWithPath = cuesheetFilename;
         f1.close();
     }
     else if (cuesheetFilename.endsWith(".mp3")) {
@@ -2963,7 +2963,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         if (embeddedID3Lyrics != "") {
             QString html(txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename));  // embed CSS, if found, since USLT is plain text
             ui->textBrowserCueSheet->setHtml(html);
-            loadedCuesheetName = cuesheetFilename;
+            loadedCuesheetNameWithPath = cuesheetFilename;
         }
     } else {
         // read the CSS file (if any)
@@ -3051,7 +3051,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             // set the HTML for the cuesheet itself (must set CSS first)
 //            ui->textBrowserCueSheet->setHtml(cuesheet);
             ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
-            loadedCuesheetName = cuesheetFilename;
+            loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
         }
 
@@ -3286,7 +3286,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
 
     int defaultCuesheetIndex = 0;
-    loadedCuesheetName = ""; // nothing loaded yet
+    loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
     QString firstCuesheet(preferredCuesheet);
     ui->comboBoxCuesheetSelector->clear();
@@ -3361,7 +3361,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
                 QString patterTemplate(file.readAll());
                 file.close();
                 ui->textBrowserCueSheet->setHtml(patterTemplate);
-                loadedCuesheetName = patterTemplatePath;
+                loadedCuesheetNameWithPath = patterTemplatePath;
             }
     #else
             // LINUX
@@ -3404,7 +3404,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
                 QString lyricsTemplate(file.readAll());
                 file.close();
                 ui->textBrowserCueSheet->setHtml(lyricsTemplate);
-                loadedCuesheetName = lyricsTemplatePath;
+                loadedCuesheetNameWithPath = lyricsTemplatePath;
             }
     #else
             // LINUX
@@ -7488,12 +7488,31 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
     RecursionGuard dialog_guard(inPreferencesDialog);
     QFileInfo fi(currentMP3filenameWithPath);
 
-    if (lastCuesheetSavePath.isEmpty())
+    if (lastCuesheetSavePath.isEmpty()) {
         lastCuesheetSavePath = musicRootPath;
+    }
+
+    QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
+    QString cuesheetBase = loadedCuesheetNameWithPath
+            .replace(QRegExp(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
+            .replace(QRegExp("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
+
+//    qDebug() << "cuesheetName: " << cuesheetBase << cuesheetExt;
+
+    // find an appropriate not-already-used filename to save to
+    bool done = false;
+    int which = 2;  // I suppose we could be smarter than this at some point.
+    QString maybeFilename = "";
+    while (!done) {
+        maybeFilename = cuesheetBase + QString::number(which) + "." + cuesheetExt;
+        QFileInfo maybeFile(maybeFilename);
+        done = !maybeFile.exists();  // keep going until a proposed filename does not exist (don't worry -- it won't spin forever)
+        which++;
+    }
 
     QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save Cue Sheet"),
-                                                    lastCuesheetSavePath + "/" + fi.completeBaseName() + ".html",
+                                                    tr("Save"),
+                                                    maybeFilename,
                                                     tr("HTML (*.html)"));
     if (!filename.isNull())
     {
