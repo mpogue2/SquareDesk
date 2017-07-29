@@ -403,6 +403,8 @@ private:
     void loadSettingsForSong(QString songTitle);
     void randomizeFlashCall();
 
+    QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+
     float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void loadCuesheet(const QString &cuesheetFilename);

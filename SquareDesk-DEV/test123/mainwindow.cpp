@@ -3147,6 +3147,9 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
+    QString fileType = filepath2SongType(MP3Filename);
+    bool fileTypeIsPatter = (fileType == "patter");
+
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -3191,12 +3194,19 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 break;
             }
         }
-        if (!foundExtension)
+        if (!foundExtension) {
             continue;
+        }
 
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
+
+//        qDebug() << "possibleCuesheets(): " << fileTypeIsPatter << filename << filepath2SongType(filename) << type;
+        if (fileTypeIsPatter && (type=="lyrics")) {
+            // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
+            continue;
+        }
 
         QFileInfo fi(filename);
 
@@ -3286,7 +3296,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 }
 
-
 void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
 {
     hasLyrics = false;
@@ -3295,6 +3304,8 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
+
+//    qDebug() << "possibleCuesheets:" << possibleCuesheets;
 
     int defaultCuesheetIndex = 0;
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
@@ -7559,6 +7570,31 @@ void MainWindow::on_actionSave_SD_Sequence_As_triggered()
             stream << currentSequenceWidget->toPlainText();
             stream.flush();
             file.close();
+        }
+    }
+}
+
+QString MainWindow::filepath2SongType(QString MP3Filename)
+{
+    // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+
+    MP3Filename.replace(QRegExp("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
+    QStringList parts = MP3Filename.split("/");
+
+    if (parts.length() <= 1) {
+        return("unknown");
+    } else {
+        QString folderTypename = parts[1];
+        if (songTypeNamesForPatter.contains(folderTypename)) {
+            return("patter");
+        } else if (songTypeNamesForSinging.contains(folderTypename)) {
+            return("singing");
+        } else if (songTypeNamesForCalled.contains(folderTypename)) {
+            return("called");
+        } else if (songTypeNamesForExtras.contains(folderTypename)) {
+            return("extras");
+        } else {
+            return(folderTypename);
         }
     }
 }
