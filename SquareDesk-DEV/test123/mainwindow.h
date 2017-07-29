@@ -233,6 +233,7 @@ private slots:
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
 
     void on_warningLabel_clicked();
+    void on_warningLabelCuesheet_clicked();
 
     void on_tabWidget_currentChanged(int index);
 

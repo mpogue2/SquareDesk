@@ -6128,6 +6128,11 @@ void MainWindow::on_warningLabel_clicked() {
     analogClock->resetPatter();
 }
 
+void MainWindow::on_warningLabelCuesheet_clicked() {
+    // this one is clickable, too!
+    on_warningLabel_clicked();
+}
+
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
