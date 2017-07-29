@@ -522,14 +522,17 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
     analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
+
     ui->warningLabel->setText("");
     ui->warningLabel->setStyleSheet("QLabel { color : red; }");
+    ui->warningLabelCuesheet->setText("");
+    ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
 
     // LYRICS TAB ------------
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
 
-    analogClock->setTimerLabel(ui->warningLabel);  // tell the clock which label to use for the patter timer
+    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
 
     // read list of calls (in application bundle on Mac OS X)
     // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
@@ -1349,6 +1352,7 @@ void MainWindow::setFontSizes()
 
     font.setPointSize((preferredSmallFontSize + preferredNowPlayingSize)/2);
     ui->warningLabel->setFont(font);
+    ui->warningLabelCuesheet->setFont(font);
 }
 
 // ----------------------------------------------------------------------
@@ -7176,6 +7180,8 @@ void MainWindow::adjustFontSizes()
     currentFont.setPointSize((warningLabelFontSize));
     ui->warningLabel->setFont(currentFont);
     ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
+    ui->warningLabelCuesheet->setFont(currentFont);
+    ui->warningLabelCuesheet->setFixedWidth(5.5*warningLabelFontSize);
 
     // these are special BIG
     int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
