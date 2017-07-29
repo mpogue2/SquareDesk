@@ -2391,7 +2391,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->titleSearch->hasFocus() ||
                 ui->lineEditIntroTime->hasFocus() ||
                 ui->lineEditOutroTime->hasFocus() ||
-                ui->lineEditCountDownTimer->hasFocus()) &&
+                ui->lineEditCountDownTimer->hasFocus() ||
+                ui->textBrowserCueSheet->hasFocus()) &&
                 (KeyEvent->key() == Qt::Key_Escape) )
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
@@ -2428,6 +2429,8 @@ bool MainWindow::handleKeypress(int key, QString text)
             oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore, yes both of these are needed.
 
             // FIX: should we also stop editing of the songTable on ESC?
+
+            ui->textBrowserCueSheet->clearFocus();  // ESC should always get us out of editing lyrics/patter
 
             if (ui->labelSearch->text() != "" || ui->typeSearch->text() != "" || ui->titleSearch->text() != "") {
                 // clear the search fields, if there was something in them.  (First press of ESCAPE).
