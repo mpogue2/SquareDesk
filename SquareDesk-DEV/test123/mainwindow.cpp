@@ -190,6 +190,8 @@ MainWindow::MainWindow(QWidget *parent) :
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0)
 {
+    linesInCurrentPlaylist = 0;
+
     loadedCuesheetNameWithPath = "";
     justWentActive = false;
 
@@ -588,10 +590,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
     //   Is there a better way to do this?
-    sdActionGroup1->addAction(actions[4]);  // NORMAL
-    sdActionGroup1->addAction(actions[5]);  // Color only
-    sdActionGroup1->addAction(actions[6]);  // Mental image
-    sdActionGroup1->addAction(actions[7]);  // Sight
+    sdActionGroup1->addAction(actions[2]);  // NORMAL
+    sdActionGroup1->addAction(actions[3]);  // Color only
+    sdActionGroup1->addAction(actions[4]);  // Mental image
+    sdActionGroup1->addAction(actions[5]);  // Sight
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 
@@ -1112,7 +1114,7 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
-    on_actionSave_Lyrics_As_triggered();
+    saveLyricsAs();
 }
 
 
@@ -1173,7 +1175,7 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 void MainWindow::on_menuLyrics_aboutToShow()
 {
     // only allow Save if it's not a template, and the doc was modified
-    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
+    ui->actionSave->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -3348,9 +3350,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     if (isPatter) {
         // ----- PATTER -----
         ui->menuLyrics->setTitle("Patter");
-        ui->actionPrint_Lyrics->setText("Print Patter...");
-        ui->actionSave_Lyrics->setText("Save Patter");
-        ui->actionSave_Lyrics_As->setText("Save Patter As...");
+        ui->actionFilePrint->setText("Print Patter...");
+//        ui->actionSave_Lyrics->setText("Save Patter");
+//        ui->actionSave_Lyrics_As->setText("Save Patter As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Patter");
 
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -3393,9 +3395,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     } else {
         // ----- SINGING CALL -----
         ui->menuLyrics->setTitle("Lyrics");
-        ui->actionPrint_Lyrics->setText("Print Lyrics...");
-        ui->actionSave_Lyrics->setText("Save Lyrics");
-        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
+        ui->actionFilePrint->setText("Print Lyrics...");
+//        ui->actionSave_Lyrics->setText("Save Lyrics");
+//        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -4759,11 +4761,13 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
             theItem->setText("");
         }
 
+        int lineCount = 1;
+        linesInCurrentPlaylist = 0;
+
         QTextStream in(&inputFile);
 
         if (PlaylistFileName.endsWith(".csv")) {
             // CSV FILE =================================
-            int lineCount = 1;
 
             QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
 
@@ -4813,8 +4817,6 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
         }
         else {
             // M3U FILE =================================
-            int lineCount = 1;
-
             while (!in.atEnd()) {
                 QString line = in.readLine();
 
@@ -4856,7 +4858,15 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
         }
 
         inputFile.close();
+        linesInCurrentPlaylist += songCount; // when non-zero, this enables saving of the current playlist
+//        qDebug() << "linesInCurrentPlaylist:" << linesInCurrentPlaylist;
 
+//        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
+        if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
+            // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
+            ui->actionSave->setEnabled(false);  // save playlist (TODO: doesn't remember current playlist name)
+            ui->actionSave_As->setEnabled(true);  // save playlist as...
+        }
     }
     else {
         // file didn't open...
@@ -5040,7 +5050,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
     QString PlaylistFileName =
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
-                                     startingPlaylistDirectory,
+                                     startingPlaylistDirectory + "/playlist.csv",
                                      tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
                                      &preferred);  // preferred is CSV
     trapKeypresses = true;
@@ -5244,6 +5254,15 @@ void MainWindow::on_songTable_itemSelectionChanged()
         int currentNumberInt = currentNumberText.toInt();
         int playlistItemCount = PlaylistItemCount();
 
+        // this function is always called when playlist items are added or deleted, so
+        // figure out whether save/save as are enabled here
+        linesInCurrentPlaylist = playlistItemCount;
+//        qDebug() << "songTableItemSelectionChanged:" << playlistItemCount;
+        if (playlistItemCount > 0) {
+            ui->actionSave->setEnabled(true);
+            ui->actionSave_As->setEnabled(true);
+        }
+
         if (currentNumberText == "") {
             // if not in a Playlist then we can add it at Top or Bottom, that's it.
             ui->actionAt_TOP->setEnabled(true);
@@ -5290,6 +5309,10 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the pitches.  They are persistent within a session.
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
     }
+
+    linesInCurrentPlaylist = 0;
+    ui->actionSave->setDisabled(true);
+    ui->actionSave_As->setDisabled(true);
 
     sortByDefaultSortOrder();
 
@@ -5431,11 +5454,13 @@ int MainWindow::PlaylistItemCount() {
             playlistItemCount++;
         }
     }
+
     return (playlistItemCount);
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemToTop() {
+
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -6151,19 +6176,59 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         if (console != 0) {
             console->setFocus();
         }
-        ui->actionSave_Lyrics->setDisabled(true);
-        ui->actionSave_Lyrics_As->setDisabled(true);
-        ui->actionPrint_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics_As->setDisabled(true);
+//        ui->actionPrint_Lyrics->setDisabled(true);
+
+        ui->actionFilePrint->setDisabled(true); // FIX: when sequences can be printed
+        ui->actionFilePrint->setText("Print Sequence...");
+
+        ui->actionSave->setDisabled(true);      // sequences can't be saved (no default filename to save to)
+        ui->actionSave->setText("Save Sequence");        // greyed out
+        ui->actionSave_As->setDisabled(false);  // sequences can be saved
+        ui->actionSave_As->setText("Save Sequence As...");
     } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
                ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
         // Lyrics Tab ---------------
-        ui->actionPrint_Lyrics->setDisabled(false);
-        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
-        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+//        ui->actionPrint_Lyrics->setDisabled(false);
+//        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
+//        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+        ui->actionFilePrint->setDisabled(false);
+
+        ui->actionSave->setEnabled(hasLyrics);      // lyrics/patter can be saved when there are lyrics to save
+        ui->actionSave_As->setEnabled(hasLyrics);   // lyrics/patter can be saved as when there are lyrics to save
+
+        if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+            ui->actionSave->setText("Save Lyrics"); // but greyed out, until modified
+            ui->actionSave_As->setText("Save Lyrics As...");  // greyed out until modified
+
+            ui->actionFilePrint->setText("Print Lyrics...");
+        } else {
+            ui->actionSave->setText("Save Patter"); // but greyed out, until modified
+            ui->actionSave_As->setText("Save Patter As...");  // greyed out until modified
+
+            ui->actionFilePrint->setText("Print Patter...");
+        }
+    } else if (ui->tabWidget->tabText(index) == "Music Player") {
+        ui->actionSave->setEnabled(linesInCurrentPlaylist != 0);      // playlist can be saved if there are >0 lines
+        ui->actionSave->setText("Save Playlist"); // but greyed out, until there is a playlist
+        ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
+        ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
+
+        ui->actionFilePrint->setDisabled(true);  // TODO: can't do this yet!
+        ui->actionFilePrint->setText("Print Playlist...");
     } else  {
-        ui->actionPrint_Lyrics->setDisabled(true);
-        ui->actionSave_Lyrics->setDisabled(true);
-        ui->actionSave_Lyrics_As->setDisabled(true);
+        // dance programs, reference
+//        ui->actionPrint_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics_As->setDisabled(true);
+
+        ui->actionSave->setDisabled(true);      // dance programs etc can't be saved
+        ui->actionSave->setText("Save"); // but greyed out
+        ui->actionSave_As->setDisabled(true);  // patter can be saved as
+        ui->actionSave_As->setText("Save As...");  // greyed out
+
+        ui->actionFilePrint->setDisabled(true);
     }
 
     microphoneStatusUpdate();
@@ -7486,17 +7551,47 @@ void MainWindow::lyricsDownloadEnd() {
 #endif
 }
 
-void MainWindow::on_actionPrint_Lyrics_triggered()
+QString MainWindow::filepath2SongType(QString MP3Filename)
 {
-    QPrinter printer;
-    QPrintDialog printDialog(&printer, this);
-    if (printDialog.exec() == QDialog::Rejected) {
-        return;
+    // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+
+    MP3Filename.replace(QRegExp("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
+    QStringList parts = MP3Filename.split("/");
+
+    if (parts.length() <= 1) {
+        return("unknown");
+    } else {
+        QString folderTypename = parts[1];
+        if (songTypeNamesForPatter.contains(folderTypename)) {
+            return("patter");
+        } else if (songTypeNamesForSinging.contains(folderTypename)) {
+            return("singing");
+        } else if (songTypeNamesForCalled.contains(folderTypename)) {
+            return("called");
+        } else if (songTypeNamesForExtras.contains(folderTypename)) {
+            return("extras");
+        } else {
+            return(folderTypename);
+        }
     }
-    ui->textBrowserCueSheet->print(&printer);
 }
 
-void MainWindow::on_actionSave_Lyrics_triggered()
+void MainWindow::on_actionFilePrint_triggered()
+{
+    // this is the only tab that has printable content right now
+    // this is only a double-check (the menu item should be disabled when not on Lyrics/Patter
+    int i = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        QPrinter printer;
+        QPrintDialog printDialog(&printer, this);
+        if (printDialog.exec() == QDialog::Rejected) {
+            return;
+        }
+        ui->textBrowserCueSheet->print(&printer);
+    }
+}
+
+void MainWindow::saveLyrics()
 {
     // Save cuesheet to the current cuesheet filename...
     RecursionGuard dialog_guard(inPreferencesDialog);
@@ -7511,7 +7606,8 @@ void MainWindow::on_actionSave_Lyrics_triggered()
 
 }
 
-void MainWindow::on_actionSave_Lyrics_As_triggered()
+
+void MainWindow::saveLyricsAs()
 {
     // Ask me where to save it...
     RecursionGuard dialog_guard(inPreferencesDialog);
@@ -7540,7 +7636,7 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
     }
 
     QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save"),
+                                                    tr("Save"), // TODO: this could say Lyrics or Patter
                                                     maybeFilename,
                                                     tr("HTML (*.html)"));
     if (!filename.isNull())
@@ -7551,8 +7647,7 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
     }
 }
 
-
-void MainWindow::on_actionSave_SD_Sequence_As_triggered()
+void MainWindow::saveSequenceAs()
 {
     // Ask me where to save it...
     RecursionGuard dialog_guard(inPreferencesDialog);
@@ -7574,27 +7669,43 @@ void MainWindow::on_actionSave_SD_Sequence_As_triggered()
     }
 }
 
-QString MainWindow::filepath2SongType(QString MP3Filename)
+void MainWindow::on_actionSave_triggered()
 {
-    // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
-
-    MP3Filename.replace(QRegExp("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
-    QStringList parts = MP3Filename.split("/");
-
-    if (parts.length() <= 1) {
-        return("unknown");
+    int i = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        // playlist
+        on_actionSave_Playlist_triggered(); // really "Save As..."
+    } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        // lyrics/patter
+        saveLyrics();
+    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        // sequence
+        saveSequenceAs();  // intentionally ..As()
     } else {
-        QString folderTypename = parts[1];
-        if (songTypeNamesForPatter.contains(folderTypename)) {
-            return("patter");
-        } else if (songTypeNamesForSinging.contains(folderTypename)) {
-            return("singing");
-        } else if (songTypeNamesForCalled.contains(folderTypename)) {
-            return("called");
-        } else if (songTypeNamesForExtras.contains(folderTypename)) {
-            return("extras");
-        } else {
-            return(folderTypename);
-        }
+        // dance program
+        // reference
+        // timers
+        // intentionally nothing...
+    }
+}
+
+
+void MainWindow::on_actionSave_As_triggered()
+{
+    int i = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        // playlist
+        on_actionSave_Playlist_triggered(); // really "Save As..."
+    } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        // lyrics/patter
+        saveLyricsAs();
+    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        // sequence
+        saveSequenceAs();  // intentionally ..As()
+    } else {
+        // dance program
+        // reference
+        // timers
+        // intentionally nothing...
     }
 }

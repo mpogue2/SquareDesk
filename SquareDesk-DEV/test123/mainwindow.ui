@@ -1578,6 +1578,7 @@
     <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
+    <addaction name="separator"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
     <addaction name="actionPreferences"/>
@@ -1586,6 +1587,8 @@
     <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
     <addaction name="actionCheck_for_Updates"/>
+    <addaction name="separator"/>
+    <addaction name="actionFilePrint"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -1678,8 +1681,6 @@
     <property name="title">
      <string>SD</string>
     </property>
-    <addaction name="actionSave_SD_Sequence_As"/>
-    <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
     <addaction name="separator"/>
     <addaction name="actionNormal"/>
@@ -1691,9 +1692,6 @@
     <property name="title">
      <string>Lyrics</string>
     </property>
-    <addaction name="actionSave_Lyrics"/>
-    <addaction name="actionSave_Lyrics_As"/>
-    <addaction name="separator"/>
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
     <addaction name="actionAuto_scroll_during_playback"/>
@@ -1880,7 +1878,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>&amp;Save...</string>
+    <string>&amp;Save Playlist...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -1891,7 +1889,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Save &amp;As...</string>
+    <string>Save Playlist &amp;As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -2480,6 +2478,11 @@
   <action name="actionSave_SD_Sequence_As">
    <property name="text">
     <string>Save SD Sequence As...</string>
+   </property>
+  </action>
+  <action name="actionFilePrint">
+   <property name="text">
+    <string>Print...</string>
    </property>
   </action>
  </widget>

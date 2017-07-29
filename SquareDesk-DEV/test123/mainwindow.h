@@ -315,42 +315,37 @@ private slots:
     void on_actionCheck_for_Updates_triggered();
 
     void on_action_4_triggered();
-
     void on_action_5_triggered();
-
     void on_action_6_triggered();
 
     void on_actionStop_Sound_FX_triggered();
 
     void on_actionZoom_In_triggered();
-
     void on_actionZoom_Out_triggered();
-
     void on_actionReset_triggered();
 
     void on_actionAge_toggled(bool arg1);
-
     void on_actionPitch_toggled(bool arg1);
-
     void on_actionTempo_toggled(bool arg1);
 
     void on_actionFade_Out_triggered();
 
     void on_actionDownload_Cuesheets_triggered();
 
-    void on_actionPrint_Lyrics_triggered();
-
-    void on_actionSave_Lyrics_triggered();
-
-    void on_actionSave_Lyrics_As_triggered();
-
     void on_pushButtonCueSheetClearFormatting_clicked();
-
     void on_toolButtonEditLyrics_toggled(bool checked);
 
-    void on_actionSave_SD_Sequence_As_triggered();
+    void on_actionFilePrint_triggered();
+    void on_actionSave_triggered();
+    void on_actionSave_As_triggered();
 
 private:
+    void saveLyrics();
+    void saveLyricsAs();
+    void saveSequenceAs();
+
+    int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
+
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;
 
