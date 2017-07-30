@@ -25,6 +25,8 @@
 
 #include "bass_audio.h"
 #include "bass_fx.h"
+#include "bassmix.h"
+
 #include <math.h>
 #include <stdio.h>
 #include <QDebug>
@@ -122,6 +124,53 @@ bass_audio::~bass_audio(void)
 {
 }
 
+void DisplayDeviceInfo(BASS_DEVICEINFO *di)
+{
+    printf("%s\n\tdriver: %s\n\ttype: ",di->name,di->driver);
+    switch (di->flags&BASS_DEVICE_TYPE_MASK) {
+        case BASS_DEVICE_TYPE_NETWORK:
+            printf("Remote Network");
+            break;
+        case BASS_DEVICE_TYPE_SPEAKERS:
+            printf("Speakers");
+            break;
+        case BASS_DEVICE_TYPE_LINE:
+            printf("Line");
+            break;
+        case BASS_DEVICE_TYPE_HEADPHONES:
+            printf("Headphones");
+            break;
+        case BASS_DEVICE_TYPE_MICROPHONE:
+            printf("Microphone");
+            break;
+        case BASS_DEVICE_TYPE_HEADSET:
+            printf("Headset");
+            break;
+        case BASS_DEVICE_TYPE_HANDSET:
+            printf("Handset");
+            break;
+        case BASS_DEVICE_TYPE_DIGITAL:
+            printf("Digital");
+            break;
+        case BASS_DEVICE_TYPE_SPDIF:
+            printf("SPDIF");
+            break;
+        case BASS_DEVICE_TYPE_HDMI:
+            printf("HDMI");
+            break;
+        case BASS_DEVICE_TYPE_DISPLAYPORT:
+            printf("DisplayPort");
+            break;
+        default:
+            printf("Unknown");
+    }
+    printf("\n\tflags:");
+    if (di->flags&BASS_DEVICE_ENABLED) printf(" enabled");
+    if (di->flags&BASS_DEVICE_DEFAULT) printf(" default");
+    printf(" (%x)\n",di->flags);
+}
+
+
 // ------------------------------------------------------------------
 void bass_audio::Init(void)
 {
@@ -129,6 +178,94 @@ void bass_audio::Init(void)
     BASS_Init(-1, 44100, 0, NULL, NULL);
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
     //-------------------------------------------------------------
+
+    BASS_DEVICEINFO di;
+    int a;
+    printf("Output Devices\n");
+    for (a=1;BASS_GetDeviceInfo(a,&di);a++) {
+        printf("%d: ",a);
+        DisplayDeviceInfo(&di);
+    }
+
+    printf("\nInput Devices\n");
+    for (a=0;BASS_RecordGetDeviceInfo(a,&di);a++) {
+        printf("%d: ",a);
+        DisplayDeviceInfo(&di);
+    }
+
+    fflush(stdout);
+
+    bool b;
+
+//    BASS_SetConfig(BASS_CONFIG_BUFFER, 10);  // set buffer size to 6ms
+//    BASS_SetConfig(BASS_CONFIG_UPDATEPERIOD, 5);  // set buffer size to 5ms
+//    BASS_SetConfig(BASS_CONFIG_MIXER_BUFFER, 11);  // set buffer size to 6ms
+
+
+    DWORD len=BASS_GetConfig(BASS_CONFIG_UPDATEPERIOD); // get update period
+    BASS_INFO info;
+    BASS_GetInfo(&info); // retrieve device info
+    len+=info.minbuf+1; // add the 'minbuf' plus 1ms margin
+    BASS_SetConfig(BASS_CONFIG_BUFFER, len); // set the buffer length
+    BASS_SetConfig(BASS_CONFIG_MIXER_BUFFER, len);
+
+
+    HSTREAM  mixerStream = BASS_Mixer_StreamCreate(44100, 1, BASS_MIXER_NONSTOP); // mono output
+    if (!mixerStream) {
+        printf("ERROR Mixer_StreamCreate: %d\n", BASS_ErrorGetCode());
+    }
+
+    b = BASS_RecordInit(1); // Focusrite
+    if (!b) {
+        printf("ERROR Mixer_RecordInit: %d\n", BASS_ErrorGetCode());
+    }
+
+    const char *s = BASS_RecordGetInputName(1);
+    if (!s) {
+        printf("Record device: %s\n", s);
+    }
+
+    HRECORD micStream = BASS_RecordStart(44100, 1, BASS_SAMPLE_FLOAT, NULL, 0);
+    if (!micStream) {
+        printf("ERROR StreamCreateFile MIC: %d\n", BASS_ErrorGetCode());
+    }
+
+    b = BASS_Mixer_StreamAddChannel(mixerStream, micStream, BASS_MIXER_DOWNMIX | BASS_STREAM_AUTOFREE);
+    if (!b) {
+        printf("ERROR Mixer_StreamAddChannel: %d\n", BASS_ErrorGetCode());
+    }
+
+    // -----------------------
+    HSTREAM musicStream1 = BASS_StreamCreateFile(false, "/Users/mpogue/__squareDanceMusic/patter/RIV 775 - Bacco Perbacco.mp3", 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
+    if (!musicStream1) {
+        printf("ERROR StreamCreateFile MUSIC1: %d\n", BASS_ErrorGetCode());
+    }
+
+    b = BASS_Mixer_StreamAddChannel(mixerStream, musicStream1, BASS_MIXER_DOWNMIX | BASS_STREAM_AUTOFREE);
+    if (!b) {
+        printf("ERROR Mixer_StreamAddChannel MUSIC1: %d\n", BASS_ErrorGetCode());
+    }
+    QWORD Length = BASS_ChannelGetLength(musicStream1, BASS_POS_BYTE);
+    printf("Music length 1: %d\n", (unsigned int)Length);
+
+
+    // -----------------------
+//    HSTREAM musicStream2 = BASS_StreamCreateFile(false, "/Users/mpogue/__squareDanceMusic/patter/RR 1301 - Brandy.mp3", 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
+//    if (!musicStream2) {
+//        printf("ERROR StreamCreateFile MUSIC2: %d\n", BASS_ErrorGetCode());
+//    }
+
+//    b = BASS_Mixer_StreamAddChannel(mixerStream, musicStream2, BASS_MIXER_DOWNMIX | BASS_STREAM_AUTOFREE);
+//    if (!b) {
+//        printf("ERROR Mixer_StreamAddChannel MUSIC2: %d\n", BASS_ErrorGetCode());
+//    }
+//    Length = BASS_ChannelGetLength(musicStream2, BASS_POS_BYTE);
+//    printf("Music length 2: %d\n", (unsigned int)Length);
+
+    // -----------------
+    BASS_ChannelPlay(mixerStream, false);
+
+    fflush(stdout);
 }
 
 // ------------------------------------------------------------------
