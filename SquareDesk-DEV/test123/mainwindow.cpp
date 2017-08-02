@@ -499,6 +499,8 @@ MainWindow::MainWindow(QWidget *parent) :
         lyricsTabNumber = -1;
     }
     ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
+    on_tabWidget_currentChanged(0);     // update the menu item names
+
     ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 
     // ----------
@@ -3350,7 +3352,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     if (isPatter) {
         // ----- PATTER -----
         ui->menuLyrics->setTitle("Patter");
-        ui->actionFilePrint->setText("Print Patter...");
+//        ui->actionFilePrint->setText("Print Patter...");
 //        ui->actionSave_Lyrics->setText("Save Patter");
 //        ui->actionSave_Lyrics_As->setText("Save Patter As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Patter");
@@ -3395,7 +3397,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     } else {
         // ----- SINGING CALL -----
         ui->menuLyrics->setTitle("Lyrics");
-        ui->actionFilePrint->setText("Print Lyrics...");
+//        ui->actionFilePrint->setText("Print Lyrics...");
 //        ui->actionSave_Lyrics->setText("Save Lyrics");
 //        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
@@ -6180,13 +6182,13 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 //        ui->actionSave_Lyrics_As->setDisabled(true);
 //        ui->actionPrint_Lyrics->setDisabled(true);
 
-        ui->actionFilePrint->setDisabled(true); // FIX: when sequences can be printed
-        ui->actionFilePrint->setText("Print Sequence...");
+        ui->actionFilePrint->setEnabled(true); // FIX: when sequences can be printed
+        ui->actionFilePrint->setText("Print SD Sequence...");
 
         ui->actionSave->setDisabled(true);      // sequences can't be saved (no default filename to save to)
-        ui->actionSave->setText("Save Sequence");        // greyed out
+        ui->actionSave->setText("Save SD Sequence");        // greyed out
         ui->actionSave_As->setDisabled(false);  // sequences can be saved
-        ui->actionSave_As->setText("Save Sequence As...");
+        ui->actionSave_As->setText("Save SD Sequence As...");
     } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
                ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
         // Lyrics Tab ---------------
@@ -6215,7 +6217,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
         ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
 
-        ui->actionFilePrint->setDisabled(true);  // TODO: can't do this yet!
+        ui->actionFilePrint->setEnabled(true);
         ui->actionFilePrint->setText("Print Playlist...");
     } else  {
         // dance programs, reference
@@ -7580,14 +7582,94 @@ void MainWindow::on_actionFilePrint_triggered()
 {
     // this is the only tab that has printable content right now
     // this is only a double-check (the menu item should be disabled when not on Lyrics/Patter
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
-        QPrinter printer;
-        QPrintDialog printDialog(&printer, this);
+        if (ui->tabWidget->tabText(i).endsWith("Lyrics")) {
+            printDialog.setWindowTitle("Print Cuesheet");
+        } else {
+            printDialog.setWindowTitle("Print Patter");
+        }
+
         if (printDialog.exec() == QDialog::Rejected) {
             return;
         }
+
         ui->textBrowserCueSheet->print(&printer);
+    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        QPrinter printer;
+        QPrintDialog printDialog(&printer, this);
+        printDialog.setWindowTitle("Print SD Sequence");
+
+        if (printDialog.exec() == QDialog::Rejected) {
+            return;
+        }
+
+        currentSequenceWidget->print(&printer);
+
+    } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        QPrinter printer;
+        QPrintDialog printDialog(&printer, this);
+        printDialog.setWindowTitle("Print Playlist");
+
+        if (printDialog.exec() == QDialog::Rejected) {
+            return;
+        }
+
+        QPainter painter;
+
+        painter.begin(&printer);
+
+        QFont font = painter.font();
+        font.setPixelSize(14);
+        painter.setFont(font);
+
+        // --------
+        QList<PlaylistExportRecord> exports;
+
+        // Iterate over the songTable to get all the info about the playlist
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndex = theItem->text();
+            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+            QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+            QString pitch = ui->songTable->item(i,kPitchCol)->text();
+            QString tempo = ui->songTable->item(i,kTempoCol)->text();
+
+            if (playlistIndex != "") {
+                // item HAS an index (that is, it is on the list, and has a place in the ordering)
+                // TODO: reconcile int here with float elsewhere on insertion
+                PlaylistExportRecord rec;
+                rec.index = playlistIndex.toInt();
+    //            rec.title = songTitle;
+                rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
+                rec.pitch = pitch;
+                rec.tempo = tempo;
+                exports.append(rec);
+            }
+        }
+
+        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+
+        QString toBePrinted = "PLAYLIST\n\n";
+
+        char buf[128];
+        // list is sorted here, in INDEX order
+        foreach (const PlaylistExportRecord &rec, exports)
+        {
+            QString baseName = rec.title;
+            baseName.replace(QRegExp("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
+
+            sprintf(buf, "%02d: %s\n", rec.index, baseName.toLatin1().data());
+            toBePrinted += buf;
+        }
+
+        //        painter.drawText(20, 20, 500, 500, Qt::AlignLeft|Qt::AlignTop, "Hello world!\nMore lines\n");
+        painter.drawText(20,20,500,500, Qt::AlignLeft|Qt::AlignTop, toBePrinted);
+
+        painter.end();
     }
 }
 
