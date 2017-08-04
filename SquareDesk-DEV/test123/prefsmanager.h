@@ -29,6 +29,7 @@
 #define PREFSMANAGER_H_INCLUDED
 
 #include "QSettings"
+#include "keybindings.h"
 
 class PreferencesDialog;
 class PreferencesManager {
@@ -38,6 +39,9 @@ public:
 
     void populatePreferencesDialog(PreferencesDialog *prefDialog);
     void extractValuesFromPreferencesDialog(PreferencesDialog *prefDialog);
+
+    QHash<Qt::Key, KeyAction *> GetHotkeyMappings();
+    void SetHotkeyMappings(QHash<Qt::Key, KeyAction *>);
 
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)  bool Get##name(); void Set##name(bool value);
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)  QString Get##name(); void Set##name(QString value);

@@ -188,7 +188,8 @@ MainWindow::MainWindow(QWidget *parent) :
     firstTimeSongIsPlayed(false),
     loadingSong(false),
     cuesheetEditorReactingToCursorMovement(false),
-    totalZoom(0)
+    totalZoom(0),
+    hotkeyMappings(KeyAction::defaultKeyToActionMappings())
 {
     loadedCuesheetNameWithPath = "";
     justWentActive = false;
@@ -200,6 +201,11 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeInstallSoundFX();
 
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    QHash<Qt::Key, KeyAction *> prefsHotkeyMappings = prefsManager.GetHotkeyMappings();
+    if (!prefsHotkeyMappings.empty())
+    {
+        hotkeyMappings = prefsHotkeyMappings;
+    }
 
     if (prefsManager.GetenableAutoMicsOff()) {
         currentInputVolume = getInputVolume();  // save current volume
@@ -2403,6 +2409,35 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
     return QObject::eventFilter(Object,Event);
 }
 
+void MainWindow::actionTempoPlus()
+{
+    ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
+    on_tempoSlider_valueChanged(ui->tempoSlider->value());
+}
+void MainWindow::actionTempoMinus()
+{
+    ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
+    on_tempoSlider_valueChanged(ui->tempoSlider->value());
+}
+void MainWindow::actionFadeOutAndPause()
+{
+    cBass.FadeOutAndPause();
+}
+void MainWindow::actionNextTab()
+{
+    int currentTab = ui->tabWidget->currentIndex();
+    if (currentTab == 0) {
+        // if Music tab active, go to Lyrics tab
+        ui->tabWidget->setCurrentIndex(1);
+    } else if (currentTab == 1) {
+        // if Lyrics tab active, go to Music tab
+        ui->tabWidget->setCurrentIndex(0);
+    } else {
+        // if currently some other tab, just go to the Music tab
+        ui->tabWidget->setCurrentIndex(0);
+    }
+}
+
 // ----------------------------------------------------------------------
 bool MainWindow::handleKeypress(int key, QString text)
 {
@@ -2412,8 +2447,6 @@ bool MainWindow::handleKeypress(int key, QString text)
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL) || console->hasFocus()) {
         return false;
     }
-
-    int currentTab = 0;
 
     switch (key) {
 
@@ -2447,6 +2480,8 @@ bool MainWindow::handleKeypress(int key, QString text)
             cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
             break;
 
+            // TO BE REMOVED ONCE WE SETTLE ON HOTKEY EDITING
+#if 0
         case Qt::Key_End:  // FIX: should END go to the end of the song? or stop playback?
         case Qt::Key_S:
             on_stopButton_clicked();
@@ -2485,12 +2520,10 @@ bool MainWindow::handleKeypress(int key, QString text)
 
         case Qt::Key_Plus:
         case Qt::Key_Equal:
-            ui->tempoSlider->setValue(ui->tempoSlider->value() + 1);
-            on_tempoSlider_valueChanged(ui->tempoSlider->value());
+            actionTempoPlus();
             break;
         case Qt::Key_Minus:
-            ui->tempoSlider->setValue(ui->tempoSlider->value() - 1);
-            on_tempoSlider_valueChanged(ui->tempoSlider->value());
+            actionTempoMinus();
             break;
 
         case Qt::Key_K:
@@ -2508,6 +2541,19 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_D:
             on_actionPitch_Down_triggered();
             break;
+
+        case Qt::Key_Y:
+            actionFadeOutAndPause();
+            break;
+
+        case Qt::Key_L:
+            on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
+            break;
+
+        case Qt::Key_T:
+            actionNextTab();
+            break;
+#endif // #if 0 - temporarily leaving in 'til we agree on hotkey editing          
 
         case Qt::Key_PageDown:
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
@@ -2527,29 +2573,12 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
-        case Qt::Key_Y:
-            cBass.FadeOutAndPause();
-            break;
-
-        case Qt::Key_L:
-            on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
-            break;
-
-        case Qt::Key_T:
-            currentTab = ui->tabWidget->currentIndex();
-            if (currentTab == 0) {
-                // if Music tab active, go to Lyrics tab
-                ui->tabWidget->setCurrentIndex(1);
-            } else if (currentTab == 1) {
-                // if Lyrics tab active, go to Music tab
-                ui->tabWidget->setCurrentIndex(0);
-            } else {
-                // if currently some other tab, just go to the Music tab
-                ui->tabWidget->setCurrentIndex(0);
-            }
-            break;
-
         default:
+            auto keyMapping = hotkeyMappings.find((Qt::Key)(key));
+            if (keyMapping != hotkeyMappings.end())
+            {
+                keyMapping.value()->doAction(this);
+            }
 //            qDebug() << "unhandled key:" << key;
             break;
     }
@@ -4533,6 +4562,7 @@ void MainWindow::on_actionPreferences_triggered()
     PreferencesManager prefsManager;
 
     prefDialog = new PreferencesDialog;
+    prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.populatePreferencesDialog(prefDialog);
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
 
@@ -4545,6 +4575,7 @@ void MainWindow::on_actionPreferences_triggered()
         // OK clicked
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
+        hotkeyMappings = prefsManager.GetHotkeyMappings();
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();

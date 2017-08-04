@@ -32,6 +32,7 @@ SOURCES += main.cpp\
     utility.cpp \
     danceprograms.cpp \
     startupwizard.cpp \
+    keybindings.cpp \
     downloadmanager.cpp
 
 HEADERS  += mainwindow.h \
@@ -63,6 +64,7 @@ HEADERS  += mainwindow.h \
     startupwizard.h \
     songsettings.h \
     platform.h \
+    keybindings.h \
     downloadmanager.h
 
     FORMS    += mainwindow.ui \

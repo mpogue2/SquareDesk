@@ -25,7 +25,9 @@
 
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
-#include "QColorDialog"
+#include <QColorDialog>
+#include <QMessageBox>
+#include "keybindings.h"
 
 static void  SetTimerPulldownValuesToFirstDigit(QComboBox *comboBox)
 {
@@ -45,6 +47,9 @@ static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
         comboBox->setItemData(i, QVariant(i + 1));
     }
 }
+
+
+
 
 // -------------------------------------------------------------------
 PreferencesDialog::PreferencesDialog(QWidget *parent) :
@@ -68,6 +73,31 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxSessionDefault);
     SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
     SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
+
+    ui->tableWidgetKeyBindings->resizeColumnToContents(0);
+    ui->tableWidgetKeyBindings->resizeColumnToContents(1);
+
+    QVector<KeyAction*> availableActions(KeyAction::availableActions());
+    QVector<enum Qt::Key> mappableKeys(KeyAction::mappableKeys());
+
+    ui->tableWidgetKeyBindings->setColumnWidth(0,80);
+    QHeaderView *headerView = ui->tableWidgetKeyBindings->horizontalHeader();
+    headerView->setSectionResizeMode(1, QHeaderView::Stretch);
+    
+    size_t key_binding_count = mappableKeys.length();
+    ui->tableWidgetKeyBindings->setRowCount(key_binding_count);
+    for (size_t row = 0; row < key_binding_count; ++row)
+    {
+        QComboBox *comboBox(new QComboBox);
+        for (auto action: availableActions)
+        {
+            QString function_name(action->name());
+            comboBox->addItem(function_name, function_name);
+        }
+        QTableWidgetItem *newTableItem(new QTableWidgetItem(QKeySequence(mappableKeys[row]).toString()));
+        ui->tableWidgetKeyBindings->setItem(row, 0, newTableItem);
+        ui->tableWidgetKeyBindings->setCellWidget(row, 1, comboBox);
+    }
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 }
@@ -102,6 +132,86 @@ void PreferencesDialog::setFontSizes()
     ui->musicFormatHelpLabel->setFont(font);
 //    ui->saveSongPrefsHelpLabel->setFont(font);
 
+}
+
+
+QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
+{
+    QHash<Qt::Key, KeyAction *> keyActionBindings;
+    QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
+    
+    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
+    QHash<QString, Qt::Key> keysByName;
+    for (auto key : mappableKeys)
+    {
+        keysByName[QKeySequence(key).toString()] = key;
+    }
+    
+    for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
+    {
+        QString keyName = ui->tableWidgetKeyBindings->item(row,0)->text();
+        QComboBox *comboBox = dynamic_cast<QComboBox*>(ui->tableWidgetKeyBindings->cellWidget(row, 1));
+        if (comboBox->currentIndex() > 0)
+        {
+            QString actionName = comboBox->itemData(comboBox->currentIndex()).toString();
+            auto action = actions.find(actionName);
+            QHash<QString, Qt::Key>::iterator key = keysByName.find(keyName);
+            
+            if (action != actions.end() && key != keysByName.end())
+            {
+                keyActionBindings[*key] = *action;
+            }
+        }
+    }
+    return keyActionBindings;
+}
+
+
+
+void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
+{
+    QHash<QString, KeyAction*> actionsByName(KeyAction::actionNameToActionMappings());
+    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
+    QHash<QString, Qt::Key> keysByName;
+    for (auto key : mappableKeys)
+    {
+        keysByName[QKeySequence(key).toString()] = key;
+    }
+    
+    for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
+    {
+        qDebug() << "row" << row;
+        int selectedKeyRow = 0;
+        QComboBox *comboBox = dynamic_cast<QComboBox *>(ui->tableWidgetKeyBindings->cellWidget(row, 1));
+        auto keyName = ui->tableWidgetKeyBindings->item(row,0)->text();
+        auto key = keysByName[keyName];
+        auto keyAction = keyActions.find(key);
+        if (keyAction != keyActions.end())
+        {
+            for (int i = 0; i < comboBox->count(); ++i)
+            {
+                if (comboBox->itemData(i).toString() == keyAction.value()->name())
+                {
+                    selectedKeyRow = i;
+                    break;
+                }
+            }
+        }
+        comboBox->setCurrentIndex(selectedKeyRow);
+    }
+}
+
+
+void PreferencesDialog::on_pushButtonResetHotkeysToDefaults_clicked()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Reset Hotkeys To Defaults",
+                                  "Do you really want to reset all hotkeys back to their default? This operation cannot be undone.",
+                                  QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes)
+    {
+        setHotkeys(KeyAction::defaultKeyToActionMappings());
+    }
 }
 
 void PreferencesDialog::on_comboBoxMusicFormat_currentIndexChanged(int /* currentIndex */)

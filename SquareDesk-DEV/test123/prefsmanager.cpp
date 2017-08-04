@@ -36,6 +36,48 @@ PreferencesManager::PreferencesManager() : MySettings()
 {
 }
 
+static const char * hotkeyPrefix = "hotkey_";
+
+QHash<Qt::Key, KeyAction *> PreferencesManager::GetHotkeyMappings()
+{
+    QHash<Qt::Key, KeyAction *> mappings;
+    QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
+    
+    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
+    
+    for (auto key : mappableKeys)
+    {
+        QString value = MySettings.value(hotkeyPrefix + QKeySequence(key).toString()).toString();
+        if (!value.isNull())
+        {
+            auto action = actions.find(value);
+            if (action != actions.end())
+            {
+                mappings[key] = action.value();
+            }
+        } // end of if we found the hotkey
+    } // end of all of the mappable keys
+    return mappings;
+}
+
+void PreferencesManager::SetHotkeyMappings(QHash<Qt::Key, KeyAction *> mapping)
+{
+    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
+    for (auto key : mappableKeys)
+    {
+        auto keymap = mapping.find(key);
+        if (keymap == mapping.end())
+        {
+            MySettings.remove(hotkeyPrefix + QKeySequence(key).toString());
+        }
+        else
+        {
+            MySettings.setValue(hotkeyPrefix + QKeySequence(key).toString(), keymap.value()->name());
+        }
+    }
+}
+
+
 // ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)  \
 QString PreferencesManager::Get##name()                  \
@@ -198,6 +240,8 @@ void PreferencesManager::Set##name(int value)          \
 
 void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog)
 {
+    prefDialog->setHotkeys(GetHotkeyMappings());
+    
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_INT_NO_PREFS(name, default)
@@ -226,6 +270,8 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 
 void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *prefDialog)
 {
+    SetHotkeyMappings(prefDialog->getHotkeys());
+    
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_INT_NO_PREFS(name, default)
