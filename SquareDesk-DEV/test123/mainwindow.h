@@ -110,6 +110,7 @@ public:
 
     PreferencesDialog *prefDialog;
     QActionGroup *sdActionGroup1;
+    QActionGroup *sdActionGroup2;
 
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
@@ -123,7 +124,8 @@ protected:
     void airplaneMode(bool turnItOn);
 
 private slots:
-    void sdActionTriggered(QAction * action);
+    void sdActionTriggered(QAction * action);  // checker style
+    void sdAction2Triggered(QAction * action); // SD level
 
     void on_stopButton_clicked();
     void on_playButton_clicked();
@@ -498,7 +500,11 @@ private:
     QStringList flashCalls;
 
     // --------------
+    void restartSDprocess(QString SDdanceLevel);
     void initSDtab();
+
+    QString currentSDVUILevel;
+    QString currentSDKeyboardLevel;
 
     QProcess *sd;  // sd process
     QProcess *ps;  // pocketsphinx process

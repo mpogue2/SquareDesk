@@ -30,6 +30,7 @@
 #include <QElapsedTimer>
 #include <QMap>
 #include <QMapIterator>
+#include <QMenu>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -583,24 +584,86 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #endif
 
-    // Make menu items mutually exclusive
+    // -----------------------
+    // Make SD menu items for checker style mutually exclusive
     QList<QAction*> actions = ui->menuSequence->actions();
-    //    qDebug() << "ACTIONS:" << actions;
+    //    qDebug() << "ACTIONS 1:" << actions;
 
-    sdActionGroup1 = new QActionGroup(this);
+    sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
 
-    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
-    //   Is there a better way to do this?
-    sdActionGroup1->addAction(actions[2]);  // NORMAL
-    sdActionGroup1->addAction(actions[3]);  // Color only
-    sdActionGroup1->addAction(actions[4]);  // Mental image
-    sdActionGroup1->addAction(actions[5]);  // Sight
+    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
+    sdActionGroup2->setExclusive(true);
+
+//    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
+//    //   Is there a better way to do this?
+//#define NORMALNUM (3)
+//    sdActionGroup1->addAction(actions[NORMALNUM]);      // NORMAL
+//    sdActionGroup1->addAction(actions[NORMALNUM+1]);    // Color only
+//    sdActionGroup1->addAction(actions[NORMALNUM+2]);    // Mental image
+//    sdActionGroup1->addAction(actions[NORMALNUM+3]);    // Sight
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
+    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
+
+    // let's look through the items in the SD menu
+    QStringList ag1, ag2;
+    ag1 << "Normal" << "Color only" << "Mental image" << "Sight";
+    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
+
+    foreach (QAction *action, ui->menuSequence->actions()) {
+        if (action->isSeparator()) {
+//            qDebug() << "separator";
+        } else if (action->menu()) {
+//            qDebug() << "item with submenu: " << action->text();
+            // iterating just one level down
+            foreach (QAction *action2, action->menu()->actions()) {
+                if (action2->isSeparator()) {
+//                    qDebug() << "     separator";
+                } else if (action2->menu()) {
+//                    qDebug() << "     item with submenu: " << action2->text();
+                } else {
+//                    qDebug() << "     item: " << action2->text();
+                    if (ag2.contains(action2->text()) ) {
+                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
+                        action2->setCheckable(true); // all these items are checkable
+                        if (action2->text() == "Plus") {
+                            action2->setChecked(true);   // initially only PLUS is checked
+                        }
+                    }
+                }
+            }
+        } else {
+//            qDebug() << "item: " << action->text();
+            if (ag1.contains(action->text()) ) {
+                sdActionGroup1->addAction(action); // ag1 are all mutually exclusive, and are all at top level
+            }
+        }
+    }
+
+    // -----------------------
+//    // Make SD menu items for GUI level mutually exclusive
+//    QList<QAction*> actions2 = ui->menuSequence->actions();
+//    qDebug() << "ACTIONS 2:" << actions2;
+
+//    sdActionGroup2 = new QActionGroup(this);
+//    sdActionGroup2->setExclusive(true);
+
+//    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
+//    //   Is there a better way to do this?
+//#define BASICNUM (0)
+//    sdActionGroup2->addAction(actions2[BASICNUM]);      // Basic
+//    sdActionGroup2->addAction(actions2[BASICNUM+1]);    // Mainstream
+//    sdActionGroup2->addAction(actions2[BASICNUM+2]);    // Plus
+//    sdActionGroup2->addAction(actions2[BASICNUM+3]);    // A1
+//    sdActionGroup2->addAction(actions2[BASICNUM+4]);    // A2
+//    sdActionGroup2->addAction(actions2[BASICNUM+5]);    // C1
+//    sdActionGroup2->addAction(actions2[BASICNUM+6]);    // C2
+//    sdActionGroup2->addAction(actions2[BASICNUM+7]);    // C3a
+
+//    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
 
     QSettings settings;
-
 
     {
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
@@ -6242,11 +6305,11 @@ void MainWindow::microphoneStatusUpdate() {
     if (ui->tabWidget->tabText(index) == "SD") {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: red");
-            ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
+            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             unmuteInputVolume();
         } else {
             ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
+            ui->statusBar->showMessage("Microphone disabled (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             muteInputVolume();                      // disable all input from the mics
         }
     } else {
@@ -6666,6 +6729,59 @@ void MainWindow::showContextMenu(const QPoint &pt)
     delete menu;
 }
 
+void MainWindow::restartSDprocess(QString SDdanceLevel) {
+
+    if (sd) {
+        sd->kill();  // kill the current one, if there's already one running
+    }
+
+    currentSDKeyboardLevel = SDdanceLevel;  // remember it for the status message
+
+#if defined(Q_OS_MAC)
+    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#else
+    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#endif
+
+    // start sd as a process -----
+    QStringList SDargs;
+//    SDargs << "-help";  // this is an excellent place to start!
+//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
+      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
+           << "-lines" << "1000"
+           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
+           << SDdanceLevel;                                       // default level for sd
+    sd = new QProcess(Q_NULLPTR);
+
+    // Let's make an "sd" directory in the Music Directory
+    //  This will be used for storing sequences (until we move that into SQLite).
+    PreferencesManager prefsManager;
+    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
+
+    // if the sequences directory doesn't exist, create it
+    QDir dir(sequencesDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+
+    sd->setWorkingDirectory(sequencesDir);
+    sd->setProcessChannelMode(QProcess::MergedChannels);
+    sd->start(pathToSD, SDargs);
+
+    if (sd->waitForStarted() == false) {
+        qDebug() << "ERROR: sd did not start properly.";
+    } else {
+//        qDebug() << "sd started.";
+    }
+
+    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData, Qt::UniqueConnection);  // output data from sd (and don't make duplicate connections)
+    connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
+}
+
 void MainWindow::initSDtab() {
 
 #ifndef POCKETSPHINXSUPPORT
@@ -6706,7 +6822,7 @@ void MainWindow::initSDtab() {
     // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
     //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
     // TEST SD MANUALLY: ./sd
-    QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDVUILevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
 #if defined(POCKETSPHINXSUPPORT)
     unsigned int whichModel = 5365;
@@ -6717,9 +6833,9 @@ void MainWindow::initSDtab() {
     pathToPS += ".exe";   // executable has a different name on Win32
 #endif
 
-    // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the same directory.
+    // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
-    QString pathToJSGF = danceLevel + ".jsgf";
+    QString pathToJSGF = currentSDVUILevel + ".jsgf";
 
 #if defined(Q_OS_MAC)
     // The acoustic models are one level up in the models subdirectory on MAC
@@ -6750,51 +6866,10 @@ void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
-#if defined(Q_OS_MAC)
-    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#else
-    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#endif
-
-    // start sd as a process -----
-    QStringList SDargs;
-//    SDargs << "-help";  // this is an excellent place to start!
-//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
-      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
-           << "-lines" << "1000"
-           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
-           << danceLevel;                                       // default level for sd
-    sd = new QProcess(Q_NULLPTR);
-
-    // Let's make an "sd" directory in the Music Directory
-    //  This will be used for storing sequences (until we move that into SQLite).
-    PreferencesManager prefsManager;
-    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
-
-    // if the sequences directory doesn't exist, create it
-    QDir dir(sequencesDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-
-    sd->setWorkingDirectory(sequencesDir);
-    sd->setProcessChannelMode(QProcess::MergedChannels);
-    sd->start(pathToSD, SDargs);
-
-    if (sd->waitForStarted() == false) {
-        qDebug() << "ERROR: sd did not start properly.";
-    } else {
-//        qDebug() << "sd started.";
-    }
-
-    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData);  // output data from sd
-    connect(console, &Console::getData, this, &MainWindow::writeSDData);      // input data to sd
+    restartSDprocess("plus"); // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
     highlighter = new Highlighter(console->document());
+
 #endif
 }
 
@@ -6907,6 +6982,14 @@ void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     renderArea->setCoupleColoringScheme(action->text());
+}
+
+void MainWindow::sdAction2Triggered(QAction * action) {
+//    qDebug() << "***** sdAction2Triggered()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    currentSDKeyboardLevel = action->text().toLower();   // convert to all lower case for SD
+    restartSDprocess(currentSDKeyboardLevel);  // convert to all lower case for sd restart
+    microphoneStatusUpdate();  // update status message, based on new keyboard SD level
 }
 
 void MainWindow::airplaneMode(bool turnItOn) {
