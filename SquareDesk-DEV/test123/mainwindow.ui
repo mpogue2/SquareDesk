@@ -1681,7 +1681,29 @@
     <property name="title">
      <string>SD</string>
     </property>
+    <widget class="QMenu" name="menuEnable_keyboard_input">
+     <property name="title">
+      <string>Enable keyboard input</string>
+     </property>
+     <addaction name="actionMainstream"/>
+     <addaction name="actionPlus"/>
+     <addaction name="separator"/>
+     <addaction name="actionA1"/>
+     <addaction name="actionA2"/>
+     <addaction name="separator"/>
+     <addaction name="actionC1"/>
+     <addaction name="actionC2"/>
+     <addaction name="separator"/>
+     <addaction name="actionC3a"/>
+     <addaction name="actionC3"/>
+     <addaction name="actionC3x"/>
+     <addaction name="separator"/>
+     <addaction name="actionC4a"/>
+     <addaction name="actionC4"/>
+     <addaction name="actionC4x"/>
+    </widget>
     <addaction name="actionEnable_voice_input"/>
+    <addaction name="menuEnable_keyboard_input"/>
     <addaction name="separator"/>
     <addaction name="actionNormal"/>
     <addaction name="actionColor_only"/>
@@ -2109,7 +2131,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Enable voice input</string>
+    <string>Enable voice input (Plus only)</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -2483,6 +2505,95 @@
   <action name="actionFilePrint">
    <property name="text">
     <string>Print...</string>
+   </property>
+  </action>
+  <action name="actionBasic">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Basic</string>
+   </property>
+  </action>
+  <action name="actionMainstream">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Mainstream</string>
+   </property>
+  </action>
+  <action name="actionPlus">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Plus</string>
+   </property>
+  </action>
+  <action name="actionA1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>A1</string>
+   </property>
+  </action>
+  <action name="actionA2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>A2</string>
+   </property>
+  </action>
+  <action name="actionC1">
+   <property name="text">
+    <string>C1</string>
+   </property>
+  </action>
+  <action name="actionC2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C2</string>
+   </property>
+  </action>
+  <action name="actionC3a">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C3a</string>
+   </property>
+  </action>
+  <action name="actionC3">
+   <property name="text">
+    <string>C3</string>
+   </property>
+  </action>
+  <action name="actionC3x">
+   <property name="text">
+    <string>C3x</string>
+   </property>
+  </action>
+  <action name="actionC4a">
+   <property name="text">
+    <string>C4a</string>
+   </property>
+  </action>
+  <action name="actionC4">
+   <property name="text">
+    <string>C4</string>
+   </property>
+  </action>
+  <action name="actionC4x">
+   <property name="text">
+    <string>C4x</string>
    </property>
   </action>
  </widget>
