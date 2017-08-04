@@ -82,7 +82,7 @@
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.8.2alpha4"
+#define VERSIONSTRING "0.8.2alpha5"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -110,6 +110,7 @@ public:
 
     PreferencesDialog *prefDialog;
     QActionGroup *sdActionGroup1;
+    QActionGroup *sdActionGroup2;
 
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
@@ -123,7 +124,8 @@ protected:
     void airplaneMode(bool turnItOn);
 
 private slots:
-    void sdActionTriggered(QAction * action);
+    void sdActionTriggered(QAction * action);  // checker style
+    void sdAction2Triggered(QAction * action); // SD level
 
     void on_stopButton_clicked();
     void on_playButton_clicked();
@@ -233,6 +235,7 @@ private slots:
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
 
     void on_warningLabel_clicked();
+    void on_warningLabelCuesheet_clicked();
 
     void on_tabWidget_currentChanged(int index);
 
@@ -314,42 +317,37 @@ private slots:
     void on_actionCheck_for_Updates_triggered();
 
     void on_action_4_triggered();
-
     void on_action_5_triggered();
-
     void on_action_6_triggered();
 
     void on_actionStop_Sound_FX_triggered();
 
     void on_actionZoom_In_triggered();
-
     void on_actionZoom_Out_triggered();
-
     void on_actionReset_triggered();
 
     void on_actionAge_toggled(bool arg1);
-
     void on_actionPitch_toggled(bool arg1);
-
     void on_actionTempo_toggled(bool arg1);
 
     void on_actionFade_Out_triggered();
 
     void on_actionDownload_Cuesheets_triggered();
 
-    void on_actionPrint_Lyrics_triggered();
-
-    void on_actionSave_Lyrics_triggered();
-
-    void on_actionSave_Lyrics_As_triggered();
-
     void on_pushButtonCueSheetClearFormatting_clicked();
-
     void on_toolButtonEditLyrics_toggled(bool checked);
 
-    void on_actionSave_SD_Sequence_As_triggered();
+    void on_actionFilePrint_triggered();
+    void on_actionSave_triggered();
+    void on_actionSave_As_triggered();
 
 private:
+    void saveLyrics();
+    void saveLyricsAs();
+    void saveSequenceAs();
+
+    int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
+
     int preferredSmallFontSize;  // preferred font sizes
     int preferredNowPlayingSize;
 
@@ -401,6 +399,8 @@ private:
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
     void randomizeFlashCall();
+
+    QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
 
     float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
@@ -500,7 +500,11 @@ private:
     QStringList flashCalls;
 
     // --------------
+    void restartSDprocess(QString SDdanceLevel);
     void initSDtab();
+
+    QString currentSDVUILevel;
+    QString currentSDKeyboardLevel;
 
     QProcess *sd;  // sd process
     QProcess *ps;  // pocketsphinx process

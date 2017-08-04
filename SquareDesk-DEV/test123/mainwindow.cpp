@@ -30,6 +30,7 @@
 #include <QElapsedTimer>
 #include <QMap>
 #include <QMapIterator>
+#include <QMenu>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -191,6 +192,8 @@ MainWindow::MainWindow(QWidget *parent) :
     totalZoom(0),
     hotkeyMappings(KeyAction::defaultKeyToActionMappings())
 {
+    linesInCurrentPlaylist = 0;
+
     loadedCuesheetNameWithPath = "";
     justWentActive = false;
 
@@ -503,6 +506,8 @@ MainWindow::MainWindow(QWidget *parent) :
         lyricsTabNumber = -1;
     }
     ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
+    on_tabWidget_currentChanged(0);     // update the menu item names
+
     ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 
     // ----------
@@ -528,14 +533,17 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
     analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
     analogClock->breakLengthAlarmMinutes = breakLengthTimerLength;
+
     ui->warningLabel->setText("");
     ui->warningLabel->setStyleSheet("QLabel { color : red; }");
+    ui->warningLabelCuesheet->setText("");
+    ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
 
     // LYRICS TAB ------------
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
 
-    analogClock->setTimerLabel(ui->warningLabel);  // tell the clock which label to use for the patter timer
+    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
 
     // read list of calls (in application bundle on Mac OS X)
     // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
@@ -582,24 +590,86 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #endif
 
-    // Make menu items mutually exclusive
+    // -----------------------
+    // Make SD menu items for checker style mutually exclusive
     QList<QAction*> actions = ui->menuSequence->actions();
-    //    qDebug() << "ACTIONS:" << actions;
+    //    qDebug() << "ACTIONS 1:" << actions;
 
-    sdActionGroup1 = new QActionGroup(this);
+    sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
 
-    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
-    //   Is there a better way to do this?
-    sdActionGroup1->addAction(actions[4]);  // NORMAL
-    sdActionGroup1->addAction(actions[5]);  // Color only
-    sdActionGroup1->addAction(actions[6]);  // Mental image
-    sdActionGroup1->addAction(actions[7]);  // Sight
+    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
+    sdActionGroup2->setExclusive(true);
+
+//    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
+//    //   Is there a better way to do this?
+//#define NORMALNUM (3)
+//    sdActionGroup1->addAction(actions[NORMALNUM]);      // NORMAL
+//    sdActionGroup1->addAction(actions[NORMALNUM+1]);    // Color only
+//    sdActionGroup1->addAction(actions[NORMALNUM+2]);    // Mental image
+//    sdActionGroup1->addAction(actions[NORMALNUM+3]);    // Sight
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
+    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
+
+    // let's look through the items in the SD menu
+    QStringList ag1, ag2;
+    ag1 << "Normal" << "Color only" << "Mental image" << "Sight";
+    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
+
+    foreach (QAction *action, ui->menuSequence->actions()) {
+        if (action->isSeparator()) {
+//            qDebug() << "separator";
+        } else if (action->menu()) {
+//            qDebug() << "item with submenu: " << action->text();
+            // iterating just one level down
+            foreach (QAction *action2, action->menu()->actions()) {
+                if (action2->isSeparator()) {
+//                    qDebug() << "     separator";
+                } else if (action2->menu()) {
+//                    qDebug() << "     item with submenu: " << action2->text();
+                } else {
+//                    qDebug() << "     item: " << action2->text();
+                    if (ag2.contains(action2->text()) ) {
+                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
+                        action2->setCheckable(true); // all these items are checkable
+                        if (action2->text() == "Plus") {
+                            action2->setChecked(true);   // initially only PLUS is checked
+                        }
+                    }
+                }
+            }
+        } else {
+//            qDebug() << "item: " << action->text();
+            if (ag1.contains(action->text()) ) {
+                sdActionGroup1->addAction(action); // ag1 are all mutually exclusive, and are all at top level
+            }
+        }
+    }
+
+    // -----------------------
+//    // Make SD menu items for GUI level mutually exclusive
+//    QList<QAction*> actions2 = ui->menuSequence->actions();
+//    qDebug() << "ACTIONS 2:" << actions2;
+
+//    sdActionGroup2 = new QActionGroup(this);
+//    sdActionGroup2->setExclusive(true);
+
+//    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
+//    //   Is there a better way to do this?
+//#define BASICNUM (0)
+//    sdActionGroup2->addAction(actions2[BASICNUM]);      // Basic
+//    sdActionGroup2->addAction(actions2[BASICNUM+1]);    // Mainstream
+//    sdActionGroup2->addAction(actions2[BASICNUM+2]);    // Plus
+//    sdActionGroup2->addAction(actions2[BASICNUM+3]);    // A1
+//    sdActionGroup2->addAction(actions2[BASICNUM+4]);    // A2
+//    sdActionGroup2->addAction(actions2[BASICNUM+5]);    // C1
+//    sdActionGroup2->addAction(actions2[BASICNUM+6]);    // C2
+//    sdActionGroup2->addAction(actions2[BASICNUM+7]);    // C3a
+
+//    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
 
     QSettings settings;
-
 
     {
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
@@ -1115,7 +1185,7 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
-    on_actionSave_Lyrics_As_triggered();
+    saveLyricsAs();
 }
 
 
@@ -1176,7 +1246,7 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
 void MainWindow::on_menuLyrics_aboutToShow()
 {
     // only allow Save if it's not a template, and the doc was modified
-    ui->actionSave_Lyrics->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
+    ui->actionSave->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -1355,6 +1425,7 @@ void MainWindow::setFontSizes()
 
     font.setPointSize((preferredSmallFontSize + preferredNowPlayingSize)/2);
     ui->warningLabel->setFont(font);
+    ui->warningLabelCuesheet->setFont(font);
 }
 
 // ----------------------------------------------------------------------
@@ -2397,7 +2468,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->titleSearch->hasFocus() ||
                 ui->lineEditIntroTime->hasFocus() ||
                 ui->lineEditOutroTime->hasFocus() ||
-                ui->lineEditCountDownTimer->hasFocus()) &&
+                ui->lineEditCountDownTimer->hasFocus() ||
+                ui->textBrowserCueSheet->hasFocus()) &&
                 (KeyEvent->key() == Qt::Key_Escape) )
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
@@ -2461,6 +2533,8 @@ bool MainWindow::handleKeypress(int key, QString text)
             oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore, yes both of these are needed.
 
             // FIX: should we also stop editing of the songTable on ESC?
+
+            ui->textBrowserCueSheet->clearFocus();  // ESC should always get us out of editing lyrics/patter
 
             if (ui->labelSearch->text() != "" || ui->typeSearch->text() != "" || ui->titleSearch->text() != "") {
                 // clear the search fields, if there was something in them.  (First press of ESCAPE).
@@ -3169,6 +3243,9 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
+    QString fileType = filepath2SongType(MP3Filename);
+    bool fileTypeIsPatter = (fileType == "patter");
+
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
@@ -3213,12 +3290,19 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 break;
             }
         }
-        if (!foundExtension)
+        if (!foundExtension) {
             continue;
+        }
 
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
+
+//        qDebug() << "possibleCuesheets(): " << fileTypeIsPatter << filename << filepath2SongType(filename) << type;
+        if (fileTypeIsPatter && (type=="lyrics")) {
+            // if it's a patter MP3, then do NOT match it against anything in the lyrics folder
+            continue;
+        }
 
         QFileInfo fi(filename);
 
@@ -3308,7 +3392,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 }
 
-
 void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
 {
     hasLyrics = false;
@@ -3317,6 +3400,8 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
+
+//    qDebug() << "possibleCuesheets:" << possibleCuesheets;
 
     int defaultCuesheetIndex = 0;
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
@@ -3359,9 +3444,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     if (isPatter) {
         // ----- PATTER -----
         ui->menuLyrics->setTitle("Patter");
-        ui->actionPrint_Lyrics->setText("Print Patter...");
-        ui->actionSave_Lyrics->setText("Save Patter");
-        ui->actionSave_Lyrics_As->setText("Save Patter As...");
+//        ui->actionFilePrint->setText("Print Patter...");
+//        ui->actionSave_Lyrics->setText("Save Patter");
+//        ui->actionSave_Lyrics_As->setText("Save Patter As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Patter");
 
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -3404,9 +3489,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     } else {
         // ----- SINGING CALL -----
         ui->menuLyrics->setTitle("Lyrics");
-        ui->actionPrint_Lyrics->setText("Print Lyrics...");
-        ui->actionSave_Lyrics->setText("Save Lyrics");
-        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
+//        ui->actionFilePrint->setText("Print Lyrics...");
+//        ui->actionSave_Lyrics->setText("Save Lyrics");
+//        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -4772,11 +4857,13 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
             theItem->setText("");
         }
 
+        int lineCount = 1;
+        linesInCurrentPlaylist = 0;
+
         QTextStream in(&inputFile);
 
         if (PlaylistFileName.endsWith(".csv")) {
             // CSV FILE =================================
-            int lineCount = 1;
 
             QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
 
@@ -4826,8 +4913,6 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
         }
         else {
             // M3U FILE =================================
-            int lineCount = 1;
-
             while (!in.atEnd()) {
                 QString line = in.readLine();
 
@@ -4869,7 +4954,15 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
         }
 
         inputFile.close();
+        linesInCurrentPlaylist += songCount; // when non-zero, this enables saving of the current playlist
+//        qDebug() << "linesInCurrentPlaylist:" << linesInCurrentPlaylist;
 
+//        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
+        if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
+            // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
+            ui->actionSave->setEnabled(false);  // save playlist (TODO: doesn't remember current playlist name)
+            ui->actionSave_As->setEnabled(true);  // save playlist as...
+        }
     }
     else {
         // file didn't open...
@@ -5053,7 +5146,7 @@ void MainWindow::on_actionSave_Playlist_triggered()
     QString PlaylistFileName =
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
-                                     startingPlaylistDirectory,
+                                     startingPlaylistDirectory + "/playlist.csv",
                                      tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
                                      &preferred);  // preferred is CSV
     trapKeypresses = true;
@@ -5257,6 +5350,15 @@ void MainWindow::on_songTable_itemSelectionChanged()
         int currentNumberInt = currentNumberText.toInt();
         int playlistItemCount = PlaylistItemCount();
 
+        // this function is always called when playlist items are added or deleted, so
+        // figure out whether save/save as are enabled here
+        linesInCurrentPlaylist = playlistItemCount;
+//        qDebug() << "songTableItemSelectionChanged:" << playlistItemCount;
+        if (playlistItemCount > 0) {
+            ui->actionSave->setEnabled(true);
+            ui->actionSave_As->setEnabled(true);
+        }
+
         if (currentNumberText == "") {
             // if not in a Playlist then we can add it at Top or Bottom, that's it.
             ui->actionAt_TOP->setEnabled(true);
@@ -5303,6 +5405,10 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the pitches.  They are persistent within a session.
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
     }
+
+    linesInCurrentPlaylist = 0;
+    ui->actionSave->setDisabled(true);
+    ui->actionSave_As->setDisabled(true);
 
     sortByDefaultSortOrder();
 
@@ -5444,11 +5550,13 @@ int MainWindow::PlaylistItemCount() {
             playlistItemCount++;
         }
     }
+
     return (playlistItemCount);
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemToTop() {
+
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -6152,6 +6260,11 @@ void MainWindow::on_warningLabel_clicked() {
     analogClock->resetPatter();
 }
 
+void MainWindow::on_warningLabelCuesheet_clicked() {
+    // this one is clickable, too!
+    on_warningLabel_clicked();
+}
+
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD") {
@@ -6159,19 +6272,59 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         if (console != 0) {
             console->setFocus();
         }
-        ui->actionSave_Lyrics->setDisabled(true);
-        ui->actionSave_Lyrics_As->setDisabled(true);
-        ui->actionPrint_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics_As->setDisabled(true);
+//        ui->actionPrint_Lyrics->setDisabled(true);
+
+        ui->actionFilePrint->setEnabled(true); // FIX: when sequences can be printed
+        ui->actionFilePrint->setText("Print SD Sequence...");
+
+        ui->actionSave->setDisabled(true);      // sequences can't be saved (no default filename to save to)
+        ui->actionSave->setText("Save SD Sequence");        // greyed out
+        ui->actionSave_As->setDisabled(false);  // sequences can be saved
+        ui->actionSave_As->setText("Save SD Sequence As...");
     } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
                ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
         // Lyrics Tab ---------------
-        ui->actionPrint_Lyrics->setDisabled(false);
-        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
-        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+//        ui->actionPrint_Lyrics->setDisabled(false);
+//        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
+//        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
+        ui->actionFilePrint->setDisabled(false);
+
+        ui->actionSave->setEnabled(hasLyrics);      // lyrics/patter can be saved when there are lyrics to save
+        ui->actionSave_As->setEnabled(hasLyrics);   // lyrics/patter can be saved as when there are lyrics to save
+
+        if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+            ui->actionSave->setText("Save Lyrics"); // but greyed out, until modified
+            ui->actionSave_As->setText("Save Lyrics As...");  // greyed out until modified
+
+            ui->actionFilePrint->setText("Print Lyrics...");
+        } else {
+            ui->actionSave->setText("Save Patter"); // but greyed out, until modified
+            ui->actionSave_As->setText("Save Patter As...");  // greyed out until modified
+
+            ui->actionFilePrint->setText("Print Patter...");
+        }
+    } else if (ui->tabWidget->tabText(index) == "Music Player") {
+        ui->actionSave->setEnabled(linesInCurrentPlaylist != 0);      // playlist can be saved if there are >0 lines
+        ui->actionSave->setText("Save Playlist"); // but greyed out, until there is a playlist
+        ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
+        ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
+
+        ui->actionFilePrint->setEnabled(true);
+        ui->actionFilePrint->setText("Print Playlist...");
     } else  {
-        ui->actionPrint_Lyrics->setDisabled(true);
-        ui->actionSave_Lyrics->setDisabled(true);
-        ui->actionSave_Lyrics_As->setDisabled(true);
+        // dance programs, reference
+//        ui->actionPrint_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics->setDisabled(true);
+//        ui->actionSave_Lyrics_As->setDisabled(true);
+
+        ui->actionSave->setDisabled(true);      // dance programs etc can't be saved
+        ui->actionSave->setText("Save"); // but greyed out
+        ui->actionSave_As->setDisabled(true);  // patter can be saved as
+        ui->actionSave_As->setText("Save As...");  // greyed out
+
+        ui->actionFilePrint->setDisabled(true);
     }
 
     microphoneStatusUpdate();
@@ -6183,11 +6336,11 @@ void MainWindow::microphoneStatusUpdate() {
     if (ui->tabWidget->tabText(index) == "SD") {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: red");
-            ui->statusBar->showMessage("Microphone enabled for voice input (Level: PLUS)");
+            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             unmuteInputVolume();
         } else {
             ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled (Level: PLUS)");
+            ui->statusBar->showMessage("Microphone disabled (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             muteInputVolume();                      // disable all input from the mics
         }
     } else {
@@ -6607,6 +6760,59 @@ void MainWindow::showContextMenu(const QPoint &pt)
     delete menu;
 }
 
+void MainWindow::restartSDprocess(QString SDdanceLevel) {
+
+    if (sd) {
+        sd->kill();  // kill the current one, if there's already one running
+    }
+
+    currentSDKeyboardLevel = SDdanceLevel;  // remember it for the status message
+
+#if defined(Q_OS_MAC)
+    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#else
+    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
+    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
+    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
+#endif
+
+    // start sd as a process -----
+    QStringList SDargs;
+//    SDargs << "-help";  // this is an excellent place to start!
+//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
+      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
+           << "-lines" << "1000"
+           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
+           << SDdanceLevel;                                       // default level for sd
+    sd = new QProcess(Q_NULLPTR);
+
+    // Let's make an "sd" directory in the Music Directory
+    //  This will be used for storing sequences (until we move that into SQLite).
+    PreferencesManager prefsManager;
+    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
+
+    // if the sequences directory doesn't exist, create it
+    QDir dir(sequencesDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+
+    sd->setWorkingDirectory(sequencesDir);
+    sd->setProcessChannelMode(QProcess::MergedChannels);
+    sd->start(pathToSD, SDargs);
+
+    if (sd->waitForStarted() == false) {
+        qDebug() << "ERROR: sd did not start properly.";
+    } else {
+//        qDebug() << "sd started.";
+    }
+
+    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData, Qt::UniqueConnection);  // output data from sd (and don't make duplicate connections)
+    connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
+}
+
 void MainWindow::initSDtab() {
 
 #ifndef POCKETSPHINXSUPPORT
@@ -6647,7 +6853,7 @@ void MainWindow::initSDtab() {
     // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
     //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
     // TEST SD MANUALLY: ./sd
-    QString danceLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDVUILevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
 #if defined(POCKETSPHINXSUPPORT)
     unsigned int whichModel = 5365;
@@ -6658,9 +6864,9 @@ void MainWindow::initSDtab() {
     pathToPS += ".exe";   // executable has a different name on Win32
 #endif
 
-    // NOTE: <whichmodel>a.dic and <dancelevel>.jsgf MUST be in the same directory.
+    // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
-    QString pathToJSGF = danceLevel + ".jsgf";
+    QString pathToJSGF = currentSDVUILevel + ".jsgf";
 
 #if defined(Q_OS_MAC)
     // The acoustic models are one level up in the models subdirectory on MAC
@@ -6691,51 +6897,10 @@ void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
-#if defined(Q_OS_MAC)
-    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#else
-    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#endif
-
-    // start sd as a process -----
-    QStringList SDargs;
-//    SDargs << "-help";  // this is an excellent place to start!
-//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
-      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
-           << "-lines" << "1000"
-           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
-           << danceLevel;                                       // default level for sd
-    sd = new QProcess(Q_NULLPTR);
-
-    // Let's make an "sd" directory in the Music Directory
-    //  This will be used for storing sequences (until we move that into SQLite).
-    PreferencesManager prefsManager;
-    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
-
-    // if the sequences directory doesn't exist, create it
-    QDir dir(sequencesDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-
-    sd->setWorkingDirectory(sequencesDir);
-    sd->setProcessChannelMode(QProcess::MergedChannels);
-    sd->start(pathToSD, SDargs);
-
-    if (sd->waitForStarted() == false) {
-        qDebug() << "ERROR: sd did not start properly.";
-    } else {
-//        qDebug() << "sd started.";
-    }
-
-    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData);  // output data from sd
-    connect(console, &Console::getData, this, &MainWindow::writeSDData);      // input data to sd
+    restartSDprocess("plus"); // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
     highlighter = new Highlighter(console->document());
+
 #endif
 }
 
@@ -6848,6 +7013,14 @@ void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     renderArea->setCoupleColoringScheme(action->text());
+}
+
+void MainWindow::sdAction2Triggered(QAction * action) {
+//    qDebug() << "***** sdAction2Triggered()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    currentSDKeyboardLevel = action->text().toLower();   // convert to all lower case for SD
+    restartSDprocess(currentSDKeyboardLevel);  // convert to all lower case for sd restart
+    microphoneStatusUpdate();  // update status message, based on new keyboard SD level
 }
 
 void MainWindow::airplaneMode(bool turnItOn) {
@@ -7204,6 +7377,8 @@ void MainWindow::adjustFontSizes()
     currentFont.setPointSize((warningLabelFontSize));
     ui->warningLabel->setFont(currentFont);
     ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
+    ui->warningLabelCuesheet->setFont(currentFont);
+    ui->warningLabelCuesheet->setFixedWidth(5.5*warningLabelFontSize);
 
     // these are special BIG
     int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
@@ -7492,17 +7667,127 @@ void MainWindow::lyricsDownloadEnd() {
 #endif
 }
 
-void MainWindow::on_actionPrint_Lyrics_triggered()
+QString MainWindow::filepath2SongType(QString MP3Filename)
 {
-    QPrinter printer;
-    QPrintDialog printDialog(&printer, this);
-    if (printDialog.exec() == QDialog::Rejected) {
-        return;
+    // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+
+    MP3Filename.replace(QRegExp("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
+    QStringList parts = MP3Filename.split("/");
+
+    if (parts.length() <= 1) {
+        return("unknown");
+    } else {
+        QString folderTypename = parts[1];
+        if (songTypeNamesForPatter.contains(folderTypename)) {
+            return("patter");
+        } else if (songTypeNamesForSinging.contains(folderTypename)) {
+            return("singing");
+        } else if (songTypeNamesForCalled.contains(folderTypename)) {
+            return("called");
+        } else if (songTypeNamesForExtras.contains(folderTypename)) {
+            return("extras");
+        } else {
+            return(folderTypename);
+        }
     }
-    ui->textBrowserCueSheet->print(&printer);
 }
 
-void MainWindow::on_actionSave_Lyrics_triggered()
+void MainWindow::on_actionFilePrint_triggered()
+{
+    // this is the only tab that has printable content right now
+    // this is only a double-check (the menu item should be disabled when not on Lyrics/Patter
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+
+    int i = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        if (ui->tabWidget->tabText(i).endsWith("Lyrics")) {
+            printDialog.setWindowTitle("Print Cuesheet");
+        } else {
+            printDialog.setWindowTitle("Print Patter");
+        }
+
+        if (printDialog.exec() == QDialog::Rejected) {
+            return;
+        }
+
+        ui->textBrowserCueSheet->print(&printer);
+    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        QPrinter printer;
+        QPrintDialog printDialog(&printer, this);
+        printDialog.setWindowTitle("Print SD Sequence");
+
+        if (printDialog.exec() == QDialog::Rejected) {
+            return;
+        }
+
+        currentSequenceWidget->print(&printer);
+
+    } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        QPrinter printer;
+        QPrintDialog printDialog(&printer, this);
+        printDialog.setWindowTitle("Print Playlist");
+
+        if (printDialog.exec() == QDialog::Rejected) {
+            return;
+        }
+
+        QPainter painter;
+
+        painter.begin(&printer);
+
+        QFont font = painter.font();
+        font.setPixelSize(14);
+        painter.setFont(font);
+
+        // --------
+        QList<PlaylistExportRecord> exports;
+
+        // Iterate over the songTable to get all the info about the playlist
+        for (int i=0; i<ui->songTable->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+            QString playlistIndex = theItem->text();
+            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+            QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+            QString pitch = ui->songTable->item(i,kPitchCol)->text();
+            QString tempo = ui->songTable->item(i,kTempoCol)->text();
+
+            if (playlistIndex != "") {
+                // item HAS an index (that is, it is on the list, and has a place in the ordering)
+                // TODO: reconcile int here with float elsewhere on insertion
+                PlaylistExportRecord rec;
+                rec.index = playlistIndex.toInt();
+    //            rec.title = songTitle;
+                rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
+                rec.pitch = pitch;
+                rec.tempo = tempo;
+                exports.append(rec);
+            }
+        }
+
+        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+
+        QString toBePrinted = "PLAYLIST\n\n";
+
+        char buf[128];
+        // list is sorted here, in INDEX order
+        foreach (const PlaylistExportRecord &rec, exports)
+        {
+            QString baseName = rec.title;
+            baseName.replace(QRegExp("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
+
+            sprintf(buf, "%02d: %s\n", rec.index, baseName.toLatin1().data());
+            toBePrinted += buf;
+        }
+
+        //        painter.drawText(20, 20, 500, 500, Qt::AlignLeft|Qt::AlignTop, "Hello world!\nMore lines\n");
+        painter.drawText(20,20,500,500, Qt::AlignLeft|Qt::AlignTop, toBePrinted);
+
+        painter.end();
+    }
+}
+
+void MainWindow::saveLyrics()
 {
     // Save cuesheet to the current cuesheet filename...
     RecursionGuard dialog_guard(inPreferencesDialog);
@@ -7517,7 +7802,8 @@ void MainWindow::on_actionSave_Lyrics_triggered()
 
 }
 
-void MainWindow::on_actionSave_Lyrics_As_triggered()
+
+void MainWindow::saveLyricsAs()
 {
     // Ask me where to save it...
     RecursionGuard dialog_guard(inPreferencesDialog);
@@ -7546,7 +7832,7 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
     }
 
     QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save"),
+                                                    tr("Save"), // TODO: this could say Lyrics or Patter
                                                     maybeFilename,
                                                     tr("HTML (*.html)"));
     if (!filename.isNull())
@@ -7557,8 +7843,7 @@ void MainWindow::on_actionSave_Lyrics_As_triggered()
     }
 }
 
-
-void MainWindow::on_actionSave_SD_Sequence_As_triggered()
+void MainWindow::saveSequenceAs()
 {
     // Ask me where to save it...
     RecursionGuard dialog_guard(inPreferencesDialog);
@@ -7577,5 +7862,46 @@ void MainWindow::on_actionSave_SD_Sequence_As_triggered()
             stream.flush();
             file.close();
         }
+    }
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    int i = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        // playlist
+        on_actionSave_Playlist_triggered(); // really "Save As..."
+    } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        // lyrics/patter
+        saveLyrics();
+    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        // sequence
+        saveSequenceAs();  // intentionally ..As()
+    } else {
+        // dance program
+        // reference
+        // timers
+        // intentionally nothing...
+    }
+}
+
+
+void MainWindow::on_actionSave_As_triggered()
+{
+    int i = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        // playlist
+        on_actionSave_Playlist_triggered(); // really "Save As..."
+    } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        // lyrics/patter
+        saveLyricsAs();
+    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        // sequence
+        saveSequenceAs();  // intentionally ..As()
+    } else {
+        // dance program
+        // reference
+        // timers
+        // intentionally nothing...
     }
 }
