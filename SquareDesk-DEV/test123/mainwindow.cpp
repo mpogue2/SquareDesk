@@ -4998,9 +4998,12 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
         }
         else {
             // M3U FILE =================================
-            while (!in.atEnd()) {
-                QString line = in.readLine();
+            // to workaround old-style Mac files that have a bare "\r" (which readLine() can't handle)
+            //   in particular, iTunes exported playlists use this old format.
+            QStringList theWholeFile = in.readAll().replace("\r\n","\n").replace("\r","\n").split("\n");
 
+            foreach (const QString &line, theWholeFile) {
+//                qDebug() << "line:" << line;
                 if (line == "#EXTM3U") {
                     // ignore, it's the first line of the M3U file
                 }
@@ -5020,6 +5023,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                     // exit the loop early, if we find a match
                     for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
                         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+//                        qDebug() << "pathToMP3:" << pathToMP3;
                         if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
@@ -5035,8 +5039,10 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                 }
 
                 lineCount++;
-            }
-        }
+
+            } // for each line in the M3U file
+
+        } // else M3U file
 
         inputFile.close();
         linesInCurrentPlaylist += songCount; // when non-zero, this enables saving of the current playlist
