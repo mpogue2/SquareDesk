@@ -544,7 +544,7 @@ private:
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 
-    QElapsedTimer t1;  // used for simple timing operations
+    QElapsedTimer t1; //, t2;  // used for simple timing operations
     void startLongSongTableOperation(QString s);
     void stopLongSongTableOperation(QString s);  // use the same string each time
 
@@ -556,7 +556,7 @@ private:
 private:
     QHash<Qt::Key, KeyAction *> hotkeyMappings;
 public:
-    
+
 
     // Key actions:
     friend class KeyActionStopSong;

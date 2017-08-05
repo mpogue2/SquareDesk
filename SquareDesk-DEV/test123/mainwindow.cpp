@@ -2627,7 +2627,7 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_T:
             actionNextTab();
             break;
-#endif // #if 0 - temporarily leaving in 'til we agree on hotkey editing          
+#endif // #if 0 - temporarily leaving in 'til we agree on hotkey editing
 
         case Qt::Key_PageDown:
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
@@ -3170,32 +3170,44 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 QStringList splitIntoWords(const QString &str)
 {
     static QRegExp regexNotAlnum(QRegExp("\\W+"));
-    static QRegularExpression regexLettersAndNumbers("^([A-Z]+)([0-9].*)$");
-    static QRegularExpression regexNumbersAndLetters("^([0-9]+)([A-Z].*)$");
-    QStringList words = str.split(regexNotAlnum);
-    for (int i = 0; i < words.length(); ++i)
-    {
-        bool splitFurther = true;
 
-        while (splitFurther)
+    QStringList words = str.split(regexNotAlnum);
+
+    static QRegularExpression LetterNumber("[A-Z][0-9]|[0-9][A-Z]"); // do we need to split?  Most of the time, no.
+    QRegularExpressionMatch quickmatch(LetterNumber.match(str));
+
+    if (quickmatch.hasMatch()) {
+        static QRegularExpression regexLettersAndNumbers("^([A-Z]+)([0-9].*)$");
+        static QRegularExpression regexNumbersAndLetters("^([0-9]+)([A-Z].*)$");
+//        qDebug() << "quickmatch!";
+        // we gotta split it one word at a time
+//        words = str.split(regexNotAlnum);
+        for (int i = 0; i < words.length(); ++i)
         {
-            splitFurther = false;
-            QRegularExpressionMatch match(regexLettersAndNumbers.match(words[i]));
-            if (match.hasMatch())
+            bool splitFurther = true;
+
+            while (splitFurther)
             {
-                words.append(match.captured(1));
-                words[i] = match.captured(2);
-                splitFurther = true;
-            }
-            match = regexNumbersAndLetters.match(words[i]);
-            if (match.hasMatch())
-            {
-                splitFurther = true;
-                words.append(match.captured(1));
-                words[i] = match.captured(2);
+                splitFurther = false;
+                QRegularExpressionMatch match(regexLettersAndNumbers.match(words[i]));
+                if (match.hasMatch())
+                {
+                    words.append(match.captured(1));
+                    words[i] = match.captured(2);
+                    splitFurther = true;
+                }
+                match = regexNumbersAndLetters.match(words[i]);
+                if (match.hasMatch())
+                {
+                    splitFurther = true;
+                    words.append(match.captured(1));
+                    words[i] = match.captured(2);
+                }
             }
         }
     }
+    // else no splitting needed (e.g. it's already split, as is the case for most cuesheets)
+    //   so we skip the per-word splitting, and go right to sorting
     words.sort(Qt::CaseInsensitive);
     return words;
 }
@@ -3265,34 +3277,53 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         mp3Labelnum_short.remove(0,1);
     }
 
-    QList<QString> extensions;
-    QString dot(".");
-    for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
-    {
-        extensions.append(dot + cuesheet_file_extensions[i]);
-    }
+//    qDebug() << "load 2.1.1.0A: " << t2.elapsed() << "ms";
+
+//    QList<QString> extensions;
+//    QString dot(".");
+//    for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
+//    {
+//        extensions.append(dot + cuesheet_file_extensions[i]);
+//    }
 
     QListIterator<QString> iter(*pathStack);
     while (iter.hasNext()) {
+
         QString s = iter.next();
+//        qDebug() << "load 2.1.1.0A.1: " << t2.nsecsElapsed() << "ms, s:" << s;
+//        int extensionIndex = 0;
+
+//        // Is this a file extension we recognize as a cuesheet file?
+//        QListIterator<QString> extensionIterator(extensions);
+//        bool foundExtension = false;
+//        while (extensionIterator.hasNext())
+//        {
+//            extensionIndex++;
+//            QString extension(extensionIterator.next());
+//            if (s.endsWith(extension))
+//            {
+//                foundExtension = true;
+//                break;
+//            }
+//        }
+
+//        bool foundExtension0 = s.endsWith("htm");
+//        bool foundExtension1 = s.endsWith("html");
+//        bool foundExtension2 = s.endsWith("txt");
+
         int extensionIndex = 0;
 
-        // Is this a file extension we recognize as a cuesheet file?
-        QListIterator<QString> extensionIterator(extensions);
-        bool foundExtension = false;
-        while (extensionIterator.hasNext())
-        {
-            extensionIndex++;
-            QString extension(extensionIterator.next());
-            if (s.endsWith(extension))
-            {
-                foundExtension = true;
-                break;
-            }
-        }
-        if (!foundExtension) {
+        if (s.endsWith("htm")) {
+            // nothing
+        } else if (s.endsWith("html")) {
+            extensionIndex = 1;
+        } else if (s.endsWith("txt")) {
+            extensionIndex = 2;
+        } else {
             continue;
         }
+
+//        qDebug() << "load 2.1.1.0A.2: " << t2.nsecsElapsed() << "ms";
 
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
@@ -3304,12 +3335,19 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             continue;
         }
 
+//        if (type=="choreography" || type == "sd" || type=="reference") {
+//            // if it's a dance program .txt file, or an sd sequence file, or a reference .txt file, don't bother trying to match
+//            continue;
+//        }
+
         QFileInfo fi(filename);
 
         if (fi.canonicalPath() == musicRootPath && type.right(1) != "*") {
             // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
             type = "";
         }
+
+//        qDebug() << "load 2.1.1.0A.3: " << t2.nsecsElapsed() << "ms";
 
         QString label = "";
         QString labelnum = "";
@@ -3319,13 +3357,18 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
+//        qDebug() << "   load 2.1.1.0A.3a: " << t2.nsecsElapsed() << "ms";
         breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
+//        qDebug() << "   load 2.1.1.0A.3b: " << t2.nsecsElapsed() << "ms";
         QStringList words = splitIntoWords(completeBaseName);
+//        qDebug() << "   load 2.1.1.0A.3c: " << t2.nsecsElapsed() << "ms, words:" << words;
         QString labelnum_short = labelnum;
         while (labelnum_short.length() > 0 && labelnum_short[0] == '0')
         {
             labelnum_short.remove(0,1);
         }
+
+//        qDebug() << "load 2.1.1.0A.4: " << t2.nsecsElapsed() << "ms";
 
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
 //        qDebug() << "           " << title << " to " << mp3Title;
@@ -3364,6 +3407,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             cswr->name = completeBaseName;
             cswr->score = score;
             possibleRankings.append(cswr);
+//            qDebug() << "load 2.1.1.0A.5a: " << t2.elapsed() << "ms";
         } /* end of if we minimally included this cuesheet */
         else if ((score = compareSortedWordListsForRelevance(mp3Words, words)) > 0)
         {
@@ -3372,14 +3416,19 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             cswr->name = completeBaseName;
             cswr->score = score;
             possibleRankings.append(cswr);
+//            qDebug() << "load 2.1.1.0A.5b: " << t2.elapsed() << "ms";
         }
     } /* end of looping through all files we know about */
+
+//    qDebug() << "load 2.1.1.0B: " << t2.elapsed() << "ms";
 
     QString mp3Lyrics = loadLyrics(MP3Filename);
     if (mp3Lyrics.length())
     {
         possibleCuesheets.append(MP3Filename);
     }
+
+//    qDebug() << "load 2.1.1.0C: " << t2.elapsed() << "ms";
 
     qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
     QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
@@ -3390,6 +3439,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         delete cswr;
     }
 
+//    qDebug() << "load 2.1.1.0D: " << t2.elapsed() << "ms";
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
@@ -3399,7 +3449,10 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     QString HTML;
 
     QStringList possibleCuesheets;
+//    qDebug() << "load 2.1.1.0: " << t2.elapsed() << "ms";
+
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
+
 
 //    qDebug() << "possibleCuesheets:" << possibleCuesheets;
 
@@ -3425,6 +3478,8 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
         ui->comboBoxCuesheetSelector->addItem(displayName,
                                               cuesheet);
     }
+
+//    qDebug() << "load 2.1.2: " << t2.elapsed() << "ms";
 
     if (ui->comboBoxCuesheetSelector->count() > 0)
     {
@@ -3530,6 +3585,9 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     #endif
         } // else (lyrics could not be found)
     } // isPatter
+
+//    qDebug() << "load 2.1.3: " << t2.elapsed() << "ms";
+
 }
 
 
@@ -3575,7 +3633,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->toolButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
 
+//    qDebug() << "load 2.1: " << t2.elapsed() << "ms";
+
     loadCuesheets(MP3FileName);
+
+//    qDebug() << "load 2.2: " << t2.elapsed() << "ms";
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
@@ -3597,6 +3659,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     cBass.StreamCreate(MP3FileName.toStdString().c_str());
 
+//    qDebug() << "load 2.3: " << t2.elapsed() << "ms";
+
     QStringList ss = MP3FileName.split('/');
     QString fn = ss.at(ss.size()-1);
     this->setWindowTitle(fn + QString(" - SquareDesk MP3 Player/Editor"));
@@ -3612,6 +3676,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
 
     baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
+
+//    qDebug() << "load 2.4: " << t2.elapsed() << "ms";
 
     // Intentionally compare against a narrower range here than BPM detection, because BPM detection
     //   returns a number at the limits, when it's actually out of range.
@@ -3658,6 +3724,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
                                  ", base tempo: 100%");
     }
+//    qDebug() << "load 2.5: " << t2.elapsed() << "ms";
 
     fileModified = false;
 
@@ -3696,8 +3763,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     cBass.Stop();
 
+//    qDebug() << "load 2.6: " << t2.elapsed() << "ms";
+
     songLoaded = true;
     Info_Seekbar(true);
+
+//    qDebug() << "load 2.7: " << t2.elapsed() << "ms";
 
     bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
                          songTypeNamesForCalled.contains(songType);
@@ -3744,7 +3815,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     previousVolume = 100;
     Info_Volume();
 
+//    qDebug() << "load 2.8: " << t2.elapsed() << "ms";
+
     loadSettingsForSong(songTitle);
+
+//    qDebug() << "load 2.9: " << t2.elapsed() << "ms";
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -4501,8 +4576,12 @@ void MainWindow::on_titleSearch_textChanged()
 
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
+//    t2.start(); // DEBUG
+
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();
+
+//    qDebug() << "load 1: " << t2.elapsed() << "ms";
 
     int row = item->row();
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
@@ -4516,7 +4595,11 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     QString pitch = ui->songTable->item(row,kPitchCol)->text();
     QString tempo = ui->songTable->item(row,kTempoCol)->text();
 
+//    qDebug() << "load 2: " << t2.elapsed() << "ms";
+
     loadMP3File(pathToMP3, songTitle, songType);
+
+//    qDebug() << "load 3: " << t2.elapsed() << "ms";
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
@@ -4534,6 +4617,8 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
+
+//    qDebug() << "load 4: " << t2.elapsed() << "ms";
 }
 
 void MainWindow::on_actionClear_Search_triggered()
