@@ -123,7 +123,7 @@ void MySlider::paintEvent(QPaintEvent *e)
 
     if (singingCall) {
         QPen pen;
-        pen.setWidth(3);
+        pen.setWidth(7);
 
         int middle = height/2;
 #if defined(Q_OS_WIN)
@@ -133,7 +133,9 @@ void MySlider::paintEvent(QPaintEvent *e)
         middle += 2;  // only on Windows...
 #endif
         QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
-        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
+//        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
+        QColor colors[3] = { Qt::red, Qt::darkGray, Qt::darkBlue };
+
         float left = 1;
         float right = width + offset + 5;
 #if defined(Q_OS_MAC)
