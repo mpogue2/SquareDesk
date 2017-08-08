@@ -180,7 +180,6 @@ void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
     
     for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
     {
-        qDebug() << "row" << row;
         int selectedKeyRow = 0;
         QComboBox *comboBox = dynamic_cast<QComboBox *>(ui->tableWidgetKeyBindings->cellWidget(row, 1));
         auto keyName = ui->tableWidgetKeyBindings->item(row,0)->text();
