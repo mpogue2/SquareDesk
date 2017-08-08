@@ -4650,7 +4650,9 @@ void MainWindow::on_actionPreferences_triggered()
     prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.populatePreferencesDialog(prefDialog);
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
-
+    SessionDefaultType previousSessionDefaultType =
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
+    
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
@@ -4665,6 +4667,14 @@ void MainWindow::on_actionPreferences_triggered()
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
 
+        if (previousSessionDefaultType !=
+            static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
+        {
+            setCurrentSessionId((SessionDefaultPractice ==
+                                 static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())) ?
+                                1 : songSettings.currentDayOfWeek() + 1);
+        }
+        
         findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
