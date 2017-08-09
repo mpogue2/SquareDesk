@@ -764,7 +764,8 @@ void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
                 QApplication::focusWidget()->clearFocus();  // BOGUS
             }
         } else {
-            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE
+//            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE;  RESTORE DISABLED because it crashes
+                                          //  if leave app with # open for edit and come back in
         }
         justWentActive = false;  // this was a one-shot deal.
     } else {
