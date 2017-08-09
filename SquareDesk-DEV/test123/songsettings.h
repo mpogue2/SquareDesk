@@ -129,6 +129,7 @@ public:
     void setCallTaught(const QString &program, const QString &call_name);
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls(const QString &program);
+    int currentDayOfWeek();
 
 
 private:

@@ -228,8 +228,13 @@ TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 SongSettings::SongSettings() :
     databaseOpened(false)
 {
+    current_session_id = currentDayOfWeek() + 1;
+}
+
+int SongSettings::currentDayOfWeek()
+{
     QDate date(QDate::currentDate());
-    current_session_id = date.dayOfWeek() + 1;
+    return date.dayOfWeek();
 }
 
 static const char *default_session_names[] =
