@@ -513,6 +513,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
+    connect(ui->songTable->horizontalHeader(),&QHeaderView::sortIndicatorChanged,
+            this, &MainWindow::columnHeaderSorted);
 
     resize(QDesktopWidget().availableGeometry(this).size() * 0.7);  // initial size is 70% of screen
 
@@ -709,8 +711,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
     ui->songTable->setColumnWidth(kAgeCol, 36);
-    ui->songTable->setColumnWidth(kPitchCol,50);
-    ui->songTable->setColumnWidth(kTempoCol,50);
+    ui->songTable->setColumnWidth(kPitchCol,60);
+    ui->songTable->setColumnWidth(kTempoCol,60);
 
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
 
@@ -5925,6 +5927,14 @@ void MainWindow::revealInFinder()
     }
 }
 
+void MainWindow::columnHeaderSorted(int logicalIndex, Qt::SortOrder order)
+{
+    Q_UNUSED(logicalIndex)
+    Q_UNUSED(order)
+    adjustFontSizes();  // when sort triangle is added, columns need to adjust width a bit...
+}
+
+
 void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int newSize)
 {
     int x1,y1,w1,h1;
@@ -7401,14 +7411,18 @@ void MainWindow::adjustFontSizes()
 
 //    qDebug() << "currentFontPointSize: " << currentFontPointSize;
 
-//    ui->songTable->resizeColumnToContents(0);  // nope
-    ui->songTable->resizeColumnToContents(1);
-    ui->songTable->resizeColumnToContents(2);
-    // 3/4/5/6 = nope
+//    ui->songTable->resizeColumnToContents(kNumberCol);  // nope
+    ui->songTable->resizeColumnToContents(kTypeCol);
+    ui->songTable->resizeColumnToContents(kLabelCol);
+    // kTitleCol = nope
 
-    ui->songTable->setColumnWidth(4, 3.5*currentFontPointSize);
-    ui->songTable->setColumnWidth(5, 3.5*currentFontPointSize);
-    ui->songTable->setColumnWidth(6, 4*currentFontPointSize);
+    // give a little extra space when sorted...
+    int sortedSection = ui->songTable->horizontalHeader()->sortIndicatorSection();
+
+    // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kAgeCol, (3.5+(sortedSection==kAgeCol?0.5:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
+    ui->songTable->setColumnWidth(kPitchCol, (4+(sortedSection==kPitchCol?0.5:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
+    ui->songTable->setColumnWidth(kTempoCol, (4.5+(sortedSection==kTempoCol?0.9:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
 
     ui->typeSearch->setFixedHeight(2*currentFontPointSize);
     ui->labelSearch->setFixedHeight(2*currentFontPointSize);
@@ -7484,10 +7498,6 @@ void MainWindow::adjustFontSizes()
     ui->previousSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
     ui->nextSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
 }
-
-#define SMALLESTZOOM (11)
-#define BIGGESTZOOM (25)
-#define ZOOMINCREMENT (2)
 
 void MainWindow::usePersistentFontSize() {
     PreferencesManager prefsManager;
