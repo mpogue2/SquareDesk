@@ -606,12 +606,12 @@ Click on a color square to change the color associated with that Music Type.  Se
           <widget class="QTableWidget" name="tableWidgetKeyBindings">
            <column>
             <property name="text">
-             <string>Key</string>
+             <string>Action</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Action</string>
+             <string>Key</string>
             </property>
            </column>
           </widget>

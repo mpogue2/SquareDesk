@@ -311,7 +311,7 @@ QVector<KeyAction*> KeyAction::availableActions()
 {
     QVector<KeyAction*> actions;
     
-    actions.append(&keyaction_KeyActionUnassignedNoAction);
+//    actions.append(&keyaction_KeyActionUnassignedNoAction);
     actions.append(&keyaction_KeyActionStopSong);
     actions.append(&keyaction_KeyActionPlaySong);
     actions.append(&keyaction_KeyActionRestartSong);
@@ -411,6 +411,7 @@ QHash<Qt::Key, KeyAction *> KeyAction::defaultKeyToActionMappings()
     keyMappings[Qt::Key_S] = &keyaction_KeyActionStopSong;
     keyMappings[Qt::Key_T] = &keyaction_KeyActionNextTab;
     keyMappings[Qt::Key_U] = &keyaction_KeyActionPitchPlus;
+    keyMappings[Qt::Key_Y] = &keyaction_KeyActionFadeOut;
     return keyMappings;
 }
 
