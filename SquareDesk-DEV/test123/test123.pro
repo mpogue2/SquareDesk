@@ -208,8 +208,9 @@ macx {
     copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
     copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
     copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
 
-    first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
+    first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 
     export(first.depends)
     export(copydata10.commands)
@@ -221,8 +222,9 @@ macx {
     export(copydata11f.commands)
     export(copydata11g.commands)
     export(copydata11h.commands)
+    export(copydata12h.commands)
 
-    QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
+    QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 }
 
 win32 {

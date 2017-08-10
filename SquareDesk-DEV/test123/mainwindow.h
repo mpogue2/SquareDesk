@@ -233,6 +233,7 @@ private slots:
     void revealInFinder();
 
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
+    void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
 
     void on_warningLabel_clicked();
     void on_warningLabelCuesheet_clicked();
@@ -484,7 +485,7 @@ private:
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
 
     // experimental break and patter timers
-    bool tipLengthTimerEnabled, breakLengthTimerEnabled;
+    bool tipLengthTimerEnabled, breakLengthTimerEnabled, tipLength30secEnabled;
     unsigned int tipLengthTimerLength, breakLengthTimerLength;
     unsigned int tipLengthAlarmAction, breakLengthAlarmAction;
 
@@ -600,6 +601,11 @@ public:
 // hidden columns:
 #define kPitchCol 5
 #define kTempoCol 6
+
+// font sizes
+#define SMALLESTZOOM (11)
+#define BIGGESTZOOM (25)
+#define ZOOMINCREMENT (2)
 
 
 // columns in tableViewCallList

@@ -370,6 +370,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------------------------------------------
     // Save the new settings for experimental break and patter timers --------
     tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
+    tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
     int tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
     tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
 
@@ -378,6 +379,7 @@ MainWindow::MainWindow(QWidget *parent) :
     breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 
     analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;      // tell the clock whether the patter alarm is enabled
+    analogClock->tipLength30secEnabled = tipLength30secEnabled;      // tell the clock whether the patter 30 sec warning is enabled
     analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;  // tell the clock whether the break alarm is enabled
 
     // ----------------------------------------------
@@ -513,6 +515,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
+    connect(ui->songTable->horizontalHeader(),&QHeaderView::sortIndicatorChanged,
+            this, &MainWindow::columnHeaderSorted);
 
     resize(QDesktopWidget().availableGeometry(this).size() * 0.7);  // initial size is 70% of screen
 
@@ -528,7 +532,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->titleSearch->setFocus();  // this should be the intial focus
 
 #ifdef DEBUGCLOCK
-    analogClock->tipLengthAlarmMinutes = 5;  // FIX FIX FIX
+    analogClock->tipLengthAlarmMinutes = 10;  // FIX FIX FIX
     analogClock->breakLengthAlarmMinutes = 10;
 #endif
     analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
@@ -709,8 +713,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
     ui->songTable->setColumnWidth(kAgeCol, 36);
-    ui->songTable->setColumnWidth(kPitchCol,50);
-    ui->songTable->setColumnWidth(kTempoCol,50);
+    ui->songTable->setColumnWidth(kPitchCol,60);
+    ui->songTable->setColumnWidth(kTempoCol,60);
 
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
 
@@ -764,7 +768,8 @@ void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
                 QApplication::focusWidget()->clearFocus();  // BOGUS
             }
         } else {
-            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE
+//            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE;  RESTORE DISABLED because it crashes
+                                          //  if leave app with # open for edit and come back in
         }
         justWentActive = false;  // this was a one-shot deal.
     } else {
@@ -2341,12 +2346,20 @@ void MainWindow::on_UIUpdateTimerTick(void)
 #ifndef DEBUGCLOCK
     analogClock->setSegment(time.hour(), time.minute(), time.second(), theType);  // always called once per second
 #else
-    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
+//    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
+    analogClock->setSegment(time.minute(), time.second(), 0, theType);  // DEBUG DEBUG DEBUG
 #endif
 
     // ------------------------
     // Sounds associated with Tip and Break Timers (one-shots)
     newTimerState = analogClock->currentTimerState;
+
+    if ((newTimerState & THIRTYSECWARNING)&&!(oldTimerState & THIRTYSECWARNING)) {
+        // one-shot transition to 30 second warning
+        if (tipLength30secEnabled) {
+            playSFX("thirty_second_warning");  // play this file (once), if warning enabled and we cross T-30 boundary
+        }
+    }
 
     if ((newTimerState & LONGTIPTIMEREXPIRED)&&!(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
@@ -4737,7 +4750,7 @@ void MainWindow::on_actionPreferences_triggered()
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
     SessionDefaultType previousSessionDefaultType =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
-    
+
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
@@ -4759,7 +4772,7 @@ void MainWindow::on_actionPreferences_triggered()
                                  static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())) ?
                                 1 : songSettings.currentDayOfWeek() + 1);
         }
-        
+
         findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
@@ -4810,6 +4823,7 @@ void MainWindow::on_actionPreferences_triggered()
         // -----------------------------------------------------------------------
         // Save the new settings for experimental break and patter timers --------
         tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();  // save new settings in MainWindow, too
+        tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
         tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
         tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
 
@@ -4819,6 +4833,7 @@ void MainWindow::on_actionPreferences_triggered()
 
         // and tell the clock, too.
         analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
+        analogClock->tipLength30secEnabled = tipLength30secEnabled;
         analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
 
         analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
@@ -5933,6 +5948,14 @@ void MainWindow::revealInFinder()
         // more than 1 row or no rows at all selected (BAD)
     }
 }
+
+void MainWindow::columnHeaderSorted(int logicalIndex, Qt::SortOrder order)
+{
+    Q_UNUSED(logicalIndex)
+    Q_UNUSED(order)
+    adjustFontSizes();  // when sort triangle is added, columns need to adjust width a bit...
+}
+
 
 void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int newSize)
 {
@@ -7355,6 +7378,14 @@ void MainWindow::maybeInstallSoundFX() {
         QFile::copy(source, destination);
     }
 
+    // check for thirty_second_warning.mp3 and copy it in, if it doesn't exist already
+    QFile thirtySecSound(soundfxDir + "/thirty_second_warning.mp3");
+    if (!thirtySecSound.exists()) {
+        QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/thirty_second_warning.mp3";
+        QString destination = soundfxDir + "/thirty_second_warning.mp3";
+        QFile::copy(source, destination);
+    }
+
     // check for individual soundFX files, and copy in a starter-set sound, if one doesn't exist,
     // which is checked when the App starts, and when the Startup Wizard finishes setup.  In which case, we
     //   only want to copy files into the soundfx directory if there aren't already files there.
@@ -7410,14 +7441,18 @@ void MainWindow::adjustFontSizes()
 
 //    qDebug() << "currentFontPointSize: " << currentFontPointSize;
 
-//    ui->songTable->resizeColumnToContents(0);  // nope
-    ui->songTable->resizeColumnToContents(1);
-    ui->songTable->resizeColumnToContents(2);
-    // 3/4/5/6 = nope
+//    ui->songTable->resizeColumnToContents(kNumberCol);  // nope
+    ui->songTable->resizeColumnToContents(kTypeCol);
+    ui->songTable->resizeColumnToContents(kLabelCol);
+    // kTitleCol = nope
 
-    ui->songTable->setColumnWidth(4, 3.5*currentFontPointSize);
-    ui->songTable->setColumnWidth(5, 3.5*currentFontPointSize);
-    ui->songTable->setColumnWidth(6, 4*currentFontPointSize);
+    // give a little extra space when sorted...
+    int sortedSection = ui->songTable->horizontalHeader()->sortIndicatorSection();
+
+    // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kAgeCol, (3.5+(sortedSection==kAgeCol?0.5:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
+    ui->songTable->setColumnWidth(kPitchCol, (4+(sortedSection==kPitchCol?0.5:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
+    ui->songTable->setColumnWidth(kTempoCol, (4.5+(sortedSection==kTempoCol?0.9:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
 
     ui->typeSearch->setFixedHeight(2*currentFontPointSize);
     ui->labelSearch->setFixedHeight(2*currentFontPointSize);
@@ -7493,10 +7528,6 @@ void MainWindow::adjustFontSizes()
     ui->previousSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
     ui->nextSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
 }
-
-#define SMALLESTZOOM (11)
-#define BIGGESTZOOM (25)
-#define ZOOMINCREMENT (2)
 
 void MainWindow::usePersistentFontSize() {
     PreferencesManager prefsManager;

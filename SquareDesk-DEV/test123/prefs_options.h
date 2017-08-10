@@ -59,6 +59,7 @@ CONFIG_ATTRIBUTE_COLOR(calledColorButton,  calledColorString,  DEFAULTCALLEDCOLO
 CONFIG_ATTRIBUTE_COLOR(extrasColorButton,  extrasColorString,  DEFAULTEXTRASCOLOR)
 
 CONFIG_ATTRIBUTE_BOOLEAN(longTipCheckbox,tipLengthTimerEnabled, false)
+CONFIG_ATTRIBUTE_BOOLEAN(thirtySecWarningCheckbox,tipLength30secEnabled, false)
 CONFIG_ATTRIBUTE_COMBO(longTipLength,tipLengthTimerLength, 7)
 CONFIG_ATTRIBUTE_COMBO(afterLongTipAction,tipLengthAlarmAction, 0)
 CONFIG_ATTRIBUTE_BOOLEAN(breakTimerCheckbox, breakLengthTimerEnabled, false)
