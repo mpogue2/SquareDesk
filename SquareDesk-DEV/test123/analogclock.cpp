@@ -77,8 +77,12 @@ void AnalogClock::redrawTimerExpired()
     // BREAK timer is a count-down timer to 00:00 (end of break)
     //   but it keeps on counting
 
-    // DEBUG: change to 1
+    // DEBUG: change to 5 seconds per minute of patter, just for debugging
+#ifdef DEBUGCLOCK
+#define SECSPERMIN  5
+#else
 #define SECSPERMIN  60
+#endif
 
     int breakLengthSecs = typeTracker.currentBreakLength();
     int b_secs = breakLengthAlarmMinutes*SECSPERMIN - breakLengthSecs;  // seconds to go in the break; to debug, change 60 to 5
@@ -172,6 +176,14 @@ void AnalogClock::redrawTimerExpired()
 
             currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
+
+#ifdef DEBUGCLOCK
+            qDebug() << "30 sec warning: " << patterLengthSecs << maxPatterLength-30;
+#endif
+            if (patterLengthSecs > maxPatterLength-30) {
+                currentTimerState |= THIRTYSECWARNING;  // set
+            }
+
         } else if (patterLengthSecs < maxPatterLength + 15) {  // it will be red for 15 seconds, before also starting to flash "LONG TIP"
 //            qDebug() << "patter OVER the time limit";
             // OVER THE TIME LIMIT, so make the time-in-patter RED.

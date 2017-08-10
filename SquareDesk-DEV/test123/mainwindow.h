@@ -485,7 +485,7 @@ private:
     QString patterColorString, singingColorString, calledColorString, extrasColorString;  // current values
 
     // experimental break and patter timers
-    bool tipLengthTimerEnabled, breakLengthTimerEnabled;
+    bool tipLengthTimerEnabled, breakLengthTimerEnabled, tipLength30secEnabled;
     unsigned int tipLengthTimerLength, breakLengthTimerLength;
     unsigned int tipLengthAlarmAction, breakLengthAlarmAction;
 

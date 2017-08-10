@@ -83,9 +83,10 @@
 #define TIMERNOTEXPIRED     (0x00)
 #define LONGTIPTIMEREXPIRED (0x01)
 #define BREAKTIMEREXPIRED   (0x02)
+#define THIRTYSECWARNING    (0x04)
 
 // set to speed up the clock by 60X
-#define DEBUGCLOCK 1
+//#define DEBUGCLOCK 1
 
 class AnalogClock : public QWidget
 {
@@ -108,6 +109,7 @@ public:
     bool breakLengthAlarm;
 
     bool tipLengthTimerEnabled;  // TODO: rename to patterLengthTimerEnabled
+    bool tipLength30secEnabled;  // TODO: rename
     int tipLengthAlarmMinutes;   // TODO: rename to patterLengthAlarmMinutes
     bool breakLengthTimerEnabled;
     int breakLengthAlarmMinutes;

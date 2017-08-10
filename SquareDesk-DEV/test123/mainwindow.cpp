@@ -370,6 +370,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------------------------------------------
     // Save the new settings for experimental break and patter timers --------
     tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
+    tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
     int tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
     tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
 
@@ -378,6 +379,7 @@ MainWindow::MainWindow(QWidget *parent) :
     breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
 
     analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;      // tell the clock whether the patter alarm is enabled
+    analogClock->tipLength30secEnabled = tipLength30secEnabled;      // tell the clock whether the patter 30 sec warning is enabled
     analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;  // tell the clock whether the break alarm is enabled
 
     // ----------------------------------------------
@@ -530,7 +532,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->titleSearch->setFocus();  // this should be the intial focus
 
 #ifdef DEBUGCLOCK
-    analogClock->tipLengthAlarmMinutes = 5;  // FIX FIX FIX
+    analogClock->tipLengthAlarmMinutes = 10;  // FIX FIX FIX
     analogClock->breakLengthAlarmMinutes = 10;
 #endif
     analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
@@ -2344,12 +2346,20 @@ void MainWindow::on_UIUpdateTimerTick(void)
 #ifndef DEBUGCLOCK
     analogClock->setSegment(time.hour(), time.minute(), time.second(), theType);  // always called once per second
 #else
-    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
+//    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
+    analogClock->setSegment(time.minute(), time.second(), 0, theType);  // DEBUG DEBUG DEBUG
 #endif
 
     // ------------------------
     // Sounds associated with Tip and Break Timers (one-shots)
     newTimerState = analogClock->currentTimerState;
+
+    if ((newTimerState & THIRTYSECWARNING)&&!(oldTimerState & THIRTYSECWARNING)) {
+        // one-shot transition to 30 second warning
+        if (tipLength30secEnabled) {
+            playSFX("thirty_second_warning");  // play this file (once), if warning enabled and we cross T-30 boundary
+        }
+    }
 
     if ((newTimerState & LONGTIPTIMEREXPIRED)&&!(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
@@ -4740,7 +4750,7 @@ void MainWindow::on_actionPreferences_triggered()
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
     SessionDefaultType previousSessionDefaultType =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
-    
+
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
@@ -4762,7 +4772,7 @@ void MainWindow::on_actionPreferences_triggered()
                                  static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())) ?
                                 1 : songSettings.currentDayOfWeek() + 1);
         }
-        
+
         findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
@@ -4813,6 +4823,7 @@ void MainWindow::on_actionPreferences_triggered()
         // -----------------------------------------------------------------------
         // Save the new settings for experimental break and patter timers --------
         tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();  // save new settings in MainWindow, too
+        tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
         tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
         tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
 
@@ -4822,6 +4833,7 @@ void MainWindow::on_actionPreferences_triggered()
 
         // and tell the clock, too.
         analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
+        analogClock->tipLength30secEnabled = tipLength30secEnabled;
         analogClock->tipLengthAlarmMinutes = tipLengthTimerLength;
 
         analogClock->breakLengthTimerEnabled = breakLengthTimerEnabled;
@@ -7363,6 +7375,14 @@ void MainWindow::maybeInstallSoundFX() {
     if (!longTipSound.exists()) {
         QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/long_tip.mp3";
         QString destination = soundfxDir + "/long_tip.mp3";
+        QFile::copy(source, destination);
+    }
+
+    // check for thirty_second_warning.mp3 and copy it in, if it doesn't exist already
+    QFile thirtySecSound(soundfxDir + "/thirty_second_warning.mp3");
+    if (!thirtySecSound.exists()) {
+        QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToStarterSet + "/thirty_second_warning.mp3";
+        QString destination = soundfxDir + "/thirty_second_warning.mp3";
         QFile::copy(source, destination);
     }
 
