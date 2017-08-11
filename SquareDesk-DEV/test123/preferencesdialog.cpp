@@ -88,6 +88,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     for (size_t row = 0; row < key_binding_count; ++row)
     {
         QTableWidgetItem *newTableItem(new QTableWidgetItem(QKeySequence(mappableKeys[row]).toString()));
+        newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);
         ui->tableWidgetKeyBindings->setItem(row, 0, newTableItem);
         QComboBox *comboBox(new QComboBox);
         for (auto action: availableActions)

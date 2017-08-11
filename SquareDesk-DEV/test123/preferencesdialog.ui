@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -611,7 +611,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </column>
            <column>
             <property name="text">
-             <string>Key</string>
+             <string>Hotkey</string>
             </property>
            </column>
           </widget>

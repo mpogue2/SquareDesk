@@ -42,7 +42,7 @@ QHash<Qt::Key, KeyAction *> PreferencesManager::GetHotkeyMappings()
 {
     QHash<Qt::Key, KeyAction *> mappings;
     QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
-    
+    QHash<Qt::Key, KeyAction*> defaultKeyToActionMappings(KeyAction::defaultKeyToActionMappings());
     QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
     
     for (auto key : mappableKeys)
@@ -54,6 +54,10 @@ QHash<Qt::Key, KeyAction *> PreferencesManager::GetHotkeyMappings()
             if (action != actions.end())
             {
                 mappings[key] = action.value();
+            }
+            else
+            {
+                mappings[key] = defaultKeyToActionMappings[key];
             }
         } // end of if we found the hotkey
     } // end of all of the mappable keys
