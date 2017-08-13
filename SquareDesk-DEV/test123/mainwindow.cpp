@@ -461,6 +461,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->volumeSlider->setEnabled(true);
     ui->volumeSlider->setValue(100);
+    ui->volumeSlider->SetOrigin(100);  // double click goes here
     ui->currentVolumeLabel->setText("Max");
     // FIX: initial focus is titleSearch, so the shortcuts for these menu items don't work
     //   at initial start.

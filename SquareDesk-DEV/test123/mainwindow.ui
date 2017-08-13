@@ -215,7 +215,7 @@
            <number>7</number>
           </property>
           <item row="4" column="2">
-           <widget class="QSlider" name="volumeSlider">
+           <widget class="MySlider" name="volumeSlider">
             <property name="enabled">
              <bool>false</bool>
             </property>

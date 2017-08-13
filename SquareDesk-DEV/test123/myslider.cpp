@@ -25,6 +25,7 @@
 
 #include "myslider.h"
 #include "QDebug"
+#include <QEvent>
 
 // ==========================================================================================
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
@@ -33,6 +34,22 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
     singingCall = false;
     SetDefaultIntroOutroPositions();
     origin = 0;
+
+    // install the wheel/scroll eater for ALL MySlider's
+    this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
+}
+
+bool MySlider::eventFilter(QObject *obj, QEvent *event)
+{
+    Q_UNUSED(obj)
+
+    //    qDebug() << "obj: " << obj << ", event: " << event->type();
+
+    if (event->type() == QEvent::Wheel || event->type() == QEvent::Scroll) {
+        // eat wheel and scroll events
+        return true;
+    }
+    return false;  // don't stop anything else
 }
 
 void MySlider::SetDefaultIntroOutroPositions()
