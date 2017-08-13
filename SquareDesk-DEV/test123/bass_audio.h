@@ -25,6 +25,7 @@
 
 #pragma once
 #include "bass.h"
+#include <QTimer>
 
 class bass_audio
 {
@@ -88,6 +89,9 @@ public:
     void PlayOrStopSoundEffect(int which, const char *filename, int volume = 100);
     void StopAllSoundEffects();
 
+    void StartVolumeDucking(int duckToPercent, float forSeconds);
+    void StopVolumeDucking();
+
     int  currentSoundEffectID;
 
     DWORD                           Stream_State;  // intentionally public // FIX: add getStreamState()
@@ -101,5 +105,4 @@ private:
     HFX fxEQ;     // dsp peaking eq handle
 
     HSYNC  syncHandle;
-    //-------------------------------------------------------------
 };
