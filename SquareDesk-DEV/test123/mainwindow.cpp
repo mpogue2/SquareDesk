@@ -4618,6 +4618,9 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
 
+    on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+                                           //   exactly the same as the previous value.  This will ensure that cBass.setPitch() gets called (right now) on the new stream.
+
     if (tempo != "0" && tempo != "0%") {
         // iff tempo is known, then update the table
         QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
