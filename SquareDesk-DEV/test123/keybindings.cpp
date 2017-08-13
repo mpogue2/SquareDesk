@@ -13,14 +13,14 @@ static const char * keyActionName_VolumeMinus = "Volume -";
 static const char * keyActionName_VolumePlus = "Volume +";
 static const char * keyActionName_TempoPlus = "Tempo +";
 static const char * keyActionName_TempoMinus = "Tempo -";
-static const char * keyActionName_PlayNext = "Play Next";
+static const char * keyActionName_PlayNext = "Load Next Song";
 static const char * keyActionName_Mute = "Mute";
 static const char * keyActionName_PitchPlus = "Pitch +";
 static const char * keyActionName_PitchMinus = "Pitch -";
 static const char * keyActionName_FadeOut  = "Fade Out";
 static const char * keyActionName_LoopToggle = "Loop Toggle";
-static const char * keyActionName_NextTab = "Next Tab";
-static const char * keyActionName_PlaySong = "Play Song";
+static const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
+static const char * keyActionName_PlaySong = "Play/Pause Song";
 
 // ----------------------------------------------------------------------
 
@@ -290,8 +290,8 @@ static KeyActionPlaySong keyaction_KeyActionPlaySong;
 static KeyActionRestartSong keyaction_KeyActionRestartSong;
 static KeyActionForward15Seconds keyaction_KeyActionForward15Seconds;
 static KeyActionBackward15Seconds keyaction_KeyActionBackward15Seconds;
-static KeyActionVolumeMinus keyaction_KeyActionVolumeMinus;
 static KeyActionVolumePlus keyaction_KeyActionVolumePlus;
+static KeyActionVolumeMinus keyaction_KeyActionVolumeMinus;
 static KeyActionTempoPlus keyaction_KeyActionTempoPlus;
 static KeyActionTempoMinus keyaction_KeyActionTempoMinus;
 static KeyActionPlayNext keyaction_KeyActionPlayNext;
