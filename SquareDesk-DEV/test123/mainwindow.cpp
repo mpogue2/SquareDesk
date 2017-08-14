@@ -2067,7 +2067,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 // blame https://stackoverflow.com/questions/4065378/qt-get-children-from-layout
 bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
 {
-   if (layout == NULL or widget == NULL)
+   if (layout == NULL || widget == NULL)
       return false;
 
    if (layout->indexOf(widget) >= 0)

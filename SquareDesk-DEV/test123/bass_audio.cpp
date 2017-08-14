@@ -54,7 +54,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
     float inL,inR;
     float mono;
 
-    const float PI_OVER_2 = 3.14159265/2.0;
+    const float PI_OVER_2 = (float)3.14159265/2.0;
     float theta = PI_OVER_2 * (gStream_Pan + 1.0)/2.0;  // convert to 0-PI/2
     float KL = cos(theta);
     float KR = sin(theta);
