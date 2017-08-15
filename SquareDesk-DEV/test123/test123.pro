@@ -110,9 +110,9 @@ win32:CONFIG(debug, debug|release): {
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
-    copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$shell_path($$OUT_PWD\debug)
-    copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$shell_path($$OUT_PWD\debug)
-    copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$shell_path($$OUT_PWD\debug)
+    copydata0a.commands = xcopy /q /y  $$shell_path($$PWD/lyrics.template.html) $$shell_path($$OUT_PWD\debug)
+    copydata0b.commands = xcopy /q /y  $$shell_path($$PWD/cuesheet2.css)        $$shell_path($$OUT_PWD\debug)
+    copydata0c.commands = xcopy /q /y  $$shell_path($$PWD/patter.template.html) $$shell_path($$OUT_PWD\debug)
     first.depends += $(first) copydata0a copydata0b copydata0c
     export(copydata0a.commands)
     export(copydata0b.commands)
