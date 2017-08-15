@@ -3355,11 +3355,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //        }
 
         QFileInfo fi(filename);
+//        QString fi2 = fi.canonicalPath();
 
-        if (fi.canonicalPath() == musicRootPath && type.right(1) != "*") {
-            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
-            type = "";
-        }
+//        if (fi2 == musicRootPath && type.right(1) != "*") {
+//            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
+//            type = "";
+//        }
 
 //        qDebug() << "load 2.1.1.0A.3: " << t2.nsecsElapsed() << "ms";
 
