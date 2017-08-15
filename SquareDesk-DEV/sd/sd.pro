@@ -12,8 +12,25 @@ export(copydata.commands)
 QMAKE_EXTRA_TARGETS += first copydata
 }
 
-#win32:CONFIG(debug, debug|release): {
-win32 {
+win32:CONFIG(debug, debug|release): {
+#win32 {
+    SOURCES += main.cpp  # this is just a dummy file
+    # Copy the sdtty.exe and sd_calls.dat to the test123 RELEASE dirs
+    # sdtty.exe was pre-compiled externally with the makeSDforWin32 script
+    copydata.commands = xcopy /q /y $$shell_path($$PWD/sdlib.dll) $$shell_path($$OUT_PWD\..\test123\debug)
+    copydata2.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\..\test123\debug)
+#    copydata3.commands = xcopy /q /y $$shell_path($$PWD/sdtty.exe) $$shell_path($$OUT_PWD\debug)
+    copydata4.commands = xcopy /q /y $$shell_path($$PWD/sdtty.exe) $$shell_path($$OUT_PWD\..\test123\debug)
+    first.depends = $(first) copydata copydata2 copydata4
+    export(first.depends)
+    export(copydata.commands)
+    export(copydata2.commands)
+#    export(copydata3.commands)
+    export(copydata4.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata4
+}
+
+win32:CONFIG(release, debug|release): {
     SOURCES += main.cpp  # this is just a dummy file
     # Copy the sdtty.exe and sd_calls.dat to the test123 RELEASE dirs
     # sdtty.exe was pre-compiled externally with the makeSDforWin32 script
@@ -29,6 +46,7 @@ win32 {
     export(copydata4.commands)
     QMAKE_EXTRA_TARGETS += first copydata copydata2 copydata4
 }
+
 
 #QMAKE_CXXFLAGS += -Wall -Wno-switch -Wno-uninitialized -Wno-char-subscripts -Wunused-parameter -Wunused-const-variable -Wunused-parameter
 #QMAKE_CXXFLAGS += -Wmissing-field-initializers -Wswitch -Wsometimes-uninitialized

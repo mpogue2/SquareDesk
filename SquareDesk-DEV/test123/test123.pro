@@ -261,7 +261,65 @@ macx {
     QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 }
 
-win32 {
+win32:CONFIG(debug, debug|release): {
+    # PS --------------------------------------------
+    # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
+    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
+    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/debug)
+    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/debug)
+    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/debug)
+
+    copydata7.commands = if not exist $$shell_path($$OUT_PWD/debug/models/en-us) mkdir $$shell_path($$OUT_PWD/debug/models/en-us)
+    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
+    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/debug/models/en-us)
+
+    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
+    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/debug)
+    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/debug)
+
+    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+
+    export(first.depends)
+    export(copydata4.commands)
+    export(copydata5.commands)
+    export(copydata6.commands)
+    export(copydata7.commands)
+    export(copydata8.commands)
+    export(copydata9.commands)
+    export(copydata10.commands)
+
+    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+
+    # SOUNDFX STARTER SET --------------------------------------------
+    copydata10b.commands = if not exist $$shell_path($$OUT_PWD/debug/soundfx) mkdir $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11a.commands = xcopy /q /y $$shell_path($$PWD/soundfx/1.whistle.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11b.commands = xcopy /q /y $$shell_path($$PWD/soundfx/2.clown_honk.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11c.commands = xcopy /q /y $$shell_path($$PWD/soundfx/3.submarine.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11d.commands = xcopy /q /y $$shell_path($$PWD/soundfx/4.applause.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11e.commands = xcopy /q /y $$shell_path($$PWD/soundfx/5.fanfare.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11f.commands = xcopy /q /y $$shell_path($$PWD/soundfx/6.fade.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11g.commands = xcopy /q /y $$shell_path($$PWD/soundfx/break_over.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/long_tip.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata12h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/thirty_second_warning.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+
+    first.depends += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+
+    export(first.depends)
+    export(copydata10b.commands)
+    export(copydata11a.commands)
+    export(copydata11b.commands)
+    export(copydata11c.commands)
+    export(copydata11d.commands)
+    export(copydata11e.commands)
+    export(copydata11f.commands)
+    export(copydata11g.commands)
+    export(copydata11h.commands)
+    export(copydata12h.commands)
+
+    QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+}
+
+win32:CONFIG(release, debug|release): {
     # PS --------------------------------------------
     # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
