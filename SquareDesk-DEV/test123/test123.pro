@@ -72,11 +72,23 @@ HEADERS  += mainwindow.h \
     exportdialog.ui \
     preferencesdialog.ui
 
+macx {
 INCLUDEPATH += $$PWD/ $$PWD/../local/include
 DEPENDPATH += $$PWD/ $$PWD/../local/include
+}
+
+win32 {
+INCLUDEPATH += $$PWD/ $$PWD/../local_win32/include
+DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
+}
+
+unix:!macx {
+INCLUDEPATH += $$PWD/ $$PWD/../local/include
+DEPENDPATH += $$PWD/ $$PWD/../local/include
+}
 
 # NOTE: there is no debug version of libbass
-win32: LIBS += -L$$PWD/ -lbass -lbass_fx -lbassmix -luser32
+win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy
 else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
 # macx: see below...
 
@@ -95,6 +107,17 @@ win32:CONFIG(debug, debug|release): {
     export(copydata.commands)
     export(copydata3.commands)
     QMAKE_EXTRA_TARGETS += first copydata copydata3
+
+    # LYRICS AND PATTER TEMPLATES --------------------------------------------
+    # Copy the lyrics.template.html and patter.template.html files to the right place
+    copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$shell_path($$OUT_PWD\debug)
+    copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$shell_path($$OUT_PWD\debug)
+    copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$shell_path($$OUT_PWD\debug)
+    first.depends += $(first) copydata0a copydata0b copydata0c
+    export(copydata0a.commands)
+    export(copydata0b.commands)
+    export(copydata0c.commands)
+    QMAKE_EXTRA_TARGETS += copydata0a copydata0b copydata0c
 }
 
 # copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
@@ -106,6 +129,17 @@ win32:CONFIG(release, debug|release): {
     export(copydata.commands)
     export(copydata3.commands)
     QMAKE_EXTRA_TARGETS += first copydata copydata3
+
+    # LYRICS AND PATTER TEMPLATES --------------------------------------------
+    # Copy the lyrics.template.html and patter.template.html files to the right place
+    copydata0a.commands = xcopy /q /y  $$shell_path($$PWD/lyrics.template.html) $$shell_path($$OUT_PWD\release)
+    copydata0b.commands = xcopy /q /y  $$shell_path($$PWD/cuesheet2.css)        $$shell_path($$OUT_PWD\release)
+    copydata0c.commands = xcopy /q /y  $$shell_path($$PWD/patter.template.html) $$shell_path($$OUT_PWD\release)
+    first.depends += $(first) copydata0a copydata0b copydata0c
+    export(copydata0a.commands)
+    export(copydata0b.commands)
+    export(copydata0c.commands)
+    QMAKE_EXTRA_TARGETS += copydata0a copydata0b copydata0c
 }
 
 macx {
@@ -243,7 +277,7 @@ win32 {
     copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/release)
     copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/release)
 
-    first.depends = $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
     export(first.depends)
     export(copydata4.commands)
@@ -266,8 +300,9 @@ win32 {
     copydata11f.commands = xcopy /q /y $$shell_path($$PWD/soundfx/6.fade.mp3) $$shell_path($$OUT_PWD/release/soundfx)
     copydata11g.commands = xcopy /q /y $$shell_path($$PWD/soundfx/break_over.mp3) $$shell_path($$OUT_PWD/release/soundfx)
     copydata11h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/long_tip.mp3) $$shell_path($$OUT_PWD/release/soundfx)
+    copydata12h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/thirty_second_warning.mp3) $$shell_path($$OUT_PWD/release/soundfx)
 
-    first.depends += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
+    first.depends += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 
     export(first.depends)
     export(copydata10b.commands)
@@ -279,8 +314,9 @@ win32 {
     export(copydata11f.commands)
     export(copydata11g.commands)
     export(copydata11h.commands)
+    export(copydata12h.commands)
 
-    QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h
+    QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 }
 
 RESOURCES += resources.qrc
