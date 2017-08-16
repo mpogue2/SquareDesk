@@ -141,13 +141,15 @@ void MySlider::paintEvent(QPaintEvent *e)
     if (singingCall) {
         QPen pen;
         pen.setWidth(7);
-
+#if defined(Q_OS_WIN)
+        pen.setWidth(10);
+#endif
         int middle = height/2;
 #if defined(Q_OS_WIN)
         // Windows sliders are drawn differently, so colors are just
         //   under the horizontal bar on Windows (only).  Otherwise
         //    the colors don't draw at all. :-(
-        middle += 2;  // only on Windows...
+        middle += -1;  // only on Windows...
 #endif
         QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
 //        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
