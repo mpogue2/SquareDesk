@@ -175,6 +175,21 @@ static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
 
 
+#include <QProxyStyle>
+
+class MySliderClickToMoveStyle : public QProxyStyle
+{
+public:
+    using QProxyStyle::QProxyStyle;
+
+    int styleHint(QStyle::StyleHint hint, const QStyleOption* option = 0, const QWidget* widget = 0, QStyleHintReturn* returnData = 0) const
+    {
+        if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
+            return (Qt::LeftButton | Qt::MidButton | Qt::RightButton);
+        return QProxyStyle::styleHint(hint, option, widget, returnData);
+    }
+};
+
 
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
@@ -477,6 +492,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->midrangeSlider->setEnabled(true);
     ui->trebleSlider->setEnabled(true);
 
+#ifndef Q_OS_MAC
+    ui->seekBar->setStyle(new MySliderClickToMoveStyle());
+    ui->tempoSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->pitchSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->mixSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
+#endif /* ifndef Q_OS_MAC */
+    
     // in the Designer, these have values, making it easy to visualize there
     //   must clear those out, because a song is not loaded yet.
     ui->currentLocLabel->setText("");
