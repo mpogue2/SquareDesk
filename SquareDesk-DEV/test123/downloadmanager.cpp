@@ -16,6 +16,7 @@ void Downloader::doDownload(QUrl url, QString d)
 
 void Downloader::replyFinished(QNetworkReply *reply)
 {
+    qDebug() << "replyFinished()";
     if(reply->error()) {
         qDebug() << "Downloader -- ERROR:" << reply->errorString();
     }

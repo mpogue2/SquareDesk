@@ -51,6 +51,16 @@ win32:CONFIG(release, debug|release) {
 INCLUDEPATH += $$PWD/ $$PWD/../../local_win32/include
 DEPENDPATH += $$PWD/ $$PWD/../../local_win32/include
 LIBS += -L$$PWD/ -L$$PWD/../../local_win32/lib -lzlib
+
+# copy out to the local_win32 location, where it will be picked up by test123.pro
+    copydata3q.commands = xcopy /q /y $$shell_path($$OUT_PWD\release\quazip.dll) $$shell_path($$PWD/../../local_win32/bin)
+    copydata3r.commands = xcopy /q /y $$shell_path($$PWD\*.h) $$shell_path($$PWD/../../local_win32/include)
+    copydata3s.commands = xcopy /q /y $$shell_path($$OUT_PWD\release\quazip*.lib) $$shell_path($$PWD/../../local_win32/lib)
+    first.depends = $(first) copydata3q copydata3r copydata3s
+    export(copydata3q.commands)
+    export(copydata3r.commands)
+    export(copydata3s.commands)
+    QMAKE_EXTRA_TARGETS += first copydata3q copydata3r copydata3s
 }
 
 unix:!symbian {

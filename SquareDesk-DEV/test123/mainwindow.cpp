@@ -63,7 +63,7 @@
 #include "startupwizard.h"
 #include "downloadmanager.h"
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "JlCompress.h"
 #endif
 
@@ -7685,7 +7685,7 @@ void MainWindow::stopLongSongTableOperation(QString s) {
 
 void MainWindow::on_actionDownload_Cuesheets_triggered()
 {
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 
     PreferencesManager prefsManager;
     QString musicDirPath = prefsManager.GetmusicPath();
@@ -7717,7 +7717,7 @@ void MainWindow::on_actionDownload_Cuesheets_triggered()
     Downloader *d = new Downloader(this);
 
     QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
-//    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
+    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
 
     QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
 
@@ -7738,7 +7738,7 @@ void MainWindow::on_actionDownload_Cuesheets_triggered()
 }
 
 void MainWindow::makeProgress() {
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
     if (progressTotal < 80) {
         progressTotal += 10.0;
     } else if (progressTotal < 90) {
@@ -7754,7 +7754,7 @@ void MainWindow::makeProgress() {
 }
 
 void MainWindow::cancelProgress() {
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 //    qDebug() << "cancelling progress...";
     progressTimer->stop();
     progressTotal = 0;
@@ -7763,10 +7763,10 @@ void MainWindow::cancelProgress() {
 
 
 void MainWindow::lyricsDownloadEnd() {
-#if defined(Q_OS_MAC)
-//    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
 
-//    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
+    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
     PreferencesManager prefsManager;
     QString musicDirPath = prefsManager.GetmusicPath();
     QString lyricsDirPath = musicDirPath + "/lyrics";
@@ -7778,7 +7778,13 @@ void MainWindow::lyricsDownloadEnd() {
     QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
 
     if (extracted.empty()) {
-//        qDebug() << "There was a problem extracting the files.  No files extracted.";
+        qDebug() << "There was a problem extracting the files.  No files extracted.";
+        progressDialog->setValue(100);  // kill the progress bar
+        progressTimer->stop();
+        QMessageBox msgBox;
+        msgBox.setText("The lyrics have been downloaded to <musicDirectory>/lyrics, but you need to manually unpack them.\nWindows: Right click, Extract All on: " +
+                       lyricsZipFileName);
+        msgBox.exec();
         return;  // and don't delete the ZIP file, for debugging
     }
 
