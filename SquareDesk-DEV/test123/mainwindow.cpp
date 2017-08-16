@@ -3080,9 +3080,13 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         f1.close();
     }
     else if (cuesheetFilename.endsWith(".mp3")) {
+//        qDebug() << "loadCuesheet():";
         QString embeddedID3Lyrics = loadLyrics(cuesheetFilename);
+//        qDebug() << "embLyrics:" << embeddedID3Lyrics;
         if (embeddedID3Lyrics != "") {
-            QString html(txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename));  // embed CSS, if found, since USLT is plain text
+            QString HTMLlyrics = txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename);
+//            qDebug() << "HTML:" << HTMLlyrics;
+            QString html(HTMLlyrics);  // embed CSS, if found, since USLT is plain text
             ui->textBrowserCueSheet->setHtml(html);
             loadedCuesheetNameWithPath = cuesheetFilename;
         }
@@ -3437,7 +3441,9 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 //    qDebug() << "load 2.1.1.0B: " << t2.elapsed() << "ms";
 
+//    qDebug() << "findPossibleCuesheets():";
     QString mp3Lyrics = loadLyrics(MP3Filename);
+//    qDebug() << "mp3Lyrics:" << mp3Lyrics;
     if (mp3Lyrics.length())
     {
         possibleCuesheets.append(MP3Filename);
@@ -6202,11 +6208,8 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 {
     QString USLTlyrics;
 
-    MPEG::File *mp3file;
-    ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
-
-    mp3file = new MPEG::File(MP3FileName.toStdString().c_str()); // FIX: this leaks on read of another file
-    id3v2tag = mp3file->ID3v2Tag(true);  // if it doesn't have one, create one
+    MPEG::File mp3file(MP3FileName.toStdString().c_str());
+    ID3v2::Tag *id3v2tag = mp3file.ID3v2Tag(true);
 
     ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
     for (; it != id3v2tag->frameList().end(); it++)
@@ -6223,9 +6226,8 @@ QString MainWindow::loadLyrics(QString MP3FileName)
             ID3v2::UnsynchronizedLyricsFrame* usltFrame = (ID3v2::UnsynchronizedLyricsFrame*)(*it);
             USLTlyrics = usltFrame->text().toCString();
         }
-
     }
-
+//    qDebug() << "Got lyrics:" << USLTlyrics;
     return (USLTlyrics);
 }
 
