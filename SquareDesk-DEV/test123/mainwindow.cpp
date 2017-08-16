@@ -476,6 +476,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->volumeSlider->setEnabled(true);
     ui->volumeSlider->setValue(100);
+    ui->volumeSlider->SetOrigin(100);  // double click goes here
     ui->currentVolumeLabel->setText("Max");
     // FIX: initial focus is titleSearch, so the shortcuts for these menu items don't work
     //   at initial start.
@@ -2092,7 +2093,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 // blame https://stackoverflow.com/questions/4065378/qt-get-children-from-layout
 bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
 {
-   if (layout == NULL or widget == NULL)
+   if (layout == NULL || widget == NULL)
       return false;
 
    if (layout->indexOf(widget) >= 0)
@@ -3380,11 +3381,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //        }
 
         QFileInfo fi(filename);
+//        QString fi2 = fi.canonicalPath();
 
-        if (fi.canonicalPath() == musicRootPath && type.right(1) != "*") {
-            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
-            type = "";
-        }
+//        if (fi2 == musicRootPath && type.right(1) != "*") {
+//            // e.g. "/Users/mpogue/__squareDanceMusic/C 117 - Bad Puppy (Patter).mp3" --> NO TYPE PRESENT and NOT a guest song
+//            type = "";
+//        }
 
 //        qDebug() << "load 2.1.1.0A.3: " << t2.nsecsElapsed() << "ms";
 
@@ -4643,6 +4645,9 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
+
+    on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+                                           //   exactly the same as the previous value.  This will ensure that cBass.setPitch() gets called (right now) on the new stream.
 
     if (tempo != "0" && tempo != "0%") {
         // iff tempo is known, then update the table

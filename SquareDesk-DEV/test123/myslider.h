@@ -45,6 +45,8 @@ public:
     float GetOutro() const;
     void SetDefaultIntroOutroPositions();
 
+    bool eventFilter(QObject *obj, QEvent *event);
+
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *event);

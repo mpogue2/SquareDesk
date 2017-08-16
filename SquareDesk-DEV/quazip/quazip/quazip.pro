@@ -39,9 +39,18 @@ macx {
 include(quazip.pri)
 
 
-CONFIG(debug, debug|release) {
-#     mac: TARGET = $$join(TARGET,,,_debug)
-     win32: TARGET = $$join(TARGET,,,d)
+win32:CONFIG(debug, debug|release) {
+TARGET = $$join(TARGET,,,d)
+INCLUDEPATH += $$PWD/ $$PWD/../../local_win32/include
+DEPENDPATH += $$PWD/ $$PWD/../../local_win32/include
+LIBS += -L$$PWD/ -L$$PWD/../../local_win32/lib -lzlib
+}
+
+win32:CONFIG(release, debug|release) {
+#     win32: TARGET = $$join(TARGET,,,d)
+INCLUDEPATH += $$PWD/ $$PWD/../../local_win32/include
+DEPENDPATH += $$PWD/ $$PWD/../../local_win32/include
+LIBS += -L$$PWD/ -L$$PWD/../../local_win32/lib -lzlib
 }
 
 unix:!symbian {

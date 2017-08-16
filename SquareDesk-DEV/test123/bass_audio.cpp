@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <QDebug>
+#include <QTimer>
 
 // GLOBALS =========
 float gStream_Pan = 0.0;
@@ -53,7 +54,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
     float inL,inR;
     float mono;
 
-    const float PI_OVER_2 = 3.14159265/2.0;
+    const float PI_OVER_2 = (float)3.14159265/2.0;
     float theta = PI_OVER_2 * (gStream_Pan + 1.0)/2.0;  // convert to 0-PI/2
     float KL = cos(theta);
     float KR = sin(theta);
@@ -448,6 +449,22 @@ void bass_audio::FadeOutAndPause(void) {
     }
 }
 
+void bass_audio::StartVolumeDucking(int duckToPercent, float forSeconds) {
+//    qDebug() << "Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
+
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)duckToPercent/100.0); // drop Stream (main music stream) to a % of current volume
+
+    QTimer::singleShot(forSeconds*1000.0, [=] {
+        StopVolumeDucking();
+    });
+
+}
+
+void bass_audio::StopVolumeDucking() {
+//    qDebug() << "End volume ducking...";
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0); // drop Stream (main music stream) to a % of current volume
+}
+
 
 // ------------------------------------------------------------------
 void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volume) {
@@ -461,6 +478,7 @@ void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volu
         // if the user pressed the same key again, while playing back...
         BASS_ChannelStop(FXStream);  // stop the current stream
         currentSoundEffectID = 0;    // nothing playing now
+        StopVolumeDucking();
         return;
     }
 
@@ -470,6 +488,12 @@ void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volu
     }
     FXStream = BASS_StreamCreateFile(false, filename, 0, 0, 0);
     BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, (float)volume/100.0f);  // volume relative to 100% of Music
+
+    QWORD Length = BASS_ChannelGetLength(FXStream, BASS_POS_BYTE);
+    double FXLength_seconds = (double)BASS_ChannelBytes2Seconds(FXStream, Length);
+
+    StartVolumeDucking(20, FXLength_seconds);
+
     BASS_ChannelPlay(FXStream, true);                                           // play it all the way through
     currentSoundEffectID = which;
 }
@@ -479,6 +503,9 @@ void bass_audio::StopAllSoundEffects() {
         BASS_ChannelIsActive(FXStream)==BASS_ACTIVE_PLAYING) {
 
         BASS_ChannelStop(FXStream);  // stop the current stream
+
+        StopVolumeDucking();  // stop ducking of music, if it was in effect...
+
         currentSoundEffectID = 0;    // nothing playing now
     }
 }

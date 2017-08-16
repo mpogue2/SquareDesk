@@ -25,6 +25,7 @@
 
 #include "myslider.h"
 #include "QDebug"
+#include <QEvent>
 
 // ==========================================================================================
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
@@ -33,6 +34,22 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
     singingCall = false;
     SetDefaultIntroOutroPositions();
     origin = 0;
+
+    // install the wheel/scroll eater for ALL MySlider's
+    this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
+}
+
+bool MySlider::eventFilter(QObject *obj, QEvent *event)
+{
+    Q_UNUSED(obj)
+
+    //    qDebug() << "obj: " << obj << ", event: " << event->type();
+
+    if (event->type() == QEvent::Wheel || event->type() == QEvent::Scroll) {
+        // eat wheel and scroll events
+        return true;
+    }
+    return false;  // don't stop anything else
 }
 
 void MySlider::SetDefaultIntroOutroPositions()
@@ -124,13 +141,15 @@ void MySlider::paintEvent(QPaintEvent *e)
     if (singingCall) {
         QPen pen;
         pen.setWidth(7);
-
+#if defined(Q_OS_WIN)
+        pen.setWidth(10);
+#endif
         int middle = height/2;
 #if defined(Q_OS_WIN)
         // Windows sliders are drawn differently, so colors are just
         //   under the horizontal bar on Windows (only).  Otherwise
         //    the colors don't draw at all. :-(
-        middle += 2;  // only on Windows...
+        middle += -1;  // only on Windows...
 #endif
         QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
 //        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
