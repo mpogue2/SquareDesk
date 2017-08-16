@@ -61,6 +61,12 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
     ui->setupUi(this);
 
+#if !defined(Q_OS_MAC)
+    // disable these on Windows and Linux
+    ui->enableAutoAirplaneModeCheckbox->setHidden(true);
+    ui->enableAutoMicsOffCheckbox->setHidden(true);
+#endif
+
     // validator for initial BPM setting
     validator = new QIntValidator(100, 150, this);
     ui->initialBPMLineEdit->setValidator(validator);
