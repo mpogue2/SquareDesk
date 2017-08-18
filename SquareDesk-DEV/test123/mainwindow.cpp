@@ -1381,59 +1381,6 @@ MainWindow::~MainWindow()
     }
 }
 
-void MainWindow::setFontSizes()
-{
-#if defined(Q_OS_MAC)
-    preferredSmallFontSize = 13;
-    preferredNowPlayingSize = 27;
-#elif defined(Q_OS_WIN32)
-    preferredSmallFontSize = 8;
-    preferredNowPlayingSize = 16;
-#elif defined(Q_OS_LINUX)
-    preferredSmallFontSize = 13;  // FIX: is this right?
-    preferredNowPlayingSize = 27;
-
-    QFont fontSmall = ui->currentTempoLabel->font();
-    fontSmall.setPointSize(8);
-    fontSmall.setPointSize(preferredSmallFontSize);
-
-    ui->titleSearch->setFont(fontSmall);
-    ui->labelSearch->setFont(fontSmall);
-    ui->titleSearch->setFont(fontSmall);
-    ui->clearSearchButton->setFont(fontSmall);
-    ui->songTable->setFont(fontSmall);
-#endif
-
-    QFont font = ui->currentTempoLabel->font();
-    font.setPointSize(preferredSmallFontSize);
-
-    ui->tabWidget->setFont(font);  // most everything inherits from this one
-    ui->statusBar->setFont(font);
-    ui->currentLocLabel->setFont(font);
-    ui->songLengthLabel->setFont(font);
-    ui->bassLabel->setFont(font);
-    ui->midrangeLabel->setFont(font);
-    ui->trebleLabel->setFont(font);
-    ui->EQgroup->setFont(font);
-
-    font.setPointSize(preferredSmallFontSize-2);
-#if defined(Q_OS_MAC)
-    QString styleForCallerlabDefinitions("QLabel{font-size:10pt;}");
-#endif
-#if defined(Q_OS_WIN)
-    QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");
-#endif
-#if defined(Q_OS_LINUX)
-    QString styleForCallerlabDefinitions("QLabel{font-size:6pt;}");  // DAN, PLEASE ADJUST THIS
-#endif
-    font.setPointSize(preferredNowPlayingSize);
-    ui->nowPlayingLabel->setFont(font);
-
-    font.setPointSize((preferredSmallFontSize + preferredNowPlayingSize)/2);
-    ui->warningLabel->setFont(font);
-    ui->warningLabelCuesheet->setFont(font);
-}
-
 // ----------------------------------------------------------------------
 void MainWindow::updateSongTableColumnView()
 {
@@ -7441,29 +7388,196 @@ void MainWindow::on_actionStop_Sound_FX_triggered()
     cBass.StopAllSoundEffects();
 }
 
+// FONT SIZE STUFF ========================================
+unsigned int MainWindow::pointSizeToIndex(unsigned int pointSize) {
+    // converts our old-style range: 11,13,15,17,19,21,23,25
+    //   to an index:                 0, 1, 2, 3, 4, 5, 6, 7
+    // returns -1 if not in range, or if even number
+    if (pointSize < 11 || pointSize > 25 || pointSize % 2 != 1) {
+        return(-1);
+    }
+    return((pointSize-11)/2);
+}
+
+unsigned int MainWindow::indexToPointSize(unsigned int index) {
+#if defined(Q_OS_MAC)
+    return (2*index + 11);
+#elif defined(Q_OS_WIN)
+    return (int)((8.0/13.0)*((float)(2*index + 11)));
+#elif defined(Q_OS_LINUX)
+    return (2*index + 11);
+#endif
+}
+
+void MainWindow::setFontSizes()
+{
+    // initial font sizes (with no zoom in/out)
+
+#if defined(Q_OS_MAC)
+    preferredVerySmallFontSize = 13;
+    preferredSmallFontSize = 13;
+    preferredWarningLabelFontSize = 20;
+    preferredNowPlayingFontSize = 27;
+#elif defined(Q_OS_WIN32)
+    preferredVerySmallFontSize = 8;
+    preferredSmallFontSize = 8;
+    preferredWarningLabelFontSize = 12;
+    preferredNowPlayingFontSize = 16;
+#elif defined(Q_OS_LINUX)
+    preferredVerySmallFontSize = 8;
+    preferredSmallFontSize = 13;
+    preferredWarningLabelFontSize = 20;
+    preferredNowPlayingFontSize = 27;
+#endif
+
+    QFont font = ui->currentTempoLabel->font();  // system font for most everything
+
+    // preferred very small text
+    font.setPointSize(preferredVerySmallFontSize);
+    ui->typeSearch->setFont(font);
+    ui->labelSearch->setFont(font);
+    ui->titleSearch->setFont(font);
+    ui->clearSearchButton->setFont(font);
+    ui->songTable->setFont(font);
+
+    // preferred normal small text
+    font.setPointSize(preferredSmallFontSize);
+    ui->tabWidget->setFont(font);  // most everything inherits from this one
+    ui->statusBar->setFont(font);
+    ui->currentLocLabel->setFont(font);
+    ui->songLengthLabel->setFont(font);
+
+    ui->bassLabel->setFont(font);
+    ui->midrangeLabel->setFont(font);
+    ui->trebleLabel->setFont(font);
+    ui->EQgroup->setFont(font);
+
+    ui->pushButtonCueSheetEditTitle->setFont(font);
+    ui->pushButtonCueSheetEditLabel->setFont(font);
+    ui->pushButtonCueSheetEditArtist->setFont(font);
+    ui->pushButtonCueSheetEditHeader->setFont(font);
+    ui->pushButtonCueSheetEditBold->setFont(font);
+    ui->pushButtonCueSheetEditItalic->setFont(font);
+
+    // preferred Warning Label (medium sized)
+    font.setPointSize(preferredWarningLabelFontSize);
+    ui->warningLabel->setFont(font);
+    ui->warningLabelCuesheet->setFont(font);
+
+    // preferred Now Playing (large sized)
+    font.setPointSize(preferredNowPlayingFontSize);
+    ui->nowPlayingLabel->setFont(font);
+}
+
 void MainWindow::adjustFontSizes()
 {
-    QFont currentFont = ui->songTable->font();
-    int currentFontPointSize = currentFont.pointSize();
-
-//    qDebug() << "currentFontPointSize: " << currentFontPointSize;
-
-//    ui->songTable->resizeColumnToContents(kNumberCol);  // nope
+    // ui->songTable->resizeColumnToContents(kNumberCol);  // nope
     ui->songTable->resizeColumnToContents(kTypeCol);
     ui->songTable->resizeColumnToContents(kLabelCol);
     // kTitleCol = nope
 
+    QFont currentFont = ui->songTable->font();
+    int currentFontPointSize = currentFont.pointSize();  // platform-specific point size
+
+    unsigned int index = pointSizeToIndex(currentMacPointSize);  // current index
+
     // give a little extra space when sorted...
     int sortedSection = ui->songTable->horizontalHeader()->sortIndicatorSection();
 
-    // also a little extra space for the smallest zoom size
-    ui->songTable->setColumnWidth(kAgeCol, (3.5+(sortedSection==kAgeCol?0.5:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
-    ui->songTable->setColumnWidth(kPitchCol, (4+(sortedSection==kPitchCol?0.5:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
-    ui->songTable->setColumnWidth(kTempoCol, (4.5+(sortedSection==kTempoCol?0.9:0.0)+(currentFontPointSize==SMALLESTZOOM?0.25:0.0))*currentFontPointSize);
+    // pixel perfection for each platform
+#if defined(Q_OS_MAC)
+    float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
-    ui->typeSearch->setFixedHeight(2*currentFontPointSize);
-    ui->labelSearch->setFixedHeight(2*currentFontPointSize);
-    ui->titleSearch->setFixedHeight(2*currentFontPointSize);
+    float ageBase = 3.5;
+    float pitchBase = 4.0;
+    float tempoBase = 4.5;
+
+    float ageFactor = 0.5;
+    float pitchFactor = 0.5;
+    float tempoFactor = 0.9;
+
+    unsigned int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
+    float scaleWidth1 = 7.75;
+    float scaleWidth2 = 3.25;
+    float scaleWidth3 = 8.5;
+
+    float maxEQsize = 16;
+    float scaleIcons = 24.0/13.0;
+
+    unsigned int warningLabelSize[8] = {16,20,23,26, 29,32,35,38};  // basically 20/13 * pointSize
+    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
+
+    unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
+
+    float nowPlayingHeightFactor = 1.5;
+
+    float buttonSizeH = 1.875;
+    float buttonSizeV = 1.125;
+#elif defined(Q_OS_WIN32)
+    float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
+
+    float ageBase = 5.5f;
+    float pitchBase = 6.0f;
+    float tempoBase = 7.5f;
+
+    float ageFactor = 0.0f;
+    float pitchFactor = 0.0f;
+    float tempoFactor = 0.0f;
+
+    unsigned int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
+    float scaleWidth1 = 12.75f;
+    float scaleWidth2 = 5.25f;
+    float scaleWidth3 = 10.5f;
+
+    float maxEQsize = 16;
+    float scaleIcons = (float)(1.5*24.0/13.0);
+    unsigned int warningLabelSize[8] = {9,12,14,16, 18,20,22,24};  // basically 20/13 * pointSize
+    unsigned int warningLabelWidth[8] = {84,100,115,130, 146, 161, 176, 192};  // basically 20/13 * pointSize * 5
+
+//    unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
+    unsigned int nowPlayingSize[8] = {16,20,23,26, 29,32,35,38};  // basically 27/13 * pointSize
+
+    float nowPlayingHeightFactor = 1.5f;
+
+    float buttonSizeH = 1.5f*1.875f;
+    float buttonSizeV = 1.5f*1.125f;
+#elif defined(Q_OS_LINUX)
+    float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
+
+    float ageBase = 3.5;
+    float pitchBase = 4.0;
+    float tempoBase = 4.5;
+
+    float ageFactor = 0.5;
+    float pitchFactor = 0.5;
+    float tempoFactor = 0.9;
+
+    unsigned int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
+    float scaleWidth1 = 7.75;
+    float scaleWidth2 = 3.25;
+    float scaleWidth3 = 8.5;
+
+    float maxEQsize = 16;
+    float scaleIcons = 24.0/13.0;
+    unsigned int warningLabelSize[8] = {16,20,23,26, 29,32,35,38};  // basically 20/13 * pointSize
+    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
+
+    unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
+
+    float nowPlayingHeightFactor = 1.5;
+
+    float buttonSizeH = 1.875;
+    float buttonSizeV = 1.125;
+#endif
+
+    // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kAgeCol, (ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize);
+    ui->songTable->setColumnWidth(kPitchCol, (pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize);
+    ui->songTable->setColumnWidth(kTempoCol, (tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraColWidth[index])*currentFontPointSize);
+
+    ui->typeSearch->setFixedHeight(searchBoxesHeight[index]);
+    ui->labelSearch->setFixedHeight(searchBoxesHeight[index]);
+    ui->titleSearch->setFixedHeight(searchBoxesHeight[index]);
 
     // set all the related fonts to the same size
     ui->typeSearch->setFont(currentFont);
@@ -7475,40 +7589,48 @@ void MainWindow::adjustFontSizes()
     ui->volumeLabel->setFont(currentFont);
     ui->mixLabel->setFont(currentFont);
 
-    currentSequenceWidget->setFont(currentFont); // In the SD tab, follow the user-selected font size
-
-#define CURRENTSCALE (7.75)
-    int newCurrentWidth = CURRENTSCALE*currentFontPointSize;
     ui->currentTempoLabel->setFont(currentFont);
-    ui->currentTempoLabel->setFixedWidth(newCurrentWidth);
     ui->currentPitchLabel->setFont(currentFont);
-    ui->currentPitchLabel->setFixedWidth(newCurrentWidth);
     ui->currentVolumeLabel->setFont(currentFont);
-    ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
     ui->currentMixLabel->setFont(currentFont);
+
+    int newCurrentWidth = scaleWidth1 * currentFontPointSize;
+    ui->currentTempoLabel->setFixedWidth(newCurrentWidth);
+    ui->currentPitchLabel->setFixedWidth(newCurrentWidth);
+    ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
     ui->currentMixLabel->setFixedWidth(newCurrentWidth);
 
+    currentSequenceWidget->setFont(currentFont); // In the SD tab, follow the user-selected font size
+
     ui->statusBar->setFont(currentFont);
+
     ui->currentLocLabel->setFont(currentFont);
     ui->songLengthLabel->setFont(currentFont);
 
-    ui->currentLocLabel->setFixedWidth(3.0*currentFontPointSize);
-    ui->songLengthLabel->setFixedWidth(3.0*currentFontPointSize);
+    ui->currentLocLabel->setFixedWidth(scaleWidth2 * currentFontPointSize);
+    ui->songLengthLabel->setFixedWidth(scaleWidth2 * currentFontPointSize);
 
     ui->clearSearchButton->setFont(currentFont);
-    ui->clearSearchButton->setFixedWidth(8*currentFontPointSize);
+    ui->clearSearchButton->setFixedWidth(scaleWidth3 * currentFontPointSize);
 
     ui->tabWidget->setFont(currentFont);  // most everything inherits from this one
 
+    ui->pushButtonCueSheetEditTitle->setFont(currentFont);
+    ui->pushButtonCueSheetEditLabel->setFont(currentFont);
+    ui->pushButtonCueSheetEditArtist->setFont(currentFont);
+    ui->pushButtonCueSheetEditHeader->setFont(currentFont);
+    ui->pushButtonCueSheetEditBold->setFont(currentFont);
+    ui->pushButtonCueSheetEditItalic->setFont(currentFont);
+
     // these are special -- don't want them to get too big, even if user requests huge fonts
-    currentFont.setPointSize(currentFontPointSize > 16 ? 16 : currentFontPointSize);  // no bigger than 20pt
+    currentFont.setPointSize(currentFontPointSize > maxEQsize ? maxEQsize : currentFontPointSize);  // no bigger than 20pt
     ui->bassLabel->setFont(currentFont);
     ui->midrangeLabel->setFont(currentFont);
     ui->trebleLabel->setFont(currentFont);
     ui->EQgroup->setFont(currentFont);
 
     // resize the icons for the buttons
-    int newIconDimension = (int)((float)currentFontPointSize*(24.0/13.0));
+    int newIconDimension = (int)((float)currentFontPointSize * scaleIcons);
     QSize newIconSize(newIconDimension, newIconDimension);
     ui->stopButton->setIconSize(newIconSize);
     ui->playButton->setIconSize(newIconSize);
@@ -7516,24 +7638,25 @@ void MainWindow::adjustFontSizes()
     ui->nextSongButton->setIconSize(newIconSize);
 
     // these are special MEDIUM
-    int warningLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize+preferredSmallFontSize)/2.0)/preferredSmallFontSize); // keep ratio constant
-    currentFont.setPointSize((warningLabelFontSize));
+    int warningLabelFontSize = warningLabelSize[index]; // keep ratio constant
+    currentFont.setPointSize(warningLabelFontSize);
     ui->warningLabel->setFont(currentFont);
-    ui->warningLabel->setFixedWidth(5.5*warningLabelFontSize);
     ui->warningLabelCuesheet->setFont(currentFont);
-    ui->warningLabelCuesheet->setFixedWidth(5.5*warningLabelFontSize);
+
+    ui->warningLabel->setFixedWidth(warningLabelWidth[index]);
+    ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[index]);
 
     // these are special BIG
-    int nowPlayingLabelFontSize = ((int)((float)currentFontPointSize * (preferredNowPlayingSize/preferredSmallFontSize))); // keep ratio constant
+    int nowPlayingLabelFontSize = (nowPlayingSize[index]); // keep ratio constant
     currentFont.setPointSize(nowPlayingLabelFontSize);
     ui->nowPlayingLabel->setFont(currentFont);
-    ui->nowPlayingLabel->setFixedHeight(1.25*nowPlayingLabelFontSize);
+    ui->nowPlayingLabel->setFixedHeight(nowPlayingHeightFactor * nowPlayingLabelFontSize);
 
-#define BUTTONSCALE (0.75)
-    ui->stopButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
-    ui->playButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
-    ui->previousSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
-    ui->nextSongButton->setFixedSize(2.5*BUTTONSCALE*nowPlayingLabelFontSize,1.5*BUTTONSCALE*nowPlayingLabelFontSize);
+    // BUTTON SIZES ---------
+    ui->stopButton->setFixedSize(buttonSizeH*nowPlayingLabelFontSize,buttonSizeV*nowPlayingLabelFontSize);
+    ui->playButton->setFixedSize(buttonSizeH*nowPlayingLabelFontSize,buttonSizeV*nowPlayingLabelFontSize);
+    ui->previousSongButton->setFixedSize(buttonSizeH*nowPlayingLabelFontSize,buttonSizeV*nowPlayingLabelFontSize);
+    ui->nextSongButton->setFixedSize(buttonSizeH*nowPlayingLabelFontSize,buttonSizeV*nowPlayingLabelFontSize);
 }
 
 void MainWindow::usePersistentFontSize() {
@@ -7551,74 +7674,93 @@ void MainWindow::usePersistentFontSize() {
     //qDebug() << "usePersistentFontSize: " << newPointSize;
 
     QFont currentFont = ui->songTable->font();  // set the font size in the songTable
-    currentFont.setPointSize(newPointSize);
+//    qDebug() << "index: " << pointSizeToIndex(newPointSize);
+    unsigned int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
+//    qDebug() << "platformPS: " << platformPS;
+    currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
+    currentMacPointSize = newPointSize;
 
     adjustFontSizes();  // use that font size to scale everything else (relative)
 }
 
 
-void MainWindow::persistNewFontSize(int points) {
+void MainWindow::persistNewFontSize(int currentMacPointSize) {
     PreferencesManager prefsManager;
 
-    prefsManager.SetsongTableFontSize(points);  // persist this
-//    qDebug() << "persisting new font size: " << points;
+//    qDebug() << "NOT PERSISTING: " << currentMacPointSize;
+//    return;
+    prefsManager.SetsongTableFontSize(currentMacPointSize);  // persist this
+//    qDebug() << "persisting new Mac font size: " << currentMacPointSize;
 }
 
 void MainWindow::on_actionZoom_In_triggered()
 {
     QFont currentFont = ui->songTable->font();
-    int newPointSize = currentFont.pointSize() + ZOOMINCREMENT;
+    unsigned int newPointSize = currentMacPointSize + ZOOMINCREMENT;
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
 
-    if (newPointSize > currentFont.pointSize()) {
+    if (newPointSize > currentMacPointSize) {
         ui->textBrowserCueSheet->zoomIn(2*ZOOMINCREMENT);
         totalZoom += 2*ZOOMINCREMENT;
     }
 
-    currentFont.setPointSize(newPointSize);
+    unsigned int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
+    currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
+    currentMacPointSize = newPointSize;
 
-    persistNewFontSize(newPointSize);
+    persistNewFontSize(currentMacPointSize);
 
     adjustFontSizes();
+//    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
 }
 
 void MainWindow::on_actionZoom_Out_triggered()
 {
     QFont currentFont = ui->songTable->font();
-    int newPointSize = currentFont.pointSize() - ZOOMINCREMENT;
+    unsigned int newPointSize = currentMacPointSize - ZOOMINCREMENT;
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
 
-    if (newPointSize < currentFont.pointSize()) {
+    if (newPointSize < currentMacPointSize) {
         ui->textBrowserCueSheet->zoomOut(2*ZOOMINCREMENT);
         totalZoom -= 2*ZOOMINCREMENT;
     }
 
-    currentFont.setPointSize(newPointSize);
+    unsigned int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
+//    qDebug() << "newIndex: " << pointSizeToIndex(newPointSize);
+    currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
+    currentMacPointSize = newPointSize;
 
-    persistNewFontSize(newPointSize);
+    persistNewFontSize(currentMacPointSize);
 
     adjustFontSizes();
+
+//    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
 }
 
 void MainWindow::on_actionReset_triggered()
 {
     QFont currentFont;  // system font, and system default point size
-    int newPointSize = currentFont.pointSize();  // start out with the default system font size
-    currentFont.setPointSize(newPointSize);
+
+    currentMacPointSize = 13; // by definition
+    unsigned int platformPS = indexToPointSize(pointSizeToIndex(currentMacPointSize));  // convert to PLATFORM pointsize
+
+    currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
 
     ui->textBrowserCueSheet->zoomOut(totalZoom);  // undo all zooming in the lyrics pane
     totalZoom = 0;
 
-    persistNewFontSize(newPointSize);
+    persistNewFontSize(currentMacPointSize);
     adjustFontSizes();
+//    qDebug() << "currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
 void MainWindow::on_actionAge_toggled(bool checked)
 {
     ui->actionAge->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark

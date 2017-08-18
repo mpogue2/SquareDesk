@@ -154,7 +154,7 @@ void LevelMeter::paintEvent(QPaintEvent *event)
 #if defined(Q_OS_MAC)
     painter.fillRect(rect(), QColor(225,225,225));  // background color of VU Meter
 #elif defined(Q_OS_WIN)
-    painter.fillRect(rect(), QColor(225,225,225));
+    painter.fillRect(rect(), QColor(255,255,255));
 #else  // Q_OS_LINUX
     painter.fillRect(rect(), QColor(225,225,225));
 #endif

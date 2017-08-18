@@ -349,8 +349,10 @@ private:
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
 
-    int preferredSmallFontSize;  // preferred font sizes
-    int preferredNowPlayingSize;
+    int preferredVerySmallFontSize;  // preferred font sizes for UI items
+    int preferredSmallFontSize;
+    int preferredWarningLabelFontSize;
+    int preferredNowPlayingFontSize;
 
     unsigned int oldTimerState, newTimerState;  // break and tip timer states from the analog clock
 
@@ -418,6 +420,12 @@ private:
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
 
+    unsigned int pointSizeToIndex(unsigned int pointSize);
+    unsigned int indexToPointSize(unsigned int index);
+
+    unsigned int currentMacPointSize;
+
+    void setFontSizes();
     void adjustFontSizes();
     void usePersistentFontSize();
     void persistNewFontSize(int points);
@@ -462,7 +470,6 @@ private:
     QString removePrefix(QString prefix, QString s);
 
     void updateSongTableColumnView();
-    void setFontSizes();
 
     int selectedSongRow();  // returns -1 if none selected
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
@@ -553,7 +560,6 @@ private:
     QTimer *progressTimer;
     float progressTotal;
 
-
 private:
     QHash<Qt::Key, KeyAction *> hotkeyMappings;
 public:
@@ -607,6 +613,9 @@ public:
 #define BIGGESTZOOM (25)
 #define ZOOMINCREMENT (2)
 
+//#define SMALLESTZOOM (0)
+//#define RESETZOOM (1)
+//#define BIGGESTZOOM (6)
 
 // columns in tableViewCallList
 #define kCallListOrderCol       0
