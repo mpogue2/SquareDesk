@@ -180,7 +180,7 @@ static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
 class MySliderClickToMoveStyle : public QProxyStyle
 {
 public:
-    using QProxyStyle::QProxyStyle;
+//    using QProxyStyle::QProxyStyle;
 
     int styleHint(QStyle::StyleHint hint, const QStyleOption* option = 0, const QWidget* widget = 0, QStyleHintReturn* returnData = 0) const
     {
@@ -497,13 +497,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->seekBar->setStyle(new MySliderClickToMoveStyle());
     ui->tempoSlider->setStyle(new MySliderClickToMoveStyle());
     ui->pitchSlider->setStyle(new MySliderClickToMoveStyle());
+    ui->volumeSlider->setStyle(new MySliderClickToMoveStyle());
     ui->mixSlider->setStyle(new MySliderClickToMoveStyle());
     ui->bassSlider->setStyle(new MySliderClickToMoveStyle());
     ui->midrangeSlider->setStyle(new MySliderClickToMoveStyle());
     ui->trebleSlider->setStyle(new MySliderClickToMoveStyle());
     ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
 #endif /* ifndef Q_OS_MAC */
-    
+
     // in the Designer, these have values, making it easy to visualize there
     //   must clear those out, because a song is not loaded yet.
     ui->currentLocLabel->setText("");
