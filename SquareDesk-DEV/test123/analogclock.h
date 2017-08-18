@@ -85,7 +85,7 @@
 #define BREAKTIMEREXPIRED   (0x02)
 #define THIRTYSECWARNING    (0x04)
 
-// set to speed up the clock by 60X
+// set to speed up the clock by 10X
 //#define DEBUGCLOCK 1
 
 class AnalogClock : public QWidget

@@ -548,6 +548,7 @@ private:
 
     // sound fx
     QString soundFXarray[6];
+    QString soundFXname[6];
     void maybeInstallSoundFX();
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom

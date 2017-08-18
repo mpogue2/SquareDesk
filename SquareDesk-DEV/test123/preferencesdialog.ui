@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -655,12 +655,37 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
            <item>
             <property name="text">
-             <string>show on-screen message.</string>
+             <string>play a long tip reminder tone.</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>play a reminder tone.</string>
+             <string> play 1</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 2</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 3</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 4</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 5</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 6</string>
             </property>
            </item>
           </widget>
@@ -693,6 +718,19 @@ Click on a color square to change the color associated with that Music Type.  Se
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
+           <property name="currentIndex">
+            <number>2</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>3 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>4 minutes</string>
+            </property>
+           </item>
            <item>
             <property name="text">
              <string>5 minutes</string>
@@ -799,22 +837,37 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
            <item>
             <property name="text">
-             <string>show on-screen message.</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
              <string>play a reminder tone.</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>play the current song (NOT_IMPL).</string>
+             <string>play 1</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>play the next song (NOT_IMPL).</string>
+             <string>play 2</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play 3</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play 4</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play 5</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play 6</string>
             </property>
            </item>
           </widget>
@@ -927,6 +980,9 @@ Click on a color square to change the color associated with that Music Type.  Se
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="currentIndex">
+            <number>1</number>
            </property>
            <item>
             <property name="text">

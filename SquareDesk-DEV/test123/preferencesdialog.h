@@ -47,7 +47,7 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit PreferencesDialog(QWidget *parent = 0);
+    PreferencesDialog(QString *soundFXname, QWidget *parent = 0);
     ~PreferencesDialog();
 
     QString musicPath;
@@ -59,7 +59,7 @@ public:
 
     QHash<Qt::Key, KeyAction *> getHotkeys();
     void setHotkeys(QHash<Qt::Key, KeyAction *>);
-    
+
 
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
 //    QColor patterColor;
@@ -115,7 +115,7 @@ private slots:
 
     void on_comboBoxMusicFormat_currentIndexChanged(int /* currentIndex */);
     void on_pushButtonResetHotkeysToDefaults_clicked();
-    
+
 private:
     Ui::PreferencesDialog *ui;
 };

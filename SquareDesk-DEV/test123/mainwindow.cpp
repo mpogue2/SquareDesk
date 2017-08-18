@@ -2339,16 +2339,24 @@ void MainWindow::on_UIUpdateTimerTick(void)
     if ((newTimerState & LONGTIPTIMEREXPIRED)&&!(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
         switch (tipLengthAlarmAction) {
-        case 2: playSFX("long_tip"); break;
-        default: break;
+        case 1: playSFX("long_tip"); break;
+        default:
+            if (tipLengthAlarmAction < 6) {  // unsigned, so always >= 0
+                playSFX(QString::number(tipLengthAlarmAction-1));
+            }
+            break;
         }
     }
 
     if ((newTimerState & BREAKTIMEREXPIRED)&&!(oldTimerState & BREAKTIMEREXPIRED)) {
         // one-shot transitioned to End of Break
         switch (breakLengthAlarmAction) {
-        case 2: playSFX("break_over"); break;
-        default: break;
+        case 1: playSFX("break_over"); break;
+        default:
+            if (breakLengthAlarmAction < 6) {  // unsigned, so always >= 0
+                playSFX(QString::number(breakLengthAlarmAction-1));
+            }
+            break;
         }
     }
     oldTimerState = newTimerState;
@@ -3851,7 +3859,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6])
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6], QString soundFXname[6])
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
@@ -3886,6 +3894,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
                 QStringList sections = baseName.split(".");
                 if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+                    soundFXname[sections[0].toInt()-1] = sections[1];  // save for populating Preferences dropdown later
                     switch (sections[0].toInt()) {
                         case 1: ui->action_1->setText(sections[1]); break;
                         case 2: ui->action_2->setText(sections[1]); break;
@@ -3940,7 +3949,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
         rootDir1.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir1, pathStack, "", ui, soundFXarray);  // appends to the pathstack
+        findFilesRecursively(rootDir1, pathStack, "", ui, soundFXarray, soundFXname);  // appends to the pathstack
     }
 
     if (guestRootDir != "" && (mode == "guest" || mode == "both")) {
@@ -3953,7 +3962,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
         qsl.append("*.wav");                //          or WAV files
         rootDir2.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir2, pathStack, "*", ui, soundFXarray);  // appends to the pathstack, "*" for "Guest"
+        findFilesRecursively(rootDir2, pathStack, "*", ui, soundFXarray, soundFXname);  // appends to the pathstack, "*" for "Guest"
     }
 }
 
@@ -4729,7 +4738,7 @@ void MainWindow::on_actionPreferences_triggered()
 //    on_stopButton_clicked();  // stop music, if it was playing...
     PreferencesManager prefsManager;
 
-    prefDialog = new PreferencesDialog;
+    prefDialog = new PreferencesDialog(soundFXname);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.populatePreferencesDialog(prefDialog);
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.

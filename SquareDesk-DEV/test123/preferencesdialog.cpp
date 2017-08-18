@@ -53,7 +53,7 @@ static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
 
 
 // -------------------------------------------------------------------
-PreferencesDialog::PreferencesDialog(QWidget *parent) :
+PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
@@ -78,8 +78,22 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
     SetPulldownValuesToItemNumberPlusOne(ui->comboBoxSessionDefault);
-    SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
+
+    ui->afterLongTipAction->setItemText(0,"play long tip reminder tone");
+    ui->afterBreakAction->setItemText(0,"play break over reminder tone");
+
+    for (int i = 0; i < 6; i++) {
+        if (soundFXname != QString("")) {
+            ui->afterLongTipAction->setItemText(i+1,"play " + soundFXname[i] + " sound");
+            ui->afterBreakAction->setItemText(i+1,"play " + soundFXname[i] + " sound");
+        } else {
+            ui->afterLongTipAction->setItemText(i+1,"--disabled--");
+            ui->afterBreakAction->setItemText(i+1,"--disabled--");
+        }
+    }
+
     SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
+    SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
 
 #ifdef KEYBINDINGS_KEY_FIRST
     QVector<KeyAction*> availableActions(KeyAction::availableActions());
@@ -88,7 +102,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->tableWidgetKeyBindings->setColumnWidth(0,80);
     QHeaderView *headerView = ui->tableWidgetKeyBindings->horizontalHeader();
     headerView->setSectionResizeMode(1, QHeaderView::Stretch);
-    
+
     size_t key_binding_count = mappableKeys.length();
     ui->tableWidgetKeyBindings->setRowCount(key_binding_count);
     for (size_t row = 0; row < key_binding_count; ++row)
@@ -120,7 +134,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
     ui->tableWidgetKeyBindings->resizeColumnToContents(0);
     ui->tableWidgetKeyBindings->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 #endif
-    
+
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 }
@@ -163,14 +177,14 @@ QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
     QHash<Qt::Key, KeyAction *> keyActionBindings;
 #ifdef KEYBINDINGS_KEY_FIRST
     QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
-    
+
     QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
     QHash<QString, Qt::Key> keysByName;
     for (auto key : mappableKeys)
     {
         keysByName[QKeySequence(key).toString()] = key;
     }
-    
+
     for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
     {
         QString keyName = ui->tableWidgetKeyBindings->item(row,0)->text();
@@ -180,7 +194,7 @@ QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
             QString actionName = comboBox->itemData(comboBox->currentIndex()).toString();
             auto action = actions.find(actionName);
             QHash<QString, Qt::Key>::iterator key = keysByName.find(keyName);
-            
+
             if (action != actions.end() && key != keysByName.end())
             {
                 keyActionBindings[*key] = *action;
@@ -200,7 +214,7 @@ QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
         }
     }
 #endif
-    
+
     return keyActionBindings;
 }
 
@@ -208,7 +222,7 @@ QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
 
 void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
 {
-#if 0    
+#if 0
     QHash<QString, KeyAction*> actionsByName(KeyAction::actionNameToActionMappings());
     QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
     QHash<QString, Qt::Key> keysByName;
@@ -261,7 +275,7 @@ void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
                     QKeySequence(keyMap.value()[0],keyMap.value()[1],
                                 keyMap.value()[2],keyAction.key());
                 break;
-                
+
             default :
                 qDebug() << "Whoah, too many or too few keyMap values " << keyMap.value().count();
                 break;
@@ -283,7 +297,7 @@ void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
             keySequenceEdit->setKeySequence(keyAction.value());
         }
     }
-    
+
 #endif
 }
 
