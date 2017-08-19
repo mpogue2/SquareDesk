@@ -407,6 +407,7 @@ private:
 
     float getID3BPM(QString MP3FileName);
     void loadMP3File(QString filepath, QString songTitle, QString songType);
+    void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);

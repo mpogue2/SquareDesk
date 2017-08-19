@@ -772,6 +772,8 @@ MainWindow::MainWindow(QWidget *parent) :
                 "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
                 "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
                 );
+
+    maybeLoadCSSfileIntoTextBrowser();
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -3046,6 +3048,66 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     return(cuesheet4);
 }
 
+void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
+    // makes the /lyrics directory, if it doesn't exist already
+    // also copies cuesheet2.css to /lyrics, if not already present
+
+    // read the CSS file (if any)
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString lyricsDir = musicDirPath + "/lyrics";
+
+    // if the lyrics directory doesn't exist, create it
+    QDir dir(lyricsDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+
+    // now check for the cuesheet2.css file... ---------------
+    QString cuesheetCSSDestPath = lyricsDir + "/cuesheet2.css";
+    QFile cuesheetCSSDestFile(cuesheetCSSDestPath);
+
+#if defined(Q_OS_MAC)
+    QString appPath = QApplication::applicationFilePath();
+    QString cuesheet2SrcPath = appPath + "/Contents/Resources/cuesheet2.css";
+    cuesheet2SrcPath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#elif defined(Q_OS_WIN32)
+    // TODO: There has to be a better way to do this.
+    QString appPath = QApplication::applicationFilePath();
+    QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
+    cuesheet2SrcPath.replace("SquareDeskPlayer.exe/","");
+#else
+    qWarning() << "Warning: cuesheet2 path is almost certainly wrong here for Linux.";
+    QString appPath = QApplication::applicationFilePath();
+    QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
+    cuesheet2SrcPath.replace("SquareDeskPlayer/","");
+#endif
+
+//    qDebug() << "cuesheet paths:" << cuesheet2SrcPath << cuesheetCSSDestPath;
+    if (!cuesheetCSSDestFile.exists()) {
+        // copy in a cuesheet2 file, if there's not one there already
+        QFile::copy(cuesheet2SrcPath, cuesheetCSSDestPath);  // copy one in
+    }
+
+    // Now, open it. ---------------
+    QFile css(lyricsDir + "/cuesheet2.css");  // cuesheet2.css is located in the LYRICS directory (NOTE: GLOBAL! All others are now IGNORED)
+
+    QString cssString;
+    if ( css.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in1(&css);
+        cssString = in1.readAll();  // read the entire CSS file, if it exists
+        css.close();
+    } else {
+        qDebug() << "couldn't open the cuesheet2.css file...";
+    }
+
+    // only set the CSS once
+//    if (ui->textBrowserCueSheet->document()->defaultStyleSheet() != "") {
+//        qDebug().noquote() << "***** CSS:\n" << cssString;
+        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
+//    }
+}
+
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
@@ -3073,51 +3135,6 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             loadedCuesheetNameWithPath = cuesheetFilename;
         }
     } else {
-        // read the CSS file (if any)
-        PreferencesManager prefsManager;
-        QString musicDirPath = prefsManager.GetmusicPath();
-        QString lyricsDir = musicDirPath + "/lyrics";
-
-        // if the lyrics directory doesn't exist, create it
-        QDir dir(lyricsDir);
-        if (!dir.exists()) {
-            dir.mkpath(".");
-        }
-
-        // now check for the cuesheet2.css file... ---------------
-        QString cuesheetCSSDestPath = lyricsDir + "/cuesheet2.css";
-        QFile cuesheetCSSDestFile(cuesheetCSSDestPath);
-
-#if defined(Q_OS_MAC)
-        QString appPath = QApplication::applicationFilePath();
-        QString cuesheet2SrcPath = appPath + "/Contents/Resources/cuesheet2.css";
-        cuesheet2SrcPath.replace("Contents/MacOS/SquareDeskPlayer/","");
-#elif defined(Q_OS_WIN32)
-        // TODO: There has to be a better way to do this.
-        QString appPath = QApplication::applicationFilePath();
-        QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
-        cuesheet2SrcPath.replace("SquareDeskPlayer.exe/","");
-#else
-        qWarning() << "Warning: cuesheet2 path is almost certainly wrong here for Linux.";
-        QString appPath = QApplication::applicationFilePath();
-        QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
-        cuesheet2SrcPath.replace("SquareDeskPlayer/","");
-#endif
-
-        if (!cuesheetCSSDestFile.exists()) {
-            // copy in a cuesheet2 file, if there's not one there already
-            QFile::copy(cuesheet2SrcPath, cuesheetCSSDestPath);  // copy one in
-        }
-
-        // Now, open it. ---------------
-        QFile css(lyricsDir + "/cuesheet2.css");  // cuesheet2.css is located in the LYRICS directory (NOTE: GLOBAL! All others are now IGNORED)
-
-        QString cssString;
-        if ( css.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QTextStream in1(&css);
-            cssString = in1.readAll();  // read the entire CSS file, if it exists
-            css.close();
-        }
 
         // read in the HTML for the cuesheet
 
@@ -3143,20 +3160,17 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             // NOTE: o-umlaut is already translated (incorrectly) here to \xB4, too.  There's not much we
             //   can do with non UTF-8 HTML files that aren't otherwise marked as to encoding.
 
-            // set the CSS
-//            qDebug().noquote() << "***** CSS:\n" << cssString;
-            ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
-
-#if defined(Q_OS_MAC) || defined(Q_OS_LINUX)
+//#if defined(Q_OS_MAC) || defined(Q_OS_LINUX) || defined(Q_OS_WIN)
             // HTML-TIDY IT ON INPUT *********
             QString cuesheet_tidied = tidyHTML(cuesheet);
-#else
-            QString cuesheet_tidied = cuesheet;  // LINUX, WINDOWS
-#endif
+//#else
+//            QString cuesheet_tidied = cuesheet;  // LINUX, WINDOWS
+//#endif
 
             // ----------------------
             // set the HTML for the cuesheet itself (must set CSS first)
 //            ui->textBrowserCueSheet->setHtml(cuesheet);
+//            qDebug() << "tidied: " << cuesheet_tidied;
             ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
             loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
@@ -3536,6 +3550,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
             } else {
                 QString patterTemplate(file.readAll());
                 file.close();
+//                qDebug() << "setting HTML to: " << patterTemplate;
                 ui->textBrowserCueSheet->setHtml(patterTemplate);
                 loadedCuesheetNameWithPath = patterTemplatePath;
             }
@@ -3579,6 +3594,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
             } else {
                 QString lyricsTemplate(file.readAll());
                 file.close();
+//                qDebug() << "HTML for singing call: " << lyricsTemplate;
                 ui->textBrowserCueSheet->setHtml(lyricsTemplate);
                 loadedCuesheetNameWithPath = lyricsTemplatePath;
             }
@@ -7895,7 +7911,7 @@ void MainWindow::on_actionDownload_Cuesheets_triggered()
     Downloader *d = new Downloader(this);
 
     QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
-    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
+//    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
 
     QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
 
@@ -7942,9 +7958,9 @@ void MainWindow::cancelProgress() {
 
 void MainWindow::lyricsDownloadEnd() {
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
+//    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
 
-    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
+//    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
     PreferencesManager prefsManager;
     QString musicDirPath = prefsManager.GetmusicPath();
     QString lyricsDirPath = musicDirPath + "/lyrics";
@@ -7956,7 +7972,7 @@ void MainWindow::lyricsDownloadEnd() {
     QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
 
     if (extracted.empty()) {
-        qDebug() << "There was a problem extracting the files.  No files extracted.";
+//        qDebug() << "There was a problem extracting the files.  No files extracted.";
         progressDialog->setValue(100);  // kill the progress bar
         progressTimer->stop();
         QMessageBox msgBox;
@@ -8133,26 +8149,31 @@ void MainWindow::saveLyricsAs()
     QFileInfo fi(currentMP3filenameWithPath);
 
     if (lastCuesheetSavePath.isEmpty()) {
-        lastCuesheetSavePath = musicRootPath;
+        lastCuesheetSavePath = musicRootPath + "/lyrics";
     }
 
-    QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
-    QString cuesheetBase = loadedCuesheetNameWithPath
-            .replace(QRegExp(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
-            .replace(QRegExp("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
+    loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName() + ".html";
 
-//    qDebug() << "cuesheetName: " << cuesheetBase << cuesheetExt;
+    QString maybeFilename = loadedCuesheetNameWithPath;
+    QFileInfo fi2(loadedCuesheetNameWithPath);
+    if (fi2.exists()) {
+        // choose the next name in the series (this won't be done, if we came from a template)
+        QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
+        QString cuesheetBase = loadedCuesheetNameWithPath
+                .replace(QRegExp(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
+                .replace(QRegExp("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
 
-    // find an appropriate not-already-used filename to save to
-    bool done = false;
-    int which = 2;  // I suppose we could be smarter than this at some point.
-    QString maybeFilename = "";
-    while (!done) {
-        maybeFilename = cuesheetBase + QString::number(which) + "." + cuesheetExt;
-        QFileInfo maybeFile(maybeFilename);
-        done = !maybeFile.exists();  // keep going until a proposed filename does not exist (don't worry -- it won't spin forever)
-        which++;
+        // find an appropriate not-already-used filename to save to
+        bool done = false;
+        int which = 2;  // I suppose we could be smarter than this at some point.
+        while (!done) {
+            maybeFilename = cuesheetBase + QString::number(which) + "." + cuesheetExt;
+            QFileInfo maybeFile(maybeFilename);
+            done = !maybeFile.exists();  // keep going until a proposed filename does not exist (don't worry -- it won't spin forever)
+            which++;
+        }
     }
+//    qDebug() << "cuesheetName: " << lastCuesheetSavePath << loadedCuesheetNameWithPath << maybeFilename;
 
     QString filename = QFileDialog::getSaveFileName(this,
                                                     tr("Save"), // TODO: this could say Lyrics or Patter
