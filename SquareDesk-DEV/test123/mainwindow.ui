@@ -1531,6 +1531,9 @@
           </item>
           <item>
            <widget class="QTableWidget" name="tableWidgetCallList">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
             <column>
              <property name="text">
               <string>Teach</string>
@@ -1567,7 +1570,7 @@
      <x>0</x>
      <y>0</y>
      <width>1027</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

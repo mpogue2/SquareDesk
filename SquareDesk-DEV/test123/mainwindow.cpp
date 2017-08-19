@@ -704,10 +704,18 @@ MainWindow::MainWindow(QWidget *parent) :
     QSettings settings;
 
     {
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+        ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
+        ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34);
+        ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
+#elif defined(Q_OS_LINUX)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
-        // #define kCallListNameCol        2
         ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
+#endif
+        ui->tableWidgetCallList->verticalHeader()->setVisible(false);  // turn off row numbers (we already have the Teach order, which is #'s)
+
+        // #define kCallListNameCol        2
         QHeaderView *headerView = ui->tableWidgetCallList->horizontalHeader();
         headerView->setSectionResizeMode(kCallListOrderCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
@@ -866,6 +874,7 @@ static void AddItemToCallList(QTableWidget *tableWidget,
     int row = initialRowCount;
 
     QTableWidgetItem *numberItem = new QTableWidgetItem(number);
+    numberItem->setTextAlignment(Qt::AlignCenter);  // center the #'s in the Teach column
     QTableWidgetItem *nameItem = new QTableWidgetItem(name);
 
     numberItem->setFlags(numberItem->flags() & ~Qt::ItemIsEditable);
@@ -876,6 +885,7 @@ static void AddItemToCallList(QTableWidget *tableWidget,
 
     QTableWidgetItem *dateItem = new QTableWidgetItem(taughtOn);
     dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
+    dateItem->setTextAlignment(Qt::AlignCenter);  // center the dates
     tableWidget->setItem(row, kCallListWhenCheckedCol, dateItem);
 
     QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
@@ -1247,6 +1257,7 @@ void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
         }
 
         QTableWidgetItem *dateItem(new QTableWidgetItem(songSettings.getCallTaughtOn(danceProgram, callName)));
+        dateItem->setTextAlignment(Qt::AlignCenter);
         ui->tableWidgetCallList->setItem(row, kCallListWhenCheckedCol, dateItem);
     }
 }
@@ -7673,6 +7684,12 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditHeader->setFont(currentFont);
     ui->pushButtonCueSheetEditBold->setFont(currentFont);
     ui->pushButtonCueSheetEditItalic->setFont(currentFont);
+
+    ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
+
+    ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67*(currentMacPointSize/13.0));
+    ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34*(currentMacPointSize/13.0));
+    ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100*(currentMacPointSize/13.0));
 
     // these are special -- don't want them to get too big, even if user requests huge fonts
     currentFont.setPointSize(currentFontPointSize > maxEQsize ? maxEQsize : currentFontPointSize);  // no bigger than 20pt
