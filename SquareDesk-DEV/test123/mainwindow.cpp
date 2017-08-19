@@ -2472,6 +2472,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
                maybeMainWindow->console->hasFocus() )     ||
+
              ( (ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() ||
                 ui->titleSearch->hasFocus() ||
@@ -2479,7 +2480,11 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->lineEditOutroTime->hasFocus() ||
                 ui->lineEditCountDownTimer->hasFocus() ||
                 ui->textBrowserCueSheet->hasFocus()) &&
-                (KeyEvent->key() == Qt::Key_Escape) )
+                (KeyEvent->key() == Qt::Key_Escape) ) ||
+
+             ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
+               (KeyEvent->key() == Qt::Key_Return || KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down)
+             )
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
 //            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
@@ -2653,6 +2658,111 @@ bool MainWindow::handleKeypress(int key, QString text)
             tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
             if (tabTitle.endsWith("*Lyrics") || tabTitle.endsWith("*Patter")) {
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() - 200);
+            }
+            break;
+
+        case Qt::Key_Return:
+        case Qt::Key_Enter:
+//            qDebug() << "Key RETURN/ENTER detected.";
+            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus()) {
+//                qDebug() << "   and search has focus.";
+
+                // figure out which row is currently selected
+                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+                QModelIndexList selected = selectionModel->selectedRows();
+                int row = -1;
+                if (selected.count() == 1) {
+                    // exactly 1 row was selected (good)
+                    QModelIndex index = selected.at(0);
+                    row = index.row();
+                }
+                else {
+                    // more than 1 row or no rows at all selected (BAD)
+                    return true;
+                }
+
+                on_songTable_itemDoubleClicked(ui->songTable->item(row,1));
+                ui->typeSearch->clearFocus();
+                ui->labelSearch->clearFocus();
+                ui->titleSearch->clearFocus();
+            }
+            break;
+
+        case Qt::Key_Down:
+        case Qt::Key_Up:
+//            qDebug() << "Key up/down detected.";
+            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus()) {
+//                qDebug() << "   and search has focus.";
+                if (key == Qt::Key_Up) {
+                    // TODO: this same code appears FOUR times.  FACTOR IT
+                    // on_actionPrevious_Playlist_Item_triggered();
+                    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+                    QModelIndexList selected = selectionModel->selectedRows();
+                    int row = -1;
+                    if (selected.count() == 1) {
+                        // exactly 1 row was selected (good)
+                        QModelIndex index = selected.at(0);
+                        row = index.row();
+                    }
+                    else {
+                        // more than 1 row or no rows at all selected (BAD)
+                        return true;
+                    }
+
+                    // which is the next VISIBLE row?
+                    int lastVisibleRow = row;
+                    row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+
+                    while (ui->songTable->isRowHidden(row) && row > 0) {
+                        // keep bumping backwards, until the previous VISIBLE row is found, or we're at the BEGINNING
+                        row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+                    }
+                    if (ui->songTable->isRowHidden(row)) {
+                        // if we try to go past the beginning of the VISIBLE rows, stick at the first visible row (which
+                        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+                        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+                        //   hilarity will ensue.
+                        row = lastVisibleRow;
+                    }
+
+                    ui->songTable->selectRow(row); // select new row!
+
+                } else {
+                    // TODO: this same code appears FOUR times.  FACTOR IT
+                    // on_actionNext_Playlist_Item_triggered();
+                    // figure out which row is currently selected
+                    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+                    QModelIndexList selected = selectionModel->selectedRows();
+                    int row = -1;
+                    if (selected.count() == 1) {
+                        // exactly 1 row was selected (good)
+                        QModelIndex index = selected.at(0);
+                        row = index.row();
+                    }
+                    else {
+                        // more than 1 row or no rows at all selected (BAD)
+                        return true;
+                    }
+
+                    int maxRow = ui->songTable->rowCount() - 1;
+
+                    // which is the next VISIBLE row?
+                    int lastVisibleRow = row;
+                    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+                    while (ui->songTable->isRowHidden(row) && row < maxRow) {
+                        // keep bumping, until the next VISIBLE row is found, or we're at the END
+                        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+                    }
+                    if (ui->songTable->isRowHidden(row)) {
+                        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
+                        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+                        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+                        //   hilarity will ensue.
+                        row = lastVisibleRow;
+                    }
+                    ui->songTable->selectRow(row); // select new row!
+
+                }
             }
             break;
 
@@ -4024,6 +4134,9 @@ void MainWindow::filterMusic()
 
     ui->songTable->setSortingEnabled(false);
 
+    int initialRowCount = ui->songTable->rowCount();
+    int rowsVisible = initialRowCount;
+    int firstVisibleRow = -1;
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString songTitle = ui->songTable->item(i,kTitleCol)->text();
         QString songType = ui->songTable->item(i,kTypeCol)->text();
@@ -4047,8 +4160,20 @@ void MainWindow::filterMusic()
             show = false;
         }
         ui->songTable->setRowHidden(i, !show);
+        rowsVisible -= (show ? 0 : 1); // decrement row count, if hidden
+        if (show && firstVisibleRow == -1) {
+            firstVisibleRow = i;
+        }
     }
     ui->songTable->setSortingEnabled(true);
+
+//    qDebug() << "rowsVisible: " << rowsVisible << ", initialRowCount: " << initialRowCount << ", firstVisibleRow: " << firstVisibleRow;
+    if (rowsVisible > 0 && rowsVisible != initialRowCount && firstVisibleRow != -1) {
+        ui->songTable->selectRow(firstVisibleRow);
+    } else {
+        ui->songTable->clearSelection();
+    }
+
 #else /* ifdef CUSTOM_FILTER */
     loadMusicList();
 #endif /* else ifdef CUSTOM_FILTER */
