@@ -782,6 +782,8 @@ MainWindow::MainWindow(QWidget *parent) :
                 );
 
     maybeLoadCSSfileIntoTextBrowser();
+
+    QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
