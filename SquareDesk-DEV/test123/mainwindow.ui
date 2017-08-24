@@ -1570,7 +1570,7 @@
      <x>0</x>
      <y>0</y>
      <width>1027</width>
-     <height>22</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1635,6 +1635,7 @@
     <addaction name="menuSound_FX"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Search"/>
+    <addaction name="actionIn_Out_Loop_points_to_default"/>
    </widget>
    <widget class="QMenu" name="menuPlaylist">
     <property name="title">
@@ -2597,6 +2598,11 @@
   <action name="actionC4x">
    <property name="text">
     <string>C4x</string>
+   </property>
+  </action>
+  <action name="actionIn_Out_Loop_points_to_default">
+   <property name="text">
+    <string>In/Out/Loop points to default</string>
    </property>
   </action>
  </widget>

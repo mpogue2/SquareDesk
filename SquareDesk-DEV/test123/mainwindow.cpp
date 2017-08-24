@@ -1303,6 +1303,20 @@ void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
     on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex());
 }
 
+void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */)
+{
+    ui->lineEditIntroTime->setText("");
+    ui->lineEditOutroTime->setText("");
+    ui->seekBarCuesheet->SetDefaultIntroOutroPositions();
+    ui->seekBar->SetDefaultIntroOutroPositions();
+    double length = cBass.FileLength;
+    double intro = ui->seekBarCuesheet->GetIntro();
+    double outro = ui->seekBarCuesheet->GetOutro();
+    ui->lineEditIntroTime->setText(doubleToTime(intro * length));
+    ui->lineEditOutroTime->setText(doubleToTime(outro * length));
+    
+}
+
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
     bool visible = !checked;
