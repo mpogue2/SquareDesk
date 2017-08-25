@@ -284,7 +284,6 @@ private slots:
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
-    void on_tableWidgetCallList_cellChanged(int row, int col);
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
     void on_lineEditChoreographySearch_textChanged();
@@ -591,6 +590,9 @@ public:
     void actionTempoMinus();
     void actionFadeOutAndPause();
     void actionNextTab();
+
+    void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
+    void tableWidgetCallList_checkboxStateChanged(int row, int state);    
 };
 
 // currentState:

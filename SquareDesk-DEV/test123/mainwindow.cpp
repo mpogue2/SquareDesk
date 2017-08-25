@@ -57,6 +57,7 @@
 #include "prefsmanager.h"
 #include "importdialog.h"
 #include "exportdialog.h"
+#include "calllistcheckbox.h"
 
 #include "danceprograms.h"
 #define CUSTOM_FILTER
@@ -867,7 +868,7 @@ void MainWindow::setCurrentSessionIdReloadSongAges(int id)
     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
 }
 
-static void AddItemToCallList(QTableWidget *tableWidget,
+static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
                               const QString &number, const QString &name,
                               const QString &taughtOn)
 {
@@ -889,14 +890,22 @@ static void AddItemToCallList(QTableWidget *tableWidget,
     dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
     dateItem->setTextAlignment(Qt::AlignCenter);  // center the dates
     tableWidget->setItem(row, kCallListWhenCheckedCol, dateItem);
-
-    QTableWidgetItem *checkBoxItem = new QTableWidgetItem();
-    checkBoxItem->setCheckState((taughtOn.isNull() || taughtOn.isEmpty()) ? Qt::Unchecked : Qt::Checked);
-    tableWidget->setItem(row, kCallListCheckedCol, checkBoxItem);
-    tableWidget->item(row, kCallListCheckedCol)->setTextAlignment(Qt::AlignCenter);
+    
+    CallListCheckBox *checkbox = new CallListCheckBox();
+    //   checkbox->setStyleSheet("margin-left:50%; margin-right:50%;");
+    QHBoxLayout *layout = new QHBoxLayout();
+    QWidget *widget = new QWidget();
+    layout->setAlignment( Qt::AlignCenter );
+    layout->addWidget( checkbox );
+    layout->setContentsMargins(0,0,0,0);
+    widget->setLayout( layout);
+    checkbox->setCheckState((taughtOn.isNull() || taughtOn.isEmpty()) ? Qt::Unchecked : Qt::Checked);
+    tableWidget->setCellWidget(row, kCallListCheckedCol, widget );;
+    checkbox->setRow(row);
+    return checkbox;
 }
 
-static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
+void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
 {
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
 
@@ -927,7 +936,9 @@ static void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, 
                 name = match.captured(4);
             }
             QString taughtOn = songSettings.getCallTaughtOn(danceProgram, name);
-            AddItemToCallList(tableWidget, number, name, taughtOn);
+            CallListCheckBox *checkbox = AddItemToCallList(tableWidget, number, name, taughtOn);
+            checkbox->setMainWindow(this);
+            
         }
         inputFile.close();
     }
@@ -1235,33 +1246,28 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
     saveLyricsAs();
 }
 
-
-// ----------------------------------------------------------------------
-void MainWindow::on_tableWidgetCallList_cellChanged(int row, int col)
+void MainWindow::tableWidgetCallList_checkboxStateChanged(int row, int state)
 {
-    if (kCallListCheckedCol == col)
+    int currentIndex = ui->comboBoxCallListProgram->currentIndex();
+    QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
+    QString displayName;
+    QString danceProgram;
+    breakDanceProgramIntoParts(programFilename, displayName, danceProgram);
+
+    QString callName = ui->tableWidgetCallList->item(row,kCallListNameCol)->text();
+
+    if (state == Qt::Checked)
     {
-        int currentIndex = ui->comboBoxCallListProgram->currentIndex();
-        QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
-        QString displayName;
-        QString danceProgram;
-        breakDanceProgramIntoParts(programFilename, displayName, danceProgram);
-
-        QString callName = ui->tableWidgetCallList->item(row,kCallListNameCol)->text();
-
-        if (ui->tableWidgetCallList->item(row,col)->checkState() == Qt::Checked)
-        {
-            songSettings.setCallTaught(danceProgram, callName);
-        }
-        else
-        {
-            songSettings.deleteCallTaught(danceProgram, callName);
-        }
-
-        QTableWidgetItem *dateItem(new QTableWidgetItem(songSettings.getCallTaughtOn(danceProgram, callName)));
-        dateItem->setTextAlignment(Qt::AlignCenter);
-        ui->tableWidgetCallList->setItem(row, kCallListWhenCheckedCol, dateItem);
+        songSettings.setCallTaught(danceProgram, callName);
     }
+    else
+    {
+        songSettings.deleteCallTaught(danceProgram, callName);
+    }
+
+    QTableWidgetItem *dateItem(new QTableWidgetItem(songSettings.getCallTaughtOn(danceProgram, callName)));
+    dateItem->setTextAlignment(Qt::AlignCenter);
+    ui->tableWidgetCallList->setItem(row, kCallListWhenCheckedCol, dateItem);
 }
 
 void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex)
