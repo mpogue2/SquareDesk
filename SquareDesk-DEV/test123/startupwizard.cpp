@@ -473,7 +473,11 @@ ConclusionPage::ConclusionPage(QWidget *parent)
 void ConclusionPage::initializePage()
 {
     QString count;
+#if defined(Q_OS_MAC) | defined(Q_OS_LINUX)
     QString confirmText = "Click Done to make the directories, copy MP3 files, and update Preferences.\n\n";
+#elif defined(Q_OS_WIN)
+    QString confirmText = "Click Finish to make the directories, copy MP3 files, and update Preferences.\n\n";
+#endif
     confirmText += "Directories to create:\n";
     confirmText += "   " + field("outputDir").toString() + " (main Music Directory)\n";
     confirmText += "   " + field("outputDir").toString() + "/" + field("patterDirName").toString() + " (for patter)\n";
