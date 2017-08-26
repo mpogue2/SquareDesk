@@ -1570,7 +1570,7 @@
      <x>0</x>
      <y>0</y>
      <width>1027</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1721,8 +1721,6 @@
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
     <addaction name="actionAuto_scroll_during_playback"/>
-    <addaction name="separator"/>
-    <addaction name="actionPrint_Lyrics"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
