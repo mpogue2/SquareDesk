@@ -34,22 +34,13 @@ MacUtils::~MacUtils() {
 }
 
 void MacUtils::disableScreensaver() {
-    CFStringRef* reasonForActivity = (CFStringRef *)CFSTR("SquareDeskPlayer active");
-    IOReturn success = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep,
-                                        kIOPMAssertionLevelOn, *reasonForActivity, &assertionID);
-    if (success == kIOReturnSuccess)
-    {
-        //return success? TODO...
-    }
-
-    // TODO: do I also need to disable IDLE sleep?
-    // TODO: does this need to be a Preference (e.g. "[ ] disable screensaver while SquareDesk is open")
+    // I could not get the standard kIOPMAssertionTypePreventUserIdleDisplaySleep method
+    //   to return success, and screensaver was not getting disabled, so switching to an alternate method
+    UpdateSystemActivity(UsrActivity);  // alternate method, call it every N seconds
 }
 
 void MacUtils::reenableScreensaver() {
-
-    IOPMAssertionRelease(assertionID);
-
+    // IOPMAssertionRelease(assertionID);
 }
 
 // Disables auto window tabbing where supported, otherwise a no-op.

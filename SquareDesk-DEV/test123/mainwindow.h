@@ -343,6 +343,9 @@ private slots:
     void on_actionSave_As_triggered();
 
 private:
+
+    unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
+
     void saveLyrics();
     void saveLyricsAs();
     void saveSequenceAs();
@@ -592,7 +595,7 @@ public:
     void actionNextTab();
 
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
-    void tableWidgetCallList_checkboxStateChanged(int row, int state);    
+    void tableWidgetCallList_checkboxStateChanged(int row, int state);
 };
 
 // currentState:

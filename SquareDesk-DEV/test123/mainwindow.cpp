@@ -232,7 +232,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
-    macUtils.disableScreensaver();
+    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
 #elif defined(Q_OS_WIN)
 #pragma comment(lib, "user32.lib")
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
@@ -890,7 +890,7 @@ static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
     dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
     dateItem->setTextAlignment(Qt::AlignCenter);  // center the dates
     tableWidget->setItem(row, kCallListWhenCheckedCol, dateItem);
-    
+
     CallListCheckBox *checkbox = new CallListCheckBox();
     //   checkbox->setStyleSheet("margin-left:50%; margin-right:50%;");
     QHBoxLayout *layout = new QHBoxLayout();
@@ -938,7 +938,7 @@ void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWid
             QString taughtOn = songSettings.getCallTaughtOn(danceProgram, name);
             CallListCheckBox *checkbox = AddItemToCallList(tableWidget, number, name, taughtOn);
             checkbox->setMainWindow(this);
-            
+
         }
         inputFile.close();
     }
@@ -1320,7 +1320,7 @@ void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checke
     double outro = ui->seekBarCuesheet->GetOutro();
     ui->lineEditIntroTime->setText(doubleToTime(intro * length));
     ui->lineEditOutroTime->setText(doubleToTime(outro * length));
-    
+
 }
 
 void MainWindow::on_actionCompact_triggered(bool checked)
@@ -2318,6 +2318,13 @@ void MainWindow::on_actionLoop_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_UIUpdateTimerTick(void)
 {
+
+#if defined(Q_OS_MAC)
+    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
+        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
+    }
+#endif
+
     Info_Seekbar(true);
 
     // update the session coloring analog clock
