@@ -43,7 +43,7 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, b
 
 void MainWindow::initialize_internal_sd_tab()
 {
-    
+    ui->listWidgetSDOutput->setIconSize(QSize(128,128));
     for (int i = 0; i < 4; ++i)
     {
         QTransform boyTransform;
@@ -193,7 +193,19 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             }
         }
         if (!sdformation.empty())
-            ui->listWidgetSDOutput->addItem(sdformation.join("\n"));
+        {
+            QPixmap image(128,128);
+            image.fill();
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            sdscene.render(&painter);
+
+            QListWidgetItem *item = new QListWidgetItem(sdformation.join("\n"));
+            item->setIcon(QIcon(image));
+            ui->listWidgetSDOutput->addItem(item);
+            
+            /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
+        }
         sdformation.clear();
         ui->listWidgetSDOutput->addItem(str);
     }
