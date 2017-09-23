@@ -730,6 +730,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
     initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
+    initialize_internal_sd_tab();
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(true);
@@ -785,6 +786,11 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeLoadCSSfileIntoTextBrowser();
 
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
+
+
+    // Initializers for these should probably be up in the constructor
+    sdthread = new SDThread(this);
+    sdthread->start();
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -1427,6 +1433,10 @@ MainWindow::~MainWindow()
 #endif
     if (sd) {
         sd->kill();
+    }
+    if (sdthread)
+    {
+        sdthread->stop();
     }
 #if defined(POCKETSPHINXSUPPORT)
     if (ps) {
@@ -2488,6 +2498,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
+               ui->lineEditSDInput->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->lineEditCountDownTimer->hasFocus() ||
                ui->lineEditChoreographySearch->hasFocus() ||
@@ -5758,7 +5769,7 @@ int MainWindow::getInputVolume()
 #endif
 }
 
-void MainWindow::setInputVolume(int newVolume)
+void MainWindow::setInputVolume(int /* newVolume */)
 {
 #if defined(Q_OS_MAC)
     if (newVolume != -1) {
@@ -7311,7 +7322,7 @@ void MainWindow::sdAction2Triggered(QAction * action) {
     microphoneStatusUpdate();  // update status message, based on new keyboard SD level
 }
 
-void MainWindow::airplaneMode(bool turnItOn) {
+void MainWindow::airplaneMode(bool /* turnItOn */) {
 #if defined(Q_OS_MAC)
     char cmd[100];
     if (turnItOn) {
@@ -8413,3 +8424,4 @@ void MainWindow::on_actionSave_As_triggered()
         // intentionally nothing...
     }
 }
+

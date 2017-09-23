@@ -55,7 +55,8 @@
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
-
+#include <QGraphicsScene>
+#include <QGraphicsItemGroup>
 #include <QDateTime>
 
 #include "common_enums.h"
@@ -78,6 +79,9 @@
 #endif
 #include <tidy/tidy.h>
 #include <tidy/tidybuffio.h>
+
+#include "sdinterface.h"
+
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
@@ -342,6 +346,22 @@ private slots:
     void on_actionSave_triggered();
     void on_actionSave_As_triggered();
 
+    // SD integration
+    void on_lineEditSDInput_returnPressed();
+    void on_lineEditSDInput_textChanged();
+    void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
+public:
+    void on_threadSD_errorString(QString str);
+    void on_sd_set_window_title(QString str);
+    void on_sd_add_new_line(QString, int drawing_picture);
+    void on_sd_set_pick_string(QString);
+    void on_sd_dispose_of_abbreviation(QString);;
+    void on_sd_set_matcher_options(QStringList options);
+    void on_sd_update_status_bar(QString str);
+    void on_sd_awaiting_input();
+    
+    void initialize_internal_sd_tab();
+    
 private:
     void saveLyrics();
     void saveLyricsAs();
@@ -358,6 +378,7 @@ private:
 
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
+    
 
     bool justWentActive;
 
@@ -592,7 +613,13 @@ public:
     void actionNextTab();
 
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
-    void tableWidgetCallList_checkboxStateChanged(int row, int state);    
+    void tableWidgetCallList_checkboxStateChanged(int row, int state);
+
+private: // SD
+    SDThread *sdthread;
+    QStringList sdformation;
+    QGraphicsScene sdscene;
+    QList<QGraphicsItemGroup*> sdpeople;
 };
 
 // currentState:

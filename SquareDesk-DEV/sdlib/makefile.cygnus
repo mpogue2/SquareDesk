@@ -1,0 +1,99 @@
+# Makefile for Sd/Sdtty for Cygnus gcc.
+
+# This gives the compiler name and any switches that it needs to make
+# it operate the way we want (ANSI language, standards conformance,
+# target hardware, etc.)
+CC = gcc
+
+# This gives any "-D" switches that we always need to send to the compiler.
+DEFS = -Wall -Wno-switch -Wno-uninitialized -Wno-char-subscripts
+
+# This gives the optimization and/or debug info.  These flags presumably
+# don't affect the semantics of the language and run-time environment, so you
+# might reasonably want to change them to suit your taste.
+# The options shown here have been chosen to optimize the program for
+# production use.  Depending on your operating system, compiler, and debugger,
+# this may compromise the ability to debug the program.  In this case, you may
+# need to choose different options, typically "-g", for debugging.
+# Consult your system, compiler, and debugger vendor for further information.
+CDEBUGFLAGS = -O2
+
+CFLAGS =$(CDEBUGFLAGS) $(DEFS)
+
+# These are the "-I"  and "-D" flags that we must use for the compilation
+# of the X11 user interface (sdui-x11.c).
+X11_FLAGS =
+
+# These are the "-I"  and "-D" flags that we must use for the compilation
+# of the system-dependent part of the TTY user interface (sdui-ttu.cpp).
+TTY_FLAGS = -DNO_IOCTL
+
+# These are the library flags that we must use for the final bind of
+# the X11 version of "sd".
+X11_LIBS =
+
+# These are the library flags that we must use for the final bind of
+# "sdtty".
+TTY_LIBS =
+
+SD_OBJS = sdmain.o sdutil.o sdbasic.o sdinit.o \
+          sdtables.o sdctable.o sdtop.o sdconcpt.o sdpreds.o \
+          sdgetout.o sdmoves.o sdtand.o sdconc.o sdistort.o \
+          sdpick.o sdsi.o
+
+SDX11_OBJ = sdui-x11.o
+SDTTY_OBJS = sdui-tty.o sdmatch.o sdui-ttu.o
+
+SDTTY_LINK_OBJS = $(SD_OBJS) $(SDTTY_OBJS)
+
+MKCALLS_OBJS = mkcalls.o dbcomp.o
+
+
+all: alltty
+allx11: sd.exe sd_calls.dat
+alltty: sdtty.exe sd_calls.dat
+everything: allx11 sdtty.exe
+
+LDPRELIBS =
+LDPOSTLIBS = lib\crt0.o lib\libc.a
+
+sd.exe: $(SD_OBJS) $(SDX11_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(SD_OBJS) $(SDX11_OBJ) $(LDPRELIBS) $(X11_LIBS) $(LDPOSTLIBS)
+
+mkcalls.exe: $(MKCALLS_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(MKCALLS_OBJS)
+
+sdtty.exe: $(SD_OBJS) $(SDTTY_OBJS)
+	$(CC) $(CFLAGS) -o $@ $(SDTTY_LINK_OBJS) $(TTY_LIBS)
+
+sd_calls.dat: sd_calls.txt mkcalls.exe
+	./mkcalls sd_calls.txt
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+
+.cpp.o:
+	$(CC) $(CFLAGS) -c $*.cpp
+
+sdui-x11.o: sdui-x11.c
+	$(CC) $(CFLAGS) $(X11_FLAGS) -c $*.c
+
+sdui-ttu.o: sdui-ttu.cpp
+	$(CC) $(CFLAGS) $(TTY_FLAGS) -c $*.cpp
+
+dbcomp.o sdmain.o sdsi.o sdui-x11.o: paths.h
+
+dbcomp.o: database.h
+
+$(SD_OBJS) $(SDX11_OBJ) $(SDTTY_OBJS): sd.h database.h
+
+.SUFFIXES: .cpp
+
+
+RM = del
+
+clean::
+	-$(RM) *.o sd.exe sdtty.exe mkcalls.exe sd_calls.dat
+
+distclean: clean
+	-$(RM) *.tar *.tar.Z

@@ -34,6 +34,8 @@ SOURCES += main.cpp\
     startupwizard.cpp \
     keybindings.cpp \
     calllistcheckbox.cpp \
+    sdinterface.cpp \
+    mainwindow_sd.cpp \
     downloadmanager.cpp
 
 HEADERS  += mainwindow.h \
@@ -67,6 +69,7 @@ HEADERS  += mainwindow.h \
     platform.h \
     keybindings.h \
     calllistcheckbox.h \
+    sdinterface.h \
     downloadmanager.h
 
     FORMS    += mainwindow.ui \
@@ -84,10 +87,12 @@ INCLUDEPATH += $$PWD/ $$PWD/../local_win32/include
 DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
 }
 
-unix:!macx {
+unix:!macx { 
 INCLUDEPATH += $$PWD/ $$PWD/../local/include
 DEPENDPATH += $$PWD/ $$PWD/../local/include
 }
+
+LIBS += -L$$PWD/../sdlib -lsdlib
 
 # NOTE: there is no debug version of libbass
 win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy -lquazip
