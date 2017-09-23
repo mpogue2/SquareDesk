@@ -87,12 +87,12 @@ INCLUDEPATH += $$PWD/ $$PWD/../local_win32/include
 DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
 }
 
-unix:!macx { 
+unix:!macx {
 INCLUDEPATH += $$PWD/ $$PWD/../local/include
 DEPENDPATH += $$PWD/ $$PWD/../local/include
+LIBS += -L$$PWD/../sdlib -lsdlib
 }
 
-LIBS += -L$$PWD/../sdlib -lsdlib
 
 # NOTE: there is no debug version of libbass
 win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy -lquazip
@@ -103,6 +103,8 @@ win32 {
     RC_FILE = desk1d.rc
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
     INCLUDEPATH += $$PWD/../taglib/binaries/include
+
+    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
 }
 
 # copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
@@ -176,6 +178,9 @@ macx {
 
     # ZLIB ------------------------------------------
     LIBS += /usr/lib/libz.dylib
+
+    # SDLIB ------------------------------------------
+    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
 
     # ICONS, ALLCALLS.CSV ---------------------------
     ICON = $$PWD/desk1d.icns

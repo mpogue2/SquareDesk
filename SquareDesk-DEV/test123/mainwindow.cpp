@@ -896,7 +896,7 @@ static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
     dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
     dateItem->setTextAlignment(Qt::AlignCenter);  // center the dates
     tableWidget->setItem(row, kCallListWhenCheckedCol, dateItem);
-    
+
     CallListCheckBox *checkbox = new CallListCheckBox();
     //   checkbox->setStyleSheet("margin-left:50%; margin-right:50%;");
     QHBoxLayout *layout = new QHBoxLayout();
@@ -944,7 +944,7 @@ void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWid
             QString taughtOn = songSettings.getCallTaughtOn(danceProgram, name);
             CallListCheckBox *checkbox = AddItemToCallList(tableWidget, number, name, taughtOn);
             checkbox->setMainWindow(this);
-            
+
         }
         inputFile.close();
     }
@@ -1326,7 +1326,7 @@ void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checke
     double outro = ui->seekBarCuesheet->GetOutro();
     ui->lineEditIntroTime->setText(doubleToTime(intro * length));
     ui->lineEditOutroTime->setText(doubleToTime(outro * length));
-    
+
 }
 
 void MainWindow::on_actionCompact_triggered(bool checked)
@@ -5769,7 +5769,7 @@ int MainWindow::getInputVolume()
 #endif
 }
 
-void MainWindow::setInputVolume(int /* newVolume */)
+void MainWindow::setInputVolume(int newVolume)
 {
 #if defined(Q_OS_MAC)
     if (newVolume != -1) {
@@ -7322,7 +7322,7 @@ void MainWindow::sdAction2Triggered(QAction * action) {
     microphoneStatusUpdate();  // update status message, based on new keyboard SD level
 }
 
-void MainWindow::airplaneMode(bool /* turnItOn */) {
+void MainWindow::airplaneMode(bool turnItOn) {
 #if defined(Q_OS_MAC)
     char cmd[100];
     if (turnItOn) {
