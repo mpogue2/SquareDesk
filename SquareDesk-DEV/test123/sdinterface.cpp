@@ -3,7 +3,8 @@
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
-
+#include <QInputDialog>
+#include <QLineEdit>
  
 
 
@@ -80,6 +81,7 @@ private:
 
     void ShowListBox(int);
     void UpdateStatusBar(const char *);
+    bool do_popup(int nWhichOne);
 
 };
 
@@ -183,14 +185,14 @@ void SquareDesk_iofull::no_erase_before_n(int /* n */)
 //    qDebug() << "SquareDesk_iofull::no_erase_before_n(int n);";
 }
 
-void SquareDesk_iofull::reduce_line_count(int n)
+void SquareDesk_iofull::reduce_line_count(int /* n */)
 {
     // This is for culling old lines. We can probably leave it doing nothing.
 //    qDebug() << "SquareDesk_iofull::reduce_line_count(int " << n << ");";
 }
 
-void SquareDesk_iofull::update_resolve_menu(command_kind /* goal */, int /* cur */, int /* max */,
-                                            resolver_display_state /* state */)
+void SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,
+                                            resolver_display_state state)
 {
     create_resolve_menu_title(goal, cur, max, state, szResolveWndTitle);
     UpdateStatusBar(szResolveWndTitle);
@@ -357,7 +359,7 @@ bool SquareDesk_iofull::help_faq()
 
 popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2,
                                                  Cstring final_inline_prompt,
-                                                 Cstring seed, char *dest)
+                                                 Cstring /* seed */, char *dest)
 {
     QString prompt;
 //    qDebug() << "SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,";
@@ -379,7 +381,7 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
         prompt = prompt2;
     }
     bool ok = false;
-    QString sdest = QInputDialog::getString(mw, QString(final_inline_prompt), prompt,
+    QString sdest = QInputDialog::getText(mw, QString(final_inline_prompt), prompt,
                                             QLineEdit::Normal,
                                             /* const QString &text = */ QString(),
                                             &ok);
@@ -387,11 +389,11 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
     memset(dest, '\0', MAX_TEXT_LINE_LENGTH);
     strncpy(dest, sdest.toStdString().c_str(), MAX_TEXT_LINE_LENGTH - 1);
     
-    return ok ? POPUP_ACCEPT_WITH_STRING : POPUP_DECLINE
+    return ok ? POPUP_ACCEPT_WITH_STRING : POPUP_DECLINE;
 }    
 
 
-void SquareDesk_iofull::fatal_error_exit(int /* code */, Cstring s1, Cstring s2)
+void SquareDesk_iofull::fatal_error_exit(int code, Cstring s1, Cstring s2)
 {
     QString message(s1);
     
@@ -403,17 +405,17 @@ void SquareDesk_iofull::fatal_error_exit(int /* code */, Cstring s1, Cstring s2)
 
     // ZZZZZZZZZZZ
     qDebug() << "SquareDesk_iofull::fatal_error_exit(int code, Cstring s1=0, Cstring s2=0);";
+    session_index = 0;
+    general_final_exit(code);
 }
 
 void SquareDesk_iofull::serious_error_print(Cstring /* s1 */)
 {
     qDebug() << "SquareDesk_iofull::serious_error_print(Cstring s1);";
     // ZZZZZZZ
-    session_index = 0;
-    general_final_exit(code);
 }
 
-void SquareDesk_iofull::create_menu(call_list_kind cl)
+void SquareDesk_iofull::create_menu(call_list_kind /* cl */)
 {
     // This is empty in the Windows version, so leaving it empty here
 //    qDebug() << "SquareDesk_iofull::create_menu(call_list_kind cl (" << cl << "));";
@@ -422,13 +424,14 @@ void SquareDesk_iofull::create_menu(call_list_kind cl)
 selector_kind SquareDesk_iofull::do_selector_popup(matcher_class &/* matcher */)
 {
     qDebug() << "SquareDesk_iofull::do_selector_popup(matcher_class &matcher);";
-   match_result saved_match = matcher.m_final_result;
+    matcher_class &matcher = *gg77->matcher_p;
+    match_result saved_match = matcher.m_final_result;
    // We add 1 to the menu position to get the actual selector enum; the enum effectively starts at 1.
    // Item zero in the enum is selector_uninitialized, which we return if the user cancelled.
-   selector_kind retval = do_popup((int) matcher_class::e_match_selectors) ?
-      (selector_kind) (matcher.m_final_result.match.index+1) : selector_uninitialized;
-   matcher.m_final_result = saved_match;
-   return retval;
+    selector_kind retval = do_popup((int) matcher_class::e_match_selectors) ?
+        (selector_kind) (matcher.m_final_result.match.index+1) : selector_uninitialized;
+    matcher.m_final_result = saved_match;
+    return retval;
 }
 
 direction_kind SquareDesk_iofull::do_direction_popup(matcher_class &/* matcher */)
