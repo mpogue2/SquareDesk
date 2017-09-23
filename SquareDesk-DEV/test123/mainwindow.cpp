@@ -5782,6 +5782,8 @@ void MainWindow::setInputVolume(int newVolume)
         getVolumeProcess.waitForFinished();
         QString output(getVolumeProcess.readAllStandardOutput());
     }
+#else
+    Q_UNUSED(newVolume)
 #endif
 
 #if defined(Q_OS_WIN)
@@ -7331,6 +7333,8 @@ void MainWindow::airplaneMode(bool turnItOn) {
         sprintf(cmd, "osascript -e 'do shell script \"networksetup -setairportpower en0 on\"'\n");
     }
     system(cmd);
+#else
+    Q_UNUSED(turnItOn)
 #endif
 }
 
