@@ -21,6 +21,7 @@ public:
 public:
     void on_user_input(QString str);
     void stop();
+    void unlock();
 
 signals:
     void on_sd_update_status_bar(QString s);
@@ -30,6 +31,7 @@ signals:
     void on_sd_set_matcher_options(QStringList);
     void on_sd_set_pick_string(QString);
     void on_sd_dispose_of_abbreviation(QString);
+
 
 private:
     MainWindow *mw;

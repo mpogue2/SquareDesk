@@ -791,6 +791,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Initializers for these should probably be up in the constructor
     sdthread = new SDThread(this);
     sdthread->start();
+    sdthread->unlock();
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
