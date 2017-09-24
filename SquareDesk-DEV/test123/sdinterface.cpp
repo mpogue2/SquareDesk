@@ -70,10 +70,10 @@ private:
     SDThread *sdthread;
     MainWindow *mw;
     QWaitCondition *waitCondition;
+    bool WaitingForCommand;
     QMutex &mutexMessageLoop;
     char szResolveWndTitle [MAX_TEXT_LINE_LENGTH];
 
-    bool WaitingForCommand;
     int nLastOne;
 #define ui_undefined -999
     uims_reply_kind MenuKind;
@@ -95,7 +95,6 @@ void SDThread::on_user_input(QString str)
 void SDThread::stop()
 {
     abort = true;
-    qDebug() << "SDThread stop";
     eventLoopWaitCond.wakeAll();
 }
 
@@ -140,12 +139,9 @@ void SquareDesk_iofull::EnterMessageLoop()
     gg77->matcher_p->m_active_result.valid = false;
     gg77->matcher_p->erase_matcher_input();
     WaitingForCommand = true;
-    qDebug() << "Emitting on_sd_awainting_input()";
     emit sdthread->on_sd_awaiting_input();
-    qDebug() << "Waiting on message loop: " << WaitingForCommand;
 
     waitCondition->wait(&mutexMessageLoop);
-    qDebug() << "Out of message loop: " << WaitingForCommand;
     mutexMessageLoop.unlock();
 
     if (WaitingForCommand)
@@ -222,7 +218,7 @@ const char *SquareDesk_iofull::version_string()
 
 void SquareDesk_iofull::ShowListBox(int nWhichOne) {
     QStringList options;
-    qDebug() << "ShowListBox(" << nWhichOne << ")";
+//    qDebug() << "ShowListBox(" << nWhichOne << ")";
 
     if (nWhichOne != nLastOne)
     {
@@ -696,17 +692,12 @@ SDThread::SDThread(MainWindow *mw)
 
 SDThread::~SDThread()
 {
-    qDebug() << "~SDThread1";
     mutex.lock();
-    qDebug() << "~SDThread2";
     abort = true;
-    qDebug() << "~SDThread3";
     eventLoopWaitCond.wakeAll();
-    qDebug() << "~SDThread4";
     mutex.unlock();
-    qDebug() << "~SDThread5";
-    wait();
-    qDebug() << "~SDThread6";
+    wait(500);
+    terminate();
 }
 
 void SDThread::run()
