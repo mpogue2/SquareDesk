@@ -404,7 +404,7 @@ void SquareDesk_iofull::fatal_error_exit(int code, Cstring s1, Cstring s2)
     }
 
     // ZZZZZZZZZZZ
-    qDebug() << "SquareDesk_iofull::fatal_error_exit(int code, Cstring s1=0, Cstring s2=0);";
+    qDebug() << "SquareDesk_iofull::fatal_error_exit(" << code << ", " << s1 << ", " << s2 << ");";
     session_index = 0;
     general_final_exit(code);
 }
