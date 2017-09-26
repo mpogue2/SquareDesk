@@ -202,7 +202,9 @@ macx {
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
     #  (inside the SquareDeskPlayer.app bundle)
     # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
-    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+#    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+
     copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
 
