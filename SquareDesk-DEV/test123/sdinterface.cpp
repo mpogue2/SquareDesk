@@ -113,6 +113,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
          matcher.m_final_result.match.kind == ui_call_select ||
          matcher.m_final_result.match.kind == ui_concept_select))
     {
+        WaitingForCommand = false;
         mutexMessageLoop.unlock();
         waitCondition->wakeAll();
     }
@@ -170,7 +171,7 @@ void SquareDesk_iofull::prepare_for_listing()
 
 void SquareDesk_iofull::set_window_title(char s[])
 {
-    qDebug() << "SquareDesk_iofull::set_window_title(char s[]);";
+    qDebug() << "SquareDesk_iofull::set_window_title(" << s << ");";
     emit sdthread->on_sd_set_window_title(QString(s));
 }
 
@@ -547,9 +548,9 @@ void SquareDesk_iofull::display_help()
     qDebug() << "SquareDesk_iofull::display_help();";
 }
 
-void SquareDesk_iofull::terminate(int /* code */)
+void SquareDesk_iofull::terminate(int code)
 {
-    qDebug() << "SquareDesk_iofull::terminate(int code);";
+    qDebug() << "SquareDesk_iofull::terminate(" <<  code << ");";
 }
 
 void SquareDesk_iofull::process_command_line(int */* argcp */, char ***/* argvp */)
