@@ -88,8 +88,6 @@ void MainWindow::on_sd_update_status_bar(QString str)
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
-    qDebug() << "In new line " << QThread::currentThread() << "/" << QCoreApplication::instance()->thread();
-    
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
     
@@ -175,13 +173,13 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                             QTransform transform;
                             double dancer_x = ((double)(dancer_start_x) - max_x / 2.0) / 3.0;
                             double dancer_y = ((double)(y) - max_y / 2.0);
-                            qDebug() << "Couple " << coupleNumber << " " << (girl ? "Girl" : "Boy") << " at "
-                                     << dancer_x << "," << dancer_y << ", direction " << direction
-                                     << " x " << dancer_start_x << " max_x " << max_x;
+//                            qDebug() << "Couple " << coupleNumber << " " << (girl ? "Girl" : "Boy") << " at "
+//                                     << dancer_x << "," << dancer_y << ", direction " << direction
+//                                     << " x " << dancer_start_x << " max_x " << max_x;
                             transform.translate( dancer_x * dancerGridSize,
                                                  dancer_y * dancerGridSize);
                             transform.rotate(direction);
-                            qDebug() << "Transform: " << transform;
+//                            qDebug() << "Transform: " << transform;
                             sdpeople[dancerNum]->setTransform(transform);
                         }
                     }
