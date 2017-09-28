@@ -20,6 +20,7 @@ public:
 
 public:
     void on_user_input(QString str);
+    void set_dance_level(int dance_level);
     void stop();
     void unlock();
 
@@ -36,7 +37,7 @@ signals:
 private:
     MainWindow *mw;
     QWaitCondition eventLoopWaitCond;
-    QMutex mutex;
+    QMutex eventLoopMutex;
     bool abort;
     SquareDesk_iofull *iofull;    
 

@@ -11,11 +11,11 @@
 
 class SquareDesk_iofull : public iobase {
 public:
-    SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex &mutex)
+    SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
         : sdthread(thread), mw(mw), waitCondition(waitCondition),
           WaitingForCommand(false), mutexMessageLoop(mutex)
     {
-        mutexMessageLoop.lock();
+        mutexMessageLoop->lock();
     }
     
     int do_abort_popup();
@@ -62,6 +62,7 @@ public:
     
 public :
     void add_string_input(const char *str);
+    void set_dance_level(int dance_level);
 
     
 private:
@@ -71,7 +72,7 @@ private:
     MainWindow *mw;
     QWaitCondition *waitCondition;
     bool WaitingForCommand;
-    QMutex &mutexMessageLoop;
+    QMutex *mutexMessageLoop;
     char szResolveWndTitle [MAX_TEXT_LINE_LENGTH];
 
     int nLastOne;
@@ -84,6 +85,12 @@ private:
     bool do_popup(int nWhichOne);
 
 };
+
+void SDThread::set_dance_level(int dance_level)
+{
+    iofull->set_dance_level(dance_level);
+}
+
 
 void SDThread::on_user_input(QString str)
 {
@@ -98,10 +105,17 @@ void SDThread::stop()
     eventLoopWaitCond.wakeAll();
 }
 
+void SquareDesk_iofull::set_dance_level(int danceLevel)
+{
+    mutexMessageLoop->lock();
+    calling_level = (dance_level)(danceLevel);
+    mutexMessageLoop->unlock();
+}
+
 
 void SquareDesk_iofull::add_string_input(const char *s)
 {
-    mutexMessageLoop.lock();
+    QMutexLocker locker(mutexMessageLoop);
     matcher_class &matcher = *gg77->matcher_p;
 
     matcher.copy_to_user_input(s);
@@ -114,14 +128,11 @@ void SquareDesk_iofull::add_string_input(const char *s)
          matcher.m_final_result.match.kind == ui_concept_select))
     {
         WaitingForCommand = false;
-        mutexMessageLoop.unlock();
         waitCondition->wakeAll();
     }
     else
     {
         qDebug() << "No Match";
-        mutexMessageLoop.unlock();
-        
     }
 
     //See the    use_computed_match: case
@@ -142,8 +153,7 @@ void SquareDesk_iofull::EnterMessageLoop()
     WaitingForCommand = true;
     emit sdthread->on_sd_awaiting_input();
 
-    waitCondition->wait(&mutexMessageLoop);
-    mutexMessageLoop.unlock();
+    waitCondition->wait(mutexMessageLoop);
 
     if (WaitingForCommand)
     {
@@ -677,10 +687,10 @@ SDThread::SDThread(MainWindow *mw)
     : QThread(mw),
       mw(mw),
       eventLoopWaitCond(),
-      mutex(),
+      eventLoopMutex(),
       abort(false)
 {
-    mutex.lock();
+    eventLoopMutex.lock();
     QObject::connect(this, &SDThread::on_sd_update_status_bar, mw, &MainWindow::on_sd_update_status_bar);
     QObject::connect(this, &SDThread::on_sd_awaiting_input, mw, &MainWindow::on_sd_awaiting_input);
     QObject::connect(this, &SDThread::on_sd_set_window_title, mw, &MainWindow::on_sd_set_window_title);
@@ -693,17 +703,17 @@ SDThread::SDThread(MainWindow *mw)
 
 SDThread::~SDThread()
 {
-    mutex.lock();
+    eventLoopMutex.lock();
     abort = true;
     eventLoopWaitCond.wakeAll();
-    mutex.unlock();
+    eventLoopMutex.unlock();
     wait(500);
     terminate();
 }
 
 void SDThread::run()
 {
-    SquareDesk_iofull ggg(this, mw, &eventLoopWaitCond, mutex);
+    SquareDesk_iofull ggg(this, mw, &eventLoopWaitCond, &eventLoopMutex);
     iofull = &ggg;
     char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
 
@@ -712,5 +722,5 @@ void SDThread::run()
 
 void SDThread::unlock()
 {
-    mutex.unlock();
+    eventLoopMutex.unlock();
 }
