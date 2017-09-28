@@ -250,6 +250,13 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 
 void MainWindow::on_lineEditSDInput_textChanged()
 {
+    QString s = ui->lineEditSDInput->text();
+
+    for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
+    {
+        bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(s);
+        ui->listWidgetSDOptions->setRowHidden(i, !show);
+    }
     
 }
 
