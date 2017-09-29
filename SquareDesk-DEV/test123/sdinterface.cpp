@@ -1,5 +1,6 @@
 #include "../sdlib/sdui.h"
 #include "../sdlib/sdbase.h"
+#include "../sdlib/sd.h"
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
@@ -12,7 +13,7 @@
 class SquareDesk_iofull : public iobase {
 public:
     SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
-        : sdthread(thread), mw(mw), waitCondition(waitCondition),
+        : dance_program((dance_level)(0)), sdthread(thread), mw(mw), waitCondition(waitCondition),
           WaitingForCommand(false), mutexMessageLoop(mutex)
     {
         mutexMessageLoop->lock();
@@ -67,6 +68,7 @@ public :
     
 private:
     void EnterMessageLoop();
+    dance_level dance_program;
 
     SDThread *sdthread;
     MainWindow *mw;
@@ -107,8 +109,7 @@ void SDThread::stop()
 
 void SquareDesk_iofull::set_dance_level(int danceLevel)
 {
-    mutexMessageLoop->lock();
-    calling_level = (dance_level)(danceLevel);
+    dance_program = (dance_level)(danceLevel);
     mutexMessageLoop->unlock();
 }
 
@@ -290,7 +291,10 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             UpdateStatusBar(menu_names[nLastOne]);
 
             for (i=0; i<number_of_calls[nLastOne]; i++)
-                options.append(get_call_menu_name(main_call_lists[nLastOne][i]));
+            {
+                if (main_call_lists[nLastOne][i]->the_defn.level <= (int)(dance_program))
+                    options.append(get_call_menu_name(main_call_lists[nLastOne][i]));
+            }
 
             short int *item;
             int menu_length;

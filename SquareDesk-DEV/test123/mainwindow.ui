@@ -1578,6 +1578,65 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayoutSDStatus">
           <item>
+           <widget class="QComboBox" name="comboBoxSDCallingLevel">
+            <item>
+             <property name="text">
+              <string>Mainstream</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Plus</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>A1</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>A2</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C1</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C2</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C3A</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C3x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C4</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>C4x</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="labelSDStatusBar">
             <property name="text">
              <string>TextLabel</string>

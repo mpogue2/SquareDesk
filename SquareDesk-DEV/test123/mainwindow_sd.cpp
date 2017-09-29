@@ -260,3 +260,10 @@ void MainWindow::on_lineEditSDInput_textChanged()
     
 }
 
+
+void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex)
+{
+    qDebug() << "Setting dance level" << currentIndex;
+    sdthread->set_dance_level(currentIndex);
+    sdthread->on_user_input("");
+}

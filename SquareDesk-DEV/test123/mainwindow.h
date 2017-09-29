@@ -359,6 +359,7 @@ public:
     void on_sd_set_matcher_options(QStringList options);
     void on_sd_update_status_bar(QString str);
     void on_sd_awaiting_input();
+    void on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex);
     
     void initialize_internal_sd_tab();
     
