@@ -2502,6 +2502,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->lineEditChoreographySearch->hasFocus() ||
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
+               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
                maybeMainWindow->console->hasFocus() )     ||
 
              ( (ui->labelSearch->hasFocus() ||
