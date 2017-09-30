@@ -785,6 +785,8 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeLoadCSSfileIntoTextBrowser();
 
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
+
+    initReftab();
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -7106,6 +7108,39 @@ void MainWindow::restartSDprocess(QString SDdanceLevel) {
 
     connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData, Qt::UniqueConnection);  // output data from sd (and don't make duplicate connections)
     connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
+}
+
+void MainWindow::initReftab() {
+    documentsTab = new QTabWidget();
+    numWebviews = 0;
+
+    // first tab
+    QWidget *w1 = new QWidget();
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    QLabel *fileNameLabel = new QLabel(tr("File Name:"));
+    mainLayout->addWidget(fileNameLabel);
+    mainLayout->addStretch(1);
+    w1->setLayout(mainLayout);
+//    documentsTab->addTab(w1, tr("FirstDoc"));
+
+    webview[0] = new QWebView();
+    webview[0]->setUrl(QUrl("http://google.com"));
+    numWebviews++;
+    documentsTab->addTab(webview, tr("FirstDoc"));
+
+    // second tab
+    QWidget *w2 = new QWidget();
+    QVBoxLayout *mainLayout2 = new QVBoxLayout;
+    QLabel *fileNameLabel2 = new QLabel(tr("Hello I am 2:"));
+    mainLayout2->addWidget(fileNameLabel2);
+    mainLayout2->addStretch(1);
+    w2->setLayout(mainLayout2);
+    documentsTab->addTab(w2, tr("Second Doc"));
+
+//    QVBoxLayout *mainLayout2 = new QVBoxLayout;
+//    mainLayout2->addWidget(documentsTab);
+
+    ui->refGridLayout->addWidget(documentsTab, 0,1);
 }
 
 void MainWindow::initSDtab() {

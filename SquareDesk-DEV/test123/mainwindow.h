@@ -52,6 +52,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#include <QtWebKit>
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
@@ -115,6 +116,10 @@ public:
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
+
+    unsigned int numWebviews;
+    QWebView* webview[16];  // max of 16 tabs
+    QTabWidget *documentsTab;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -514,6 +519,7 @@ private:
     // --------------
     void restartSDprocess(QString SDdanceLevel);
     void initSDtab();
+    void initReftab();
 
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
