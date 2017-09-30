@@ -7123,10 +7123,12 @@ void MainWindow::initReftab() {
     w1->setLayout(mainLayout);
 //    documentsTab->addTab(w1, tr("FirstDoc"));
 
-    webview[0] = new QWebView();
-    webview[0]->setUrl(QUrl("http://google.com"));
+    webview[0] = new QWebEngineView();
+//    webview[0]->setUrl(QUrl("file:///Users/mpogue/__squareDanceMusic/reference/010.basic1.txt"));
+    QString taminationsURL = "file:///" + musicRootPath + "/reference/tamination/info/index.html";
+    webview[0]->setUrl(QUrl(taminationsURL));
     numWebviews++;
-    documentsTab->addTab(webview, tr("FirstDoc"));
+    documentsTab->addTab(webview[0], tr("Taminations"));
 
     // second tab
     QWidget *w2 = new QWidget();

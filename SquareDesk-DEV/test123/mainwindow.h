@@ -52,7 +52,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
-#include <QtWebKit>
+#include <QtWebEngineWidgets>
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
@@ -118,7 +118,7 @@ public:
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     unsigned int numWebviews;
-    QWebView* webview[16];  // max of 16 tabs
+    QWebEngineView* webview[16];  // max of 16 tabs
     QTabWidget *documentsTab;
 
 protected:
