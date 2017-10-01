@@ -11,6 +11,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = SquareDeskPlayer
 TEMPLATE = app
 
+#  turn off QML warning for Debug builds
+DEFINES += QT_QML_DEBUG_NO_WARNING
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     bass_audio.cpp \

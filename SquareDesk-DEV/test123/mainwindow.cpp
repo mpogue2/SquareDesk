@@ -3003,7 +3003,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
             }
         }
     }
-    labelnum.simplified();
+    (void)labelnum.simplified();
     title = title.simplified();
     shortTitle = shortTitle.simplified();
 
@@ -4687,12 +4687,15 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     QListIterator<QString> iter(*pathStack);
     QStringList programs;
 
-
+    // FIX: This should be changed to look only in <rootDir>/reference, rather than looking
+    //   at all pathnames in the <rootDir>.  It will be much faster.
     while (iter.hasNext()) {
         QString s = iter.next();
 
-        if (s.endsWith(".txt", Qt::CaseInsensitive))
+//        if (s.endsWith(".txt", Qt::CaseInsensitive))
+        if (QRegExp("reference/[a-zA-Z0-9]+\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
         {
+            //qDebug() << "Dance Program Match:" << s;
             QStringList sl1 = s.split("#!#");
             QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
@@ -7115,33 +7118,55 @@ void MainWindow::initReftab() {
     documentsTab = new QTabWidget();
     numWebviews = 0;
 
-    // first tab
-    QWidget *w1 = new QWidget();
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    QLabel *fileNameLabel = new QLabel(tr("File Name:"));
-    mainLayout->addWidget(fileNameLabel);
-    mainLayout->addStretch(1);
-    w1->setLayout(mainLayout);
-//    documentsTab->addTab(w1, tr("FirstDoc"));
+    QString referencePath = musicRootPath + "/reference";
+    QDirIterator it(referencePath, QDir::NoDot | QDir::NoDotDot | QDir::Dirs | QDir::Files);
+    while (it.hasNext()) {
+        QString filename = it.next();
+//        qDebug() << filename;
 
-    webview[0] = new QWebEngineView();
-//    webview[0]->setUrl(QUrl("file:///Users/mpogue/__squareDanceMusic/reference/010.basic1.txt"));
-    QString taminationsURL = "file:///" + musicRootPath + "/reference/tamination/info/index.html";
-    webview[0]->setUrl(QUrl(taminationsURL));
-    numWebviews++;
-    documentsTab->addTab(webview[0], tr("Taminations"));
+        QFileInfo info1(filename);
+        QString tabname;
+        bool HTMLfolderExists = false;
+        QString whichHTM = "";
+        if (info1.isDir()) {
+            QFileInfo info2(filename + "/index.html");
+            if (info2.exists()) {
+//                qDebug() << "    FOUND INDEX.HTML";
+                tabname = filename.split("/").last();
+                HTMLfolderExists = true;
+                whichHTM = "/index.html";
+            } else {
+                QFileInfo info3(filename + "/index.htm");
+                if (info3.exists()) {
+//                    qDebug() << "    FOUND INDEX.HTM";
+                    tabname = filename.split("/").last();
+                    HTMLfolderExists = true;
+                    whichHTM = "/index.htm";
+                }
+            }
+            if (HTMLfolderExists) {
+                webview[numWebviews] = new QWebEngineView();
+                QString indexFileURL = "file://" + filename + whichHTM;
+//                qDebug() << "    indexFileURL:" << indexFileURL;
+                webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                documentsTab->addTab(webview[numWebviews], tabname);
+                numWebviews++;
+            }
+        } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
+                   QRegExp("reference/[a-zA-Z0-9]+\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
+//                qDebug() << "    FOUND TXT FILE";
+                tabname = filename.split("/").last().remove(QRegExp(".txt$"));
+//                qDebug() << "    tabname:" << tabname;
 
-    // second tab
-    QWidget *w2 = new QWidget();
-    QVBoxLayout *mainLayout2 = new QVBoxLayout;
-    QLabel *fileNameLabel2 = new QLabel(tr("Hello I am 2:"));
-    mainLayout2->addWidget(fileNameLabel2);
-    mainLayout2->addStretch(1);
-    w2->setLayout(mainLayout2);
-    documentsTab->addTab(w2, tr("Second Doc"));
+                webview[numWebviews] = new QWebEngineView();
+                QString indexFileURL = "file://" + filename;
+//                qDebug() << "    indexFileURL:" << indexFileURL;
+                webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                documentsTab->addTab(webview[numWebviews], tabname);
+                numWebviews++;
+        } // else found a file
 
-//    QVBoxLayout *mainLayout2 = new QVBoxLayout;
-//    mainLayout2->addWidget(documentsTab);
+    } // while iterating through <musicRoot>/reference
 
     ui->refGridLayout->addWidget(documentsTab, 0,1);
 }
