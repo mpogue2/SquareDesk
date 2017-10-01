@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Reverse">
+
+  <tam title="Reverse Rollaway" group="Reverse"
+       formation="Normal Lines">
+    <path>
+      <move select="Fold Right" hands="gripright" beats="1.5" scaleX=".6" scaleY=".5" />
+      <move select="U-Turn Right" hands="gripright" beats="1.5" offsetX="1.2" offsetY="1" />
+    </path>
+    <path>
+      <move select="Dodge Left" hands="gripleft" />
+    </path>
+    <path>
+      <move select="Fold Right" hands="gripright" beats="1.5" scaleX=".6" scaleY=".5" />
+      <move select="U-Turn Right" hands="gripright" beats="1.5" offsetX="1.2" offsetY="1" />
+    </path>
+    <path>
+      <move select="Dodge Left" hands="gripleft" />
+    </path>
+  </tam>
+
+  <tam title="Reverse Half Sashay" group="Reverse" formation="Facing Couples">
+    <path>
+      <move select="Sashay Right" beats="4" />
+    </path>
+    <path>
+      <move select="BackSashay Left" beats="4" />
+    </path>
+  </tam>
+
+  <tamxref title="Reverse Wheel Around" group="Reverse"
+           xref-link="b2/wheel_around"
+           xref-title="Reverse Wheel Around"
+           xref-from="Facing Couples"/>
+
+  <tam title="Reverse Courtesy Turn" group="Reverse"
+       formation="Couples Facing Out" >
+    <path>
+      <move select="Belle Reverse Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Beau Reverse Wheel" scaleX="0.67" />
+    </path>
+  </tam>
+
+  <tamxref title="Reverse Flutterwheel" group="Reverse"
+           xref-link="b2/flutterwheel"
+           xref-title="Reverse Flutterwheel"
+           xref-from="Facing Couples"/>
+
+  <tamxref title="Reverse Dixie Style to a Wave" group="Reverse"
+           xref-link="ms/dixie_style"
+           xref-title="Reverse Dixie Style to a Wave"/>
+
+  <tam title="Reverse Circle to a Line" group="Reverse"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="Eighth Right" hands="gripboth" />
+      <movement hands="gripboth" beats="3" cx1="0" cy1="-1.88" cx2="2.83" cy2="-1.88" x2="2.83" y2="0" cx3="1.33" cx4="1.33" cy4="2" x4="0" y4="2" />
+      <movement hands="gripright" beats="1.5" cx1="0" cy1="-.78" cx2=".636" cy2="-1.414" x2="1.414" y2="-1.414" cx3=".55" cx4="1" cy4=".45" x4="1" y4="1" />
+      <move select="Eighth Right" hands="gripright" />
+      <move select="U-Turn Right" hands="gripright" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="Eighth Left" hands="gripboth" />
+      <movement hands="gripboth" beats="3" cx1="0" cy1="-1.88" cx2="2.83" cy2="-1.88" x2="2.83" y2="0" cx3="1.33" cx4="1.33" cy4="2" x4="0" y4="2" />
+      <movement hands="gripboth" beats="1.5" cx1="0" cy1="-.39" cx2=".318" cy2="-.707" x2=".707" y2="-.707" cx3=".55" cx4="1" cy4=".45" x4="1" y4="1" />
+      <move select="Eighth Left" hands="gripboth" />
+    </path>
+    <path>
+      <move select="Eighth Right" hands="gripboth" />
+      <movement hands="gripboth" beats="3" cx1="0" cy1="-1.88" cx2="2.83" cy2="-1.88" x2="2.83" y2="0" cx3="1.33" cx4="1.33" cy4="2" x4="0" y4="2" />
+      <move select="Eighth Left" hands="gripboth" beats="2" offsetX="2.121" offsetY="-.707" />
+    </path>
+    <path>
+      <move select="Eighth Left" hands="gripboth" />
+      <movement hands="gripboth" beats="3" cx1="0" cy1="-1.88" cx2="2.83" cy2="-1.88" x2="2.83" y2="0" cx3="1.33" cx4="1.33" cy4="2" x4="0" y4="2" />
+      <move select="Eighth Right" hands="gripleft" beats="2" offsetX="-.707" offsetY="-2.121" />
+    </path>
+  </tam>
+
+  <tamxref title="Reverse (A-1) Swap Around" group="Reverse (A-1)"
+           xref-link="a1/reverse_swap_around"
+           xref-title="Reverse Swap Around"
+           xref-from="Facing Couples"/>
+
+  <tamxref title="Reverse (A-2) Recycle" group="Reverse (A-2)"
+           xref-link="a2/recycle"
+           xref-title="Reverse Recycle"/>
+
+</tamination>

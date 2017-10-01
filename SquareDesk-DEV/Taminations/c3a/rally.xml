@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Rally">
+
+  <tam title="Rally" from="1/4 Tag" formation="Quarter Tag" parts="3">
+    <path>
+      <move select="Extend Right" beats="4" scaleX="1" scaleY="4"/>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleY="2"/>
+      <move select="Forward 2"/>
+      <move select="Run Left" beats="3" scaleX=".5" scaleY=".25"/>
+    </path>
+    <path>
+      <move select="Run Right" offsetX="1"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Forward" beats="3"/>
+      <move select="U-Turn Right" beats="4" offsetX="-1" offsetY="-.5"/>
+    </path>
+  </tam>
+
+  <tam title="Rally" from="3/4 Tag" formation="3/4 Tag" parts="3">
+    <path couples="3 1">
+      <move select="Quarter Right" offsetX="-.5" offsetY="-1"/>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY="2.5"/>
+      <move select="Run Right" beats="2.5" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path couples="3 1">
+      <move select="Quarter Right" offsetX="-.5" offsetY="-1"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right" beats="3.5" scaleX="1.5" scaleY="2.5"/>
+    </path>
+    <path couples="4 2">
+      <move select="Run Right" offsetX="1"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path couples="4 2">
+      <move select="Forward" beats="3"/>
+      <move select="U-Turn Right" beats="4" offsetX="-1" offsetY="-.5"/>
+    </path>
+  </tam>
+
+  <tam title="Rally" from="Left-Hand 1/4 Tag" formation="Quarter Tag LH" parts="3">
+    <path>
+      <move select="Extend Right" beats="4" scaleX="1" scaleY="4"/>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleY="2"/>
+      <move select="Forward 2"/>
+      <move select="Run Left" beats="3" scaleX=".5" scaleY=".25"/>
+    </path>
+    <path>
+      <move select="Run Left" offsetX="1"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Forward" beats="3"/>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Rally" from="Left-Hand 3/4 Tag" formation="3/4 Tag LH" parts="3">
+    <path>
+      <move select="Quarter Right" offsetX="-.5" offsetY="-1"/>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY="2.5"/>
+      <move select="Run Right" beats="2.5" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetX="-.5" offsetY="-1"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right" beats="3.5" scaleX="1.5" scaleY="2.5"/>
+    </path>
+    <path>
+      <move select="Run Left" offsetX="1"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Forward" beats="3"/>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Scoot and Rally" from="1/4 Tag" formation="Quarter Tag" parts="5;3">
+    <path>
+      <!-- Scoot Back -->
+      <move select="Extend Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Forward" scaleX="1.5" />
+      <!-- Rally -->
+      <move select="Quarter Right" offsetX="-.5" offsetY="-1"/>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY="2.5"/>
+      <move select="Run Right" beats="2.5" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <!-- Scoot Back -->
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" scaleX="1.5" scaleY="1.5" />
+      <!-- Rally -->
+      <move select="Quarter Right" offsetX="-.5" offsetY="-1"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right" beats="3.5" scaleX="1.5" scaleY="2.5"/>
+    </path>
+    <path>
+      <!-- Scoot Back -->
+      <move select="Extend Right" scaleX="1.5" scaleY=".5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Forward" scaleX="1.5" />
+      <!-- Rally -->
+      <move select="Forward" beats="3"/>
+      <move select="U-Turn Right" beats="4" offsetX="-1" offsetY="-.5"/>
+    </path>
+    <path>
+      <!-- Scoot Back -->
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" scaleX="1.5" scaleY=".5" />
+      <!-- Rally -->
+      <move select="Run Right" offsetX="1"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Scoot and Rally" from="Left-Hand 1/4 Tag"
+       formation="Quarter Tag LH" parts="5;3">
+    <path>
+      <!-- Scoot Back -->
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" scaleX="1.5" scaleY="1.5" />
+      <!-- Rally -->
+      <move select="Quarter Left" offsetX="-.5" offsetY="1"/>
+      <move select="Forward 2"/>
+      <move select="Lead Left" beats="3.5" scaleX="1.5" scaleY="2.5"/>
+    </path>
+    <path>
+      <!-- Scoot Back -->
+      <move select="Extend Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Forward" scaleX="1.5" />
+      <!-- Rally -->
+      <move select="Quarter Left" offsetX="-.5" offsetY="1"/>
+      <move select="Lead Left" beats="3" scaleX="1.5" scaleY="2.5"/>
+      <move select="Run Left" beats="2.5" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <!-- Scoot Back -->
+      <move select="Extend Left" scaleX="1.5" scaleY=".5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Forward" scaleX="1.5" />
+      <!-- Rally -->
+      <move select="Forward" beats="3"/>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY=".5"/>
+    </path>
+    <path>
+      <!-- Scoot Back -->
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" scaleX="1.5" scaleY=".5" />
+      <!-- Rally -->
+      <move select="Run Left" offsetX="1"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <taminator>
+      For Scoot and Rally, the outsides quarter to the direction of the handhold
+      after the Scoot Back.
+    </taminator>
+  </tam>
+
+</tamination>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Expand the Column">
+
+  <tam title="Expand the Column" from="Right-Hand Columns">
+    <formation>
+      <dancer gender="boy" x="-3" y="-1" angle="180"/>
+      <dancer gender="girl" x="-1" y="-1" angle="180"/>
+      <dancer gender="girl" x="1" y="-1" angle="180"/>
+      <dancer gender="boy" x="3" y="-1" angle="180"/>
+    </formation>
+    <path couples="3 1">
+      <move select="Run Right"/>
+      <move select="Forward"/>
+    </path>
+    <path couples="3 1">
+      <move select="Run Left" beats="4" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="4" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Forward 5" beats="4"/>
+    </path>
+  </tam>
+
+  <tam title="Magic Expand the Column" from="Right-Hand Magic Columns"
+       formation="Magic Column RH">
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2" />
+      <move select="Forward 3" beats="2"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="5" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="5" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="3"/>
+      <move select="Extend Left" beats="2" scaleY="2"/>
+    </path>
+  </tam>
+
+</tamination>

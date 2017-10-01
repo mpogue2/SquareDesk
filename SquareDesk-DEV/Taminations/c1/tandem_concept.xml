@@ -1,0 +1,589 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Tandem Concept">
+
+  <tam title="Tandem Bend the Line" group="Tandem"
+       formation="Two-Faced Lines RH" >
+    <path>
+      <move select="Counter Rotate Right 2 0" beats="3" hands="right" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 2" beats="3" hands="left" offsetX="1" />
+    </path>
+    <path>
+      <move select="Counter Rotate Right -2 0" beats="3" hands="left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" beats="3" hands="right" offsetX="-1" />
+    </path>
+  </tam>
+
+  <tam title="Tandem Box Circulate" group="Tandem"
+       from=""
+       formation="Column RH GBGB"
+       fractions="" >
+    <path>
+      <move select="Run Right" />
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Forward 4" beats="5" />
+    </path>
+    <path>
+      <move select="Forward 4" beats="5" />
+    </path>
+  </tam>
+
+  <tam title="Tandem Box Transfer" group="Tandem"
+       formation="Column RH GBGB">
+    <path>
+      <move select="Counter Rotate Right 2 -4" beats="3.333"/>
+      <move select="Counter Rotate Right 2 -4" beats="3.333"/>
+      <move select="Counter Rotate Right 2 -4" beats="3.333"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 4 -2" beats="3.333"/>
+      <move select="Counter Rotate Right 4 -2" beats="3.333"/>
+      <move select="Counter Rotate Right 4 -2" beats="3.333"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Forward 2"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Cast Off 3/4" group="Tandem"
+       from=""
+       formation="Column RH GBGB"
+       fractions="" >
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" offsetY="-1" hands="right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" offsetY="1" hands="right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" offsetY="-1" hands="right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" offsetY="1" hands="right"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Centers Run" group="Tandem"
+       from=""
+       formation="Ocean Waves RH BGGB"
+       fractions="" >
+    <path>
+      <move select="Dodge Right" beats="6" />
+    </path>
+    <path>
+      <move select="Run Right" />
+      <move select="Forward 4" beats="3" />
+    </path>
+    <path>
+      <move select="Forward 4" beats="3" />
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Dodge Right" beats="6" />
+    </path>
+  </tam>
+
+  <tam title="Tandem Diamond Circulate" group="Tandem"
+       formation="T-Bone ULLD">
+    <path>
+      <move select="Forward" beats="1.5"/>
+      <move select="Lead Right" beats="2.5" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Lead Right" beats="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward 3"/>
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetY="-1"/>
+      <move select="Forward 3"/>
+    </path>
+    <taminator>
+    If you have trouble visualizing the diamond, look at the center
+    point of each tandem.
+    </taminator>
+  </tam>
+
+  <tam title="Tandem Dixie Style to a Wave" group="Tandem" formation="Double Pass Thru">
+    <path>
+      <move select="Back" beats="2"/>
+      <move select="Dodge Right"/>
+      <move select="Forward" beats="2"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetY="-1"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY="1.5"/>
+      <move select="Forward 2" beats="3"/>
+      <move select="Extend Right" beats="2" scaleX=".5"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetY="-1.5"/>
+    </path>
+    <path>
+      <move select="Back 2"/>
+      <move select="Dodge Right"/>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleY="1.5"/>
+      <move select="Forward 2" beats="3"/>
+      <move select="Extend Right" beats="2"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Fan the Top" group="Tandem" formation="Ocean Waves RH BGGB">
+    <path>
+      <move select="Counter Rotate Right 5 -1" beats="9"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Left -1 3" beats="3"/>
+      <move select="Counter Rotate Left -1 3" beats="3"/>
+      <move select="Counter Rotate Left -1 3" beats="3"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Left 3 -1" beats="3"/>
+      <move select="Counter Rotate Left 3 -1" beats="3"/>
+      <move select="Counter Rotate Left 3 -1" beats="3"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 1 -5" beats="9"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Hinge" group="Tandem" formation="Column RH GBGB">
+    <path>
+      <move select="Counter Rotate Right 0 -2" offsetY="-1" hands="right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" offsetY="1" hands="right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" offsetY="-1" hands="right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" offsetY="1" hands="right"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Pass the Ocean" group="Tandem"
+       from=""
+       formation="Double Pass Thru"
+       fractions="" >
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 4" />
+      <move select="Quarter Right" offsetX="1" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Left" beats="4" offsetX="1" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Lead Right" beats="4" scaleX="2" scaleY="3.5" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Quarter Left" beats="4" offsetY="2.5" />
+    </path>
+  </tam>
+
+  <tam title="Tandem Quarter Thru" group="Tandem" fractions="2">
+     <formation>
+      <dancer gender="girl" x="-1" y="3" angle="90"/>
+      <dancer gender="boy" x="-1" y="1" angle="90"/>
+      <dancer gender="girl" x="-1" y="-1" angle="90"/>
+      <dancer gender="boy" x="-1" y="-3" angle="90"/>
+    </formation>
+    <path numbers="1 8">
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetY="-1"/>
+    </path>
+    <path numbers="2 7">
+      <move select="Counter Rotate Right 2 0" hands="right" offsetY="1"/>
+    </path>
+    <path numbers="3 6">
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetY="-1"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetX="-1"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetY="1"/>
+    </path>
+    <path numbers="4 5">
+      <move select="Counter Rotate Right 2 0" hands="right" offsetY="1"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetX="1"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetY="-1"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Right Roll to a Wave" group="Tandem"
+       formation="Column LH GBGB">
+    <path>
+      <move select="Forward" beats="2"/>
+    </path>
+    <path>
+      <move select="Forward 3" beats="4"/>
+    </path>
+    <path>
+      <move select="Forward" beats="2"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Run Right" offsetX="-1"/>
+      <move select="Forward 4"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Scoot Back" group="Tandem"
+       formation="Column RH GBGB">
+    <path>
+      <move select="Run Right" beats="5" />
+      <move select="Forward 2" beats="3" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="3" />
+      <move select="Run Right" beats="5" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Forward 2" />
+    </path>
+  </tam>
+
+  <tam title="Tandem Single Wheel" group="Tandem"
+       formation="Completed Double Pass Thru">
+    <path>
+      <move select="Flip Left" offsetX="-1" scaleY=".5"/>
+      <move select="Forward 2" scaleX="0.6"  />
+    </path>
+    <path>
+      <move select="Flip Right" beats="5" scaleY=".5" offsetX=".4"/>
+    </path>
+    <path>
+      <move select="Forward" beats="2" />
+      <move select="Flip Left"  scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Forward 3"/>
+      <move select="Flip Right" scaleY=".5" offsetX=".7"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Square Chain Thru" group="Tandem"
+       formation="Double Pass Thru" fractions="5;4;4">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5"/>
+      <move select="Counter Rotate Right 2 0" offsetY="-1.5" beats="3"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Stand" beats="4"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Forward 2" beats="3"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Left 2 0" offsetX="2" beats="3"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Counter Rotate Left 2 0" hands="left"/>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5"/>
+      <move select="Counter Rotate Right 0 -2" offsetY="-1.5" beats="3"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Stand" beats="4"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Forward 2" beats="3"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Left 0 2" offsetX="2" beats="3"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Counter Rotate Left 0 2" hands="left"/>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Swing Thru" group="Tandem"
+       formation="Ocean Waves RH BGGB"
+       fractions="4" >
+    <path numbers="2 7">
+      <move select="Counter Rotate Right 2 0" hands="right" offsetX="1"/>
+      <move select="Counter Rotate Right 2 0" hands="right" offsetY="1"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetX="1"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetY="-1"/>
+    </path>
+    <path numbers="4 5">
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetX="-1"/>
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetY="-1"/>
+    </path>
+    <path numbers="6 3">
+      <move select="Counter Rotate Right 2 0" hands="right" offsetX="1"/>
+      <move select="Counter Rotate Right 2 0" hands="right" offsetY="1"/>
+    </path>
+    <path numbers="8 1">
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetX="-1"/>
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetY="-1"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetX="-1"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetY="1"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Touch 1/4" group="Tandem" formation="Double Pass Thru">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Walk and Dodge" group="Tandem" formation="Column RH GBGB">
+    <path>
+      <move select="Dodge Right" beats="4"/>
+    </path>
+    <path>
+      <move select="Dodge Right" beats="4"/>
+    </path>
+    <path>
+      <move select="Forward 4"/>
+    </path>
+    <path>
+      <move select="Forward 4"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Zoom" group="Tandem"
+       from=""
+       formation="Column RH GBGB"
+       fractions="" >
+    <path>
+      <move select="Flip Left" beats="2" scaleX=".75" scaleY=".75" />
+      <move select="Forward 6" />
+      <move select="Flip Left" beats="2" scaleX=".75" scaleY=".75" />
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Flip Left" beats="2" scaleX=".75" scaleY=".75" />
+      <move select="Forward 6" />
+      <move select="Flip Left" beats="2" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tamxref title="Tandem (C-1) 2/3 Recycle" group="Tandem (C-1)"
+           xref-link="c1/2_3_recycle"
+           xref-title="Tandem 2/3 Recycle"/>
+
+  <tamxref title="Tandem (C-1) Ah So" group="Tandem (C-1)"
+           xref-link="c1/ah_so"
+           xref-title="Tandem Ah So"/>
+
+  <tamxref title="Tandem (C-1) Alter the Wave" group="Tandem (C-1)"
+           xref-link="c1/alter_the_wave"
+           xref-title="Tandem Alter the Wave"/>
+
+  <tamxref title="Tandem (C-1) Box Recycle" group="Tandem (C-1)"
+           xref-link="c1/box_split_recycle"
+           xref-title="Tandem Box Recycle"/>
+
+  <tamxref title="Tandem (C-1) Chase Your Neighbor" group="Tandem (C-1)"
+           xref-link="c1/chase_your_neighbor"
+           xref-title="Tandem Chase Your Neighbor"/>
+
+  <tamxref title="Tandem (C-1) Cross Extend" group="Tandem (C-1)"
+           xref-link="c1/cross_extend"
+           xref-title="Tandem Cross Extend"/>
+
+  <tamxref title="Tandem (C-1) Cross Roll" group="Tandem (C-1)"
+           xref-link="c1/cross_roll"
+           xref-title="Tandem Cross Roll"/>
+
+	<tamxref title="Tandem (C-1) Cross Your Neighbor" group="Tandem (C-1)"
+	         xref-link="c1/cross_your_neighbor"
+	         xref-title="Tandem Cross Your Neighbor"/>
+
+  <tamxref title="Tandem (C-1) Follow Thru" group="Tandem (C-1)"
+           xref-link="c1/follow_thru"
+           xref-title="Tandem Follow Thru"/>
+
+  <tamxref title="Tandem (C-1) Reverse Explode" group="Tandem (C-1)"
+           xref-link="c1/reverse_explode"
+           xref-title="Tandem Reverse Explode"/>
+
+  <tamxref title="Tandem (C-1) Square Chain the Top" group="Tandem (C-1)"
+           xref-link="c1/square_chain_the_top"
+           xref-title="Tandem Square Chain the Top"/>
+
+  <tamxref title="Tandem (C-1) Step and Flip" group="Tandem (C-1)"
+           xref-link="c1/step_and_flip"
+           xref-title="Tandem Step and Flip"/>
+
+  <tamxref title="Tandem (C-1) Step and Fold" group="Tandem (C-1)"
+           xref-link="c1/step_and_fold"
+           xref-title="Tandem Step and Fold"/>
+
+  <tamxref title="Tandem (C-1) Wheel Fan Thru" group="Tandem (C-1)"
+           xref-link="c1/wheel_fan_thru"
+           xref-title="Tandem Wheel Fan Thru"/>
+
+  <tamxref title="Tandem (C-1) Left Wheel Fan Thru" group="Tandem (C-1)"
+           xref-link="c1/wheel_fan_thru"
+           xref-title="Tandem Left Wheel Fan Thru"/>
+
+  <tamxref title="Tandem (C-1) Zing" group="Tandem (C-1)"
+           xref-link="c1/zing"
+           xref-title="Tandem Zing"/>
+
+  <tamxref title="Tandem (C-2) Bounce the Centers" group="Tandem (C-2)"
+           xref-link="c2/bounce_the_anyone"
+           xref-title="Tandem Bounce the Centers"/>
+
+  <tamxref title="Tandem (C-2) Criss Cross Your Neighbor" group="Tandem (C-2)"
+           xref-link="c2/criss_cross_your_neighbor"
+           xref-title="Tandem Criss Cross Your Neighbor"/>
+
+  <tamxref title="Tandem (C-2) Cross Back" group="Tandem (C-2)"
+           xref-link="c2/cross_back"
+           xref-title="Tandem Cross Back"/>
+
+  <tamxref title="Tandem (C-2) Peel to a Diamond" group="Tandem (C-2)"
+           xref-link="c2/peel_to_a_diamond"
+           xref-title="Tandem Peel to a Diamond"/>
+
+  <tamxref title="Tandem (C-2) Reverse Split Swap Around" group="Tandem (C-2)"
+           xref-link="c2/reverse_split_swap_around"
+           xref-title="Tandem Reverse Split Swap Around"/>
+
+  <tamxref title="Tandem (C-2) Split Swap Around" group="Tandem (C-2)"
+           xref-link="c2/split_swap_around"
+           xref-title="Tandem Split Swap Around"/>
+
+  <tamxref title="Tandem (C-2) The K" group="Tandem (C-2)"
+           xref-link="c2/anything_the_k"
+           xref-title="Tandem the K"/>
+
+  <tamxref title="Tandem (C-2) Trail to a Diamond" group="Tandem (C-2)"
+           xref-link="c2/trail_to_a_diamond"
+           xref-title="Tandem Trail to a Diamond"/>
+
+  <tamxref title="Tandem (C-2) Turn to a Line" group="Tandem (C-2)"
+           xref-link="c2/turn_to_a_line"
+           xref-title="Tandem Turn to a Line"/>
+
+  <tamxref title="Tandem (C-3A) Couple Up" group="Tandem (C-3A)"
+           xref-link="c3a/couple_up"
+           xref-title="Tandem Couple Up"/>
+
+  <tamxref title="Tandem (C-3A) Follow to a Diamond" group="Tandem (C-3A)"
+           xref-link="c3a/follow_to_a_diamond"
+           xref-title="Tandem Follow to a Diamond"/>
+
+  <tamxref title="Tandem (C-3A) Hinge the Lock" group="Tandem (C-3A)"
+           xref-link="c3a/hinge_the_lock"
+           xref-title="Tandem Hinge the Lock"/>
+
+  <tamxref title="Tandem (C-3A) Lock the Hinge" group="Tandem (C-3A)"
+           xref-link="c3a/lock_the_hinge"
+           xref-title="Tandem Lock the Hinge"/>
+
+  <tamxref title="Tandem (C-3A) Mini Chase" group="Tandem (C-3A)"
+           xref-link="c3a/mini_chase"
+           xref-title="Tandem Mini Chase"/>
+
+  <tamxref title="Tandem (C-3A) Single Checkmate" group="Tandem (C-3A)"
+           xref-link="c3a/single_checkmate"
+           xref-title="Tandem Single Checkmate"/>
+
+  <tamxref title="Tandem (C-3B) Bingo" group="Tandem (C-3B)"
+           xref-link="c3b/bingo"
+           xref-title="Tandem Bingo"/>
+
+</tamination>

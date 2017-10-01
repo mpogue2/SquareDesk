@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Press Ahead">
+
+  <tam title="Press Ahead" from="Right-Hand Waves">
+    <formation>
+      <dancer gender="boy" x="-1" y="3" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="180"/>
+      <dancer gender="girl" x="-1" y="-1" angle="0"/>
+      <dancer gender="boy" x="-1" y="-3" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+  </tam>
+
+  <tam title="Press Ahead" from="Two-Faced Lines">
+    <formation>
+      <dancer gender="boy" x="-1" y="3" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="0"/>
+      <dancer gender="girl" x="-1" y="-1" angle="180"/>
+      <dancer gender="boy" x="-1" y="-3" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward 2" hands="right"/>
+    </path>
+    <path>
+      <move select="Forward 2" hands="left"/>
+    </path>
+    <path>
+      <move select="Forward 2" hands="left"/>
+    </path>
+    <path>
+      <move select="Forward 2" hands="right"/>
+    </path>
+    <taminator>
+    Be sure to go one full position and not stop at 1/2 Press Ahead.
+    </taminator>
+  </tam>
+
+  <tam title="Ends Press Ahead" group=" "
+       from="Lines Facing Out">
+     <formation>
+      <dancer gender="girl" x="-1" y="3" angle="180"/>
+      <dancer gender="boy" x="-1" y="1" angle="180"/>
+      <dancer gender="girl" x="-1" y="-1" angle="180"/>
+      <dancer gender="boy" x="-1" y="-3" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+  </tam>
+
+  <tam title="Girls Press Ahead" group=" "
+       from="Right-Hand Waves">
+     <formation>
+      <dancer gender="boy" x="-1" y="3" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="180"/>
+      <dancer gender="boy" x="-1" y="-1" angle="0"/>
+      <dancer gender="girl" x="-1" y="-3" angle="180"/>
+    </formation>
+  <path>
+  </path>
+  <path>
+      <move select="Forward 2"/>
+  </path>
+  <path>
+  </path>
+  <path>
+      <move select="Forward 2"/>
+  </path>
+  </tam>
+
+  <tam title="1/2 Press Ahead" from="Right-Hand Waves"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward" beats="2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward" beats="2"/>
+    </path>
+    <taminator>
+    Unlike Extend, the girls do not adjust to make a couple.
+    </taminator>
+  </tam>
+
+  <tam title="1/2 Press Ahead" from="Two-Faced Lines"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Forward 2" hands="right"/>
+    </path>
+    <path>
+      <move select="Forward 2" hands="left"/>
+    </path>
+    <path>
+      <move select="Forward" beats="2" hands="left"/>
+    </path>
+    <path>
+      <move select="Forward" beats="2" hands="right"/>
+    </path>
+  </tam>
+
+</tamination>

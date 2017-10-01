@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Diagonal Box Concept">
+
+  <tam title="Diagonal Box Circulate" formation="Ocean Waves RH BGBG" group="Diagonal Box">
+    <path>
+      <move select="Extend Right" beats="1.5" scaleX="2" scaleY="2"/>
+      <move select="Hinge Right"/>
+      <move select="Lead Left" beats="1.5"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="1.5"/>
+      <move select="Hinge Right"/>
+      <move select="Extend Left" beats="1.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4.5"/>
+    </path>
+  </tam>
+
+  <tam title="Diagonal Box Counter Rotate" formation="Ocean Waves RH GBGB" group="Diagonal Box">
+    <path couples="4 2">
+      <move select="Lead Right" beats="5" scaleX="3" scaleY="4"/>
+    </path>
+    <path couples="4 2">
+      <move select="Counter Rotate Right 0 -2" beats="5" offsetX="-1"/>
+    </path>
+    <path couples="3 1">
+      <move select="Lead Left" beats="2" scaleY="2"/>
+      <move select="Run Right" offsetX="2"/>
+    </path>
+    <path couples="3 1">
+      <move select="Counter Rotate Right 0 -2" beats="5" offsetX="-1"/>
+    </path >
+  </tam>
+
+  <tam title="Diagonal Box Scoot Back"  formation="Ocean Waves RH BGBG" group="Diagonal Box">
+    <path>
+      <move select="Extend Right" beats="1.5" scaleX="2" scaleY="2"/>
+      <move select="Cast Right"/>
+      <move select="Lead Left" beats="1.5"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="1.5"/>
+      <move select="Cast Right"/>
+      <move select="Extend Left" beats="1.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4.5"/>
+    </path>
+  </tam>
+
+</tamination>

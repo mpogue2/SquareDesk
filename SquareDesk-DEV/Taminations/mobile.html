@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2015 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns:fb="http://ogp.me/ns/fb#" lang="en">
+<head>
+<meta http-equiv="Content-Language" content="en-us" />
+<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
+<link href="ext/jquery/jQueryMobile-1.4.5/jquery.mobile-1.4.5.min.css" type="text/css" rel="stylesheet" />
+<link href="ext/jquery/jQueryMobile-1.4.5/jquery.mobile.structure-1.4.5.min.css" type="text/css" rel="stylesheet" />
+<link href="src/tamination.css" type="text/css" rel="stylesheet" />
+<link href="src/tamination-mobile.css" type="text/css" rel="stylesheet" />
+
+<script src="ext/require.js" data-main="src/config"></script>
+
+<title>Taminations</title>
+<style>
+/*
+.ui-slider-input {
+  display: none !important;
+  visibility: collapse;
+  width: 0 !important;
+}
+.ui-slider {
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}  */
+.ui-block-c .ui-btn-inner {
+  padding-left: 0;
+  padding-right: 0;
+}
+#content div {
+  width: 100%;
+  border-left: 1px solid black;
+  border-top: 1px solid black;
+  text-indent: 20px;
+}
+#content div div {
+  margin-left: 10%;
+  width: 90%;
+  display: table;
+}
+#content div div p {
+  display: table-cell;
+  vertical-align: middle;
+  height: 100%;
+  line-height: 100%;
+}
+#content div div p a {
+  text-decoration: none;
+  color: black;
+}
+#content div div:first-child {
+  margin-left: 0;
+  width: 100%;
+  border: 0;
+}
+
+</style>
+</head>
+
+<body><div class="definition">
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "http://connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+  <!-- Page to select level and call -->
+  <div data-role="page" id="level">
+    <div data-role="header" class="header" id="levelheader" data-theme="d">
+      <h1>Taminations</h1>
+      <a href="#level" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+      <a href="#infopage" data-icon="info" data-iconpos="notext">Info</a>
+    </div>
+    <div data-role="content" data-theme="b" id="content" style="width:100%; margin:0; padding:0">
+      <div style="background-color:#c0c0ff">
+         <div style="background-color:#c0c0ff">
+            <p><a href="#calllistpage?dir=bms">Basic and Mainstream</a></p>
+         </div>
+         <div style="background-color:#e0e0ff">
+            <p><a href="#calllistpage?dir=b1">Basic 1</a></p>
+         </div>
+         <div style="background-color:#e0e0ff">
+            <p><a href="#calllistpage?dir=b2">Basic 2</a></p>
+         </div>
+         <div style="background-color:#e0e0ff">
+            <p><a href="#calllistpage?dir=ms">Mainstream</a></p>
+         </div>
+      </div>
+      <div style="background-color:#c0ffc0">
+        <div>
+        <p><a href="#calllistpage?dir=plus">Plus</a></p>
+        </div>
+      </div>
+      <div style="background-color:#ffe080">
+        <div><p><a href="#calllistpage?dir=adv">Advanced</a></p></div>
+        <div style="background-color:#fff0c0">
+        <p><a href="#calllistpage?dir=a1">A-1</a></p>
+        </div>
+        <div style="background-color:#fff0c0">
+        <p><a href="#calllistpage?dir=a2">A-2</a></p>
+        </div>
+      </div>
+      <div style="background-color:#ffc0c0">
+        <div >
+          <p><a href="#calllistpage?dir=challenge">Challenge</a></p>
+        </div>
+        <div style="background-color:#ffe0e0">
+          <p><a href="#calllistpage?dir=c1">C-1</a></p>
+        </div>
+        <div style="background-color:#ffe0e0">
+          <p><a href="#calllistpage?dir=c2">C-2</a></p>
+        </div>
+        <div style="background-color:#ffe0e0">
+          <p><a href="#calllistpage?dir=c3a">C-3A</a></p>
+        </div>
+        <div style="background-color:#ffe0e0">
+          <p><a href="#calllistpage?dir=c3b">C-3B</a></p>
+        </div>
+      </div>
+      <div>
+        <div>
+          <p><a href="#calllistpage?dir=all">Index of All Calls</a></p>
+        </div>
+      </div>
+      <div>
+        <div>
+          <p><a href="#infopage">About Taminations</a></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Page to select a call -->
+  <div data-role="page" id="calllistpage">
+    <div data-role="header" class="header" data-theme="d">
+      <h1 id="leveltitle"></h1>
+      <a href="#level" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+      <a href="#infopage" data-icon="info" data-iconpos="notext">Info</a>
+    </div>
+    <div data-role="content">
+      <form>
+        <input type="text" data-type="search" data-theme="c" id="filterable-input">
+      </form>
+      <!-- for reasons I don't understand jQuery Mobile clips the search input
+           so add 10 pixels to show all of it  -->
+      <ul style="padding-top: 10px" data-role="listview" data-theme="c" data-filter="true" data-input="#filterable-input" id="calllist"> </ul>
+    </div>
+  </div>
+
+  <!-- Page to select an animation -->
+  <div data-role="page" id="animlistpage">
+    <div data-role="header" class="header" data-theme="d">
+      <h1 id="calltitle" style="margin: 0 20%; white-space:normal">Title</h1>
+      <a href="#level" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+      <a class="levelbutton" data-theme="c" href="#calllistpage">Info</a>
+    </div>
+    <div data-role="content">
+    </div>
+    <div id="difficultylegend" data-role="footer" data-theme="c">
+      <div class="ui-grid-b" style="margin:0">
+        <!--  unfortunately data-theme doesn't seem to work at this level -->
+        <div class="ui-block-a" style="text-align:center; background-color:#c0ffc0">Common</div>
+        <div class="ui-block-b" style="text-align:center; background-color:#fff0c0">Harder</div>
+        <div class="ui-block-c" style="text-align:center; background-color:#ffc0c0">Expert</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page to show an animation -->
+  <div data-role="page" data-theme="d" id="animationpage">
+    <div data-role="header" class="header" data-theme="d" id="animheader">
+      <h1 id="animtitle" style="margin: 0 20%; white-space:normal"></h1>
+      <a href="#level" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+      <a class="levelbutton" href="#calllistpage" data-theme="c">Info</a>
+    </div>
+    <div data-role="content" id="animationcontent" style="margin:0 auto; padding:0"></div>
+    <form action="#" method="get" id="animform">
+      <div data-role="fieldcontain" class="ui-hide-label" style="width:90%; padding-left:3%; margin:0">
+        <label for="animslider">Slider:</label>
+        <input data-theme="c" type="range" name="animslider" id="animslider" value="-200" min="-200" max="100" data-theme="d" />
+        <div style="height:2em; background-color:#008000">
+        <div id="playslidertics" style="position: relative; height:.6em; width:100%; color: white; background-color:#008000"></div>
+        <div id="playsliderlabels" style="position: relative; height:1em; width:100%; color: white; background-color:#008000"></div></div>
+      </div>
+        <div class="ui-grid-d" style="margin:0">
+          <div class="ui-block-a" style="width:17%"><input data-theme="c" type="button" id="rewindButton" data-theme="d" value="&lt;&lt;" /></div>
+          <div class="ui-block-b" style="width:17%"><input data-theme="c" type="button" id="backButton" data-theme="d" value="&lt;"/></div>
+          <div class="ui-block-c" style="width:30%"><input data-theme="c" type="button" value="Play" data-theme="d" id="playButton"/></div>
+          <div class="ui-block-d" style="width:17%"><input data-theme="c" type="button" id="forwardButton" data-theme="d" value="&gt;"/></div>
+          <div class="ui-block-e" style="width:17%"><input data-theme="c" type="button" id="endButton" data-theme="d" value="&gt;&gt;"/></div>
+        </div>
+        <div class="ui-grid-a" style="margin:0">
+          <div class="ui-block-a"><input data-theme="c" type="button" id="defButton" value="Definition"/></div>
+          <div class="ui-block-b"><input data-theme="c" type="button" id="optionsButton" value="Options"/></div>
+        </div>
+    </form>
+  </div>
+
+  <!-- Page to show definition -->
+  <div data-role="page" data-theme="d" id="definitionpage">
+    <div data-role="header" class="header" data-theme="d">
+      <h1 id="deftitle">Definition</h1>
+      <a href="#level" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+      <a id="defback" href="#calllistpage" class="levelbutton" data-theme="c">Info</a>
+    </div>
+    <div data-role="content" id="definitioncontent" style="background-color: #fff8f0">
+      <h1>Definition</h1>
+    </div>
+  </div>
+
+  <!-- Page for options -->
+  <div data-role="page" data-theme="c" id="optionspage">
+    <div data-role="header" class="header" data-theme="d">
+      <h1>Options</h1>
+    </div>
+    <div data-role="content">
+      <form action="#" method="get">
+      <div data-role="fieldcontain">
+        <p>Dancer Speed</p>
+        <fieldset data-role="controlgroup" data-type="horizontal">
+          <input type="radio" name="speedButton" id="slowButton" value="slow"/>
+          <label for="slowButton">Slow</label>
+          <input type="radio" name="speedButton" id="normalButton" value="normal"/>
+          <label for="normalButton">Normal</label>
+          <input type="radio" name="speedButton" id="fastButton" value="fast"/>
+          <label for="fastButton">Fast</label>
+        </fieldset>
+        <input type="checkbox" name="loopButton" id="loopButton"/>
+        <label for="loopButton">Loop</label>
+        <input type="checkbox" name="gridButton" id="gridButton"/>
+        <label for="gridButton">Grid</label>
+        <input type="checkbox" name="pathsButton" id="pathsButton"/>
+        <label for="pathsButton">Paths</label>
+
+        <p></p><p>Numbers</p>
+        <fieldset data-role="controlgroup" data-type="horizontal">
+          <input type="radio" name="numbersButton" id="numbersNoneButton" value="None"/>
+          <label for="numbersNoneButton">None</label>
+          <input type="radio" name="numbersButton" id="numbersDancersButton" value="Dancers"/>
+          <label for="numbersDancersButton">Dancers 1-8</label>
+          <input type="radio" name="numbersButton" id="numbersCouplesButton" value="Couples"/>
+          <label for="numbersCouplesButton">Couples 1-4</label>
+        </fieldset>
+
+        <p></p><p>Special Geometry</p>
+        <fieldset data-role="controlgroup" data-type="horizontal">
+          <input type="radio" name="geometryButton" id="geometryNoneButton" value="None"/>
+          <label for="geometryNoneButton">None</label>
+          <input type="radio" name="geometryButton" id="geometryHexagonButton" value="Hexagon"/>
+          <label for="geometryHexagonButton">Hexagon</label>
+          <input type="radio" name="geometryButton" id="geometryBigonButton" value="Bigon"/>
+          <label for="geometryBigonButton">Bi-gon</label>
+        </fieldset>
+
+        <input type="checkbox" name="phantomsButton" id="phantomsButton"/>
+        <label for="phantomsButton">Phantoms</label>
+
+      <a href="#animationpage" data-role="button" data-rel="back">Done</a>
+      </div></form>
+    </div>
+  </div>
+
+  <!-- Page for info/help -->
+  <div data-role="page" id="infopage">
+    <div data-role="header" class="header" data-theme="d">
+      <h1>About Taminations</h1>
+      <a href="#level" data-icon="home" data-iconpos="notext" data-direction="reverse">Home</a>
+    </div>
+    <div data-role="content" data-theme="c">
+
+
+<p> Taminations  Copyright 2014 by Brad Christie.<br/>
+    This is free software, and you are welcome to modify and redistribute it
+    under the terms of the <a href="license.html">GNU Affero license</a>.
+</p>
+
+<p>Taminations is not affiliated with <a href="http://www.callerlab.org/">Callerlab</a>. For official and complete
+definitions, refer to the <a href="http://www.callerlab.org/goto/programs/">Callerlab documents</a>.
+For Challenge definitions, the web site and books by
+<a href="http://www.ceder.net/def.php4">Vic Ceder</a>
+are another important reference.</p>
+
+<p>Call definitions Copyright by <a href="http://www.callerlab.org/">Callerlab Inc.</a>,
+The International Association of Square Dance Callers.
+</p>
+  <ul>
+    <li>Animations do not display on Android devices
+    running Android 3.2 or lower when using the default browser.
+    This is because the browser does not support SVG, which Taminations uses.
+    To fix this, install and use a different browser such as Opera or Firefox.
+    Version 4.0 of Android (aka Ice Cream Sandwich) does support SVG.
+    </li>
+    </ul>
+    </div>
+  </div>
+
+</div></body>
+</html>

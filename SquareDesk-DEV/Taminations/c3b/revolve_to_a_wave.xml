@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Revolve To A Wave">
+
+  <tam title="Revolve to a Wave" from="Right-Hand Box" formation="Box RH">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="2"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" scaleX=".5" scaleY="2"/>
+      <move select="Lead Right" beats="2" scaleX="2" scaleY="2.5"/>
+    </path>
+  </tam>
+
+  <tam title="Revolve to a Wave" from="Left-Hand Box" formation="Box LH">
+    <path>
+      <move select="Quarter Right" beats="1" offsetY="-1"/>
+      <move select="Run Right" scaleY="1.5"/>
+      <move select="Lead Right" beats="1" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="5" scaleX="2" scaleY="4"/>
+    </path>
+  </tam>
+
+</tamination>

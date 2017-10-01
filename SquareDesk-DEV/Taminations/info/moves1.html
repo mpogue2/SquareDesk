@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+
+    Copyright 2015 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="image/x-icon" href="../favicon.ico" rel="icon" />
+<link href="../src/tamination.css" type="text/css" rel="stylesheet" />
+<link href="../src/jquery-ui.css" rel="stylesheet" />
+
+<script src="../ext/require.js" data-main="../src/config"></script>
+
+<title>Moves</title>
+
+</head>
+<body><div class="definition">
+<h2>Moves</h2>
+
+<p>
+The code for all the animations are in XML files.  Every call has a HTML file
+with the definition, and a corresponding XML file with the
+animations.
+</p>
+
+<p>
+Here is the XML code for the first animation.
+An introduction to XML is on the <a href="overview.html">previous page</a>.
+For more details, look at the
+<a href="http://wikipedia.org/wiki/Xml">Wikipedia article</a>.
+</p>
+
+<pre><code>  &lt;tam title="Forward" formation="Couples Facing Out" group=" "&gt;
+    &lt;path&gt;
+      &lt;move select="Forward"/&gt;
+    &lt;/path&gt;
+    &lt;path&gt;
+      &lt;move select="Forward"/&gt;
+    &lt;/path&gt;
+  &lt;/tam&gt;
+</code></pre>
+
+<p>
+The entire animation is contained in one <code>&lt;tam&gt;</code> element.
+The <code>&lt;tam&gt;</code> element contains two <code>&lt;path&gt;</code>
+elements.  Each <code>&lt;path&gt;</code> element contains one
+<code>&lt;move&gt;</code> element.
+Each move element has an attribute named <code>select</code>. The value of the
+attribute is <code>Forward</code>.</p>
+
+<p>Each dancer has a
+<code>&lt;path&gt;</code> element. But because Taminations only does
+symmetrical formations, just 2 paths are needed for 4 dancers - each dancer
+and its diagonal opposite always have the same path.
+</p>
+
+<p>A <code>&lt;move&gt;</code> element is a named, pre-defined curve.
+The name is given by the select attribute, and describes what the move does.
+Most moves change the dancer position
+by an integral number of grid positions, often in combination with a rotation of
+90 or 180 degrees.  Here are the moves used in these animations.
+</p>
+
+<ul>
+<li><b>Forward</b>: move one grid space forward</li>
+<li><b>Lead Right</b>: move one grid space forward, one grid space right, and turn to the right</li>
+<li><b>Extend Right</b>: move one grid space forward, one grid space to the right, continue facing forward</li>
+<li><b>Run Right</b>: move two grid spaces to the right by travelling in a semi-circle, ending facing back</li>
+<li><b>Quarter Right</b>: turn to the right in place</li>
+</ul>
+
+<div style="float:left; margin:20px"><a href="overview.html">&lt;-- Prev</a></div>
+<div style="float:right; margin:20px"><a href="moves2.html">Next --&gt;</a></div>
+
+</div></body>
+</html>

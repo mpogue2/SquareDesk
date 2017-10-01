@@ -1,0 +1,189 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Sidetrack">
+
+  <tam title="Sidetrack" from="Right-Hand Columns" parts="1.5;4">
+    <formation>
+      <dancer gender="boy" x="3" y="1" angle="0"/>
+      <dancer gender="girl" x="3" y="-1" angle="180"/>
+      <dancer gender="girl" x="1" y="-1" angle="180"/>
+      <dancer gender="boy" x="1" y="1" angle="0"/>
+    </formation>
+    <path>
+      <move select="Quarter Right" offsetY="1"/>
+      <move select="Counter Rotate Right 5 -1" beats="4"/>
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY="1"/>
+      <move select="Counter Rotate Right 1 -5" beats="4"/>
+      <move select="Quarter Right" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetY="1"/>
+      <move select="Counter Rotate Left 3 -1" beats="4"/>
+      <move select="Quarter Left" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY="1"/>
+      <move select="Counter Rotate Left -1 3" beats="4"/>
+      <move select="Quarter Left" offsetX="-1"/>
+    </path>
+  </tam>
+
+  <tam title="Sidetrack" from="Right-Hand Two-Faced Lines"
+       formation="Two-Faced Lines RH" parts="1.5;4">
+    <path>
+      <move select="Quarter Left" offsetX="1"/>
+      <move select="Counter Rotate Right -2 -4" hands="right" beats="4"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetX="1"/>
+      <move select="Counter Rotate Right 0 -2" hands="right" beats="4"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetX="-1"/>
+      <move select="Counter Rotate Right 2 0" hands="right" beats="4"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetX="-1"/>
+      <move select="Counter Rotate Right 4 2" hands="right" beats="4"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+  </tam>
+
+  <tam title="Single Sidetrack" from="Right-Hand Columns" parts="1.5;4">
+    <formation>
+      <dancer gender="boy" x="3" y="1" angle="0"/>
+      <dancer gender="girl" x="3" y="-1" angle="180"/>
+      <dancer gender="girl" x="1" y="-1" angle="180"/>
+      <dancer gender="boy" x="1" y="1" angle="0"/>
+    </formation>
+    <path>
+      <move select="Quarter Right" offsetY="1"/>
+      <move select="Lead Right" beats="4" scaleX="1.5" scaleY="3"/>
+      <move select="Quarter Right"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY="1"/>
+      <move select="Lead Right" beats="4" scaleX="1.5" scaleY="3"/>
+      <move select="Quarter Right" offsetY="1.2"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetY="1"/>
+      <move select="Hinge Left" beats="4" scaleX=".5"/>
+      <move select="Quarter Left" offsetY=".4"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY="1"/>
+      <move select="Hinge Left" beats="4" scaleX=".5"/>
+      <move select="Quarter Left" offsetY="-.8"/>
+    </path>
+  </tam>
+
+  <tam title="Single Sidetrack" from="Column of 8" parts="1.5;4">
+    <formation>
+      <dancer gender="boy" x="4.2" y="0" angle="0"/>
+      <dancer gender="girl" x="3.0" y="0" angle="0"/>
+      <dancer gender="boy" x="1.8" y="0" angle="0"/>
+      <dancer gender="girl" x="0.6" y="0" angle="0"/>
+    </formation>
+    <path>
+      <move select="Quarter Right"/>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="2.2"/>
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left"/>
+      <move select="Hinge Left" beats="4" scaleY="0.6" offsetY=".4"/>
+      <move select="Quarter Left" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Quarter Right"/>
+      <move select="Hinge Left" beats="4" scaleY="0.6" offsetY="-.4"/>
+      <move select="Quarter Left" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Quarter Left"/>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="1.4"/>
+      <move select="Quarter Right" offsetX="-1"/>
+    </path>
+  </tam>
+
+  <tam title="Split Sidetrack" from="Right-Hand Columns" parts="1.5;2">
+    <formation>
+      <dancer gender="boy" x="3" y="1" angle="0"/>
+      <dancer gender="girl" x="3" y="-1" angle="180"/>
+      <dancer gender="girl" x="1" y="-1" angle="180"/>
+      <dancer gender="boy" x="1" y="1" angle="0"/>
+    </formation>
+    <path>
+      <move select="Quarter Right"/>
+      <move select="Counter Rotate Right 2 0"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left"/>
+      <move select="Counter Rotate Right 0 -2"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Right"/>
+      <move select="Counter Rotate Right 2 0"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left"/>
+      <move select="Counter Rotate Right 0 -2"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+  </tam>
+
+  <tam title="Split Sidetrack" from="Right-Hand Waves" parts="1.5;2"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Quarter Left" offsetX="1"/>
+      <move select="Counter Rotate Right 0 -2"/>
+      <move select="Quarter Right"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetX="-1"/>
+      <move select="Counter Rotate Right 2 0"/>
+      <move select="Quarter Right"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetX="1"/>
+      <move select="Counter Rotate Right 0 -2"/>
+      <move select="Quarter Right"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetX="-1"/>
+      <move select="Counter Rotate Right 2 0"/>
+      <move select="Quarter Right"/>
+    </path>
+  </tam>
+
+</tamination>

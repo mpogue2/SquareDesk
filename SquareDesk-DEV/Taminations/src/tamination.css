@@ -1,0 +1,396 @@
+/*
+
+    Copyright 2015 Brad Christie
+
+    This file is part of TAMinations.
+
+    TAMinations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    TAMinations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with TAMinations.  If not, see <http://www.gnu.org/licenses/>.
+
+ */
+
+/*  Force scrolling inside each table cell
+    instead of overall page  */
+html {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #fff8f0;
+}
+
+/*  Turn on scrolling for page sections  */
+#definition, #calllist, #animationlist {
+  overflow: auto;
+}
+
+/*  Only print the definition  */
+@media print {
+  .title, .menu, .menutitle, .animation
+  {
+    display: none;
+  }
+  body
+  {
+    height: auto;
+    overflow: visible;
+  }
+  #definition {
+    display: inline;
+  }
+}
+
+/*  H2 is used for the title for each call  */
+h2 {
+  font: bold x-large Helvetica, Arial, Sans Serif;
+  text-transform: uppercase;
+  color: red;
+  /*text-shadow: 1px 1px #ff8080;*/
+  text-shadow: 2px 2px #e0e0e0;
+}
+h2 * { text-shadow: none }
+
+/*  H3 is used for the title of call variations  */
+h3, h3 > a {
+  font: bold large Helvetica, Arial, Sans Serif;
+  color: red;
+
+}
+
+/*  B is used for call variations  */
+b {
+  font: bold medium Helvetica, Arial, Sans Serif;
+  color: #008000;
+}
+
+/*  This helps space out the definition images  */
+#definition img { background-color: white; padding: 6px; }
+
+div.intro,
+div.starting-formations,
+div.dance-action,
+div.ending-formation,
+div.timing,
+div.styling,
+div.comments,
+div.command-examples,
+div.teaching-tip
+{
+  margin: 10px;
+}
+
+div.definition
+{
+  margin: 0 10px 0 10px;
+}
+
+div.command-examples > p
+{
+  font-style: italic;
+  margin: 0 0 0 20px;
+  text-indent: -20px;
+}
+
+div.parts {
+	text-align: right;
+  margin: 10px;
+}
+
+div.starting-formations > b,
+div.dance-action > b,
+div.ending-formation > b,
+div.timing > b,
+div.styling > b,
+div.comments > b,
+div.command-examples > b,
+div.teaching-tip > b,
+div.parts > b
+{
+  font-family: Helvetica, Arial, Sans Serif;
+  font-weight: bold;
+  color: blue;
+  display: block;
+  text-indent: -10px;
+}
+div.parts > b
+{
+	display: inline;
+}
+
+p { margin: 0 0 10px 0 }
+
+/*  Styling info on mainstream call definition  */
+p.styling {
+  color: maroon;
+}
+/*  Copyright info at the end of each definition   */
+p.copyright {
+  color: maroon;
+  font-style: italic;
+}
+
+/*  Vic Ceder uses this for noting call authors  */
+.subcallauthor {
+  color: maroon;
+  font: small Helvetica, Arial, Sans Serif;
+}
+
+/*  Hanging indent, often used by Vic  */
+.hanging {
+  margin-left: 30px;
+  text-indent: -30px;
+}
+
+/*  Timing info at end of mainstream/plus/advanced calls  */
+p.timing {
+  font: bold small Helvetica, Arial, Sans Serif;
+  color: navy;
+}
+
+/*  Comment after list of animations  */
+.comment {
+  color: maroon;
+}
+
+/*  Calls removed from a list  */
+p.obsolete {
+  font: bold medium Helvetica, Arial, Sans Serif;
+  color: maroon;
+}
+
+/*  Text from Vic Ceder  */
+.ceder {
+  position: relative;
+  float: right;
+  border: 1px solid black;
+  width: 30%;
+  margin: 10px;
+  padding: 10px;
+  background-color: #ffe0ff;
+}
+
+/*  Highlight for call definition as it's animated  */
+.definition-highlight { background-color: yellow; }
+
+/*  Each animation list item is an anchor that selects itself  */
+form a { color: black; text-decoration: none; }
+.selectAnimation { color: black; text-decoration: none; }
+.selectHighlight { background-color: yellow; }
+.selectedHighlight { background-color: yellow; }
+
+/*  Level text at top right of each call  */
+.level {
+  font: medium Helvetica, Arial, Sans Serif;
+  text-transform: none;
+  text-align: right;
+  color: #008000;
+  float: right;
+}
+.level > .appButton {
+  padding: 0 10px 0 10px;
+}
+
+
+/*  "Tamination" page title  */
+.title {
+  background-color: rgb(212,255,212);
+  text-align: center;
+  font-family: Arial, sans-serif;
+  font-size: 50px;
+  font-weight: bold;
+  color: green;
+  width: 100%;
+  height: 72px;
+}
+/* Don't underline title  */
+.title a {
+  text-decoration: none;
+  color: green;
+  text-shadow: 2px 2px #a0c0a0;
+}
+
+#searchbox {
+  width: 25%;
+  height: 1.2em;
+  float: left;
+  margin: 10px;
+  padding: 2px;
+  border: 1px solid black;
+  background-color: white;
+  color: rgb(192,192,192);
+}
+#searchbox.active {
+  color: black;
+}
+#searchresultsdiv {
+  position: absolute;
+  background-color: white;
+  overflow: scroll;
+  border: 1px solid black;
+}
+#searchresultsdiv div {
+  height: 1.2em;
+  background-color: grey;
+}
+#searchresultsdiv div div {
+  float: right;
+  color: white;
+  background-color: red;
+  width: 30px;
+  text-align: center;
+  font-family: sans-serif;
+  cursor: pointer;
+}
+
+/*  Table cell holding list of animations  */
+.animation {
+  background-color: rgb(212,255,212);
+  font-family: Arial, sans-serif;
+  color: green;
+}
+
+/*  Hints shown below animation  */
+#taminatorsays {
+  overflow: auto;
+}
+
+/*  Button style, used for svg  */
+.appButton {
+  color: white;
+  background-color: #006000;
+  border-color: green;
+  border-style: outset;
+  width: 14.28%;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+.appButton:hover {
+  background-color: #30a030;
+}
+.appButton.selected {
+  color: green;
+  background-color: white;
+  border-color: green;
+  border-style: inset;
+  width: 14.28%;
+  font-weight: bold;
+}
+.appButton.disabled {
+  color: gray;
+  background-color: #404040;
+  cursor: default;
+}
+
+/*  SVG popup  */
+#popup, #titlepopup {
+  color: white;
+  background-color: green;
+  border-color: green;
+  border-width: 2px;
+  border-style: outset;
+  position: absolute;
+}
+#titlepopup a {
+  color: white;
+  text-decoration: none;
+}
+#closeDef {
+  border-color: red;
+  border-style: outset;
+  margin: 10px;
+  padding: 4px;
+  color: white;
+  background-color: red;
+  font: medium Helvetica, Arial, Sans Serif;
+  float: right;
+}
+
+/*  Styles for the menus of calls  */
+.menutitle {
+  color: white;
+  background-color: #008000;
+  border-style: outset;
+  border-width: 3px;
+  border-color: #80ff80;
+  font-family: arial, sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  width: 9%;
+  text-shadow: 1px 1px black;
+}
+.menutitle:hover {
+  background-color: #30a030;
+}
+.menutitle.selected {
+  color: #008000;
+  background-color: white;
+  border-color: green;
+  border-style: inset;
+  text-shadow: 1px 1px #d0d0d0;
+}
+
+.menu {
+  position: absolute;
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+  border-bottom: 4px solid gray;
+  border-right: 4px solid gray;
+  font-size: 12px;
+  font-family: arial, sans-serif;
+  background-color: #d4ffd4;
+  z-index: 10;
+}
+
+.menutitlediv {
+  position: absolute;
+
+}
+
+.menuitem {
+  color: black;
+  text-align: left;
+  cursor: pointer;
+  padding-right: 4px;
+  padding-left: 4px;
+  white-space: nowrap;
+ }
+
+.menuitem-highlight {
+  cursor: pointer;
+  padding-right: 4px;
+  padding-left: 4px;
+  white-space: nowrap;
+  background-color: yellow;
+ }
+
+.invisible {
+  visibility: hidden;
+ }
+
+
+.lang-ja {
+  display: none;
+}

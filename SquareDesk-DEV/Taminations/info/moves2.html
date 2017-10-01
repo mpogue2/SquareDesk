@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+
+    Copyright 2015 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="image/x-icon" href="../favicon.ico" rel="icon" />
+<link href="../src/tamination.css" type="text/css" rel="stylesheet" />
+<link href="../src/jquery-ui.css" rel="stylesheet" />
+
+<script src="../ext/require.js" data-main="../src/config"></script>
+
+<title> Move Attributes</title>
+
+</head>
+<body><div class="definition">
+<h2>Move Attributes</h2>
+
+<p>
+Each move requires the <code>select</code> attribute, whose value is the name of
+the move. Moves can also be modified with additional attributes.
+These animations show how some of these attributes work.  Here is the XML
+of the first animation.
+</p>
+
+<pre><code>  &lt;tam title=&quot;Lead Right scaleX=&amp;quot;2&amp;quot;&quot; formation=&quot;Couples Facing Out&quot; group=&quot;Lead Right&quot;&gt;
+    &lt;path&gt;
+      &lt;move select=&quot;Lead Right&quot; scaleX=&quot;2&quot;/&gt;
+    &lt;/path&gt;
+    &lt;path&gt;
+      &lt;move select=&quot;Lead Right&quot; scaleX=&quot;2&quot;/&gt;
+    &lt;/path&gt;
+  &lt;/tam&gt;
+</code></pre>
+
+<p>
+The coordinates for these attributes are relative to the dancer's current
+position and facing direction.  The X axis is forward and Y is to the left.
+Attributes that modify the dancer's position are:
+</p>
+<ul>
+<li><b>scaleX</b> and <b>scaleY</b>
+    Multiply the destination coordinate by the given factor.
+    The factor can be any real number.  You can make a move larger
+    with a scale factor greater than 1, and make a move smaller
+    with a scale value between 1 and 0.
+</li>
+<li><b>offsetX</b> and <b>offsetY</b>
+    Add an offset to the destination coordinate.  This is useful for moves
+    like Quarter Right, which are not affected by scale attributes.
+    You can use both positive and negative real numbers, as shown in these examples.
+</li>
+</ul>
+
+<p>Other move attributes are:</p>
+<ul>
+<li><b>beats</b>
+    The number of beats to use for this move, a real number greater than 0.
+    Every move has a default number of beats, and you use this attribute to
+    override that value.
+</li>
+<li><b>hands</b>
+    The hands that should be used to connect with other dancers.  Values are
+    none, right, left, both, gripright, gripleft, gripboth.  For values
+    right, left, and both, the program will look for another dancer looking
+    for a hand within reach, and keep the connection as long as the dancers
+    stay together.  The grip values are different in that once a connection
+    is made the dancers will not let go until the end of the move, no matter
+    how far apart.  See  <a href="../b1/dive_thru.html">Dive Thru</a>
+    for an example of using grip values.
+</li>
+<li><b>reflect</b>
+    This reflects the move around the dancer's X axis.  The effect is like
+    using a scaleY value of -1, and changing the sign of any offsetY value.
+    It also switches any right and left hand values.  The reflect attribute
+    is used internally to create Right moves from Left moves without
+    re-doing all the math.  Since Right and Left moves are both pre-defined
+    you will not need tu use the reflect attribute
+    unless defining your own moves with <a href="movements.html">movements</a>.
+</li>
+</ul>
+
+<div style="float:left; margin:20px"><a href="moves1.html">&lt;-- Prev</a></div>
+<div style="float:right; margin:20px"><a href="movements.html">Next --&gt;</a></div>
+
+
+</div></body>
+</html>

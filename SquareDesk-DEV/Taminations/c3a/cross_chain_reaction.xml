@@ -1,0 +1,306 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Cross Chain Reaction">
+
+  <tam title="Cross Chain Reaction" from="Quarter Tag" formation="Quarter Tag" fractions="5;3">
+    <path numbers="1 8" couples="2 4">
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Right" beats="2" scaleX="2"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" beats="1.5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" beats="1.5"/>
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path numbers="2 7" couples="2 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Stand" beats="2"/>
+      <move select="Eighth Right" beats="1.5" offsetX="1.06" offsetY=".06" />
+      <move select="Eighth Right" offsetX=".707" offsetY="-.793" beats="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path numbers="6 3" couples="3 1">
+      <move select="Lead Right" beats="5" scaleX="5" scaleY="3"/>
+      <move select="Run Right"/>
+      <move select="Cast Left"/>
+    </path>
+    <path numbers="5 4" couples="3 1">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Quarter Right" beats="2" hands="right" offsetY="-1"/>
+      <move select="Flip Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction" from="Left-Hand Quarter Tag"
+       formation="Quarter Tag LH" fractions="5;3">
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Stand" beats="2"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" beats="1.5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" beats="1.5"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Left" beats="2" scaleX="2"/>
+      <move select="Eighth Right" beats="1.5" offsetX="1.06" offsetY=".06" />
+      <move select="Eighth Right" offsetX=".707" offsetY="-.793" beats="1.5"/>
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="5" scaleX="5" scaleY="3"/>
+      <move select="Run Left"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Quarter Left" beats="2" hands="left" offsetY="1"/>
+      <move select="Flip Right"/>
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction"
+       from="Right-Hand Quarter Lines"
+       formation="Quarter Lines RH"
+       fractions="5;3" >
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Stand" beats="2"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" beats="1.5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" beats="1.5"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Left" beats="2" scaleX="2"/>
+      <move select="Eighth Right" beats="1.5" offsetX="1.06" offsetY=".06" />
+      <move select="Eighth Right" offsetX=".707" offsetY="-.793" beats="1.5"/>
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Quarter Left" beats="2" hands="left" offsetY="1"/>
+      <move select="Swing Right"/>
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="5" scaleX="5" scaleY="3"/>
+      <move select="Swing Right"/>
+      <move select="BackHinge Left"/>
+      <move select="BackHinge Left"/>
+      <move select="BackHinge Left"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction"
+       from="Left-Hand Quarter Lines"
+       formation="Quarter Lines LH"
+       fractions="5;3" >
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Right" beats="2" scaleX="2"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" beats="1.5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" beats="1.5"/>
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Stand" beats="2"/>
+      <move select="Eighth Right" beats="1.5" offsetX="1.06" offsetY=".06" />
+      <move select="Eighth Right" offsetX=".707" offsetY="-.793" beats="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Quarter Right" beats="2" hands="right" offsetY="-1"/>
+      <move select="Swing Left" />
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="5" scaleX="5" scaleY="3" />
+      <move select="Swing Left" />
+      <move select="BackHinge Right"/>
+      <move select="BackHinge Right"/>
+      <move select="BackHinge Right"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction"
+       from="Mixed Quarter Waves, Centers Right-Handed"
+       fractions="5;3" >
+    <formation>
+      <dancer gender="boy" x="-3" y="1" angle="180"/>
+      <dancer gender="girl" x="-3" y="-1" angle="0"/>
+      <dancer gender="boy" x="0" y="-3" angle="180"/>
+      <dancer gender="girl" x="0" y="-1" angle="0"/>
+    </formation>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Quarter Left" beats="2" offsetX="-2" offsetY="1"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" beats="1.5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" beats="1.5"/>
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Stand" beats="2"/>
+      <move select="Eighth Right" beats="1.5" offsetX="1.06" offsetY=".06" />
+      <move select="Eighth Right" offsetX=".707" offsetY="-.793" beats="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="5" scaleX="5" scaleY="3" />
+      <move select="Run Right"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Flip Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction"
+       from="Mixed Quarter Waves, Centers Left-Handed"
+       fractions="5;3">
+    <formation>
+      <dancer gender="boy" x="-3" y="1" angle="0"/>
+      <dancer gender="girl" x="-3" y="-1" angle="180"/>
+      <dancer gender="boy" x="0" y="-3" angle="0"/>
+      <dancer gender="girl" x="0" y="-1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Stand" beats="2"/>
+      <move select="Hinge Left" beats="3"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Swing Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="5" scaleX="5" scaleY="3" />
+      <move select="Swing Left"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Quarter Left" beats="2" offsetX="-2" offsetY="1"/>
+      <move select="Hinge Left" beats="3"/>
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction" from="Right-Hand Two-Faced Line between Mini-Waves"
+       fractions="5;3">
+     <formation>
+      <dancer gender="boy" x="-3" y="1" angle="0"/>
+      <dancer gender="girl" x="-3" y="-1" angle="180"/>
+      <dancer gender="boy" x="0" y="1" angle="0"/>
+      <dancer gender="girl" x="0" y="3" angle="0"/>
+    </formation>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Stand" beats="2"/>
+      <move select="Hinge Left" beats="3"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Flip Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Quarter Left" beats="2" offsetX="-2" offsetY="1"/>
+      <move select="Hinge Left" beats="3"/>
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="5" scaleX="5" scaleY="3" />
+      <move select="Run Right"/>
+      <move select="BackHinge Left"/>
+      <move select="BackHinge Left"/>
+      <move select="BackHinge Left"/>
+    </path>
+  </tam>
+
+  <tam title="Cross Chain Reaction" from="Left-Hand Two-Faced Line between Mini-Waves"
+       fractions="5;3">
+     <formation>
+      <dancer gender="boy" x="-3" y="1" angle="180"/>
+      <dancer gender="girl" x="-3" y="-1" angle="0"/>
+      <dancer gender="boy" x="0" y="1" angle="180"/>
+      <dancer gender="girl" x="0" y="3" angle="180"/>
+    </formation>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Quarter Left" beats="2" offsetX="-2" offsetY="1"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" beats="1.5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" beats="1.5"/>
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Stand" beats="2"/>
+      <move select="Eighth Right" beats="1.5" offsetX="1.06" offsetY=".06" />
+      <move select="Eighth Right" offsetX=".707" offsetY="-.793" beats="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Forward"/>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Swing Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="5" scaleX="5" scaleY="3" />
+      <move select="Swing Left"/>
+      <move select="BackHinge Right"/>
+      <move select="BackHinge Right"/>
+      <move select="BackHinge Right"/>
+    </path>
+  </tam>
+
+</tamination>

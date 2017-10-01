@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="With the Flow">
+
+
+
+  <tam title="Bend the Line With the Flow" group=" "
+       from="Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       fractions="2" >
+    <path>
+      <move select="Hinge Right" beats="2" />
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="BackHinge Left" beats="2" />
+      <move select="Dodge Left" beats="4" />
+    </path>
+    <path>
+      <move select="BackHinge Left" beats="2" />
+      <move select="Dodge Left" beats="4" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="2" />
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tam title="Wheel and Deal With the Flow" group=" "
+       from="Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       fractions="4" >
+    <path>
+      <move select="Run Right" beats="4" hands="right" scaleY="2" offsetX="1"/>
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" hands="left" offsetX="1" />
+      <move select="Dodge Left" beats="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" hands="left" offsetX="1" />
+      <move select="Dodge Left" beats="2" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="right" scaleX="2" scaleY="2" offsetX="1" />
+      <move select="Forward 2" />
+    </path>
+  </tam>
+
+  <tam title="All 4 Couples Right and Left Thru With the Flow" group=" "
+       from="Static Square"
+       formation="Static Square"
+       fractions="9.5" >
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2" />
+      <move select="Forward" />
+      <move select="Lead Right" />
+      <move select="Lead Left" beats="2" scaleY="2" />
+      <move select="Beau Wheel" />
+      <move select="Dodge Right" beats="6" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3.5" scaleX="3" />
+      <move select="Forward 2" />
+      <move select="Extend Left" />
+      <move select="Belle Wheel" />
+      <move select="Forward 6" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="2" />
+      <move select="Forward" />
+      <move select="Lead Right" />
+      <move select="Lead Left" beats="2" scaleY="2" />
+      <move select="Beau Wheel" />
+      <move select="Dodge Right" beats="6" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3.5" scaleX="3" />
+      <move select="Forward 2" />
+      <move select="Extend Left" />
+      <move select="Belle Wheel" />
+      <move select="Forward 6" />
+    </path>
+  </tam>
+</tamination>

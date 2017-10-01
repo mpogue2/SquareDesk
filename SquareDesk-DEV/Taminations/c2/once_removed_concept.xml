@@ -1,0 +1,923 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Once Removed Concept">
+
+  <tam title="(From lines) Once Removed Boys Run" group="(From lines) Once Removed">
+      <formation>
+      <dancer gender="girl" x="-1.5" y="3" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-1" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="1" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-3" angle="180"/>
+    </formation>
+    <path couples="1 2">
+      <move select="Dodge Right" beats="5" scaleY="2"/>
+    </path>
+    <path couples="1 2">
+      <move select="Run Right" beats="5" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Dodge Right" beats="5" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Run Right" beats="5" scaleY="2"/>
+    </path>
+    <taminator>
+    For these animations, the dancers are colored to show those who work together.
+    </taminator>
+  </tam>
+
+  <tam title="(From lines) Once Removed Chase Right" group="(From lines) Once Removed" 
+       formation="Lines Facing Out Compact">
+  <path couples="1 2">
+    <move select="U-Turn Right" offsetX="-2"/>
+    <move select="Forward"/>
+    <move select="Run Right" beats="5" scaleY="2"/>
+  </path>
+  <path couples="2 1">
+    <move select="U-Turn Right" offsetX="-2"/>
+    <move select="Forward"/>
+    <move select="Run Right" beats="5" scaleY="2"/>
+  </path>
+  <path couples="1 2">
+    <move select="Run Right" beats="5" scaleY="2"/>
+    <move select="Forward 3"/>
+  </path>
+  <path couples="2 1">
+    <move select="Run Right" beats="5" scaleY="2"/>
+    <move select="Forward 3"/>
+  </path>
+  </tam>
+
+  <tam title="(From lines) Once Removed Circle By 1/4 by 1/2" group="(From lines) Once Removed"
+       formation="Normal Lines Compact">
+    <path couples="1 2">
+      <move select="Eighth Right" beats="1" hands="right" offsetX=".5" />
+      <move select="Circle Left Quarter" beats="4" hands="none" scaleX="2" scaleY="2" />
+      <move select="Eighth Left" beats="1"/>
+      <move select="Stand" hands="none"/>
+      <move select="Extend Left" beats="2"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Eighth Right" beats="1" hands="right" offsetX=".5" />
+      <move select="Circle Left Quarter" beats="4" hands="none" scaleX="2" scaleY="2" />
+      <move select="Eighth Left" beats="1"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Eighth Left" beats="1" hands="left" offsetX=".5" />
+      <move select="Circle Left Quarter" beats="4" hands="none" scaleX="4" scaleY="4" />
+      <move select="Eighth Right" beats="1"/>
+      <move select="Stand" hands="none"/>
+      <move select="Forward" beats="2"/>
+      <move select="Swing Right" scaleX=".75"/>
+    </path>
+    <path couples="2 1">
+      <move select="Eighth Left" beats="1" hands="left" offsetX=".5" />
+      <move select="Circle Left Quarter" beats="4" hands="none" scaleX="4" scaleY="4" />
+      <move select="Eighth Right" beats="1"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".75"/>
+    </path>
+    <taminator>
+      Dancers are not Once Removed at the end of the call because the formation
+      axis has changed.
+    </taminator>
+  </tam>
+
+  <tam title="(From lines) Once Removed Circulate" group="(From lines) Once Removed"
+       formation="Two-Faced Lines RH Compact">
+    <path couples="1 2">
+      <move select="Forward 3" beats="4"/>
+    </path>
+    <path couples="2 1">
+      <move select="Forward 3" beats="4"/>
+    </path>
+    <path couples="1 2">
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="(From lines) Once Removed Counter Rotate" group="(From lines) Once Removed"
+       formation="Two-Faced Lines RH Compact">
+    <path couples="1 2">
+      <move select="Counter Rotate Right 2 0" scaleX="1.25"/>
+    </path>
+    <path couples="2 1">
+      <move select="Counter Rotate Right 2 0" scaleX="1.25"/>
+    </path>
+    <path couples="1 2">
+      <move select="Counter Rotate Right 0 -2" offsetX="-.5" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Counter Rotate Right 0 -2" offsetX="-.5" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="(From lines) Once Removed Partner Trade" group="(From lines) Once Removed" 
+       formation="Lines Facing Out Compact">
+    <path couples="1 2">
+      <move select="Flip Left" beats="6" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Flip Left" beats="6" scaleY="2"/>
+    </path>
+    <path couples="1 2">
+      <move select="Run Right" beats="6" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Run Right" beats="6" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="(From lines) Once Removed Pass the Ocean" group="(From lines) Once Removed"
+       formation="Normal Lines">
+    <path couples="1 2">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="1.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="3.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Lead Left" beats="4" scaleY="2.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Lead Left" beats="4" scaleY=".5"/>
+    </path>
+    <taminator>
+      Dancers are not Once Removed at the end of the call because the formation
+      axis has changed.
+    </taminator>
+  </tam>
+  
+  <tam title="(From lines) Once Removed Peel Off" group="(From lines) Once Removed"
+       formation="Ocean Waves RH BGGB Compact">
+    <path couples="1 2">
+      <move select="U-Turn Left" beats="3" offsetX="1.5" offsetY="-.5" />
+      <move select="BackSashay Left" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Flip Right" beats="3" offsetX="-1.5" offsetY="1.5" />
+      <move select="BackSashay Left" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="U-Turn Right" beats="3" offsetX="1.5" offsetY=".5" />
+    </path>
+    <path couples="2 1">
+      <move select="Flip Left" beats="4" offsetX="-1.5" offsetY="-1.5" />
+    </path>
+  </tam>
+  
+  <tam title="(From lines) Once Removed Shakedown" group="(From lines) Once Removed">
+    <formation>
+      <dancer gender="girl" x="-1.5" y="3" angle="180"/>
+      <dancer gender="boy" x="-1.5" y="1" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="-1" angle="180"/>
+      <dancer gender="boy" x="-1.5" y="-3" angle="180"/>
+    </formation>
+    <path couples="1 2">
+      <move select="U-Turn Right" offsetX="-1.25"/>
+      <move select="Quarter Right" offsetX="1.25" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Right" offsetX="-1.25"/>
+      <move select="Quarter Right" offsetX="1.25" />
+    </path>
+    <path couples="1 2">
+      <move select="Run Right" beats="4" scaleY="2"/>
+      <move select="Quarter Right" offsetX=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Run Right" beats="4" scaleY="2"/>
+      <move select="Quarter Right" offsetX=".5"/>
+    </path>
+  </tam>
+  
+  <tam title="(From lines) Once Removed Single Wheel" group="(From lines) Once Removed"
+       formation="Lines Facing Out Compact">
+    <path couples="1 2">
+      <move select="U-Turn Left" beats="4" offsetX="-.5" offsetY="2" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Left" beats="4" offsetX="-.5" offsetY="2" />
+    </path>
+    <path couples="1 2">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2" />
+    </path>
+    <taminator>
+      Note that this is the same as Turn and Deal.
+      Dancers are not Once Removed at the end of the call because the formation
+      axis has changed.
+    </taminator>
+  </tam>
+  
+  <tam title="(From lines) Once Removed Square Chain Thru" group="(From lines) Once Removed"
+       formation="Normal Lines Compact">
+    <path couples="1 2">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Right" beats="2" scaleX=".5" scaleY="1.5"/>
+      <move select="Stand" beats="1.5" hands="none"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Stand" beats="3" hands="none"/>      
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5"/>
+      <move select="Extend Right" beats="2" scaleX="2" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Stand" beats="3" hands="none"/>      
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Right" beats="2" scaleX="2"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY=".5"/>
+      <move select="Stand" beats="1.5" hands="none"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+    </path>
+    <taminator>
+      This call is done by &quot;taking out&quot; the Once Removed after the
+      first pull by. After completion of the call the centers pass thru to
+      restore the Once Removed setup.
+    </taminator>
+  </tam>
+
+  <tam title="(From lines) Once Removed Square Thru 3 to a Wave" group="(From lines) Once Removed"
+       formation="Normal Lines Compact">
+    <path couples="1 2">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Right" scaleX=".5" scaleY=".5"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Quarter Right" beats="2" offsetX="1.5"/>
+      <move select="Dodge Left" beats="1" scaleY=".5" offsetX=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Right" scaleX=".5" scaleY=".5"/>
+      <move select="Forward" beats="1.5" scaleX="2.5"/>
+      <move select="Lead Right" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Left" scaleX="1.5" scaleY=".5"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Lead Left" beats="2"/>
+      <move select="Stand" hands="none" beats="1.5"/>
+      <move select="Dodge Left" beats="1" scaleY=".5" offsetX=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5"/>
+      <move select="Lead Left" scaleX="1.5" scaleY=".5"/>
+      <move select="Forward" beats="1.5" scaleX=".5"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Lead Left" beats="2" scaleX=".5" scaleY="1.5"/>
+    </path>
+  </tam>
+  
+  <tam title="(From lines) Once Removed Swap Around" group="(From lines) Once Removed"
+       formation="Normal Lines Compact">
+    <path couples="1 2">
+      <move select="Flip Right" beats="4" scaleY="2"/>
+    </path>
+    <path couples="2 1">
+      <move select="Flip Right" beats="4" scaleY="2"/>
+    </path>
+    <path couples="1 2">
+      <move select="Forward 3" beats="4"/>
+    </path>
+    <path couples="2 1">
+      <move select="Forward 3" beats="4"/>
+    </path>
+  </tam>
+
+  <tam title="(From lines) Once Removed Walk and Dodge" group="(From lines) Once Removed"
+       formation="Two-Faced Lines RH Compact">
+    <path numbers="1 8" couples="1 2">
+      <move select="Forward 3" beats="4" hands="right"/>
+    </path>
+    <path numbers="2 7" couples="2 1">
+      <move select="Forward 3" beats="4" hands="left"/>
+    </path>
+    <path numbers="3 6" couples="1 2">
+      <move select="Dodge Right" beats="4" hands="left" scaleY="2"/>
+    </path>
+    <path numbers="4 5" couples="2 1">
+      <move select="Dodge Right" beats="4" hands="right" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Circulate" group="(From columns) Once Removed"
+       formation="Column RH GBGB">
+    <path couples="1 2">
+      <move select="Run Right" beats="4"/>
+    </path>
+    <path couples="2 1">
+      <move select="Run Right" beats="4"/>
+    </path>
+    <path couples="1 2">
+      <move select="Forward 4"/>
+    </path>
+    <path couples="2 1">
+      <move select="Forward 4"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Hinge" group="(From columns) Once Removed"
+       formation="Column RH GBGB">
+    <path couples="1 2">
+      <move select="Lead Right" scaleX=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleX="1.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" scaleX=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleX="1.5"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Pass the Ocean" group="(From columns) Once Removed"
+       formation="Double Pass Thru">
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right" scaleX="1.5"/>
+      <move select="Dodge Left" beats="1" scaleY=".5" offsetX=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Hinge Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Quarter Left"/>
+      <move select="Dodge Left" beats="1" scaleY=".25" offsetX=".5"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Peel Off" group="(From columns) Once Removed"
+       formation="Column RH GBGB">
+    <path couples="1 2">
+      <move select="Run Left" beats="4" offsetX="-1.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Run Left" beats="4" offsetX="-2.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="U-Turn Left" beats="4" offsetX="2.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Left" beats="4" offsetX="1.5"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Quarter Thru" group="(From columns) Once Removed"
+       formation="Column RH GBGB">
+    <path couples="1 2">
+      <move select="Lead Right" scaleX=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleX="1.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" scaleX=".5"/>
+      <move select="Lead Left" scaleX=".5"/>
+      <move select="Lead Left" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleX="1.5"/>
+      <move select="Lead Left" scaleX=".5"/>
+      <move select="Lead Left" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Right and Left Thru" group="(From columns) Once Removed"
+       formation="Double Pass Thru">
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Beau Wheel" scaleX="0.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Belle Wheel" scaleX="0.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Beau Wheel" scaleX="0.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Belle Wheel" scaleX="0.5"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Slide Thru" group="(From columns) Once Removed"
+       formation="Double Pass Thru">
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Left" offsetX="1" offsetY="-1"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Left" offsetX="1" offsetY="-1"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Turn to a Line" group="(From columns) Once Removed"
+       formation="Column RH GBGB">
+    <path couples="1 2">
+      <move select="U-Turn Right" beats="4" offsetX="-1" offsetY="-2"/>
+    </path>  
+    <path couples="2 1">
+      <move select="Quarter Right" beats="2" offsetX="-1" offsetY="-1.5"/>
+      <move select="Quarter Right" beats="2" offsetX=".5" offsetY="-2"/>
+    </path>  
+    <path couples="1 2">
+      <move select="Quarter Left" beats="2" offsetX="1" offsetY="1.5"/>
+      <move select="Quarter Left" beats="2" offsetX=".5" offsetY="-2"/>
+    </path>  
+    <path couples="2 1">
+      <move select="U-Turn Left" beats="4" offsetX="1" offsetY="2"/>
+    </path>  
+    <taminator>
+      Dancers are not Once Removed at the end of the call because the formation
+      axis has changed.
+    </taminator>
+  </tam>
+  
+  <tam title="(From columns) Once Removed Touch a Quarter" group="(From columns) Once Removed">
+    <formation>
+      <dancer gender="boy" y="3" x="1" angle="270"/>
+      <dancer gender="girl" y="3" x="-1" angle="270"/>
+      <dancer gender="boy" y="1" x="1" angle="270"/>
+      <dancer gender="girl" y="1" x="-1" angle="270"/>
+    </formation>
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path couples="1 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" offsetX="1" offsetY="-1"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" offsetX="1"/>
+    </path>
+    <path couples="2 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" offsetX="1" offsetY="-1"/>
+    </path>
+  </tam>
+
+  <tam title="(From columns) Once Removed Walk and Dodge" group="(From columns) Once Removed">
+     <formation>
+      <dancer gender="girl" x="-1" y="3" angle="90"/>
+      <dancer gender="boy" x="-1" y="1" angle="90"/>
+      <dancer gender="girl" x="-1" y="-1" angle="90"/>
+      <dancer gender="boy" x="-1" y="-3" angle="90"/>
+    </formation>
+    <path numbers="1 8" couples="1 2">
+      <move select="Dodge Right" beats="4"/>
+    </path>
+    <path numbers="2 7" couples="2 1">
+      <move select="Dodge Right" beats="4"/>
+    </path>
+    <path numbers="3 6" couples="1 2">
+      <move select="Forward 4"/>
+    </path>
+    <path numbers="4 5" couples="2 1">
+      <move select="Forward 4"/>
+    </path>
+  </tam>
+  
+  <tam title="(From columns) Once Removed Zoom" group="(From columns) Once Removed"
+       formation="Column RH GBGB">
+    <path couples="1 2">
+      <move select="Run Left" offsetX="-2" />
+      <move select="Run Left" offsetX="2" />
+    </path>  
+    <path couples="2 1">
+      <move select="Run Left" offsetX="-2" />
+      <move select="Run Left" offsetX="2" />
+    </path>  
+    <path couples="1 2">
+      <move select="Forward 4" beats="6" />
+    </path>  
+    <path couples="2 1">
+      <move select="Forward 4" beats="6" />
+    </path>  
+  </tam>
+  
+  
+  <tam title="(From tidal line) Once Removed Crossfire" group="(From tidal line) Once Removed"
+       formation="Tidal Line RH">
+    <path couples="1 2">
+      <move select="Lead Right" beats="2" scaleX="2" scaleY="2"/>     
+      <move select="Lead Right" beats="3" scaleX="2.5" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="2" scaleX="2" scaleY="2"/>
+      <move select="Lead Right" beats="3" scaleX="3.5" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" scaleX=".5"/>
+      <move select="Lead Right" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleX=".5"/>
+      <move select="Lead Right" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY="1.5"/>
+    </path>
+  </tam>
+  
+  <tam title="(From tidal line) Once Removed Reverse Explode" group="(From tidal line) Once Removed"
+       formation="Two-Faced Tidal Line RH">
+    <path couples="1 2">
+      <move select="Quarter Left" beats="2" offsetX="1" offsetY="-.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Quarter Left" beats="2" offsetX="1" offsetY="-1.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="2" scaleY="1.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="2" scaleY=".5"/>
+    </path>
+  </tam>
+  
+  <tam title="(From tidal line) Once Removed Switch to a Diamond" group="(From tidal line) Once Removed"
+       formation="Two-Faced Tidal Line RH">
+    <path couples="1 2">
+      <move select="Lead Right"/>
+      <move select="Forward" beats="2" scaleX="1.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleY="1.5"/>
+      <move select="Forward 2"/>
+    </path>
+    <path couples="1 2">
+      <move select="Run Right" beats="3.5" scaleY="1.75"/>      
+    </path>
+    <path couples="2 1">
+      <move select="Run Right" beats="3.5" scaleY="1.25"/>       
+    </path>
+  </tam>
+  
+  
+  <tam title="(From tidal line) Once Removed Turn and Deal" 
+       group="(From tidal line) Once Removed"
+       formation="Two-Faced Tidal Line LH">
+    <path couples="1 2">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY=".5" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path couples="1 2">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2.5" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-3.5" />
+    </path>
+  </tam>
+
+  <tam title="(From tidal line) Once Removed Two-Thirds Recycle" 
+       group="(From tidal line) Once Removed"
+       formation="Two-Faced Tidal Line RH">
+    <path couples="1 2">
+      <move select="Lead Right" offsetY=".5"/>
+      <move select="Forward 4"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" offsetY="-.5"/>
+      <move select="Forward 4"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" offsetY="-.5"/>
+      <move select="Run Right" beats="4"/>
+
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" offsetY=".5"/>
+      <move select="Run Right" beats="4"/>
+    </path>
+  </tam>
+
+
+  <tam title="(From tidal wave) Once Removed Bend the Line" 
+       group="(From tidal wave) Once Removed"
+       formation="Tidal Wave RH BGBG">
+    <path couples="1 2">
+      <move select="Hinge Right" beats="3" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="BackSashay Left" beats="1.5" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="BackSashay Left" beats="1.5" scaleY=".5"/>
+      <move select="BackHinge Left" scaleY=".5"/>
+    </path>
+    <path couples="2 1">
+      <move select="BackHinge Right" beats="3" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tamxref title="(From tidal wave) Once Removed The K" 
+           group="(From tidal wave) Once Removed"
+           xref-link="c2/anything_the_k"
+           xref-title="Once Removed the K"/>
+
+  <tam title="(From tidal wave) Once Removed Turn and Deal" 
+       group="(From tidal wave) Once Removed"
+       formation="Tidal Wave RH BGBG">
+    <path couples="1 2">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path couples="1 2">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2.5" />
+    </path>
+    <path couples="2 1">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="3.5" />
+    </path>
+  </tam>
+
+
+  <tam title="(From OR diamonds, tandem centers) Once Removed Diamond Circulate" 
+       group="(From OR diamonds, tandem centers) Once Removed"
+       formation="Once Removed Diamonds Tandem Centers">
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleY="4"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleX="4"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="4" scaleX="4"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleY="4"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem centers) Once Removed Flip the Diamond" 
+       group="(From OR diamonds, tandem centers) Once Removed"
+       formation="Once Removed Diamonds Tandem Centers">
+    <path couples="1 2">
+      <move select="Run Right" beats="4" scaleY="1.75"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleX="2.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="4" scaleX="3.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Run Right" beats="4" scaleY="1.25"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem centers) Once Removed Cut the Diamond" 
+       group="(From OR diamonds, tandem centers) Once Removed"
+       formation="Once Removed Diamonds Tandem Centers">
+    <path couples="1 2">
+      <move select="Dodge Right" beats="4" scaleY="1.75"/>
+      <move select="Run Right" scaleX=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleX="2.5"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="4" scaleX="3.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Dodge Right" beats="4" scaleY="1.25"/>
+      <move select="Run Right" scaleX=".5"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem centers) Once Removed Reverse Flip the Diamond" 
+       group="(From OR diamonds, tandem centers) Once Removed"
+       formation="Once Removed Diamonds Tandem Centers">
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleY="3.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Flip Left" beats="4" offsetX=".5"/>      
+    </path>
+    <path couples="2 1">
+      <move select="Flip Left" beats="4" offsetX="-.5"/>      
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleY="4.5"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem centers) Once Removed Reverse Cut the Diamond" 
+       group="(From OR diamonds, tandem centers) Once Removed"
+       formation="Once Removed Diamonds Tandem Centers">
+    <path couples="1 2">
+      <move select="Stand"/>
+      <move select="Lead Right" beats="3.5" scaleY="3.5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Quarter Right" beats="3" offsetX="3"/>
+    </path>
+    <path couples="2 1">
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Lead Right" beats="3" scaleX="3"/>
+    </path>
+    <path couples="1 2">
+      <move select="Stand"/>
+      <move select="Lead Right" beats="3.5" scaleY="4.5"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem points) Once Removed Diamond Circulate" 
+       group="(From OR diamonds, tandem points) Once Removed"
+       formation="Interlocked Diamonds RH Girl Points">
+    <path couples="1 2">
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path couples="1 2">
+      <move select="Stand" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="3" />
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="3" />
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="3" scaleY="3" />
+    </path>
+    <taminator>
+      Same as Interlocked Diamond Circulate
+    </taminator>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem points) Once Removed Flip the Diamond" 
+       group="(From OR diamonds, tandem points) Once Removed"
+       formation="Interlocked Diamonds RH Girl Points">
+    <path couples="1 2">
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path couples="1 2">
+      <move select="Run Right"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="3" />
+    </path>
+    <path couples="1 2">
+      <move select="Run Right"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem points) Once Removed Cut the Diamond" 
+       group="(From OR diamonds, tandem points) Once Removed"
+       formation="Interlocked Diamonds RH Girl Points">
+    <path couples="1 2">
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path couples="1 2">
+      <move select="Dodge Right"/>
+      <move select="Swing Right"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="3" />
+    </path>
+    <path couples="1 2">
+      <move select="Dodge Right"/>
+      <move select="Swing Right"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem points) Once Removed Reverse Flip the Diamond" 
+       group="(From OR diamonds, tandem points) Once Removed"
+       formation="Interlocked Diamonds RH Girl Points">
+    <path couples="1 2">
+      <move select="Flip Left" beats="4" scaleY="0.25"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" scaleX="2.5" scaleY="3"/>
+    </path>
+    <path couples="2 1">
+      <move select="Flip Left" beats="4" scaleY="0.75"/>
+    </path>
+    <path couples="1 2">
+      <move select="Lead Right" beats="4" offsetX="-1.5" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="(From OR diamonds, tandem points) Once Removed Reverse Cut the Diamond" 
+       group="(From OR diamonds, tandem points) Once Removed"
+       formation="Interlocked Diamonds RH Girl Points">
+    <path couples="1 2">
+      <move select="Lead Right" scaleX=".5"/>
+      <move select="Forward" beats="2" scaleX="3.5"/>
+      <move select="Lead Right" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Stand"/>
+      <move select="Lead Right" beats="4" scaleX="2.5" scaleY="3"/>
+    </path>
+    <path couples="2 1">
+      <move select="Lead Right" scaleX=".5"/>
+      <move select="Forward" beats="2" scaleX="2.5"/>
+      <move select="Lead Right" scaleY=".5"/>
+    </path>
+    <path couples="1 2">
+      <move select="Stand"/>
+      <move select="Lead Right" beats="4" offsetX="-1.5" scaleY="3"/>
+    </path>
+  </tam>
+
+</tamination>

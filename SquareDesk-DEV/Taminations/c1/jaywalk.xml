@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Jaywalk">
+
+  <tam title="Boys Jaywalk"
+       from="Waves"
+       formation="Ocean Waves RH BGBG" >
+    <path>
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2" />
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2" />
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="Jaywalk"
+       from="Quarter Tag"
+       formation="Quarter Tag" >
+    <path numbers="1 8">
+      <move select="Pass Thru" beats="3" scaleX="1.5" />
+    </path>
+    <path numbers="2 7">
+      <move select="Forward" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="6 3">
+      <move select="Forward" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="5 4">
+      <move select="Pass Thru" beats="3" scaleX="1.5" />
+    </path>
+  </tam>
+
+  <tam title="Jaywalk"
+       from="Facing Diamonds"
+       formation="Diamonds Facing Girl Points" >
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Lead Left" scaleX=".5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Lead Left" scaleX=".5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+  </tam>
+</tamination>

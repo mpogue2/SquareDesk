@@ -1,0 +1,722 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Stretch Concept">
+
+  <tam title="Stretch Bend the Line" group="Stretch"
+       formation="Normal Lines">
+    <path>
+      <move select="Extend Left" beats="1.5" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="BackHinge Left" />
+    </path>
+    <path>
+      <move select="BackHinge Right" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Cast Off 3/4" group="Stretch"
+       formation="Lines Facing Out">
+    <path>
+      <move select="Quarter Right" hands="left" offsetX=".33" offsetY=".33" />
+      <move select="Quarter Right" hands="left" offsetX="-.33" offsetY=".33" />
+      <move select="Quarter Right" offsetX="-.33" offsetY="-.33" />
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX="2" scaleY="2" offsetX=".33" offsetY=".33" />
+      <move select="Hinge Right" scaleX="2" scaleY="2" offsetX="-.33" offsetY=".33" />
+      <move select="Forward" beats="1" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Right" scaleX="2" scaleY="2" offsetX=".17" offsetY="-.33" />
+    </path>
+    <path>
+      <move select="Hinge Left" scaleX="2" scaleY="2" offsetX=".33" offsetY="-.33" />
+      <move select="Hinge Left" scaleX="2" scaleY="2" offsetX="-.33" offsetY="-.33" />
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="2" offsetX="1.67" offsetY=".33" />
+    </path>
+    <path>
+      <move select="Quarter Left" hands="right" offsetX=".33" offsetY="-.33" />
+      <move select="Quarter Left" hands="right" offsetX="-.33" offsetY="-.33" />
+      <move select="Quarter Left" offsetX="-.33" offsetY=".33" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Chase Right" group="Stretch">
+    <formation name="Trade By">
+      <dancer gender="girl" y="3" x="1" angle="90"/>
+      <dancer gender="boy" y="3" x="-1" angle="90"/>
+      <dancer gender="girl" y="1" x="-1" angle="270"/>
+      <dancer gender="boy" y="1" x="1" angle="270"/>
+    </formation>
+    <path>
+      <move select="U-Turn Right" beats="1.5" />
+      <move select="Forward 4" />
+      <move select="Flip Right" beats="1.5" />
+    </path>
+    <path>
+      <move select="Run Right" />
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="1.5" />
+      <move select="Forward 2" />
+      <move select="Flip Right" beats="1.5" />
+    </path>
+    <path>
+      <move select="Flip Right" />
+      <move select="Forward 2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Crossfire" group="Stretch"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="2" />
+      <move select="Forward" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5" />
+      <move select="Hinge Right" scaleY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="Forward 3" />
+    </path>
+    <path>
+      <move select="Cross Fold Right" />
+      <move select="Forward" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Cross Trail Thru" group="Stretch"
+       formation="Normal Lines">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Stand" />
+      <move select="Extend Right" beats="5" scaleX="2" scaleY="4.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Stand" />
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="2.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Extend Left" beats="4" scaleX="2" scaleY="3.5" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Flutterwheel (from Eight Chain Thru)" group="Stretch"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="Stand" hands="nohands" beats="3.5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Run Right" hands="right" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleY="1.5" />
+      <move select="Swing Right" hands="both" scaleX=".5" scaleY=".5" />
+      <move select="U-Turn Right" hands="left" offsetX="1" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Stand" hands="nohands" beats="3.5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Run Right" hands="right" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleY="1.5" />
+      <move select="Swing Right" hands="both" scaleX=".5" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="U-Turn Right" hands="left" offsetX="1" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Flutterwheel (from Lines)" group="Stretch"
+       formation="Normal Lines">
+    <path>
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Run Right" hands="right" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Right" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" hands="left" offsetX="1.5" offsetY="2.25" />
+    </path>
+    <path>
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Run Right" hands="right" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Right" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" hands="left" offsetX="1.5" offsetY=".25" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Hinge" group="Stretch"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Hinge Right" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Lead Right" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Linear Cycle" group="Stretch"
+       formation="Ocean Waves RH BGGB">
+    <path>
+      <move select="Hinge Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Hinge Right" />
+      <move select="Run Right" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2" />
+      <move select="U-Turn Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Hinge Right" />
+      <move select="Run Right" />
+      <move select="Forward 2" />
+      <move select="U-Turn Right" offsetX="2" />
+    </path>
+    <path>
+      <move select="Hinge Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Partner Hinge" group="Stretch"
+       formation="Normal Lines">
+    <path>
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-1" offsetY="1" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-1" offsetY="1" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Partner Trade" group="Stretch"
+       formation="Lines Facing Out">
+    <path>
+      <move select="Flip Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Recycle (from Right-Hand Waves)" group="Stretch"
+       formation="Ocean Waves RH BGGB">
+    <path numbers="5 4" couples="2 4">
+      <move select="Run Right" beats="4" offsetX="3" offsetY="-2" />
+    </path>
+    <path numbers="6 3" couples="2 4">
+      <move select="Run Right" beats="2" scaleX=".5" scaleY=".5" offsetX="-1.5" />
+      <move select="Run Right" beats="2" scaleX=".5" scaleY=".5" offsetX="1.5" />
+    </path>
+    <path numbers="7 2" couples="3 1">
+      <move select="Run Right" beats="2" scaleX=".5" scaleY=".5" offsetX="-.5" />
+      <move select="Run Right" beats="2" scaleX=".5" scaleY=".5" offsetX=".5" />
+    </path>
+    <path numbers="8 1" couples="3 1">
+      <move select="Run Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Recycle (from Left-Hand Waves)" group="Stretch"
+       formation="Ocean Waves LH BGGB">
+    <path>
+      <move select="Run Left" beats="4" offsetX="1" offsetY="2" />
+    </path>
+    <path>
+      <move select="Run Left" beats="2" scaleX=".5" scaleY=".5" offsetX="-.5" />
+      <move select="Run Left" beats="2" scaleX=".5" scaleY=".5" offsetX=".5" />
+    </path>
+    <path>
+      <move select="Run Left" beats="2" scaleX=".5" scaleY=".5" offsetX="-1.5" />
+      <move select="Run Left" beats="2" scaleX=".5" scaleY=".5" offsetX="1.5" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" offsetX="3" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Reverse Flutterwheel" group="Stretch"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="Extend Right" beats="2" scaleY="1.5" />
+      <move select="Swing Left" hands="both" scaleX=".5" scaleY=".5" />
+      <move select="U-Turn Left" hands="right" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Stand" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Run Left" hands="left" offsetX="1" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleY="1.5" />
+      <move select="Swing Left" hands="both" scaleX=".5" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="U-Turn Left" hands="right" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Stand" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Run Left" hands="left" offsetX="1" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Shakedown"
+       from="Lines Facing Out"
+       group="Stretch" >
+     <formation>
+      <dancer gender="girl" x="3" y="2" angle="90"/>
+      <dancer gender="boy" x="1" y="2" angle="90"/>
+      <dancer gender="girl" x="-1" y="2" angle="90"/>
+      <dancer gender="boy" x="-3" y="2" angle="90"/>
+    </formation>
+    <path numbers="1 8">
+      <move select="U-Turn Right" offsetX="-1.5" offsetY="-1" />
+      <move select="Lead Right" scaleX="1.5" />
+    </path>
+    <path numbers="2 7">
+      <move select="Flip Right" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path numbers="3 6">
+      <move select="U-Turn Right" offsetX="-1.5" offsetY="-2.5" />
+      <move select="Lead Right" scaleX="1.5" scaleY=".5" />
+    </path>
+    <path numbers="4 5">
+      <move select="Flip Right" scaleY="2" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Single Wheel" group="Stretch"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Lead Right" beats="2" scaleX="3" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="U-Turn Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="3" offsetX="3" />
+    </path>
+    <path>
+      <move select="Flip Right" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Slide" group="Stretch"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="BackSashay Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="BackSashay Right" />
+    </path>
+    <path>
+      <move select="BackSashay Right" />
+    </path>
+    <path>
+      <move select="BackSashay Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Split Circulate (from Waves)" group="Stretch"
+       formation="Ocean Waves RH BGGB">
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Split Circulate (from Columns)" group="Stretch"
+       formation="Column RH GBGB">
+    <path>
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Run Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Split Counter Rotate" group="Stretch"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Counter Rotate Right 2 0" hands="right" beats="4" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right" beats="4" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 3 1" hands="right" beats="4" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right -1 -3" hands="right" beats="4" offsetY="-1"/>
+    </path>
+  </tam>
+
+  <tam title="Stretch Split Transfer (from Waves)" group="Stretch"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Extend Right" beats="1.5" scaleX="2" scaleY=".25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="1.5" scaleY=".25" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX=".5" scaleY="1.25" />
+      <move select="Forward 2" />
+      <move select="Lead Right" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="1.5" scaleX="2" scaleY=".25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="3.5" scaleX="3" scaleY=".25" />
+    </path>
+    <path>
+      <move select="Run Right" beats="6" scaleX=".5" scaleY="2.25" />
+      <move select="Forward 2" />
+      <move select="Lead Right" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Split Transfer (from Columns)" group="Stretch"
+       formation="Column RH GBGB">
+    <path>
+      <move select="Run Right" beats="4" scaleX=".5" scaleY="1.75" />
+      <move select="Forward 3" />
+      <move select="Lead Right" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="1.5" scaleY=".25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2.25" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX=".5" scaleY="1.75" />
+      <move select="Forward" />
+      <move select="Lead Right" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="1.5" scaleY=".25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".25" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Swing" group="Stretch"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Touch" group="Stretch"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="Extend Left" beats="2" hands="right" scaleY="2" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" hands="left" scaleY="2" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" hands="right" scaleY="2" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" hands="left" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Touch a Quarter" group="Stretch"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="Extend Left" />
+      <move select="Forward 2" />
+      <move select="Quarter Right" hands="right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 3" />
+      <move select="Hinge Right" />
+    </path>
+    <path>
+      <move select="Extend Left" />
+      <move select="Quarter Right" hands="right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Right" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Turn and Deal" group="Stretch"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" />
+      <move select="Quarter Right" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" />
+      <move select="Quarter Right" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" />
+      <move select="Quarter Right" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" />
+      <move select="Quarter Right" beats="2" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Turn and Deal (from Lines Facing Out)" group="Stretch"
+       formation="Lines Facing Out">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <taminator>
+    In this case the centers cannot easily move to the far center spots
+    during the call.  So instead the centers Pass Thru after
+    completing the Turn and Deal.
+    </taminator>
+  </tam>
+
+  <tam title="Stretch Wheel and Deal" group="Stretch"
+       formation="Normal Lines">
+    <path>
+      <move select="Run Right" beats="4" hands="gripright" scaleY="2" offsetX="3" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" hands="gripleft" offsetX="3" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" hands="right" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" hands="left" scaleY="2" offsetX="-1" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Veer Right" group="Stretch"
+       from="Two-Faced Lines"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Forward 2" hands="right" />
+      <move select="Extend Right" beats="2" hands="right" scaleY="2" />
+    </path>
+    <path>
+      <move select="Forward 2" hands="left" />
+      <move select="Extend Right" beats="2" hands="left" scaleY="2" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" hands="left" scaleY="2" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" hands="right" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Wheel Thru" group="Stretch"
+       formation="Normal Lines">
+    <path>
+      <move select="Lead Right" beats="4" scaleX="4" scaleY="2" />
+      <move select="Extend Right" beats="2" scaleX="2" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="2" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="3" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Stretch Zoom" group="Stretch"
+       formation="Column RH GBGB">
+    <path>
+      <move select="Flip Left" beats="1" scaleX=".5" scaleY=".5" />
+      <move select="Forward 3" />
+      <move select="Lead Left" beats="1" scaleY=".5" />
+      <move select="Quarter Left" beats="1" offsetX=".5"/>
+    </path>
+    <path>
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="1" scaleX=".5" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Lead Left" beats="1" scaleY=".5" />
+      <move select="Quarter Left" beats="1" offsetX=".5"/>
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tamxref title="Stretch (C-1) 2/3 Recycle" group="Stretch (C-1)"
+           xref-link="c1/2_3_recycle"
+           xref-title="Stretch 2/3 Recycle"/>
+
+  <tamxref title="Stretch (C-1) Ah So" group="Stretch (C-1)"
+           xref-link="c1/ah_so"
+           xref-title="Stretch Ah So"/>
+
+  <tamxref title="Stretch (C-1) Follow Thru" group="Stretch (C-1)"
+           xref-link="c1/follow_thru"
+           xref-title="Stretch Follow Thru"/>
+
+  <tamxref title="Stretch (C-1) Reverse Explode" group="Stretch (C-1)"
+           xref-link="c1/reverse_explode"
+           xref-title="Stretch Reverse Explode"/>
+
+  <tamxref title="Stretch (C-1) Shakedown (from columns)" group="Stretch (C-1)"
+           xref-link="c1/shakedown"
+           xref-title="Stretch Shakedown (from columns)"/>
+
+  <tamxref title="Stretch (C-1) Shakedown (from lines)" group="Stretch (C-1)"
+           xref-link="c1/shakedown"
+           xref-title="Stretch Shakedown (from lines)"/>
+
+  <tamxref title="Stretch (C-1) Left Shakedown (from columns)" group="Stretch (C-1)"
+           xref-link="c1/shakedown"
+           xref-title="Stretch Left Shakedown (from columns)"/>
+
+  <tamxref title="Stretch (C-1) Left Shakedown (from lines)" group="Stretch (C-1)"
+           xref-link="c1/shakedown"
+           xref-title="Stretch Left Shakedown (from lines)"/>
+
+  <tamxref title="Stretch (C-1) Step and Flip" group="Stretch (C-1)"
+           xref-link="c1/step_and_flip"
+           xref-title="Stretch Step and Flip"/>
+
+  <tamxref title="Stretch (C-1) Step and Fold" group="Stretch (C-1)"
+           xref-link="c1/step_and_fold"
+           xref-title="Stretch Step and Fold"/>
+
+  <tamxref title="Stretch (C-1) Wheel Fan Thru" group="Stretch (C-1)"
+           xref-link="c1/wheel_fan_thru"
+           xref-title="Stretch Wheel Fan Thru"/>
+
+  <tamxref title="Stretch (C-1) Left Wheel Fan Thru" group="Stretch (C-1)"
+           xref-link="c1/wheel_fan_thru"
+           xref-title="Stretch Left Wheel Fan Thru"/>
+
+  <tamxref title="Stretch (C-1) Zing" group="Stretch (C-1)"
+           xref-link="c1/zing"
+           xref-title="Stretch Zing"/>
+
+  <tamxref title="Stretch (C-2) Bounce the Boys" group="Stretch (C-2)"
+           xref-link="c2/bounce_the_anyone"
+           xref-title="Stretch Bounce the Boys"/>
+
+  <tamxref title="Stretch (C-2) Turn to a Line" group="Stretch (C-2)"
+           xref-link="c2/turn_to_a_line"
+           xref-title="Stretch Turn to a Line"/>
+
+  <tamxref title="Stretch (C-3A) Mini Chase" group="Stretch (C-3A)"
+           xref-link="c3a/mini_chase"
+           xref-title="Stretch Mini Chase"/>
+
+  <tamxref title="Stretch (C-3A) Single Checkmate" group="Stretch (C-3A)"
+           xref-link="c3a/single_checkmate"
+           xref-title="Stretch Single Checkmate"/>
+
+</tamination>

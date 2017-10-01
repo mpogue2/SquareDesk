@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Reverse Swap Around">
+
+
+
+
+  <tam title="Reverse Swap Around"
+       from="Facing Couples"
+       formation="Facing Couples"
+       fractions="2" >
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Reverse Swap Around"
+       from="Normal Lines"
+       formation="Normal Lines"
+       fractions="2" >
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Reverse Swap Around"
+       from="Eight Chain Thru"
+       formation="Eight Chain Thru"
+       fractions="2" >
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Reverse Swap Around"
+       from="Normal Lines"
+       formation="Normal Lines"
+       fractions="2" group=" " >
+    <path>
+      <move select="Forward 4" hands="right" />
+    </path>
+    <path>
+      <move select="Forward 4" hands="left" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" hands="gripright" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" hands="gripleft" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Reverse Swap Around"
+       from="Static Square"
+       formation="Static Square"
+       fractions="3" group=" ">
+    <path>
+      <move select="Forward 6" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="6" />
+    </path>
+    <path>
+      <move select="Forward 6" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="6" />
+    </path>
+  </tam>
+</tamination>

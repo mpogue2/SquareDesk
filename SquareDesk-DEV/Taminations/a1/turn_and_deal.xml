@@ -1,0 +1,550 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Turn and Deal">
+
+  <tam title="Turn and Deal" from="Right-Hand Two-Faced Line"
+      formation="Two-Faced Line RH">
+    <path numbers="1 4">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2" />
+    </path>
+    <path numbers="2 3">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Left-Hand Two-Faced Line"
+       formation="Two-Faced Line LH" >
+    <path numbers="3 2">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="2" />
+    </path>
+    <path numbers="4 1">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Right-Hand Wave"
+       formation="Wave RH" >
+    <path numbers="1 4">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2" />
+    </path>
+    <path numbers="2 3">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Left-Hand Wave"
+       formation="Wave LH" >
+    <path numbers="4 1">
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="2" />
+    </path>
+    <path numbers="3 2">
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Normal Lines"
+       formation="Normal Lines">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Lines Facing Out"
+       formation="Lines Facing Out">
+    <path numbers="5 4">
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path numbers="6 3">
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path numbers="7 2">
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path numbers="8 1">
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Right-Hand Two-Faced Lines"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGGB">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #1"
+       formation="3 and 1 lines #1">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam> 
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #2"
+       formation="3 and 1 lines #2">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>  
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #3"
+       formation="3 and 1 lines #3">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>  
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #4"
+       formation="3 and 1 lines #4">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>  
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #5"
+       formation="3 and 1 lines #5">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>  
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #6"
+       formation="3 and 1 lines #6">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>  
+
+  <tam title="Turn and Deal" from="3 and 1 Lines #7"
+       formation="3 and 1 lines #7">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>  
+  
+  <tam title="Turn and Deal" from="3 and 1 Lines #8"
+       formation="3 and 1 lines #8">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>
+  
+  <tam title="Turn and Deal" from="Inverted Lines, Centers Facing"
+       formation="Inverted Lines Ends Facing Out">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal" from="Inverted Lines, Ends Facing"
+       formation="Inverted Lines Ends Facing In">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Tidal Line"
+       formation="Tidal Line RH">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Right-Hand Two-Faced Tidal Line"
+       formation="Two-Faced Tidal Line RH">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-.5" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Left-Hand Two-Faced Tidal Line"
+       formation="Two-Faced Tidal Line LH">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Right-Hand Tidal Wave"
+       formation="Tidal Wave RH BGGB">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-.5" />
+    </path>
+  </tam>
+
+  <tam title="Turn and Deal"
+       from="Left-Hand Tidal Wave"
+       formation="Tidal Wave LH BGGB">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1.5" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Left Turn and Deal" from="Left-Hand Two-Faced Line"
+       formation="Two-Faced Line LH" >
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="1.5" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="1.5" offsetY="2" />
+    </path>
+    <taminator>
+      This variation is also called Left Shoulder Turn and Deal, and is
+      almost always called from Left-Hand Two-Faced Lines.
+    </taminator>
+  </tam>
+  
+  <tam title="Left Turn and Deal" from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="1" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="1" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Turn and Deal"
+       from="Right-Hand Tidal Line"
+       formation="Tidal Line RH">
+    <path>
+      <move select="Belle Wheel" beats="4" reflect="-1" hands="gripright" scaleY=".5" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" hands="gripleft" offsetX="1.5" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="gripright" scaleX="1.5" scaleY="2.25" offsetX="1.5" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="gripleft" scaleX=".5" scaleY=".75" offsetX="1.55" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Turn and Deal"
+       from="Left-Hand Tidal Line"
+       formation="Tidal Line LH">
+    <path>
+      <move select="Beau Wheel" beats="4" scaleX=".5" scaleY=".5" offsetX="-1.5" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Belle Wheel" beats="4" scaleX=".5" scaleY=".5" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-1.5" offsetY=".5"/>
+      <move select="Quarter Left" hands="right" beats="2" offsetX="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-.5" offsetY="1.5"/>
+      <move select="Lead Left" hands="left" beats="2" scaleX="3" scaleY="1"/>
+    </path>
+  </tam>
+
+  <tam title="As Couples Turn and Deal"
+       from="Right-Hand Two-Faced Tidal Line"
+       formation="Two-Faced Tidal Line RH">
+    <path>
+      <move select="Belle Wheel" beats="4" reflect="-1" scaleY=".5" offsetX="1.5" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="Beau Wheel" beats="4" reflect="-1" scaleX=".5" scaleY=".5" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-.5" offsetY="1.5"/>
+      <move select="Lead Left" hands="left" beats="2" scaleX="3" scaleY="1"/>
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-1.5" offsetY=".5"/>
+      <move select="Quarter Left" hands="right" beats="2" offsetX="1"/>
+    </path>
+  </tam>
+
+  <tam title="As Couples Turn and Deal"
+       from="Left-Hand Two-Faced Tidal Line"
+       formation="Two-Faced Tidal Line LH">
+    <path>
+      <move select="Belle Wheel" beats="4" scaleX=".5" scaleY=".5" offsetX="-1.5" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="Beau Wheel" beats="4" scaleX=".5" scaleY=".5" offsetX="-1.5" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="gripright" scaleX="1.5" scaleY="2.25" offsetX="1.5" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="gripleft" scaleX=".5" scaleY=".75" offsetX="1.55" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Turn and Deal"
+       from="Thar"
+       formation="Thar RH Boys">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-3" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-3" offsetY="2" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Turn and Deal"
+       from="Wrong Way Thar"
+       formation="Thar LH Boys">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-3" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-3" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" offsetY="-2" />
+    </path>
+  </tam>
+</tamination>

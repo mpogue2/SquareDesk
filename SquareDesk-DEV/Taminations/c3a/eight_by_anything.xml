@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Eight By Anything">
+
+  <tam title="Eight by Reach Out" group="Eight by" formation="3 and 1 lines #3">
+    <path numbers="1 8">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="3" scaleX="2.5" scaleY="2.5" />
+      <move select="Quarter Left" offsetX="1" />
+      <move select="Quarter Left" />
+      <move select="BackHinge Right" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" />
+    </path>
+    <path numbers="2 7">
+      <move select="Forward 2"/>
+      <move select="Run Left"/>
+    </path>
+    <path numbers="3 6">
+      <move select="Run Right"/>
+      <move select="Forward 2"/>
+    </path>
+    <path numbers="4 5">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="4.5" scaleX="3.5" scaleY="2.5" />
+      <move select="Hinge Left" beats="3" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" />
+    </path>
+  </tam>
+
+  <tam title="Eight by Swap Around" from="Lines" formation="Normal Lines" group="Eight by">
+  <path>
+    <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    <move select="Lead Right" beats="3" scaleX="2.5" scaleY="2.5"/>
+    <move select="Quarter Left" offsetX="1"/>
+    <move select="Quarter Left"/>
+    <move select="BackHinge Right" scaleY=".5"/>
+    <move select="Quarter Left"/>
+  </path>
+  <path>
+    <move select="Flip Right" offsetX="1"/>
+  </path>
+  <path>
+    <move select="Forward 3"/>
+  </path>
+  <path>
+    <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    <move select="Lead Left" beats="4.5" scaleX="3.5" scaleY="2.5"/>
+    <move select="Hinge Left" beats="3" scaleY=".5"/>
+    <move select="Quarter Left"/>
+  </path>
+  </tam>
+
+  <tam title="Eight by Wheel Thru" from="Lines" formation="Normal Lines"
+    group="Eight by">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="3" scaleX="2.5" scaleY="2.5" />
+      <move select="Quarter Left" offsetX="1" />
+      <move select="Quarter Left" />
+      <move select="BackHinge Right" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" />
+    </path>
+    <path>
+      <movement beats="5" cx1="2.5" cy1="0" cx2="3" cy2="-.5" x2="3"
+        y2="-3" hands="none" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="5" offsetX="1" offsetY="-1" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="4.5" scaleX="3.5" scaleY="2.5" />
+      <move select="Hinge Left" beats="3" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" />
+    </path>
+  </tam>
+
+  <tam title="Eight by Swing Thru" from="Lines" formation="Normal Lines"
+    group="Eight by">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="3" scaleX="2.5" scaleY="2.5" />
+      <move select="Quarter Left" offsetX="1" />
+      <move select="Quarter Left" />
+      <move select="BackHinge Right" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY=".5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".25" />
+      <move select="Swing Left" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY=".5" />
+      <move select="Swing Right" scaleX=".5" scaleY="1.25" />
+      <move select="Stand" beats="3" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="4.5" scaleX="3.5" scaleY="2.5" />
+      <move select="Hinge Left" beats="3" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" />
+    </path>
+  </tam>
+
+  <tam title="Eight by Flip the Diamond" group="Eight by">
+    <formation>
+      <dancer gender="boy"  x="0" y="6" angle="0"/>
+      <dancer gender="girl" x="1" y="0" angle="270"/>
+      <dancer gender="boy" x="0" y="-2" angle="180"/>
+      <dancer gender="girl" x="0" y="-4" angle="0"/>
+    </formation>
+    <path>
+      <move select="Lead Right" beats="3.75" scaleX="2.5" scaleY="5.5"/>
+      <move select="Quarter Left" offsetX="1.5" />
+      <move select="Quarter Left"/>
+      <move select="BackHinge Right" beats="2" scaleX="1" scaleY=".5"/>
+      <move select="Quarter Left"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Run Right" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="4.25" scaleX="3.5" scaleY="4" />
+      <move select="Hinge Left" beats="4" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left"/>
+    </path>
+  </tam>
+
+</tamination>

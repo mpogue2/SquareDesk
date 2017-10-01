@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Checkmate">
+
+  <tam title="Checkmate"
+       from="Right-Hand Columns">
+     <formation>
+      <dancer gender="girl" x="-1" y="3" angle="90"/>
+      <dancer gender="boy" x="-1" y="1" angle="90"/>
+      <dancer gender="girl" x="-1" y="-1" angle="90"/>
+      <dancer gender="boy" x="-1" y="-3" angle="90"/>
+    </formation>
+    <path couples="2 4">
+      <move select="Flip Right" beats="2" scaleY="1.5" />
+      <move select="Forward 5" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path couples="2 4">
+      <move select="Forward 2" />
+      <move select="Flip Right" beats="2" scaleY="1.5" />
+      <move select="Forward 3" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path couples="3 1">
+      <move select="Forward 3" />
+      <move select="Lead Right" beats="3" />
+      <move select="Forward 2" hands="right" />
+    </path>
+    <path couples="3 1">
+      <move select="Forward 3" />
+      <move select="Lead Right" beats="3" />
+      <move select="Forward 2" hands="left" />
+    </path>
+  </tam>
+
+  <tam title="Checkmate"
+       from="Left-Hand Columns">
+     <formation>
+      <dancer gender="boy" x="1" y="-3" angle="90"/>
+      <dancer gender="girl" x="1" y="-1" angle="90"/>
+      <dancer gender="boy" x="1" y="1" angle="90"/>
+      <dancer gender="girl" x="1" y="3" angle="90"/>
+    </formation>
+    <path numbers="8 4" couples="4 2">
+      <move select="Forward 3" />
+      <move select="Lead Left" beats="3" />
+      <move select="Forward 2" hands="right" />
+    </path>
+    <path numbers="7 3" couples="4 2">
+      <move select="Forward 3" />
+      <move select="Lead Left" beats="3" />
+      <move select="Forward 2" hands="left" />
+    </path>
+    <path numbers="6 2" couples="1 3">
+      <move select="Forward 2" />
+      <move select="Flip Left" beats="2" scaleY="1.5" />
+      <move select="Forward 3" />
+      <move select="Quarter Left" offsetX="1" />
+    </path>
+    <path numbers="5 1" couples="1 3">
+      <move select="Flip Left" beats="2" scaleY="1.5" />
+      <move select="Forward 5" />
+      <move select="Quarter Left" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Checkmate"
+       from="Double Pass Thru">
+    <formation>
+      <dancer gender="boy" y="3" x="1" angle="270" />
+      <dancer gender="girl" y="3" x="-1" angle="270" />
+      <dancer gender="boy" y="1" x="1" angle="270" />
+      <dancer gender="girl" y="1" x="-1" angle="270" />
+    </formation>
+    <path couples="4 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path couples="4 2">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Lead Left" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path couples="3 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path couples="3 1">
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Lead Left" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <taminator>
+      According to the defintion, the last part is Couples Circulate.
+      But most dancers do a All 8 Circulate as shown here.
+    </taminator>
+  </tam>
+
+  <tam title="Checkmate"
+       from="Completed Double Pass Thru">
+    <formation>
+      <dancer gender="girl" y="3" x="1" angle="90"/>
+      <dancer gender="boy" y="3" x="-1" angle="90"/>
+      <dancer gender="girl" y="1" x="1" angle="90"/>
+      <dancer gender="boy" y="1" x="-1" angle="90"/>
+    </formation>
+    <path>
+      <move select="Run Left" beats="2" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" beats="4" scaleX="5" scaleY="2" />
+      <move select="Quarter Left" offsetX="1" />
+    </path>
+    <path>
+      <move select="Run Right" beats="5" scaleX="2" scaleY="2" />
+      <move select="Forward 5" beats="3" />
+      <move select="Lead Right" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="2" />
+      <move select="Run Left" beats="3" offsetX="-1" />
+      <move select="Lead Left" beats="3" offsetX="2" offsetY="-2" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" />
+      <move select="Run Right" beats="4.5" scaleX="2" scaleY="2" />
+      <move select="Forward 3" />
+      <move select="Lead Right" />
+    </path>
+  </tam>
+
+</tamination>

@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Lockit">
+
+  <tam title="Lockit" from="Right-Hand Wave">
+    <formation>
+      <dancer gender="boy" x="-3" y="0" angle="90"/>
+      <dancer gender="girl" x="-1" y="0" angle="270"/>
+    </formation>
+    <path numbers="1 4">
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="3" />
+    </path>
+    <path numbers="2 3">
+      <move select="Hinge Left" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Left-Hand Wave" formation="Wave LH"
+    fractions="">
+    <path>
+      <move select="Lead Left" beats="4" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Two-Faced Line"
+    formation="Two-Faced Line RH" fractions="">
+    <path>
+      <move select="Lead Right" beats="4" hands="right" scaleX="3"
+        scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" hands="both" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Diamond" formation="Diamond RH">
+    <formation>
+      <dancer gender="girl" x="0" y="3" angle="0"/>
+      <dancer gender="boy" x="1" y="0" angle="270"/>
+    </formation>
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Facing Diamond" formation="Diamond Facing"
+    fractions="">
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Right-Hand Waves"
+    formation="Ocean Waves RH BGGB" fractions="">
+    <path>
+      <move select="Lead Right" beats="4" scaleX="1.5" scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" scaleX=".5" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" scaleX=".5" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="4" scaleX="1.5" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Left-Hand Waves"
+    formation="Ocean Waves LH BGGB" fractions="">
+    <path>
+      <move select="Lead Left" beats="4" scaleX="1.5" scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" scaleX=".5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" scaleX=".5" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="4" scaleX="1.5" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Right-Hand Tidal Wave"
+    formation="Tidal Wave RH BGGB" fractions="">
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Left-Hand Tidal Wave"
+    formation="Tidal Wave LH BGGB" fractions="">
+    <path>
+      <move select="Lead Left" beats="4" scaleX="3" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="4" scaleX="3" scaleY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="Lockit" from="Diamonds"
+    formation="Diamonds RH Girl Points" fractions="">
+    <path numbers="6 3">
+      <move select="Quarter Right" hands="right" beats="4" offsetX="1" />
+    </path>
+    <path numbers="2 7">
+      <move select="Lead Right" beats="4" scaleY="3" />
+    </path>
+    <path numbers="5 4">
+      <move select="Quarter Right" hands="right" beats="4" offsetX="1" offsetY="-2" />
+    </path>
+    <path numbers="8 1">
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Lockit" from="Two-Faced Tidal Line"
+    formation="Two-Faced Tidal Line RH" group=" ">
+    <path>
+      <move select="Hinge Right" beats="4" scaleX="3.5" scaleY="3.5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="4" scaleX="2.5" scaleY="2.5" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" scaleX="1.5" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="4" scaleX=".5" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Lockit" from="Right-Hand Thar"
+    formation="Thar LH Boys" group=" ">
+    <path>
+      <move select="Hinge Left" beats="6" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="6" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Hinge Left" beats="6" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="6" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+</tamination>

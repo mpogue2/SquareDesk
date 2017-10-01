@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Courtesy Turn">
+
+  <tam title="Courtesy Turn"
+       from="Couples Facing Out"
+       formation="Couples Facing Out">
+    <path>
+      <move select="Belle Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Beau Wheel" scaleX="0.67" />
+    </path>
+  </tam>
+
+  <tam title="Courtesy Turn"
+       from="Lines Facing Out"
+       formation="Lines Facing Out">
+    <path>
+      <move select="Belle Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Beau Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Belle Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Beau Wheel" scaleX="0.67" />
+    </path>
+  </tam>
+
+  <tam title="Heads Pass Thru and Courtesy Turn" group=" "
+       formation="Static Square" fractions="6">
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Beau Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Belle Wheel" scaleX="0.67" />
+    </path>
+    <path>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="All 4 Ladies make a right-hand star, turn it once around; boys Courtesy Turn your girl"
+       group=" " formation="Static Square">
+    <path>
+      <move select="Stand" beats="6"/>
+      <move select="Quarter Left" beats="3" offsetY="-2"/>
+      <move select="Quarter Left" beats="2"/>
+      <move select="Beau Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="4" scaleX="3" scaleY="2"/>
+      <move select="Swing Right"/>
+      <move select="Extend Right" beats="4" scaleX="3" scaleY="2"/>
+      <move select="Belle Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Stand" beats="6"/>
+      <move select="Quarter Left" beats="3" offsetY="-2"/>
+      <move select="Quarter Left" beats="2"/>
+      <move select="Beau Wheel" scaleX="0.67" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="4" scaleX="3" scaleY="2"/>
+      <move select="Swing Right"/>
+      <move select="Extend Right" beats="4" scaleX="3" scaleY="2"/>
+      <move select="Belle Wheel" scaleX="0.67" />
+    </path>
+    <taminator>
+      This is also called 4 Ladies Chain All 4 Quarters
+    </taminator>
+  </tam>
+
+</tamination>

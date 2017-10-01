@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+
+<!--
+FIGURE OF GRAND SPIN AS FOLLOWS:
+
+    Sides will face as in Grand Square, back up 3 steps & turn on #4 step,
+    go forward then dosado (YOU MUST DOSADO) then Star Thru, you are now the new Heads,
+
+    Heads will Star Thru, then Spin the Top, then Star Thru,
+    to end facing the vacated sides position,
+    then take a good step forward & California Twirl & Face.
+    Heads you are now the new Sides.
+
+    Repeat 3 more times and you are home.
+
+    The Heads and Sides are working at the same time as in Grand Square.
+-->
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Grand Spin">
+
+  <tam title="Sides Face, Grand Spin" formation="Static Square"
+       from="Static Square" group=" " fractions="5;7.5;2;4.5;3;6.5;3;5;7.5;2;4.5;3;6.5">
+    <path>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleX="2" scaleY="1.5" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Cast Left" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" scaleY="2.333" beats="2"/>
+      <move select="Run Right" hands="gripright"/>
+
+      <move select="Quarter Right" offsetY=".5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Left" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleY="1.5" beats="2"/>
+
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleX="2" scaleY="1.5" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Cast Left" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" scaleY="2.333" beats="2"/>
+      <move select="Run Right" hands="gripright"/>
+
+      <move select="Quarter Right" offsetY=".5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Left" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleY="1.5" beats="2"/>
+    </path>
+
+    <path>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" scaleX=".667" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" beats="4.5" scaleX="2" scaleY="2"/>
+      <move select="Lead Left" beats="2"/>
+      <move select="Flip Left" hands="gripleft"/>
+
+      <move select="Quarter Left" offsetY="-.5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Right" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" beats="2"/>
+
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" scaleX=".667" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" beats="4.5" scaleX="2" scaleY="2"/>
+      <move select="Lead Left" beats="2"/>
+      <move select="Flip Left" hands="gripleft"/>
+
+      <move select="Quarter Left" offsetY="-.5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Right" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" beats="2"/>
+    </path>
+
+    <path>
+      <move select="Quarter Right" offsetY=".5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Left" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleY="1.5" beats="2"/>
+
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleX="2" scaleY="1.5" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Cast Left" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" scaleY="2.333" beats="2"/>
+      <move select="Run Right" hands="gripright"/>
+
+      <move select="Quarter Right" offsetY=".5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Left" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleY="1.5" beats="2"/>
+
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Right" scaleX="2" scaleY="1.5" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Cast Left" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" scaleY="2.333" beats="2"/>
+      <move select="Run Right" hands="gripright"/>
+    </path>
+
+    <path>
+      <move select="Quarter Left" offsetY="-.5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Right" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" beats="2"/>
+
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" scaleX=".667" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" beats="4.5" scaleX="2" scaleY="2"/>
+      <move select="Lead Left" beats="2"/>
+      <move select="Flip Left" hands="gripleft"/>
+
+      <move select="Quarter Left" offsetY="-.5"/>
+      <move select="Back"/>
+      <move select="Back"/>
+      <move select="Quarter Right" offsetX="-.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Retreat Right" scaleY=".5"/>
+      <move select="Retreat Left" scaleY=".5"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" beats="2"/>
+
+      <move select="Forward 2"/>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Lead Left" scaleY=".5" scaleX=".667" beats="2"/>
+      <move select="Swing Right" scaleX=".667" scaleY=".667"/>
+      <move select="Lead Right" beats="4.5" scaleX="2" scaleY="2"/>
+      <move select="Lead Left" beats="2"/>
+      <move select="Flip Left" hands="gripleft"/>
+    </path>
+
+  </tam>
+
+</tamination>

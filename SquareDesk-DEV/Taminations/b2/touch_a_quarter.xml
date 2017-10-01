@@ -1,0 +1,154 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Touch a Quarter">
+
+  <tam title="Touch a Quarter"
+       from="Facing Couples"
+       formation="Facing Couples"
+       fractions="" difficulty="1">
+    <path>
+      <move select="Extend Left" scaleX="2" />
+      <move select="Quarter Right" hands="right" beats="1" offsetX="1" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" beats="1" scaleY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="Touch a Quarter"
+       from="Lines"
+       formation="Normal Lines"
+       fractions="" difficulty="1">
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" scaleY=".5" beats="1" hands="gripright"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" scaleY=".5" beats="1" hands="gripright"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" scaleY=".5" beats="1" hands="gripright"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" scaleY=".5" beats="1" hands="gripright"/>
+    </path>
+  </tam>
+
+  <tam title="Touch a Quarter"
+       from="Eight Chain Thru"
+       formation="Eight Chain Thru"
+       fractions="" difficulty="1">
+    <path>
+      <move select="Extend Left" />
+      <move select="Quarter Right" hands="right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Right" />
+    </path>
+    <path>
+      <move select="Extend Left" />
+      <move select="Quarter Right" hands="right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Right" />
+    </path>
+  </tam>
+
+  <tam title="Left Touch a Quarter"
+       from="Facing Couples"
+       formation="Facing Couples"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Extend Right" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" beats="1" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="2" />
+      <move select="Quarter Left" hands="left" beats="1" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Left Touch a Quarter"
+       from="Lines"
+       formation="Normal Lines"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Extend Right" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" scaleY=".5" beats="1" hands="gripleft"/>
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" scaleY=".5" beats="1" hands="gripleft"/>
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" scaleY=".5" beats="1" hands="gripleft"/>
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" scaleY=".5" beats="1" hands="gripleft"/>
+    </path>
+  </tam>
+
+  <tam title="Left Touch a Quarter"
+       from="Eight Chain Thru"
+       formation="Eight Chain Thru"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Left" />
+    </path>
+    <path>
+      <move select="Extend Right" />
+      <move select="Quarter Left" hands="left" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Left" />
+    </path>
+    <path>
+      <move select="Extend Right" />
+      <move select="Quarter Left" hands="left" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Touch a Half"
+       from="Facing Couples"
+       formation="Facing Couples"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2" />
+      <move select="Swing Right" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="3" />
+      <move select="Swing Right" />
+    </path>
+  </tam>
+</tamination>

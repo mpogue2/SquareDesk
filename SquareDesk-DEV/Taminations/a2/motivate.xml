@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Motivate">
+
+  <tam title="Motivate"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       parts="4;4.5;3" difficulty="1">
+    <path numbers="1 8" couples="2 4">
+      <move select="Forward 4" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="2 7" couples="2 4">
+      <move select="Run Left" beats="4" />
+      <move select="Cast Left" />
+      <move select="Swing Right" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+    <path numbers="3 6" couples="3 1">
+      <move select="Forward 4" />
+      <move select="Cast Left" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="4 5" couples="3 1">
+      <move select="Run Right" beats="4" scaleX="2" scaleY="3" />
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2" />
+      <move select="Swing Right" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Motivate"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGGB"
+       parts="4;4.5;3" difficulty="1">
+    <path>
+      <move select="Run Left" beats="4" scaleX="2" scaleY="3" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+      <move select="Swing Left" />
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+      <move select="Cast Right" />
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" />
+      <move select="Cast Right" />
+      <move select="Swing Left" />
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3" />
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+    </path>
+  </tam>
+
+  <tam title="Motivate"
+       from="Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       parts="4;4.5;3" difficulty="3">
+    <path>
+      <move select="Forward 4" hands="right" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+      <move select="Run Right" />
+      <move select="Beau Wheel" reflect="-1" />
+      <move select="BackHinge Left" />
+    </path>
+    <path>
+      <move select="Forward 4" hands="left" />
+      <move select="Cast Right" />
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" />
+      <move select="Belle Wheel" reflect="-1" />
+      <move select="Hinge Right" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="left" />
+      <move select="Cast Right" />
+      <move select="Flip Left" />
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="right" scaleX="3" scaleY="3" />
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2" />
+      <move select="Eighth Right" offsetX="1.06" offsetY=".06" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5"/>
+      <move select="Eighth Right" hands="right" offsetX=".707" offsetY="-.707" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="4" />
+    </path>
+  </tam>
+
+  <tam title="Motivate" from="T-Bones" parts="2;4.5;3" difficulty="3">
+    <formation>
+      <dancer gender="girl" y="1" x="3" angle="270"/>
+      <dancer gender="girl" y="1" x="1" angle="0"/>
+      <dancer gender="boy" y="1" x="-1" angle="0"/>
+      <dancer gender="boy" y="1" x="-3" angle="0"/>
+    </formation>
+    <path couples="3 1">
+      <move select="Forward 2"/>
+      <move select="Lead Right" beats="2.5" scaleY="2"/>
+      <move select="Extend Right" beats="2"/>
+      <move select="Eighth Right" offsetX="1.06" offsetY=".06" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5"/>
+      <move select="Eighth Right" hands="right" offsetX=".8" offsetY="-.7" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="3.9"/>
+    </path>
+    <path couples="4 2">
+      <move select="Forward 2"/>
+      <move select="Lead Right" beats="4.5" scaleX="2"/>
+      <move select="Run Right"/>
+      <move select="Belle Reverse Wheel"/>
+      <move select="BackHinge Left"/>
+    </path>
+    <path couples="2 4">
+      <move select="Forward 2"/>
+      <move select="Hinge Right" offsetX=".5"/>
+      <move select="Hinge Right" offsetY=".25"/>
+      <move select="Hinge Right" offsetX="-.25"/>
+      <move select="Eighth Left" hands="left" offsetX=".353" offsetY=".647" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5"/>
+      <move select="Eighth Left" hands="left" offsetX=".707" offsetY="-.207" />
+      <move select="Cast Right"/>
+    </path>
+    <path couples="1 3">
+      <move select="Forward 2"/>
+      <move select="Hinge Right" offsetX="-.5"/>
+      <move select="Hinge Right" offsetY="-.25"/>
+      <move select="Hinge Right" offsetX=".25"/>
+      <move select="Flip Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="Motivate, Turn the Star 1/4" group=" "
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       parts="4;4.5;3" difficulty="1">
+    <path numbers="1 8" couples="2 4">
+      <move select="Forward 4" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="2 7" couples="2 4">
+      <move select="Run Left" beats="4" />
+      <move select="Cast Left" />
+      <move select="Swing Right" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+    <path numbers="3 6" couples="3 1">
+      <move select="Forward 4" />
+      <move select="Cast Left" />
+      <move select="Hinge Right" beats="3" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="4 5" couples="3 1">
+      <move select="Run Right" beats="4" scaleX="2" scaleY="3" />
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2" />
+      <move select="Hinge Right" beats="3" />
+      <move select="Cast Left" />
+    </path>
+  </tam>
+
+  <tam title="Motivate, Do Not Turn the Star" group=" "
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       parts="4;4.5;3" difficulty="2">
+    <path numbers="1 8" couples="2 4">
+      <move select="Forward 4" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="2 7" couples="2 4">
+      <move select="Run Left" beats="4" />
+      <move select="Cast Left" />
+      <move select="Swing Right" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+    <path numbers="3 6" couples="3 1">
+      <move select="Forward 4" />
+      <move select="Cast Left" />
+      <move select="Stand" beats="3"/>
+      <move select="Cast Left" />
+    </path>
+    <path numbers="4 5" couples="3 1">
+      <move select="Run Right" beats="4" scaleX="2" scaleY="3" />
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2" />
+      <move select="Stand" beats="3"/>
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+  </tam>
+
+</tamination>

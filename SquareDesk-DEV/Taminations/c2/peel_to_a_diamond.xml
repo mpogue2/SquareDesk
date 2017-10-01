@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Peel to a Diamond">
+
+  <tam title="Peel to a Diamond"
+       from="Right-Hand Box"
+       formation="Box RH"
+       fractions="" >
+    <path>
+      <move select="Forward 2" />
+      <move select="Hinge Right" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" offsetX="-2" />
+    </path>
+  </tam>
+
+  <tam title="Peel to a Diamond"
+       from="Left-Hand Box"
+       formation="Box LH"
+       fractions="" >
+    <path>
+      <move select="Run Right" beats="4" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Hinge Left" />
+    </path>
+  </tam>
+
+  <tam title="Peel to a Diamond"
+       from="Right-Hand Columns"
+       formation="Column RH GBGB"
+       fractions="" >
+    <path>
+      <move select="Run Left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Right" />
+    </path>
+    <path>
+      <move select="Run Left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Right" />
+    </path>
+  </tam>
+
+  <tam title="Peel to a Diamond"
+       from="Left-Hand Columns"
+       formation="Column LH GBGB"
+       fractions="" >
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Left" />
+    </path>
+    <path>
+      <move select="Run Right" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Hinge Left" />
+    </path>
+    <path>
+      <move select="Run Right" offsetX="-1" />
+    </path>
+  </tam>
+
+  <tam title="Peel to a Diamond"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGBG"
+       fractions="" >
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" hands="gripright" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="3" offsetX="-2" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" hands="gripright" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="3" offsetX="-2" offsetY="-1.5" />
+    </path>
+  </tam>
+
+  <tam title="Peel to a Diamond"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGBG"
+       fractions="" >
+    <path>
+      <move select="Flip Right" beats="3" offsetX="-2" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" hands="gripleft" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="3" offsetX="-2" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Left" hands="gripleft" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Peel to a Diamond" group=" "
+       formation="Static MiniWaves RH">
+    <path>
+      <move select="Forward 3"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="4.5" offsetX="-3"/>
+    </path>
+    <path>
+      <move select="Forward 3"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="4.5" offsetX="-3"/>
+    </path>
+  </tam>
+
+  <tam title="As Couples Peel to a Diamond" group=" "
+       formation="Two-Faced Lines RH"
+       fractions="" >
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="1.5" />
+      <move select="Hinge Right" scaleX="3" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" hands="both" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Belle Wheel" offsetX="-2" offsetY="1" />
+    </path>
+    <path>
+      <move select="Beau Wheel" offsetX="-2" offsetY="1" />
+    </path>
+  </tam>
+
+  <tam title="Concentric Peel to a Diamond" group="  "
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Forward 3"/>
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="3.5" offsetX="-2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="6" offsetX="-2" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Peel to a Diamond" group="  "
+       formation="Column RH GBGB">
+    <path>
+      <move select="Run Left" beats="3" offsetX="-2"/>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Run Left" beats="3" offsetX="-2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Counter Rotate Right 2 0" hands="right"/>
+    </path>
+  </tam>
+
+
+</tamination>

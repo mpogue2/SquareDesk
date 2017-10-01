@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Cross and Turn">
+
+  <tam title="Cross and Turn" from="Facing Couples" formation="Facing Couples Compact">
+    <path numbers="1 4">
+      <move select="Forward"  />
+      <move select="Extend Right" hands="right" beats="2" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="2 3">
+      <move select="U-Turn Left" />
+    </path>
+  </tam>
+
+  <tam title="Cross and Turn"
+       from="Lines"
+       formation="Normal Lines Compact">
+    <path>
+      <move select="Forward" />
+      <move select="Extend Right" hands="right" beats="2" scaleX="2" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left"/>
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Extend Right" hands="right" beats="2" scaleX="2" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left"/>
+    </path>
+  </tam>
+
+  <tam title="Cross and Turn"
+       from="Eight Chain Thru"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="2" scaleX="1.5" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="2" scaleX="1.5" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Cross and Turn" group=" " from="Lines" formation="Normal Lines">
+    <path>
+      <move select="Extend Right" beats="2" hands="right" scaleX="2" scaleY="1.5"/>
+      <move select="Extend Right" hands="right" beats="4" scaleX="2" scaleY="2.5"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" hands="left" scaleX="2" scaleY=".5"/>
+      <move select="Extend Right" hands="left" beats="4" scaleX="2" scaleY="3.5"/>
+    </path>
+    <path>
+      <move select="Beau Wheel" beats="6"/>
+    </path>
+    <path>
+      <move select="Belle Wheel" beats="6"/>
+    </path>
+  </tam>
+
+  <tam title="All 8 Cross and Turn" group=" " from="Static Square" formation="Static Square">
+    <path>
+      <move select="Forward 3"/>
+      <move select="Hinge Right"/>
+      <move select="Lead Left" beats="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="U-Turn Left"/>
+    </path>
+    <path>
+      <move select="Forward 3"/>
+      <move select="Hinge Right"/>
+      <move select="Lead Left" beats="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="U-Turn Left"/>
+    </path>
+  </tam>
+
+  <tam title="Butterfly Cross and Turn" group=" " from="" formation="Butterfly Chain Thru">
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="4" scaleX="1.5" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="4" scaleX="1.5" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+  </tam>
+
+  <tam title="Concentric Cross and Turn" group=" " from="Double Pass Thru" formation="Double Pass Thru">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2"/>
+      <move select="Forward 2"/>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="3"/>
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="2" scaleX="1.5" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+  </tam>
+
+  <tam title="&quot;O&quot; Cross and Turn" group=" " from="" formation="O Eight Chain Thru">
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="4" scaleX="1.5" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+    <path>
+      <move select="Forward" beats=".5" scaleX=".5" scaleY=".5" />
+      <move select="Extend Right" hands="right" beats="4" scaleX="1.5" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Left" />
+    </path>
+  </tam>
+
+</tamination>

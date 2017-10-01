@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Echo any Concept anything">
+
+  <tam title="Echo As Couples 1/2 Tag" group="Echo" fractions="3"
+       formation="Tidal Line RH">
+    <path>
+      <move select="Lead Right" beats="3" hands="right" scaleX="3" scaleY="1.5"/>
+      <move select="Lead Right" beats="3"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" hands="left" scaleY=".5"/>
+      <move select="Lead Right" beats="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" hands="right" scaleX="3" scaleY="3.5"/>
+      <move select="Lead Right" beats="3"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" hands="left" scaleY="2.5"/>
+      <move select="Lead Right" beats="3" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="Echo Concentric Recycle" group="Echo" fractions="4"
+       formation="Double Pass Thru">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" offsetY="1.5"/>
+      <move select="Run Right" beats="2" scaleX=".5" scaleY=".5" offsetX="-.5" />
+      <move select="U-Turn Right" beats="2" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path>
+      <movement hands="none" beats="4" cx1="-1" cy1="2" cx2="3" cy2="4.5" x2="3" y2="4.5" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+      <move select="Run Right" beats="4" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="1" offsetY="-.5"/>
+      <move select="Run Right" beats="4" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <movement hands="none" beats="4" cx1="-1" cy1="2" cx2="1" cy2="2.5" x2="1" y2="2.5" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+      <move select="Run Right" beats="2" scaleX=".5" scaleY=".5" offsetX="-.5" />
+      <move select="U-Turn Right" beats="2" offsetX="1.5" offsetY="-.5" />
+    </path>
+  </tam>
+
+  <tam title="Echo Six-Two Acey Deucey" group="Echo" fractions="3"
+       formation="Diamonds RH Girl Points">
+    <path>
+      <move select="Lead Right" beats="3" scaleX="3"/>
+      <move select="Forward 4" beats="5"/>
+    </path>
+    <path>
+      <move select="Forward 4" beats="3"/>
+      <move select="Run Right" beats="5" scaleX="2.5" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Swing Left"/>
+      <move select="Swing Right" beats="5"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleY="3"/>
+      <move select="Swing Right" beats="5"/>
+    </path>
+  </tam>
+
+  <tam title="Echo Split Circulate" group="Echo" fractions="3"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Forward 4" beats="3"/>
+      <move select="Run Right" beats="4" scaleX="2.5" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Run Right"/>
+      <move select="Forward 4"/>
+    </path>
+    <path>
+      <move select="Forward 4" beats="3"/>
+      <move select="Run Left" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Right"/>
+      <move select="Forward 4"/>
+    </path>
+  </tam>
+
+  <tam title="Echo Stretch Partner Trade" group="Echo"
+       formation="Lines Facing Out"
+       fractions="4" >
+    <path>
+      <move select="Flip Left" beats="4" scaleY="2" />
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Flip Left" beats="4"/>
+      <move select="Flip Left"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+      <move select="Flip Left"/>
+    </path>
+  </tam>
+
+  <tam title="Echo Tandem Cross Roll" group="Echo" fractions="9"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Forward 4" beats="5"/>
+      <move select="Run Right" beats="4"/>
+      <move select="Run Left" beats="4" scaleX="1.5" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward 4"/>
+      <move select="Run Right" beats="5" scaleX="2" scaleY="2"/>
+      <move select="Flip Right" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="5" scaleX="2" scaleY="2"/>
+      <move select="Forward 4"/>
+      <move select="Flip Right" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="5" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="4" scaleX="4"/>
+      <move select="Run Left" beats="4" scaleX="1.5" scaleY="2"/>
+    </path>
+  </tam>
+
+
+</tamination>

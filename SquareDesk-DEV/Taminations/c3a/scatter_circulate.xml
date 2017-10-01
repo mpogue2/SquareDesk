@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Scatter Circulate">
+
+  <tam title="Scatter Circulate" from="Normal Lines" formation="Normal Lines">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" beats="2"/>
+      <movement beats="3" hands="none" cx1="1" cy1="0" cx2="0" cy2="-2.5" x2="2" y2="-2.5"
+                cx3="1" cx4="1" cy4="-.5" x4="2" y4="-.5"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="2" scaleY=".5" beats="2"/>
+      <movement beats="3" hands="none" cx1="1" cy1="0" cx2="1.5" cy2="1.5" x2="2" y2="1.5"
+                cx3="1" cx4="1" cy4=".5" x4="2" y4=".5"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Scatter Circulate" from="Lines Facing Out" formation="Lines Facing Out">
+    <path>
+      <move select="Flip Left" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Flip Right" beats="4"/>
+    </path>
+  </tam>
+
+  <tam title="Scatter Circulate" from="Right-Hand Two-Faced Lines">
+    <formation>
+      <dancer gender="girl" x="-2" y="3" angle="0"/>
+      <dancer gender="boy" x="-2" y="1" angle="0"/>
+      <dancer gender="girl" x="-2" y="-1" angle="180"/>
+      <dancer gender="boy" x="-2" y="-3" angle="180"/>
+    </formation>
+    <path couples="4 2">
+      <move select="Forward 4"/>
+    </path>
+    <path couples="4 2">
+      <move select="Forward"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path couples="3 1">
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+    <path couples="3 1">
+      <move select="Run Right" beats="4"/>
+    </path>
+  </tam>
+
+  <tam title="Scatter Circulate" from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH">
+    <path>
+      <move select="Run Left" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward 4"/>
+    </path>
+  </tam>
+
+  <tam title="Scatter Circulate" from="T-Bone Lines"
+       formation="T-Bone RDLU">
+  <formation name="T-Bone RDLU"> <!-- matches Ceder Chest -->
+    <dancer gender="boy"  x="1"  y="3" angle="180"/>
+    <dancer gender="girl" x="1"  y="1" angle="270"/>
+    <dancer gender="boy"  x="-1" y="3" angle="270"/>
+    <dancer gender="girl" x="-1" y="1" angle="180"/>
+  </formation>
+
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Run Left" scaleY="2" />
+    </path>
+  </tam>
+
+</tamination>

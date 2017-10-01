@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Chain Reaction">
+
+  <tam title="Chain Reaction"
+       from="Quarter Tag"
+       formation="Quarter Tag"
+       fractions="3;1.5;2" >
+    <path numbers="1 8">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Hinge Right" beats="2" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="2 7">
+      <move select="Stand" beats="3" />
+      <move select="Hinge Left" offsetX="1" />
+      <move select="Hinge Right" beats="2" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="6 3">
+      <move select="Lead Right" beats="4.5" scaleX="5" scaleY="3" />
+      <move select="Swing Right" beats="2" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="5 4">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Quarter Left" hands="left" offsetY="1" />
+      <move select="Swing Right" beats="2" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="Chain Reaction"
+       from="Left-Hand Quarter Tag"
+       fractions="3;1.5;2" >
+     <formation>
+      <dancer gender="boy" x="-3" y="1" angle="0"/>
+      <dancer gender="girl" x="-3" y="-1" angle="0"/>
+      <dancer gender="boy" x="0" y="-3" angle="0"/>
+      <dancer gender="girl" x="0" y="-1" angle="180"/>
+    </formation>
+    <path numbers="1 8">
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Right" offsetX="1" />
+      <move select="Hinge Left" beats="2" />
+      <move select="Extend Right" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="2 7">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Hinge Left" beats="2" />
+      <move select="Cast Right" />
+    </path>
+    <path numbers="6 3">
+      <move select="Lead Left" beats="4.5" scaleX="5" scaleY="3" />
+      <move select="Swing Left" beats="2" />
+      <move select="Cast Right" />
+    </path>
+    <path numbers="5 4">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Quarter Right" hands="right" offsetY="-1"  />
+      <move select="Swing Left" beats="2" />
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+    <taminator>
+      The outside beau (#1) must wait for the very center to pass through,
+      and then hinge to form the left-hand star.  If the outside beau just
+      moves forward and tries to make a right-hand star the call will fail.
+    </taminator>
+  </tam>
+
+  <tam title="Chain Reaction, Turn the Star 1/2" group=" "
+       from="Quarter Tag"
+       formation="Quarter Tag"
+       fractions="3;1.5;3" >
+    <path numbers="1 8">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Swing Right" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="2 7">
+      <move select="Stand" beats="3" />
+      <move select="Hinge Left" offsetX="1"/>
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="6 3">
+      <move select="Lead Right" beats="4.5" scaleX="5" scaleY="3" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="5 4">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Quarter Left" hands="left" offsetY="1" />
+      <move select="Swing Right" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="Chain Reaction, Do Not Turn the Star" group=" "
+       from="Quarter Tag"
+       formation="Quarter Tag"
+       fractions="3;1;2" >
+    <path numbers="1 8">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="3.5" />
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="2 7">
+      <move select="Stand" beats="3" />
+      <move select="Hinge Left" offsetX="1"/>
+      <move select="Stand" beats="2" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="6 3">
+      <move select="Lead Right" beats="4.5" scaleX="5" scaleY="3" />
+      <move select="Swing Right" beats="2" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="5 4">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Quarter Left" hands="left" offsetY="1" />
+      <move select="Swing Right" beats="2" />
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+
+</tamination>

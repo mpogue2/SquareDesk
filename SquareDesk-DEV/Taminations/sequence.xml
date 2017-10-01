@@ -1,0 +1,15 @@
+<sequence formation="Facing Couples">
+  <call select="Pass Thru"/>
+  <call select="Left Chase"/>
+  <call select="Scoot Back"/>
+  <call select="Hinge"/>
+  <call select="Centers Trade"/>  <!-- was Girls Trade -->
+  <call select="Centers Run"/>    <!-- was Girls Run -->
+  <call select="Wheel and Deal"/>
+  <call select="Veer Right"/>
+  <call select="Crossfire"/>
+  <call select="Scoot Back"/>
+  <call select="Girls Run"/>
+  <call select="Swing Thru"/>
+  <call select="Explode and Touch a Quarter and Roll"/>
+</sequence>
