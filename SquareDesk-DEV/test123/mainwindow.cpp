@@ -7170,15 +7170,15 @@ void MainWindow::initReftab() {
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         } else if (filename.endsWith(".pdf")) {
-                qDebug() << "PDF FILE DETECTED:" << filename;
+//                qDebug() << "PDF FILE DETECTED:" << filename;
 
                 QString app_path = qApp->applicationDirPath();
                 auto url = QUrl::fromLocalFile(app_path+"/minified/web/viewer.html");  // point at the viewer
-                qDebug() << "    Viewer URL:" << url;
+//                qDebug() << "    Viewer URL:" << url;
 
                 QDir dir(app_path+"/minified/web/");
                 QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
-                qDebug() << "    pdf_path: " << pdf_path;
+//                qDebug() << "    pdf_path: " << pdf_path;
 
                 Communicator *m_communicator = new Communicator(this);
                 m_communicator->setUrl(pdf_path);
