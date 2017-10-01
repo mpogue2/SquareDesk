@@ -64,6 +64,10 @@
 #include "startupwizard.h"
 #include "downloadmanager.h"
 
+#if defined(Q_OS_MAC)
+#include "src/communicator.h"
+#endif
+
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "JlCompress.h"
 #endif
@@ -7115,6 +7119,7 @@ void MainWindow::restartSDprocess(QString SDdanceLevel) {
 }
 
 void MainWindow::initReftab() {
+#if defined(Q_OS_MAC)
     documentsTab = new QTabWidget();
     numWebviews = 0;
 
@@ -7164,11 +7169,42 @@ void MainWindow::initReftab() {
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
-        } // else found a file
+        } else if (filename.endsWith(".pdf")) {
+                qDebug() << "PDF FILE DETECTED:" << filename;
+
+                QString app_path = qApp->applicationDirPath();
+                auto url = QUrl::fromLocalFile(app_path+"/minified/web/viewer.html");  // point at the viewer
+                qDebug() << "    Viewer URL:" << url;
+
+                QDir dir(app_path+"/minified/web/");
+                QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
+                qDebug() << "    pdf_path: " << pdf_path;
+
+                Communicator *m_communicator = new Communicator(this);
+                m_communicator->setUrl(pdf_path);
+
+                webview[numWebviews] = new QWebEngineView();
+
+                QWebChannel * channel = new QWebChannel(this);
+                channel->registerObject(QStringLiteral("communicator"), m_communicator);
+                webview[numWebviews]->page()->setWebChannel(channel);
+
+                webview[numWebviews]->load(url);
+
+//                QString indexFileURL = "file://" + filename;
+//                qDebug() << "    indexFileURL:" << indexFileURL;
+
+//                webview[numWebviews]->setUrl(QUrl(pdf_path));
+                QFileInfo fInfo(filename);
+                documentsTab->addTab(webview[numWebviews], fInfo.baseName());
+
+                numWebviews++;
+        }
 
     } // while iterating through <musicRoot>/reference
 
     ui->refGridLayout->addWidget(documentsTab, 0,1);
+#endif
 }
 
 void MainWindow::initSDtab() {
