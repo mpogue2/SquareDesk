@@ -150,6 +150,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                     direction = 180;
                     break;
                 case ' ':
+                case '.':
                 case '\n':
                     break;
                 default:

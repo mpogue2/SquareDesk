@@ -1437,13 +1437,14 @@ MainWindow::~MainWindow()
     }
     if (sdthread)
     {
-        sdthread->stop();
+        sdthread->finishAndShutdownSD();
     }
 #if defined(POCKETSPHINXSUPPORT)
     if (ps) {
         ps->kill();
     }
 #endif
+
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(false);

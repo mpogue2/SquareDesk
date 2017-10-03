@@ -21,7 +21,7 @@ public:
 public:
     void on_user_input(QString str);
     void set_dance_level(int dance_level);
-    void stop();
+    void finishAndShutdownSD();
     void unlock();
 
 signals:

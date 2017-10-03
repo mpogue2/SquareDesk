@@ -14,7 +14,8 @@ class SquareDesk_iofull : public iobase {
 public:
     SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
         : dance_program((dance_level)(0)), sdthread(thread), mw(mw), waitCondition(waitCondition),
-          WaitingForCommand(false), mutexMessageLoop(mutex)
+          WaitingForCommand(false), mutexMessageLoop(mutex),
+          answerYesToEverything(false), seenAFormation(false)
     {
         mutexMessageLoop->lock();
     }
@@ -82,6 +83,10 @@ private:
     uims_reply_kind MenuKind;
     popup_return PopupStatus;
 
+    friend class SDThread;
+    bool answerYesToEverything;
+    bool seenAFormation;
+    
     void ShowListBox(int);
     void UpdateStatusBar(const char *);
     bool do_popup(int nWhichOne);
@@ -99,12 +104,6 @@ void SDThread::on_user_input(QString str)
     QByteArray inUtf8 = str.toUtf8();
     const char *data = inUtf8.constData();
     iofull->add_string_input(data);
-}
-
-void SDThread::stop()
-{
-    abort = true;
-    eventLoopWaitCond.wakeAll();
 }
 
 void SquareDesk_iofull::set_dance_level(int danceLevel)
@@ -153,9 +152,7 @@ void SquareDesk_iofull::EnterMessageLoop()
     gg77->matcher_p->erase_matcher_input();
     WaitingForCommand = true;
     emit sdthread->on_sd_awaiting_input();
-
     waitCondition->wait(mutexMessageLoop);
-
     if (WaitingForCommand)
     {
         general_final_exit(0);
@@ -166,6 +163,9 @@ void SquareDesk_iofull::EnterMessageLoop()
 
 int SquareDesk_iofull::do_abort_popup()
 {
+    if (answerYesToEverything)
+        return POPUP_ACCEPT;
+
     QMessageBox::StandardButton reply;
 
     reply = QMessageBox::question(mw, "Confirmation",
@@ -188,6 +188,8 @@ void SquareDesk_iofull::set_window_title(char s[])
 
 void SquareDesk_iofull::add_new_line(const char the_line[], uint32 drawing_picture)
 {
+    if (drawing_picture)
+        seenAFormation = true;
     emit sdthread->on_sd_add_new_line(QString(the_line), drawing_picture);
 }
 
@@ -468,8 +470,11 @@ int SquareDesk_iofull::do_tagger_popup(int /* tagger_class */)
     return true;
 }
 
-int SquareDesk_iofull::yesnoconfirm(Cstring /* title */, Cstring line1, Cstring line2, bool /* excl */, bool /* info */)
+int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2, bool /* excl */, bool /* info */)
 {
+    if (answerYesToEverything)
+        return POPUP_ACCEPT;
+    
     QString prompt("");
     if (line1 && line1[0])
     {
@@ -478,15 +483,11 @@ int SquareDesk_iofull::yesnoconfirm(Cstring /* title */, Cstring line1, Cstring 
     }
 
     prompt += line2;
-//    uint32 flags = MB_YESNO | MB_DEFBUTTON2;
-//    if (excl) flags |= MB_ICONEXCLAMATION;
-//    if (info) flags |= MB_ICONINFORMATION;
-// 
-//    if (MessageBox(hwndMain, finalline, title, flags) == IDYES)
-//       return POPUP_ACCEPT;
-//    else
-//       return POPUP_DECLINE;
-    return POPUP_ACCEPT;
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(mw, QString(title), prompt,
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    return (reply == QMessageBox::Yes) ? POPUP_ACCEPT : POPUP_DECLINE;
 }
 
 void SquareDesk_iofull::set_pick_string(Cstring string)
@@ -705,13 +706,21 @@ SDThread::SDThread(MainWindow *mw)
 
 }
 
+void SDThread::finishAndShutdownSD()
+{
+    iofull->answerYesToEverything = true;
+    abort = true;
+    if (!iofull->seenAFormation)
+        on_user_input("just as they are");
+    eventLoopWaitCond.wakeAll();
+    on_user_input("quit");
+    eventLoopWaitCond.wakeAll();
+    wait(50);
+    eventLoopMutex.unlock();
+}
+
 SDThread::~SDThread()
 {
-    eventLoopMutex.lock();
-    abort = true;
-    eventLoopWaitCond.wakeAll();
-    eventLoopMutex.unlock();
-    wait(500);
     terminate();
 }
 
