@@ -17,7 +17,6 @@ public:
           WaitingForCommand(false), mutexMessageLoop(mutex),
           answerYesToEverything(false), seenAFormation(false)
     {
-        mutexMessageLoop->lock();
     }
     
     int do_abort_popup();
@@ -64,7 +63,6 @@ public:
     
 public :
     void add_string_input(const char *str);
-    void set_dance_level(int dance_level);
 
     
 private:
@@ -93,12 +91,6 @@ private:
 
 };
 
-void SDThread::set_dance_level(int dance_level)
-{
-    iofull->set_dance_level(dance_level);
-}
-
-
 void SDThread::on_user_input(QString str)
 {
     QByteArray inUtf8 = str.toUtf8();
@@ -106,18 +98,15 @@ void SDThread::on_user_input(QString str)
     iofull->add_string_input(data);
 }
 
-void SquareDesk_iofull::set_dance_level(int danceLevel)
-{
-    dance_program = (dance_level)(danceLevel);
-    mutexMessageLoop->unlock();
-}
-
-
 void SquareDesk_iofull::add_string_input(const char *s)
 {
+    // So this code should only execute when we're in the condition
+    // variable wait, because that's when the mutex is unlocked.
+    
     QMutexLocker locker(mutexMessageLoop);
     matcher_class &matcher = *gg77->matcher_p;
 
+    qDebug() << "Matching: " << s;
     matcher.copy_to_user_input(s);
     int matches = matcher.match_user_input(nLastOne, false, false, false);
 
@@ -132,7 +121,15 @@ void SquareDesk_iofull::add_string_input(const char *s)
     }
     else
     {
-        qDebug() << "No Match";
+        qDebug() << "No Match: " << s;
+        qDebug() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
+        qDebug() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
+        qDebug() << "  matcher.m_final_result.match.packed_next_conc_or_subcall: " << matcher.m_final_result.match.packed_next_conc_or_subcall;
+        qDebug() << "  matcher.m_final_result.match.packed_secondary_subcall: " << matcher.m_final_result.match.packed_secondary_subcall;
+        qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
+        qDebug() << "  ui_call_select: " << ui_call_select;
+        qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
+        qDebug() << "  ui_concept_select: " << ui_concept_select;
     }
 
     //See the    use_computed_match: case
@@ -715,6 +712,9 @@ SDThread::SDThread(MainWindow *mw)
       eventLoopMutex(),
       abort(false)
 {
+    // this will cause the thread startup to block until this
+    // unlocked, which happens through SDThread::unlock() at the end
+    // of the MainWindow constructor.
     eventLoopMutex.lock();
     QObject::connect(this, &SDThread::on_sd_update_status_bar, mw, &MainWindow::on_sd_update_status_bar);
     QObject::connect(this, &SDThread::on_sd_awaiting_input, mw, &MainWindow::on_sd_awaiting_input);
@@ -731,21 +731,28 @@ void SDThread::finishAndShutdownSD()
     iofull->answerYesToEverything = true;
     abort = true;
     if (!iofull->seenAFormation)
-        on_user_input("just as they are");
+    {
+        on_user_input("heads start");
+        on_user_input("square thru 4");
+    }
     eventLoopWaitCond.wakeAll();
     on_user_input("quit");
     eventLoopWaitCond.wakeAll();
-    eventLoopMutex.unlock();
 }
 
 SDThread::~SDThread()
 {
-    if (!wait(50))
+    eventLoopMutex.unlock();
+    if (!wait(250))
+    {
+        qDebug() << "Thread unable to stop, calling terminate";
         terminate();
+    }
 }
 
 void SDThread::run()
 {
+    eventLoopMutex.lock();
     SquareDesk_iofull ggg(this, mw, &eventLoopWaitCond, &eventLoopMutex);
     iofull = &ggg;
     char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
@@ -755,5 +762,9 @@ void SDThread::run()
 
 void SDThread::unlock()
 {
+    // This is at the end of the mainwindow constructor, and should
+    // let the thread run, because the thread attempts a lock at the
+    // start of SDThread::run()
+
     eventLoopMutex.unlock();
 }

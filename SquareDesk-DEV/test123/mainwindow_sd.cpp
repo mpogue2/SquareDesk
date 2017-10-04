@@ -275,6 +275,5 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex)
 {
-    sdthread->set_dance_level(currentIndex);
     on_lineEditSDInput_textChanged();
 }
