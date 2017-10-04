@@ -232,6 +232,7 @@ const char *SquareDesk_iofull::version_string()
 
 void SquareDesk_iofull::ShowListBox(int nWhichOne) {
     QStringList options;
+    QStringList dance_levels;
 //    qDebug() << "ShowListBox(" << nWhichOne << ")";
 
     if (nWhichOne != nLastOne)
@@ -243,6 +244,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (int i = 0; i < NUM_CARDINALS; ++i)
             {
                 options.append(cardinals[i]);
+                dance_levels.append(QString("%1").arg(-1));
             }
             UpdateStatusBar("<number>");
         }
@@ -251,6 +253,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (unsigned int i = 0; i < number_of_circcers; ++i)
             {
                 options.append(get_call_menu_name(circcer_calls[i]));
+                dance_levels.append(QString("%1").arg(-1));
             }
             UpdateStatusBar("<circulate replacement>");
         }
@@ -260,7 +263,10 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             UpdateStatusBar("<tagging call>");
         
             for (unsigned int iu=0 ; iu<number_of_taggers[tagclass] ; iu++)
+            {
                 options.append(get_call_menu_name(tagger_calls[tagclass][iu]));
+                dance_levels.append(QString("%1").arg(-1));
+            }
         }
         else if (nLastOne == matcher_class::e_match_startup_commands) {
             UpdateStatusBar("<startup>");
@@ -268,24 +274,34 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (int i=0 ; i<num_startup_commands ; i++)
             {
                 options.append(startup_commands[i]);
+                dance_levels.append(QString("%1").arg(-1));
             }
         }
         else if (nLastOne == matcher_class::e_match_resolve_commands) {
             for (int i=0 ; i<number_of_resolve_commands ; i++)
+            {
                 options.append(resolve_command_strings[i]);
+                dance_levels.append(QString("%1").arg(-1));
+            }                
         }
         else if (nLastOne == matcher_class::e_match_directions) {
             UpdateStatusBar("<direction>");
           
             for (int i=0 ; i<last_direction_kind ; i++)
+            {
                 options.append(direction_menu_list[i+1]);
+                dance_levels.append(QString("%1").arg(-1));
+            }
         }
         else if (nLastOne == matcher_class::e_match_selectors) {
             UpdateStatusBar("<selector>");
 
             // Menu is shorter than it appears, because we are skipping first item.
             for (int i=0 ; i<selector_INVISIBLE_START-1 ; i++)
+            {
                 options.append(selector_menu_list[i]);
+                dance_levels.append(QString("%1").arg(-1));
+            }
         }
         else {
             int i;
@@ -294,8 +310,8 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
 
             for (i=0; i<number_of_calls[nLastOne]; i++)
             {
-                if (main_call_lists[nLastOne][i]->the_defn.level <= (int)(dance_program))
-                    options.append(get_call_menu_name(main_call_lists[nLastOne][i]));
+                options.append(get_call_menu_name(main_call_lists[nLastOne][i]));
+                dance_levels.append(QString("%1").arg(main_call_lists[nLastOne][i]->the_defn.level));
             }
 
             short int *item;
@@ -308,15 +324,19 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             menu_length = list_to_use->the_list_size;
 
             for (i=0 ; i<menu_length ; i++)
+            {
                 options.append(get_concept_menu_name(access_concept_descriptor_table(item[i])));
+                dance_levels.append(QString("%1").arg(-1));
+            }                
 
             for (i=0 ;  ; i++) {
                 Cstring name = command_menu[i].command_name;
                 if (!name) break;
                 options.append(name);
+                dance_levels.append(QString("%1").arg(-1));
             }
         }
-        emit sdthread->on_sd_set_matcher_options(options);
+        emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     }
 }
 
@@ -715,13 +735,13 @@ void SDThread::finishAndShutdownSD()
     eventLoopWaitCond.wakeAll();
     on_user_input("quit");
     eventLoopWaitCond.wakeAll();
-    wait(50);
     eventLoopMutex.unlock();
 }
 
 SDThread::~SDThread()
 {
-    terminate();
+    if (!wait(50))
+        terminate();
 }
 
 void SDThread::run()

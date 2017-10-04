@@ -227,12 +227,15 @@ void MainWindow::on_sd_dispose_of_abbreviation(QString str)
 }
 
 
-void MainWindow::on_sd_set_matcher_options(QStringList options)
+void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList levels)
 {
     ui->listWidgetSDOptions->clear();
-    for (auto option = options.begin(); option != options.end(); ++option)
+    for (int i = 0; i < options.length(); ++i)
     {
-        ui->listWidgetSDOptions->addItem(*option);
+        QListWidgetItem *item = new QListWidgetItem(options[i]);
+        QVariant v(levels[i].toInt());
+        item->setData(Qt::UserRole, v);
+        ui->listWidgetSDOptions->addItem(item);
     }
 }
 
@@ -252,10 +255,18 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 void MainWindow::on_lineEditSDInput_textChanged()
 {
     QString s = ui->lineEditSDInput->text();
-
+    int current_dance_program = ui->comboBoxSDCallingLevel->currentIndex();
+    
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
         bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(s);
+        if (show)
+        {
+            QVariant v = ui->listWidgetSDOptions->item(i)->data(Qt::UserRole);
+            int dance_program = v.toInt();
+            if (dance_program > current_dance_program)
+                show = false;
+        }
         ui->listWidgetSDOptions->setRowHidden(i, !show);
     }
     
@@ -264,7 +275,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex)
 {
-    qDebug() << "Setting dance level" << currentIndex;
     sdthread->set_dance_level(currentIndex);
-    sdthread->on_user_input("");
+    on_lineEditSDInput_textChanged();
 }

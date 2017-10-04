@@ -305,6 +305,8 @@ private slots:
     void makeProgress();
     void cancelProgress();
 
+    void on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex);
+    
 
     // END SLOTS -----------
 
@@ -356,11 +358,9 @@ public:
     void on_sd_add_new_line(QString, int drawing_picture);
     void on_sd_set_pick_string(QString);
     void on_sd_dispose_of_abbreviation(QString);;
-    void on_sd_set_matcher_options(QStringList options);
+    void on_sd_set_matcher_options(QStringList options, QStringList levels);
     void on_sd_update_status_bar(QString str);
     void on_sd_awaiting_input();
-    void on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex);
-    
     void initialize_internal_sd_tab();
     
 private:

@@ -8,6 +8,7 @@
 class SquareDesk_iofull;
 class MainWindow;
 
+
 class SDThread : public QThread {
     Q_OBJECT
     
@@ -29,7 +30,7 @@ signals:
     void on_sd_awaiting_input();
     void on_sd_set_window_title(QString s);
     void on_sd_add_new_line(QString s, int dp);
-    void on_sd_set_matcher_options(QStringList);
+    void on_sd_set_matcher_options(QStringList, QStringList);
     void on_sd_set_pick_string(QString);
     void on_sd_dispose_of_abbreviation(QString);
 
