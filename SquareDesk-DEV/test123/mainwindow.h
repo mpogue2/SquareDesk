@@ -352,6 +352,8 @@ private slots:
     void on_lineEditSDInput_returnPressed();
     void on_lineEditSDInput_textChanged();
     void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item);
+    
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
