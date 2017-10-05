@@ -217,7 +217,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         {
             sdLastLine = match.captured(1).toInt();
             QString move = match.captured(2);
-            ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
+            if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
+                ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
             QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
             ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
         }
@@ -239,7 +240,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
         }
 
-        if (!sdformation.empty())
+        if (!sdformation.empty() && sdLastLine >= 2)
         { 
             QPixmap image(64,64);
             image.fill();
@@ -251,7 +252,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             item->setData(Qt::UserRole, ui->labelSDStatusBar->text() +
                           "\n" + sdformation.join("\n"));
             item->setIcon(QIcon(image));
-            ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 1, item);
+            ui->tableWidgetCurrentSequence->setItem(sdLastLine - 2, 1, item);
             /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
         }
         sdformation.clear();
@@ -262,6 +263,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 void MainWindow::on_sd_awaiting_input()
 {
     ui->listWidgetSDOutput->scrollToBottom();
+    ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
     ui->tableWidgetCurrentSequence->scrollToBottom();
 }
     
