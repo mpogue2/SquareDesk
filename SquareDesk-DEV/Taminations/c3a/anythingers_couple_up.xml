@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="&lt;anything&gt;er's Couple Up">
+
+  <tam title="Counter Couple Up" formation="Ocean Waves RH BGGB" 
+       group="  " parts="4">
+    <path>
+      <move select="Counter Rotate Right 5 -1" beats="4"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Left -1 3" beats="4"/>
+      <move select="U-Turn Right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Left 3 -1" beats="4"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 1 -5" beats="4"/>
+      <move select="U-Turn Right"/>
+    </path>
+  </tam>
+
+  <tam title="Split Counter Couple Up" formation="Ocean Waves RH BGGB" 
+       group="  " parts="3">
+    <path>
+      <move select="Counter Rotate Right 2 0" hands="right" offsetX="1" beats="3"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetX="-1" beats="3"/>
+      <move select="U-Turn Right"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" hands="right" offsetX="1" beats="3"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetX="-1" beats="3"/>
+      <move select="U-Turn Right"/>
+    </path>
+  </tam>
+
+  <tam title="Trade Couple Up" formation="Ocean Waves RH BGGB" group="  " 
+       parts="4">
+    <path>
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2" />
+      <move select="U-Turn Left"/>
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleX=".5" scaleY="2" />
+    </path>
+    <path>
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2" />
+      <move select="U-Turn Left"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX="1.5" scaleY="2" />
+    </path>
+  </tam>
+
+</tamination>

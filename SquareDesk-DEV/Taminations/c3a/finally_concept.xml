@@ -1,0 +1,187 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Finally Concept">
+
+  <tam title="Finally As Couples Swing Thru"
+       from="Tidal Two-Faced Line"
+       formation="Two-Faced Tidal Line RH"
+       group="Finally As Couples"
+       fractions="3" >
+    <path>
+      <move select="Stand" beats="8"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" hands="left" beats="5" scaleX="1.5" scaleY="1.5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Stand" beats="5"/>
+    </path>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Swing Left" hands="both" beats="5" scaleX=".5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Finally As Couples Mix"
+       from="Tidal Two-Faced Line"
+       formation="Two-Faced Tidal Line RH"
+       group="Finally As Couples"
+       fractions="3" >
+    <path>
+      <move select="Dodge Right" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Run Right" />
+      <move select="Swing Left" hands="both" beats="5" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Run Right" />
+    </path>
+    <path>
+      <move select="Dodge Right" scaleY=".5"/>
+      <move select="Swing Left" beats="5" scaleX="1.5" scaleY="1.5"/>
+    </path>
+  </tam>
+
+  <tam title="Finally As Couples Pass the Ocean"
+       formation="Normal Lines"
+       group="Finally As Couples" fractions="3;1.5">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Quarter Right"/>
+      <move select="Extend Left" beats="3" hands="right"  scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Quarter Left"/>
+      <move select="Extend Left" beats="3" hands="left"  scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Quarter Right"/>
+      <move select="Extend Left" beats="3" hands="right"  scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Quarter Left"/>
+      <move select="Extend Left" beats="3" hands="left"  scaleY="2"/>
+    </path>
+  </tam>
+
+  <!--  There's disagreement over whether this should be
+        Finally or Finally Finally.
+
+  tam title="Finally As Couples Scoot and Ramble"
+       group="Finally As Couples"
+       fractions="6;3.5" >
+    <formation>
+      <dancer gender="girl" x="-3" y="1" angle="0"/>
+      <dancer gender="boy" x="-3" y="-1" angle="0"/>
+      <dancer gender="girl" x="0" y="-3" angle="180"/>
+      <dancer gender="boy" x="0" y="-1" angle="0"/>
+    </formation>
+    <path couples="4 2">
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Forward" beats="1.5" scaleX="1.5" />
+      <move select="Quarter Right" offsetY="-1" />
+      <move select="Lead Right" beats="2" scaleX="1" scaleY="2" />
+      <move select="Extend Left" hands="right" scaleY=".5"/>
+      <move select="Quarter Left" hands="right" offsetX="1" offsetY="-1.5" />
+    </path>
+    <path couples="4 2">
+      <move select="Forward" beats="1.5" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="U-Turn Left" beats="3.5" offsetX="-2" offsetY="1.5" />
+      <move select="Extend Left" hands="left"/>
+      <move select="Quarter Right" hands="left" beats="1.5" offsetX="1" offsetY="-.5" />
+    </path>
+    <path couples="3 1">
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Forward" beats="1.5" scaleX="1.5" />
+      <move select="U-Turn Right" beats="3.5" offsetX="1" />
+      <move select="Extend Left" hands="left" scaleY="1.5" />
+      <move select="Quarter Left" hands="left" offsetX="3" offsetY="-.5" />
+    </path>
+    <path couples="3 1">
+      <move select="Forward" beats="1.5" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Flip Right" beats="3.5" offsetX="1" />
+      <move select="Extend Left" hands="right" scaleY=".5" />
+      <move select="Quarter Right" hands="right" offsetX="3" offsetY="-1.5" />
+    </path>
+  </tam -->
+
+  <tam title="Finally As Couples Wheel the Sea"
+       formation="Lines Facing Out"
+       group="Finally As Couples"
+       fractions="3">
+    <path>
+      <move select="Belle Wheel"/>
+      <move select="Dodge Right" beats="4" hands="left" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Beau Wheel"/>
+      <move select="Dodge Right" beats="4" hands="right" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Belle Wheel"/>
+      <move select="Forward 4" hands="left"/>
+    </path>
+    <path>
+      <move select="Beau Wheel"/>
+      <move select="Forward 4" hands="right"/>
+    </path>
+  </tam>
+
+  <tam title="Finally Tandem Swing Thru"
+       formation="Ocean Waves RH BGGB"
+       group="Finally Tandem" fractions="3">
+    <path>
+      <move select="Swing Right"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetX="-1"/>
+      <move select="Counter Rotate Left 0 2" hands="left" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetX="1"/>
+      <move select="Counter Rotate Left 2 0" hands="left" offsetY="-1"/>
+    </path>
+  </tam>
+
+</tamination>

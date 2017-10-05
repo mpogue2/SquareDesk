@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Split Counter Rotate">
+
+  <tam title="Split Counter Rotate" from="Tidal Wave" formation="Tidal Wave RH BGGB">
+    <path numbers="8 1">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="1.5"/>
+    </path>
+    <path numbers="7 2">
+      <move select="Hinge Left" beats="3" scaleY=".5"/>
+    </path>
+    <path numbers="6 3">
+      <move select="Hinge Left" beats="3" scaleY=".5"/>
+    </path>
+    <path numbers="5 4">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="1.5"/>
+    </path>
+  </tam>
+
+  <tam title="Split Counter Rotate" from="Right-Hand Waves" formation="Ocean Waves RH BGGB">
+    <path>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Hinge Left" beats="3" scaleX=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Left" beats="3" scaleX=".5"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY="3"/>
+    </path>
+  </tam>
+
+  <tam title="Split Counter Rotate" from="Twin Diamonds"
+       formation="Diamonds RH Girl Points">
+    <path>
+      <move select="Hinge Right" beats="3" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="3" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Hinge Right" beats="3" offsetY="-1"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="3" offsetX="1"/>
+    </path>
+  </tam>
+
+  <tam title="Split Counter Rotate" from="Point-to-Point Diamonds"
+       formation="Diamonds RH PTP Girl Points">
+    <path numbers="2 7">
+      <move select="Hinge Right" beats="3" offsetX="1"/>
+    </path>
+    <path numbers="5 4">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="2" offsetY="1"/>
+    </path>
+    <path numbers="8 1">
+      <move select="Hinge Right" beats="3" offsetX="-1"/>
+    </path>
+    <path numbers="6 3">
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="2" offsetY="-1"/>
+    </path>
+  </tam>
+
+</tamination>

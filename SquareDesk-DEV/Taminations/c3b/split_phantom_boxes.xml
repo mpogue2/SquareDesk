@@ -1,0 +1,272 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Split Phantom Boxes Concept">
+
+  <tam title="Split Phantom Boxes Acey Deucey" group="Split Phantom Boxes">
+    <formation>
+      <dancer gender="boy" x="-1.5" y="-.75" angle="0"/>
+      <dancer gender="girl" x="-1.5" y=".75" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="2.25" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="3.75" angle="180"/>
+      <dancer gender="phantom" x="-1.5" y="-2.25" angle="180"/>
+      <dancer gender="phantom" x="-1.5" y="-3.75" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="-5.25" angle="180"/>
+      <dancer gender="phantom" x="1.5" y="-5.25" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward 3" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX="1.75" scaleY="2.25"/>
+    </path>
+    <path>
+      <move select="Swing Left" beats="4" scaleX=".75" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Swing Left" beats="4" scaleX=".75" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Swing Left" beats="4" scaleX=".75" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Swing Left" beats="4" scaleX=".75" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX="1.75" scaleY="2.25"/>
+    </path>
+    <path>
+      <move select="Forward 3" beats="4"/>
+    </path>
+  </tam>
+
+  <tam title="Split Phantom Boxes In Roll Circulate" group="Split Phantom Boxes">
+    <formation>
+      <dancer gender="boy" x="-1.5" y="-.75" angle="0"/>
+      <dancer gender="girl" x="-1.5" y=".75" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="2.25" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="3.75" angle="180"/>
+      <dancer gender="phantom" x="-1.5" y="-2.25" angle="180"/>
+      <dancer gender="phantom" x="-1.5" y="-3.75" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="-5.25" angle="180"/>
+      <dancer gender="phantom" x="1.5" y="-5.25" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward 3"/>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Flip Left" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Flip Left" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Forward 3"/>
+    </path>
+  </tam>
+
+  <tam title="Split Phantom Boxes Link Up" group="Split Phantom Boxes">
+    <formation>
+      <dancer gender="boy" x="-1.5" y="5.25" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="3.75" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="2.25" angle="180"/>
+      <dancer gender="boy" x="-1.5" y=".75" angle="180"/>
+      <dancer gender="phantom" x="-1.5" y="-.75" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="-2.25" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="-3.75" angle="180"/>
+      <dancer gender="phantom" x="-1.5" y="-5.25" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward 2" scaleX=".75" hands="right"/>
+      <move select="Run Right" beats="5" offsetX="1.5" scaleY="1.5"/>
+    </path>
+    <path>
+      <move select="Forward 2" scaleX=".75" hands="left"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Forward 2" scaleX=".75"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="2" hands="left" scaleX="1.5" scaleY="1.5"/>
+      <move select="Quarter Left"/>
+      <move select="Forward 2" scaleX=".75" beats="3.5"/>
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" hands="right"/>
+      <move select="Quarter Left"/>
+      <move select="Forward 3" beats="3.5"/>
+    </path>
+    <path>
+      <move select="Forward 2" scaleX=".75" hands="right"/>
+      <move select="Run Right" beats="5" offsetX="1.5" scaleY="1.5"/>
+    </path>
+    <path>
+      <move select="Forward 2" scaleX=".75" hands="left"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Forward 2" scaleX=".75"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="2" hands="left" scaleX="1.5" scaleY="1.5"/>
+      <move select="Quarter Left"/>
+      <move select="Forward 2" scaleX=".75" beats="3.5"/>
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" hands="right"/>
+      <move select="Quarter Left"/>
+      <move select="Forward 3" beats="3.5"/>
+    </path>
+  </tam>
+
+  <tam title="Split Phantom Boxes Plan Ahead" group="Split Phantom Boxes">
+    <formation>
+      <dancer gender="boy" x="-1.5" y="2.25" angle="0"/>
+      <dancer gender="girl" x="-1.5" y=".75" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-.75" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="-2.25" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="3.75" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="5.25" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="-3.75" angle="0"/>
+      <dancer gender="phantom" x="-1.5" y="-5.25" angle="0"/>
+    </formation>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".375"/>
+      <move select="Run Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY=".75"/>
+      <move select="Flip Right" offsetX="1.5" scaleY=".375"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Lead Left" beats="5" scaleX="1.5" scaleY="1.875"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".75"/>
+      <move select="Run Right" scaleX=".75" scaleY=".75"/>
+      <move select="Forward" scaleX=".75"/>
+      <move select="Quarter Right" offsetX=".75"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Lead Right" beats="5" scaleX="3" scaleY="2.625"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".75"/>
+      <move select="Forward 2" beats="3" scaleX=".75"/>
+      <move select="Forward" scaleX=".75"/>
+      <move select="Quarter Right" offsetX=".75"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".375"/>
+      <move select="Forward 2" beats="3" scaleX=".75"/>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY=".75"/>
+      <move select="Run Left" scaleX=".75" scaleY=".375"/>
+    </path>
+
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".375"/>
+      <move select="Forward 2" beats="3" scaleX=".75"/>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY=".75"/>
+      <move select="Run Left" scaleX=".5" scaleY=".375"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Lead Right" beats="5" scaleX="3" scaleY="2.625"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".75"/>
+      <move select="Forward 2" beats="3" scaleX=".75"/>
+      <move select="Forward" scaleX=".75"/>
+      <move select="Quarter Right" offsetX=".75"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".375"/>
+      <move select="Run Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY=".75"/>
+      <move select="Flip Right" offsetX="1.5" scaleY=".375"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="1.5" scaleY=".375"/>
+      <move select="Lead Left" beats="5" scaleX="1.5" scaleY="1.875"/>
+      <move select="Hinge Right" scaleX=".75" scaleY=".75"/>
+      <move select="Run Right" scaleX=".75" scaleY=".75"/>
+      <move select="Forward" scaleX=".75"/>
+      <move select="Quarter Right" offsetX=".75"/>
+    </path>
+  </tam>
+
+  <tam title="Split Phantom Boxes Walk Out to a Wave" group="Split Phantom Boxes">
+    <formation>
+      <dancer gender="boy" x="1" y=".75" angle="270"/>
+      <dancer gender="girl" x="1" y="2.25" angle="270"/>
+      <dancer gender="girl" x="1" y="3.75" angle="270"/>
+      <dancer gender="boy" x="1" y="5.25" angle="270"/>
+      <dancer gender="phantom" x="1" y="-.75" angle="270"/>
+      <dancer gender="phantom" x="1" y="-2.25" angle="270"/>
+      <dancer gender="phantom" x="1" y="-3.75" angle="270"/>
+      <dancer gender="phantom" x="1" y="-5.25" angle="270"/>
+    </formation>
+    <path>
+      <move select="Run Right" beats="5" scaleY="2" scaleX=".5" offsetX="-.75"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="5" offsetX="1"/>
+      <move select="Dodge Left" offsetX=".25"/>
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" beats="3"/>
+      <move select="U-Turn Right" beats="3" offsetX=".75"/>
+    </path>
+    <path>
+      <move select="Forward 2" beats="5"/>
+      <move select="Extend Left" beats="3" scaleX="1.75" scaleY="2"/>
+    </path>
+
+    <path>
+      <move select="Forward 2" beats="5"/>
+      <move select="Extend Left" beats="3" scaleX="1.75" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" beats="3"/>
+      <move select="U-Turn Right" beats="3" offsetX=".75"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="5" offsetX="1"/>
+      <move select="Dodge Left" offsetX=".25"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="5" scaleY="2" scaleX=".5" offsetX="-.75"/>
+      <move select="Run Right"/>
+    </path>
+  </tam>
+
+
+
+</tamination>

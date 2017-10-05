@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Trade The Diamond">
+
+  <tam title="Trade the Diamond" parts="6;1.5;3"
+       from="Right-Hand Two-Faced Lines"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Extend Right" scaleX="4" scaleY="2" beats="6" />
+      <move select="Hinge Right"/>
+      <move select="Lead Right" beats="3" scaleX="3"/>
+      <move select="Stand" beats="1.5"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Lead Right" beats="3" scaleY="3"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Lead Right" beats="3" scaleY="3"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY="2" beats="6" />
+      <move select="Hinge Right"/>
+      <move select="Lead Right" beats="3" scaleX="3"/>
+      <move select="Stand" beats="1.5"/>
+    </path>
+  </tam>
+
+  <tam title="Trade the Diamond" parts="6;1.5;3"
+       from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH">
+    <path>
+      <move select="Run Left" scaleY="2" beats="6" />
+      <move select="Hinge Left"/>
+      <move select="Lead Left" beats="3" scaleX="3"/>
+      <move select="Stand" beats="1.5"/>
+    </path>
+    <path>
+      <move select="Run Left" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Lead Left" beats="3" scaleY="3"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path>
+      <move select="Run Left" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Lead Left" beats="3" scaleY="3"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="4" scaleY="2" beats="6" />
+      <move select="Hinge Left"/>
+      <move select="Lead Left" beats="3" scaleX="3"/>
+      <move select="Stand" beats="1.5"/>
+    </path>
+  </tam>
+
+  <tam title="Trade the Diamond" parts="6;1.5;3.5"
+       from="Right-Hand Waves" formation="Ocean Waves RH BGGB">
+    <path couples="2 4">
+      <move select="Extend Right" scaleX="4" scaleY="2" beats="6" />
+      <move select="Hinge Right"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right"/>
+    </path>
+    <path couples="2 4">
+      <move select="Run Left" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Quarter Left" beats="1.5" offsetY="1.5"/>
+      <move select="Extend Right" beats="2" scaleX="1.5"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path couples="3 1">
+      <move select="Run Left" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Quarter Left" beats="1.5" offsetY="1.5"/>
+      <move select="Extend Right" beats="2" scaleX="1.5"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path couples="3 1">
+      <move select="Run Right" scaleX="2" scaleY="2" beats="6" />
+      <move select="Hinge Right"/>
+      <move select="Forward 2"/>
+      <move select="Lead Right"/>
+    </path>
+  </tam>
+
+  <tam title="Trade the Diamond" parts="6;1.5;3.5"
+       from="Left-Hand Waves" formation="Ocean Waves LH BGGB">
+    <path>
+      <move select="Run Left" scaleY="2" beats="6" />
+      <move select="Hinge Left"/>
+      <move select="Lead Left" beats="3.5" scaleX="3" />
+    </path>
+    <path>
+      <move select="Run Right" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Lead Right" scaleX="1.5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleX="2" scaleY="2" beats="6" />
+      <move select="Stand" beats="1.5"/>
+      <move select="Lead Right" scaleX="1.5" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="4" scaleY="2" beats="6" />
+      <move select="Hinge Left"/>
+      <move select="Lead Left" beats="3.5" scaleX="3" />
+    </path>
+  </tam>
+
+</tamination>

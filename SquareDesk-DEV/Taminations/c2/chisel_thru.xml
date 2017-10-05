@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Chisel Thru">
+
+  <tam title="Chisel Thru"
+       from="Normal Lines" parts="5;2.5">
+     <formation>
+      <dancer gender="boy" x="3" y="2" angle="270"/>
+      <dancer gender="girl" x="1" y="2" angle="270"/>
+      <dancer gender="boy" x="-1" y="2" angle="270"/>
+      <dancer gender="girl" x="-3" y="2" angle="270"/>
+    </formation>
+    <path numbers="7 2">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="2.5" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Lead Right" scaleY=".5" />
+      <move select="Extend Left" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path numbers="5 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="3" scaleY=".5" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Quarter Left" offsetX="1" offsetY="-.5" />
+      <move select="Forward" />
+      <move select="Quarter Left" offsetX="1" offsetY="-1" />
+    </path>
+    <path numbers="3 6">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Quarter Left" beats="3" offsetX="1" offsetY="-.5" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Lead Right" scaleY=".5" />
+      <move select="Extend Left" />
+      <move select="Quarter Right" offsetX="1" />
+    </path>
+    <path numbers="1 8">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="3" scaleX="3" scaleY="1.5" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Quarter Left" offsetX="1" offsetY="-.5" />
+      <move select="Forward" />
+      <move select="Quarter Left" offsetX="1" offsetY="-1" />
+    </path>
+  </tam>
+</tamination>

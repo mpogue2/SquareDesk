@@ -1,0 +1,472 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Alter the Wave">
+
+  <tam title="Alter the Wave"
+       from="Right-Hand Wave"
+       formation="Wave RH"
+       parts="3;4.5;4" >
+    <path numbers="1 4">
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+      <move select="Swing Left" beats="4" />
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path numbers="2 3">
+      <move select="Swing Right" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="Alter the Wave"
+       from="Left-Hand Wave"
+       formation="Wave LH"
+       parts="3;4.5;4" >
+    <path>
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+      <move select="Swing Right" beats="4" />
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Swing Left" />
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY="3" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Flip Right" />
+    </path>
+  </tam>
+
+  <tam title="Alter the Wave"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       parts="3;4.5;4" >
+    <path>
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+      <move select="Swing Left" beats="4" />
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+      <move select="Swing Left" beats="4" />
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+  </tam>
+
+  <tam title="Alter the Wave"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGGB"
+       parts="3;4.5;4" >
+    <path>
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+      <move select="Swing Right" beats="4" />
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Swing Left" />
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY="3" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Swing Left" />
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Lead Right" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="2" />
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+      <move select="Swing Right" beats="4" />
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+  </tam>
+
+  <tam title="Alter the Wave" from="Tidal Wave" formation="Tidal Wave RH BGGB" parts="3;4.5;4">
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Left" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" beats="4" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Left" beats="3" scaleX="1.5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Run Left" beats="4" scaleX="1.5" scaleY="1.5"/>
+      <move select="Run Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Run Left" beats="4" scaleX="1.5" scaleY="1.5"/>
+      <move select="Run Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Left" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" beats="4" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Left" beats="3" scaleX="1.5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Alter the Wave" from="Left-Hand Tidal Wave"
+       formation="Tidal Wave LH BGGB" parts="3;4.5;4">
+    <path>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Right" beats="4" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Run Right" beats="4" scaleX="1.5" scaleY="1.5"/>
+      <move select="Run Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Run Right" beats="4" scaleX="1.5" scaleY="1.5"/>
+      <move select="Run Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Right" beats="4" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" beats="3" scaleX="1.5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Alter the Wave" from="Eight Chain Thru"
+       formation="Eight Chain Thru" parts="5;4.5;4">
+    <path>
+      <move select="Extend Left" beats="2" scaleY="2"/>
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+      <move select="Swing Left" beats="4" />
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Forward" beats="2"/>
+      <move select="Swing Right" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleY="2"/>
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+      <move select="Swing Left" beats="4" />
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Forward" beats="2"/>
+      <move select="Swing Right" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="Left Alter the Wave" from="Eight Chain Thru"
+       formation="Eight Chain Thru" parts="5;4.5;4">
+    <path>
+      <move select="Forward" beats="2"/>
+      <move select="Swing Left" />
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY="3" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleY="2"/>
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+      <move select="Swing Right" beats="4" />
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Forward" beats="2"/>
+      <move select="Swing Left" />
+      <move select="U-Turn Left" beats="4.5" />
+      <move select="Lead Right" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="2" />
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleY="2"/>
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+      <move select="Swing Right" beats="4" />
+      <move select="Lead Right" beats="3" scaleX="3" />
+    </path>
+    <taminator>
+      &quot;Left&quot; tells the dancers to step to a left-hand wave.
+    </taminator>
+  </tam>
+
+
+  <tam title="Alter the Wave, but Counter Rotate the Diamond 3/4"
+       from="Right-Hand Wave"
+       formation="Wave RH"
+       parts="3;4.5;4" >
+    <path numbers="1 4">
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+      <move select="Swing Left" beats="4" />
+      <move select="Hinge Left" beats="2" />
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path numbers="2 3">
+      <move select="Swing Right" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="3" />
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Alter the Wave" group=" "
+       from="Two-Faced Tidal Line"
+       formation="Two-Faced Tidal Line RH"
+       parts="3;4.5;4" >
+    <path>
+      <move select="Swing Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5" />
+      <move select="Swing Left" beats="4" scaleX=".5" scaleY=".5" />
+      <move select="Lead Left" beats="3" scaleX="2.5" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Swing Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Hinge Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Left" beats="4" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Left" beats="3" scaleX="3.5" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Beau Wheel" beats="4.5" reflect="-1" scaleX=".5" scaleY=".5" />
+      <move select="Run Left" beats="4" scaleX="3.5" scaleY="3.5" />
+      <move select="Run Left" scaleX="1.5" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Swing Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Belle Wheel" beats="4.5" reflect="-1" scaleX=".5" scaleY=".5" />
+      <move select="Run Left" beats="4" scaleX="2.5" scaleY="2.5" />
+      <move select="Run Left" scaleX=".5" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Alter the Wave" from="Thar" group=" "
+       formation="Thar LH Boys" parts="3;4.5;8">
+    <path>
+      <move select="Swing Right"/>
+      <move select="U-Turn Right" beats="4.5"/>
+      <move select="Lead Left" hands="left" beats="4" scaleX="3" scaleY="3"/>
+      <move select="Lead Left" hands="left" beats="4" scaleX="3" scaleY="3"/>
+      <move select="Flip Left" beats="3.5"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="Cast Left"/>
+      <move select="Swing Left" hands="both" beats="8"/>
+      <move select="Forward 2"/>
+      <move select="Lead Left"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="U-Turn Right" beats="4.5"/>
+      <move select="Lead Left" hands="left" beats="4" scaleX="3" scaleY="3"/>
+      <move select="Lead Left" hands="left" beats="4" scaleX="3" scaleY="3"/>
+      <move select="Flip Left" beats="3.5"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="Cast Left"/>
+      <move select="Swing Left" hands="both" beats="8"/>
+      <move select="Forward 2"/>
+      <move select="Lead Left"/>
+    </path>
+  </tam>
+
+  <tam title="Concentric Alter the Wave" from="Tidal Wave" group=" "
+       formation="Tidal Wave RH BGGB" parts="3;9;6">
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Left" beats="3" scaleX="2.5" scaleY="2.5"/>
+      <move select="Lead Left" beats="3" scaleX="2.5" scaleY="2.5"/>
+      <move select="Lead Left" beats="3" scaleX="2.5" scaleY="2.5"/>
+      <move select="Swing Left" beats="6" scaleX="2.5" scaleY="2.5"/>
+      <move select="Lead Left" beats="3" scaleX="3.5" scaleY="2.5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="U-Turn Right" beats="9" />
+      <move select="Swing Left" beats="6" scaleX="3.5" scaleY="3.5"/>
+      <move select="Run Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Left" beats="9" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" hands="both" beats="6" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Left" beats="3" scaleX="1.5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="U-Turn Right" beats="9" />
+      <move select="Swing Left" hands="right" beats="6" scaleX="1.5" scaleY="1.5"/>
+      <move select="Run Left" scaleX=".5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Phantom Alter the Wave" from="Phantom Formation" group=" "
+       formation="Phantom Formation RH" parts="3;4.5;4">
+    <path>
+      <move select="Swing Right"/>
+      <move select="Cast Left"/>
+      <move select="Swing Left" beats="4"/>
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="U-Turn Right" beats="4.5"/>
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Run Left"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="Cast Left"/>
+      <move select="Swing Left" beats="4"/>
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="U-Turn Right" beats="4.5"/>
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Run Left"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="U-Turn Right" beats="4.5"/>
+      <move select="Lead Left" beats="2" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="2" />
+      <move select="Run Left"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+      <move select="Cast Left"/>
+      <move select="Swing Left" beats="4"/>
+      <move select="Lead Left" beats="3" scaleX="3" />
+    </path>
+  </tam>
+
+  <tam title="Tandem Alter the Wave" from="Right-Hand Waves" group=" "
+       formation="Ocean Waves RH BGGB" parts="6;9;8">
+    <path>
+      <!-- Swing Right -->
+      <move select="Counter Rotate Right 2 0" hands="right" beats="3" offsetX="1"/>
+      <move select="Counter Rotate Right 2 0" hands="right" beats="3"/>
+      <!-- Cast Left -->
+      <move select="Counter Rotate Left 2 0" hands="left" beats="3"/>
+      <move select="Counter Rotate Left 2 0" hands="left" beats="3"/>
+      <move select="Counter Rotate Left 2 0" hands="left" beats="3"/>
+      <!-- Counter Rotate -->
+      <move select="Counter Rotate Left 2 0" hands="left" beats="4"/>
+      <move select="Counter Rotate Left 2 0" hands="left" beats="4"/>
+      <!-- Flip the Diamond -->
+      <move select="Quarter Left" beats="5" offsetX="4" offsetY="-1"/>
+    </path>
+    <path>
+      <!-- Swing Right -->
+      <move select="Counter Rotate Right 0 -2" hands="right" beats="3" offsetX="-1"/>
+      <move select="Counter Rotate Right 0 -2" hands="right" beats="3"/>
+      <!-- U-Turn Right -->
+      <move select="Quarter Right" beats="4.5" offsetX="-1" offsetY="-.5"/>
+      <move select="Quarter Right" beats="4.5" offsetX="-.5" offsetY="-1"/>
+      <!-- Counter Rotate -->
+      <move select="Counter Rotate Left 2 4" beats="4"/>
+      <move select="Counter Rotate Left 2 4" beats="4"/>
+      <!-- Flip the Diamond -->
+      <move select="Run Left" offsetX="-1"/>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <!-- Swing Right -->
+      <move select="Counter Rotate Right 2 0" hands="right" beats="3" offsetX="1"/>
+      <move select="Counter Rotate Right 2 0" hands="right" beats="3"/>
+      <!-- U-Turn Right -->
+      <move select="Quarter Right" beats="4.5" offsetX="1" offsetY=".5"/>
+      <move select="Quarter Right" beats="4.5" offsetX=".5" offsetY="1"/>
+      <!-- Counter Rotate -->
+      <move select="Counter Rotate Left 4 2" beats="4"/>
+      <move select="Counter Rotate Left 4 2" beats="4"/>
+      <!-- Flip the Diamond -->
+      <move select="Forward 2"/>
+      <move select="Run Left" offsetX="1"/>
+    </path>
+    <path>
+      <!-- Swing Right -->
+      <move select="Counter Rotate Right 0 -2" hands="right" beats="3" offsetX="-1"/>
+      <move select="Counter Rotate Right 0 -2" hands="right" beats="3"/>
+      <!-- Cast Left -->
+      <move select="Counter Rotate Left 0 2" hands="left" beats="3"/>
+      <move select="Counter Rotate Left 0 2" hands="left" beats="3"/>
+      <move select="Counter Rotate Left 0 2" hands="left" beats="3"/>
+      <!-- Counter Rotate -->
+      <move select="Counter Rotate Left 0 2" hands="left" beats="4"/>
+      <move select="Counter Rotate Left 0 2" hands="left" beats="4"/>
+      <!-- Flip the Diamond -->
+      <move select="Lead Left" beats="4" scaleX="2" scaleY="3"/>
+    </path>
+  </tam>
+
+</tamination>

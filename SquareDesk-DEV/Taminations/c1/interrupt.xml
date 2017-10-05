@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Interrupt">
+
+  <tam title="Scoot and Plenty, Interrupt Before the Split Circulates with an Acey Deucey"
+       formation="Quarter Tag" group=" " fractions="10.5;4">
+    <path numbers="1 8" couples="2 4">
+      <!--  Scoot and Little  -->
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Run Right" />
+      <move select="Forward" beats="3" scaleX="3.5"/>
+      <!--  Acey Deucey  -->
+      <move select="Run Right" beats="4" scaleX="2" scaleY="3"/>
+      <!--  Finish Plenty  -->
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 2" beats="6" />
+    </path>
+    <path numbers="2 7" couples="2 4">
+      <!--  Scoot and Little  -->
+      <move select="Forward" beats="1.5" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" />
+      <move select="Forward 3" />
+      <move select="Lead Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <!--  Acey Deucey  -->
+      <move select="Forward 4"/>
+      <!--  Finish Plenty  -->
+      <move select="Flip Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="6" offsetX="-2" />
+    </path>
+    <path numbers="6 3" couples="3 1">
+      <!--  Scoot and Little  -->
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Forward" beats="6" scaleX="3.5" />
+      <!--  Acey Deucey  -->
+      <move select="Swing Left" beats="4"/>
+      <!--  Finish Plenty  -->
+      <move select="Forward 4" />
+      <move select="Flip Right" />
+      <move select="Forward 4" beats="3.5" />
+      <move select="Run Right" beats="2.5" offsetX="1" />
+    </path>
+    <path numbers="5 4" couples="3 1">
+      <!--  Scoot and Little  -->
+      <move select="Forward" beats="1.5" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Forward 2" />
+      <move select="Fold Right" beats="4" scaleX=".75" scaleY=".75" />
+      <!--  Acey Deucey  -->
+      <move select="Swing Left" beats="4"/>
+      <!--  Finish Plenty  -->
+      <move select="Flip Right" />
+      <move select="Forward 4" />
+      <move select="Lead Right" beats="4" scaleX="2" scaleY="3" />
+      <move select="Lead Right" beats="2" />
+    </path>
+  </tam>
+
+  <tam title="Square Chain Thru, Interrupt Before the Last Part with Spin the Top"
+       formation="Normal Lines" group=" "
+       fractions="3;3;3;3;4.5" >
+    <path>
+      <move select="Pull Left" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleY="1.5" />
+      <move select="Swing Left" />
+      <move select="Stand" beats="3" />
+      <!--  Spin the Top  -->
+      <move select="Swing Left"/>
+      <move select="Swing Right"/>
+      <move select="Hinge Right" scaleX=".5"/>
+      <!--  Finish Square Chain Thru  -->
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Pull Left" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY=".5" />
+      <move select="Swing Left" />
+      <move select="Swing Right" />
+      <!--  Spin the Top  -->
+      <move select="Swing Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="1.5" scaleY="3"/>
+      <!--  Finish Square Chain Thru  -->
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Pull Left" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleY="1.5" />
+      <move select="Swing Left" />
+      <move select="Stand" beats="3" />
+      <!--  Spin the Top  -->
+      <move select="Swing Left"/>
+      <move select="Swing Right"/>
+      <move select="Hinge Right" scaleX=".5"/>
+      <!--  Finish Square Chain Thru  -->
+      <move select="Swing Left"  scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Pull Left" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX="3" scaleY=".5" />
+      <move select="Swing Left" />
+      <move select="Swing Right" />
+      <!--  Spin the Top  -->
+      <move select="Swing Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="1.5" scaleY="3"/>
+      <!--  Finish Square Chain Thru  -->
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Square Thru, Interrupt on the Third Hand with a Swing Thru"
+       group=" "
+       formation="Eight Chain Thru"
+       fractions="1;1.5;2;3;3" >
+    <path>
+      <move select="Pull Left" scaleY=".5" />
+      <move select="Lead Right" scaleX=".5" scaleY="1.5" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY=".5" />
+      <!--  Swing Thru  -->
+      <move select="Swing Right"/>
+      <move select="Swing Left"/>
+      <!--  Finish Square Thru  -->
+      <move select="Lead Left" beats="3" offsetX=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Pull Left" scaleY=".5" />
+      <move select="Lead Left" offsetX=".5" offsetY="-.5" />
+      <move select="Lead Left" beats="2" scaleY="1.5" />
+      <!--  Swing Thru  -->
+      <move select="Swing Right"/>
+      <move select="Stand" beats="3" hands="none"/>
+      <!--  Finish Square Thru  -->
+      <move select="Lead Right" beats="3" scaleX=".5" scaleY="3" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Pull Left" scaleY=".5" />
+      <move select="Lead Right" scaleX=".5" scaleY="1.5" />
+      <move select="Lead Right" beats="2" scaleX="3" scaleY=".5"/>
+      <!--  Swing Thru  -->
+      <move select="Swing Right"/>
+      <move select="Swing Left"/>
+      <!--  Finish Square Thru  -->
+      <move select="Lead Left" beats="3" offsetX=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Pull Left" scaleY=".5" />
+      <move select="Lead Left" offsetX=".5" offsetY="-.5" />
+      <move select="Lead Left" beats="2" scaleY="1.5" />
+      <!--  Swing Thru  -->
+      <move select="Swing Right"/>
+      <move select="Stand" beats="3" hands="none"/>
+      <!--  Finish Square Thru  -->
+      <move select="Lead Right" beats="3" scaleX=".5" scaleY="3" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Swing the Fractions, Interrupt after 3/5 with Trade Circulate"
+       group=" " formation="Ocean Waves RH BGGB" fractions="1.5;3;4.5;4;3">
+    <path couples="2 4">
+      <move select="Hinge Right"/>
+      <move select="Swing Left"/>
+      <move select="Cast Right"/>
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2" />
+      <move select="Swing Left"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path couples="2 4">
+      <move select="Hinge Right"/>
+      <move select="Stand" beats="3"/>
+      <move select="Cast Right"/>
+      <move select="Run Left" beats="4" scaleX=".5" scaleY="2" />
+      <move select="Swing Left"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path couples="3 1">
+      <move select="Hinge Right"/>
+      <move select="Swing Left"/>
+      <move select="Cast Right"/>
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2" />
+      <move select="Swing Left"/>
+    </path>
+    <path couples="3 1">
+      <move select="Hinge Right"/>
+      <move select="Stand" beats="3"/>
+      <move select="Cast Right"/>
+      <move select="Run Right" beats="4" scaleX="1.5" scaleY="2" />
+      <move select="Swing Left"/>
+    </path>
+  </tam>
+
+</tamination>

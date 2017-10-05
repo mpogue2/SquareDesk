@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Thar Family">
+
+  <tam title="Allemande Thar" group=""
+       from="Thar Star"
+       formation="Thar RH Boys"
+       fractions="" >
+    <path>
+      <move select="BackHinge Right" beats="3" hands="both" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="3" hands="left" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="BackHinge Right" beats="3" hands="both" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="3" hands="left" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="Wrong Way Thar" group=""
+       from="Left Hand Thar Star"
+       formation="Thar LH Boys"
+       fractions="" >
+    <path>
+      <move select="BackHinge Left" beats="3" hands="both" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" hands="right" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="BackHinge Left" beats="3" hands="both" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" hands="right" scaleX="3" scaleY="3" />
+    </path>
+  </tam>
+
+<!--
+boy start (0,2.5)  lead left 1/2 delta (.707, -.293) or (.707, 2.207) goal (3*sqrt(2)/2, 3*sqrt(2)/2) or (2.121,2.121)
+girl start (3.5,0) lead right 1/2 delta (-.293, .707) or (3.207, .707) goal (2*sqrt(2)/2, 2*sqrt(2)/2 or (1.414,1.414)
+ -->
+
+  <tam title="Allemande Left to an Allemande Thar" group=""
+       from="Static Square"
+       formation="Static Square" >
+    <path>
+      <move select="Lead Left" beats="3" offsetX=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Forward 2" />
+      <move select="Lead Left 1/2" beats="3" offsetX="1.414" offsetY="0.086"/>
+      <move select="Swing Left" scaleX=".5"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="1.5" offsetX="-.5" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Right 1/2" beats="3" offsetX=".707" offsetY="-1.793"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Lead Left" beats="3" offsetX=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Forward 2"/>
+      <move select="Lead Left 1/2" beats="3" offsetX="1.414" offsetY="0.086"/>
+      <move select="Swing Left" scaleX=".5"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="1.5" offsetX="-.5" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Right 1/2" beats="3" offsetX=".707" offsetY="-1.793"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+  </tam>
+
+</tamination>

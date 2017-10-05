@@ -1,0 +1,226 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Vertical Tag">
+
+  <tam title="Vertical Tag"
+       from="Facing Couples"
+       formation="Facing Couples">
+    <path couples="3 1">
+      <move select="Stand" beats="2" />
+      <move select="Forward" />
+      <move select="Extend Right" beats="2" scaleX="2" />
+    </path>
+    <path couples="3 1">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Vertical Tag"
+       from="Couples Facing Out">
+    <formation>
+      <dancer gender="girl" x="1" y="2" angle="90"/>
+      <dancer gender="boy" x="-1" y="2" angle="90"/>
+    </formation>
+    <path numbers="3 2">
+      <move select="U-Turn Left" offsetX="-1.5" offsetY=".5"/>
+      <move select="Forward" />
+      <move select="Extend Right" beats="2.5" scaleX="2.5" scaleY=".5" />
+    </path>
+    <path numbers="1 4">
+      <move select="Flip Right" offsetX=".5" offsetY=".5" />
+      <move select="Forward 2" />
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Vertical Tag"
+       from="Right-Hand Box"
+       formation="Box RH">
+    <path>
+      <move select="Forward 2" beats="3" />
+      <move select="Extend Right" beats="3" scaleX="3" />
+    </path>
+    <path>
+      <move select="Flip Right" />
+      <move select="Forward" />
+      <move select="Extend Right" beats="2" scaleX="2" />
+    </path>
+  </tam>
+
+  <tam title="Vertical Tag"
+       from="Left-Hand Box">
+    <formation>
+      <dancer gender="boy" x="1" y="2" angle="90"/>
+      <dancer gender="girl" x="-1" y="2" angle="270"/>
+    </formation>
+    <path numbers="3 2">
+      <move select="U-Turn Left" beats="2" offsetY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5"/>
+      <move select="Forward 2"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+    <taminator>Note that the dancers pass right shoulders.
+    </taminator>
+  </tam>
+
+  <tam title="Vertical 1/4 Tag" from="Facing Couples" formation="Facing Couples">
+    <path couples="3 1">
+      <move select="Dodge Right" scaleY=".5"/>
+    </path>
+    <path couples="3 1">
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 1/4 Tag" from="Couples Facing Out" formation="Couples Facing Out">
+    <path>
+      <move select="U-Turn Left" offsetX="-1"/>
+      <move select="Forward"/>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 1/4 Tag" from="Right-Hand Box" formation="Box RH">
+    <path>
+      <move select="Forward 2" beats="3"/>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 1/4 Tag" from="Left-Hand Box" formation="Box LH">
+    <path>
+      <move select="Flip Left" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 1/2 Tag"
+       from="Facing Couples">
+    <formation>
+      <dancer gender="boy" x="1" y="2" angle="270"/>
+      <dancer gender="girl" x="-1" y="2" angle="270"/>
+    </formation>
+    <path numbers="3 2">
+      <move select="Dodge Right" beats="2" scaleY=".25"/>
+      <move select="Dodge Left" beats="2" scaleY=".25"/>
+    </path>
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5" />
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <taminator>Compare this with Belles Cross.</taminator>
+  </tam>
+
+  <tam title="Vertical 1/2 Tag" from="Couples Facing Out" formation="Couples Facing Out">
+    <path>
+      <move select="U-Turn Left" offsetX="-2"/>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Flip Right"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 1/2 Tag" from="Right-Hand Box" formation="Box RH">
+    <path>
+      <move select="Forward 4" beats="3"/>
+    </path>
+    <path>
+      <move select="Flip Right"/>
+    </path>
+    <taminator>Compare with Box Circulate</taminator>
+  </tam>
+
+  <tam title="Vertical 1/2 Tag"
+       from="Left-Hand Box">
+    <formation>
+      <dancer gender="boy" x="1" y="2" angle="90"/>
+      <dancer gender="girl" x="-1" y="2" angle="270"/>
+    </formation>
+    <path numbers="3 2">
+      <move select="U-Turn Left" beats="2" offsetY=".5"/>
+      <move select="Dodge Left" beats="2" scaleY=".25"/>
+    </path>
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 3/4 Tag" from="Facing Couples" formation="Facing Couples">
+    <path couples="3 1">
+      <move select="Stand" beats="2"/>
+      <move select="Forward 2"/>
+    </path>
+    <path couples="3 1">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 3/4 Tag" from="Couples Facing Out" formation="Couples Facing Out">
+    <path>
+      <move select="U-Turn Left" offsetX="-2"/>
+      <move select="Extend Right" beats="2" scaleX="2"/>
+    </path>
+    <path>
+      <move select="Flip Right"/>
+      <move select="Forward 2"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 3/4 Tag" from="Right-Hand Box" formation="Box RH">
+    <path>
+      <move select="Forward 2"/>
+      <move select="Extend Right" beats="2" scaleX="2"/>
+    </path>
+    <path>
+      <move select="Flip Right" offsetX="-1"/>
+      <move select="Forward"/>
+    </path>
+  </tam>
+
+  <tam title="Vertical 3/4 Tag" from="Left-Hand Box" formation="Box LH">
+    <path>
+      <move select="U-Turn Left" beats="2" offsetY=".5"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5"/>
+      <move select="Forward"/>
+      <move select="Extend Right" scaleY=".5"/>
+    </path>
+  </tam>
+
+</tamination>

@@ -1,0 +1,358 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Tally Ho">
+
+  <tam title="Tally Ho"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       parts="2;3" >
+    <path numbers="1 8">
+      <move select="Forward 2" />
+      <move select="Hinge Right" />
+      <move select="Forward 2" beats="1.5" />
+      <move select="Cast Left" />
+    </path>
+    <path numbers="2 7">
+      <move select="Lead Left" beats="2" />
+      <move select="Swing Right" />
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="3" />
+    </path>
+    <path numbers="3 6">
+      <move select="Forward 2" />
+      <move select="Hinge Right" />
+      <move select="Lead Right" />
+      <move select="Forward 2" />
+    </path>
+    <path numbers="4 5">
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="3" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+  </tam>
+
+  <tam title="Tally Ho"
+       from="Right-Hand Waves to Partner"
+       formation="Ocean Waves RH BGGB"
+       parts="2;3" >
+    <path couples="1 3">
+      <move select="Forward 2" />
+      <move select="Hinge Right" />
+      <move select="Forward 2" beats="1.5" />
+      <move select="Cast Left" />
+    </path>
+    <path couples="2 4">
+      <move select="Lead Left" beats="2" />
+      <move select="Swing Right" />
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="3" />
+    </path>
+    <path couples="3 1">
+      <move select="Forward 2" />
+      <move select="Hinge Right" />
+      <move select="Lead Right" />
+      <move select="Forward 2" />
+    </path>
+    <path couples="2 4">
+      <move select="Lead Right" beats="2" scaleX="3" scaleY="3" />
+      <move select="Swing Right" />
+      <move select="Cast Left" />
+    </path>
+  </tam>
+
+  <tam title="Tally Ho"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGGB"
+       parts="2;3" >
+    <path>
+      <move select="Lead Left" beats="2" scaleX="3" scaleY="3" />
+      <move select="Swing Left" />
+      <move select="Cast Right" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Hinge Left" />
+      <move select="Lead Left" />
+      <move select="Forward 2" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" />
+      <move select="Swing Left" />
+      <move select="Lead Left" beats="3" scaleX="3" scaleY="3" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Hinge Left" />
+      <move select="Forward 2" beats="1.5" />
+      <move select="Cast Right" />
+    </path>
+  </tam>
+
+  <tam title="Tally Ho"
+       from="Normal Lines"
+       parts="2;3" >
+    <formation>
+      <dancer gender="boy" y="2" x="3" angle="270"/>
+      <dancer gender="girl" y="2" x="1" angle="270"/>
+      <dancer gender="boy" y="2" x="-1" angle="270"/>
+      <dancer gender="girl" y="2" x="-3" angle="270"/>
+    </formation>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" scaleY=".5" />
+      <move select="Extend Left" beats="4" scaleX="3" scaleY="2" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Hinge Right" scaleY=".5" />
+      <move select="Lead Right" scaleX=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="Lines Facing Out"
+       formation="Lines Facing Out" parts="3;3">
+    <path>
+      <move select="Lead Left" beats="3" scaleY="3"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" scaleX="3" scaleY="2" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Quarter Left" beats="3" offsetX="-1" offsetY="1"/>
+      <move select="Quarter Right" beats="1.5" hands="right" offsetX="1"/>
+      <move select="Lead Right"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5" offsetY="-.5"/>
+      <move select="Hinge Left" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="3" offsetY="-1"/>
+      <move select="Hinge Right" beats="1.5"/>
+      <move select="Forward" beats="1.5"/>
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="3"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5" offsetY=".5"/>
+      <move select="Hinge Left" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="Inverted Lines, Ends Facing Out"
+       formation="Inverted Lines Ends Facing Out" parts="3;3">
+    <path>
+      <move select="Lead Left" beats="3" scaleY="3"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY=".5"/>
+      <move select="Hinge Right" scaleY=".5"/>
+      <move select="Forward" beats="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY=".5"/>
+      <move select="Hinge Right" scaleY=".5"/>
+      <move select="Lead Right"/>
+      <move select="Extend Left" beats="4.5" scaleX="2"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="3"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Left"/>
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="Inverted Lines, Ends Facing In"
+       formation="Inverted Lines Ends Facing In" parts="2;3">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetY="1"/>
+      <move select="Quarter Right" hands="right" offsetX="1"/>
+      <move select="Lead Right"/>
+      <move select="Forward 2" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Lead Right" beats="2"/>
+      <move select="Hinge Right" beats="1"/>
+      <move select="Forward 2"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" scaleX="3" scaleY="2" beats="4.5"/>
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="Right-Hand Two-Faced Lines" formation="Two-Faced Lines RH" parts="3;3">
+    <path numbers="1 8">
+      <move select="Forward 2" hands="right" beats="3"/>
+      <move select="Lead Right" beats="1.5" scaleY="1.5"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path numbers="2 7">
+      <move select="Forward 2" hands="left" beats="3"/>
+      <move select="Quarter Left" offsetX="-1" offsetY=".5"/>
+      <move select="Lead Right"/>
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY="2.5"/>
+    </path>
+    <path numbers="3 6">
+      <move select="Lead Right" hands="left" beats="3"/>
+      <move select="Flip Left"/>
+      <move select="Lead Left" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path numbers="4 5">
+      <move select="Lead Right" hands="right" scaleX="3" scaleY="3" beats="3"/>
+      <move select="Run Right"/>
+      <move select="Cast Left"/>
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="Left-Hand Two-Faced Lines" formation="Two-Faced Lines LH" parts="3;3">
+    <path>
+      <move select="Lead Left" hands="left" scaleX="3" scaleY="3" beats="3"/>
+      <move select="Flip Left"/>
+      <move select="BackHinge Right"/>
+      <move select="BackHinge Right"/>
+      <move select="BackHinge Right"/>
+    </path>
+    <path>
+      <move select="Lead Left" hands="right" beats="3"/>
+      <move select="Run Right"/>
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="3"/>
+    </path>
+    <path>
+      <move select="Forward 2" hands="right" beats="3"/>
+      <move select="Lead Right" beats="1.5" scaleY=".5"/>
+      <move select="Lead Right"/>
+      <move select="Extend Left" beats="4.5" scaleX="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Forward 2" hands="left" beats="3"/>
+      <move select="Quarter Left" offsetX="-1" offsetY="1.5"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Cast Left"/>
+    </path>
+  </tam>
+
+  <tam title="Tally Ho"
+       from="Trade By"
+       formation="Trade By"
+       parts="1;3.5" >
+    <path couples="2 4">
+      <move select="Quarter Left" offsetY="1" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Lead Right" beats="4" scaleX="3" scaleY="2" />
+    </path>
+    <path couples="3 1">
+      <move select="Lead Right" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Cast Left" />
+    </path>
+    <path couples="3 1">
+      <move select="Forward" />
+      <move select="Hinge Right" scaleY=".5" />
+      <move select="Lead Right" beats="4" scaleX="1.5" scaleY="3" />
+    </path>
+    <path couples="2 4">
+      <move select="Extend Left" />
+      <move select="Hinge Right" scaleY=".5" />
+      <move select="Forward" beats="2" scaleX="1.5" scaleY="1.5" />
+      <move select="Cast Left" />
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="T-Bones 1"
+       formation="T-Bone URLU" parts="1;3">
+    <path>
+      <move select="Extend Left"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Hinge Right" scaleY=".5"/>
+      <move select="Forward" beats="1.5"/>
+      <move select="Swing Left"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Hinge Right" scaleY=".5"/>
+      <move select="Lead Right"/>
+      <move select="Extend Left" beats="4.5" scaleX="2"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Tally Ho" from="T-Bones 2"
+       formation="T-Bone LUUR" parts="1;3">
+    <path>
+      <move select="Lead Right" beats="1"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Hinge Left" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY="1" beats="1"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Lead Right" beats="4.5" scaleX="3" scaleY="1.5"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Hinge Right" scaleY=".5"/>
+      <move select="Forward" beats="1.5"/>
+      <move select="Extend Left" scaleX="2.5" scaleY="2" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Hinge Right" scaleY=".5"/>
+      <move select="Lead Right"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Hinge Left" scaleY=".5"/>
+    </path>
+  </tam>
+
+</tamination>

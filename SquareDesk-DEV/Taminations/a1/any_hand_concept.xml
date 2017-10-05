@@ -1,0 +1,238 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Any Hand Concept">
+
+  <tam title="Any Hand Swing Thru (Ends Facing Out)" formation="Inverted Lines Ends Facing Out"
+      fractions="3" group="Any Hand">
+    <path numbers="5 4">
+      <move select="Swing Left"/>
+      <move select="Run Right"/>
+    </path>
+    <path numbers="6 3">
+      <move select="Swing Left"/>
+    </path>
+    <path numbers="7 2">
+      <move select="Swing Right"/>
+    </path>
+    <path numbers="8 1">
+      <move select="Swing Right"/>
+      <move select="Flip Left"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand Swing Thru" formation="Inverted Lines Ends Facing In"
+       fractions="3" group="Any Hand">
+    <path>
+      <move select="Swing Right"/>
+      <move select="Flip Left"/>
+    </path>
+    <path>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Swing Left"/>
+      <move select="Run Right"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand Grand Swing Thru" group="Any Hand" fractions="3"
+       formation="Tidal Inverted Line RH">
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Flip Left" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Run Right" scaleX=".75" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tamxref title="Any Hand (A-1) Quarter Thru" group="Any Hand (A-1)"
+           xref-link="a1/quarter_thru"
+           xref-title="Any Hand Quarter Thru"/>
+
+  <tam title="Any Hand (A-1) 3/4 Thru" fractions="4.5"
+       formation="Inverted Lines Ends Facing Out" group="Any Hand (A-1)">
+    <path>
+      <move select="Cast Left"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Cast Right"/>
+      <move select="Flip Left"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand (A-1) 3/4 Thru (from RH diamond)"
+       formation="Diamond RH" group="Any Hand (A-1)" fractions="4.5">
+    <path numbers="2 3">
+      <move select="Stand" beats="4.5"/>
+      <move select="Run Right"/>
+    </path>
+    <path numbers="4 1">
+      <move select="Cast Right"/>
+      <move select="Flip Left"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand (A-1) 3/4 Thru (from LH diamond)"
+       formation="Diamond LH Boys Center" group="Any Hand (A-1)" fractions="4.5">
+    <path>
+      <move select="Cast Left"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Stand" beats="4.5"/>
+      <move select="Flip Left"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand (A-1) 3/4 Thru (from twin diamonds)"
+       formation="Diamonds RH Girl Points" group="Any Hand (A-1)" fractions="4.5">
+    <path>
+      <move select="Cast Right"/>
+      <move select="Flip Left"/>
+    </path>
+    <path>
+      <move select="Stand" beats="4.5"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Cast Right"/>
+      <move select="Flip Left"/>
+    </path>
+    <path>
+      <move select="Stand" beats="4.5"/>
+      <move select="Run Right"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand (A-1) Grand Quarter Thru" group="Any Hand (A-1)"
+       formation="Magic Column RH" fractions="1.5">
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Run Right" scaleX=".75" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Flip Left" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Any Hand (A-1) Grand 3/4 Thru" group="Any Hand (A-1)"
+       formation="Magic Column RH" fractions="4.5">
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Flip Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Run Right" scaleX=".75" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tamxref title="Any Hand (A-2) Remake" group="Any Hand (A-2)"
+           xref-link="a2/remake"
+           xref-title="Any Hand Remake" />
+
+
+  <tam title="Any Hand (C-1) Swing the Fractions" fractions="1.5;3;4.5;3" group="Any Hand (C-1)">
+  <formation>
+    <dancer gender="boy" x="3" y="2" angle="270"/>
+    <dancer gender="girl" x="1" y="2" angle="90"/>
+    <dancer gender="boy" x="-1" y="2" angle="90"/>
+    <dancer gender="girl" x="-3" y="2" angle="270"/>
+  </formation>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Flip Left"/>
+      <move select="Hinge Right" scaleX="2" scaleY="2" offsetX=".33" offsetY=".33" />
+      <move select="Hinge Right" scaleX="2" scaleY="2" offsetX="-.33" offsetY=".33" />
+      <move select="Hinge Right" scaleX="2" scaleY="2" offsetX="-.33" offsetY="-.33" />
+      <move select="Flip Left"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Stand" beats="3"/>
+      <move select="Quarter Left" hands="right" offsetX=".33" offsetY="-.33" />
+      <move select="Quarter Left" hands="right" offsetX="-.33" offsetY="-.33" />
+      <move select="Quarter Left" hands="right" offsetX="-.33" offsetY=".33" />
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Stand" beats="3"/>
+      <move select="Quarter Right" hands="left" offsetX=".33" offsetY=".33" />
+      <move select="Quarter Right" hands="left" offsetX="-.33" offsetY=".33" />
+      <move select="Quarter Right" hands="left" offsetX="-.33" offsetY="-.33" />
+      <move select="Stand" beats="3"/>
+      <move select="Hinge Left"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Right"/>
+      <move select="Hinge Left" scaleX="2" scaleY="2" offsetX=".33" offsetY="-.33" />
+      <move select="Hinge Left" scaleX="2" scaleY="2" offsetX="-.33" offsetY="-.33" />
+      <move select="Hinge Left" scaleX="2" scaleY="2" offsetX="-.33" offsetY=".33" />
+      <move select="Run Right"/>
+      <move select="Hinge Left"/>
+    </path>
+  </tam>
+
+</tamination>

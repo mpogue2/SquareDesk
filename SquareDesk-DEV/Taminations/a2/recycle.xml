@@ -1,0 +1,192 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Recycle">
+
+  <tam title="Recycle"
+       from="Facing Couples"
+       formation="Facing Couples">
+    <path numbers="1 4">
+      <move select="U-Turn Right" beats="3" offsetX="2" />
+    </path>
+    <path numbers="2 3">
+      <movement hands="none" beats="3" cx1="-.5" cy1="0" cx2="0" cy2="4" x2="2" y2="4" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+  </tam>
+
+  <tam title="Recycle"
+       from="Eight Chain Thru"
+       formation="Eight Chain Thru">
+    <path>
+      <move select="U-Turn Right" beats="3" offsetX="1" />
+    </path>
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="2" cx2="1" cy2="4" x2="1" y2="4" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="3" offsetX="1" />
+    </path>
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="2" cx2="1" cy2="4" x2="1" y2="4" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+  </tam>
+
+  <tam title="Recycle"
+       from="Lines"
+       formation="Normal Lines">
+    <path>
+      <move select="U-Turn Right" beats="3" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="2" cx2="1" cy2="2.5" x2="2" y2="2.5" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="3" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="2" cx2="1" cy2="2.5" x2="2" y2="2.5" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+  </tam>
+
+  <tam title="Reverse Recycle" from="Facing Couples"
+       formation="Facing Couples">
+    <path>
+      <movement hands="none" beats="3" cx1="-.5" cy1="0" cx2="0" cy2="-4" x2="2" y2="-4" cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="3" offsetX="2" />
+    </path>
+  </tam>
+
+  <tam title="Reverse Recycle"
+       from="Eight Chain Thru"
+       formation="Eight Chain Thru">
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="-2" cx2="1" cy2="-4" x2="1" y2="-4"
+                                       cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="3" offsetX="1" />
+    </path>
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="-2" cx2="1" cy2="-4" x2="1" y2="-4"
+                                       cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="3" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Reverse Recycle"
+       from="Lines"
+       formation="Normal Lines">
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="-2" cx2="1" cy2="-2.5" x2="2" y2="-2.5"
+                                       cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="3" offsetX="2" offsetY=".5" />
+    </path>
+    <path>
+      <movement hands="none" beats="3" cx1="-1" cy1="-2" cx2="1" cy2="-2.5" x2="2" y2="-2.5"
+                                       cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="3" offsetX="2" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Recycle" group=" "
+       from="Lines"
+       formation="Normal Lines">
+    <path>
+      <move select="Run Right" hands="right" beats="5" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" hands="left" beats="5" offsetX="2" offsetY=".5" />
+    </path>
+    <path>
+      <movement hands="gripright" beats="5" cx1="-1" cy1="2" cx2="1" cy2="4.5" x2="2" y2="4.5" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+    <path>
+      <movement hands="gripleft" beats="5" cx1="-1" cy1="2" cx2="1" cy2="5.5" x2="2" y2="5.5" cx3="1" cx4="2" cy4="2" x4="3" y4="2" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Reverse Recycle" group=" "
+       from="Lines"
+       formation="Normal Lines">
+    <path>
+      <movement hands="gripright" beats="5" cx1="-1" cy1="-2" cx2="1" cy2="-5.5" x2="2" y2="-5.5"
+                                            cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <movement hands="gripleft" beats="5" cx1="-1" cy1="-2" cx2="1" cy2="-4.5" x2="2" y2="-4.5"
+                                           cx3="1" cx4="2" cy4="-2" x4="3" y4="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" hands="right" beats="5" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Run Left" hands="left" beats="5" offsetX="2" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Recycle" group=" "
+       from="Static Square"
+       formation="Static Square">
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" />
+    </path>
+    <path>
+      <move select="Stand" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" offsetX="3" />
+    </path>
+    <path>
+      <move select="Stand" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="4" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Reverse Recycle" group=" "
+       from="Static Square"
+       formation="Static Square">
+    <path>
+      <move select="Stand" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="3" />
+    </path>
+    <path>
+      <move select="Stand" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="4" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="3" />
+    </path>
+  </tam>
+
+</tamination>

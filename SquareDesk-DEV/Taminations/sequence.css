@@ -1,0 +1,21 @@
+* {
+  background-color: white;
+  font: 16px Helvetica, sans-serif;
+}
+
+.calltext {
+  color: blue;
+}
+
+.commenttext {
+  color: red;
+}
+
+.callerror {
+  color: white;
+  background-color: red;
+}
+
+.callhighlight {
+  background-color: yellow;
+}

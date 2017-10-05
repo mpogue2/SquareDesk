@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="In-Roll Circulate">
+
+  <tam title="In-Roll Circulate"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB Compact"
+       fractions="2" >
+    <path numbers="1 8">
+      <move select="Forward 3" beats="4" />
+    </path>
+    <path numbers="2 7">
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path numbers="3 6">
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path numbers="4 5">
+      <move select="Flip Right" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="In-Roll Circulate"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGGB"
+       fractions="2" >
+    <path numbers="1 8">
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path numbers="2 7">
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path numbers="3 6">
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path numbers="4 5">
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tam title="In-Roll Circulate"
+       from="Right-Hand Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       fractions="2" >
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="In-Roll Circulate"
+       from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH"
+       fractions="2" >
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tam title="In-Roll Circulate" from="3 and 1 Lines #1"
+       formation="3 and 1 lines #1" fractions="2">
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+  <tam title="In-Roll Circulate" from="3 and 1 Lines #4"
+       formation="3 and 1 lines #4" fractions="2">
+    <path>
+      <move select="Forward 4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" />
+    </path>
+    <taminator>
+      There are 8 different 3 and 1 lines, but only half of them
+      have the ends in tandem required for In-Roll Circulate.
+    </taminator>
+  </tam>
+
+  <tam title="In-Roll Circulate" from="3 and 1 Lines #5"
+       fractions="2">
+     <formation>
+      <dancer gender="boy" x="-2" y="3" angle="0"/>
+      <dancer gender="girl" x="-2" y="1" angle="180"/>
+      <dancer gender="girl" x="-2" y="-1" angle="180"/>
+      <dancer gender="boy" x="-2" y="-3" angle="180"/>
+    </formation>
+    <path numbers="1 8">
+      <move select="Forward 4" />
+    </path>
+    <path numbers="2 7">
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path numbers="3 6">
+      <move select="Flip Right" beats="4" />
+    </path>
+    <path numbers="4 5">
+      <move select="Flip Right" beats="4" />
+    </path>
+    <taminator>
+      This is the third illustrated example in the defintion.
+    </taminator>
+  </tam>
+
+  <tam title="In-Roll Circulate" from="3 and 1 Lines #8"
+       formation="3 and 1 lines #8" fractions="2">
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+    </path>
+  </tam>
+
+</tamination>

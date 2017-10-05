@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Circle to a Wave">
+
+  <tam title="Circle to a Wave"
+       from="Facing Couples"
+       formation="Facing Couples Compact"
+       parts="2.25" >
+    <path>
+      <move select="Eighth Right" offsetX="0.5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.767" offsetY="1.767" />
+    </path>
+    <path>
+      <move select="Eighth Left" offsetX="0.5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.05" offsetY="1.767" />
+    </path>
+  </tam>
+
+  <tam title="Circle to a Wave"
+       from="Normal Lines" formation="Normal Lines Compact" parts="2.25">
+    <path>
+      <move select="Eighth Right" offsetX=".5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+    <path>
+      <move select="Eighth Left" offsetX=".5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+    <path>
+      <move select="Eighth Right" offsetX=".5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+    <path>
+      <move select="Eighth Left" offsetX=".5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+  </tam>
+
+  <tam title="Circle to a Wave"
+       from="Eight Chain Thru" formation="Eight Chain Thru" parts="2.25">
+    <path>
+      <move select="Eighth Right" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.767" offsetY="1.767" />
+    </path>
+    <path>
+      <move select="Eighth Left"  />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.05" offsetY="1.767" />
+    </path>
+    <path>
+      <move select="Eighth Right" offsetX="0.05" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.767" offsetY="1.767" />
+    </path>
+    <path>
+      <move select="Eighth Left" offsetX="0.05" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="gripboth" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.05" offsetY="1.767" />
+    </path>
+  </tam>
+
+  <tam title="Circle 1/2 to a Wave" group=" "
+       formation="Facing Couples Compact"
+       parts="3.75" >
+    <path>
+      <move select="Eighth Right" offsetX="0.5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.767" offsetY="1.767" />
+    </path>
+    <path>
+      <move select="Eighth Left" offsetX="0.5" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.05" offsetY="1.767" />
+    </path>
+  </tam>
+
+  <tam title="All 4 Couples Circle to a Wave" group=" " formation="Static Square">
+    <path>
+      <move select="Extend Left" beats="2" scaleY="2"/>
+      <move select="Lead Right" scaleY=".5"/>
+      <move select="Counter Rotate Right 1.5 3.5" hands="left" beats="3"/>
+      <move select="Quarter Left" beats="4" offsetX="1.5" offsetY="4"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2"/>
+      <move select="Quarter Left" offsetY="-.5"/>
+      <move select="Counter Rotate Right 3.5 1.5" hands="right" beats="3"/>
+      <move select="Quarter Right" beats="4" offsetX="3.5" offsetY="2"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleY="2"/>
+      <move select="Lead Right" scaleY=".5"/>
+      <move select="Counter Rotate Right 1.5 3.5" hands="left" beats="3"/>
+      <move select="Quarter Left" beats="4" offsetX="1.5" offsetY="4"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2"/>
+      <move select="Quarter Left" offsetY="-.5"/>
+      <move select="Counter Rotate Right 3.5 1.5" hands="right" beats="3"/>
+      <move select="Quarter Right" beats="4" offsetX="3.5" offsetY="2"/>
+    </path>
+  </tam>
+  
+  <tam title="As Couples Circle to a Wave" group=" "
+       formation="Normal Lines Compact">
+    <path>
+      <move select="Eighth Right" beats="1" hands="right" offsetX=".5" offsetY="-1"/>
+      <movement hands="both" beats="2" 
+                cx1="0.354" cy1="1.061" cx2="1.768" cy2="1.768" x2="2.828" y2="1.414"
+                cx3="0.55" cx4="1" cy4="-0.45" x4="1" y4="-1" />
+      <move select="Eighth Left" beats="1" hands="right" offsetX="-.353" offsetY=".353"/>
+      <move select="Extend Left" beats="3" hands="right" scaleX="2.5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Eighth Right" beats="1" hands="both" offsetX="-.5"/>
+      <movement hands="both" beats="2" 
+                cx1="-.354" cy1="1.061" cx2="0.353" cy2="2.474" x2="1.414" y2="2.828"
+                cx3="0.55" cx4="1" cy4="-0.45" x4="1" y4="-1" />
+      <move select="Eighth Left" beats="1" hands="left" offsetX=".707" offsetY=".707"/>
+      <move select="Forward" beats="3" hands="left" scaleX="2.5"/>
+    </path>
+    <path>
+      <move select="Eighth Left" beats="1" hands="both" offsetX="-.5"/>
+      <movement hands="both" beats="2" 
+                cx1="0.354" cy1="1.061" cx2="1.768" cy2="1.768" x2="2.828" y2="1.414"
+                cx3="0.55" cx4="1" cy4="-0.45" x4="1" y4="-1" />
+      <move select="Eighth Right" beats="1" hands="right" offsetX="0.707" offsetY=".707"/>
+      <move select="Dodge Left" hands="right" offsetX=".5" scaleY="1.5"/>
+    </path>
+    <path>
+      <move select="Eighth Left" beats="1" hands="left" offsetX=".5" offsetY="1"/>
+      <movement hands="both" beats="2" 
+                cx1="-.354" cy1="1.061" cx2="0.353" cy2="2.474" x2="1.414" y2="2.828"
+                cx3="0.55" cx4="1" cy4="-0.45" x4="1" y4="-1" />
+      <move select="Eighth Right" beats="1" hands="left" offsetX="-.353" offsetY="1.061" />                
+      <move select="Dodge Left" hands="left" offsetX=".5" scaleY="1.25"/>
+    </path>
+  </tam>
+
+  <tam title="Concentric Circle to a Wave" group=" "
+       formation="Double Pass Thru">
+    <path>
+      <move select="Counter Rotate Right 4 2" beats="4" hands="right"/>
+      <move select="Extend Left" beats="2" scaleX="2"/>
+      <move select="Forward 2"/>
+      <move select="Extend Right" beats="2" scaleX="2"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 4" beats="4" hands="left"/>
+      <move select="Dodge Left"/>
+    </path>
+    <path>
+      <move select="Eighth Right" hands="right" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+    <path>
+      <move select="Eighth Left" hands="left"/>
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+  </tam>
+
+  <tam title="Cross Concentric Circle to a Wave" group=" "
+       formation="Double Pass Thru">
+    <path>
+      <move select="Stand" beats="5"/>
+      <move select="Eighth Right" beats="2" hands="right" offsetX="2" />
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Left" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+    <path>
+      <move select="Stand" beats="5"/>
+      <move select="Eighth Left" beats="2" hands="left" offsetX="2"/>
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Right" beats="3" offsetX="1.414" offsetY="1.414" />
+    </path>
+    <path>
+      <move select="Eighth Right" hands="right"/>
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Left" beats="5" offsetX="2.818" offsetY="2.818" />
+    </path>
+    <path>
+      <move select="Eighth Left" hands="left"/>
+      <move select="Counter Rotate Left 1.414 1.414" hands="both" beats="1.5"/>
+      <move select="Eighth Right" beats="5" offsetY="2.828" />
+    </path>
+  </tam>
+
+  <!--
+    todo:
+         
+         
+          tandem
+          stretch
+          phantom (C1)
+   -->
+
+</tamination>

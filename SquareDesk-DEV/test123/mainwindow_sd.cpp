@@ -4,6 +4,9 @@
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
+#include <QInputDialog>
+#include <QLineEdit>
+
 
 static double dancerGridSize = 20;
 
@@ -187,6 +190,13 @@ static void draw_scene(const QStringList &sdformation,
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
+    if (!drawing_picture)
+    {
+        str = str.trimmed();
+        if (str.isEmpty())
+            return;
+    }
+    
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
     
@@ -273,7 +283,13 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
     qDebug() << "Return pressed, command is: " << ui->lineEditSDInput->text();
-    sdthread->on_user_input(ui->lineEditSDInput->text());
+    QString cmd(ui->lineEditSDInput->text().trimmed());
+    if (!cmd.compare("quit", Qt::CaseInsensitive))
+    {
+        cmd = "abort this sequence";
+    }
+    
+    emit sdthread->on_user_input(cmd);
     ui->lineEditSDInput->clear();
 }
 
@@ -298,7 +314,9 @@ void MainWindow::on_lineEditSDInput_textChanged()
 }
 
 
-void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex)
+void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int /* currentIndex */)
 {
     on_lineEditSDInput_textChanged();
 }
+
+

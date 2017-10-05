@@ -39,8 +39,8 @@ public:
     void reenableScreensaver();
     void disableWindowTabbing();
 
-private:
-    IOPMAssertionID assertionID;
+//private:
+//    IOPMAssertionID assertionID;
 
 };
 #endif

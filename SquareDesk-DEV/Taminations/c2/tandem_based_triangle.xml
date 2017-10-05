@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Tandem-Based Triangle Formation">
+
+  <tam title="Triangle Peel and Trail" group="Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="-1" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="180"/>
+      <dancer gender="boy" x="-3" y="0" angle="90"/>
+      <dancer gender="girl" x="0" y="-3.1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Extend Right"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" offsetY=".25"/>
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Stand" beats="1"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Triangle Recycle" group="Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="-1" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="0"/>
+      <dancer gender="boy" x="-3" y="0" angle="90"/>
+      <dancer gender="girl" x="0" y="-3.1" angle="180"/>
+    </formation>
+    <path>
+      <move select="U-Turn Right" offsetX="1" offsetY=".25"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="4" scaleY="2.5"/>
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Flip Right" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Triangle Swap Around" group="Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="-1" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="0"/>
+      <dancer gender="boy" x="-3" y="0" angle="90"/>
+      <dancer gender="girl" x="0" y="-3.1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Flip Right" offsetX="1" scaleY="1.05"/>
+    </path>
+    <path>
+      <move select="Forward 2" beats="3"/>
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Flip Right" offsetX="-1" scaleY="1.05"/>
+    </path>
+  </tam>
+
+  <tam title="Triangle Wheel Thru" group="Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="-1" angle="0"/>
+      <dancer gender="girl" x="-1" y="1" angle="0"/>
+      <dancer gender="boy" x="-3" y="0" angle="90"/>
+      <dancer gender="girl" x="0" y="-3.1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Lead Right"/>
+      <move select="Forward"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2.5"/>
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Lead Right"/>
+      <move select="Forward" scaleX="1.1"/>
+    </path>
+  </tam>
+
+  <tam title="Outside Triangle Cross Your Neighbor" group="Outside Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="4.2" angle="0"/>
+      <dancer gender="girl" x="1" y="4.2" angle="0"/>
+      <dancer gender="boy" x="0" y="2.1" angle="180"/>
+      <dancer gender="girl" x="1" y="0" angle="180"/>
+    </formation>
+    <path>
+      <move select="Dodge Right" beats="2" scaleY=".85"/>
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="1.2"/>
+      <move select="Run Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Dodge Right" scaleY=".95"/>
+      <move select="Cast Left"/>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="Outside Triangle Peel and Trail" group="Outside Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="4.2" angle="0"/>
+      <dancer gender="girl" x="1" y="4.2" angle="0"/>
+      <dancer gender="boy" x="0" y="2.1" angle="180"/>
+      <dancer gender="girl" x="1" y="0" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward" offsetY="-.2"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Run Left" scaleX=".5" scaleY=".4" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Stand" beats="1"/>
+      <move select="Swing Right" scaleY=".7"/>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="Outside Triangle Peel the Top" group="Outside Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="4.2" angle="0"/>
+      <dancer gender="girl" x="1" y="4.2" angle="0"/>
+      <dancer gender="boy" x="0" y="2.1" angle="180"/>
+      <dancer gender="girl" x="1" y="0" angle="180"/>
+    </formation>
+    <path>
+      <move select="Forward" offsetY="-.2"/>
+      <move select="Cast Right"/>
+    </path>
+    <path>
+      <move select="Run Left" offsetX="-1" scaleX=".25" scaleY=".75"/>
+      <move select="Lead Left" beats="3" scaleX="3" scaleY="2.7"/>
+    </path>
+    <path>
+      <move select="Stand" beats="1"/>
+      <move select="Hinge Right" scaleY=".9"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="Outside Triangle Peel to a Diamond" group="Outside Triangle">
+    <formation>
+      <dancer gender="boy" x="-1" y="4.2" angle="0"/>
+      <dancer gender="girl" x="1" y="4.2" angle="0"/>
+      <dancer gender="boy" x="0" y="2.1" angle="180"/>
+      <dancer gender="girl" x="1" y="0" angle="180"/>
+    </formation>
+    <path>
+    <move select="Forward"/>
+    <move select="Hinge Right" beats="2" scaleY="1.7"/>
+    </path>
+    <path>
+      <move select="Run Left" scaleX=".5" scaleY=".4" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="Stand"/>
+      <move select="Quarter Right" beats="2" offsetX="1" offsetY="-.4"/>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+
+</tamination>

@@ -1,0 +1,332 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Follow Your Neighbor">
+
+  <tam title="Follow Your Neighbor"
+       from="Right-Hand Box"
+       formation="Box RH"
+       difficulty="1">
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY="-.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" scaleX="2" />
+      <move select="Run Right" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Left-Hand Box"
+       formation="Box LH"
+       difficulty="2">
+    <path>
+      <move select="Lead Left" beats="3" scaleX="2" />
+      <move select="Run Left" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY=".25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" offsetY="-.25" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       difficulty="1">
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY="-.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" scaleX="2" />
+      <move select="Run Right" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY="-.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" scaleX="2" />
+      <move select="Run Right" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGGB"
+       difficulty="2">
+    <path>
+      <move select="Lead Left" beats="2" scaleX="2" />
+      <move select="Run Left" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY=".25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" offsetY="-.25" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="2" scaleX="2" />
+      <move select="Run Left" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY=".25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" offsetY="-.25" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Right-Hand Columns"
+       formation="Column RH GBGB"
+       difficulty="2">
+    <path>
+      <move select="Lead Right" beats="2" scaleX="1.5" />
+      <move select="Run Right" scaleX=".5" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Right" scaleX=".5" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" scaleX=".5" />
+      <move select="U-Turn Right" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleY=".5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Right" scaleX=".5" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Left-Hand Columns"
+       formation="Column LH GBGB"
+       difficulty="2">
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="2" scaleX=".5" />
+      <move select="U-Turn Left" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" scaleX=".5" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="2" scaleX="1.5" />
+      <move select="Run Left" scaleX=".5" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor" from="Quarter Tag"
+       formation="Quarter Tag" difficulty="2">
+    <path>
+      <move select="Extend Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="1.5" scaleY=".5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor" from="Left-Hand Quarter Tag"
+       formation="Quarter Tag LH" difficulty="3">
+    <path>
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleX="1.5" scaleY=".5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Right-Handed T-Bone"
+       formation="T-Bone DLDL"
+       difficulty="3">
+    <path>
+      <move select="Lead Left" beats="2.5" scaleX="2.5" />
+      <move select="Run Left" scaleX=".5" scaleY=".25" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleY=".25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Left" beats="2.5" scaleX="2.5" />
+      <move select="Run Left" scaleX=".5" scaleY=".25" />
+    </path>
+    <path>
+      <move select="Extend Right" scaleY=".25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Right" offsetY=".25" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor"
+       from="Left-Handed T-Bone"
+       formation="T-Bone RDRD"
+       difficulty="3">
+    <path>
+      <move select="Lead Right" beats="2.5" scaleX="2.5" />
+      <move select="Run Right" scaleX=".5" scaleY=".25" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" offsetY="-.25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2.5" scaleX="2.5" />
+      <move select="Run Right" scaleX=".5" scaleY=".25" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Hinge Left" offsetY="-.25" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor and Spread"
+       from="Right-Hand Box"
+       formation="Box RH"
+       difficulty="1">
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY="-.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="2.5" scaleX="3" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" />
+      <move select="Run Right" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor and Spread"
+       from="Left-Hand Box"
+       formation="Box LH"
+       difficulty="2">
+    <path>
+      <move select="Lead Left" beats="3" />
+      <move select="Run Left" beats="4" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY=".25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Lead Left" beats="2.5" scaleX="3" offsetY="-.25" />
+    </path>
+  </tam>
+
+  <tam title="Follow Your Neighbor and Spread"
+       from="Ocean Waves"
+       formation="Ocean Waves RH BGGB"
+       difficulty="1">
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY="-.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="2" offsetX="2" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" />
+      <move select="Run Right" beats="3" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="1.5" offsetY="-.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="2" offsetX="2" offsetY=".25" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="3" />
+      <move select="Run Right" beats="3" />
+    </path>
+    <taminator>
+      Very common.  Do not forget how to do Follow Your Neighbor WITHOUT a Spread!
+    </taminator>
+  </tam>
+
+  <tam title="Follow Your Neighbor and Spread"
+       from="Quarter Tag" formation="Quarter Tag" difficulty="3">
+    <path>
+      <move select="Extend Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right"/>
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right"/>
+    </path>
+    <path>
+      <move select="Extend Right" scaleX="1.5" scaleY=".5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right"/>
+    </path>
+    <path>
+      <move select="Forward" scaleX="1.5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right"/>
+    </path>
+    <taminator>
+      This does not flow the same as Follow Your Neighbor and Spread from
+      parallel waves.
+    </taminator>
+  </tam>
+
+</tamination>

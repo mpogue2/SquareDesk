@@ -1,0 +1,349 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Plenty">
+
+  <tam title="Plenty"
+       from="Right-Hand Quarter Tag"
+       formation="Quarter Tag"
+       parts="5;7" >
+    <path numbers="1 8">
+      <move select="Extend Right" beats="5" scaleY="4" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Flip Left" scaleY=".75" />
+      <move select="Forward 2" />
+    </path>
+    <path numbers="2 7">
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="2" />
+      <move select="Forward 3" beats="2" />
+      <move select="Flip Left" scaleY=".75" />
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Flip Left" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".5" />
+    </path>
+    <path numbers="6 3">
+      <move select="Flip Right" beats="5" offsetX="2" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Run Right" scaleY="1.25" />
+      <move select="Extend Left" beats="4" scaleX="4" scaleY=".5" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Right" scaleY=".5" />
+    </path>
+    <path numbers="5 4">
+      <move select="Forward 2" beats="5" />
+      <move select="Run Right" scaleY="1.25" />
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Lead Right" beats="3" scaleX="2" scaleY="3" />
+      <move select="Lead Right" />
+    </path>
+    <taminator>
+      Split Circulate 2 is done as one part,
+      with no re-evaluation between them.
+    </taminator>
+  </tam>
+
+  <tam title="Plenty"
+       from="Right-Hand 3/4 Tag"
+       formation="3/4 Tag"
+       parts="6;7" >
+    <path numbers="1 8" couples="4 2">
+      <move select="Flip Right" offsetX="-1" />
+      <move select="Forward 4" beats="3" />
+      <move select="Flip Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="6" offsetX="-2" />
+    </path>
+    <path numbers="2 7" couples="4 2">
+      <move select="Flip Right" beats="5" scaleX="2" scaleY="2" />
+      <move select="Forward" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 2" beats="6" />
+    </path>
+    <path numbers="6 3" couples="3 1">
+      <move select="Flip Right" beats="6" offsetX="2" />
+      <move select="Forward 4" />
+      <move select="Flip Right" />
+      <move select="Forward 4" beats="3.5" />
+      <move select="Run Right" beats="2.5" offsetX="1" />
+    </path>
+    <path numbers="5 4" couples="3 1">
+      <move select="Forward 2" beats="6" />
+      <move select="Flip Right" />
+      <move select="Forward 4" />
+      <move select="Lead Right" beats="4" scaleX="2" scaleY="3" />
+      <move select="Lead Right" beats="2" />
+    </path>
+  </tam>
+
+  <tam title="Plenty" from="Left-Hand Quarter Tag" formation="Quarter Tag LH" parts="5;7">
+    <path>
+      <move select="Extend Right" beats="5" scaleY="4" />
+      <move select="Forward 4"/>
+      <move select="Run Left"/>
+      <move select="Forward 2" beats="6" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="2" />
+      <move select="Forward 3" beats="2" />
+      <move select="Run Left"/>
+      <move select="Forward 4"/>
+      <move select="Run Left" beats="6" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="5" offsetX="2" />
+      <move select="Forward 4"/>
+      <move select="Run Left"/>
+      <move select="Forward 4" beats="3.5" />
+      <move select="Run Left" beats="2.5" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="5" />
+      <move select="Run Left"/>
+      <move select="Forward 4"/>
+      <move select="Lead Left" beats="4" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" />
+    </path>
+  </tam>
+
+  <tam title="Plenty" from="Left-Hand 3/4 Tag" formation="3/4 Tag LH" parts="5;7">
+    <path>
+      <move select="Flip Right" beats="2" offsetX="-1" />
+      <move select="Forward 4" beats="3" />
+      <move select="Run Right" scaleY="1.25" />
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Run Right" beats="6" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" scaleX="2" scaleY="2" />
+      <move select="Forward" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Run Right" scaleY="1.25" />
+      <move select="Forward 2" beats="6" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="5" offsetX="2" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Flip Left" scaleY=".75" />
+      <move select="Forward 4" beats="3.5" />
+      <move select="Run Left" beats="2.5" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="5" />
+      <move select="Flip Left" scaleY=".75" />
+      <move select="Forward" />
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Lead Left" beats="4" scaleX="2" scaleY="3" />
+      <move select="Lead Left" beats="2" />
+    </path>
+  </tam>
+
+
+  <tam title="Plenty" from ="&quot;I&quot; formation" parts="5;5">
+    <formation>
+      <dancer gender="boy" x="-3" y="1" angle="0"/>
+      <dancer gender="girl" x="-3" y="-1" angle="0"/>
+      <dancer gender="boy" x="1.5" y="0" angle="90"/>
+      <dancer gender="girl" x=".5" y="0" angle="270"/>
+    </formation>
+    <path>
+      <move select="Extend Right" beats="5" scaleX="2" scaleY="4" />
+      <move select="Forward 2" offsetY=".5"/>
+      <move select="Flip Left" offsetY="-.5"/>
+      <move select="Forward" beats="5"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="2" />
+      <move select="Forward 2"  />
+      <move select="Run Left" scaleY=".75"/>
+      <move select="Forward 2" offsetY="-.5"/>
+      <move select="Flip Left" beats="5" offsetX="-1"/>
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="5" offsetX="1" offsetY=".5"/>
+      <move select="Flip Right" offsetX=".5" offsetY="-.5"/>
+      <move select="Extend Left" scaleX="1.25" scaleY=".5"/>
+      <move select="Extend Right" scaleX="1.25"/>
+      <move select="Counter Rotate Right -2 -4" hands="right" beats="4"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="5" scaleY=".5"/>
+      <move select="Forward 2" offsetX=".5"/>
+      <move select="Run Right" offsetX="-.5"/>
+      <move select="Counter Rotate Right 4 2" hands="right" beats="4"/>
+      <move select="Quarter Right" offsetY="1"/>
+    </path>
+  </tam>
+
+  <tam title="Plenty" from="Hourglass" formation="Hourglass RH BP" parts="6;4">
+    <path>
+      <!-- Little -->
+      <move select="Quarter Right"/>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="1.5"/>
+      <move select="Lead Right" scaleY=".5" />
+      <!-- Split Circ 2 -->
+      <move select="Forward 2"/>
+      <move select="Run Right" beats="2" scaleX=".5"/>
+      <!-- 1/2 Zoom -->
+      <move select="U-Turn Left" beats="3" offsetX="-1" offsetY="-.25"/>
+    </path>
+    <path>
+      <!-- Little -->
+      <move select="Flip Right" offsetX="1" beats="6"/>
+      <!-- Split Circ 2 -->
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY=".5"/>
+      <move select="Flip Right" beats="2" offsetX=".5" scaleY=".75"/>
+      <!-- Counter Rotate and Roll -->
+      <move select="Lead Right" beats="3" scaleX="5" scaleY="2"/>
+      <move select="Quarter Right"/>
+    </path>
+    <path>
+      <!-- Little -->
+      <move select="Quarter Right"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Quarter Left" offsetX="1" offsetY="-.5"/>
+      <!-- Split Circ 2 -->
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Forward" scaleX=".5"/>
+      <move select="Flip Left" beats="2" offsetX=".5" scaleY="1.25"/>
+      <!-- 1/2 Zoom -->
+      <move select="U-Turn Right" beats="3" offsetX="-1" offsetY="-1"/>
+    </path>
+    <path>
+      <!-- Little -->
+      <move select="Forward" beats="6"/>
+      <!-- Split Circ 2 -->
+      <move select="Extend Right" scaleY=".5"/>
+      <move select="Forward"/>
+      <move select="Flip Right" beats="2" scaleY=".75"/>
+      <!-- Counter Rotate and Roll -->
+      <move select="Counter Rotate Right 4 2" beats="3" offsetY="1"/>
+      <move select="Quarter Right"/>
+    </path>
+  </tam>
+
+  <tam title="Plenty, Points Go As You Are"
+       from="Diamonds"
+       formation="Diamonds RH Girl Points"
+       parts="6;7" >
+    <path>
+      <move select="Flip Right" beats="6" offsetX="2" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 4" beats="3" />
+      <move select="Run Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 4" />
+      <move select="Lead Right" beats="2" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 2" beats="6" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="6" />
+      <move select="Run Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="6" offsetX="1" offsetY="-2" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="2" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="6" offsetX="-2" />
+    </path>
+  </tam>
+
+  <tam title="Left Plenty"
+       from="Right-Hand Quarter Tag"
+       formation="Quarter Tag"
+       parts="5;7" >
+    <path>
+      <move select="Extend Left" beats="2.5" scaleX="2" scaleY="2" />
+      <move select="Forward 3" beats="2.5" />
+      <move select="Run Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="6" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="5" scaleY="4" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 2" beats="6" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="5" offsetX="2" />
+      <move select="Forward 4" />
+      <move select="Run Right" />
+      <move select="Forward 4" beats="3" />
+      <move select="Run Right" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="5" />
+      <move select="Run Right" />
+      <move select="Forward 4" />
+      <move select="Run Right" beats="6" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+
+  <tam title="Left Plenty"
+       from="Right-Hand 3/4 Tag"
+       formation="3/4 Tag"
+       parts="5;7" >
+    <path>
+      <move select="Flip Left" beats="4" scaleX="2" scaleY="2" />
+      <move select="Forward" />
+      <move select="Extend Left" beats="4" scaleX="4" scaleY=".5" />
+      <move select="Flip Left" scaleY="0.75" />
+      <move select="Forward 2" beats="5" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="2" offsetX="-1" />
+      <move select="Forward 4" beats="3" />
+      <move select="Flip Left" scaleY=".75" />
+      <move select="Extend Right" beats="4" scaleX="4" scaleY=".5" />
+      <move select="Run Left" beats="5" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="5" offsetX="2" />
+      <move select="Extend Left" beats="4" scaleX="4" scaleY=".5" />
+      <move select="Run Right" scaleY="1.25" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5" />
+      <move select="Run Right" beats="2" offsetX="2" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="5" />
+      <move select="Run Right" scaleY="1.25" />
+      <move select="Extend Right" beats="4" scaleX="4" scaleY=".5" />
+      <move select="Run Right" beats="5" offsetX="1" offsetY="-2" />
+    </path>
+  </tam>
+</tamination>

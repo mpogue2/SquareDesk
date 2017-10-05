@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    By the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Touch By">
+
+  <tam title="Touch By 1/2 By 1/4" group=" " parts="6">
+    <formation>
+      <dancer gender="boy" x="0" y="3" angle="270"/>
+      <dancer gender="girl" x="0" y="1" angle="270"/>
+    </formation>
+    <path>
+      <move select="Stand" beats="3"/>
+      <move select="Extend Left" beats="3" scaleX="3"/>
+      <move select="Hinge Right"/>
+    </path>
+    <path>
+      <move select="Extend Left"/>
+      <move select="Hinge Right"/>
+      <move select="Hinge Right" beats="3" offsetX="2"/>
+    </path>
+  </tam>
+
+  <tam title="Touch By 1/4 By 1/2" group=" " parts="5">
+    <formation>
+      <dancer gender="boy" x="0" y="3" angle="270"/>
+      <dancer gender="girl" x="0" y="1" angle="270"/>
+    </formation>
+    <path>
+      <move select="Stand" beats="2"/>
+      <move select="Extend Left" beats="3" scaleX="3"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Extend Left"/>
+      <move select="Hinge Right" beats="3" offsetX="2"/>
+    </path>
+  </tam>
+
+  <tam title="Touch By 1/4 By Swing Thru" group=" ">
+    <formation>
+      <dancer gender="boy" x="1" y="3" angle="270"/>
+      <dancer gender="girl" x="1" y="1" angle="270"/>
+      <dancer gender="boy" x="1" y="-1" angle="90"/>
+      <dancer gender="girl" x="1" y="-3" angle="90"/>
+    </formation>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward"/>
+      <move select="Extend Left" beats="2" scaleY="1.5"/>
+      <move select="Swing Right"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Quarter Right" offsetX="1" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward 2"/>
+      <move select="Quarter Right" offsetX="1" offsetY="-1.5"/>
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5"/>
+      <move select="Forward"/>
+      <move select="Extend Right" beats="2" scaleY=".5"/>
+      <move select="Swing Right"/>
+    </path>
+  </tam>
+
+</tamination>

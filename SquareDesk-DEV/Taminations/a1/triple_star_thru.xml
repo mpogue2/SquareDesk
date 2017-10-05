@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Triple Star Thru">
+
+  <tam title="Triple Star Thru"
+       from="Double Pass Thru"
+       parts="3;3" gender-specific="true">
+     <formation>
+      <dancer gender="boy" x="-3" y="-1" angle="0"/>
+      <dancer gender="girl" x="-3" y="1" angle="0"/>
+      <dancer gender="boy" x="-1" y="1" angle="0"/>
+      <dancer gender="girl" x="-1" y="-1" angle="0"/>
+    </formation>
+    <path>
+      <move select="Stand" beats="6" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="Stand" beats="6" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY="-.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY=".5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY="-1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY="-.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY=".5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Triple Star Thru"
+       from="Eight Chain Thru"
+       parts="3;3" gender-specific="true">
+     <formation>
+      <dancer gender="boy" x="-3" y="1" angle="0"/>
+      <dancer gender="girl" x="-3" y="-1" angle="0"/>
+      <dancer gender="boy" x="-1" y="-1" angle="180"/>
+      <dancer gender="girl" x="-1" y="1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY="-.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY=".5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY="-.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY=".5" />
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY="-.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" hands="right" beats="1.5" scaleY=".5" />
+      <move select="Quarter Left" beats="1.5" offsetX="1" offsetY="-.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleY=".5" />
+      <move select="Quarter Right" beats="1.5" offsetX="1" offsetY=".5" />
+    </path>
+  </tam>
+</tamination>

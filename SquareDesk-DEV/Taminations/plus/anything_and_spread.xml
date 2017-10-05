@@ -1,0 +1,367 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Anything and Spread">
+
+  <tam title="Acey Deucey and Spread" group=" "
+       from="Waves"
+       formation="Ocean Waves RH BGGB"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Extend Right" beats="4" scaleX="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX="2" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Bend the Line and Spread" group=" "
+       from="Lines"
+       formation="Normal Lines"
+       fractions="" difficulty="3">
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-1" offsetY="-1" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="1" offsetY="1" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="1" offsetY="-1" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-1" offsetY="1" />
+    </path>
+    <taminator>
+      This looks like a nice call, but I've never seen it used,
+      and doubt many dancers would know how to do it.
+    </taminator>
+  </tam>
+
+  <tam title="Cloverleaf and Spread" group=" "
+       from="Completed Double Pass Thru"
+       formation="Completed Double Pass Thru"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Lead Right" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Dodge Right" beats="3" />
+    </path>
+    <path>
+      <move select="Lead Left" />
+      <move select="Lead Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Dodge Left" beats="3" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Lead Right" />
+      <move select="Lead Right" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Right" scaleX="1.5" scaleY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Lead Left" />
+      <move select="Lead Left" scaleX="1.5" scaleY="1.5" />
+      <move select="Lead Left" scaleX="1.5" scaleY=".5" />
+      <move select="Forward" />
+    </path>
+  </tam>
+
+  <tam title="Coordinate and Spread" from="Right-Hand Columns" group=" "
+        formation="Column RH GBGB" difficulty="3">
+    <path>
+      <move select="Flip Right" beats="2" />
+      <move select="Forward" />
+      <move select="Hinge Right" scaleX=".5" />
+      <move select="Lead Right" beats="3" scaleX="3" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Forward" scaleX="2" beats="2" />
+      <move select="Lead Right" beats="2.5" scaleX=".5" />
+      <move select="Lead Right" scaleY="1.5" beats="3" />
+    </path>
+    <path>
+      <move select="Forward" scaleX="3" beats="3" />
+      <move select="Hinge Right" scaleX=".5" />
+      <move select="Lead Right" beats="3" scaleX="3" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Forward" scaleX="3" beats="3" />
+      <move select="Hinge Right" scaleX=".5" />
+      <move select="Lead Right"  scaleY="2.5" beats="3" />
+    </path>
+  </tam>
+
+
+  <tam title="Cut the Diamond and Spread" group=" "
+       from="Right-Hand Diamonds"
+       formation="Diamonds RH Girl Points"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Forward 2" />
+      <move select="Lead Right" />
+      <move select="Dodge Right" />
+    </path>
+    <path>
+      <move select="Dodge Right" />
+      <move select="Swing Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Forward 2" />
+      <move select="Lead Right" />
+      <move select="Dodge Right" />
+    </path>
+    <path>
+      <move select="Dodge Right" />
+      <move select="Swing Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Fan the Top and Spread" group=" "
+       from="Right-Hand Tidal Wave"
+       formation="Tidal Wave RH BGGB"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Lead Right" beats="6" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Swing Left" beats="2" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" beats="4" scaleX="3" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Swing Left" beats="2" scaleX=".5" scaleY=".5" />
+      <move select="Hinge Left" beats="4" scaleX="3" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Lead Right" beats="6" scaleY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="Ferris Wheel and Spread" group=" "
+       from="Right-Handed Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       fractions="" difficulty="1">
+    <path>
+      <move select="Run Right" beats="6" hands="right" scaleX="2" scaleY="2" offsetX="4" offsetY="-2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="6" hands="left" offsetX="4" offsetY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="6" hands="gripleft" />
+    </path>
+    <path>
+      <move select="Run Right" beats="6" hands="gripright" scaleX="2" scaleY="2" />
+    </path>
+  </tam>
+
+  <tamxref title="Follow Your Neighbor and Spread" group=" "
+           xref-link="plus/follow_your_neighbor"
+           xref-title="Follow Your Neighbor and Spread"
+           xref-from="Ocean Waves"/>
+
+  <tam title="Heads Star Thru and Spread" group=" "
+       formation="Static Square" difficulty="1">
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Quarter Right" beats="3" offsetX="3" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY=".5"/>
+      <move select="Quarter Left" beats="3" offsetX="3" offsetY="-1.5"/>
+    </path>
+    <path>
+      <move select="Stand Right" beats="4"/>
+      <move select="Forward" hands="right" beats="2"/>
+    </path>
+    <path>
+      <move select="Stand Left" beats="4"/>
+      <move select="Forward" hands="left" beats="2"/>
+    </path>
+  </tam>
+
+  <tam title="Hinge and Spread" group=" "
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       fractions="" difficulty="3">
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-1" offsetY="-1" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-1" offsetY="-1" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-1" offsetY="-1" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-1" offsetY="-1" />
+    </path>
+    <taminator>
+      This looks like a nice call, but I've never seen it used,
+      and doubt many dancers would know how to do it.
+    </taminator>
+  </tam>
+
+  <tam title="Pass the Ocean and Spread" group=" "
+       from="Lines"
+       formation="Normal Lines"
+       fractions="" difficulty="3">
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="3" scaleX="3" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="3" scaleX="3" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Pass to the Center and Spread" group=" "
+       from="Eight Chain Thru"
+       formation="Pass Thru"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Sashay Left" beats="4" scaleY=".75" />
+    </path>
+    <path>
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Sashay Right" beats="4" scaleY="1.25" />
+    </path>
+    <path>
+      <move select="Pass Thru" />
+      <move select="Run Right" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="Pass Thru" />
+      <move select="Flip Left" />
+      <move select="Forward" />
+    </path>
+  </tam>
+
+  <tam title="Swing Thru and Spread" group=" "
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Swing Right" />
+      <move select="Swing Left" scaleY="2" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="Dodge Right" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="Dodge Right" />
+    </path>
+    <path>
+      <move select="Swing Right" />
+      <move select="Swing Left" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Trade the Wave and Spread" group=" "
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGGB"
+       fractions="" difficulty="3">
+    <path>
+      <move select="Run Right" beats="6" scaleX="1.5" scaleY="3" />
+    </path>
+    <path>
+      <move select="Swing Left" beats="6" scaleX=".75" />
+    </path>
+    <path>
+      <move select="Swing Left" beats="6" scaleX=".75" />
+    </path>
+    <path>
+      <move select="Run Right" beats="6" scaleX="1.5" scaleY="3" />
+    </path>
+  </tam>
+
+  <tam title="Wheel and Deal and Spread" group=" "
+       from="Lines Facing Out"
+       formation="Lines Facing Out"
+       fractions="" difficulty="1">
+    <path>
+      <move select="Run Left" beats="4" hands="left" scaleY="2" offsetX="-1" />
+      <move select="Dodge Right" beats="2" offsetX="-1" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" hands="right" offsetX="-1" />
+      <move select="Dodge Left" beats="2" offsetX="-1" />
+    </path>
+    <path>
+      <move select="U-Turn Right" beats="4" hands="left" offsetX="1" />
+      <move select="Forward" beats="2" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" hands="right" scaleX="2" scaleY="2" offsetX="1" />
+      <move select="Forward" beats="2" />
+    </path>
+  </tam>
+
+  <tam title="Zoom and Spread" group=" "
+       from="Completed Double Pass Thru"
+       formation="Completed Double Pass Thru"
+       fractions="" difficulty="2">
+    <path>
+      <move select="Flip Right" beats="1" scaleX=".5" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Lead Right" beats="1" scaleY=".5" />
+      <move select="Quarter Right" beats="1" />
+      <move select="Extend Left" beats="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Flip Left" beats="1" scaleX=".5" scaleY=".5" />
+      <move select="Forward" />
+      <move select="Lead Left" beats="1" scaleY=".5" />
+      <move select="Quarter Left" beats="1" />
+      <move select="Extend Right" beats="2" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Forward" beats="3" hands="left" />
+      <move select="Sashay Right" />
+    </path>
+    <path>
+      <move select="Forward" beats="3" hands="right" />
+      <move select="Sashay Left" />
+    </path>
+  </tam>
+</tamination>

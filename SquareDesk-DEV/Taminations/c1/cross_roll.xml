@@ -1,0 +1,236 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Cross Roll to a Wave (or Line)">
+
+  <tam title="Cross Roll" from="Right-Hand Wave" formation="Wave RH">
+    <path numbers="1 4">
+      <move select="Flip Right" />
+    </path>
+    <path numbers="2 3">
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll" from="Left-Hand Wave" formation="Wave LH">
+    <path>
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll" from="Right-Hand Two-Faced Line" formation="Two-Faced Line RH">
+    <path numbers="1 4">
+      <move select="Flip Right" />
+    </path>
+    <path numbers="2 3">
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll" from="Left-Hand Two-Faced Line" formation="Two-Faced Line LH">
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Right" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGBG"
+       fractions="" >
+    <path>
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll"
+       from="Right-Hand Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       fractions="" >
+    <path>
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Right" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll"
+       from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH"
+       fractions="" >
+    <path>
+      <move select="Flip Left" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll"
+       from="Inverted Lines"
+       formation="Inverted Lines Ends Facing In"
+       fractions="" >
+    <path>
+      <move select="Flip Right" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleX="2" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Left" />
+    </path>
+  </tam>
+
+  <tam title="Cross Roll"
+       from="Lines Facing Out"
+       formation="Lines Facing Out"
+       fractions="" >
+    <path numbers="5 4">
+      <move select="Flip Left" />
+    </path>
+    <path numbers="6 3">
+      <move select="Run Left" beats="4" scaleY="2" />
+    </path>
+    <path numbers="7 2">
+      <move select="Run Right" beats="4" scaleX="2" scaleY="2" />
+    </path>
+    <path numbers="8 1">
+      <move select="Flip Right" />
+    </path>
+  </tam>
+
+  <tam title="All Eight Cross Roll" group=" " from="" formation="Thar LH Boys">
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Forward 2"/>
+      <move select="Lead Left"/>
+    </path>
+    <path>
+      <move select="Flip Right" beats="5"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Forward 2"/>
+      <move select="Lead Left"/>
+    </path>
+    <path>
+      <move select="Flip Right" beats="5"/>
+    </path>
+  </tam>
+
+  <tam title="As Couples Cross Roll" group=" " from="" formation="Tidal Line RH">
+    <path>
+      <move select="Run Right" scaleX="1.5" scaleY="1.5" beats="5"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleX=".5" scaleY=".5" beats="5"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleX="2.5" scaleY="2.5" beats="5"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleX="1.5" scaleY="1.5" beats="5"/>
+    </path>
+  </tam>
+
+  <tam title="Concentric Cross Roll" group=" " from="" formation="Two-Faced Tidal Line RH">
+    <path>
+      <move select="Flip Right" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleX="2" scaleY="3" beats="5"/>
+    </path>
+    <path>
+      <move select="Flip Left" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Run Left"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Cross Roll" group=" " from="" formation="Two-Faced Lines RH">
+    <path>
+      <move select="Forward 4"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Forward 4"/>
+      <move select="Run Right" beats="5" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right" beats="5" scaleX="2" scaleY="2"/>
+      <move select="Forward 4"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="4" scaleX="4"/>
+    </path>
+  </tam>
+
+</tamination>

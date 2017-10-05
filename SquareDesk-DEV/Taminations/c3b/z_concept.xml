@@ -1,0 +1,267 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Z Concept">
+
+
+  <tam title="(From offset lines) &quot;Z&quot; Chase Right"
+       group="(From offset lines)">
+    <formation name="Ocean Waves RH BGGB">
+      <dancer gender="boy" x="-1.5" y="2" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="0" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="-2" angle="180"/>
+      <dancer gender="boy" x="-1.5" y="-4" angle="180"/>
+    </formation>
+    <path>
+      <move select="Run Right" offsetX="-1" />
+      <move select="Forward" />
+      <move select="Run Right" beats="2.5" offsetX="1" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2"/>
+      <move select="Forward 3" beats="2.5" />
+    </path>
+    <path>
+      <move select="Run Right" scaleY="0.75" offsetX="-1" />
+      <move select="Forward" />
+      <move select="Run Right" beats="2.5" scaleY=".75" offsetX="1" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="1.75"/>
+      <move select="Forward 2" beats="1.5" />
+      <move select="Extend Left" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset lines) &quot;Z&quot; Shakedown"
+       group="(From offset lines)">
+    <formation name="Ocean Waves RH BGGB">
+      <dancer gender="boy" x="-1.5" y="2" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="0" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="-2" angle="180"/>
+      <dancer gender="boy" x="-1.5" y="-4" angle="180"/>
+    </formation>
+    <path>
+      <move select="U-Turn Right" offsetX="-2" offsetY="-1.5" />
+      <move select="Quarter Right" offsetX=".5" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Flip Right" />
+      <move select="Quarter Right" offsetX=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Right" offsetX="-2" offsetY="-1.5" />
+      <move select="Quarter Right" offsetX=".5" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Flip Right" />
+      <move select="Quarter Right" offsetX=".5" />
+    </path>
+  </tam>
+
+  <tam title="(From offset lines) &quot;Z&quot; Split Circulate"
+       group="(From offset lines)">
+    <formation name="Ocean Waves RH BGGB">
+      <dancer gender="boy" x="-1.5" y="2" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="0" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="-2" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-4" angle="180"/>
+    </formation>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset lines) &quot;Z&quot; Split Counter Rotate"
+       group="(From offset lines)">
+    <formation name="Ocean Waves RH BGGB">
+      <dancer gender="boy" x="-1.5" y="2" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="0" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="-2" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-4" angle="180"/>
+    </formation>
+    <path>
+      <move select="Counter Rotate Right 2 0" beats="3" scaleX="1.25" offsetY="2"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" beats="3" offsetX="-.5"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" beats="3" scaleX="1.25" offsetY="2"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" beats="3" offsetX="-.5"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset lines) &quot;Z&quot; Swap Around"
+       group="(From offset lines)">
+    <formation name="Ocean Waves RH BGGB">
+      <dancer gender="boy" x="-1.5" y="2" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="0" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="-2" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-4" angle="0"/>
+    </formation>
+    <path>
+      <move select="Flip Right"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Flip Right"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset lines) &quot;Z&quot; Walk and Dodge"
+       group="(From offset lines)">
+    <formation name="Ocean Waves RH BGGB">
+      <dancer gender="boy" x="-1.5" y="2" angle="0"/>
+      <dancer gender="girl" x="-1.5" y="0" angle="180"/>
+      <dancer gender="girl" x="-1.5" y="-2" angle="0"/>
+      <dancer gender="boy" x="-1.5" y="-4" angle="180"/>
+    </formation>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Dodge Right"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Dodge Right"/>
+    </path>
+  </tam>
+
+
+
+  <tam title="(From offset columns) &quot;Z&quot; Split Circulate"
+       group="(From offset columns)">
+    <formation name="Column RH GBGB">
+      <dancer gender="girl" x="-2" y="-1" angle="180"/>
+      <dancer gender="boy" x="0" y="-1" angle="180"/>
+      <dancer gender="girl" x="2" y="-1" angle="180"/>
+      <dancer gender="boy" x="4" y="-1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Flip Right" offsetX="2"/>
+    </path>
+    <path>
+      <move select="Forward 2" beats="3"/>
+    </path>
+    <path>
+      <move select="Flip Right" offsetX="2"/>
+    </path>
+    <path>
+      <move select="Forward 2" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset columns) &quot;Z&quot; Split Counter Rotate"
+       group="(From offset columns)">
+    <formation name="Column RH GBGB">
+      <dancer gender="girl" x="-2" y="-1" angle="180"/>
+      <dancer gender="boy" x="0" y="-1" angle="180"/>
+      <dancer gender="girl" x="2" y="-1" angle="180"/>
+      <dancer gender="boy" x="4" y="-1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Counter Rotate Right 0 -2" beats="3" offsetX="2" offsetY="-.5"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" beats="3" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" beats="3" offsetY="-2.5"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 2 0" beats="3" offsetY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset columns) &quot;Z&quot; Split Sidetrack"
+       group="(From offset columns)">
+    <formation name="Column RH GBGB">
+      <dancer gender="girl" x="-2" y="-1" angle="180"/>
+      <dancer gender="boy" x="0" y="-1" angle="180"/>
+      <dancer gender="girl" x="2" y="-1" angle="180"/>
+      <dancer gender="boy" x="4" y="-1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Quarter Right" offsetY=".5"/>
+      <move select="Counter Rotate Right 2 0" beats="3" offsetX=".5" offsetY="2"/>
+      <move select="Quarter Right" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY=".5"/>
+      <move select="Counter Rotate Right 0 -2" beats="3" offsetX="-.5"/>
+      <move select="Quarter Right" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" offsetY=".5"/>
+      <move select="Counter Rotate Right 2 0" beats="3" offsetX=".5" offsetY="2"/>
+      <move select="Quarter Right" offsetY=".5"/>
+    </path>
+    <path>
+      <move select="Quarter Left" offsetY=".5"/>
+      <move select="Counter Rotate Right 0 -2" beats="3" offsetX="-.5"/>
+      <move select="Quarter Right" offsetY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="(From offset columns) &quot;Z&quot; Walk and Dodge"
+       group="(From offset columns)">
+    <formation name="Column RH GBGB">
+      <dancer gender="girl" x="-2" y="-1" angle="180"/>
+      <dancer gender="boy" x="0" y="-1" angle="180"/>
+      <dancer gender="girl" x="2" y="-1" angle="180"/>
+      <dancer gender="boy" x="4" y="-1" angle="180"/>
+    </formation>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward 2"/>
+    </path>
+  </tam>
+
+</tamination>

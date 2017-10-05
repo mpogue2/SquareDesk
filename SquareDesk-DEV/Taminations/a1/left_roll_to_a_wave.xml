@@ -1,0 +1,328 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Left Roll to a Wave">
+
+  <tam title="Left Roll to a Wave"
+       from="Couples Facing Out"
+       formation="Couples Facing Out">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" offsetX="-2" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Right-Hand Box"
+       formation="Box RH">
+    <path>
+      <move select="Forward 2" beats="3" />
+    </path>
+    <path>
+      <move select="Run Left" beats="3" offsetX="-2" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Left-Hand Box"
+       formation="Box LH">
+    <path>
+      <move select="U-Turn Left" offsetX="-2" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="2" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave" from="Facing Couples" formation="Facing Couples">
+    <path>
+      <move select="Forward 2" beats="3" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY="2" />
+    </path>
+    <taminator>This is the same as Step to a Left-Hand Wave.</taminator>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Double Pass Thru"
+       formation="Double Pass Thru">
+    <path>
+      <move select="Forward" beats="3" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleY="2" />
+    </path>
+    <path>
+      <move select="Flip Left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Completed Double Pass Thru"
+       formation="Completed Double Pass Thru">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="4" scaleY="2" />
+    </path>
+    <path>
+      <move select="Forward" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Trade By"
+       formation="Trade By">
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" offsetX="-1" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" offsetX="-1" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Lines Facing Out"
+       formation="Lines Facing Out">
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Right-Hand Two-Faced Lines"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Extend Right" beats="4" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="4" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Left-Hand Two-Faced Lines"
+       formation="Two-Faced Lines LH">
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" offsetY=".5" />
+      <move select="Forward" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="4" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="4" scaleX="2" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Right-Hand Columns"
+       formation="Column RH GBGB">
+    <path>
+      <move select="Run Left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Forward" beats="2" />
+    </path>
+    <path>
+      <move select="Run Left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Forward" beats="2" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Left-Hand Columns"
+       formation="Column LH GBGB">
+    <path>
+      <move select="Extend Right" beats="3" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleY="2" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-1" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Right-Hand Waves"
+       formation="Ocean Waves RH BGBG">
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave"
+       from="Left-Hand Waves"
+       formation="Ocean Waves LH BGBG">
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave" from="Inverted Lines, Centers Facing"
+       formation="Inverted Lines Ends Facing Out">
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+  </tam>
+
+  <tam title="Left Roll to a Wave" from="Inverted Lines, Ends Facing"
+       formation="Inverted Lines Ends Facing In">
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="U-Turn Left" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Left Roll to a Wave"
+       from="Lines Facing Out"
+       formation="Lines Facing Out">
+    <path>
+      <move select="Belle Wheel" hands="gripleft" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Beau Wheel" hands="gripright" offsetX="-2" offsetY="1.5" />
+    </path>
+    <path>
+      <move select="Belle Wheel" hands="gripleft" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Beau Wheel" hands="gripright" offsetX="-2" offsetY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="As Couples Left Roll to a Wave"
+       from="Two-Faced Lines"
+       formation="Two-Faced Lines RH">
+    <path>
+      <move select="Extend Right" beats="3" hands="right" scaleX="2" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="3" hands="left" scaleX="2" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Belle Wheel" hands="gripleft" offsetX="-2" offsetY=".5" />
+    </path>
+    <path>
+      <move select="Beau Wheel" hands="gripright" offsetX="-2" offsetY="1.5" />
+    </path>
+  </tam>
+
+  <tam title="All 8 Left Roll to a Wave"
+       from="Couples Facing Out"
+       formation="Static Facing Out">
+    <path>
+      <move select="Run Left" beats="4" offsetX="-3" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-3" />
+    </path>
+    <path>
+      <move select="Run Left" beats="4" offsetX="-3" />
+    </path>
+    <path>
+      <move select="U-Turn Left" beats="4" offsetX="-3" />
+    </path>
+  </tam>
+</tamination>

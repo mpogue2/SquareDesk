@@ -9,6 +9,7 @@ class SquareDesk_iofull;
 class MainWindow;
 
 
+
 class SDThread : public QThread {
     Q_OBJECT
     
@@ -24,6 +25,12 @@ public:
     void finishAndShutdownSD();
     void unlock();
 
+    enum CurrentInputState {
+        InputStateNormal,
+        InputStateYesNo,
+        InputStateText };
+    CurrentInputState currentInputState();
+
 signals:
     void on_sd_update_status_bar(QString s);
     void on_sd_awaiting_input();
@@ -32,7 +39,8 @@ signals:
     void on_sd_set_matcher_options(QStringList, QStringList);
     void on_sd_set_pick_string(QString);
     void on_sd_dispose_of_abbreviation(QString);
-
+    void do_message_box_question(QString title, QString message);
+    void do_message_box_get_string(QString title, QString message);
 
 private:
     MainWindow *mw;

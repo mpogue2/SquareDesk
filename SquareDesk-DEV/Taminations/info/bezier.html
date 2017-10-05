@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+
+    Copyright 2015 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="image/x-icon" href="../favicon.ico" rel="icon" />
+<link href="../src/tamination.css" type="text/css" rel="stylesheet" />
+<link href="../ext/jquery/jquery.ui/jquery-ui-1.10.4.custom/css/theme/jquery-ui-1.10.4.custom.css" rel="stylesheet"/>
+
+<script src="../ext/require.js" data-main="../src/config"></script>
+
+<script src="../src/beziertool.js" type="text/javascript"></script>
+<style>
+  .BezierSpinner { width: 40px; }
+  .BeatsSpinner { width: 40px; }
+  td { padding-right: 10px; }
+</style>
+<title>Bezier Design Tool</title>
+
+</head>
+<body><div class="definition">
+<h2>Bezier Design Tool</h2>
+
+<p>
+You can use this tool to write your own movement.  See the
+<a href="movements.html">page on movements</a> for more info.
+Adjust the movement with the inputs on the left.
+Then view the result with the animation.
+Since there's just one dancer you will not be able to see any
+difference changing the hands value, it's there for the XML below, which
+is updated as the values are changed.
+</p>
+
+<p>
+<code id="movement">
+Movement
+</code>
+</p>
+
+<div id="controls">
+<label for="beats">beats:</label>
+<input class="BeatsSpinner" id="beats" name="value" value="1.0"/>
+Hands: <select id="hands">
+  <option value="none">None</option>
+  <option value="left">Left</option>
+  <option value="right">Right</option>
+  <option value="both">Both</option>
+  <option value="gripleft">Grip Left</option>
+  <option value="gripright">Grip Right</option>
+  <option value="gripboth">Grip Both</option>
+</select>
+<table>
+<tr><td colspan="4">Translation Bezier</td></tr>
+  <tr><td>x1:</td><td>0</td><td>y1:</td><td>0</td></tr>
+  <tr>
+    <td><label for="cx1">cx1:</label></td>
+    <td><input class="BezierSpinner" id="cx1" name="value" value="0.0"/></td>
+    <td><label for="cy1">cy1:</label></td>
+    <td><input class="BezierSpinner" id="cy1" name="value" value="0.0"/></td>
+  </tr><tr>
+    <td><label for="cx2">cx2:</label></td>
+    <td><input class="BezierSpinner" id="cx2" name="value" value="0.0"/></td>
+    <td><label for="cy2">cy2:</label></td>
+    <td><input class="BezierSpinner" id="cy2" name="value" value="0.0"/></td>
+  </tr><tr>
+    <td><label for="x2">x2:</label></td>
+    <td><input class="BezierSpinner" id="x2" name="value" value="0.0"/></td>
+    <td><label for="y2">y2:</label></td>
+    <td><input class="BezierSpinner" id="y2" name="value" value="0.0"/></td>
+</tr>
+
+<tr><td colspan="4"><h2> </h2></td></tr>
+
+<tr><td colspan="4">Rotation Bezier</td></tr>
+<tr><td colspan="4"><input id="checkRotation" type="checkbox"/>Same as Translation Bezier</td></tr>
+  <tr><td>x3:</td><td>0</td><td>y3:</td><td>0</td></tr>
+  <tr>
+    <td><label for="cx3">cx3:</label></td>
+    <td><input class="BezierSpinner" id="cx3" name="value" value="0.0"/></td>
+    <td>cy3:</td><td>0</td>
+  </tr><tr>
+    <td><label for="cx4">cx4:</label></td>
+    <td><input class="BezierSpinner" id="cx4" name="value" value="0.0"/></td>
+    <td><label for="cy4">cy4:</label></td>
+    <td><input class="BezierSpinner" id="cy4" name="value" value="0.0"/></td>
+  </tr><tr>
+    <td><label for="x4">x4:</label></td>
+    <td><input class="BezierSpinner" id="x4" name="value" value="0.0"/></td>
+    <td><label for="y4">y4:</label></td>
+    <td><input class="BezierSpinner" id="y4" name="value" value="0.0"/></td>
+</tr>
+</table>
+<p>
+<br/><br/>
+<input type="button" value="Load" id="load"/> movement from <select id="movelist">
+</select>
+</p>
+</div>
+
+</div></body>
+</html>

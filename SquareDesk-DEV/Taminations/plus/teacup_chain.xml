@@ -1,0 +1,382 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Teacup Chain">
+
+  <tam title="Teacup Chain"
+       from="Static Square"
+       formation="Static Square"
+       fractions="7;7;10" difficulty="1">
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-.75" offsetY="-1" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Flip Right" beats="4.5" scaleX=".75" scaleY=".75" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="7.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" beats="2.5" offsetY=".75" />
+      <move select="U-Turn Left" beats="2" offsetY="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Pull Left" beats="2" scaleX="3" scaleY="1.75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Pull Right" beats="2.5" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="2" scaleX="3.75" scaleY="2.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Dodge Right" beats="5" scaleX=".875" scaleY=".875" />
+      <move select="Stand" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" beats="6" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Right" beats="3" offsetX=".75" offsetY="-.75" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Left" beats="3" offsetX="-.75" offsetY="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+  </tam>
+
+  <tam title="Teacup Chain" from="Normal Lines"
+       formation="Normal Lines" fractions="10;8.5;13" difficulty="3">
+    <path>
+      <move select="Stand" beats="4"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Lead Right" scaleX=".75" scaleY=".75"/>
+      <move select="Stand" beats="4"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Run Right" beats="7" scaleX=".5" scaleY=".5" offsetX=".75" offsetY=".25"/>
+      <move select="Swing Left" scaleX=".75" scaleY=".75"/>
+      <move select="Dodge Left" beats="6" scaleY=".75"/>
+      <move select="Quarter Left" hands="right"/>
+      <move select="U-Turn Left" beats="3" hands="right"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".25"/>
+      <move select="Swing Left" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="4" scaleX="4" scaleY=".5"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="2" scaleX="2.25" scaleY=".5"/>
+      <move select="Cast Left" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.75"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="3" scaleX="2.75" scaleY="1.75"/>
+      <move select="Hinge Left" scaleX="1.5" scaleY="1.5"/>
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="1.75" />
+    </path>
+    <path>
+      <move select="Dodge Right" scaleY=".5" beats="7"/>
+      <move select="Swing Left" scaleX=".75" scaleY=".75"/>
+      <move select="Run Right" beats="8" scaleX=".5" scaleY=".5"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Lead Right" beats="4.5" scaleX=".75" scaleY=".75"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Quarter Left" beats="6" offsetX="-.75" offsetY="-.75"/>
+      <move select="U-Turn Left" beats="3" hands="right"/>
+    </path>
+    <path>
+      <move select="Extend Left" beats="4" scaleX="4" scaleY="1.5"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="2" scaleX="2.25" scaleY=".5"/>
+      <move select="Cast Left" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY="1.75"/>
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="3" scaleX="2.75" scaleY="1.75"/>
+      <move select="Swing Left" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="4" scaleX="3" scaleY="2.75"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Lead Left" beats="2" scaleX=".5" scaleY="1.25"/>
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="1.75" />
+    </path>
+  </tam>
+
+  <tam title="All Ladies Center, Teacup Chain"
+       from="Static Square"
+       formation="Static Square"
+       fractions="7;7;10" difficulty="2">
+    <path>
+      <move select="Dodge Right" beats="5" scaleX=".875" scaleY=".875" />
+      <move select="Stand" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="3" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Flip Right" beats="3" scaleY=".75" />
+      <move select="Stand" beats="5.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Quarter Left" beats="2" offsetX="-.75" offsetY="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Pull Left" beats="2" scaleX="3" scaleY="1.75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Pull Right" beats="2.5" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="3" scaleX="3.75" scaleY="2.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Dodge Right" beats="5" scaleX=".875" scaleY=".875" />
+      <move select="Stand" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="3" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Flip Right" beats="3" scaleY=".75" />
+      <move select="Stand" beats="5.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75"/>
+      <move select="Quarter Left" beats="2" offsetX="-.75" offsetY="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Pull Left" beats="2" scaleX="3" scaleY="1.75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Pull Right" beats="2.5" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="3" scaleX="3.75" scaleY="2.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+  </tam>
+
+  <tam title="All Ladies Right, Teacup Chain"
+       from="Static Square"
+       formation="Static Square"
+       fractions="7;7;10" difficulty="2">
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-.75" offsetY="-1" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Flip Right" beats="4.5" scaleX=".75" scaleY=".75" />
+      <move select="Stand" beats="4"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" beats="2.5" offsetY=".75" />
+      <move select="Stand" beats="1"/>
+      <move select="U-Turn Left" beats="2" offsetY="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Quarter Left" beats="2" offsetX="-.75" offsetY="-1" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Flip Right" beats="4.5" scaleX=".75" scaleY=".75" />
+      <move select="Stand" beats="4"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" beats="2.5" offsetY=".75" />
+      <move select="Stand" beats="1"/>
+      <move select="U-Turn Left" beats="2" offsetY="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.25" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="3" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+  </tam>
+
+  <tam title="Beer Mug Chain"
+       from="Static Square"
+       formation="Static Square"
+       fractions="7;7;10" difficulty="3">
+    <path>
+      <move select="Pull Right" beats="2" scaleX="3" scaleY="1.75" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+      <move select="Pull Left" beats="2.5" scaleX="3" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Lead Left" beats="2" scaleX="3.75" scaleY="2.25" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Beau Reverse Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-.75" offsetY="1" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Flip Left" beats="4.5" scaleX=".75" scaleY=".75" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" beats="7.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="2.5" offsetY="-.75" />
+      <move select="U-Turn Right" beats="2" offsetY=".75" />
+      <move select="Belle Reverse Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.25" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Beau Reverse Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Dodge Left" beats="5" scaleX=".875" scaleY=".875" />
+      <move select="Stand" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="6" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Left" beats="3" offsetX=".75" offsetY=".75" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Right" beats="3" offsetX="-.75" offsetY=".75" />
+      <move select="Belle Reverse Wheel" scaleY=".875" />
+    </path>
+    <taminator>This extension is the mirror of the Teacup Chain.  Typically called as
+    &quot;Head Men Center, Side Men to the Left for a Beer Mug Chain&quot;.
+    Note that all start with the left hand, and finish with a reverse wheel around
+    or reverse courtesy turn.
+    </taminator>
+  </tam>
+
+  <tam title="Tea Mug Chain"
+       from="Static Square"
+       formation="Static Square"
+       fractions="7;7;10" difficulty="3">
+    <path>
+      <move select="Quarter Right" beats="2" offsetX="-.75" offsetY="-1" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="4.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Right" beats="7.5" offsetY="-1.5"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Right" beats="2.5" offsetY="-.75" />
+      <move select="Quarter Left" beats="2" offsetX="-.75" />
+      <move select="Beau Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Pull Left" beats="2" scaleX="3" scaleY="1.75" />
+      <move select="Hinge Right" scaleX=".75" scaleY=".75" />
+      <move select="Pull Right" beats="2.5" scaleX="3" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Lead Right" beats="2" scaleX="3.75" scaleY="2.25" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Belle Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.25" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".75" scaleY=".75" />
+      <move select="Extend Right" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Hinge Left" scaleX=".75" scaleY=".75" />
+      <move select="Extend Left" beats="2" scaleX="3" scaleY="1.5" />
+      <move select="Beau Reverse Wheel" scaleY=".875" />
+    </path>
+    <path>
+      <move select="Dodge Left" beats="5" scaleX=".125" scaleY=".125" />
+      <move select="Stand" />
+      <move select="Swing Left" scaleX=".75" scaleY=".75" />
+      <move select="Flip Left" beats="6" scaleY=".75" />
+      <move select="Cast Left" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Left" beats="3" offsetX="-.75" offsetY=".75" />
+      <move select="Cast Right" scaleX=".75" scaleY=".75" />
+      <move select="Quarter Left" beats="3" offsetX=".75" offsetY="-.75" />
+      <move select="Belle Reverse Wheel" scaleY=".875" />
+    </path>
+    <taminator>
+    Here the heads start a Teacup Chain, while the sides start a Beer Mug Chain.
+    This is more challenging for the non-designated dancers, who need to turn
+    both belles and beaus.  Note that the head boys need to turn dancers
+    coming from both the left and the right, and the side girls need to send
+    dancers to both the left and right.
+    This might be called as &quot;Head Ladies Center, Side Men Left for a
+    Tea Mug Chain&quot;.
+    </taminator>
+
+  </tam>
+
+
+</tamination>

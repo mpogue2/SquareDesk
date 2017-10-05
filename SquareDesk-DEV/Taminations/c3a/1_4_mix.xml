@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="1/4 Mix">
+
+  <tam title="1/4 Mix" from="Right-Hand Box" formation="Box RH Compact" parts="1.5;4">
+    <path numbers="1 4">
+      <move select="Hinge Right" offsetX="-0.5"/>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path numbers="2 3">
+      <move select="Hinge Right" offsetX="0.5"/>
+      <move select="Dodge Right" beats="4"/>
+      <move select="Swing Right"/>
+    </path>
+  </tam>
+
+  <tam title="1/4 Mix" from="Right-Hand Waves" formation="Ocean Waves RH BGBG"
+       parts="1.5;4">
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Dodge Right" beats="4"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Dodge Right" beats="4"/>
+      <move select="Swing Right"/>
+    </path>
+  </tam>
+
+  <tam title="1/4 Mix" from="Left-Hand Waves" formation="Ocean Waves LH BGGB"
+       parts="1.5;4">
+    <path>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Dodge Right" beats="4"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="1/4 Mix" from="Right-Hand Columns" formation="Column RH GBGB"
+       parts="1.5;3">
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Dodge Right" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Run Left"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Dodge Right" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Run Left"/>
+    </path>
+  </tam>
+
+  <tam title="1/4 Mix" from="Right-Hand Diamonds"
+       formation="Diamonds RH Girl Points" parts="1.5;4">
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Stand" beats="1.5"/>
+      <move select="Dodge Right" beats="4"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Stand" beats="1.5"/>
+      <move select="Dodge Right" beats="4"/>
+      <move select="Swing Right"/>
+    </path>
+  </tam>
+
+  <tam title="1/4 Mix" from="Alamo Ring" formation="Alamo Wave" parts="1.5;4">
+    <path>
+      <move select="Sxtnth Left" />
+      <move select="Hinge Right"/>
+      <move select="Run Left" beats="4" scaleY="2.25"/>
+    </path>
+    <path>
+      <move select="Sxtnth Right" />
+      <move select="Hinge Right"/>
+      <move select="Dodge Right" beats="4" scaleY="1.2"/>
+      <move select="Swing Right"/>
+    </path>
+    <path>
+      <move select="Sxtnth Left" />
+      <move select="Hinge Right"/>
+      <move select="Run Left" beats="4" scaleY="2.25"/>
+    </path>
+    <path>
+      <move select="Sxtnth Right" />
+      <move select="Hinge Right"/>
+      <move select="Dodge Right" beats="4" scaleY="1.2"/>
+      <move select="Swing Right"/>
+    </path>
+  </tam>
+
+
+  <tam title="Left 1/4 Mix" from="Left-Hand Box" formation="Box LH" parts="1.5;4">
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Dodge Left" beats="4"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Left 1/4 Mix" from="Right-Hand Waves" formation="Ocean Waves RH BGGB"
+       parts="1.5;4">
+    <path>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Dodge Left" beats="4"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="Left 1/4 Mix" from="Left-Hand Waves" formation="Ocean Waves LH BGBG"
+       parts="1.5;4">
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Dodge Left" beats="4"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Dodge Left" beats="4"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Right" beats="4" scaleY="2"/>
+    </path>
+  </tam>
+
+  <tam title="Left 1/4 Mix" from="Left-Hand Diamonds"
+       formation="Diamonds LH Girl Points" parts="1.5;4">
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Stand" beats="1.5"/>
+      <move select="Dodge Left" beats="4"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Hinge Left"/>
+      <move select="Run Left" beats="4" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Stand" beats="1.5"/>
+      <move select="Dodge Left" beats="4"/>
+      <move select="Swing Left"/>
+    </path>
+  </tam>
+
+
+  <tam title="Grand 1/4 Mix" formation="Column RH GBGB" group=" " parts="1.5;3">
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Dodge Right" scaleY=".5"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Run Left"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Run Left"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Right" scaleX=".5"/>
+      <move select="Run Left"/>
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Grand Left 1/4 Mix" formation="Column LH GBGB" group=" " parts="1.5;3">
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Run Right"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Run Right"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Run Right"/>
+    </path>
+    <path>
+      <move select="Hinge Left" scaleX=".5"/>
+      <move select="Dodge Left" scaleY=".5"/>
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="As Couples 1/4 Mix" formation="Two-Faced Lines RH"
+       group="  " parts="2;3">
+    <path>
+      <move select="Hinge Right" beats="2" scaleX="1.5" scaleY="3"/>
+      <move select="Run Left" beats="6" hands="gripright" scaleX="2" scaleY="1.5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="2" hands="both" scaleX=".5"/>
+      <move select="Run Left" beats="6" hands="gripleft" scaleX="3" scaleY="2.5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="2" hands="both" scaleX=".5"/>
+      <move select="Dodge Right" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+    </path>
+    <path>
+      <move select="Hinge Right" beats="2" scaleX="1.5" scaleY="3"/>
+      <move select="Dodge Right" />
+      <move select="Swing Right" scaleX="1.5" scaleY="1.5" />
+    </path>
+  </tam>
+
+</tamination>

@@ -232,7 +232,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
-    macUtils.disableScreensaver();
+    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
 #elif defined(Q_OS_WIN)
 #pragma comment(lib, "user32.lib")
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
@@ -2330,6 +2330,13 @@ void MainWindow::on_actionLoop_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_UIUpdateTimerTick(void)
 {
+
+#if defined(Q_OS_MAC)
+    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
+        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
+    }
+#endif
+
     Info_Seekbar(true);
 
     // update the session coloring analog clock

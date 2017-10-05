@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Cross Ramble">
+
+  <tam title="Cross Ramble" from="3/4 Tag" formation="3/4 Tag" parts="4">
+    <path>
+      <move select="Lead Left" beats="1" scaleX=".5" />
+      <move select="Lead Left" scaleX="3" scaleY="2.5" beats="3" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Quarter Left" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Flip Right" beats="4" scaleY="2" offsetX="-2" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Quarter Right" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Run Right" beats="4" scaleY="2" offsetX="1" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Quarter Right" offsetX="1" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Flip Left" beats="4" offsetX="1" />
+      <move select="Extend Left" scaleY=".5" />
+      <move select="Quarter Left" offsetX="1" offsetY="-.5" />
+    </path>
+  </tam>
+
+</tamination>

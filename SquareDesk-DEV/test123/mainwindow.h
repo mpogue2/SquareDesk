@@ -366,6 +366,9 @@ public:
     void initialize_internal_sd_tab();
     
 private:
+
+    unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
+
     void saveLyrics();
     void saveLyricsAs();
     void saveSequenceAs();

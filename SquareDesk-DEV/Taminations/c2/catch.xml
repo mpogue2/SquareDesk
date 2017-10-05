@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Catch 1, 2, 3, 4">
+
+  <tam title="Catch 1"
+       from="Facing Couples"
+       formation="Facing Couples" group=" "
+       parts="2;3" >
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY="1.5" />
+      <move select="Stand" beats="3"/>
+      <move select="Flip Right" beats="3" offsetX="2" offsetY=".5" />
+    </path>
+    <path numbers="2 3">
+      <move select="Forward 2" />
+      <move select="Swing Left" />
+      <move select="Forward 2" beats="3" />
+    </path>
+  </tam>
+
+  <tam title="Catch 2"
+       from="Facing Couples"
+       formation="Facing Couples" group=" "
+       parts="4;3" >
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleX=".5" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5" />
+      <move select="Extend Left" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path numbers="2 3">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="3"/>
+      <move select="Flip Left" beats="3" offsetX="2" offsetY="-1.5" />
+    </path>
+  </tam>
+
+  <tam title="Catch 3"
+       from="Facing Couples"
+       formation="Facing Couples" group=" "
+       parts="6;3" >
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleX=".5" scaleY="1.5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="3"/>
+      <move select="Flip Right" beats="3" offsetX="2" offsetY="1.5" />
+    </path>
+    <path numbers="2 3">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX=".5" scaleY="1.5" />
+      <move select="Swing Left" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Right" beats="3" scaleX="2" scaleY=".5"/>
+    </path>
+  </tam>
+
+  <tam title="Catch 4"
+       from="Facing Couples"
+       formation="Facing Couples" group=" "
+       parts="8;3" >
+    <path numbers="1 4">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleX=".5" scaleY="1.5" />
+      <move select="Lead Right" beats="2" scaleX="1.5" scaleY=".5" />
+      <move select="Lead Right" beats="2" scaleX=".5" scaleY="1.5" />
+      <move select="Swing Right" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="3" scaleX="2" scaleY=".5" />
+    </path>
+    <path numbers="2 3">
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY=".5" />
+      <move select="Lead Left" beats="2" scaleX=".5" scaleY="1.5" />
+      <move select="Lead Left" beats="2" scaleX="1.5" scaleY=".5" />
+      <move select="Stand" beats="3"/>
+      <move select="Flip Left" beats="3" offsetX="2" offsetY="-1.5" />
+    </path>
+  </tam>
+  
+</tamination>

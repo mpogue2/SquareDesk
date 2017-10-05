@@ -4,8 +4,6 @@
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
-#include <QInputDialog>
-#include <QLineEdit>
  
 
 
@@ -15,7 +13,11 @@ public:
     SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
         : dance_program((dance_level)(0)), sdthread(thread), mw(mw), waitCondition(waitCondition),
           WaitingForCommand(false), mutexMessageLoop(mutex),
-          answerYesToEverything(false), seenAFormation(false)
+          answerYesToEverything(false), seenAFormation(false),
+          currentInputState(SDThread::InputStateNormal),
+          currentInputText(),
+          currentInputYesNo(false)
+          
     {
     }
     
@@ -66,6 +68,7 @@ public :
 
     
 private:
+    void add_new_line(const QString &the_line, uint32 drawing_picture = 0);
     void EnterMessageLoop();
     dance_level dance_program;
 
@@ -85,11 +88,22 @@ private:
     bool answerYesToEverything;
     bool seenAFormation;
     
+    SDThread::CurrentInputState currentInputState;
+    QString currentInputText;
+    bool currentInputYesNo;
+
     void ShowListBox(int);
     void UpdateStatusBar(const char *);
     bool do_popup(int nWhichOne);
 
 };
+
+
+
+SDThread::CurrentInputState SDThread::currentInputState()
+{
+    return iofull->currentInputState;
+}
 
 void SDThread::on_user_input(QString str)
 {
@@ -104,32 +118,50 @@ void SquareDesk_iofull::add_string_input(const char *s)
     // variable wait, because that's when the mutex is unlocked.
     
     QMutexLocker locker(mutexMessageLoop);
-    matcher_class &matcher = *gg77->matcher_p;
+    qDebug() << "Add string input (" << currentInputState << "): " << s;
 
-    qDebug() << "Matching: " << s;
-    matcher.copy_to_user_input(s);
-    int matches = matcher.match_user_input(nLastOne, false, false, false);
 
-    if ((matches == 1 || matches - matcher.m_yielding_matches == 1 || matcher.m_final_result.exact) &&
-        ((!matcher.m_final_result.match.packed_next_conc_or_subcall &&
-          !matcher.m_final_result.match.packed_secondary_subcall) ||
-         matcher.m_final_result.match.kind == ui_call_select ||
-         matcher.m_final_result.match.kind == ui_concept_select))
+    switch (currentInputState)
     {
-        WaitingForCommand = false;
+    case SDThread::InputStateYesNo:
+        currentInputYesNo = 'Y' == *s || 'y' == *s;
         waitCondition->wakeAll();
-    }
-    else
-    {
-        qDebug() << "No Match: " << s;
-        qDebug() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
-        qDebug() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
-        qDebug() << "  matcher.m_final_result.match.packed_next_conc_or_subcall: " << matcher.m_final_result.match.packed_next_conc_or_subcall;
-        qDebug() << "  matcher.m_final_result.match.packed_secondary_subcall: " << matcher.m_final_result.match.packed_secondary_subcall;
-        qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
-        qDebug() << "  ui_call_select: " << ui_call_select;
-        qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
-        qDebug() << "  ui_concept_select: " << ui_concept_select;
+        break;
+    case SDThread::InputStateText:
+        currentInputYesNo = 0 != *s;
+        currentInputText = s;
+        waitCondition->wakeAll();
+        break;
+    default:
+        qDebug() << "Unknown input state: " << currentInputState;
+    case SDThread::InputStateNormal:
+        matcher_class &matcher = *gg77->matcher_p;
+
+        qDebug() << "Matching: " << s;
+        matcher.copy_to_user_input(s);
+        int matches = matcher.match_user_input(nLastOne, false, false, false);
+
+        if ((matches == 1 || matches - matcher.m_yielding_matches == 1 || matcher.m_final_result.exact) &&
+            ((!matcher.m_final_result.match.packed_next_conc_or_subcall &&
+              !matcher.m_final_result.match.packed_secondary_subcall) ||
+             matcher.m_final_result.match.kind == ui_call_select ||
+             matcher.m_final_result.match.kind == ui_concept_select))
+        {
+            WaitingForCommand = false;
+            waitCondition->wakeAll();
+        }
+        else
+        {
+            qDebug() << "No Match: " << s;
+            qDebug() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
+            qDebug() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
+            qDebug() << "  matcher.m_final_result.match.packed_next_conc_or_subcall: " << matcher.m_final_result.match.packed_next_conc_or_subcall;
+            qDebug() << "  matcher.m_final_result.match.packed_secondary_subcall: " << matcher.m_final_result.match.packed_secondary_subcall;
+            qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
+            qDebug() << "  ui_call_select: " << ui_call_select;
+            qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
+            qDebug() << "  ui_concept_select: " << ui_concept_select;
+        }
     }
 
     //See the    use_computed_match: case
@@ -162,13 +194,12 @@ int SquareDesk_iofull::do_abort_popup()
 {
     if (answerYesToEverything)
         return POPUP_ACCEPT;
-
-    QMessageBox::StandardButton reply;
-
-    reply = QMessageBox::question(mw, "Confirmation",
-                                  "The current sequence will be aborted. Do you really want to abort it?",
-                                  QMessageBox::Yes | QMessageBox::No);
-    return (reply == QMessageBox::Yes) ? POPUP_ACCEPT : POPUP_DECLINE;
+    yesnoconfirm("Confirmation",
+                 "The current sequence will be aborted. Do you really want to abort it? (Y/N):",
+                 NULL,
+                 false, false);
+    
+    return currentInputYesNo ? POPUP_ACCEPT : POPUP_DECLINE;
 }
 
 void SquareDesk_iofull::prepare_for_listing()
@@ -183,6 +214,12 @@ void SquareDesk_iofull::set_window_title(char s[])
     emit sdthread->on_sd_set_window_title(QString(s));
 }
 
+void SquareDesk_iofull::add_new_line(const QString &the_line, uint32 drawing_picture)
+{
+    if (drawing_picture)
+        seenAFormation = true;
+    emit sdthread->on_sd_add_new_line(the_line, drawing_picture);
+}
 void SquareDesk_iofull::add_new_line(const char the_line[], uint32 drawing_picture)
 {
     if (drawing_picture)
@@ -333,8 +370,8 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
                 dance_levels.append(QString("%1").arg(-1));
             }
         }
-        emit sdthread->on_sd_set_matcher_options(options, dance_levels);
-    }
+        emit sdthread->on_sd_set_matcher_options(options, dance_levels); 
+   }
 }
 
 
@@ -396,7 +433,7 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
                                                  Cstring /* seed */, char *dest)
 {
     QString prompt;
-//    qDebug() << "SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,";
+    qDebug() << "SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,";
     if (prompt1 && prompt1[0] && prompt1[0] == '*')
     {
         prompt = QString(prompt1 + 1);
@@ -414,16 +451,31 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
     {
         prompt = prompt2;
     }
-    bool ok = false;
-    QString sdest = QInputDialog::getText(mw, QString(final_inline_prompt), prompt,
-                                            QLineEdit::Normal,
-                                            /* const QString &text = */ QString(),
-                                            &ok);
 
+    
+    QStringList options;
+    QStringList dance_levels; 
+    emit sdthread->on_sd_set_matcher_options(options, dance_levels);
+    add_new_line(prompt + "\n" + QString(final_inline_prompt));
+    
+    currentInputState = SDThread::InputStateText;
+    emit sdthread->on_sd_awaiting_input();
+    qDebug() << "get_popup_string waiting on input";
+    waitCondition->wait(mutexMessageLoop);
+    qDebug() << "get_popup_string got input " << currentInputText;
+
+    if (currentInputState != SDThread::InputStateText)
+    {
+        qDebug() << "Text state issue" << currentInputState;
+    }
+    
+    currentInputState = SDThread::InputStateNormal;
+
+    QString sdest = currentInputText;
     memset(dest, '\0', MAX_TEXT_LINE_LENGTH);
     strncpy(dest, sdest.toStdString().c_str(), MAX_TEXT_LINE_LENGTH - 1);
     
-    return ok ? POPUP_ACCEPT_WITH_STRING : POPUP_DECLINE;
+    return currentInputYesNo ? POPUP_ACCEPT_WITH_STRING : POPUP_DECLINE;
 }    
 
 
@@ -500,11 +552,29 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
     }
 
     prompt += line2;
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(mw, QString(title), prompt,
-                                  QMessageBox::Yes | QMessageBox::No);
+    prompt += " (Y/N):";
+    currentInputState = SDThread::InputStateYesNo;
+    QStringList options;
+    QStringList dance_levels; 
+    options.append("yes");
+    dance_levels.append("-1");
+    options.append("no");
+    dance_levels.append("-1");
 
-    return (reply == QMessageBox::Yes) ? POPUP_ACCEPT : POPUP_DECLINE;
+    emit sdthread->on_sd_set_matcher_options(options, dance_levels);
+    add_new_line(QString(title) + "\n" +  prompt);
+    emit sdthread->on_sd_awaiting_input();
+    qDebug() << "yesnoconform awaiting input " << currentInputYesNo;
+    waitCondition->wait(mutexMessageLoop);
+    qDebug() << "yesnoconform got input " << currentInputYesNo;
+
+    if (currentInputState != SDThread::InputStateYesNo)
+    {
+        qDebug() << "YesNo state issue" << currentInputState;
+    }
+    currentInputState = SDThread::InputStateNormal;
+
+    return currentInputYesNo ? POPUP_ACCEPT : POPUP_DECLINE;
 }
 
 void SquareDesk_iofull::set_pick_string(Cstring string)
@@ -515,7 +585,34 @@ void SquareDesk_iofull::set_pick_string(Cstring string)
 
 uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
 {
-    qDebug() << "SquareDesk_iofull::get_one_number(matcher_class &matcher);";
+    QStringList options;
+    QStringList dance_levels;
+    for (int i = 1; 0 <= 36; ++i)
+    {
+        options.append(QString("%1").arg(i));
+        dance_levels.append("-1");
+    }
+    
+    emit sdthread->on_sd_set_matcher_options(options, dance_levels);
+    add_new_line("How many? (Type a number between 0 and 36):");
+    currentInputState = SDThread::InputStateText;
+    emit sdthread->on_sd_awaiting_input();
+    qDebug() << "get_popup_string waiting on input";
+    waitCondition->wait(mutexMessageLoop);
+    qDebug() << "get_popup_string got input " << currentInputText;
+
+    if (currentInputState != SDThread::InputStateText)
+    {
+        qDebug() << "Text state issue" << currentInputState;
+    }
+    
+    currentInputState = SDThread::InputStateNormal;
+    if (!currentInputYesNo) return ~0U;
+    else {
+        return currentInputText.toInt();
+    }
+
+
     return true;
 }
 
@@ -730,6 +827,11 @@ void SDThread::finishAndShutdownSD()
 {
     iofull->answerYesToEverything = true;
     abort = true;
+    while (iofull->currentInputState != InputStateText)
+    {
+        eventLoopMutex.lock();
+        on_user_input("Yes");
+    }
     if (!iofull->seenAFormation)
     {
         on_user_input("heads start");

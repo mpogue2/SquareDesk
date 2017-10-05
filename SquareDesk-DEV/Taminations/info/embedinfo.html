@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link type="image/x-icon" href="../favicon.ico" rel="icon" />
+<link href="../src/tamination.css" type="text/css" rel="stylesheet" />
+<link href="../src/jquery-ui.css" rel="stylesheet" />
+
+<script src="../ext/require.js" data-main="../src/config"></script>
+
+<title>Put Taminations on Your Web Site</title>
+</head>
+<body><div class="definition">
+<table><tr valign="top"><td width="40%">
+<h2>How to Put Taminations on Your Web Site</h2>
+<p>
+Now you can put any Tamination on your web site.
+To the right here is an example.  The animation is contained inside an iframe on your web page.
+The HTML code for this example is<br/>
+<code>&lt;iframe src=&quot;http://www.tamtwirlers.org/tamination/embed.html?b1/circulate.BoxCirculatefromLeftHandBox&amp;play&amp;loop&quot;
+ width=&quot;300&quot; height=&quot;400&quot;&gt;&lt;/iframe&gt;</code></p>
+<p>
+The components of the iframe are:</p>
+<ol><li><code>src=&quot;http://www.tamtwirlers.org/tamination/embed.html</code><br/>
+        This loads all the Tamination code including the Java applet.</li>
+    <li><code>?b1</code><br/>The call level - b1, b2, ms, plus, a1, a2, c1, c2, or c3a.</li>
+    <li><code>/circulate</code><br/>The page with the animation,
+    <span style="text-decoration:underline">without</span> the trailing .html.</li>
+    <li><code>.BoxCirculatefromLeftHandBox</code><br/>
+        The specific animation to show.  This follows the same rules as <a href="howtolink.html">linking</a>.</li>
+    <li>Options <code>&amp;play</code> and <code>&amp;loop</code><br/>
+    which tell the code to start the animation and replay
+        it indefinitely.  Other options are <ul style="list-style-type:none">
+        <li><code>&amp;grid</code> to show the grid</li>
+        <li><code>&amp;numbers</code> to number the dancers or <code>&amp;couples</code> to number couples</li>
+        <li><code>&amp;paths</code> to show the dancer paths</li>
+        <li><code>&amp;speed=slow</code> or <code>fast</code> to set the animation rate</li>
+        <li><code>&amp;phantoms</code> to show phantom dancers for the
+        challenge level calls that use them</li>
+        <li><code>&amp;hexagon</code> to show the hexagon version.</li></ul>
+      Options can be in any order.</li>
+     <li><code>width="300"</code> and <code>height="400"</code><br/>
+        Size of the iframe.  The animation will be fitted to these dimensions.
+        For a square dance floor, use height = width + 100. </li>
+</ol>
+
+</td><td>
+<iframe src="../embed.html?ms/circulate.BoxCirculatefromLeftHandBox&play&loop" width="300" height="400"></iframe>
+</td></tr></table>
+</div></body>
+</html>

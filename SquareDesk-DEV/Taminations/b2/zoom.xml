@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Zoom">
+
+  <tam title="Zoom"
+       from="Right-Hand Box"
+       formation="Box RH"
+       fractions="3" difficulty="2">
+    <path>
+      <move select="Forward 4" beats="6" />
+    </path>
+    <path>
+      <move select="Run Left" offsetX="-2" />
+      <move select="Run Left" offsetX="2" />
+    </path>
+  </tam>
+
+  <tam title="Zoom"
+       from="Left-Hand Box"
+       formation="Box LH"
+       fractions="3" difficulty="2">
+    <path>
+      <move select="Run Right" offsetX="-2" />
+      <move select="Run Right" offsetX="2" />
+    </path>
+    <path>
+      <move select="Forward 4" beats="6" />
+    </path>
+  </tam>
+
+  <tam title="Zoom"
+       from="Completed Double Pass Thru"
+       formation="Completed Double Pass Thru"
+       fractions="2" difficulty="1">
+    <path>
+      <move select="Run Right" beats="2" offsetX="-1" />
+      <move select="Run Right" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Run Left" beats="2" offsetX="-1" />
+      <move select="Run Left" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" hands="left" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" hands="right" />
+    </path>
+    <taminator>
+    One analogy of Zoom is two people on a tandem bicycle changing seats.
+    </taminator>
+  </tam>
+
+  <tam title="Zoom"
+       from="Double Pass Thru"
+       formation="Double Pass Thru"
+       fractions="2" difficulty="2">
+    <path>
+      <move select="Forward 2" beats="4" hands="right" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" hands="left" />
+    </path>
+    <path>
+      <move select="Run Left" beats="2" offsetX="-1" />
+      <move select="Run Left" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Run Right" beats="2" offsetX="-1" />
+      <move select="Run Right" beats="2" offsetX="1" />
+    </path>
+    <taminator>
+    Another analogy is a driver and back-seat passenger changing places in a car.
+    The driver gets out the front and gets in the back,
+    while the passenger climbs over the seat.
+    </taminator>
+  </tam>
+
+  <tam title="Zoom"
+       from="Columns"
+       formation="Column RH GBGB"
+       fractions="2" difficulty="2">
+    <path>
+      <move select="Run Left" beats="2" offsetX="-1" />
+      <move select="Run Left" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Run Left" beats="2" offsetX="-1" />
+      <move select="Run Left" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+  </tam>
+
+  <tam title="Zoom"
+       from="Left-Hand Columns"
+       formation="Column LH GBGB"
+       fractions="2" difficulty="2">
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Run Right" beats="2" offsetX="-1" />
+      <move select="Run Right" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Run Right" beats="2" offsetX="-1" />
+      <move select="Run Right" beats="2" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Zoom"
+       from="T-Bones"
+       fractions="2" difficulty="3">
+     <formation>
+      <dancer gender="girl" x="-3" y="-1" angle="90"/>
+      <dancer gender="boy" x="-1" y="-1" angle="0"/>
+      <dancer gender="girl" x="1" y="-1" angle="90"/>
+      <dancer gender="boy" x="3" y="-1" angle="0"/>
+    </formation>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Run Right" beats="2" offsetX="-1" />
+      <move select="Run Right" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+      <move select="Run Right" beats="2" offsetX="-1" />
+      <move select="Run Right" beats="2" offsetX="1" />
+    </path>
+  </tam>
+
+  <tam title="Centers Zoom"
+       from="Columns"
+       formation="Column RH GBGB"
+       fractions="2" difficulty="2">
+    <path>
+    </path>
+    <path>
+      <move select="Run Left" beats="2" offsetX="-1" />
+      <move select="Run Left" beats="2" offsetX="1" />
+    </path>
+    <path>
+      <move select="Forward 2" beats="4" />
+    </path>
+    <path>
+    </path>
+  </tam>
+
+  <tam title="Ends Zoom"
+       from="Two-Faced Lines"
+       formation="Two-Faced Lines RH"
+       fractions="3" difficulty="2">
+    <path>
+      <move select="Forward 4" beats="6" />
+    </path>
+    <path>
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Run Left" offsetX="-2" />
+      <move select="Run Left" offsetX="2" />
+    </path>
+  </tam>
+
+  <tam title="Points Zoom"
+       from="Diamonds"
+       formation="Diamonds RH Girl Points"
+       fractions="3" difficulty="2">
+    <path>
+    </path>
+    <path>
+      <move select="Forward 4" beats="6" />
+    </path>
+    <path>
+    </path>
+    <path>
+      <move select="Run Left" offsetX="-2" />
+      <move select="Run Left" offsetX="2" />
+    </path>
+  </tam>
+</tamination>

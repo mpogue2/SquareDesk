@@ -1,0 +1,647 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<calls>
+
+    <call text="Introduction" level="Info" sublevel="Info" link="info/index.html"/>
+    <call text="How to Use" level="Info" sublevel="Info" link="info/howtouse.html"/>
+    <call text="Troubleshooting" level="Info" sublevel="Info" link="info/trouble.html"/>
+    <call text="Download" level="Info" sublevel="Info" link="info/download.html"/>
+    <call text="Linking" level="Info" sublevel="Info" link="info/howtolink.html"/>
+    <call text="Embed" level="Info" sublevel="Info" link="info/embed.html"/>
+
+    <call text="Overview" level="Info" sublevel="HowItWorks" link="info/overview.html"/>
+    <call text="Moves" level="Info" sublevel="HowItWorks" link="info/moves1.html"/>
+    <call text="Move Attributes" level="Info" sublevel="HowItWorks" link="info/moves2.html"/>
+    <call text="Movements" level="Info" sublevel="HowItWorks" link="info/movements.html"/>
+    <call text="Formations" level="Info" sublevel="HowItWorks" link="info/aboutformations.html"/>
+
+    <call text="(Any Tagging Call) and Scatter" level="Challenge" sublevel="C-3B" link="c3b/anything_and_scatter.html"/>
+    <call text="(Any Tagging Call) Chain Thru" level="Challenge" sublevel="C-3A" link="c3a/any_tagging_call_chain_thru.html"/>
+    <call text="(Any Tagging Call) Reaction" level="Challenge" sublevel="C-3A" link="c3a/anything_reaction.html"/>
+    <call text="(Any Tagging Call) the Top" level="Challenge" sublevel="C-3B" link="c3b/anything_the_top.html"/>
+    <call text="1/4 Mix" level="Challenge" sublevel="C-3A" link="c3a/1_4_mix.html"/>
+    <call text="1/4 the Deucey" level="Challenge" sublevel="C-3A" link="c3a/1_4_the_deucey.html"/>
+    <call text="1/4 Wheel the Ocean" level="Challenge" sublevel="C-3A" link="c3a/1_4_wheel_the_ocean.html"/>
+    <call text="1/4 Wheel the Sea" level="Challenge" sublevel="C-3A" link="c3a/1_4_wheel_the_sea.html"/>
+    <call text="3 by 1 Checkmate the Column" level="Challenge" sublevel="C-2" link="c2/3_by_1_checkmate_the_column.html"/>
+    <call text="3 by 1 Transfer the Column" level="Challenge" sublevel="C-2" link="c2/3_by_1_transfer_the_column.html"/>
+    <call text="3 by 1 Triangle Circulate" level="Challenge" sublevel="C-2" link="c2/3_by_1_triangle_circulate.html"/>
+    <call text="3 by 1 Triangle Formation" level="Challenge" sublevel="C-2" link="c2/3_by_1_triangle_formation.html"/>
+    <call text="3/4 Mix" level="Challenge" sublevel="C-3A" link="c3a/3_4_mix.html"/>
+    <call text="3/4 the Deucey" level="Challenge" sublevel="C-3A" link="c3a/3_4_the_deucey.html"/>
+    <call text="3/4 Wheel the Ocean" level="Challenge" sublevel="C-3A" link="c3a/3_4_wheel_the_ocean.html"/>
+    <call text="3/4 Wheel the Sea" level="Challenge" sublevel="C-3A" link="c3a/3_4_wheel_the_sea.html"/>
+    <call text="Acey Deucey" level="Plus" sublevel="Plus" link="plus/acey_deucey.html"/>
+    <call text="Ah So" level="Challenge" sublevel="C-1" link="c1/ah_so.html"/>
+    <call text="Alamo Style" level="Basic and Mainstream" sublevel="Basic 2" link="b2/alamo_style.html"/>
+    <call text="All 4 Couples / All 8" level="Advanced" sublevel="A-2" link="a2/all_4_all_8.html"/>
+    <call text="All 8 Spin the Top" level="Plus" sublevel="Plus" link="plus/all_8_spin_the_top.html"/>
+    <call text="All Around the Corner" level="Basic and Mainstream" sublevel="Basic 1" link="b1/all_around_the_corner.html"/>
+    <call text="All Eight Recycle" level="Challenge" sublevel="C-1" link="c1/all_eight_recycle.html"/>
+    <call text="Allemande Left" level="Basic and Mainstream" sublevel="Basic 1" link="b1/allemande.html" anim="AllemandeLeftfromStaticSquare"/>
+    <call text="Allemande Thar" level="Basic and Mainstream" sublevel="Basic 2" link="b2/thar.html"/>
+    <call text="Along" level="Challenge" sublevel="C-2" link="c2/along.html"/>
+    <call text="Alter and Circulate" level="Challenge" sublevel="C-2" link="c2/alter_and_circulate.html"/>
+    <call text="Alter the Wave" level="Challenge" sublevel="C-1" link="c1/alter_the_wave.html"/>
+    <call text="Any Hand Concept" level="Advanced" sublevel="A-1" link="a1/any_hand_concept.html"/>
+    <call text="Anyone Hop" level="Challenge" sublevel="C-3A" link="c3a/anyone_hop.html"/>
+    <call text="Anything and Circle" level="Challenge" sublevel="C-2" link="c2/anything_and_circle.html"/>
+    <call text="Anything and Cross" level="Advanced" sublevel="A-1" link="a1/anything_and_cross.html"/>
+    <call text="Anything and Roll" level="Plus" sublevel="Plus" link="plus/anything_and_roll.html"/>
+    <call text="Anything and Spread" level="Challenge" sublevel="C-1" link="c1/anything_and_spread.html"/>
+    <call text="Anything and Spread" level="Plus" sublevel="Plus" link="plus/anything_and_spread.html"/>
+    <call text="Anything and Weave" level="Challenge" sublevel="C-1" link="c1/anything_and_weave.html"/>
+    <call text="Anything Chain Thru" level="Challenge" sublevel="C-1" link="c1/anything_chain_thru.html"/>
+    <call text="Anything Concept" level="Challenge" sublevel="C-2" link="c2/anything_concept.html"/>
+    <call text="Anything the K" level="Challenge" sublevel="C-2" link="c2/anything_the_k.html"/>
+    <call text="Anything the Windmill" level="Challenge" sublevel="C-1" link="c1/anything_the_windmill.html"/>
+    <call text="Anything to a Wave" level="Challenge" sublevel="C-1" link="c1/anything_to_a_wave.html"/>
+    <call text="Arm Turns" level="Basic and Mainstream" sublevel="Basic 1" link="b1/arm_turns.html"/>
+    <call text="As Couples Concept" level="Advanced" sublevel="A-1" link="a1/as_couples.html"/>
+    <call text="Backtrack" level="Basic and Mainstream" sublevel="Basic 1" link="b1/turn_back.html"/>
+    <call text="Beaus and Belles" level="Challenge" sublevel="C-1" link="c1/beaus_and_belles.html"/>
+    <call text="Belles and Beaus" level="Advanced" sublevel="A-1" link="a1/belles_and_beaus.html"/>
+    <call text="Bend the Line" level="Basic and Mainstream" sublevel="Basic 1" link="b1/bend_the_line.html"/>
+    <call text="Bias Circulate" level="Challenge" sublevel="C-3A" link="c3a/bias_circulate.html"/>
+    <call text="Big Block Concept" level="Challenge" sublevel="C-3A" link="c3a/big_block_concept.html"/>
+    <call text="Bingo" level="Challenge" sublevel="C-3B" link="c3b/bingo.html"/>
+    <call text="Block Formation" level="Challenge" sublevel="C-1" link="c1/block_formation.html"/>
+    <call text="Boomerang" level="Challenge" sublevel="C-3B" link="c3b/boomerang.html"/>
+    <call text="Bounce the (Anyone)" level="Challenge" sublevel="C-2" link="c2/bounce_the_anyone.html"/>
+    <call text="Box Counter Rotate" level="Advanced" sublevel="A-2" link="a2/box_counter_rotate.html"/>
+    <call text="Box Recycle" level="Challenge" sublevel="C-1" link="c1/box_split_recycle.html"/>
+    <call text="Box the Gnat" level="Basic and Mainstream" sublevel="Basic 2" link="b2/box_the_gnat.html"/>
+    <call text="Box Transfer" level="Advanced" sublevel="A-2" link="a2/box_transfer.html"/>
+    <call text="Brace Thru" level="Advanced" sublevel="A-1" link="a1/brace_thru.html"/>
+    <call text="Breaker Anything" level="Challenge" sublevel="C-3A" link="c3a/breaker_anything.html"/>
+    <call text="Busy Anything" level="Challenge" sublevel="C-3B" link="c3b/busy_anything.html"/>
+    <call text="But" level="Challenge" sublevel="C-1" link="c1/replace.html"/>
+    <call text="Butterfly Formation / Concept" level="Challenge" sublevel="C-1" link="c1/butterfly_formation.html"/>
+    <call text="By Golly" level="Challenge" sublevel="C-3B" link="c3b/by_golly.html"/>
+    <call text="California Twirl" level="Basic and Mainstream" sublevel="Basic 1" link="b1/california_twirl.html"/>
+    <call text="Cast a Shadow" level="Advanced" sublevel="A-1" link="a1/cast_a_shadow.html"/>
+    <call text="Cast a Shadow" level="Challenge" sublevel="C-1" link="c1/cast_a_shadow.html"/>
+    <call text="Cast and Relay" level="Challenge" sublevel="C-3B" link="c3b/fraction_cast_and_relay.html"/>
+    <call text="Cast Back" level="Challenge" sublevel="C-1" link="c1/cast_back.html"/>
+    <call text="Cast Off Three Quarters" level="Basic and Mainstream" sublevel="Mainstream" link="ms/cast_off_three_quarters.html"/>
+    <call text="Catch Anything N" level="Challenge" sublevel="C-3A" link="c3a/catch_anything_n.html"/>
+    <call text="Catch" level="Challenge" sublevel="C-2" link="c2/catch.html"/>
+    <call text="Centers In" level="Basic and Mainstream" sublevel="Mainstream" link="ms/centers_in.html"/>
+    <call text="Central Concept" level="Challenge" sublevel="C-3B" link="c3b/central_concept.html"/>
+    <call text="Chain Down the Line" level="Basic and Mainstream" sublevel="Basic 1" link="b1/ladies_chain.html" anim="ChainDowntheLinefromTwoFacedLines"/>
+    <call text="Chain Reaction" level="Advanced" sublevel="A-1" link="a1/chain_reaction.html"/>
+    <call text="Chain Reaction" level="Challenge" sublevel="C-1" link="c1/chain_reaction.html"/>
+    <call text="Chain the Square" level="Challenge" sublevel="C-2" link="c2/chain_the_square.html"/>
+    <call text="Change Lanes" level="Challenge" sublevel="C-3B" link="c3b/change_lanes.html"/>
+    <call text="Change the Centers" level="Challenge" sublevel="C-3B" link="c3b/change_the_centers.html"/>
+    <call text="Change the Wave" level="Challenge" sublevel="C-3B" link="c3b/change_the_centers.html"/>
+    <call text="Change Your Image" level="Challenge" sublevel="C-3B" link="c3b/change_your_image.html"/>
+    <call text="Chase Right" level="Plus" sublevel="Plus" link="plus/chase_right.html"/>
+    <call text="Chase the (fraction) Tag" level="Challenge" sublevel="C-3B" link="c3b/chase_the_fraction_tag.html"/>
+    <call text="Chase Your Neighbor" level="Challenge" sublevel="C-1" link="c1/chase_your_neighbor.html"/>
+    <call text="Checkerboard Anything" level="Challenge" sublevel="C-3A" link="c3a/checkerboard_anything.html"/>
+    <call text="Checkerbox Anything" level="Challenge" sublevel="C-3A" link="c3a/checkerbox_anything.html"/>
+    <call text="Checkmate" level="Advanced" sublevel="A-2" link="a2/checkmate.html"/>
+    <call text="Checkover" level="Challenge" sublevel="C-1" link="c1/checkover.html"/>
+    <call text="Checkpoint" level="Challenge" sublevel="C-2" link="c2/checkpoint.html"/>
+    <call text="Chisel Thru" level="Challenge" sublevel="C-2" link="c2/chisel_thru.html"/>
+    <call text="Chuck-A-Luck" level="Challenge" sublevel="C-3B" link="c3b/chuck_a_luck.html"/>
+    <call text="Circle By" level="Challenge" sublevel="C-1" link="c1/circle_by.html"/>
+    <call text="Circle Left and Circle Right" level="Basic and Mainstream" sublevel="Basic 1" link="b1/circle.html"/>
+    <call text="Circle to a Line" level="Basic and Mainstream" sublevel="Basic 1" link="b1/circle_to_a_line.html"/>
+    <call text="Circle to a Wave" level="Challenge" sublevel="C-2" link="c2/circle_to_a_wave.html"/>
+    <call text="Circulate" level="Challenge" sublevel="C-1" link="c1/circulate.html"/>
+    <call text="Circulate" level="Basic and Mainstream" sublevel="Basic 1" link="b1/circulate.html"/>
+    <call text="Clover and Anything" level="Advanced" sublevel="A-1" link="a1/clover_and_anything.html"/>
+    <call text="Cloverleaf" level="Basic and Mainstream" sublevel="Mainstream" link="ms/cloverleaf.html"/>
+    <call text="Concentric Concept" level="Challenge" sublevel="C-1" link="c1/concentric_concept.html"/>
+    <call text="Coordinate" level="Plus" sublevel="Plus" link="plus/coordinate.html"/>
+    <call text="Counter Rotate" level="Challenge" sublevel="C-1" link="c1/counter_rotate.html"/>
+    <call text="Counter" level="Challenge" sublevel="C-2" link="c2/counter.html"/>
+    <call text="Couple Up" level="Challenge" sublevel="C-3A" link="c3a/couple_up.html"/>
+    <call text="Courtesy Turn" level="Basic and Mainstream" sublevel="Basic 1" link="b1/courtesy_turn.html"/>
+    <call text="Crazy Concept" level="Challenge" sublevel="C-2" link="c2/crazy_concept.html"/>
+    <call text="Criss Cross the Deucey" level="Challenge" sublevel="C-3B" link="c3b/criss_cross_the_deucey.html"/>
+    <call text="Criss Cross the Shadow" level="Challenge" sublevel="C-2" link="c2/criss_cross_the_shadow.html"/>
+    <call text="Criss Cross Your Neighbor" level="Challenge" sublevel="C-2" link="c2/criss_cross_your_neighbor.html"/>
+    <call text="Cross and Turn" level="Challenge" sublevel="C-1" link="c1/cross_and_turn.html"/>
+    <call text="Cross and Wheel" level="Challenge" sublevel="C-2" link="c2/cross_and_wheel.html"/>
+    <call text="Cross Back" level="Challenge" sublevel="C-2" link="c2/cross_back.html"/>
+    <call text="Cross By" level="Challenge" sublevel="C-1" link="c1/cross_by.html"/>
+    <call text="Cross Cast Back" level="Challenge" sublevel="C-1" link="c1/cross_cast_back.html"/>
+    <call text="Cross Chain and Roll" level="Challenge" sublevel="C-1" link="c1/cross_chain_and_roll.html"/>
+    <call text="Cross Chain Reaction" level="Challenge" sublevel="C-3A" link="c3a/cross_chain_reaction.html"/>
+    <call text="Cross Chain Thru" level="Challenge" sublevel="C-1" link="c1/cross_chain_thru.html"/>
+    <call text="Cross Chuck-A-Luck" level="Challenge" sublevel="C-3B" link="c3b/chuck_a_luck.html"/>
+    <call text="Cross Clover and Anything" sublevel="A-1" level="Advanced" link="a1/cross_clover_and_anything.html"/>
+    <call text="Cross Concentric Concept" level="Challenge" sublevel="C-2" link="c2/cross_concentric_concept.html"/>
+    <call text="Cross Counter" level="Challenge" sublevel="C-3A" link="c3a/cross_counter.html"/>
+    <call text="Cross Cycle" level="Challenge" sublevel="C-3B" link="c3b/cross_cycle.html"/>
+    <call text="Cross Extend" level="Challenge" sublevel="C-1" link="c1/cross_extend.html"/>
+    <call text="Cross Flip the Line (fraction)" level="Challenge" sublevel="C-3B" link="c3b/cross_flip_the_line.html"/>
+    <call text="Cross Fold" level="Basic and Mainstream" sublevel="Mainstream" link="ms/fold.html" anim="EndsCrossFoldfromLinesFacingOut"/>
+    <call text="Cross Invert the Column" level="Challenge" sublevel="C-2" link="c2/cross_invert_the_column.html"/>
+    <call text="Cross Kick Off" level="Challenge" sublevel="C-2" link="c2/cross_kick_off.html"/>
+    <call text="Cross Lockit" level="Challenge" sublevel="C-3B" link="c3b/cross_lockit.html"/>
+    <call text="Cross Over Circulate" level="Advanced" sublevel="A-1" link="a1/cross_over_circulate.html"/>
+    <call text="Cross Ramble" level="Challenge" sublevel="C-2" link="c2/cross_ramble.html"/>
+    <call text="Cross Roll" level="Challenge" sublevel="C-1" link="c1/cross_roll.html"/>
+    <call text="Cross Run" level="Basic and Mainstream" sublevel="Basic 2" link="b2/run.html" anim="CentersCrossRunfromRightHandWaves"/>
+    <call text="Cross Swap the Top" level="Challenge" sublevel="C-3B" link="c3b/swap_the_top.html"/>
+    <call text="Cross the K" level="Challenge" sublevel="C-2" link="c2/cross_the_k.html"/>
+    <call text="Cross Trade and Wheel" level="Challenge" sublevel="C-2" link="c2/cross_trade_and_wheel.html"/>
+    <call text="Cross Trail Thru" level="Advanced" sublevel="A-1" link="a1/cross_trail_thru.html"/>
+    <call text="Cross Your Neighbor" level="Challenge" sublevel="C-1" link="c1/cross_your_neighbor.html"/>
+    <call text="Cross" level="Advanced" sublevel="A-1" link="a1/named_dancers_cross.html"/>
+    <call text="Crossfire" level="Plus" sublevel="Plus" link="plus/crossfire.html"/>
+    <call text="Cut the Diamond" level="Plus" sublevel="Plus" link="plus/cut_the_diamond.html"/>
+    <call text="Cut the Galaxy" level="Challenge" sublevel="C-2" link="c2/cut_the_galaxy.html"/>
+    <call text="Cut the Hourglass" level="Advanced" sublevel="A-2" link="a2/cut_the_hourglass.html"/>
+    <call text="Cut the Interlocked Diamond" level="Challenge" sublevel="C-1" link="c1/cut_the_interlocked_diamond.html"/>
+    <call text="Cycle and Wheel" level="Advanced" sublevel="A-1" link="a1/cycle_and_wheel.html"/>
+    <call text="Delete" level="Challenge" sublevel="C-1" link="c1/replace.html"/>
+    <call text="Delight" level="Challenge" sublevel="C-3A" link="c3a/delight_dilemma.html"/>
+    <call text="Detour" level="Challenge" sublevel="C-2" link="c2/detour.html"/>
+    <call text="Diagonal Box Concept" level="Challenge" sublevel="C-3B" link="c3b/diagonal_box_concept.html"/>
+    <call text="Diamond Chain Thru" level="Advanced" sublevel="A-2" link="a2/diamond_chain_thru.html"/>
+    <call text="Diamond Circulate" level="Plus" sublevel="Plus" link="plus/diamond_circulate.html"/>
+    <call text="Dilemma" level="Challenge" sublevel="C-3A" link="c3a/delight_dilemma.html"/>
+    <call text="Disband" level="Challenge" sublevel="C-3B" link="c3b/disband.html"/>
+    <call text="Disconnected Concept" level="Challenge" sublevel="C-2" link="c2/disconnected_concept.html"/>
+    <call text="Dive Thru" level="Basic and Mainstream" sublevel="Basic 1" link="b1/dive_thru.html"/>
+    <call text="Divide the Ocean / Sea" level="Challenge" sublevel="C-3B" link="c3b/divide_the_ocean.html"/>
+    <call text="Dixie Diamond" level="Challenge" sublevel="C-1" link="c1/dixie_diamond.html"/>
+    <call text="Dixie Grand" level="Plus" sublevel="Plus" link="plus/dixie_grand.html"/>
+    <call text="Dixie Sashay" level="Challenge" sublevel="C-1" link="c1/dixie_sashay.html"/>
+    <call text="Dixie Style to an Ocean Wave" level="Basic and Mainstream" sublevel="Mainstream" link="ms/dixie_style.html"/>
+    <call text="Do Paso" level="Basic and Mainstream" sublevel="Basic 1" link="b1/do_paso.html"/>
+    <call text="Dodge Anything" level="Challenge" sublevel="C-2" link="c2/dodge_anything.html"/>
+    <call text="Dosado" level="Basic and Mainstream" sublevel="Basic 1" link="b1/dosado.html"/>
+    <call text="Double Pass Thru" level="Basic and Mainstream" sublevel="Basic 2" link="b2/double_pass_thru.html"/>
+    <call text="Double Star Thru" level="Advanced" sublevel="A-1" link="a1/double_star_thru.html"/>
+    <call text="Drift Apart" level="Challenge" sublevel="C-3A" link="c3a/drift_apart.html"/>
+    <call text="Drop In / Drop Out" level="Challenge" sublevel="C-2" link="c2/drop_in.html"/>
+    <call text="Drop Left / Drop Right" level="Challenge" sublevel="C-2" link="c2/drop_right.html"/>
+    <call text="Ease Off" level="Challenge" sublevel="C-3A" link="c3a/ease_off.html"/>
+    <call text="Eight By Anything" level="Challenge" sublevel="C-3A" link="c3a/eight_by_anything.html"/>
+    <call text="Eight Chain Thru" level="Basic and Mainstream" sublevel="Mainstream" link="ms/eight_chain_thru.html"/>
+    <call text="Ends Bend" level="Advanced" sublevel="A-1" link="a1/ends_bend.html"/>
+    <call text="Exchange the Box" level="Challenge" sublevel="C-3A" link="c3a/exchange_the_box.html"/>
+    <call text="Exchange the Diamond" level="Challenge" sublevel="C-2" link="c2/exchange_the_diamond.html"/>
+    <call text="Exchange the Triangle" level="Challenge" sublevel="C-3A" link="c3a/exchange_the_triangle.html"/>
+    <call text="Expand the Column" level="Challenge" sublevel="C-3A" link="c3a/expand_the_column.html"/>
+    <call text="Explode and Anything" level="Advanced" sublevel="A-1" link="a1/explode_and_anything.html"/>
+    <call text="Explode and Anything" level="Plus" sublevel="Plus" link="plus/explode_and_anything.html"/>
+    <call text="Explode the Diamond" level="Challenge" sublevel="C-3B" link="c3b/explode_the_diamond.html"/>
+    <call text="Explode the Line" level="Advanced" sublevel="A-1" link="a1/explode_the_line.html"/>
+    <call text="Explode the Top" level="Challenge" sublevel="C-3A" link="c3a/explode_the_top.html"/>
+    <call text="Explode the Wave" level="Plus" sublevel="Plus" link="plus/explode_the_wave.html"/>
+    <call text="Extend" level="Basic and Mainstream" sublevel="Basic 2" link="b2/extend.html"/>
+    <call text="Extend" level="Plus" sublevel="Plus" link="plus/extend.html"/>
+    <call text="Facing Couples Rule" level="Basic and Mainstream" sublevel="Basic 1" link="b1/facing_couples_rule.html"/>
+    <call text="Fan Concept" level="Challenge" sublevel="C-3B" link="c3b/fan_concept.html"/>
+    <call text="Fan the Top" level="Plus" sublevel="Plus" link="plus/fan_the_top.html"/>
+    <call text="Fancy" level="Challenge" sublevel="C-3A" link="c3a/fancy.html"/>
+    <call text="Fascinate" level="Challenge" sublevel="C-2" link="c2/fascinate.html"/>
+    <call text="Fascinating" level="Challenge" sublevel="C-2" link="c2/fascinating.html"/>
+    <call text="Ferris Wheel" level="Basic and Mainstream" sublevel="Basic 2" link="b2/ferris_wheel.html"/>
+    <call text="File to a Line" level="Challenge" sublevel="C-2" link="c2/file_to_a_line.html"/>
+    <call text="Finally Concept" level="Challenge" sublevel="C-3A" link="c3a/finally_concept.html"/>
+    <call text="Finish" level="Challenge" sublevel="C-1" link="c1/finish.html"/>
+    <call text="First Couple Go Left/Right" level="Basic and Mainstream" sublevel="Basic 2" link="b2/first_couple_go.html"/>
+    <call text="Flare Out to a Line" level="Challenge" sublevel="C-3A" link="c3a/flare_out_to_a_line.html"/>
+    <call text="Flip Back" level="Challenge" sublevel="C-1" link="c1/tagging_calls_back_to_a_wave.html"/>
+    <call text="Flip the Diamond" level="Plus" sublevel="Plus" link="plus/flip_the_diamond.html"/>
+    <call text="Flip the Galaxy" level="Challenge" sublevel="C-2" link="c2/flip_the_galaxy.html"/>
+    <call text="Flip the Hourglass" level="Advanced" sublevel="A-2" link="a2/flip_the_hourglass.html"/>
+    <call text="Flip the Interlocked Diamond" level="Challenge" sublevel="C-1" link="c1/flip_the_interlocked_diamond.html"/>
+    <call text="Flip the Line" level="Challenge" sublevel="C-1" link="c1/flip_the_line.html"/>
+    <call text="Flip Your Lid" level="Challenge" sublevel="C-3B" link="c3b/flip_your_lid.html"/>
+    <call text="Flip Your Neighbor" level="Challenge" sublevel="C-2" link="c2/flip_your_neighbor.html"/>
+    <call text="Flutterwheel" level="Basic and Mainstream" sublevel="Basic 2" link="b2/flutterwheel.html"/>
+    <call text="Fold" level="Basic and Mainstream" sublevel="Mainstream" link="ms/fold.html"/>
+    <call text="Follow Thru" level="Challenge" sublevel="C-1" link="c1/follow_thru.html"/>
+    <call text="Follow to a Diamond" level="Challenge" sublevel="C-3A" link="c3a/follow_to_a_diamond.html"/>
+    <call text="Follow Your Leader" level="Challenge" sublevel="C-3A" link="c3a/follow_your_leader.html"/>
+    <call text="Follow Your Neighbor" level="Plus" sublevel="Plus" link="plus/follow_your_neighbor.html"/>
+    <call text="Forward and Back" level="Basic and Mainstream" sublevel="Basic 1" link="b1/forward_and_back.html"/>
+    <call text="Fractional Tops" level="Advanced" sublevel="A-1" link="a1/fractional_tops.html"/>
+    <call text="Funny Concept" level="Challenge" sublevel="C-2" link="c2/funny_concept.html"/>
+    <call text="Funny Square Thru" level="Challenge" sublevel="C-2" link="c2/funny_square_thru.html"/>
+    <call text="Galaxy Circulate" level="Challenge" sublevel="C-1" link="c1/galaxy_circulate.html"/>
+    <call text="Galaxy Formation" level="Challenge" sublevel="C-1" link="c1/galaxy_formation.html"/>
+    <call text="Gee Whiz" level="Challenge" sublevel="C-3B" link="c3b/gee_whiz.html"/>
+    <call text="Good Show" level="Challenge" sublevel="C-3B" link="c3b/good_show.html"/>
+    <call text="Grand Chain Eight" level="Challenge" sublevel="C-2" link="c2/grand_chain_eight.html"/>
+    <call text="Grand Cross Back" level="Challenge" sublevel="C-2" link="c2/grand_cross_back.html"/>
+    <call text="Grand Cross Trade and Wheel" level="Challenge" sublevel="C-2" link="c2/grand_cross_trade_and_wheel.html"/>
+    <call text="Grand Follow Your Neighbor" level="Advanced" sublevel="A-1" link="a1/grand_follow_your_neighbor.html"/>
+    <call text="Grand Mix" level="Challenge" sublevel="C-3A" link="c3a/grand_mix.html"/>
+    <call text="Grand Quarter Thru" level="Advanced" sublevel="A-1" link="a1/grand_quarter_thru.html"/>
+    <call text="Grand Remake" level="Advanced" sublevel="A-2" link="a2/grand_remake.html"/>
+    <call text="Grand Single Cross and Wheel" level="Challenge" sublevel="C-2" link="c2/grand_single_cross_and_wheel.html"/>
+    <call text="Grand Single Cross Trade and Wheel" level="Challenge" sublevel="C-2" link="c2/grand_single_cross_trade_and_wheel.html"/>
+    <call text="Grand Square" level="Basic and Mainstream" sublevel="Basic 1" link="b1/grand_square.html"/>
+    <call text="Grand Swing Thru" level="Plus" sublevel="Plus" link="plus/grand_swing_thru.html"/>
+    <call text="Grand Three-Quarter Thru" sublevel="A-1" level="Advanced" link="a1/grand_three_quarter_thru.html"/>
+    <call text="Half Breed Thru" level="Advanced" sublevel="A-1" link="a1/half_breed_thru.html"/>
+    <call text="Half Sashay" level="Basic and Mainstream" sublevel="Basic 1" link="b1/sashay.html"/>
+    <call text="Half Tag" level="Basic and Mainstream" sublevel="Mainstream" link="ms/half_tag.html"/>
+    <call text="Here Comes the Judge" level="Challenge" sublevel="C-2" link="c2/here_comes_the_judge.html"/>
+    <call text="Hinge the Lock" level="Challenge" sublevel="C-3A" link="c3a/hinge_the_lock.html"/>
+    <call text="Hinge" level="Basic and Mainstream" sublevel="Mainstream" link="ms/hinge.html"/>
+    <call text="Hocus Pocus" level="Challenge" sublevel="C-2" link="c2/hocus_pocus.html"/>
+    <call text="Horseshoe Turn" level="Advanced" sublevel="A-1" link="a1/horseshoe_turn.html"/>
+    <call text="Hourglass Circulate" level="Advanced" sublevel="A-2" link="a2/hourglass_circulate.html"/>
+    <call text="Hubs Trade (Anything)" level="Challenge" sublevel="C-2" link="c2/hubs_trade_anything.html"/>
+    <call text="Hubs Trade Back" level="Challenge" sublevel="C-2" link="c2/hubs_trade_back.html"/>
+    <call text="Ignore" level="Challenge" sublevel="C-1" link="c1/ignore.html"/>
+    <call text="In-Roll Circulate" level="Advanced" sublevel="A-2" link="a2/in_roll_circulate.html"/>
+    <call text="Initially Concept" level="Challenge" sublevel="C-3A" link="c3a/initially_concept.html"/>
+    <call text="Inlet" level="Challenge" sublevel="C-2" link="c2/inlet.html"/>
+    <call text="Interlocked 3 by 1 Triangle Circulate" level="Challenge" sublevel="C-2" link="c2/interlocked_3_by_1_triangle_circulate.html"/>
+    <call text="Interlocked Counter" level="Challenge" sublevel="C-3B" link="c3b/interlocked_counter.html"/>
+    <call text="Interlocked Diamond Circulate" level="Challenge" sublevel="C-1" link="c1/interlocked_diamond_circulate.html"/>
+    <call text="Interlocked Diamond Formation" level="Challenge" sublevel="C-1" link="c1/interlocked_diamond_formation.html"/>
+    <call text="Interlocked Little" level="Challenge" sublevel="C-3A" link="c3a/interlocked_little.html"/>
+    <call text="Interlocked Plenty" level="Challenge" sublevel="C-3A" link="c3a/interlocked_plenty.html"/>
+    <call text="Interlocked Rally" level="Challenge" sublevel="C-3B" link="c3b/interlocked_rally.html"/>
+    <call text="Interlocked Ramble" level="Challenge" sublevel="C-3B" link="c3b/interlocked_ramble.html"/>
+    <call text="Interlocked Scoot Back" level="Challenge" sublevel="C-3A" link="c3a/interlocked_scoot_back.html"/>
+    <call text="Interlocked Triangle Formation" level="Challenge" sublevel="C-2" link="c2/interlocked_triangle_formation.html"/>
+    <call text="Interrupt" level="Challenge" sublevel="C-1" link="c1/interrupt.html"/>
+    <call text="Invert the Column" level="Challenge" sublevel="C-2" link="c2/invert_the_column.html"/>
+    <call text="Jay Concept" level="Challenge" sublevel="C-3A" link="c3a/jay_concept.html"/>
+    <call text="Jaywalk" level="Challenge" sublevel="C-1" link="c1/jaywalk.html"/>
+    <call text="Keep Busy" level="Challenge" sublevel="C-3A" link="c3a/keep_busy.html"/>
+    <call text="Kick Off" level="Challenge" sublevel="C-2" link="c2/kick_off.html"/>
+    <call text="Ladies Chain" level="Basic and Mainstream" sublevel="Basic 1" link="b1/ladies_chain.html"/>
+    <call text="Ladies In Men Sashay" level="Basic and Mainstream" sublevel="Basic 1" link="b1/sashay.html"/>
+    <call text="Latch On (Fraction)" level="Challenge" sublevel="C-3A" link="c3a/latch_on.html"/>
+    <call text="Lateral Substitute" level="Challenge" sublevel="C-2" link="c2/lateral_substitute.html"/>
+    <call text="Lead Right" level="Basic and Mainstream" sublevel="Basic 1" link="b1/lead_right.html"/>
+    <call text="Left" level="Challenge" sublevel="C-1" link="c1/left.html"/>
+    <call text="Left Arm Turn" level="Basic and Mainstream" sublevel="Basic 1" link="b1/arm_turns.html"/>
+    <call text="Left Chase" level="Plus" sublevel="Plus" link="plus/chase_right.html" anim="LeftChasefromCouplesFacingOut"/>
+    <call text="Left Roll to a Wave" level="Advanced" sublevel="A-1" link="a1/left_roll_to_a_wave.html"/>
+    <call text="Left Scoot and Counter" level="Challenge" sublevel="C-2" link="c2/left_scoot_and_counter.html"/>
+    <call text="Left Square Chain Thru" level="Advanced" sublevel="A-1" link="a1/left_square_chain_thru.html"/>
+    <call text="Left Wheel Thru" level="Advanced" sublevel="A-1" link="a1/left_wheel_thru.html"/>
+    <call text="Lickety Split" level="Challenge" sublevel="C-3B" link="c3b/lickety_split.html"/>
+    <call text="Lift Off" level="Challenge" sublevel="C-3B" link="c3b/lift_off.html"/>
+    <call text="Like a Ripple" level="Challenge" sublevel="C-2" link="c2/like_a_ripple.html"/>
+    <call text="Line to Line" level="Challenge" sublevel="C-3B" link="c3b/line_to_line.html"/>
+    <call text="Linear Action" level="Challenge" sublevel="C-1" link="c1/linear_action.html"/>
+    <call text="Linear Cycle" level="Advanced" sublevel="A-1" link="a1/linear_cycle.html"/>
+    <call text="Linear Cycle" level="Plus" sublevel="Plus" link="plus/linear_cycle.html"/>
+    <call text="Lines (Anything) Thru" level="Challenge" sublevel="C-2" link="c2/lines_anything_thru.html"/>
+    <call text="Link Up" level="Challenge" sublevel="C-3A" link="c3a/link_up.html"/>
+    <call text="Little More" level="Challenge" sublevel="C-2" link="c2/little_more.html"/>
+    <call text="Little" level="Challenge" sublevel="C-1" link="c1/little.html"/>
+    <call text="Load the Boat" level="Plus" sublevel="Plus" link="plus/load_the_boat.html"/>
+    <call text="Lock It" level="Advanced" sublevel="A-1" link="a1/lock_it.html"/>
+    <call text="Lock the Hinge" level="Challenge" sublevel="C-3A" link="c3a/lock_the_hinge.html"/>
+    <call text="Locker's Choice" level="Challenge" sublevel="C-3A" link="c3a/lockers_choice.html"/>
+    <call text="Loop" level="Challenge" sublevel="C-2" link="c2/loop.html"/>
+    <call text="Loop and Tag" level="Challenge" sublevel="C-3B" link="c3b/loop_and_tag.html"/>
+    <call text="Magic Column Circulate" level="Challenge" sublevel="C-1" link="c1/magic_column_circulate.html"/>
+    <call text="Magic Column Formation" level="Challenge" sublevel="C-1" link="c1/magic_column_formation.html"/>
+    <call text="Magic Diamond Concept" level="Challenge" sublevel="C-3B" link="c3b/magic_diamond_concept.html"/>
+    <call text="Magic Line / Wave Concept" level="Challenge" sublevel="C-3B" link="c3b/magic_line.html"/>
+    <call text="Make Magic" level="Challenge" sublevel="C-1" link="c1/make_magic.html"/>
+    <call text="Mini Busy" level="Advanced" sublevel="A-2" link="a2/mini_busy.html"/>
+    <call text="Mini Chase" level="Challenge" sublevel="C-3A" link="c3a/mini_chase.html"/>
+    <call text="Mirror Concept" level="Challenge" sublevel="C-3B" link="c3b/mirror_concept.html"/>
+    <call text="Mirror Cross Swap the Top" level="Challenge" sublevel="C-3B" link="c3b/swap_the_top.html"/>
+    <call text="Mirror Swap the Top" level="Challenge" sublevel="C-3B" link="c3b/swap_the_top.html"/>
+    <call text="Mix" level="Advanced" sublevel="A-1" link="a1/mix.html"/>
+    <call text="Motivate" level="Advanced" sublevel="A-2" link="a2/motivate.html"/>
+    <call text="Named Dancers Cross" sublevel="A-1" level="Advanced" link="a1/named_dancers_cross.html"/>
+    <call text="Nuclear Reaction" level="Challenge" sublevel="C-3B" link="c3b/nuclear_reaction.html"/>
+    <call text="O Formation / Concept" level="Challenge" sublevel="C-1" link="c1/o_formation.html"/>
+    <call text="Ocean Wave Rule" level="Basic and Mainstream" sublevel="Basic 2" link="b2/ocean_wave_rule.html"/>
+    <call text="Ocean Wave" level="Basic and Mainstream" sublevel="Basic 2" link="b2/ocean_wave.html"/>
+    <call text="Oddly / Evenly Concept" level="Challenge" sublevel="C-3B" link="c3b/oddly_evenly_concept.html"/>
+    <call text="Offset Concept" level="Challenge" sublevel="C-2" link="c2/offset_concept.html"/>
+    <call text="Once Removed Concept" level="Challenge" sublevel="C-2" link="c2/once_removed_concept.html"/>
+    <call text="Once Removed Diamond Concept" level="Challenge" sublevel="C-3A" link="c3a/once_removed_diamonds.html"/>
+    <call text="Open Up the Column" level="Challenge" sublevel="C-3A" link="c3a/open_up_the_column.html"/>
+    <call text="Out-Roll Circulate" level="Advanced" sublevel="A-2" link="a2/out_roll_circulate.html"/>
+    <call text="Outlet" level="Challenge" sublevel="C-2" link="c2/outlet.html"/>
+    <call text="Own the Anyone Anything by Anything" level="Challenge" sublevel="C-3A" link="c3a/own_the_anyone_anything_by_anything.html"/>
+    <call text="Pair Off" level="Advanced" sublevel="A-1" link="a1/pair_off.html"/>
+    <call text="Parallelogram Concept" level="Challenge" sublevel="C-2" link="c2/parallelogram_concept.html"/>
+    <call text="Partner Hinge" level="Advanced" sublevel="A-1" link="a1/partner_hinge.html"/>
+    <call text="Partner Tag" level="Advanced" sublevel="A-1" link="a1/partner_tag.html"/>
+    <call text="Pass and Roll Your Neighbor" sublevel="A-2" level="Advanced" link="a2/pass_and_roll_your_neighbor.html"/>
+    <call text="Pass and Roll" level="Advanced" sublevel="A-2" link="a2/pass_and_roll.html"/>
+    <call text="Pass In" level="Advanced" sublevel="A-1" link="a1/pass_in.html"/>
+    <call text="Pass Out" level="Advanced" sublevel="A-1" link="a1/pass_out.html"/>
+    <call text="Pass the Axle" level="Challenge" sublevel="C-1" link="c1/pass_the_axle.html"/>
+    <call text="Pass the Ocean" level="Basic and Mainstream" sublevel="Basic 2" link="b2/pass_the_ocean.html"/>
+    <call text="Pass the Sea" level="Advanced" sublevel="A-1" link="a1/pass_the_sea.html"/>
+    <call text="Pass Thru" level="Basic and Mainstream" sublevel="Basic 1" link="b1/pass_thru.html"/>
+    <call text="Pass to the Center" level="Basic and Mainstream" sublevel="Mainstream" link="ms/pass_to_the_center.html"/>
+    <call text="Passing Rule" level="Basic and Mainstream" sublevel="Basic 1" link="b1/passing_rule.html"/>
+    <call text="Patch Anyone" level="Challenge" sublevel="C-3A" link="c3a/patch_anyone.html"/>
+    <call text="Peel and Trail" level="Advanced" sublevel="A-2" link="a2/peel_and_trail.html"/>
+    <call text="Peel Chain Thru" level="Challenge" sublevel="C-3A" link="c3a/peel_chain_thru.html"/>
+    <call text="Peel Off" level="Plus" sublevel="Plus" link="plus/peel_off.html"/>
+    <call text="Peel the Top" level="Plus" sublevel="Plus" link="plus/peel_the_top.html"/>
+    <call text="Peel to a Diamond" level="Challenge" sublevel="C-2" link="c2/peel_to_a_diamond.html"/>
+    <call text="Percolate" level="Challenge" sublevel="C-1" link="c1/percolate.html"/>
+    <call text="Perk Up" level="Challenge" sublevel="C-2" link="c2/perk_up.html"/>
+    <call text="Phantom Columns / Lines / Waves" level="Challenge" sublevel="C-3B" link="c3b/phantom_columns_lines_waves.html"/>
+    <call text="Phantom Formation" level="Challenge" sublevel="C-1" link="c1/phantom_formation.html"/>
+    <call text="Ping Pong Circulate" level="Plus" sublevel="Plus" link="plus/ping_pong_circulate.html"/>
+    <call text="Pitch" level="Challenge" sublevel="C-3B" link="c3b/pitch.html"/>
+    <call text="Plan Ahead" level="Challenge" sublevel="C-3A" link="c3a/plan_ahead.html"/>
+    <call text="Plenty" level="Challenge" sublevel="C-1" link="c1/plenty.html"/>
+    <call text="Polly Wally" level="Challenge" sublevel="C-3A" link="c3a/polly_wally.html"/>
+    <call text="Prefer" level="Challenge" sublevel="C-1" link="c1/prefer.html"/>
+    <call text="Press Ahead" level="Challenge" sublevel="C-1" link="c1/press.html"/>
+    <call text="Press In/Out/Left/Right" level="Challenge" sublevel="C-2" link="c2/press.html"/>
+    <call text="Promenade" level="Basic and Mainstream" sublevel="Basic 1" link="b1/promenade.html"/>
+    <call text="Quarter In" level="Advanced" sublevel="A-1" link="a1/quarter_in.html"/>
+    <call text="Quarter Out" level="Advanced" sublevel="A-1" link="a1/quarter_out.html"/>
+    <call text="Quarter Thru" level="Advanced" sublevel="A-1" link="a1/quarter_thru.html"/>
+    <call text="Quick Anything" level="Challenge" sublevel="C-3A" link="c3a/quick_anything.html"/>
+    <call text="Quick Step" level="Challenge" sublevel="C-3A" link="c3a/quick_step.html"/>
+    <call text="Rally" level="Challenge" sublevel="C-3A" link="c3a/rally.html"/>
+    <call text="Ramble" level="Challenge" sublevel="C-1" link="c1/ramble.html"/>
+    <call text="Reach Out" level="Challenge" sublevel="C-3A" link="c3a/reach_out.html"/>
+    <call text="Reactivate" level="Challenge" sublevel="C-3B" link="c3b/reactivate.html"/>
+    <call text="Recoil" level="Challenge" sublevel="C-3A" link="c3a/recoil.html"/>
+    <call text="Recycle" level="Advanced" sublevel="A-2" link="a2/recycle.html"/>
+    <call text="Recycle" level="Challenge" sublevel="C-1" link="c1/recycle.html"/>
+    <call text="Recycle" level="Basic and Mainstream" sublevel="Mainstream" link="ms/recycle.html"/>
+    <call text="Reflected Concept" level="Challenge" sublevel="C-3B" link="c3b/reflected_concept.html"/>
+    <call text="Regroup" level="Challenge" sublevel="C-1" link="c1/regroup.html"/>
+    <call text="Relay the Deucey" level="Plus" sublevel="Plus" link="plus/relay_the_deucey.html"/>
+    <call text="Relay the Shadow" level="Challenge" sublevel="C-1" link="c1/relay_the_shadow.html"/>
+    <call text="Relay the Top" level="Challenge" sublevel="C-1" link="c1/relay_the_top.html"/>
+    <call text="Release Anything" level="Challenge" sublevel="C-3A" link="c3a/release_anything.html"/>
+    <call text="Relocate the Setup" level="Challenge" sublevel="C-2" link="c2/relocate_the_setup.html"/>
+    <call text="Remake the Thar" level="Advanced" sublevel="A-2" link="a2/remake_the_thar.html"/>
+    <call text="Remake" level="Advanced" sublevel="A-2" link="a2/remake.html"/>
+    <call text="Replace" level="Challenge" sublevel="C-1" link="c1/replace.html"/>
+    <call text="Reset" level="Challenge" sublevel="C-3B" link="c3b/reset.html"/>
+    <call text="Reshape the Triangle" level="Challenge" sublevel="C-2" link="c2/reshape_the_triangle.html"/>
+    <call text="Reverse Checkpoint" level="Challenge" sublevel="C-3B" link="c3b/reverse_checkpoint.html"/>
+    <call text="Reverse Crazy Concept" level="Challenge" sublevel="C-2" link="c2/reverse_crazy_concept.html"/>
+    <call text="Reverse Cross and Turn" level="Challenge" sublevel="C-1" link="c1/reverse_cross_and_turn.html"/>
+    <call text="Reverse Cut the Diamond" level="Challenge" sublevel="C-2" link="c2/reverse_cut_the_diamond.html"/>
+    <call text="Reverse Cut the Galaxy" level="Challenge" sublevel="C-2" link="c2/reverse_cut_the_galaxy.html"/>
+    <call text="Reverse Explode" level="Challenge" sublevel="C-1" link="c1/reverse_explode.html"/>
+    <call text="Reverse Flip the Diamond" level="Challenge" sublevel="C-2" link="c2/reverse_flip_the_diamond.html"/>
+    <call text="Reverse Flip the Galaxy" level="Challenge" sublevel="C-2" link="c2/reverse_flip_the_galaxy.html"/>
+    <call text="Reverse Flutterwheel" level="Basic and Mainstream" sublevel="Basic 2" link="b2/flutterwheel.html" anim="ReverseFlutterwheelfromFacingCouples"/>
+    <call text="Reverse Order Concept" level="Challenge" sublevel="C-3B" link="c3b/reverse_order.html"/>
+    <call text="Reverse Rotate" level="Challenge" sublevel="C-1" link="c1/reverse_rotate.html"/>
+    <call text="Reverse Rotate" level="Challenge" sublevel="C-2" link="c2/reverse_rotate.html"/>
+    <call text="Reverse Single Rotate" level="Challenge" sublevel="C-1" link="c1/reverse_single_rotate.html"/>
+    <call text="Reverse Single Rotate" level="Challenge" sublevel="C-2" link="c2/reverse_single_rotate.html"/>
+    <call text="Reverse Split Swap Around" level="Challenge" sublevel="C-2" link="c2/reverse_split_swap_around.html"/>
+    <call text="Reverse Swap Around" level="Advanced" sublevel="A-1" link="a1/reverse_swap_around.html"/>
+    <call text="Reverse the Pass" level="Challenge" sublevel="C-3B" link="c3b/reverse_the_pass.html"/>
+    <call text="Reverse the Top" level="Challenge" sublevel="C-3B" link="c3b/reverse_the_top.html"/>
+    <call text="Reverse Truck" level="Challenge" sublevel="C-2" link="c2/reverse_truck.html"/>
+    <call text="Reverse Wheel and Anything" level="Challenge" sublevel="C-1" link="c1/reverse_wheel_and_anything.html"/>
+    <call text="Revolve to a Wave" level="Challenge" sublevel="C-3B" link="c3b/revolve_to_a_wave.html"/>
+    <call text="Right (Left) Hand Star" level="Basic and Mainstream" sublevel="Basic 1" link="b1/star.html"/>
+    <call text="Right and Left Grand" level="Basic and Mainstream" sublevel="Basic 1" link="b1/right_and_left_grand.html"/>
+    <call text="Right and Left Thru" level="Basic and Mainstream" sublevel="Basic 1" link="b1/right_and_left_thru.html"/>
+    <call text="Right Arm Turn" level="Basic and Mainstream" sublevel="Basic 1" link="b1/arm_turns.html"/>
+    <call text="Right Roll to a Wave" level="Advanced" sublevel="A-1" link="a1/right_roll_to_a_wave.html"/>
+    <call text="Rims Trade (Anything)" level="Challenge" sublevel="C-2" link="c2/rims_trade_anything.html"/>
+    <call text="Rims Trade Back" level="Challenge" sublevel="C-2" link="c2/rims_trade_back.html"/>
+    <call text="Rip Off" level="Challenge" sublevel="C-3B" link="c3b/rip_off.html"/>
+    <call text="Ripple the Wave" level="Challenge" sublevel="C-2" link="c2/ripple_the_wave.html"/>
+    <call text="Ripple" level="Challenge" sublevel="C-2" link="c2/ripple.html"/>
+    <call text="Rollaway" level="Basic and Mainstream" sublevel="Basic 1" link="b1/sashay.html" anim="RollawayfromLines"/>
+    <call text="Rotary Spin" level="Challenge" sublevel="C-1" link="c1/rotary_spin.html"/>
+    <call text="Rotary" level="Challenge" sublevel="C-2" link="c2/rotary.html"/>
+    <call text="Rotary Circulate" level="Challenge" sublevel="C-3B" link="c3b/rotary_circulate.html"/>
+    <call text="Rotate" level="Challenge" sublevel="C-1" link="c1/rotate.html"/>
+    <call text="Rotate" level="Challenge" sublevel="C-2" link="c2/rotate.html"/>
+    <call text="Rotate" level="Challenge" sublevel="C-3B" link="c3b/rotate.html"/>
+    <call text="Run" level="Basic and Mainstream" sublevel="Basic 2" link="b2/run.html"/>
+    <call text="Same Position Rule" level="Basic and Mainstream" sublevel="Basic 1" link="b1/same_position_rule.html"/>
+    <call text="Scatter Circulate" level="Challenge" sublevel="C-3A" link="c3a/scatter_circulate.html"/>
+    <call text="Scatter Scoot Chain Thru" level="Challenge" sublevel="C-1" link="c1/scatter_scoot_chain_thru.html"/>
+    <call text="Scatter Scoot" level="Challenge" sublevel="C-1" link="c1/scatter_scoot.html"/>
+    <call text="Scoot and Counter" level="Challenge" sublevel="C-2" link="c2/scoot_and_counter.html"/>
+    <call text="Scoot and Cross Ramble" level="Challenge" sublevel="C-2" link="c2/scoot_and_cross_ramble.html"/>
+    <call text="Scoot and Dodge" level="Advanced" sublevel="A-1" link="a1/scoot_and_dodge.html"/>
+    <call text="Scoot and Little More" level="Challenge" sublevel="C-2" link="c2/scoot_and_little_more.html"/>
+    <call text="Scoot and Little" level="Challenge" sublevel="C-1" link="c1/scoot_and_little.html"/>
+    <call text="Scoot and Plenty" level="Challenge" sublevel="C-1" link="c1/scoot_and_plenty.html"/>
+    <call text="Scoot and Ramble" level="Challenge" sublevel="C-1" link="c1/scoot_and_ramble.html"/>
+    <call text="Scoot and Weave" level="Advanced" sublevel="A-2" link="a2/scoot_and_weave.html"/>
+    <call text="Scoot Back" level="Basic and Mainstream" sublevel="Mainstream" link="ms/scoot_back.html"/>
+    <call text="Scoot Chain Thru" level="Advanced" sublevel="A-2" link="a2/scoot_chain_thru.html"/>
+    <call text="Scoot the Diamond" level="Challenge" sublevel="C-3A" link="c3a/scoot_the_diamond.html"/>
+    <call text="Scramble" level="Challenge" sublevel="C-3B" link="c3b/scramble.html"/>
+    <call text="See Saw" level="Basic and Mainstream" sublevel="Basic 1" link="b1/see_saw.html"/>
+    <call text="Separate" level="Basic and Mainstream" sublevel="Basic 1" link="b1/separate.html"/>
+    <call text="Sets In Motion" level="Challenge" sublevel="C-2" link="c2/sets_in_motion.html"/>
+    <call text="Shake and Rattle" level="Challenge" sublevel="C-3B" link="c3b/shake_and_rattle.html"/>
+    <call text="Shakedown" level="Challenge" sublevel="C-1" link="c1/shakedown.html"/>
+    <call text="Shazam" level="Challenge" sublevel="C-2" link="c2/shazam.html"/>
+    <call text="Shoot the Star" level="Basic and Mainstream" sublevel="Basic 2" link="b2/shoot_the_star.html"/>
+    <call text="Siamese Concept" level="Challenge" sublevel="C-1" link="c1/siamese_concept.html"/>
+    <call text="Sidetrack" level="Challenge" sublevel="C-3B" link="c3b/sidetrack.html"/>
+    <call text="Single Bounce the (Anyone)" level="Challenge" sublevel="C-2" link="c2/single_bounce_the_anyone.html"/>
+    <call text="Single Checkmate" level="Challenge" sublevel="C-3A" link="c3a/single_checkmate.html"/>
+    <call text="Single Circle to a Wave" level="Plus" sublevel="Plus" link="plus/single_circle_to_a_wave.html"/>
+    <call text="Single Concept" level="Challenge" sublevel="C-3A" link="c3a/single_concept.html"/>
+    <call text="Single Concept" level="Challenge" sublevel="C-3B" link="c3b/single_concept.html"/>
+    <call text="Single Cross and Wheel" level="Challenge" sublevel="C-2" link="c2/single_cross_and_wheel.html"/>
+    <call text="Single Cross Trade and Wheel" level="Challenge" sublevel="C-2" link="c2/single_cross_trade_and_wheel.html"/>
+    <call text="Single File Recoil" level="Challenge" sublevel="C-3A" link="c3a/single_file_recoil.html"/>
+    <call text="Single File Recycle" level="Challenge" sublevel="C-3A" link="c3a/single_file_recycle.html"/>
+    <call text="Single Rotate" level="Challenge" sublevel="C-1" link="c1/single_rotate.html"/>
+    <call text="Single Rotate" level="Challenge" sublevel="C-2" link="c2/single_rotate.html"/>
+    <call text="Single Wheel" level="Advanced" sublevel="A-2" link="a2/single_wheel.html"/>
+    <call text="Six-Two Acey Deucey" level="Advanced" sublevel="A-1" link="a1/six_two_acey_deucey.html"/>
+    <call text="Skip" level="Challenge" sublevel="C-1" link="c1/replace.html"/>
+    <call text="Slant Anything by Anything" level="Challenge" sublevel="C-3A" link="c3a/slant_anything_by_anything.html"/>
+    <call text="Slide Thru" level="Basic and Mainstream" sublevel="Mainstream" link="ms/slide_thru.html"/>
+    <call text="Slide" level="Advanced" sublevel="A-2" link="a2/slide.html"/>
+    <call text="Slip the Clutch" level="Basic and Mainstream" sublevel="Basic 2" link="b2/slip_the_clutch.html"/>
+    <call text="Slip" level="Advanced" sublevel="A-2" link="a2/slip.html"/>
+    <call text="Slither" level="Advanced" sublevel="A-2" link="a2/slither.html"/>
+    <call text="Snap the Lock" level="Challenge" sublevel="C-3A" link="c3a/snap_the_lock.html"/>
+    <call text="Sock It To Me" level="Challenge" sublevel="C-2" link="c2/sock_it_to_me.html"/>
+    <call text="Solid Concept" level="Challenge" sublevel="C-2" link="c2/solid_concept.html"/>
+    <call text="Something New" level="Challenge" sublevel="C-3A" link="c3a/something_new.html"/>
+    <call text="Spin Chain and Exchange the Gears" level="Plus" sublevel="Plus" link="plus/spin_chain_and_exchange_the_gears.html"/>
+    <call text="Spin Chain the Gears" level="Plus" sublevel="Plus" link="plus/spin_chain_the_gears.html"/>
+    <call text="Spin Chain the Line" level="Challenge" sublevel="C-3A" link="c3a/spin_chain_the_line.html"/>
+    <call text="Spin Chain Thru" level="Basic and Mainstream" sublevel="Mainstream" link="ms/spin_chain_thru.html"/>
+    <call text="Spin the Pulley" level="Challenge" sublevel="C-3A" link="c3a/spin_the_pulley.html"/>
+    <call text="Spin the Top" level="Basic and Mainstream" sublevel="Mainstream" link="ms/spin_the_top.html"/>
+    <call text="Spin the Windmill" level="Advanced" sublevel="A-2" link="a2/spin_the_windmill.html"/>
+    <call text="Split Circulate" level="Basic and Mainstream" sublevel="Basic 1" link="b1/circulate.html" anim="SplitCirculatefromRightHandWaves"/>
+    <call text="Split Counter Rotate" level="Advanced" sublevel="A-2" link="a2/split_counter_rotate.html"/>
+    <call text="Split Phantom Boxes Concept" level="Challenge" sublevel="C-3B" link="c3b/split_phantom_boxes.html"/>
+    <call text="Split Phantom Columns/Lines/Waves" level="Challenge" sublevel="C-3A" link="c3a/split_phantom_columns_lines_waves_concept.html"/>
+    <call text="Split Recycle" level="Challenge" sublevel="C-1" link="c1/box_split_recycle.html"/>
+    <call text="Split Square Chain Thru" level="Advanced" sublevel="A-1" link="a1/split_square_chain_thru.html"/>
+    <call text="Split Square Thru Variations" level="Challenge" sublevel="C-1" link="c1/split_square_thru_variations.html"/>
+    <call text="Split Square Thru" level="Advanced" sublevel="A-1" link="a1/split_square_thru.html"/>
+    <call text="Split Swap Around" level="Challenge" sublevel="C-2" link="c2/split_swap_around.html"/>
+    <call text="Split Trade Circulate" level="Challenge" sublevel="C-2" link="c2/split_trade_circulate.html"/>
+    <call text="Split Transfer" level="Advanced" sublevel="A-2" link="a2/split_transfer.html"/>
+    <call text="Split Two" level="Basic and Mainstream" sublevel="Basic 1" link="b1/split_the_outside_couple.html"/>
+    <call text="Square Chain the Top" level="Challenge" sublevel="C-1" link="c1/square_chain_the_top.html"/>
+    <call text="Square Chain Thru" level="Advanced" sublevel="A-1" link="a1/square_chain_thru.html"/>
+    <call text="Square the Bases" level="Challenge" sublevel="C-1" link="c1/square_the_bases.html"/>
+    <call text="Square Thru" level="Basic and Mainstream" sublevel="Basic 1" link="b1/square_thru.html"/>
+    <call text="Squeeze the Hourglass" level="Challenge" sublevel="C-1" link="c1/squeeze_the_hourglass.html"/>
+    <call text="Squeeze" level="Challenge" sublevel="C-1" link="c1/squeeze.html"/>
+    <call text="Stable Concept" level="Challenge" sublevel="C-3A" link="c3a/stable_concept.html"/>
+    <call text="Stack the Line" level="Challenge" sublevel="C-2" link="c2/stack_the_line.html"/>
+    <call text="Stagger Concept" level="Challenge" sublevel="C-2" link="c2/stagger_concept.html"/>
+    <call text="Stampede" level="Challenge" sublevel="C-3A" link="c3a/stampede.html"/>
+    <call text="Star Promenade" level="Basic and Mainstream" sublevel="Basic 1" link="b1/star_promenade.html"/>
+    <call text="Star Thru" level="Basic and Mainstream" sublevel="Basic 1" link="b1/star_thru.html"/>
+    <call text="Start" level="Challenge" sublevel="C-1" link="c1/start.html"/>
+    <call text="Step and Flip" level="Challenge" sublevel="C-1" link="c1/step_and_flip.html"/>
+    <call text="Step and Fold" level="Challenge" sublevel="C-1" link="c1/step_and_fold.html"/>
+    <call text="Step and Slide" level="Advanced" sublevel="A-1" link="a1/step_and_slide.html"/>
+    <call text="n Steps at a Time" level="Challenge" sublevel="C-3B" link="c3b/n_steps_at_a_time.html"/>
+    <call text="Stimulate" level="Challenge" sublevel="C-3B" link="c3b/stimulate.html"/>
+    <call text="Stretch Concept" level="Challenge" sublevel="C-1" link="c1/stretch_concept.html"/>
+    <call text="Stretched Concept" level="Challenge" sublevel="C-2" link="c2/stretched_concept.html"/>
+    <call text="Strip the Diamond" level="Challenge" sublevel="C-3A" link="c3a/strip_the_diamond.html"/>
+    <call text="Strip the Hourglass" level="Challenge" sublevel="C-3A" link="c3a/strip_the_hourglass.html"/>
+    <call text="Strut Right / Left" level="Challenge" sublevel="C-3B" link="c3b/strut.html"/>
+    <call text="Substitute" level="Challenge" sublevel="C-1" link="c1/substitute.html"/>
+    <call text="Swap Around" level="Advanced" sublevel="A-1" link="a1/swap_around.html"/>
+    <call text="Swap the Top" level="Challenge" sublevel="C-3A" link="c3a/swap_the_top.html"/>
+    <call text="Swap the Wave" level="Challenge" sublevel="C-2" link="c2/swap_the_wave.html"/>
+    <call text="Sweep a Quarter" level="Basic and Mainstream" sublevel="Basic 2" link="b2/sweep_a_quarter.html"/>
+    <call text="Swing Along" level="Challenge" sublevel="C-2" link="c2/swing_along.html"/>
+    <call text="Swing" level="Basic and Mainstream" sublevel="Basic 1" link="b1/swing.html"/>
+    <call text="Swing" level="Advanced" sublevel="A-2" link="a2/swing.html"/>
+    <call text="Swing and Circle" level="Challenge" sublevel="C-1" link="c1/swing_and_circle.html"/>
+    <call text="Swing and Mix" level="Advanced" sublevel="A-2" link="a2/swing_and_mix.html"/>
+    <call text="Swing Chain Thru" level="Challenge" sublevel="C-3A" link="c3a/swing_chain_thru.html"/>
+    <call text="Swing-O-Late" level="Challenge" sublevel="C-3B" link="c3b/swing_o_late.html"/>
+    <call text="Swing the Fractions" level="Challenge" sublevel="C-1" link="c1/swing_the_fractions.html"/>
+    <call text="Swing Thru" level="Basic and Mainstream" sublevel="Basic 2" link="b2/swing_thru.html"/>
+    <call text="Switch the Line" level="Challenge" sublevel="C-1" link="c1/switch_the_line.html"/>
+    <call text="Switch the Wave" level="Advanced" sublevel="A-2" link="a2/switch_the_wave.html"/>
+    <call text="Switch to a Diamond" level="Advanced" sublevel="A-2" link="a2/switch_to_a_diamond.html"/>
+    <call text="Switch to a Diamond" level="Challenge" sublevel="C-1" link="c1/switch_to_a_diamond.html"/>
+    <call text="Switch to an Hourglass" level="Advanced" sublevel="A-2" link="a2/switch_to_an_hourglass.html"/>
+    <call text="Switch to an Hourglass" level="Challenge" sublevel="C-1" link="c1/switch_to_an_hourglass.html"/>
+    <call text="Switch to an Interlocked Diamond" level="Challenge" sublevel="C-1" link="c1/switch_to_an_interlocked_diamond.html"/>
+    <call text="T-Bone Formation" level="Challenge" sublevel="C-1" link="c1/t_bone_formation.html"/>
+    <call text="Take n" level="Challenge" sublevel="C-3B" link="c3b/take_n.html"/>
+    <call text="Tag Back to a Wave" level="Challenge" sublevel="C-1" link="c1/tagging_calls_back_to_a_wave.html" anim="TagBacktoaWavefromLines"/>
+    <call text="Tag the Line" level="Basic and Mainstream" sublevel="Mainstream" link="ms/tag.html"/>
+    <call text="Tag Your Neighbor" level="Challenge" sublevel="C-2" link="c2/tag_your_neighbor.html"/>
+    <call text="Tally Ho" level="Challenge" sublevel="C-1" link="c1/tally_ho.html"/>
+    <call text="Tandem Based Triangle" level="Challenge" sublevel="C-2" link="c2/tandem_based_triangle.html"/>
+    <call text="Tandem Concept" level="Challenge" sublevel="C-1" link="c1/tandem_concept.html"/>
+    <call text="Teacup Chain" level="Plus" sublevel="Plus" link="plus/teacup_chain.html"/>
+    <call text="Team Up" level="Challenge" sublevel="C-3A" link="c3a/team_up.html"/>
+    <call text="The Axle" level="Challenge" sublevel="C-1" link="c1/the_axle.html"/>
+    <call text="The Gamut" level="Challenge" sublevel="C-3A" link="c3a/the_gamut.html"/>
+    <call text="Three by Two Acey Deucey" level="Challenge" sublevel="C-1" link="c1/three_by_two_acey_deucey.html"/>
+    <call text="Three Quarter Thru" level="Advanced" sublevel="A-1" link="a1/three_quarter_thru.html"/>
+    <call text="Three Quarters Tag the Line" level="Plus" sublevel="Plus" link="plus/three_quarters_tag_the_line.html"/>
+    <call text="Touch a Quarter" level="Basic and Mainstream" sublevel="Basic 2" link="b2/touch_a_quarter.html"/>
+    <call text="Touch By Fraction By Fraction/Anything" level="Challenge" sublevel="C-3A" link="c3a/touch_by_fraction_by_fraction_anything.html"/>
+    <call text="Track n" level="Challenge" sublevel="C-3B" link="c3b/track_n.html"/>
+    <call text="Track Two" level="Plus" sublevel="Plus" link="plus/track_ii.html"/>
+    <call text="Trade" level="Basic and Mainstream" sublevel="Basic 2" link="b2/trade.html"/>
+    <call text="Trade By" level="Basic and Mainstream" sublevel="Basic 2" link="b2/trade_by.html"/>
+    <call text="Trade Circulate" level="Advanced" sublevel="A-2" link="a2/trade_circulate.html"/>
+    <call text="Trade the Deucey" level="Challenge" sublevel="C-3A" link="c3a/trade_the_deucey.html"/>
+    <call text="Trade the Diamond" level="Challenge" sublevel="C-3B" link="c3b/trade_the_diamond.html"/>
+    <call text="Trade the Wave" level="Plus" sublevel="Plus" link="plus/trade_the_wave.html"/>
+    <call text="Trail Off" level="Advanced" sublevel="A-2" link="a2/trail_off.html"/>
+    <call text="Trail to a Diamond" level="Challenge" sublevel="C-2" link="c2/trail_to_a_diamond.html"/>
+    <call text="Transfer and Anything" level="Advanced" sublevel="A-2" link="a2/transfer_and_anything.html"/>
+    <call text="Transfer the Column" level="Advanced" sublevel="A-1" link="a1/transfer_the_column.html"/>
+    <call text="Trapezoid Formation" level="Challenge" sublevel="C-3B" link="c3b/trapeziod_formation.html"/>
+    <call text="Travel Thru" level="Challenge" sublevel="C-3A" link="c3a/travel_thru.html"/>
+    <call text="Triangle Circulate" level="Challenge" sublevel="C-1" link="c1/triangle_circulate.html"/>
+    <call text="Triangle Formation" level="Challenge" sublevel="C-1" link="c1/triangle_formation.html"/>
+    <call text="Trip the Set" level="Challenge" sublevel="C-3A" link="c3a/trip_the_set.html"/>
+    <call text="Triple Box/Column/Line/Wave Concept" level="Challenge" sublevel="C-1" link="c1/triple_box_concept.html"/>
+    <call text="Triple Cross" level="Challenge" sublevel="C-1" link="c1/triple_cross.html"/>
+    <call text="Triple Diamond Concept" level="Challenge" sublevel="C-3A" link="c3a/triple_diamond_concept.html"/>
+    <call text="Triple Formations" level="Challenge" sublevel="C-3B" link="c3b/triple_formations.html"/>
+    <call text="Triple Play" level="Challenge" sublevel="C-3A" link="c3a/triple_play.html"/>
+    <call text="Triple Scoot" level="Advanced" sublevel="A-1" link="a1/triple_scoot.html"/>
+    <call text="Triple Star Thru" level="Advanced" sublevel="A-1" link="a1/triple_star_thru.html"/>
+    <call text="Triple Trade" level="Advanced" sublevel="A-1" link="a1/triple_trade.html"/>
+    <call text="Truck" level="Challenge" sublevel="C-2" link="c2/truck.html"/>
+    <call text="Turn and Deal" level="Advanced" sublevel="A-1" link="a1/turn_and_deal.html"/>
+    <call text="Turn Back" level="Basic and Mainstream" sublevel="Basic 1" link="b1/turn_back.html"/>
+    <call text="Turn the Key" level="Challenge" sublevel="C-3B" link="c3b/turn_the_key.html"/>
+    <call text="Turn Thru" level="Basic and Mainstream" sublevel="Mainstream" link="ms/turn_thru.html"/>
+    <call text="Turn to a Line" level="Challenge" sublevel="C-2" link="c2/turn_to_a_line.html"/>
+    <call text="Turnstyle" level="Challenge" sublevel="C-3B" link="c3b/turnstyle.html"/>
+    <call text="Twist and Anything" level="Challenge" sublevel="C-1" link="c1/twist_and_anything.html"/>
+    <call text="Twist the Line" level="Challenge" sublevel="C-1" link="c1/twist_the_line.html"/>
+    <call text="Two-Faced Concept" level="Challenge" sublevel="C-3B" link="c3b/two_faced_concept.html"/>
+    <call text="Two-Thirds Recycle" level="Challenge" sublevel="C-1" link="c1/2_3_recycle.html"/>
+    <call text="Twosome Concept" level="Challenge" sublevel="C-3B" link="c3b/twosome_concept.html"/>
+    <call text="Unwrap" level="Challenge" sublevel="C-2" link="c2/unwrap.html"/>
+    <call text="Veer Left Veer Right" level="Basic and Mainstream" sublevel="Basic 1" link="b1/veer.html"/>
+    <call text="Vertical (Anything)" level="Challenge" sublevel="C-2" link="c2/vertical_anything.html"/>
+    <call text="Vertical Tag Back to a Wave" level="Challenge" sublevel="C-1" link="c1/tagging_calls_back_to_a_wave.html" anim="VerticalTag"/>
+    <call text="Vertical Tag Your Neighbor" level="Challenge" sublevel="C-2" link="c2/vertical_tag_your_neighbor.html"/>
+    <call text="Vertical Tag" level="Challenge" sublevel="C-1" link="c1/vertical_tag.html"/>
+    <call text="Walk and Dodge" level="Basic and Mainstream" sublevel="Mainstream" link="ms/walk_and_dodge.html"/>
+    <call text="Walk Around the Corner" level="Basic and Mainstream" sublevel="Basic 1" link="b1/all_around_the_corner.html"/>
+    <call text="Walk Out to a Wave" level="Challenge" sublevel="C-2" link="c2/walk_out_to_a_wave.html"/>
+    <call text="Wave the Anyone" level="Challenge" sublevel="C-3B" link="c3b/wave_the_anyone.html"/>
+    <call text="Weave the Ring" level="Basic and Mainstream" sublevel="Basic 1" link="b1/right_and_left_grand.html" anim="WeavetheRing"/>
+    <call text="Wheel and Anything" level="Challenge" sublevel="C-1" link="c1/wheel_and_anything.html"/>
+    <call text="Wheel and Deal" level="Basic and Mainstream" sublevel="Basic 2" link="b2/wheel_and_deal.html"/>
+    <call text="Wheel Around" level="Basic and Mainstream" sublevel="Basic 2" link="b2/wheel_around.html"/>
+    <call text="Wheel Fan Thru" level="Challenge" sublevel="C-1" link="c1/wheel_fan_thru.html"/>
+    <call text="Wheel the Ocean" level="Challenge" sublevel="C-2" link="c2/wheel_the_ocean.html"/>
+    <call text="Wheel the Sea" level="Challenge" sublevel="C-2" link="c2/wheel_the_sea.html"/>
+    <call text="Wheel Thru" level="Advanced" sublevel="A-1" link="a1/wheel_thru.html"/>
+    <call text="Wind the Bobbin" level="Challenge" sublevel="C-3A" link="c3a/wind_the_bobbin.html"/>
+    <call text="With Confidence" level="Challenge" sublevel="C-3B" link="c3b/with_confidence.html"/>
+    <call text="With the Flow" level="Challenge" sublevel="C-1" link="c1/with_the_flow.html"/>
+    <call text="Wrap to a Formation" level="Challenge" sublevel="C-3A" link="c3a/wrap_to_a_formation.html"/>
+    <call text="Wrong Way Grand" level="Basic and Mainstream" sublevel="Basic 1" link="b1/right_and_left_grand.html" anim="WrongWayGrand"/>
+    <call text="Wrong Way Thar" level="Basic and Mainstream" sublevel="Basic 2" link="b2/thar.html" anim="WrongWayTharfromLeftHandTharStar"/>
+    <call text="Z Axle" level="Challenge" sublevel="C-3B" link="c3b/z_axle.html"/>
+    <call text="Z Concept" level="Challenge" sublevel="C-3B" link="c3b/z_concept.html"/>
+    <call text="Zig and Zag" level="Advanced" sublevel="A-2" link="a2/zig_and_zag.html"/>
+    <call text="Zing" level="Challenge" sublevel="C-1" link="c1/zing.html"/>
+    <call text="Zip Code" level="Challenge" sublevel="C-2" link="c2/zip_code.html"/>
+    <call text="Zoom" level="Basic and Mainstream" sublevel="Basic 2" link="b2/zoom.html"/>
+
+</calls>

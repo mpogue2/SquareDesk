@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Reverse Crazy Concept">
+
+  <tam title="Reverse Crazy Reverse Flutterwheel" group="Reverse Crazy"
+       formation="Normal Lines"
+       parts="8;8;8" >
+    <path>
+      <move select="Stand Alone" beats="8"/>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Left" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" hands="right" offsetX="1.5" offsetY="-.25" />
+      <move select="Stand Alone" beats="8"/>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Left" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" hands="right" offsetX="1.5" offsetY="-.25" />
+    </path>
+    <path>
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Left" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" hands="right" offsetX="1.5" offsetY="-.25" />
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleX="1.5" />
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-1" />
+      <move select="Stand Alone" beats="8"/>
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-.5" />
+    </path>
+    <path>
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-.5" />
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Left" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" hands="right" offsetX="1.5" offsetY="-.25" />
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-.5" />
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Left" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" hands="right" offsetX="1.5" offsetY="-.25" />
+    </path>
+    <path>
+      <move select="Stand Alone" beats="8"/>
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleX="1.5" scaleY="1.5" />
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-.5" />
+      <move select="Extend Right" beats="2" scaleX="1.5" scaleY="1.75" />
+      <move select="Swing Left" hands="both" scaleX=".75" scaleY=".75" />
+      <move select="U-Turn Left" hands="right" offsetX="1.5" offsetY="-.25" />
+      <move select="Forward" hands="nohands" beats="3.5" />
+      <move select="Extend Right" hands="left" beats="1.5" scaleX="1.5" />
+      <move select="Run Left" hands="left" scaleX="1.5" scaleY="2" offsetX="1.5" offsetY="-1" />
+    </path>
+  </tam>
+
+  <tam title="1/2 Reverse Crazy Tag Back" group="1/2 Reverse Crazy" parts="8.5">
+    <formation>
+      <dancer gender="boy" x="3" y="0" angle="270"/>
+      <dancer gender="girl" x="1" y="0" angle="270"/>
+      <dancer gender="boy" x="-2" y="3" angle="0"/>
+      <dancer gender="girl" x="2" y="3" angle="0"/>
+    </formation>
+    <path>
+      <move select="Lead Right"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".25"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".25"/>
+      <move select="Lead Right"/>
+      <move select="Forward 2"/>
+      <move select="Run Right"/>
+      <move select="Stand Left" beats="2"/>
+    </path>
+    <path>
+      <move select="Lead Right"/>
+      <move select="Forward 2"/>
+      <move select="Run Right"/>
+      <move select="Stand Left" beats="2"/>
+      <move select="Lead Right"/>
+      <move select="Forward 2"/>
+      <move select="Run Right"/>
+      <move select="Stand Left" beats="2"/>
+    </path>
+    <path>
+      <move select="Stand Alone" beats="6.5"/>
+      <move select="Stand Right" beats="2"/>
+      <move select="Lead Right"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".25"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".25"/>
+    </path>
+    <path>
+      <move select="Stand Alone" beats="8.5"/>
+      <move select="Lead Right"/>
+      <move select="Extend Right" beats="2" scaleX="2" scaleY=".25"/>
+      <move select="Swing Right" scaleX=".75" scaleY=".75"/>
+      <move select="Extend Left" beats="2" scaleX="2" scaleY=".25"/>
+    </path>
+  </tam>
+
+  <tam title="1/2 Reverse Crazy 2/3 Recycle" group="1/2 Reverse Crazy"
+       parts="4.5" formation="Diamonds Facing LH Girl Points">
+    <path>
+      <move select="Lead Left" beats="4.5" scaleY="5" />
+      <move select="Cast Right" />
+    </path>
+    <path>
+      <move select="Stand Alone" beats="4.5"/>
+      <move select="Lead Right" beats="4.5" scaleY="5" />
+    </path>
+    <path>
+      <move select="Cast Left" hands="none"/>
+      <move select="Cast Right" />
+    </path>
+    <path>
+      <move select="Stand Alone" beats="4.5"/>
+      <move select="Lead Right" beats="4.5" scaleY="5" />
+    </path>
+  </tam>
+
+  <tam title="3/4 Reverse Crazy Follow Thru" group="3/4 Reverse Crazy" parts="3;3">
+    <formation>
+      <dancer gender="boy" x="3" y="0" angle="180"/>
+      <dancer gender="girl" x="0" y="1" angle="0"/>
+      <dancer gender="boy" x="1" y="3" angle="270"/>
+      <dancer gender="girl" x="-1" y="3" angle="270"/>
+    </formation>
+    <path>
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY=".75"/>
+      <move select="Hinge Right" scaleX=".5" scaleY=".75"/>
+      <move select="Forward" beats="1.5" scaleX="1.5"/>
+      <move select="Hinge Right" scaleX="1.5"/>
+      <move select="Stand Alone" beats="3"/>
+    </path>
+    <path>
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".25"/>
+      <move select="Hinge Right" scaleX="1.5" scaleY=".75"/>
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".25"/>
+      <move select="Hinge Right" scaleX="1.5" scaleY=".75"/>
+      <move select="Stand Alone" beats="3"/>
+    </path>
+    <path>
+      <move select="Stand Alone" beats="3"/>
+      <move select="Extend Left" beats="1.5" scaleX="1.5" scaleY="1.5"/>
+      <move select="Hinge Right" scaleX=".5" scaleY=".5"/>
+      <move select="Extend Left" beats="1.75" scaleX="2" scaleY=".25"/>
+      <move select="Hinge Left" beats="1.25" scaleY=".75"/>
+    </path>
+    <path>
+      <move select="Stand Alone" beats="3"/>
+      <move select="Extend Right" beats="1.5" scaleX="1.5" scaleY=".25"/>
+      <move select="Hinge Right" scaleX=".5" scaleY=".75"/>
+      <move select="Lead Left" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="3/4 Reverse Crazy Quarter Thru" group="3/4 Reverse Crazy"
+       formation="Ocean Waves LH BGGB" parts="4.5;4.5">
+    <path>
+      <move select="Stand Alone" beats="4.5"/>
+      <move select="Stand Alone" beats="1.5"/>
+      <move select="Swing Left"/>
+      <move select="Hinge Right"/>
+      <move select="Swing Left"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Swing Left"/>
+      <move select="Hinge Right"/>
+      <move select="Swing Left"/>
+      <move select="Stand Alone" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Hinge Right"/>
+      <move select="Stand Alone" beats="3"/>
+      <move select="Hinge Right"/>
+      <move select="Swing Left"/>
+      <move select="Stand Alone" beats="4.5"/>
+    </path>
+    <path>
+      <move select="Stand Alone" beats="4.5"/>
+      <move select="Stand Alone" beats="1.5"/>
+      <move select="Swing Left"/>
+      <move select="Hinge Right"/>
+      <move select="Stand Alone" beats="3"/>
+    </path>
+  </tam>
+
+</tamination>

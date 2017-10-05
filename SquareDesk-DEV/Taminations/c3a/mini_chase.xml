@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+<!DOCTYPE tamination SYSTEM "tamination.dtd">
+<!--
+
+    Copyright 2017 Brad Christie
+
+    This file is part of Taminations.
+
+    Taminations is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Taminations is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with Taminations.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<tamination title="Mini Chase">
+
+  <tam title="Mini Chase" from="Couples Facing Out" formation="Couples Facing Out">
+    <path couples="3 1">
+      <move select="Run Right" offsetX="-1.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path couples="3 1">
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3" scaleX="2"/>
+    </path>
+  </tam>
+
+  <tam title="Mini Chase" from="Lines Facing Out" formation="Lines Facing Out">
+    <path>
+      <move select="Run Right" scaleY=".5" offsetX="-1.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY=".25" offsetX="-1.5"/>
+      <move select="Lead Right" beats="2" scaleY=".5" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="Mini Chase" from="Trade By" formation="Trade By">
+    <path>
+      <move select="Run Right" offsetX="-.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Forward 2" beats="3"/>
+    </path>
+    <path>
+      <move select="Run Right" offsetX="-.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Forward 2" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="Mini Chase" from="T-Bones" formation="T-Bone DRLD">
+    <path>
+      <move select="Run Right" scaleY=".5" offsetX="-.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Forward" beats="3"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY=".5" offsetX="-.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Forward" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="All 8 Mini Chase" group=" "
+       formation="Static Facing Out">
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right" offsetX="-1.5" scaleY="1.5"/>
+      <move select="Lead Right" beats="2" scaleX="2.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Run Right" offsetX="-1.5" scaleY="1.5"/>
+      <move select="Lead Right" beats="2" scaleX="2.5"/>
+    </path>
+  </tam>
+
+  <tam title="As Couples Mini Chase" group=" "
+       formation="Lines Facing Out">
+    <path>
+      <move select="Counter Rotate Right -2 0" hands="left"/>
+      <move select="U-Turn Right" hands="left" beats="3" offsetX="-1" offsetY="-1"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right"/>
+      <move select="Run Right" hands="right" offsetX="-1" scaleX="2" scaleY="2" offsetY="-1"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right -2 0" hands="left" offsetX="1" offsetY="-1"/>
+      <move select="Forward 2" beats="3" hands="left"/>
+    </path>
+    <path>
+      <move select="Counter Rotate Right 0 -2" hands="right" offsetX="1" offsetY="-1"/>
+      <move select="Forward 2" beats="3" hands="right"/>
+    </path>
+  </tam>
+
+  <tam title="Concentric Mini Chase" group=" "
+       formation="Completed Double Pass Thru">
+    <path>
+      <move select="Run Right" scaleY="1.5" offsetX="-.5"/>
+      <move select="Lead Right" beats="3" scaleX="3.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" scaleX="3" scaleY="2" beats="4"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY=".5" offsetX="-.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Forward" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="Stretch Mini Chase" group=" "
+       formation="Lines Facing Out">
+    <path>
+      <move select="Run Right" scaleY=".5" offsetX="-1.5"/>
+      <move select="Lead Right" beats="2" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3"/>
+    </path>
+    <path>
+      <move select="Run Right" scaleY="1.25" offsetX="-1.5"/>
+      <move select="Lead Right" beats="2" scaleY=".5" scaleX="1.5"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-2"/>
+      <move select="Extend Right" scaleX="2" beats="3"/>
+    </path>
+  </tam>
+
+  <tam title="Tandem Mini Chase" group=" "
+       formation="Completed Double Pass Thru">
+    <path>
+      <move select="Run Right" scaleY="2" offsetX="-1.5"/>
+      <move select="Lead Right" beats="4" scaleX="2.5" scaleY="4"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2" offsetY="-1"/>
+      <move select="Extend Right" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Forward"/>
+      <move select="Run Right" scaleY="2"/>
+      <move select="Lead Right" beats="3" scaleX="3" scaleY="2"/>
+    </path>
+    <path>
+      <move select="Quarter Right" beats="2"/>
+      <move select="Forward 2" beats="3"/>
+    </path>
+  </tam>
+
+</tamination>
