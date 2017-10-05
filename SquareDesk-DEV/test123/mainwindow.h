@@ -625,6 +625,7 @@ private: // SD
     SDThread *sdthread;
     QStringList sdformation;
     QGraphicsScene sdscene;
+    int sdLastLine;
     QList<QGraphicsItemGroup*> sdpeople;
 };
 

@@ -1568,7 +1568,42 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QListWidget" name="listWidgetSDOutput"/>
+           <widget class="QTabWidget" name="tabWidget_2">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tabWidget_2Page1">
+             <attribute name="title">
+              <string>SD Output</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDOutput"/>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tabWidget_2Page2">
+             <attribute name="title">
+              <string>Current Sequence</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <widget class="QTableWidget" name="tableWidgetCurrentSequence">
+                <column>
+                 <property name="text">
+                  <string>Call</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Result</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
           </item>
           <item>
            <widget class="QLineEdit" name="lineEditSDInput"/>

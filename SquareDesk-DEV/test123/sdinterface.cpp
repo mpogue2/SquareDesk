@@ -210,7 +210,7 @@ void SquareDesk_iofull::prepare_for_listing()
 
 void SquareDesk_iofull::set_window_title(char s[])
 {
-    qDebug() << "SquareDesk_iofull::set_window_title(" << s << ");";
+//    qDebug() << "SquareDesk_iofull::set_window_title(" << s << ");";
     emit sdthread->on_sd_set_window_title(QString(s));
 }
 
@@ -684,7 +684,7 @@ void SquareDesk_iofull::terminate(int code)
 
 void SquareDesk_iofull::process_command_line(int */* argcp */, char ***/* argvp */)
 {
-    qDebug() << "SquareDesk_iofull::process_command_line(int *argcp, char ***argvp);";
+//    qDebug() << "SquareDesk_iofull::process_command_line(int *argcp, char ***argvp);";
 }
 
 void SquareDesk_iofull::bad_argument(Cstring /* s1 */, Cstring /* s2 */, Cstring /* s3 */)
@@ -696,7 +696,7 @@ void SquareDesk_iofull::final_initialize()
 {
     ui_options.use_escapes_for_drawing_people = 0;
 
-    qDebug() << "SquareDesk_iofull::final_initialize();";
+//    qDebug() << "SquareDesk_iofull::final_initialize();";
 }
 
 bool SquareDesk_iofull::init_step(init_callback_state s, int n)
@@ -704,56 +704,54 @@ bool SquareDesk_iofull::init_step(init_callback_state s, int n)
     switch (s) 
     {
     case get_session_info:
-        qDebug() << "get_session_info: " << s << " " << n;
+        // qDebug() << "get_session_info: " << s << " " << n;
         break;
         
     case final_level_query:
-        qDebug() << "final_level_query: " << s << " " << n;
+        // qDebug() << "final_level_query: " << s << " " << n;
         break;
         
     case init_database1:
-        qDebug() << "init_database1: " << s << " " << n;
+        // qDebug() << "init_database1: " << s << " " << n;
         break;
         
         // update status "Reading database"
     case init_database2:
-        qDebug() << "init_database2: " << s << " " << n;
+        // qDebug() << "init_database2: " << s << " " << n;
         break;
         
         // update status "Creating menus"
     case calibrate_tick:
-        qDebug() << "calibrate_tick: " << s << " " << n;
+        // qDebug() << "calibrate_tick: " << s << " " << n;
         break;
        
     case do_tick:
-        qDebug() << "do_tick: " << s << " " << n;
+        // qDebug() << "do_tick: " << s << " " << n;
         break;
        
     case tick_end:
-        qDebug() << "tick_end: " << s << " " << n;
+        // qDebug() << "tick_end: " << s << " " << n;
         break;
        
     case do_accelerator:
-        qDebug() << "do_accelerator: " << s << " " << n;
+        // qDebug() << "do_accelerator: " << s << " " << n;
         break;
        
     default:
-        qDebug() << "init step " << s << " " << n;
+        // qDebug() << "init step " << s << " " << n;
         break;
     }
-    qDebug() << "SquareDesk_iofull::init_step(init_callback_state s, int n);";
+    // qDebug() << "SquareDesk_iofull::init_step(init_callback_state s, int n);";
     return false;
 }
 
 void SquareDesk_iofull::set_utils_ptr(ui_utils *utils_ptr)
 {
     m_ui_utils_ptr = utils_ptr;
-    qDebug() << "SquareDesk_iofull::set_utils_ptr(ui_utils *utils_ptr);";
 }
 
 ui_utils *SquareDesk_iofull::get_utils_ptr()
 {
-    qDebug() << "SquareDesk_iofull::*get_utils_ptr();";
     return m_ui_utils_ptr;
 }
 
@@ -779,7 +777,6 @@ uims_reply_thing SquareDesk_iofull::get_startup_command()
     MenuKind = ui_start_select;
    
     ShowListBox(matcher_class::e_match_startup_commands);
-//   ZZZZZZZZZZ
 
     EnterMessageLoop();
 
@@ -827,11 +824,15 @@ void SDThread::finishAndShutdownSD()
 {
     iofull->answerYesToEverything = true;
     abort = true;
-    while (iofull->currentInputState != InputStateText)
+    eventLoopMutex.lock();
+    while (iofull->currentInputState != InputStateNormal)
     {
-        eventLoopMutex.lock();
+        eventLoopMutex.unlock();
         on_user_input("Yes");
+        eventLoopMutex.lock();
     }
+    eventLoopMutex.unlock();
+
     if (!iofull->seenAFormation)
     {
         on_user_input("heads start");

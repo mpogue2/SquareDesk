@@ -68,24 +68,28 @@ void MainWindow::initialize_internal_sd_tab()
         sdpeople.append(girlGroup);
     }
     ui->graphicsViewSDFormation->setScene(&sdscene);
-                          
+    QStringList tableHeader;
+    tableHeader << "#" << "call" << "result";
+    ui->tableWidgetCurrentSequence->setHorizontalHeaderLabels(tableHeader);
+    ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(true);
 }
        
 
 
-void MainWindow::on_threadSD_errorString(QString str)
+void MainWindow::on_threadSD_errorString(QString /* str */)
 {
-    qDebug() << "on_threadSD_errorString: " <<  str;
+//    qDebug() << "on_threadSD_errorString: " <<  str;
 }
 
-void MainWindow::on_sd_set_window_title(QString str)
+void MainWindow::on_sd_set_window_title(QString /* str */)
 {
-    qDebug() << "on_sd_set_window_title: " << str;
+//    qDebug() << "on_sd_set_window_title: " << str;
 }
 
 void MainWindow::on_sd_update_status_bar(QString str)
 {
-    qDebug() << "on_sd_update_status_bar: " << str;
+//    qDebug() << "on_sd_update_status_bar: " << str;
     ui->labelSDStatusBar->setText(str);
 }
 
@@ -196,6 +200,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         if (str.isEmpty())
             return;
     }
+
     
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
@@ -206,9 +211,20 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     }
     else
     {
+        static QRegularExpression regexMove("^\\s*(\\d+)\\:\\s*(.*)$");
+        QRegularExpressionMatch match = regexMove.match(str);
+        if (match.hasMatch())
+        {
+            sdLastLine = match.captured(1).toInt();
+            QString move = match.captured(2);
+            ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
+            QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
+            ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
+        }
+    
         draw_scene(sdformation, sdpeople);
         if (!sdformation.empty())
-        {
+        { 
             QPixmap image(128,128);
             image.fill();
             QPainter painter(&image);
@@ -220,7 +236,22 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                           "\n" + sdformation.join("\n"));
             item->setIcon(QIcon(image));
             ui->listWidgetSDOutput->addItem(item);
-            
+            /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
+        }
+
+        if (!sdformation.empty())
+        { 
+            QPixmap image(64,64);
+            image.fill();
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            sdscene.render(&painter);
+
+            QTableWidgetItem *item = new QTableWidgetItem();
+            item->setData(Qt::UserRole, ui->labelSDStatusBar->text() +
+                          "\n" + sdformation.join("\n"));
+            item->setIcon(QIcon(image));
+            ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 1, item);
             /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
         }
         sdformation.clear();
@@ -231,6 +262,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 void MainWindow::on_sd_awaiting_input()
 {
     ui->listWidgetSDOutput->scrollToBottom();
+    ui->tableWidgetCurrentSequence->scrollToBottom();
 }
     
 void MainWindow::on_sd_set_pick_string(QString str)
