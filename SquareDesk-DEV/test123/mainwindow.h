@@ -627,6 +627,8 @@ private: // SD
     QGraphicsScene sdscene;
     int sdLastLine;
     QList<QGraphicsItemGroup*> sdpeople;
+public:
+    void do_sd_tab_completion();
 };
 
 // currentState:

@@ -2501,7 +2501,12 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         //   stopping of music when editing a text field).  Sorry, can't use the SPACE BAR
         //   when editing a search field, because " " is a valid character to search for.
         //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
-        if ( !(ui->labelSearch->hasFocus() ||
+        if (ui->lineEditSDInput->hasFocus()
+            && KeyEvent->key() == Qt::Key_Tab)
+        {
+            maybeMainWindow->do_sd_tab_completion();
+        }
+        else if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
                (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||

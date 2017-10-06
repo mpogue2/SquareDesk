@@ -314,6 +314,39 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
     ui->lineEditSDInput->setText(item->text());
 }
 
+void MainWindow::do_sd_tab_completion()
+{
+    QString originalText(ui->lineEditSDInput->text().trimmed());
+    QString longestMatch;
+    
+    for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
+    {
+        if (ui->listWidgetSDOptions->item(i)->text().startsWith(originalText, Qt::CaseInsensitive))
+        {
+            if (longestMatch.isEmpty())
+            {
+                longestMatch = ui->listWidgetSDOptions->item(i)->text();
+            }
+            else
+            {
+                QString thisItem = ui->listWidgetSDOptions->item(i)->text();
+                int substringMatch = 0;
+                while (substringMatch < longestMatch.length() && substringMatch < thisItem.length() &&
+                       thisItem[substringMatch] == longestMatch[substringMatch])
+                {
+                    ++substringMatch;
+                }
+                longestMatch = longestMatch.left(substringMatch);
+            }
+        }
+    }
+    if (longestMatch.length() > originalText.length())
+    {
+        ui->lineEditSDInput->setText(longestMatch);
+    }
+    
+}
+
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
     qDebug() << "Return pressed, command is: " << ui->lineEditSDInput->text();
@@ -334,7 +367,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
     
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
-        bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(s);
+        bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(s, Qt::CaseInsensitive);
         if (show)
         {
             QVariant v = ui->listWidgetSDOptions->item(i)->data(Qt::UserRole);
