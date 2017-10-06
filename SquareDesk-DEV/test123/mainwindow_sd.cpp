@@ -331,7 +331,8 @@ void MainWindow::do_sd_tab_completion()
     
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
-        if (ui->listWidgetSDOptions->item(i)->text().startsWith(originalText, Qt::CaseInsensitive))
+        if (ui->listWidgetSDOptions->item(i)->text().startsWith(originalText, Qt::CaseInsensitive)
+            && !ui->listWidgetSDOptions->isRowHidden(i))
         {
             if (longestMatch.isEmpty())
             {
@@ -342,7 +343,7 @@ void MainWindow::do_sd_tab_completion()
                 QString thisItem = ui->listWidgetSDOptions->item(i)->text();
                 int substringMatch = 0;
                 while (substringMatch < longestMatch.length() && substringMatch < thisItem.length() &&
-                       thisItem[substringMatch] == longestMatch[substringMatch])
+                       thisItem[substringMatch].toLower() == longestMatch[substringMatch].toLower())
                 {
                     ++substringMatch;
                 }

@@ -2505,6 +2505,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             && KeyEvent->key() == Qt::Key_Tab)
         {
             maybeMainWindow->do_sd_tab_completion();
+            return true;
         }
         else if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
