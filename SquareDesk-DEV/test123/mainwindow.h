@@ -306,6 +306,8 @@ private slots:
     void cancelProgress();
 
     void on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex);
+    void on_checkBoxSDCommandsShown_clicked();
+    void on_checkBoxSDConceptsShown_clicked();
     
 
     // END SLOTS -----------

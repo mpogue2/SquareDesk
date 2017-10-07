@@ -8,6 +8,8 @@
 class SquareDesk_iofull;
 class MainWindow;
 
+const int kSDCallTypeConcepts = (1 << 8);
+const int kSDCallTypeCommands = (1 << 9);
 
 
 class SDThread : public QThread {

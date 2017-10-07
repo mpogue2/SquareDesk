@@ -6,17 +6,17 @@
 #include <QCoreApplication>
 #include <QInputDialog>
 #include <QLineEdit>
-
+#include "common.h"
 
 static double dancerGridSize = 20;
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, bool boy)
 {
     static QPen pen(Qt::black, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
-    static QBrush brushes[4] = { QBrush(Qt::red),
-                                 QBrush(Qt::green),
-                                 QBrush(Qt::blue),
-                                 QBrush(Qt::yellow)
+    static QBrush brushes[4] = { QBrush(COUPLE1COLOR),
+                                 QBrush(COUPLE2COLOR),
+                                 QBrush(COUPLE3COLOR),
+                                 QBrush(COUPLE4COLOR)
     };
 
     static float rectSize = 20;
@@ -275,6 +275,7 @@ void MainWindow::on_sd_awaiting_input()
     ui->listWidgetSDOutput->scrollToBottom();
     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine > 1 ? sdLastLine - 1 : sdLastLine);
     ui->tableWidgetCurrentSequence->scrollToBottom();
+    on_lineEditSDInput_textChanged();
 }
     
 void MainWindow::on_sd_set_pick_string(QString str)
@@ -373,6 +374,9 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 
 void MainWindow::on_lineEditSDInput_textChanged()
 {
+    bool showCommands = ui->checkBoxSDCommandsShown->isChecked();
+    bool showConcepts = ui->checkBoxSDConceptsShown->isChecked();
+
     QString s = ui->lineEditSDInput->text();
     int current_dance_program = ui->comboBoxSDCallingLevel->currentIndex();
     
@@ -383,14 +387,35 @@ void MainWindow::on_lineEditSDInput_textChanged()
         {
             QVariant v = ui->listWidgetSDOptions->item(i)->data(Qt::UserRole);
             int dance_program = v.toInt();
-            if (dance_program > current_dance_program)
+            if (dance_program & kSDCallTypeConcepts)
+            {
+                if (!showConcepts)
+                    show = false;
+            }
+            else if (dance_program & kSDCallTypeCommands)
+            {
+                if (!showCommands)
+                    show = false;
+            }
+            else if (dance_program > current_dance_program)
+            {
                 show = false;
+            }
         }
         ui->listWidgetSDOptions->setRowHidden(i, !show);
     }
     
 }
 
+void MainWindow::on_checkBoxSDCommandsShown_clicked()
+{
+    on_lineEditSDInput_textChanged();
+}
+
+void MainWindow::on_checkBoxSDConceptsShown_clicked()
+{
+    on_lineEditSDInput_textChanged();
+}
 
 void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int /* currentIndex */)
 {

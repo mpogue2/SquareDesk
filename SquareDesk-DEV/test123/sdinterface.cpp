@@ -135,7 +135,22 @@ void SquareDesk_iofull::add_string_input(const char *s)
     default:
         qDebug() << "Unknown input state: " << currentInputState;
     case SDThread::InputStateNormal:
-        matcher_class &matcher = *gg77->matcher_p;
+        int len = strlen(s);
+             matcher_class &matcher = *gg77->matcher_p;
+
+        if (s[len - 1] == '!'
+            || s[len - 1] == '?')
+        {
+            bool question_mark = s[len - 1] == '?';
+            char ach[MAX_TEXT_LINE_LENGTH + 1];
+            memset(ach, '\0', sizeof(ach));
+            if (len > MAX_TEXT_LINE_LENGTH)
+                len = MAX_TEXT_LINE_LENGTH;
+            strncpy(ach,s,len);
+            matcher.match_user_input(nLastOne, true, question_mark, false);
+            break;
+        }
+            
 
         qDebug() << "Matching: " << s;
         matcher.copy_to_user_input(s);
@@ -278,7 +293,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (int i = 0; i < NUM_CARDINALS; ++i)
             {
                 options.append(cardinals[i]);
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }
             UpdateStatusBar("<number>");
         }
@@ -287,7 +302,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (unsigned int i = 0; i < number_of_circcers; ++i)
             {
                 options.append(get_call_menu_name(circcer_calls[i]));
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }
             UpdateStatusBar("<circulate replacement>");
         }
@@ -299,7 +314,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (unsigned int iu=0 ; iu<number_of_taggers[tagclass] ; iu++)
             {
                 options.append(get_call_menu_name(tagger_calls[tagclass][iu]));
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }
         }
         else if (nLastOne == matcher_class::e_match_startup_commands) {
@@ -308,14 +323,14 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (int i=0 ; i<num_startup_commands ; i++)
             {
                 options.append(startup_commands[i]);
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }
         }
         else if (nLastOne == matcher_class::e_match_resolve_commands) {
             for (int i=0 ; i<number_of_resolve_commands ; i++)
             {
                 options.append(resolve_command_strings[i]);
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }                
         }
         else if (nLastOne == matcher_class::e_match_directions) {
@@ -324,7 +339,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (int i=0 ; i<last_direction_kind ; i++)
             {
                 options.append(direction_menu_list[i+1]);
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }
         }
         else if (nLastOne == matcher_class::e_match_selectors) {
@@ -334,7 +349,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (int i=0 ; i<selector_INVISIBLE_START-1 ; i++)
             {
                 options.append(selector_menu_list[i]);
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0));
             }
         }
         else {
@@ -360,14 +375,14 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             for (i=0 ; i<menu_length ; i++)
             {
                 options.append(get_concept_menu_name(access_concept_descriptor_table(item[i])));
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0 + kSDCallTypeConcepts));
             }                
 
             for (i=0 ;  ; i++) {
                 Cstring name = command_menu[i].command_name;
                 if (!name) break;
                 options.append(name);
-                dance_levels.append(QString("%1").arg(-1));
+                dance_levels.append(QString("%1").arg(0 + kSDCallTypeCommands));
             }
         }
         emit sdthread->on_sd_set_matcher_options(options, dance_levels); 
@@ -557,9 +572,9 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
     QStringList options;
     QStringList dance_levels; 
     options.append("yes");
-    dance_levels.append("-1");
+    dance_levels.append("0");
     options.append("no");
-    dance_levels.append("-1");
+    dance_levels.append("0");
 
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line(QString(title) + "\n" +  prompt);
@@ -590,7 +605,7 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
     for (int i = 1; 0 <= 36; ++i)
     {
         options.append(QString("%1").arg(i));
-        dance_levels.append("-1");
+        dance_levels.append("0");
     }
     
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
@@ -699,7 +714,7 @@ void SquareDesk_iofull::final_initialize()
 //    qDebug() << "SquareDesk_iofull::final_initialize();";
 }
 
-bool SquareDesk_iofull::init_step(init_callback_state s, int n)
+bool SquareDesk_iofull::init_step(init_callback_state s, int /* n */)
 {
     switch (s) 
     {
