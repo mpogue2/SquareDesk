@@ -47,6 +47,12 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, b
 void MainWindow::initialize_internal_sd_tab()
 {
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
+    
+    const float backgroundSize = 140;
+    QPen backgroundPen(Qt::black);
+    QBrush backgroundBrush(QColor(240,240,240));
+    QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
+    sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
     for (int i = 0; i < 4; ++i)
     {
         QTransform boyTransform;
@@ -67,6 +73,7 @@ void MainWindow::initialize_internal_sd_tab()
         sdpeople.append(boyGroup);
         sdpeople.append(girlGroup);
     }
+    
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sdscene);
     
