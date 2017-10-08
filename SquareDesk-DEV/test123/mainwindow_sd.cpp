@@ -67,7 +67,9 @@ void MainWindow::initialize_internal_sd_tab()
         sdpeople.append(boyGroup);
         sdpeople.append(girlGroup);
     }
+    ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sdscene);
+    
     QStringList tableHeader;
     tableHeader << "call" << "result";
     ui->tableWidgetCurrentSequence->setHorizontalHeaderLabels(tableHeader);
