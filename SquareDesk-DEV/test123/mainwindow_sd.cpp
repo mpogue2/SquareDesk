@@ -48,11 +48,18 @@ void MainWindow::initialize_internal_sd_tab()
 {
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
     
-    const float backgroundSize = 140;
+    const double backgroundSize = 140.0;
     QPen backgroundPen(Qt::black);
+    QPen gridPen(Qt::black,0.25,Qt::DotLine);
     QBrush backgroundBrush(QColor(240,240,240));
     QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
     sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
+    for (double x =  -backgroundSize + dancerGridSize; x < backgroundSize; x += dancerGridSize)
+    {
+        sdscene.addLine(x, -backgroundSize, x, backgroundSize, gridPen);
+        sdscene.addLine(-backgroundSize, x, backgroundSize, x, gridPen);
+    }
+    
     for (int i = 0; i < 4; ++i)
     {
         QTransform boyTransform;
