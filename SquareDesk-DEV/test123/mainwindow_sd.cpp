@@ -411,6 +411,12 @@ void MainWindow::on_lineEditSDInput_textChanged()
     bool showConcepts = ui->checkBoxSDConceptsShown->isChecked();
 
     QString s = ui->lineEditSDInput->text();
+    if (s.length() > 0 &&
+        (s[s.length() - 1] == '!' || s[s.length() - 1] == '?'))
+    {
+        on_lineEditSDInput_returnPressed();
+        return;
+    }       
     int current_dance_program = ui->comboBoxSDCallingLevel->currentIndex();
     
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
