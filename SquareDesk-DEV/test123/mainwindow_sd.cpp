@@ -10,6 +10,8 @@
 
 static double dancerGridSize = 20;
 
+
+
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, bool boy)
 {
     static QPen pen(Qt::black, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
@@ -44,74 +46,6 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, b
     return group;
 }
 
-void MainWindow::initialize_internal_sd_tab()
-{
-    ui->listWidgetSDOutput->setIconSize(QSize(128,128));
-    
-    const double backgroundSize = 140.0;
-    QPen backgroundPen(Qt::black);
-    QPen gridPen(Qt::black,0.25,Qt::DotLine);
-    QBrush backgroundBrush(QColor(240,240,240));
-    QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
-    sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
-    for (double x =  -backgroundSize + dancerGridSize; x < backgroundSize; x += dancerGridSize)
-    {
-        sdscene.addLine(x, -backgroundSize, x, backgroundSize, gridPen);
-        sdscene.addLine(-backgroundSize, x, backgroundSize, x, gridPen);
-    }
-    
-    for (int i = 0; i < 4; ++i)
-    {
-        QTransform boyTransform;
-        boyTransform.rotate(-90*i);
-        boyTransform.translate(-20, 50);
-        
-        QTransform girlTransform;
-        girlTransform.rotate(-90*i);
-        girlTransform.translate(20, 50);
-        
-
-        QGraphicsItemGroup *boyGroup = generateDancer(sdscene, i, true);
-        QGraphicsItemGroup *girlGroup = generateDancer(sdscene, i, false);
-
-        boyGroup->setTransform(boyTransform);
-        girlGroup->setTransform(girlTransform);
-        
-        sdpeople.append(boyGroup);
-        sdpeople.append(girlGroup);
-    }
-    
-    ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    ui->graphicsViewSDFormation->setScene(&sdscene);
-    
-    QStringList tableHeader;
-    tableHeader << "call" << "result";
-    ui->tableWidgetCurrentSequence->setHorizontalHeaderLabels(tableHeader);
-    ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(true);
-    ui->tableWidgetCurrentSequence->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
-    verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
-    verticalHeader->setDefaultSectionSize(64);
-}
-       
-
-
-void MainWindow::on_threadSD_errorString(QString /* str */)
-{
-//    qDebug() << "on_threadSD_errorString: " <<  str;
-}
-
-void MainWindow::on_sd_set_window_title(QString /* str */)
-{
-//    qDebug() << "on_sd_set_window_title: " << str;
-}
-
-void MainWindow::on_sd_update_status_bar(QString str)
-{
-//    qDebug() << "on_sd_update_status_bar: " << str;
-    ui->labelSDStatusBar->setText(str);
-}
 
 static void draw_scene(const QStringList &sdformation,
                   QList<QGraphicsItemGroup*> &sdpeople)
@@ -119,14 +53,15 @@ static void draw_scene(const QStringList &sdformation,
     int coupleNumber = -1;
     int girl = 0;
     double max_x = -1;
-    double max_y = sdformation.length();
+    double max_y = sdformation.length() - 1;
         
     for (int y = 0; y < sdformation.length(); ++y)
     {
         if (sdformation[y].length() > max_x)
             max_x = sdformation[y].length();
     }
-    max_x = max_x - 1; // account for newlines
+    max_x = max_x - 4; // account for trailing newlines, leading
+                       // spaces & 2 for center of dancer
         
     for (int y = 0; y < sdformation.length(); ++y)
     {
@@ -191,7 +126,8 @@ static void draw_scene(const QStringList &sdformation,
                     else
                     {
                         QTransform transform;
-                        double dancer_x = ((double)(dancer_start_x) - max_x / 2.0) / 3.0;
+                        qDebug() << "Dancer " << coupleNumber << " " << (girl ? "girl" : "boy") << " at " << dancer_start_x << " max " << max_x;
+                        double dancer_x = ((double)(dancer_start_x - 1) - max_x / 2.0) / 3.0;
                         double dancer_y = ((double)(y) - max_y / 2.0);
 //                            qDebug() << "Couple " << coupleNumber << " " << (girl ? "Girl" : "Boy") << " at "
 //                                     << dancer_x << "," << dancer_y << ", direction " << direction
@@ -211,6 +147,87 @@ static void draw_scene(const QStringList &sdformation,
         }
     }
 }
+
+
+void MainWindow::initialize_internal_sd_tab()
+{
+    ui->listWidgetSDOutput->setIconSize(QSize(128,128));
+    
+    const double backgroundSize = 140.0;
+    QPen backgroundPen(Qt::black);
+    QPen gridPen(Qt::black,0.25,Qt::DotLine);
+    QBrush backgroundBrush(QColor(240,240,240));
+    QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
+    sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
+    for (double x =  -backgroundSize + dancerGridSize; x < backgroundSize; x += dancerGridSize)
+    {
+        sdscene.addLine(x, -backgroundSize, x, backgroundSize, gridPen);
+        sdscene.addLine(-backgroundSize, x, backgroundSize, x, gridPen);
+    }
+    
+    for (int i = 0; i < 4; ++i)
+    {
+        QTransform boyTransform;
+        boyTransform.rotate(-90*i);
+        boyTransform.translate(-20, 50);
+        
+        QTransform girlTransform;
+        girlTransform.rotate(-90*i);
+        girlTransform.translate(20, 50);
+        
+
+        QGraphicsItemGroup *boyGroup = generateDancer(sdscene, i, true);
+        QGraphicsItemGroup *girlGroup = generateDancer(sdscene, i, false);
+
+        boyGroup->setTransform(boyTransform);
+        girlGroup->setTransform(girlTransform);
+        
+        sdpeople.append(boyGroup);
+        sdpeople.append(girlGroup);
+    }
+    
+    ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    ui->graphicsViewSDFormation->setScene(&sdscene);
+
+    QStringList initialDancerLocations;
+    initialDancerLocations.append("  .    3GV   3BV    .");
+    initialDancerLocations.append("");
+    initialDancerLocations.append(" 4B>    .     .    2G<");
+    initialDancerLocations.append("");
+    initialDancerLocations.append(" 4G>    .     .    2B<");
+    initialDancerLocations.append("");
+    initialDancerLocations.append("  .    1B^   1G^    .");
+    draw_scene(initialDancerLocations, sdpeople);
+    
+    QStringList tableHeader;
+    tableHeader << "call" << "result";
+    ui->tableWidgetCurrentSequence->setHorizontalHeaderLabels(tableHeader);
+    ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(true);
+    ui->tableWidgetCurrentSequence->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
+    verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
+    verticalHeader->setDefaultSectionSize(64);
+}
+       
+
+
+void MainWindow::on_threadSD_errorString(QString /* str */)
+{
+//    qDebug() << "on_threadSD_errorString: " <<  str;
+}
+
+void MainWindow::on_sd_set_window_title(QString /* str */)
+{
+//    qDebug() << "on_sd_set_window_title: " << str;
+}
+
+void MainWindow::on_sd_update_status_bar(QString str)
+{
+//    qDebug() << "on_sd_update_status_bar: " << str;
+    ui->labelSDStatusBar->setText(str);
+}
+
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
