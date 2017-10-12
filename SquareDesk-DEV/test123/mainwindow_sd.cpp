@@ -163,6 +163,7 @@ void MainWindow::initialize_internal_sd_tab()
     graphicsTextItemSDStatusBarText = sdscene.addText("");
     QTransform statusBarTransform;
     statusBarTransform.translate(-backgroundSize, -backgroundSize);
+    statusBarTransform.scale(2,2);
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
     
     for (double x =  -backgroundSize + dancerGridSize; x < backgroundSize; x += dancerGridSize)
