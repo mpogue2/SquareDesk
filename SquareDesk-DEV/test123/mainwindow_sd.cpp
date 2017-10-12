@@ -7,6 +7,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include "common.h"
+#include "../sdlib/database.h"
 
 static double dancerGridSize = 20;
 
@@ -126,7 +127,7 @@ static void draw_scene(const QStringList &sdformation,
                     else
                     {
                         QTransform transform;
-                        qDebug() << "Dancer " << coupleNumber << " " << (girl ? "girl" : "boy") << " at " << dancer_start_x << " max " << max_x;
+//                        qDebug() << "Dancer " << coupleNumber << " " << (girl ? "girl" : "boy") << " at " << dancer_start_x << " max " << max_x;
                         double dancer_x = ((double)(dancer_start_x - 1) - max_x / 2.0) / 3.0;
                         double dancer_y = ((double)(y) - max_y / 2.0);
 //                            qDebug() << "Couple " << coupleNumber << " " << (girl ? "Girl" : "Boy") << " at "
@@ -238,6 +239,11 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             return;
     }
 
+    if (str.startsWith("Output file is \""))
+    {
+        sdLastLine = 0;
+        ui->tableWidgetCurrentSequence->setRowCount(0);
+    }
     
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
@@ -260,6 +266,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
+                
                 
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
             }
@@ -295,7 +302,12 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                           "\n" + sdformation.join("\n"));
             item->setData(Qt::DecorationRole,image);
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-            ui->tableWidgetCurrentSequence->setItem(sdLastLine >= 2 ? (sdLastLine - 2) : 0, 1, item);
+
+            int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
+            ui->tableWidgetCurrentSequence->setItem(row, 1, item);
+            item = ui->tableWidgetCurrentSequence->item(row,0);
+            item->setData(Qt::UserRole, ui->labelSDStatusBar->text() +
+                          "\n" + sdformation.join("\n"));
             /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
         }
         sdformation.clear();
@@ -335,6 +347,26 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
     }
 }
 
+
+void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QListWidgetItem *item)
+{
+    QVariant v = item->data(Qt::UserRole);
+    if (!v.isNull())
+    {
+        QString formation(v.toString());
+        QStringList formationList = formation.split("\n");
+        if (formationList.size() > 0)
+        {
+            ui->labelSDStatusBar->setText(formationList[0]);
+            formationList.removeFirst();
+            draw_scene(formationList, sdpeople);
+        }
+
+    }
+}
+
+
+
 void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 {
     QVariant v = item->data(Qt::UserRole);
@@ -356,6 +388,7 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
 {
     qDebug() << "Double click: " << item->text();
     ui->lineEditSDInput->setText(item->text());
+    emit sdthread->on_user_input(item->text());
 }
 
 void MainWindow::do_sd_tab_completion()
@@ -394,21 +427,20 @@ void MainWindow::do_sd_tab_completion()
 
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
-    qDebug() << "Return pressed, command is: " << ui->lineEditSDInput->text();
+//    qDebug() << "Return pressed, command is: " << ui->lineEditSDInput->text();
     QString cmd(ui->lineEditSDInput->text().trimmed());
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
         cmd = "abort this sequence";
     }
-    
     emit sdthread->on_user_input(cmd);
     ui->lineEditSDInput->clear();
 }
 
 void MainWindow::on_lineEditSDInput_textChanged()
 {
-    bool showCommands = ui->checkBoxSDCommandsShown->isChecked();
-    bool showConcepts = ui->checkBoxSDConceptsShown->isChecked();
+    bool showCommands = ui->actionShow_Commands->isChecked();
+    bool showConcepts = ui->actionShow_Concepts->isChecked();
 
     QString s = ui->lineEditSDInput->text();
     if (s.length() > 0 &&
@@ -417,7 +449,52 @@ void MainWindow::on_lineEditSDInput_textChanged()
         on_lineEditSDInput_returnPressed();
         return;
     }       
-    int current_dance_program = ui->comboBoxSDCallingLevel->currentIndex();
+    int current_dance_program = INT_MAX;
+
+    if (ui->actionSDDanceProgramMainstream->isChecked())
+    {
+        current_dance_program = (int)(l_mainstream);
+    }
+    if (ui->actionSDDanceProgramPlus->isChecked())
+    {
+        current_dance_program = (int)(l_plus);
+    }
+    if (ui->actionSDDanceProgramA1->isChecked())
+    {
+        current_dance_program = (int)(l_a1);
+    }
+    if (ui->actionSDDanceProgramA2->isChecked())
+    {
+        current_dance_program = (int)(l_a2);
+    }
+    if (ui->actionSDDanceProgramC1->isChecked())
+    {
+        current_dance_program = (int)(l_c1);
+    }
+    if (ui->actionSDDanceProgramC2->isChecked())
+    {
+        current_dance_program = (int)(l_c2);
+    }
+    if (ui->actionSDDanceProgramC3A->isChecked())
+    {
+        current_dance_program = (int)(l_c3a);
+    }
+    if (ui->actionSDDanceProgramC3->isChecked())
+    {
+        current_dance_program = (int)(l_c3);
+    }
+    if (ui->actionSDDanceProgramC3x->isChecked())
+    {
+        current_dance_program = (int)(l_c3x);
+    }
+    if (ui->actionSDDanceProgramC4->isChecked())
+    {
+        current_dance_program = (int)(l_c4);
+    }
+    if (ui->actionSDDanceProgramC4x->isChecked())
+    {
+        current_dance_program = (int)(l_c4x);
+    }
     
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
@@ -446,19 +523,118 @@ void MainWindow::on_lineEditSDInput_textChanged()
     
 }
 
-void MainWindow::on_checkBoxSDCommandsShown_clicked()
+void MainWindow::setCurrentCheckerColorScheme(CheckerColorScheme colorScheme)
+{
+    QAction *actions[] = {
+        ui->actionNormal,
+        ui->actionColor_only,
+        ui->actionMental_image,
+        ui->actionSight,
+        NULL
+    };
+    for (int i = 0; actions[i]; ++i)
+    {
+        bool checked = (i == (int)(colorScheme));
+        actions[i]->setChecked(checked);
+    }
+    // TODO: Actually set color scheme
+}
+
+void MainWindow::on_actionNormal_triggered()
+{
+    setCurrentCheckerColorScheme(CheckerColorSchemeNormal);
+}
+void MainWindow::on_actionColor_only_triggered()
+{
+    setCurrentCheckerColorScheme(CheckerColorSchemeColorOnly);
+}
+void MainWindow::on_actionMental_image_triggered()
+{
+    setCurrentCheckerColorScheme(CheckerColorSchemeMentalImage);
+}
+void MainWindow::on_actionSight_triggered()
+{
+    setCurrentCheckerColorScheme(CheckerColorSchemeSight);
+}
+
+
+void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
+{
+    QAction *actions[] = {
+        ui->actionSDDanceProgramMainstream,
+        ui->actionSDDanceProgramPlus,
+        ui->actionSDDanceProgramA1,
+        ui->actionSDDanceProgramA2,
+        ui->actionSDDanceProgramC1,
+        ui->actionSDDanceProgramC2,
+        ui->actionSDDanceProgramC3A,
+        ui->actionSDDanceProgramC3,
+        ui->actionSDDanceProgramC3x,
+        ui->actionSDDanceProgramC4,
+        ui->actionSDDanceProgramC4x,
+        NULL
+    };
+    
+    for (int i = 0; actions[i]; ++i)
+    {
+        bool checked = (i == (int)(dance_program));
+        actions[i]->setChecked(checked);
+    }
+    on_lineEditSDInput_textChanged();
+}
+
+
+void MainWindow::on_actionSDDanceProgramMainstream_triggered()
+{
+    setCurrentSDDanceProgram(l_mainstream);
+}
+void MainWindow::on_actionSDDanceProgramPlus_triggered()
+{
+    setCurrentSDDanceProgram(l_plus);
+}
+void MainWindow::on_actionSDDanceProgramA1_triggered()
+{
+    setCurrentSDDanceProgram(l_a1);
+}
+void MainWindow::on_actionSDDanceProgramA2_triggered()
+{
+    setCurrentSDDanceProgram(l_a2);
+}
+void MainWindow::on_actionSDDanceProgramC1_triggered()
+{
+    setCurrentSDDanceProgram(l_c1);
+}
+void MainWindow::on_actionSDDanceProgramC2_triggered()
+{
+    setCurrentSDDanceProgram(l_c2);
+}
+void MainWindow::on_actionSDDanceProgramC3A_triggered()
+{
+    setCurrentSDDanceProgram(l_c3a);
+}
+void MainWindow::on_actionSDDanceProgramC3_triggered()
+{
+    setCurrentSDDanceProgram(l_c3);
+}
+void MainWindow::on_actionSDDanceProgramC3x_triggered()
+{
+    setCurrentSDDanceProgram(l_c3x);
+}
+void MainWindow::on_actionSDDanceProgramC4_triggered()
+{
+    setCurrentSDDanceProgram(l_c4);
+}
+void MainWindow::on_actionSDDanceProgramC4x_triggered()
+{
+    setCurrentSDDanceProgram(l_c4x);
+}
+
+void MainWindow::on_actionShow_Concepts_triggered()
 {
     on_lineEditSDInput_textChanged();
 }
 
-void MainWindow::on_checkBoxSDConceptsShown_clicked()
+void MainWindow::on_actionShow_Commands_triggered()
 {
     on_lineEditSDInput_textChanged();
 }
-
-void MainWindow::on_comboBoxSDCallingLevel_currentIndexChanged(int /* currentIndex */)
-{
-    on_lineEditSDInput_textChanged();
-}
-
-

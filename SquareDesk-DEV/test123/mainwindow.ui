@@ -1570,7 +1570,7 @@
           <item>
            <widget class="QTabWidget" name="tabWidget_2">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tabWidget_2Page1">
              <attribute name="title">
@@ -1612,83 +1612,6 @@
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayoutSDStatus">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QComboBox" name="comboBoxSDCallingLevel">
-              <item>
-               <property name="text">
-                <string>Mainstream</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Plus</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>A1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>A2</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C1</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C2</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C3A</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C3</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C3x</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C4</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>C4x</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBoxSDConceptsShown">
-              <property name="text">
-               <string>Concepts</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBoxSDCommandsShown">
-              <property name="text">
-               <string>Commands</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item>
            <widget class="QLabel" name="labelSDStatusBar">
             <property name="text">
@@ -1866,6 +1789,26 @@
      <addaction name="actionC4"/>
      <addaction name="actionC4x"/>
     </widget>
+    <widget class="QMenu" name="menuDance_Program">
+     <property name="title">
+      <string>Dance Program</string>
+     </property>
+     <addaction name="actionSDDanceProgramMainstream"/>
+     <addaction name="actionSDDanceProgramPlus"/>
+     <addaction name="actionSDDanceProgramA1"/>
+     <addaction name="actionSDDanceProgramA2"/>
+     <addaction name="actionSDDanceProgramC1"/>
+     <addaction name="actionSDDanceProgramC2"/>
+     <addaction name="actionSDDanceProgramC3A"/>
+     <addaction name="actionSDDanceProgramC3"/>
+     <addaction name="actionSDDanceProgramC3x"/>
+     <addaction name="actionSDDanceProgramC4"/>
+     <addaction name="actionSDDanceProgramC4x"/>
+    </widget>
+    <addaction name="menuDance_Program"/>
+    <addaction name="actionShow_Concepts"/>
+    <addaction name="actionShow_Commands"/>
+    <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
     <addaction name="menuEnable_keyboard_input"/>
     <addaction name="separator"/>
@@ -2761,6 +2704,107 @@
   <action name="actionIn_Out_Loop_points_to_default">
    <property name="text">
     <string>In/Out/Loop points to default</string>
+   </property>
+  </action>
+  <action name="actionShow_Concepts">
+   <property name="text">
+    <string>Show Concepts</string>
+   </property>
+  </action>
+  <action name="actionShow_Commands">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Commands</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramMainstream">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Mainstream</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramPlus">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Plus</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramA1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>A1</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramA2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>A2</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C1</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C2</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC3A">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C3A</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C3</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC3x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C3x</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C4</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC4x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C4x</string>
    </property>
   </action>
  </widget>

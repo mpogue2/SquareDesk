@@ -81,6 +81,9 @@
 #include <tidy/tidybuffio.h>
 
 #include "sdinterface.h"
+// ZZZZ TODO: I realy don't want to clutter up this with sdlib
+// declarations, but I also don't want to duplicate `enum dance_level`
+#include "../sdlib/database.h"
 
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
@@ -305,11 +308,6 @@ private slots:
     void makeProgress();
     void cancelProgress();
 
-    void on_comboBoxSDCallingLevel_currentIndexChanged(int currentIndex);
-    void on_checkBoxSDCommandsShown_clicked();
-    void on_checkBoxSDConceptsShown_clicked();
-    
-
     // END SLOTS -----------
 
     void on_action_1_triggered();
@@ -355,6 +353,25 @@ private slots:
     void on_lineEditSDInput_textChanged();
     void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
     void on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item);
+    void on_tableWidgetCurrentSequence_itemDoubleClicked(QListWidgetItem *item);
+    void on_actionNormal_triggered();
+    void on_actionColor_only_triggered();
+    void on_actionMental_image_triggered();
+    void on_actionSight_triggered();
+
+    void on_actionSDDanceProgramMainstream_triggered();
+    void on_actionSDDanceProgramPlus_triggered();
+    void on_actionSDDanceProgramA1_triggered();
+    void on_actionSDDanceProgramA2_triggered();
+    void on_actionSDDanceProgramC1_triggered();
+    void on_actionSDDanceProgramC2_triggered();
+    void on_actionSDDanceProgramC3A_triggered();
+    void on_actionSDDanceProgramC3_triggered();
+    void on_actionSDDanceProgramC3x_triggered();
+    void on_actionSDDanceProgramC4_triggered();
+    void on_actionSDDanceProgramC4x_triggered();
+    void on_actionShow_Concepts_triggered();
+    void on_actionShow_Commands_triggered();
     
 public:
     void on_threadSD_errorString(QString str);
@@ -631,6 +648,8 @@ private: // SD
     QList<QGraphicsItemGroup*> sdpeople;
 public:
     void do_sd_tab_completion();
+    void setCurrentCheckerColorScheme(CheckerColorScheme colorScheme);
+    void setCurrentSDDanceProgram(dance_level);
 };
 
 // currentState:

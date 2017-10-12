@@ -49,4 +49,13 @@ enum ColumnExportData
     ExportDataNone
 };
 
+enum CheckerColorScheme
+{
+    CheckerColorSchemeNormal = 0,
+    CheckerColorSchemeColorOnly,
+    CheckerColorSchemeMentalImage,
+    CheckerColorSchemeSight
+};
+
+
 #endif // ifndef COMMON_ENUMS_H
