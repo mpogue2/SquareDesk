@@ -160,6 +160,11 @@ void MainWindow::initialize_internal_sd_tab()
     QBrush backgroundBrush(QColor(240,240,240));
     QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
     sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
+    graphicsTextItemSDStatusBarText = sdscene.addText("");
+    QTransform statusBarTransform;
+    statusBarTransform.translate(-backgroundSize, -backgroundSize);
+    graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
+    
     for (double x =  -backgroundSize + dancerGridSize; x < backgroundSize; x += dancerGridSize)
     {
         sdscene.addLine(x, -backgroundSize, x, backgroundSize, gridPen);
@@ -226,7 +231,7 @@ void MainWindow::on_sd_set_window_title(QString /* str */)
 void MainWindow::on_sd_update_status_bar(QString str)
 {
 //    qDebug() << "on_sd_update_status_bar: " << str;
-    ui->labelSDStatusBar->setText(str);
+    graphicsTextItemSDStatusBarText->setPlainText(str);
 }
 
 
@@ -282,7 +287,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             sdscene.render(&painter);
 
             QListWidgetItem *item = new QListWidgetItem();
-            item->setData(Qt::UserRole, ui->labelSDStatusBar->text() +
+            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
                           "\n" + sdformation.join("\n"));
             item->setIcon(QIcon(image));
             ui->listWidgetSDOutput->addItem(item);
@@ -298,7 +303,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             sdscene.render(&painter);
 
             QTableWidgetItem *item = new QTableWidgetItem();
-            item->setData(Qt::UserRole, ui->labelSDStatusBar->text() +
+            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
                           "\n" + sdformation.join("\n"));
             item->setData(Qt::DecorationRole,image);
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
@@ -306,7 +311,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
             ui->tableWidgetCurrentSequence->setItem(row, 1, item);
             item = ui->tableWidgetCurrentSequence->item(row,0);
-            item->setData(Qt::UserRole, ui->labelSDStatusBar->text() +
+            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
                           "\n" + sdformation.join("\n"));
             /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
         }
@@ -357,7 +362,7 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QListWidgetItem
         QStringList formationList = formation.split("\n");
         if (formationList.size() > 0)
         {
-            ui->labelSDStatusBar->setText(formationList[0]);
+            graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
             formationList.removeFirst();
             draw_scene(formationList, sdpeople);
         }
@@ -376,7 +381,7 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
         QStringList formationList = formation.split("\n");
         if (formationList.size() > 0)
         {
-            ui->labelSDStatusBar->setText(formationList[0]);
+            graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
             formationList.removeFirst();
             draw_scene(formationList, sdpeople);
         }

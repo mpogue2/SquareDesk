@@ -646,6 +646,7 @@ private: // SD
     QGraphicsScene sdscene;
     int sdLastLine;
     QList<QGraphicsItemGroup*> sdpeople;
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText;
 public:
     void do_sd_tab_completion();
     void setCurrentCheckerColorScheme(CheckerColorScheme colorScheme);

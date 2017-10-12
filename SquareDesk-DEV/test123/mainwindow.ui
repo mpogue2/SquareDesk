@@ -1613,19 +1613,18 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayoutSDStatus">
           <item>
-           <widget class="QLabel" name="labelSDStatusBar">
-            <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QGraphicsView" name="graphicsViewSDFormation">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>290</width>
+              <height>290</height>
+             </size>
             </property>
            </widget>
           </item>
