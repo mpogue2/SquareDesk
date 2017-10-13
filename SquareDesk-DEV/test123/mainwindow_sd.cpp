@@ -395,6 +395,7 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
     qDebug() << "Double click: " << item->text();
     ui->lineEditSDInput->setText(item->text());
     emit sdthread->on_user_input(item->text());
+    ui->lineEditSDInput->clear();
 }
 
 void MainWindow::do_sd_tab_completion()
