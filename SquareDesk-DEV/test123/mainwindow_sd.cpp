@@ -54,7 +54,7 @@ static void draw_scene(const QStringList &sdformation,
     int coupleNumber = -1;
     int girl = 0;
     double max_x = -1;
-    double max_y = sdformation.length() - 1;
+    double max_y = sdformation.length();
         
     for (int y = 0; y < sdformation.length(); ++y)
     {
@@ -197,6 +197,7 @@ void MainWindow::initialize_internal_sd_tab()
     ui->graphicsViewSDFormation->setScene(&sdscene);
 
     QStringList initialDancerLocations;
+    initialDancerLocations.append("");
     initialDancerLocations.append("  .    3GV   3BV    .");
     initialDancerLocations.append("");
     initialDancerLocations.append(" 4B>    .     .    2G<");
