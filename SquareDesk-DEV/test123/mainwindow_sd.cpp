@@ -9,7 +9,7 @@
 #include "common.h"
 #include "../sdlib/database.h"
 
-static double dancerGridSize = 20;
+static double dancerGridSize = 40;
 
 
 
