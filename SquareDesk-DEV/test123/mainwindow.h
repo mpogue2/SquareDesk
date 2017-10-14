@@ -85,6 +85,15 @@
 // declarations, but I also don't want to duplicate `enum dance_level`
 #include "../sdlib/database.h"
 
+class SDDancer
+{
+public:
+    QGraphicsItemGroup *graphics;
+    double x;
+    double y;
+    double direction;
+};
+
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
@@ -645,7 +654,7 @@ private: // SD
     QStringList sdformation;
     QGraphicsScene sdscene;
     int sdLastLine;
-    QList<QGraphicsItemGroup*> sdpeople;
+    QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
 public:
     void do_sd_tab_completion();

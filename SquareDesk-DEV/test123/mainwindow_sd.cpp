@@ -9,8 +9,7 @@
 #include "common.h"
 #include "../sdlib/database.h"
 
-static double dancerGridSize = 40;
-
+static double dancerGridSize = 20;
 
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, bool boy)
@@ -49,24 +48,21 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, b
 
 
 static void draw_scene(const QStringList &sdformation,
-                  QList<QGraphicsItemGroup*> &sdpeople)
+                       QList<SDDancer> &sdpeople)
 {
     int coupleNumber = -1;
     int girl = 0;
-    double max_x = -1;
-    double max_y = sdformation.length();
-        
-    for (int y = 0; y < sdformation.length(); ++y)
+    double max_y = (double)(sdformation.length());
+    qDebug() << "Formation: " << sdformation.length() << " " << max_y;
+    for (int i = 0; i < sdformation.length(); ++i)
     {
-        if (sdformation[y].length() > max_x)
-            max_x = sdformation[y].length();
+        qDebug() << "  " << i << ":" << sdformation[i];
     }
-    max_x = max_x - 4; // account for trailing newlines, leading
-                       // spaces & 2 for center of dancer
+        
         
     for (int y = 0; y < sdformation.length(); ++y)
     {
-        double dancer_start_x = -1.0;
+        int dancer_start_x = -1;
         bool draw = false;
         float direction = -1;
             
@@ -79,7 +75,7 @@ static void draw_scene(const QStringList &sdformation,
             case '2' :
             case '3' :
             case '4' :
-                dancer_start_x = (double)(x);
+                dancer_start_x = x;
                 coupleNumber = ch - '1';
                 break;
             case 'B':
@@ -126,18 +122,9 @@ static void draw_scene(const QStringList &sdformation,
                     }
                     else
                     {
-                        QTransform transform;
-//                        qDebug() << "Dancer " << coupleNumber << " " << (girl ? "girl" : "boy") << " at " << dancer_start_x << " max " << max_x;
-                        double dancer_x = ((double)(dancer_start_x - 1) - max_x / 2.0) / 3.0;
-                        double dancer_y = ((double)(y) - max_y / 2.0);
-//                            qDebug() << "Couple " << coupleNumber << " " << (girl ? "Girl" : "Boy") << " at "
-//                                     << dancer_x << "," << dancer_y << ", direction " << direction
-//                                     << " x " << dancer_start_x << " max_x " << max_x;
-                        transform.translate( dancer_x * dancerGridSize,
-                                             dancer_y * dancerGridSize);
-                        transform.rotate(direction);
-//                            qDebug() << "Transform: " << transform;
-                        sdpeople[dancerNum]->setTransform(transform);
+                        sdpeople[dancerNum].x = dancer_start_x;
+                        sdpeople[dancerNum].y = y;
+                        sdpeople[dancerNum].direction = direction;
                     }
                 }
                 draw = false;
@@ -145,8 +132,62 @@ static void draw_scene(const QStringList &sdformation,
                 coupleNumber = -1;
                     
             }
+        } /* end of for x */
+    } /* end of for y */
+
+    bool factors[4];
+    double left_x = -1;
+    
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
+    {
+        int dancer_start_x = sdpeople[dancerNum].x;
+        if (left_x < 0 || dancer_start_x < left_x)
+            left_x = dancer_start_x;
+    }
+    
+    for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
+        factors[i] = true;
+    int max_x = -1;
+
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
+    {
+        int dancer_start_x = sdpeople[dancerNum].x - left_x;
+        if (dancer_start_x > max_x)
+            max_x = dancer_start_x;
+
+        for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
+        {
+            if (0 != (dancer_start_x % (i + 3)))
+            {
+                factors[i] = false;
+            }
         }
     }
+    double lowest_factor = -1;
+    for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
+    {
+        if (factors[i])
+        {
+            lowest_factor = i + 3;
+            break;
+        }
+    }
+    qDebug() << "max_x " << max_x << " " << lowest_factor;
+
+    max_x /= lowest_factor;
+        
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
+    {
+        QTransform transform;
+        double dancer_start_x = sdpeople[dancerNum].x - left_x;
+        double dancer_x = (dancer_start_x / lowest_factor - max_x / 2.0);
+        double dancer_y = (sdpeople[dancerNum].y - max_y / 2.0);
+        transform.translate( dancer_x * dancerGridSize,
+                             dancer_y * dancerGridSize);
+        transform.rotate(sdpeople[dancerNum].direction);
+        sdpeople[dancerNum].graphics->setTransform(transform);
+    }
+
 }
 
 
@@ -154,7 +195,7 @@ void MainWindow::initialize_internal_sd_tab()
 {
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
     
-    const double backgroundSize = 140.0;
+    const double backgroundSize = 120.0;
     QPen backgroundPen(Qt::black);
     QPen gridPen(Qt::black,0.25,Qt::DotLine);
     QBrush backgroundBrush(QColor(240,240,240));
@@ -165,8 +206,9 @@ void MainWindow::initialize_internal_sd_tab()
     statusBarTransform.translate(-backgroundSize, -backgroundSize);
     statusBarTransform.scale(2,2);
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
-    
-    for (double x =  -backgroundSize + dancerGridSize; x < backgroundSize; x += dancerGridSize)
+
+    const double gridSize = 40;
+    for (double x =  -backgroundSize + gridSize; x < backgroundSize; x += gridSize)
     {
         sdscene.addLine(x, -backgroundSize, x, backgroundSize, gridPen);
         sdscene.addLine(-backgroundSize, x, backgroundSize, x, gridPen);
@@ -188,9 +230,12 @@ void MainWindow::initialize_internal_sd_tab()
 
         boyGroup->setTransform(boyTransform);
         girlGroup->setTransform(girlTransform);
-        
-        sdpeople.append(boyGroup);
-        sdpeople.append(girlGroup);
+
+        SDDancer boy, girl;
+        boy.graphics = boyGroup;
+        girl.graphics = girlGroup;
+        sdpeople.append(boy);
+        sdpeople.append(girl);
     }
     
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
@@ -279,9 +324,9 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             }
         }
     
-        draw_scene(sdformation, sdpeople);
         if (!sdformation.empty())
         { 
+            draw_scene(sdformation, sdpeople);
             QPixmap image(128,128);
             image.fill();
             QPainter painter(&image);
@@ -333,7 +378,7 @@ void MainWindow::on_sd_awaiting_input()
 void MainWindow::on_sd_set_pick_string(QString str)
 {
 
-    qDebug() << "on_sd_set_pick_stringe: " <<  str;
+    qDebug() << "on_sd_set_pick_string: " <<  str;
 }
 
 void MainWindow::on_sd_dispose_of_abbreviation(QString str)
