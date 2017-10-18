@@ -452,12 +452,14 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
 
 void MainWindow::do_sd_tab_completion()
 {
-    QString originalText(ui->lineEditSDInput->text().trimmed());
+    QString originalText(ui->lineEditSDInput->text().simplified());
     QString longestMatch;
-    
+    QString callSearch = sd_strip_leading_selectors(originalText);
+    QString prefix = originalText.left(originalText.length() - callSearch.length());
+
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
-        if (ui->listWidgetSDOptions->item(i)->text().startsWith(originalText, Qt::CaseInsensitive)
+        if (ui->listWidgetSDOptions->item(i)->text().startsWith(callSearch, Qt::CaseInsensitive)
             && !ui->listWidgetSDOptions->isRowHidden(i))
         {
             if (longestMatch.isEmpty())
@@ -477,9 +479,9 @@ void MainWindow::do_sd_tab_completion()
             }
         }
     }
-    if (longestMatch.length() > originalText.length())
+    if (longestMatch.length() > callSearch.length())
     {
-        ui->lineEditSDInput->setText(longestMatch);
+        ui->lineEditSDInput->setText(prefix + longestMatch);
     }
     
 }
@@ -507,7 +509,9 @@ void MainWindow::on_lineEditSDInput_textChanged()
     {
         on_lineEditSDInput_returnPressed();
         return;
-    }       
+    }
+    s = sd_strip_leading_selectors(s);
+   
     int current_dance_program = INT_MAX;
 
     if (ui->actionSDDanceProgramMainstream->isChecked())

@@ -53,4 +53,6 @@ private:
 
 };
 
+extern QString sd_strip_leading_selectors(QString originalText);
+
 #endif /* ifndef SDINTERFACE_H_INCLUDED */
