@@ -206,7 +206,9 @@ MainWindow::MainWindow(QWidget *parent) :
     loadingSong(false),
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0),
-    hotkeyMappings(KeyAction::defaultKeyToActionMappings())
+    hotkeyMappings(KeyAction::defaultKeyToActionMappings()),
+    sdLastLine(-1),
+    sdWasNotDrawingPicture(true)    
 {
     linesInCurrentPlaylist = 0;
 

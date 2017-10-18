@@ -279,6 +279,44 @@ void MainWindow::on_sd_update_status_bar(QString str)
 {
 //    qDebug() << "on_sd_update_status_bar: " << str;
     graphicsTextItemSDStatusBarText->setPlainText(str);
+
+    if (!sdformation.empty())
+    {
+            draw_scene(sdformation, sdpeople);
+            QPixmap image(128,128);
+            image.fill();
+            QPainter painter(&image);
+            painter.setRenderHint(QPainter::Antialiasing);
+            sdscene.render(&painter);
+
+            QListWidgetItem *item = new QListWidgetItem();
+            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
+                          "\n" + sdformation.join("\n"));
+            item->setIcon(QIcon(image));
+            ui->listWidgetSDOutput->addItem(item);
+    }
+    if (!sdformation.empty() && sdLastLine >= 1)
+    { 
+        QPixmap image(64,64);
+        image.fill();
+        QPainter painter(&image);
+        painter.setRenderHint(QPainter::Antialiasing);
+        sdscene.render(&painter);
+        
+        QTableWidgetItem *item = new QTableWidgetItem();
+        item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
+                      "\n" + sdformation.join("\n"));
+        item->setData(Qt::DecorationRole,image);
+        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+
+        int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
+        ui->tableWidgetCurrentSequence->setItem(row, 1, item);
+        item = ui->tableWidgetCurrentSequence->item(row,0);
+        item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
+                      "\n" + sdformation.join("\n"));
+        /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
+    }
+    sdformation.clear();
 }
 
 
@@ -299,13 +337,19 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
-    
+
     if (drawing_picture)
     {
+        if (sdWasNotDrawingPicture)
+        {
+            sdformation.clear();
+        }
+        sdWasNotDrawingPicture = false;
         sdformation.append(str);
     }
     else
     {
+        sdWasNotDrawingPicture = true;
         static QRegularExpression regexMove("^\\s*(\\d+)\\:\\s*(.*)$");
         QRegularExpressionMatch match = regexMove.match(str);
         if (match.hasMatch())
@@ -323,46 +367,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
             }
         }
-    
-        if (!sdformation.empty())
-        { 
-            draw_scene(sdformation, sdpeople);
-            QPixmap image(128,128);
-            image.fill();
-            QPainter painter(&image);
-            painter.setRenderHint(QPainter::Antialiasing);
-            sdscene.render(&painter);
 
-            QListWidgetItem *item = new QListWidgetItem();
-            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
-                          "\n" + sdformation.join("\n"));
-            item->setIcon(QIcon(image));
-            ui->listWidgetSDOutput->addItem(item);
-            /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
-        }
-
-        if (!sdformation.empty() && sdLastLine >= 1)
-        { 
-            QPixmap image(64,64);
-            image.fill();
-            QPainter painter(&image);
-            painter.setRenderHint(QPainter::Antialiasing);
-            sdscene.render(&painter);
-
-            QTableWidgetItem *item = new QTableWidgetItem();
-            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
-                          "\n" + sdformation.join("\n"));
-            item->setData(Qt::DecorationRole,image);
-            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-
-            int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
-            ui->tableWidgetCurrentSequence->setItem(row, 1, item);
-            item = ui->tableWidgetCurrentSequence->item(row,0);
-            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
-                          "\n" + sdformation.join("\n"));
-            /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
-        }
-        sdformation.clear();
+        // Drawing the people happens over in on_sd_update_status_bar
         ui->listWidgetSDOutput->addItem(str);
     }
 }

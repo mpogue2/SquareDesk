@@ -654,6 +654,7 @@ private: // SD
     QStringList sdformation;
     QGraphicsScene sdscene;
     int sdLastLine;
+    bool sdWasNotDrawingPicture;
     QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
 public:
