@@ -444,10 +444,22 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 
 void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
 {
-    qDebug() << "Double click: " << item->text();
-    ui->lineEditSDInput->setText(item->text());
-    emit sdthread->on_user_input(item->text());
+    QString originalText(ui->lineEditSDInput->text().simplified());
+    QString longestMatch;
+    QString callSearch = sd_strip_leading_selectors(originalText);
+    QString prefix = originalText.left(originalText.length() - callSearch.length());
+
+    QString doubleClickedCall = item->text().simplified();
+    if (prefix.length() != 0 && !prefix.endsWith(" "))
+    {
+        prefix = prefix + " ";
+    }
+    doubleClickedCall = prefix + doubleClickedCall;
+    
+//    ui->lineEditSDInput->setText(doubleClickedCall);
+    emit sdthread->on_user_input(doubleClickedCall);
     ui->lineEditSDInput->clear();
+    ui->lineEditSDInput->setFocus();
 }
 
 void MainWindow::do_sd_tab_completion()
