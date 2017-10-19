@@ -165,8 +165,14 @@ void SquareDesk_iofull::add_string_input(const char *s)
             WaitingForCommand = false;
             waitCondition->wakeAll();
         }
+        else if (matches > 0)
+        {
+            QString s(QString("  (%1 matches, type ! or ? for list)").arg(matches));
+            add_new_line(s);
+        }
         else
         {
+            add_new_line("  (no matches)");
             qDebug() << "No Match: " << s;
             qDebug() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
             qDebug() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
