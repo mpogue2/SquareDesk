@@ -89,9 +89,16 @@ class SDDancer
 {
 public:
     QGraphicsItemGroup *graphics;
+    QGraphicsItem *mainItem;
+    QGraphicsRectItem *directionRectItem;
+    QGraphicsTextItem *label;
     double x;
     double y;
     double direction;
+    double labelTranslateX;
+    double labelTranslateY;
+
+    void setColor(const QColor &color);
 };
 
 
@@ -657,6 +664,7 @@ private: // SD
     bool sdWasNotDrawingPicture;
     QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
+    void setSDCoupleColoringScheme(const QString &scheme);
 public:
     void do_sd_tab_completion();
     void setCurrentCheckerColorScheme(CheckerColorScheme colorScheme);

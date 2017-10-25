@@ -11,31 +11,35 @@
 
 static double dancerGridSize = 20;
 
+static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
+                             QBrush(COUPLE2COLOR),
+                             QBrush(COUPLE3COLOR),
+                             QBrush(COUPLE4COLOR)
+};
 
-static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, bool boy)
+
+
+static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
     static QPen pen(Qt::black, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
-    static QBrush brushes[4] = { QBrush(COUPLE1COLOR),
-                                 QBrush(COUPLE2COLOR),
-                                 QBrush(COUPLE3COLOR),
-                                 QBrush(COUPLE4COLOR)
-    };
 
     static float rectSize = 20;
     static QRectF rect(-rectSize/2, -rectSize/2, rectSize, rectSize);
     static QRectF directionRect(-2,-rectSize / 2 - 4,4,4);
 
     QGraphicsItem *mainItem = boy ?
-        (QGraphicsItem*)(sdscene.addRect(rect, pen, brushes[number]))
-        :   (QGraphicsItem*)(sdscene.addEllipse(rect, pen, brushes[number]));
+        (QGraphicsItem*)(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
+        :   (QGraphicsItem*)(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
     
-    QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, brushes[number]);
+    QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
     QGraphicsTextItem *label = sdscene.addText(QString("%1").arg(number + 1));
 
     QRectF labelBounds(label->boundingRect());
     QTransform labelTransform;
-    labelTransform.translate(-(labelBounds.left() + labelBounds.width() / 2),
-                             -(labelBounds.top() + labelBounds.height() / 2));
+    dancer.labelTranslateX =-(labelBounds.left() + labelBounds.width() / 2);
+    dancer.labelTranslateY = -(labelBounds.top() + labelBounds.height() / 2);
+    labelTransform.translate(dancer.labelTranslateX,
+                             dancer.labelTranslateY);
     label->setTransform(labelTransform);
 
     QList<QGraphicsItem*> items;
@@ -43,6 +47,11 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, int number, b
     items.append(directionRectItem);
     items.append(label);
     QGraphicsItemGroup *group = sdscene.createItemGroup(items);
+    dancer.graphics = group;
+    dancer.mainItem = mainItem;
+    dancer.directionRectItem = directionRectItem;
+    dancer.label = label;
+       
     return group;
 }
 
@@ -186,6 +195,15 @@ static void draw_scene(const QStringList &sdformation,
                              dancer_y * dancerGridSize);
         transform.rotate(sdpeople[dancerNum].direction);
         sdpeople[dancerNum].graphics->setTransform(transform);
+
+        // Gyrations to make sure that the text labels are always upright
+        QTransform textTransform;
+        textTransform.translate( -sdpeople[dancerNum].labelTranslateX,
+                                 -sdpeople[dancerNum].labelTranslateY );
+        textTransform.rotate( -sdpeople[dancerNum].direction);
+        textTransform.translate( sdpeople[dancerNum].labelTranslateX,
+                                 sdpeople[dancerNum].labelTranslateY );
+        sdpeople[dancerNum].label->setTransform(textTransform); // Rotation(-sdpeople[dancerNum].direction);
     }
 
 }
@@ -224,16 +242,14 @@ void MainWindow::initialize_internal_sd_tab()
         girlTransform.rotate(-90*i);
         girlTransform.translate(20, 50);
         
+        SDDancer boy, girl;
 
-        QGraphicsItemGroup *boyGroup = generateDancer(sdscene, i, true);
-        QGraphicsItemGroup *girlGroup = generateDancer(sdscene, i, false);
+        QGraphicsItemGroup *boyGroup = generateDancer(sdscene, boy, i, true);
+        QGraphicsItemGroup *girlGroup = generateDancer(sdscene, girl, i, false);
 
         boyGroup->setTransform(boyTransform);
         girlGroup->setTransform(girlTransform);
 
-        SDDancer boy, girl;
-        boy.graphics = boyGroup;
-        girl.graphics = girlGroup;
         sdpeople.append(boy);
         sdpeople.append(girl);
     }
@@ -713,3 +729,58 @@ void MainWindow::on_actionShow_Commands_triggered()
 {
     on_lineEditSDInput_textChanged();
 }
+
+void SDDancer::setColor(const QColor &color)
+{
+    QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(mainItem);
+    QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(mainItem);
+    if (rectItem) rectItem->setBrush(QBrush(color));
+    if (ellipseItem) ellipseItem->setBrush(QBrush(color));
+    directionRectItem->setBrush(QBrush(color));
+}
+
+
+void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
+{
+    bool showDancerLabels = !(colorScheme == "Color only");
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
+    {
+        sdpeople[dancerNum].label->setVisible(showDancerLabels);
+    }
+    
+    if (colorScheme == "Normal" || colorScheme == "Color only") {
+        sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
+        sdpeople[COUPLE1 * 2 + 1].setColor(COUPLE1COLOR);
+        sdpeople[COUPLE2 * 2 + 0].setColor(COUPLE2COLOR);
+        sdpeople[COUPLE2 * 2 + 1].setColor(COUPLE2COLOR);
+        sdpeople[COUPLE3 * 2 + 0].setColor(COUPLE3COLOR);
+        sdpeople[COUPLE3 * 2 + 1].setColor(COUPLE3COLOR);
+        sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);
+        sdpeople[COUPLE4 * 2 + 1].setColor(COUPLE4COLOR);
+    } else if (colorScheme == "Mental image") {
+        sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
+        sdpeople[COUPLE1 * 2 + 1].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE3 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE4 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE4 * 2 + 1].setColor(GREYCOUPLECOLOR);
+    } else {
+        // Sight
+        sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
+        sdpeople[COUPLE1 * 2 + 1].setColor(COUPLE1COLOR);
+        sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE3 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);
+        sdpeople[COUPLE4 * 2 + 1].setColor(COUPLE4COLOR);
+    }
+}
+
+
+// actionNormal
+// actionColor_only
+// actionMental_image
+// actionSight

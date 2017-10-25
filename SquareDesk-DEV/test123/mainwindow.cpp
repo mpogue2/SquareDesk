@@ -7331,6 +7331,7 @@ void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     renderArea->setCoupleColoringScheme(action->text());
+    setSDCoupleColoringScheme(action->text());
 }
 
 void MainWindow::sdAction2Triggered(QAction * action) {
