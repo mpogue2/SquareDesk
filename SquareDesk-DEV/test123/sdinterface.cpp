@@ -900,12 +900,12 @@ QString sd_strip_leading_selectors(QString originalText)
     {
         QString name(selector_list[i].name);
         QString sing_name(selector_list[i].sing_name);
-        qDebug() << "Checking '" << originalText << "' for '" << name << "' or '" << sing_name << "'";
+//        qDebug() << "Checking '" << originalText << "' for '" << name << "' or '" << sing_name << "'";
         if (originalText.startsWith(name, Qt::CaseInsensitive))
         {
             originalText.remove(0, name.length());
             originalText = originalText.simplified();
-            qDebug() << "Trimming " << name << " to " << originalText;
+//            qDebug() << "Trimming " << name << " to " << originalText;
         }
         if (originalText.startsWith(sing_name, Qt::CaseInsensitive))
         {

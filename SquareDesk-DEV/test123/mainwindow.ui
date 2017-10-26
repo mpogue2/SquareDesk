@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>918</width>
-    <height>423</height>
+    <height>511</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1589,6 +1589,9 @@
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
                <widget class="QTableWidget" name="tableWidgetCurrentSequence">
+                <property name="contextMenuPolicy">
+                 <enum>Qt::CustomContextMenu</enum>
+                </property>
                 <column>
                  <property name="text">
                   <string>Call</string>

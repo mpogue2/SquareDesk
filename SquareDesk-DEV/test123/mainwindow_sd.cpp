@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 #include <QInputDialog>
 #include <QLineEdit>
+#include <QClipboard>
 #include "common.h"
 #include "../sdlib/database.h"
 
@@ -640,24 +641,6 @@ void MainWindow::setCurrentCheckerColorScheme(CheckerColorScheme colorScheme)
     // TODO: Actually set color scheme
 }
 
-void MainWindow::on_actionNormal_triggered()
-{
-    setCurrentCheckerColorScheme(CheckerColorSchemeNormal);
-}
-void MainWindow::on_actionColor_only_triggered()
-{
-    setCurrentCheckerColorScheme(CheckerColorSchemeColorOnly);
-}
-void MainWindow::on_actionMental_image_triggered()
-{
-    setCurrentCheckerColorScheme(CheckerColorSchemeMentalImage);
-}
-void MainWindow::on_actionSight_triggered()
-{
-    setCurrentCheckerColorScheme(CheckerColorSchemeSight);
-}
-
-
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
     QAction *actions[] = {
@@ -793,3 +776,38 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 // actionColor_only
 // actionMental_image
 // actionSight
+
+void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
+{
+    QString selection;
+    for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
+    {
+        bool selected(false);
+        for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
+            if (item->isSelected())
+            {
+                selected =true;
+            }
+        }
+        if (selected)
+        {
+            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+            selection += item->text() + "\n";
+        }
+    }
+    
+    QApplication::clipboard()->setText(selection);
+}
+
+void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos) 
+{
+    qDebug() << "Right click!";
+    QMenu contextMenu(tr("Sequence"), this);
+
+    QAction action1("Copy", this);
+    connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
+    contextMenu.addAction(&action1);
+    contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
+}

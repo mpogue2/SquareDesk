@@ -370,10 +370,8 @@ private slots:
     void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
     void on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item);
     void on_tableWidgetCurrentSequence_itemDoubleClicked(QListWidgetItem *item);
-    void on_actionNormal_triggered();
-    void on_actionColor_only_triggered();
-    void on_actionMental_image_triggered();
-    void on_actionSight_triggered();
+    void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
+    void copy_selection_from_tableWidgetCurrentSequence();
 
     void on_actionSDDanceProgramMainstream_triggered();
     void on_actionSDDanceProgramPlus_triggered();
