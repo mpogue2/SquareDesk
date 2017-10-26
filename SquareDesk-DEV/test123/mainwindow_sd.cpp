@@ -17,7 +17,7 @@ static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
                              QBrush(COUPLE4COLOR)
 };
 
-
+static QFont dancerLabelFont;
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
@@ -32,7 +32,9 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
         :   (QGraphicsItem*)(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
     
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
-    QGraphicsTextItem *label = sdscene.addText(QString("%1").arg(number + 1));
+    
+    QGraphicsTextItem *label = sdscene.addText(QString("%1").arg(number + 1),
+                                               dancerLabelFont);
 
     QRectF labelBounds(label->boundingRect());
     QTransform labelTransform;
@@ -211,6 +213,13 @@ static void draw_scene(const QStringList &sdformation,
 
 void MainWindow::initialize_internal_sd_tab()
 {
+#if defined(Q_OS_MAC)
+    dancerLabelFont = QFont("Arial",11);
+#elif defined(Q_OS_WIN)
+    dancerLabelFont = QFont("Arial",8);
+#else
+    dancerLabelFont = QFont("Arial",8);
+#endif
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
     
     const double backgroundSize = 120.0;
@@ -219,7 +228,7 @@ void MainWindow::initialize_internal_sd_tab()
     QBrush backgroundBrush(QColor(240,240,240));
     QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
     sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
-    graphicsTextItemSDStatusBarText = sdscene.addText("");
+    graphicsTextItemSDStatusBarText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform;
     statusBarTransform.translate(-backgroundSize, -backgroundSize);
     statusBarTransform.scale(2,2);
