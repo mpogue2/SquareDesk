@@ -801,13 +801,39 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
     QApplication::clipboard()->setText(selection);
 }
 
+void MainWindow::copy_selection_from_listWidgetSDOutput()
+{
+    QString selection;
+    for (int row = 0; row < ui->listWidgetSDOutput->count(); ++row)
+    {
+        QListWidgetItem *item = ui->listWidgetSDOutput->item(row);
+        if (item->isSelected())
+        {
+            if (!item->text().isEmpty())
+                selection += item->text()  + "\n";
+        }
+    }
+    
+    QApplication::clipboard()->setText(selection);
+}
+
 void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos) 
 {
-    qDebug() << "Right click!";
     QMenu contextMenu(tr("Sequence"), this);
 
     QAction action1("Copy", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
     contextMenu.addAction(&action1);
     contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
+}
+
+
+void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &pos) 
+{
+    QMenu contextMenu(tr("Sequence"), this);
+
+    QAction action1("Copy", this);
+    connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_listWidgetSDOutput()));
+    contextMenu.addAction(&action1);
+    contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }

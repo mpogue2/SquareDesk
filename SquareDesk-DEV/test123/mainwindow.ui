@@ -1570,7 +1570,7 @@
           <item>
            <widget class="QTabWidget" name="tabWidget_2">
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="tabWidget_2Page1">
              <attribute name="title">
@@ -1578,7 +1578,14 @@
              </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_5">
               <item>
-               <widget class="QListWidget" name="listWidgetSDOutput"/>
+               <widget class="QListWidget" name="listWidgetSDOutput">
+                <property name="contextMenuPolicy">
+                 <enum>Qt::CustomContextMenu</enum>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ContiguousSelection</enum>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
