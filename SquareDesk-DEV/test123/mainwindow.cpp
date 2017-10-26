@@ -3021,7 +3021,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
             }
         }
     }
-    labelnum.simplified();
+    labelnum = labelnum.simplified();
     title = title.simplified();
     shortTitle = shortTitle.simplified();
 
