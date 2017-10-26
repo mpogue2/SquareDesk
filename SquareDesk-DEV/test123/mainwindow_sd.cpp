@@ -10,7 +10,10 @@
 #include "common.h"
 #include "../sdlib/database.h"
 
-static double dancerGridSize = 20;
+static const double dancerGridSize = 16;
+static const double backgroundSquareCount = 8;
+static const double gridSize = 32;
+static const double halfBackgroundSize = gridSize * backgroundSquareCount / 2;
 
 static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
                              QBrush(COUPLE2COLOR),
@@ -24,7 +27,7 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
 {
     static QPen pen(Qt::black, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
 
-    static float rectSize = 20;
+    static float rectSize = 16;
     static QRectF rect(-rectSize/2, -rectSize/2, rectSize, rectSize);
     static QRectF directionRect(-2,-rectSize / 2 - 4,4,4);
 
@@ -175,7 +178,7 @@ static void draw_scene(const QStringList &sdformation,
             }
         }
     }
-    double lowest_factor = -1;
+    double lowest_factor = 2; // just default to something that won't suck too badly
     for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
     {
         if (factors[i])
@@ -223,23 +226,27 @@ void MainWindow::initialize_internal_sd_tab()
 #endif
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
     
-    const double backgroundSize = 120.0;
     QPen backgroundPen(Qt::black);
     QPen gridPen(Qt::black,0.25,Qt::DotLine);
+    QPen axisPen(Qt::darkGray,0.5);
     QBrush backgroundBrush(QColor(240,240,240));
-    QRectF backgroundRect(-backgroundSize, -backgroundSize, backgroundSize * 2, backgroundSize * 2);
+    QRectF backgroundRect(-halfBackgroundSize,
+                          -halfBackgroundSize,
+                          halfBackgroundSize * 2,
+                          halfBackgroundSize * 2);
     sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
     graphicsTextItemSDStatusBarText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform;
-    statusBarTransform.translate(-backgroundSize, -backgroundSize);
+    statusBarTransform.translate(-halfBackgroundSize, -halfBackgroundSize);
     statusBarTransform.scale(2,2);
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
 
-    const double gridSize = 40;
-    for (double x =  -backgroundSize + gridSize; x < backgroundSize; x += gridSize)
+    for (double x =  -halfBackgroundSize + gridSize;
+         x < halfBackgroundSize; x += gridSize)
     {
-        sdscene.addLine(x, -backgroundSize, x, backgroundSize, gridPen);
-        sdscene.addLine(-backgroundSize, x, backgroundSize, x, gridPen);
+        QPen &pen(x == 0 ? axisPen : gridPen);
+        sdscene.addLine(x, -halfBackgroundSize, x, halfBackgroundSize, pen);
+        sdscene.addLine(-halfBackgroundSize, x, halfBackgroundSize, x, pen);
     }
     
     for (int i = 0; i < 4; ++i)
