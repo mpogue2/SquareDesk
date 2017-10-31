@@ -217,6 +217,30 @@ static void draw_scene(const QStringList &sdformation,
 
 void MainWindow::initialize_internal_sd_tab()
 {
+    static QAction *danceProgramActionsStatic[] = {
+        ui->actionSDDanceProgramMainstream,
+        ui->actionSDDanceProgramPlus,
+        ui->actionSDDanceProgramA1,
+        ui->actionSDDanceProgramA2,
+        ui->actionSDDanceProgramC1,
+        ui->actionSDDanceProgramC2,
+        ui->actionSDDanceProgramC3A,
+        ui->actionSDDanceProgramC3,
+        ui->actionSDDanceProgramC3x,
+        ui->actionSDDanceProgramC4,
+        ui->actionSDDanceProgramC4x,
+    };
+    danceProgramActions = new QAction *[sizeof(danceProgramActionsStatic) / sizeof(*danceProgramActionsStatic)];
+
+    sdActionGroupDanceProgram = new QActionGroup(this);  // checker styles
+    sdActionGroupDanceProgram->setExclusive(true);
+
+    for (int i = 0; danceProgramActionsStatic[i]; ++i)
+    {
+        danceProgramActions[i] = danceProgramActionsStatic[i];
+        QAction *action = danceProgramActions[i];
+        sdActionGroupDanceProgram->addAction(action);
+    }
 #if defined(Q_OS_MAC)
     dancerLabelFont = QFont("Arial",11);
 #elif defined(Q_OS_WIN)
@@ -631,45 +655,13 @@ void MainWindow::on_lineEditSDInput_textChanged()
     
 }
 
-void MainWindow::setCurrentCheckerColorScheme(CheckerColorScheme colorScheme)
-{
-    QAction *actions[] = {
-        ui->actionNormal,
-        ui->actionColor_only,
-        ui->actionMental_image,
-        ui->actionSight,
-        NULL
-    };
-    for (int i = 0; actions[i]; ++i)
-    {
-        bool checked = (i == (int)(colorScheme));
-        actions[i]->setChecked(checked);
-    }
-    // TODO: Actually set color scheme
-}
-
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
-    QAction *actions[] = {
-        ui->actionSDDanceProgramMainstream,
-        ui->actionSDDanceProgramPlus,
-        ui->actionSDDanceProgramA1,
-        ui->actionSDDanceProgramA2,
-        ui->actionSDDanceProgramC1,
-        ui->actionSDDanceProgramC2,
-        ui->actionSDDanceProgramC3A,
-        ui->actionSDDanceProgramC3,
-        ui->actionSDDanceProgramC3x,
-        ui->actionSDDanceProgramC4,
-        ui->actionSDDanceProgramC4x,
-        NULL
-    };
-    
-    for (int i = 0; actions[i]; ++i)
-    {
-        bool checked = (i == (int)(dance_program));
-        actions[i]->setChecked(checked);
-    }
+//    for (int i = 0; actions[i]; ++i)
+//    {
+//        bool checked = (i == (int)(dance_program));
+//        actions[i]->setChecked(checked);
+//    }
     on_lineEditSDInput_textChanged();
 }
 
@@ -741,7 +733,7 @@ void SDDancer::setColor(const QColor &color)
 
 void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 {
-    bool showDancerLabels = !(colorScheme == "Color only");
+    bool showDancerLabels = (colorScheme == "Normal");
     for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
     {
         sdpeople[dancerNum].label->setVisible(showDancerLabels);
@@ -770,7 +762,7 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
         sdpeople[COUPLE1 * 2 + 1].setColor(COUPLE1COLOR);
         sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
-        sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE2 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE3 * 2 + 0].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);

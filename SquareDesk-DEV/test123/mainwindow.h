@@ -134,6 +134,7 @@ public:
     PreferencesDialog *prefDialog;
     QActionGroup *sdActionGroup1;
     QActionGroup *sdActionGroup2;
+    QActionGroup *sdActionGroupDanceProgram;
 
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
@@ -663,10 +664,10 @@ private: // SD
     bool sdWasNotDrawingPicture;
     QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
+    QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
 public:
     void do_sd_tab_completion();
-    void setCurrentCheckerColorScheme(CheckerColorScheme colorScheme);
     void setCurrentSDDanceProgram(dance_level);
 };
 
