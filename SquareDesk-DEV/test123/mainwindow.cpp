@@ -415,12 +415,31 @@ MainWindow::MainWindow(QWidget *parent) :
     value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
+    QAction *localSessionActions[] = {
+        ui->actionPractice,
+        ui->actionMonday,
+        ui->actionTuesday,
+        ui->actionWednesday,
+        ui->actionThursday,
+        ui->actionFriday,
+        ui->actionSaturday,
+        ui->actionSunday,
+        NULL
+    };
+    sessionActions = new QAction*[sizeof(localSessionActions) / sizeof(*localSessionActions)];
+    for (int i = 0;
+         i < sizeof(localSessionActions) / sizeof(*localSessionActions);
+         ++i)
+    {
+        sessionActions[i] = localSessionActions[i];
+    }
     // -------------------------
-    setCurrentSessionId((SessionDefaultPractice ==
-                         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
-                        ? 1 : songSettings.getCurrentSession());
+    int sessionActionIndex = SessionDefaultPractice ==
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) ?
+        0 : songSettings.currentDayOfWeek();
+    sessionActions[sessionActionIndex]->setChecked(true);
 
-    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
     // used to store the file paths
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
@@ -623,6 +642,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #endif
 
+    sessionActionGroup = new QActionGroup(this);
+    sessionActionGroup->setExclusive(true);
+    sessionActionGroup->addAction(ui->actionPractice);
+    sessionActionGroup->addAction(ui->actionMonday);
+    sessionActionGroup->addAction(ui->actionTuesday);
+    sessionActionGroup->addAction(ui->actionWednesday);
+    sessionActionGroup->addAction(ui->actionThursday);
+    sessionActionGroup->addAction(ui->actionFriday);
+    sessionActionGroup->addAction(ui->actionSaturday);
+    sessionActionGroup->addAction(ui->actionSunday);
+            
     // -----------------------
     // Make SD menu items for checker style mutually exclusive
     QList<QAction*> actions = ui->menuSequence->actions();
@@ -821,23 +851,6 @@ void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
 
 void MainWindow::setCurrentSessionId(int id)
 {
-    QAction *actions[] = {
-        ui->actionPractice,
-        ui->actionMonday,
-        ui->actionTuesday,
-        ui->actionWednesday,
-        ui->actionThursday,
-        ui->actionFriday,
-        ui->actionSaturday,
-        ui->actionSunday,
-        NULL
-    };
-    for (int i = 0; actions[i]; ++i)
-    {
-        int this_id = i+1;
-        bool checked = this_id == id;
-        actions[i]->setChecked(checked);
-    }
     songSettings.setCurrentSession(id);
 }
 
@@ -1441,6 +1454,8 @@ MainWindow::~MainWindow()
     if (prefsManager.GetenableAutoMicsOff()) {
         unmuteInputVolume();  // if it was muted, it's now unmuted.
     }
+
+    delete[] sessionActions;
 }
 
 // ----------------------------------------------------------------------
@@ -3000,7 +3015,7 @@ bool MainWindow::breakFilenameIntoParts(const QString &s,
             }
         }
     }
-    labelnum.simplified();
+    labelnum = labelnum.simplified();
     title = title.simplified();
     shortTitle = shortTitle.simplified();
 
@@ -4943,9 +4958,10 @@ void MainWindow::on_actionPreferences_triggered()
         if (previousSessionDefaultType !=
             static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
         {
-            setCurrentSessionId((SessionDefaultPractice ==
-                                 static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())) ?
-                                1 : songSettings.currentDayOfWeek() + 1);
+            int sessionActionIndex = SessionDefaultPractice ==
+                static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) ?
+                0 : songSettings.currentDayOfWeek();
+            sessionActions[sessionActionIndex]->setChecked(true);
         }
 
         findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
@@ -5778,6 +5794,8 @@ void MainWindow::setInputVolume(int newVolume)
         getVolumeProcess.waitForFinished();
         QString output(getVolumeProcess.readAllStandardOutput());
     }
+#else
+    Q_UNUSED(newVolume);    
 #endif
 
 #if defined(Q_OS_WIN)
@@ -7327,6 +7345,8 @@ void MainWindow::airplaneMode(bool turnItOn) {
         sprintf(cmd, "osascript -e 'do shell script \"networksetup -setairportpower en0 on\"'\n");
     }
     system(cmd);
+#else
+    Q_UNUSED(turnItOn);
 #endif
 }
 

@@ -109,6 +109,8 @@ public:
     QTextEdit *currentSequenceWidget;
 
     PreferencesDialog *prefDialog;
+    QActionGroup *sessionActionGroup;
+    QAction **sessionActions;
     QActionGroup *sdActionGroup1;
     QActionGroup *sdActionGroup2;
 
