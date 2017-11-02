@@ -1562,7 +1562,7 @@
       </widget>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>Page</string>
+        <string>SD 2</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_7">
         <item>
