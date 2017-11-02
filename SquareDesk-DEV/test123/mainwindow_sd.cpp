@@ -14,7 +14,7 @@ static const double dancerGridSize = 16;
 static const double backgroundSquareCount = 8;
 static const double gridSize = 32;
 static const double halfBackgroundSize = gridSize * backgroundSquareCount / 2;
-
+static const double currentSequenceIconSize = 64;
 static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
                              QBrush(COUPLE2COLOR),
                              QBrush(COUPLE3COLOR),
@@ -315,9 +315,10 @@ void MainWindow::initialize_internal_sd_tab()
     ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(true);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->tableWidgetCurrentSequence->setColumnWidth(1, currentSequenceIconSize + 8);
     QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
-    verticalHeader->setDefaultSectionSize(64);
+    verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
 }
        
 
@@ -354,7 +355,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
     }
     if (!sdformation.empty() && sdLastLine >= 1)
     { 
-        QPixmap image(64,64);
+        QPixmap image(currentSequenceIconSize,currentSequenceIconSize);
         image.fill();
         QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
