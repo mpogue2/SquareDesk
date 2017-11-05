@@ -34,9 +34,9 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     QGraphicsItem *mainItem = boy ?
         (QGraphicsItem*)(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
         :   (QGraphicsItem*)(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
-    
+
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
-    
+
     QGraphicsTextItem *label = sdscene.addText(QString("%1").arg(number + 1),
                                                dancerLabelFont);
 
@@ -57,7 +57,7 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     dancer.mainItem = mainItem;
     dancer.directionRectItem = directionRectItem;
     dancer.label = label;
-       
+
     return group;
 }
 
@@ -73,14 +73,14 @@ static void draw_scene(const QStringList &sdformation,
     {
         qDebug() << "  " << i << ":" << sdformation[i];
     }
-        
-        
+
+
     for (int y = 0; y < sdformation.length(); ++y)
     {
         int dancer_start_x = -1;
         bool draw = false;
         float direction = -1;
-            
+
         for (int x = 0; x < sdformation[y].length(); ++x)
         {
             int ch = sdformation[y].at(x).unicode();
@@ -145,21 +145,21 @@ static void draw_scene(const QStringList &sdformation,
                 draw = false;
                 direction = -1;
                 coupleNumber = -1;
-                    
+
             }
         } /* end of for x */
     } /* end of for y */
 
     bool factors[4];
     double left_x = -1;
-    
+
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
         int dancer_start_x = sdpeople[dancerNum].x;
         if (left_x < 0 || dancer_start_x < left_x)
             left_x = dancer_start_x;
     }
-    
+
     for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
         factors[i] = true;
     int max_x = -1;
@@ -190,7 +190,7 @@ static void draw_scene(const QStringList &sdformation,
     qDebug() << "max_x " << max_x << " " << lowest_factor;
 
     max_x /= lowest_factor;
-        
+
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
         QTransform transform;
@@ -229,6 +229,7 @@ void MainWindow::initialize_internal_sd_tab()
         ui->actionSDDanceProgramC3x,
         ui->actionSDDanceProgramC4,
         ui->actionSDDanceProgramC4x,
+        NULL
     };
     danceProgramActions = new QAction *[sizeof(danceProgramActionsStatic) / sizeof(*danceProgramActionsStatic)];
 
@@ -249,7 +250,7 @@ void MainWindow::initialize_internal_sd_tab()
     dancerLabelFont = QFont("Arial",8);
 #endif
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
-    
+
     QPen backgroundPen(Qt::black);
     QPen gridPen(Qt::black,0.25,Qt::DotLine);
     QPen axisPen(Qt::darkGray,0.5);
@@ -272,17 +273,17 @@ void MainWindow::initialize_internal_sd_tab()
         sdscene.addLine(x, -halfBackgroundSize, x, halfBackgroundSize, pen);
         sdscene.addLine(-halfBackgroundSize, x, halfBackgroundSize, x, pen);
     }
-    
+
     for (int i = 0; i < 4; ++i)
     {
         QTransform boyTransform;
         boyTransform.rotate(-90*i);
         boyTransform.translate(-20, 50);
-        
+
         QTransform girlTransform;
         girlTransform.rotate(-90*i);
         girlTransform.translate(20, 50);
-        
+
         SDDancer boy, girl;
 
         QGraphicsItemGroup *boyGroup = generateDancer(sdscene, boy, i, true);
@@ -294,7 +295,7 @@ void MainWindow::initialize_internal_sd_tab()
         sdpeople.append(boy);
         sdpeople.append(girl);
     }
-    
+
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sdscene);
 
@@ -308,7 +309,7 @@ void MainWindow::initialize_internal_sd_tab()
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    1B^   1G^    .");
     draw_scene(initialDancerLocations, sdpeople);
-    
+
     QStringList tableHeader;
     tableHeader << "call" << "result";
     ui->tableWidgetCurrentSequence->setHorizontalHeaderLabels(tableHeader);
@@ -320,7 +321,7 @@ void MainWindow::initialize_internal_sd_tab()
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
     verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
 }
-       
+
 
 
 void MainWindow::on_threadSD_errorString(QString /* str */)
@@ -354,13 +355,13 @@ void MainWindow::on_sd_update_status_bar(QString str)
             ui->listWidgetSDOutput->addItem(item);
     }
     if (!sdformation.empty() && sdLastLine >= 1)
-    { 
+    {
         QPixmap image(currentSequenceIconSize,currentSequenceIconSize);
         image.fill();
         QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
         sdscene.render(&painter);
-        
+
         QTableWidgetItem *item = new QTableWidgetItem();
         item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
                       "\n" + sdformation.join("\n"));
@@ -392,7 +393,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         sdLastLine = 0;
         ui->tableWidgetCurrentSequence->setRowCount(0);
     }
-    
+
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
 
@@ -420,8 +421,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
-                
-                
+
+
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
             }
         }
@@ -438,7 +439,7 @@ void MainWindow::on_sd_awaiting_input()
     ui->tableWidgetCurrentSequence->scrollToBottom();
     on_lineEditSDInput_textChanged();
 }
-    
+
 void MainWindow::on_sd_set_pick_string(QString str)
 {
 
@@ -513,7 +514,7 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
         prefix = prefix + " ";
     }
     doubleClickedCall = prefix + doubleClickedCall;
-    
+
 //    ui->lineEditSDInput->setText(doubleClickedCall);
     emit sdthread->on_user_input(doubleClickedCall);
     ui->lineEditSDInput->clear();
@@ -553,7 +554,7 @@ void MainWindow::do_sd_tab_completion()
     {
         ui->lineEditSDInput->setText(prefix + longestMatch);
     }
-    
+
 }
 
 void MainWindow::on_lineEditSDInput_returnPressed()
@@ -581,7 +582,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
         return;
     }
     s = sd_strip_leading_selectors(s);
-   
+
     int current_dance_program = INT_MAX;
 
     if (ui->actionSDDanceProgramMainstream->isChecked())
@@ -628,7 +629,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
     {
         current_dance_program = (int)(l_c4x);
     }
-    
+
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
         bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(s, Qt::CaseInsensitive);
@@ -653,7 +654,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
         }
         ui->listWidgetSDOptions->setRowHidden(i, !show);
     }
-    
+
 }
 
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
@@ -739,7 +740,7 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
     {
         sdpeople[dancerNum].label->setVisible(showDancerLabels);
     }
-    
+
     if (colorScheme == "Normal" || colorScheme == "Color only") {
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
         sdpeople[COUPLE1 * 2 + 1].setColor(COUPLE1COLOR);
@@ -797,7 +798,7 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
             selection += item->text() + "\n";
         }
     }
-    
+
     QApplication::clipboard()->setText(selection);
 }
 
@@ -813,11 +814,11 @@ void MainWindow::copy_selection_from_listWidgetSDOutput()
                 selection += item->text()  + "\n";
         }
     }
-    
+
     QApplication::clipboard()->setText(selection);
 }
 
-void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos) 
+void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos)
 {
     QMenu contextMenu(tr("Sequence"), this);
 
@@ -828,7 +829,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 }
 
 
-void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &pos) 
+void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &pos)
 {
     QMenu contextMenu(tr("Sequence"), this);
 
