@@ -754,7 +754,7 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
         sdpeople[COUPLE1 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
-        sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
+        sdpeople[COUPLE2 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE3 * 2 + 0].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE4 * 2 + 0].setColor(GREYCOUPLECOLOR);
