@@ -15,6 +15,8 @@ static const double backgroundSquareCount = 8;
 static const double gridSize = 32;
 static const double halfBackgroundSize = gridSize * backgroundSquareCount / 2;
 static const double currentSequenceIconSize = 64;
+static int initialTableWidgetCurrentSequenceDefaultSectionSize = -1;
+static const double sdListIconSize = 128;
 static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
                              QBrush(COUPLE2COLOR),
                              QBrush(COUPLE3COLOR),
@@ -229,6 +231,7 @@ void MainWindow::initialize_internal_sd_tab()
         ui->actionSDDanceProgramC3x,
         ui->actionSDDanceProgramC4,
         ui->actionSDDanceProgramC4x,
+        NULL
     };
     danceProgramActions = new QAction *[sizeof(danceProgramActionsStatic) / sizeof(*danceProgramActionsStatic)];
 
@@ -318,6 +321,8 @@ void MainWindow::initialize_internal_sd_tab()
     ui->tableWidgetCurrentSequence->setColumnWidth(1, currentSequenceIconSize + 8);
     QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
+    initialTableWidgetCurrentSequenceDefaultSectionSize =
+        verticalHeader->defaultSectionSize();
     verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
 }
        
@@ -337,41 +342,30 @@ void MainWindow::on_sd_update_status_bar(QString str)
 {
 //    qDebug() << "on_sd_update_status_bar: " << str;
     graphicsTextItemSDStatusBarText->setPlainText(str);
-
+    QString formation(graphicsTextItemSDStatusBarText->toPlainText() +
+                      "\n" + sdformation.join("\n"));
     if (!sdformation.empty())
     {
-            draw_scene(sdformation, sdpeople);
-            QPixmap image(128,128);
-            image.fill();
-            QPainter painter(&image);
-            painter.setRenderHint(QPainter::Antialiasing);
-            sdscene.render(&painter);
-
-            QListWidgetItem *item = new QListWidgetItem();
-            item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
-                          "\n" + sdformation.join("\n"));
-            item->setIcon(QIcon(image));
-            ui->listWidgetSDOutput->addItem(item);
-    }
-    if (!sdformation.empty() && sdLastLine >= 1)
-    { 
-        QPixmap image(currentSequenceIconSize,currentSequenceIconSize);
+        draw_scene(sdformation, sdpeople);
+        QPixmap image(sdListIconSize,sdListIconSize);
         image.fill();
         QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
         sdscene.render(&painter);
-        
-        QTableWidgetItem *item = new QTableWidgetItem();
-        item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
-                      "\n" + sdformation.join("\n"));
-        item->setData(Qt::DecorationRole,image);
-        item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
+        QListWidgetItem *item = new QListWidgetItem();
+        item->setData(Qt::UserRole, formation);
+        item->setIcon(QIcon(image));
+        ui->listWidgetSDOutput->addItem(item);
+    }
+    if (!sdformation.empty() && sdLastLine >= 1)
+    { 
         int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
-        ui->tableWidgetCurrentSequence->setItem(row, 1, item);
-        item = ui->tableWidgetCurrentSequence->item(row,0);
-        item->setData(Qt::UserRole, graphicsTextItemSDStatusBarText->toPlainText() +
-                      "\n" + sdformation.join("\n"));
+
+        if (ui->actionFormation_Thumbnails->isChecked())
+            render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
+        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+        item->setData(Qt::UserRole, QVariant(formation));
         /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
     sdformation.clear();
@@ -420,8 +414,6 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
-                
-                
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
             }
         }
@@ -481,7 +473,65 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QListWidgetItem
     }
 }
 
+void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation)
+{
+    QPixmap image(currentSequenceIconSize,currentSequenceIconSize);
+    image.fill();
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing);
+    sdscene.render(&painter);
+        
+    QTableWidgetItem *item = new QTableWidgetItem();
+    item->setData(Qt::UserRole, formation);
+    item->setData(Qt::DecorationRole,image);
+    item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+    
+    ui->tableWidgetCurrentSequence->setItem(row, 1, item);
+    QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,0);
+    qDebug() << "Setting row " << row << " to formation " << formation;
+    textItem->setData(Qt::UserRole, QVariant(formation));
+}
 
+void MainWindow::set_current_sequence_icons_visible(bool visible)
+{
+    if (visible)
+    {
+        QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
+        verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
+    }
+    else
+    {
+        QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
+        verticalHeader->setDefaultSectionSize(initialTableWidgetCurrentSequenceDefaultSectionSize);
+    }
+    for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
+    {
+        if (visible)
+        {
+            QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row, 0);
+            QVariant v = textItem->data(Qt::UserRole);
+            qDebug() << "Row " << row << " : " << v;
+            if (!v.isNull())
+            {
+                QString formation(v.toString());
+                QStringList formationList = formation.split("\n");
+                if (formationList.size() > 0)
+                {
+                    graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
+                    formationList.removeFirst();
+                    draw_scene(formationList, sdpeople);
+                    render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
+                }
+            }
+        }
+        else
+        {
+            QTableWidgetItem *item = new QTableWidgetItem();
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            ui->tableWidgetCurrentSequence->setItem(row, 1, item);
+        }
+    }
+}
 
 void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 {
@@ -658,6 +708,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
+    Q_UNUSED(dance_program);
 //    for (int i = 0; actions[i]; ++i)
 //    {
 //        bool checked = (i == (int)(dance_program));
@@ -720,6 +771,11 @@ void MainWindow::on_actionShow_Concepts_triggered()
 void MainWindow::on_actionShow_Commands_triggered()
 {
     on_lineEditSDInput_textChanged();
+}
+
+void MainWindow::on_actionFormation_Thumbnails_triggered()
+{
+    set_current_sequence_icons_visible(ui->actionFormation_Thumbnails->isChecked());
 }
 
 void SDDancer::setColor(const QColor &color)
