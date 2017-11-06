@@ -1671,7 +1671,7 @@
      <x>0</x>
      <y>0</y>
      <width>918</width>
-     <height>27</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1834,6 +1834,8 @@
     <addaction name="actionColor_only"/>
     <addaction name="actionMental_image"/>
     <addaction name="actionSight"/>
+    <addaction name="separator"/>
+    <addaction name="actionFormation_Thumbnails"/>
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
@@ -2725,6 +2727,9 @@
    </property>
   </action>
   <action name="actionShow_Concepts">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Show Concepts</string>
    </property>
@@ -2823,6 +2828,17 @@
    </property>
    <property name="text">
     <string>C4x</string>
+   </property>
+  </action>
+  <action name="actionFormation_Thumbnails">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Formation Thumbnails</string>
    </property>
   </action>
  </widget>

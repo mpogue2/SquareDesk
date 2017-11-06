@@ -429,7 +429,7 @@ MainWindow::MainWindow(QWidget *parent) :
         NULL
     };
     sessionActions = new QAction*[sizeof(localSessionActions) / sizeof(*localSessionActions)];
-    for (int i = 0;
+    for (size_t i = 0;
          i < sizeof(localSessionActions) / sizeof(*localSessionActions);
          ++i)
     {
@@ -1426,6 +1426,7 @@ void MainWindow::on_actionSunday_triggered(bool /* checked */)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    qDebug() << "Closing main window";
     // Just before the app quits, save the current playlist state in "current.m3u", and it will be reloaded
     //   when the app starts up again.
     // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.

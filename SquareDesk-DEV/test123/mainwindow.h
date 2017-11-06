@@ -390,7 +390,7 @@ private slots:
     void on_actionSDDanceProgramC4x_triggered();
     void on_actionShow_Concepts_triggered();
     void on_actionShow_Commands_triggered();
-    
+    void on_actionFormation_Thumbnails_triggered();
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -668,6 +668,8 @@ private: // SD
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
+    void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
+    void set_current_sequence_icons_visible(bool visible);
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);
