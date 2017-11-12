@@ -303,6 +303,7 @@ private slots:
     void makeProgress();
     void cancelProgress();
 
+    void musicRootModified(QString s);
 
     // END SLOTS -----------
 
@@ -372,6 +373,8 @@ private:
     QString lastCuesheetSavePath;
     QString loadedCuesheetNameWithPath;
     enum SongFilenameMatchingType songFilenameFormat;
+
+    QFileSystemWatcher musicRootWatcher;  // watch for add/deletes in musicRootPath
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF
