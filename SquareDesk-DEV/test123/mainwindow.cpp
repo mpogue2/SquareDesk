@@ -6887,7 +6887,6 @@ void MainWindow::readPSStdErr()
 {
     QByteArray s(ps->readAllStandardError());
     QString str = QString::fromUtf8(s.data());
-    qInfo() << "PocketSphinx error: " << str;
 }
 
 void MainWindow::readPSData()
@@ -6897,9 +6896,8 @@ void MainWindow::readPSData()
     // pocketsphinx has a valid string, send it to sd
     QByteArray s = ps->readAllStandardOutput();
     QString str = QString::fromUtf8(s.data());
-    if (str.startsWith("INFO: pocketsphinx.c"))
+    if (str.startsWith("INFO: "))
         return;
-    qInfo() << "PocketSphinx: stdin" << str;
 
     int index = ui->tabWidget->currentIndex();
     if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
@@ -7243,7 +7241,7 @@ void MainWindow::initSDtab() {
 #endif
 
 #else /* must be (Q_OS_LINUX) */
-    QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
+    QString pathToPS = "pocketsphinx_continuous";
 #endif
     // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
