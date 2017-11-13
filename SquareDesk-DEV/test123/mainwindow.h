@@ -110,7 +110,7 @@ public:
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
-
+#define SD_USE_NEW_INTEGRATION 1
 namespace Ui
 {
 class MainWindow;
@@ -269,7 +269,9 @@ private slots:
     void writeSDData(const QByteArray &data);
     void readSDData();
     void readPSData();
-
+    void readPSStdErr();
+    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
+    void pocketSphinx_started();
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 

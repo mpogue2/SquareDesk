@@ -107,7 +107,7 @@ SDThread::CurrentInputState SDThread::currentInputState()
 
 void SDThread::on_user_input(QString str)
 {
-    QByteArray inUtf8 = str.toUtf8();
+    QByteArray inUtf8 = str.simplified().toUtf8();
     const char *data = inUtf8.constData();
     iofull->add_string_input(data);
 }
@@ -118,7 +118,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
     // variable wait, because that's when the mutex is unlocked.
     
     QMutexLocker locker(mutexMessageLoop);
-    qDebug() << "Add string input (" << currentInputState << "): " << s;
+    qWarning() << "Add string input (" << currentInputState << "): " << s;
 
 
     switch (currentInputState)
@@ -133,7 +133,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
         waitCondition->wakeAll();
         break;
     default:
-        qDebug() << "Unknown input state: " << currentInputState;
+        qWarning() << "Unknown input state: " << currentInputState;
     case SDThread::InputStateNormal:
         int len = strlen(s);
              matcher_class &matcher = *gg77->matcher_p;
@@ -152,7 +152,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
         }
             
 
-        qDebug() << "Matching: " << s;
+        qWarning() << "Matching: " << s;
         matcher.copy_to_user_input(s);
         int matches = matcher.match_user_input(nLastOne, false, false, false);
 
@@ -173,15 +173,15 @@ void SquareDesk_iofull::add_string_input(const char *s)
         else
         {
             add_new_line("  (no matches)");
-            qDebug() << "No Match: " << s;
-            qDebug() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
-            qDebug() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
-            qDebug() << "  matcher.m_final_result.match.packed_next_conc_or_subcall: " << matcher.m_final_result.match.packed_next_conc_or_subcall;
-            qDebug() << "  matcher.m_final_result.match.packed_secondary_subcall: " << matcher.m_final_result.match.packed_secondary_subcall;
-            qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
-            qDebug() << "  ui_call_select: " << ui_call_select;
-            qDebug() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
-            qDebug() << "  ui_concept_select: " << ui_concept_select;
+            qWarning() << "No Match: " << s;
+            qWarning() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
+            qWarning() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
+            qWarning() << "  matcher.m_final_result.match.packed_next_conc_or_subcall: " << matcher.m_final_result.match.packed_next_conc_or_subcall;
+            qWarning() << "  matcher.m_final_result.match.packed_secondary_subcall: " << matcher.m_final_result.match.packed_secondary_subcall;
+            qWarning() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
+            qWarning() << "  ui_call_select: " << ui_call_select;
+            qWarning() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
+            qWarning() << "  ui_concept_select: " << ui_concept_select;
         }
     }
 
@@ -231,7 +231,7 @@ void SquareDesk_iofull::prepare_for_listing()
 
 void SquareDesk_iofull::set_window_title(char s[])
 {
-//    qDebug() << "SquareDesk_iofull::set_window_title(" << s << ");";
+//    qWarning() << "SquareDesk_iofull::set_window_title(" << s << ");";
     emit sdthread->on_sd_set_window_title(QString(s));
 }
 
@@ -251,13 +251,13 @@ void SquareDesk_iofull::add_new_line(const char the_line[], uint32 drawing_pictu
 void SquareDesk_iofull::no_erase_before_n(int /* n */)
 {
     // This is for maintaining crucial lines on the screen.
-//    qDebug() << "SquareDesk_iofull::no_erase_before_n(int n);";
+//    qWarning() << "SquareDesk_iofull::no_erase_before_n(int n);";
 }
 
 void SquareDesk_iofull::reduce_line_count(int /* n */)
 {
     // This is for culling old lines. We can probably leave it doing nothing.
-//    qDebug() << "SquareDesk_iofull::reduce_line_count(int " << n << ");";
+//    qWarning() << "SquareDesk_iofull::reduce_line_count(int " << n << ");";
 }
 
 void SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,
@@ -270,25 +270,25 @@ void SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,
 
     get_utils_ptr()->writestuff(szResolveWndTitle);
     get_utils_ptr()->newline();
-//    qDebug() << "SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,";
+//    qWarning() << "SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,";
 }
 
 void SquareDesk_iofull::show_match(int frequency_to_show)
 {
-//    qDebug() << "SquareDesk_iofull::show_match(int frequency_to_show);";
+//    qWarning() << "SquareDesk_iofull::show_match(int frequency_to_show);";
     get_utils_ptr()->show_match_item(frequency_to_show);
 }
 
 const char *SquareDesk_iofull::version_string()
 {
     return "SquareDesk-" VERSIONSTRING;
-//    qDebug() << "SquareDesk_iofull::char *version_string();";
+//    qWarning() << "SquareDesk_iofull::char *version_string();";
 }
 
 void SquareDesk_iofull::ShowListBox(int nWhichOne) {
     QStringList options;
     QStringList dance_levels;
-//    qDebug() << "ShowListBox(" << nWhichOne << ")";
+//    qWarning() << "ShowListBox(" << nWhichOne << ")";
 
     if (nWhichOne != nLastOne)
     {
@@ -398,7 +398,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
 
 uims_reply_thing SquareDesk_iofull::get_resolve_command()
 {
-//    qDebug() << "SquareDesk_iofull::get_resolve_command();";
+//    qWarning() << "SquareDesk_iofull::get_resolve_command();";
     matcher_class &matcher = *gg77->matcher_p;
     UpdateStatusBar(szResolveWndTitle);
 
@@ -416,27 +416,27 @@ uims_reply_thing SquareDesk_iofull::get_resolve_command()
 
 bool SquareDesk_iofull::choose_font()
 {
-//    qDebug() << "SquareDesk_iofull::choose_font();";
+//    qWarning() << "SquareDesk_iofull::choose_font();";
     return true;
 }
 
 bool SquareDesk_iofull::print_this()
 {
-//    qDebug() << "SquareDesk_iofull::print_this();";
+//    qWarning() << "SquareDesk_iofull::print_this();";
     // ZZZZZ TODO: PRINT!
     return true;
 }
 
 bool SquareDesk_iofull::print_any()
 {
-//    qDebug() << "SquareDesk_iofull::print_any();";
+//    qWarning() << "SquareDesk_iofull::print_any();";
     // ZZZZZ TODO: PRINT!
     return true;
 }
 
 bool SquareDesk_iofull::help_manual()
 {
-//    qDebug() << "SquareDesk_iofull::help_manual();";
+//    qWarning() << "SquareDesk_iofull::help_manual();";
 //ZZZZZZZZZ   ShellExecute(NULL, "open", "c:\\sd\\sd_doc.html", NULL, NULL, SW_SHOWNORMAL);
     return TRUE;
     
@@ -444,7 +444,7 @@ bool SquareDesk_iofull::help_manual()
 
 bool SquareDesk_iofull::help_faq()
 {
-//    qDebug() << "SquareDesk_iofull::help_faq();";
+//    qWarning() << "SquareDesk_iofull::help_faq();";
 // ZZZZZZZZZZ    ShellExecute(NULL, "open", "c:\\sd\\faq.html", NULL, NULL, SW_SHOWNORMAL);
     return TRUE;
 }
@@ -454,7 +454,7 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
                                                  Cstring /* seed */, char *dest)
 {
     QString prompt;
-    qDebug() << "SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,";
+    qWarning() << "SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,";
     if (prompt1 && prompt1[0] && prompt1[0] == '*')
     {
         prompt = QString(prompt1 + 1);
@@ -481,13 +481,13 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
     
     currentInputState = SDThread::InputStateText;
     emit sdthread->on_sd_awaiting_input();
-    qDebug() << "get_popup_string waiting on input";
+    qWarning() << "get_popup_string waiting on input";
     waitCondition->wait(mutexMessageLoop);
-    qDebug() << "get_popup_string got input " << currentInputText;
+    qWarning() << "get_popup_string got input " << currentInputText;
 
     if (currentInputState != SDThread::InputStateText)
     {
-        qDebug() << "Text state issue" << currentInputState;
+        qWarning() << "Text state issue" << currentInputState;
     }
     
     currentInputState = SDThread::InputStateNormal;
@@ -511,26 +511,26 @@ void SquareDesk_iofull::fatal_error_exit(int code, Cstring s1, Cstring s2)
     }
 
     // ZZZZZZZZZZZ
-    qDebug() << "SquareDesk_iofull::fatal_error_exit(" << code << ", " << s1 << ", " << s2 << ");";
+    qWarning() << "SquareDesk_iofull::fatal_error_exit(" << code << ", " << s1 << ", " << s2 << ");";
     session_index = 0;
     general_final_exit(code);
 }
 
 void SquareDesk_iofull::serious_error_print(Cstring /* s1 */)
 {
-    qDebug() << "SquareDesk_iofull::serious_error_print(Cstring s1);";
+    qWarning() << "SquareDesk_iofull::serious_error_print(Cstring s1);";
     // ZZZZZZZ
 }
 
 void SquareDesk_iofull::create_menu(call_list_kind /* cl */)
 {
     // This is empty in the Windows version, so leaving it empty here
-//    qDebug() << "SquareDesk_iofull::create_menu(call_list_kind cl (" << cl << "));";
+//    qWarning() << "SquareDesk_iofull::create_menu(call_list_kind cl (" << cl << "));";
 }
 
 selector_kind SquareDesk_iofull::do_selector_popup(matcher_class &/* matcher */)
 {
-    qDebug() << "SquareDesk_iofull::do_selector_popup(matcher_class &matcher);";
+    qWarning() << "SquareDesk_iofull::do_selector_popup(matcher_class &matcher);";
     matcher_class &matcher = *gg77->matcher_p;
     match_result saved_match = matcher.m_final_result;
    // We add 1 to the menu position to get the actual selector enum; the enum effectively starts at 1.
@@ -543,20 +543,20 @@ selector_kind SquareDesk_iofull::do_selector_popup(matcher_class &/* matcher */)
 
 direction_kind SquareDesk_iofull::do_direction_popup(matcher_class &/* matcher */)
 {
-    qDebug() << "SquareDesk_iofull::do_direction_popup(matcher_class &matcher);";
+    qWarning() << "SquareDesk_iofull::do_direction_popup(matcher_class &matcher);";
     // ZZZZZ
     return direction_uninitialized;
 }
 
 int SquareDesk_iofull::do_circcer_popup()
 {
-    qDebug() << "SquareDesk_iofull::do_circcer_popup();";
+    qWarning() << "SquareDesk_iofull::do_circcer_popup();";
     return true;
 }
 
 int SquareDesk_iofull::do_tagger_popup(int /* tagger_class */)
 {
-    qDebug() << "SquareDesk_iofull::do_tagger_popup(int tagger_class);";
+    qWarning() << "SquareDesk_iofull::do_tagger_popup(int tagger_class);";
     return true;
 }
 
@@ -585,13 +585,13 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line(QString(title) + "\n" +  prompt);
     emit sdthread->on_sd_awaiting_input();
-    qDebug() << "yesnoconform awaiting input " << currentInputYesNo;
+    qWarning() << "yesnoconform awaiting input " << currentInputYesNo;
     waitCondition->wait(mutexMessageLoop);
-    qDebug() << "yesnoconform got input " << currentInputYesNo;
+    qWarning() << "yesnoconform got input " << currentInputYesNo;
 
     if (currentInputState != SDThread::InputStateYesNo)
     {
-        qDebug() << "YesNo state issue" << currentInputState;
+        qWarning() << "YesNo state issue" << currentInputState;
     }
     currentInputState = SDThread::InputStateNormal;
 
@@ -600,7 +600,7 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
 
 void SquareDesk_iofull::set_pick_string(Cstring string)
 {
-    qDebug() << "SquareDesk_iofull::set_pick_string(Cstring string);";
+    qWarning() << "SquareDesk_iofull::set_pick_string(Cstring string);";
     emit sdthread->on_sd_set_pick_string(QString(string));
 }
 
@@ -618,13 +618,13 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
     add_new_line("How many? (Type a number between 0 and 36):");
     currentInputState = SDThread::InputStateText;
     emit sdthread->on_sd_awaiting_input();
-    qDebug() << "get_popup_string waiting on input";
+    qWarning() << "get_popup_string waiting on input";
     waitCondition->wait(mutexMessageLoop);
-    qDebug() << "get_popup_string got input " << currentInputText;
+    qWarning() << "get_popup_string got input " << currentInputText;
 
     if (currentInputState != SDThread::InputStateText)
     {
-        qDebug() << "Text state issue" << currentInputState;
+        qWarning() << "Text state issue" << currentInputState;
     }
     
     currentInputState = SDThread::InputStateNormal;
@@ -639,7 +639,7 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
 
 uims_reply_thing SquareDesk_iofull::get_call_command()
 {
-    qDebug() << "SquareDesk_iofull::get_call_command();";
+    qWarning() << "SquareDesk_iofull::get_call_command();";
     matcher_class &matcher = *gg77->matcher_p;
 startover:
     if (allowing_modifications)
@@ -688,36 +688,36 @@ startover:
 
 void SquareDesk_iofull::dispose_of_abbreviation(const char *linebuff)
 {
-    qDebug() << "SquareDesk_iofull::dispose_of_abbreviation(const char *linebuff);";
+    qWarning() << "SquareDesk_iofull::dispose_of_abbreviation(const char *linebuff);";
     emit sdthread->on_sd_dispose_of_abbreviation(QString(linebuff));
     WaitingForCommand = false;
 }
 
 void SquareDesk_iofull::display_help()
 {
-    qDebug() << "SquareDesk_iofull::display_help();";
+    qWarning() << "SquareDesk_iofull::display_help();";
 }
 
 void SquareDesk_iofull::terminate(int code)
 {
-    qDebug() << "SquareDesk_iofull::terminate(" <<  code << ");";
+    qWarning() << "SquareDesk_iofull::terminate(" <<  code << ");";
 }
 
 void SquareDesk_iofull::process_command_line(int */* argcp */, char ***/* argvp */)
 {
-//    qDebug() << "SquareDesk_iofull::process_command_line(int *argcp, char ***argvp);";
+//    qWarning() << "SquareDesk_iofull::process_command_line(int *argcp, char ***argvp);";
 }
 
 void SquareDesk_iofull::bad_argument(Cstring /* s1 */, Cstring /* s2 */, Cstring /* s3 */)
 {
-    qDebug() << "SquareDesk_iofull::bad_argument(Cstring s1, Cstring s2, Cstring s3);";
+    qWarning() << "SquareDesk_iofull::bad_argument(Cstring s1, Cstring s2, Cstring s3);";
 }
 
 void SquareDesk_iofull::final_initialize()
 {
     ui_options.use_escapes_for_drawing_people = 0;
 
-//    qDebug() << "SquareDesk_iofull::final_initialize();";
+//    qWarning() << "SquareDesk_iofull::final_initialize();";
 }
 
 bool SquareDesk_iofull::init_step(init_callback_state s, int /* n */)
@@ -725,44 +725,44 @@ bool SquareDesk_iofull::init_step(init_callback_state s, int /* n */)
     switch (s) 
     {
     case get_session_info:
-        // qDebug() << "get_session_info: " << s << " " << n;
+        // qWarning() << "get_session_info: " << s << " " << n;
         break;
         
     case final_level_query:
-        // qDebug() << "final_level_query: " << s << " " << n;
+        // qWarning() << "final_level_query: " << s << " " << n;
         break;
         
     case init_database1:
-        // qDebug() << "init_database1: " << s << " " << n;
+        // qWarning() << "init_database1: " << s << " " << n;
         break;
         
         // update status "Reading database"
     case init_database2:
-        // qDebug() << "init_database2: " << s << " " << n;
+        // qWarning() << "init_database2: " << s << " " << n;
         break;
         
         // update status "Creating menus"
     case calibrate_tick:
-        // qDebug() << "calibrate_tick: " << s << " " << n;
+        // qWarning() << "calibrate_tick: " << s << " " << n;
         break;
        
     case do_tick:
-        // qDebug() << "do_tick: " << s << " " << n;
+        // qWarning() << "do_tick: " << s << " " << n;
         break;
        
     case tick_end:
-        // qDebug() << "tick_end: " << s << " " << n;
+        // qWarning() << "tick_end: " << s << " " << n;
         break;
        
     case do_accelerator:
-        // qDebug() << "do_accelerator: " << s << " " << n;
+        // qWarning() << "do_accelerator: " << s << " " << n;
         break;
        
     default:
-        // qDebug() << "init step " << s << " " << n;
+        // qWarning() << "init step " << s << " " << n;
         break;
     }
-    // qDebug() << "SquareDesk_iofull::init_step(init_callback_state s, int n);";
+    // qWarning() << "SquareDesk_iofull::init_step(init_callback_state s, int n);";
     return false;
 }
 
@@ -869,7 +869,7 @@ SDThread::~SDThread()
     eventLoopMutex.unlock();
     if (!wait(250))
     {
-        qDebug() << "Thread unable to stop, calling terminate";
+        qWarning() << "Thread unable to stop, calling terminate";
         terminate();
     }
 }
@@ -900,18 +900,18 @@ QString sd_strip_leading_selectors(QString originalText)
     {
         QString name(selector_list[i].name);
         QString sing_name(selector_list[i].sing_name);
-//        qDebug() << "Checking '" << originalText << "' for '" << name << "' or '" << sing_name << "'";
+//        qWarning() << "Checking '" << originalText << "' for '" << name << "' or '" << sing_name << "'";
         if (originalText.startsWith(name, Qt::CaseInsensitive))
         {
             originalText.remove(0, name.length());
             originalText = originalText.simplified();
-//            qDebug() << "Trimming " << name << " to " << originalText;
+//            qWarning() << "Trimming " << name << " to " << originalText;
         }
         if (originalText.startsWith(sing_name, Qt::CaseInsensitive))
         {
             originalText.remove(0, sing_name.length());
             originalText = originalText.simplified();
-            qDebug() << "Trimming " << sing_name << " to " << originalText;
+            qWarning() << "Trimming " << sing_name << " to " << originalText;
         }
     }
     return originalText;

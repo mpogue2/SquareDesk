@@ -108,9 +108,9 @@ using namespace std;
 
 #include "typetracker.h"
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+//#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
 #define POCKETSPHINXSUPPORT 1
-#endif
+//#endif
 
 using namespace TagLib;
 
@@ -5808,6 +5808,7 @@ int MainWindow::getInputVolume()
 
 void MainWindow::setInputVolume(int newVolume)
 {
+    qInfo() << "Set input volume to " << newVolume;
 #if defined(Q_OS_MAC)
     if (newVolume != -1) {
         QProcess getVolumeProcess;
@@ -6605,7 +6606,8 @@ void MainWindow::on_warningLabelCuesheet_clicked() {
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if (ui->tabWidget->tabText(index) == "SD") {
+    if (ui->tabWidget->tabText(index) == "SD"
+        || ui->tabWidget->tabText(index) == "SD 2") {
         // SD Tab ---------------
         if (console != 0) {
             console->setFocus();
@@ -6671,7 +6673,8 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 void MainWindow::microphoneStatusUpdate() {
     int index = ui->tabWidget->currentIndex();
 
-    if (ui->tabWidget->tabText(index) == "SD") {
+    if (ui->tabWidget->tabText(index) == "SD"
+        || ui->tabWidget->tabText(index) == "SD 2") {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: red");
             ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
@@ -6880,14 +6883,27 @@ void MainWindow::readSDData()
 
 }
 
+void MainWindow::readPSStdErr()
+{
+    QByteArray s(ps->readAllStandardError());
+    QString str = QString::fromUtf8(s.data());
+    qInfo() << "PocketSphinx error: " << str;
+}
+
 void MainWindow::readPSData()
 {
+    qInfo() << "PocketSphinx: readPSData";
     // ASR --------------------------------------------
     // pocketsphinx has a valid string, send it to sd
-    QByteArray s = ps->readAll();
+    QByteArray s = ps->readAllStandardOutput();
+    QString str = QString::fromUtf8(s.data());
+    if (str.startsWith("INFO: pocketsphinx.c"))
+        return;
+    qInfo() << "PocketSphinx: stdin" << str;
 
     int index = ui->tabWidget->currentIndex();
-    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) || (ui->tabWidget->tabText(index) != "SD")) {
+    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
+        ((ui->tabWidget->tabText(index) != "SD" && ui->tabWidget->tabText(index) != "SD 2"))) {
         // if voiceInput is explicitly disabled, or the app is not Active, we're not on the sd tab, then voiceInput is disabled,
         //  and we're going to read the data from PS and just throw it away.
         // This is a cheesy way to do it.  We really should disable the mics somehow.
@@ -6898,7 +6914,7 @@ void MainWindow::readPSData()
     // This section does the impedance match between what you can say and the exact wording that sd understands.
     // TODO: put this stuff into an external text file, read in at runtime?
     //
-    QString s2 = s.toLower();
+    QString s2 = str.toLower();
     s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
     s2.replace(QRegExp("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
 
@@ -7045,6 +7061,11 @@ void MainWindow::readPSData()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (s2 == "square the set\n" || s2 == "square your set\n") {
+#if SD_USE_NEW_INTEGRATION
+        emit sdthread->on_user_input("abort this sequence");
+        emit sdthread->on_user_input("y");
+        
+#else
 #if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
 #endif
@@ -7060,8 +7081,11 @@ void MainWindow::readPSData()
 
         sd->write("y\n");
         sd->waitForBytesWritten();
-
+#endif /* #if SD_USE_NEW_INTEGRATION */
     } else if (s2 == "undo last call\n") {
+#if SD_USE_NEW_INTEGRATION
+        emit sdthread->on_user_input("undo last call");
+#else
         // TODO: put more synonyms of this in...
 #if defined(Q_OS_MAC)
         sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
@@ -7076,6 +7100,8 @@ void MainWindow::readPSData()
 
         sd->write("refresh display\n");  // refresh
         sd->waitForBytesWritten();
+#endif /* #if SD_USE_NEW_INTEGRATION */
+
     } else if (s2 == "erase\n" || s2 == "erase that\n") {
         // TODO: put more synonyms in, e.g. "cancel that"
 #if defined(Q_OS_MAC)
@@ -7086,8 +7112,12 @@ void MainWindow::readPSData()
 #endif
         sd->waitForBytesWritten();
     } else if (s2 != "\n") {
+#if SD_USE_NEW_INTEGRATION
+        emit sdthread->on_user_input(s2);
+#else
         sd->write(s2.toLatin1());
         sd->waitForBytesWritten();
+#endif
     }
 }
 
@@ -7151,6 +7181,17 @@ void MainWindow::restartSDprocess(QString SDdanceLevel) {
     connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
 }
 
+void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
+{
+    qInfo() << "pocketSphinx_errorOccurred " << error;
+}
+void MainWindow::pocketSphinx_started()
+{
+    qInfo() << "pocketSphinx_started";
+}
+
+
+
 void MainWindow::initSDtab() {
 
 #ifndef POCKETSPHINXSUPPORT
@@ -7193,15 +7234,17 @@ void MainWindow::initSDtab() {
     // TEST SD MANUALLY: ./sd
     currentSDVUILevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
-#if defined(POCKETSPHINXSUPPORT)
     unsigned int whichModel = 5365;
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
     QString pathToPS = appDir + "pocketsphinx_continuous";
-
 #if defined(Q_OS_WIN32)
     pathToPS += ".exe";   // executable has a different name on Win32
 #endif
 
+#else /* must be (Q_OS_LINUX) */
+    QString pathToPS = "/usr/local/bin/pocketsphinx_continuous";
+#endif
     // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
     QString pathToJSGF = currentSDVUILevel + ".jsgf";
@@ -7214,6 +7257,9 @@ void MainWindow::initSDtab() {
     // The acoustic models are at the same level, but in the models subdirectory on MAC
     QString pathToHMM  = "models/en-us";
 #endif
+#if defined(Q_OS_LINUX)
+    QString pathToHMM = "../pocketsphinx/binaries/win32/models/en-us/";
+#endif
 
     QStringList PSargs;
     PSargs << "-dict" << pathToDict     // pronunciation dictionary
@@ -7225,12 +7271,22 @@ void MainWindow::initSDtab() {
     ps = new QProcess(Q_NULLPTR);
 
     ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
+    qInfo() << "Starting " << pathToPS << " with " << PSargs;
+//    ps->setProcessChannelMode(QProcess::MergedChannels);
+//    ps->setReadChannel(QProcess::StandardOutput);
+    connect(ps, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(readPSData()));                 // output data from ps
+    connect(ps, SIGNAL(readyReadStandardError()),
+            this, SLOT(readPSStdErr()));                 // output data from ps
+    connect(ps, SIGNAL(errorOccurred(QProcess::ProcessError)),
+            this, SLOT(pocketSphinx_errorOccurred(QProcess::ProcessError)));
+    connect(ps, SIGNAL(started()),
+            this, SLOT(pocketSphinx_started()));
     ps->start(pathToPS, PSargs);
 
-    ps->waitForStarted();
+    bool startedStatus = ps->waitForStarted();
+    qInfo() << "Started status: " << startedStatus;
 
-    connect(ps,   &QProcess::readyReadStandardOutput,
-            this, &MainWindow::readPSData);                 // output data from ps
 
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
@@ -7239,7 +7295,6 @@ void MainWindow::initSDtab() {
 
     highlighter = new Highlighter(console->document());
 
-#endif
 }
 
 void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
