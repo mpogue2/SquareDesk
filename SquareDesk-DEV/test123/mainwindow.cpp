@@ -2539,8 +2539,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->lineEditCountDownTimer->hasFocus() ||
                ui->lineEditChoreographySearch->hasFocus() ||
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
-               ui->songTable->isEditing() ||
-               maybeMainWindow->console->hasFocus() )     ||
+               ui->songTable->isEditing() ) ||
 
              ( (ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() ||
@@ -2599,7 +2598,7 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
-    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL) || console->hasFocus()) {
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
 
@@ -6609,9 +6608,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
         // SD Tab ---------------
-        if (console != 0) {
-            console->setFocus();
-        }
+        ui->lineEditSDInput->setFocus();
 //        ui->actionSave_Lyrics->setDisabled(true);
 //        ui->actionSave_Lyrics_As->setDisabled(true);
 //        ui->actionPrint_Lyrics->setDisabled(true);
@@ -6697,191 +6694,6 @@ void MainWindow::microphoneStatusUpdate() {
     }
 }
 
-void MainWindow::writeSDData(const QByteArray &data)
-{
-    if (data != "") {
-        // console has data, send to sd
-        QString d = data;
-        d.replace("\r","\n");
-        if (d.at(d.length()-1) == '\n') {
-            sd->write(d.toUtf8());
-            sd->waitForBytesWritten();
-        } else {
-            sd->write(d.toUtf8());
-            sd->waitForBytesWritten();
-        }
-    }
-}
-
-void MainWindow::readSDData()
-{
-    // sd has data, send to console
-    QByteArray s = sd->readAll();
-
-    s = s.replace("\r\n","\n");  // This should be safe on all platforms, but is required for Win32
-
-    QString qs(s);
-
-    if (qs.contains("\a")) {
-        QApplication::beep();
-        qs = qs.replace("\a","");  // delete all BEL chars
-    }
-
-    uneditedData.append(qs);
-
-    // do deletes early
-    bool done = false;
-    while (!done) {
-        int beforeLength = uneditedData.length();
-        uneditedData.replace(QRegExp(".\b \b"),""); // if coming in as bulk text, delete one char
-        int afterLength = uneditedData.length();
-        done = (beforeLength == afterLength);
-    }
-
-    QString lastLayout1;
-    QString format2line;
-    QList<QString> lastFormatList;
-
-    QRegExp sequenceLine("^ *([0-9]+):(.*)");
-    QRegExp sectionStart("Sd 38.89");
-
-    QStringList currentSequence;
-    QString lastPrompt;
-
-    // TODO: deal with multiple resolve lines
-    QString errorLine;
-    QString resolveLine;
-    copyrightText = "";
-    bool grabResolve = false;
-
-    // scan the unedited lines for sectionStart, layout1/2, and sequence lines
-    QStringList lines = uneditedData.split("\n");
-    foreach (const QString &line, lines) {
-        if (grabResolve) {
-            resolveLine = line;  // grabs next line, then stops.
-            grabResolve = false;
-        } else if (line.contains("layout1:")) {
-            lastLayout1 = line;
-            lastLayout1 = lastLayout1.replace("layout1: ","").replace("\"","");
-            lastFormatList.clear();
-        } else if (line.contains("layout2:")) {
-            format2line = line;
-            format2line = format2line.replace("layout2: ","").replace("\"","");
-            lastFormatList.append(format2line);
-            errorLine = "";     // clear out possible error line
-            resolveLine = "";   // clear out possible resolve line
-        } else if (sequenceLine.indexIn(line) > -1) {
-            // line like "3: square thru"
-            int itemNumber = sequenceLine.cap(1).toInt();
-            QString call = sequenceLine.cap(2).trimmed();
-
-            if (call == "HEADS" || call == "SIDES") {
-                call += " start";
-            }
-
-            if (itemNumber-1 < currentSequence.length()) {
-                currentSequence.replace(itemNumber-1, call);
-            } else {
-                currentSequence.append(call);
-            }
-        } else if (line.contains(sectionStart)) {
-            currentSequence.clear();
-            editedData = "";  // sectionStart causes clear of editedData
-        } else if (line == "") {
-            // skip blank lines
-        } else if (line.contains("Enter startup command>") ||
-                   line.contains("Do you really want to abort it?") ||
-                   line.contains("Enter search command>") ||
-                   line.contains("Enter comment:") ||
-                   line.contains("Do you want to write it anyway?")) {
-            // PROMPTS
-            lastPrompt = errorLine + line;  // this is a bold idea.  treat this as the last prompt, too.
-        } else if (line.startsWith("SD --") || line.contains("Copyright") || line.contains("Gildea")) {
-            copyrightText += line + "\n";
-        } else if (line.contains("(no matches)")) {
-            // special case for this error message
-             errorLine = line + "\n";
-        } else if (line.contains("resolve is:")) {
-            // special case for this line
-            grabResolve = true;
-        } else if (line.contains("-->")) {
-            // suppress output, but record it
-            lastPrompt = errorLine + line;  // this is a bold idea.  show last error only.
-        } else {
-            editedData += line;  // no layout lines make it into here
-            editedData += "\n";  // no layout lines make it into here
-        }
-    }
-
-    editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
-
-    // echo is needed for entering the level and entering comments, but NOT wanted after that
-    if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
-        console->setLocalEchoEnabled(true);
-    } else {
-        console->setLocalEchoEnabled(false);
-    }
-
-    // capitalize all the words in each call
-    for (int i=0; i < currentSequence.length(); i++ ) {
-        QString current = currentSequence.at(i);
-        QStringList words = current.split(" ");
-        for (int j=0; j < words.length(); j++ ) {
-            QString current2 = words.at(j);
-            QString replacement2;
-            if (current2.length() >= 1 && current2.at(0) == '[') {
-                // left bracket case
-                replacement2 = "[" + QString(current2.at(1)).toUpper() + current2.mid(2).toLower();
-            } else {
-                // normal case
-                replacement2 = current2.left(1).toUpper() + current2.mid(1).toLower();
-            }
-            words.replace(j, replacement2);
-        }
-        QString replacement = words.join(" ");
-        currentSequence.replace(i, replacement);
-    }
-
-    if (resolveLine == "") {
-        currentSequenceWidget->setText(currentSequence.join("\n"));
-    } else {
-        currentSequenceWidget->setText(currentSequence.join("\n") + "\nresolve is: " + resolveLine);
-    }
-
-    // always scroll to make the last line visible, as we're adding lines
-    QScrollBar *sb = currentSequenceWidget->verticalScrollBar();
-    sb->setValue(sb->maximum());
-
-    console->clear();
-    console->putData(QByteArray(editedData.toLatin1()));
-
-    // look at unedited last line to see if there's a prompt
-    if (lines[lines.length()-1].contains("-->")) {
-        QString formation;
-        QRegExp r1( "[(](.*)[)]-->" );
-        int pos = r1.indexIn( lines[lines.length()-1] );
-        if ( pos > -1 ) {
-            formation = r1.cap( 1 ); // "waves"
-        }
-        renderArea->setFormation(formation);
-    }
-
-    if (lastPrompt.contains("Enter startup command>")) {
-        renderArea->setLayout1("");
-        renderArea->setLayout2(QStringList());      // show squared up dancers
-        renderArea->setFormation("Squared set");    // starting formation
-        if (!copyrightShown) {
-            currentSequenceWidget->setText(copyrightText + "\nSquared set\n\nTry: 'Heads start'");    // clear out current sequence
-            copyrightShown = true;
-        } else {
-            currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
-        }
-    } else {
-        renderArea->setLayout1(lastLayout1);
-        renderArea->setLayout2(lastFormatList);
-    }
-
-}
 
 void MainWindow::readPSStdErr()
 {
@@ -7059,124 +6871,13 @@ void MainWindow::readPSData()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (s2 == "square the set\n" || s2 == "square your set\n") {
-#if SD_USE_NEW_INTEGRATION
         emit sdthread->on_user_input("abort this sequence");
         emit sdthread->on_user_input("y");
-        
-#else
-#if defined(Q_OS_MAC)
-        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
-#endif
-        sd->waitForBytesWritten();
-
-        console->clear();
-
-        sd->write("abort this sequence\n");
-        sd->waitForBytesWritten();
-
-        sd->write("y\n");
-        sd->waitForBytesWritten();
-#endif /* #if SD_USE_NEW_INTEGRATION */
-    } else if (s2 == "undo last call\n") {
-#if SD_USE_NEW_INTEGRATION
-        emit sdthread->on_user_input("undo last call");
-#else
-        // TODO: put more synonyms of this in...
-#if defined(Q_OS_MAC)
-        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
-#endif
-        sd->waitForBytesWritten();
-
-        sd->write("undo last call\n");  // back up one call
-        sd->waitForBytesWritten();
-
-        sd->write("refresh display\n");  // refresh
-        sd->waitForBytesWritten();
-#endif /* #if SD_USE_NEW_INTEGRATION */
-
     } else if (s2 == "erase\n" || s2 == "erase that\n") {
-        // TODO: put more synonyms in, e.g. "cancel that"
-#if defined(Q_OS_MAC)
-        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
-#endif
-        sd->waitForBytesWritten();
+        ui->lineEditSDInput->clear();
     } else if (s2 != "\n") {
-#if SD_USE_NEW_INTEGRATION
         emit sdthread->on_user_input(s2);
-#else
-        sd->write(s2.toLatin1());
-        sd->waitForBytesWritten();
-#endif
     }
-}
-
-void MainWindow::showContextMenu(const QPoint &pt)
-{
-    QMenu *menu = currentSequenceWidget->createStandardContextMenu();
-    menu->exec(currentSequenceWidget->mapToGlobal(pt));
-    delete menu;
-}
-
-void MainWindow::restartSDprocess(QString SDdanceLevel) {
-
-    if (sd) {
-        sd->kill();  // kill the current one, if there's already one running
-    }
-
-    currentSDKeyboardLevel = SDdanceLevel;  // remember it for the status message
-
-#if defined(Q_OS_MAC)
-    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#else
-    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#endif
-
-    // start sd as a process -----
-    QStringList SDargs;
-//    SDargs << "-help";  // this is an excellent place to start!
-//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
-      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
-           << "-lines" << "1000"
-           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
-           << SDdanceLevel;                                       // default level for sd
-    sd = new QProcess(Q_NULLPTR);
-
-    // Let's make an "sd" directory in the Music Directory
-    //  This will be used for storing sequences (until we move that into SQLite).
-    PreferencesManager prefsManager;
-    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
-
-    // if the sequences directory doesn't exist, create it
-    QDir dir(sequencesDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-
-    sd->setWorkingDirectory(sequencesDir);
-    sd->setProcessChannelMode(QProcess::MergedChannels);
-    sd->start(pathToSD, SDargs);
-
-    if (sd->waitForStarted() == false) {
-        qDebug() << "ERROR: sd did not start properly.";
-    } else {
-//        qDebug() << "sd started.";
-    }
-
-    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData, Qt::UniqueConnection);  // output data from sd (and don't make duplicate connections)
-    connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
 }
 
 void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
@@ -7195,30 +6896,6 @@ void MainWindow::initSDtab() {
 #ifndef POCKETSPHINXSUPPORT
     ui->actionEnable_voice_input->setEnabled(false);  // if no PS support, grey out the menu item
 #endif
-
-    renderArea = new RenderArea;
-    renderArea->setPen(QPen(Qt::blue));
-    renderArea->setBrush(QBrush(Qt::green));
-
-    console = new Console;
-    console->setEnabled(true);
-    console->setLocalEchoEnabled(true);
-    console->setFixedHeight(100);
-
-    currentSequenceWidget = new QTextEdit();
-    currentSequenceWidget->setStyleSheet("QLabel { background-color : white; color : black; }");
-    currentSequenceWidget->setAlignment(Qt::AlignTop);
-    currentSequenceWidget->setReadOnly(true);
-    currentSequenceWidget->setFocusPolicy(Qt::NoFocus);  // do not allow this widget to get focus (console always has it)
-
-    // allow for cut/paste from the sequence window using Right-click
-    currentSequenceWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(currentSequenceWidget,SIGNAL(customContextMenuRequested(const QPoint&)),
-            this,SLOT(showContextMenu(const QPoint &)));
-
-    ui->seqGridLayout->addWidget(currentSequenceWidget,0,0,1,1);
-    ui->seqGridLayout->addWidget(console, 1,0,1,2);
-    ui->seqGridLayout->addWidget(renderArea, 0,1);
 
 //    console->setFixedHeight(150);
 
@@ -7289,9 +6966,6 @@ void MainWindow::initSDtab() {
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 
-    restartSDprocess("plus"); // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-
-    highlighter = new Highlighter(console->document());
 
 }
 
@@ -7411,7 +7085,6 @@ void MainWindow::sdAction2Triggered(QAction * action) {
 //    qDebug() << "***** sdAction2Triggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     currentSDKeyboardLevel = action->text().toLower();   // convert to all lower case for SD
-    restartSDprocess(currentSDKeyboardLevel);  // convert to all lower case for sd restart
     microphoneStatusUpdate();  // update status message, based on new keyboard SD level
 }
 
@@ -7916,8 +7589,6 @@ void MainWindow::adjustFontSizes()
     ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
     ui->currentMixLabel->setFixedWidth(newCurrentWidth);
 
-    currentSequenceWidget->setFont(currentFont); // In the SD tab, follow the user-selected font size
-
     ui->statusBar->setFont(currentFont);
 
     ui->currentLocLabel->setFont(currentFont);
@@ -8330,8 +8001,23 @@ void MainWindow::on_actionFilePrint_triggered()
             return;
         }
 
-        currentSequenceWidget->print(&printer);
-
+        QTextDocument doc;
+        QSizeF paperSize;
+        paperSize.setWidth(printer.width());
+        paperSize.setHeight(printer.height());
+        doc.setPageSize(paperSize);
+                           
+        QString contents("<html><head><title>Square Dance Sequence</title>\n"
+                         "<body><h1>Square Dance Sequence</h1>\n");
+        for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
+             ++row)
+        {
+            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+            contents += item->text() + "<br>\n";
+        }
+        contents += "</body></html>\n";
+        doc.setHtml(contents);
+        doc.print(&printer);
     } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         QPrinter printer;
         QPrintDialog printDialog(&printer, this);
@@ -8472,7 +8158,12 @@ void MainWindow::saveSequenceAs()
         if ( file.open(QIODevice::WriteOnly) )
         {
             QTextStream stream( &file );
-            stream << currentSequenceWidget->toPlainText();
+            for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
+                 ++row)
+            {
+                QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+                stream << item->text() + "\n";
+            }
             stream.flush();
             file.close();
         }

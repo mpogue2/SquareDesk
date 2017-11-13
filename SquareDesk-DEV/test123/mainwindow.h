@@ -110,7 +110,6 @@ public:
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
-#define SD_USE_NEW_INTEGRATION 1
 namespace Ui
 {
 class MainWindow;
@@ -127,9 +126,6 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
-
-    Console *console;                   // these are public so that eventFilter can browse them
-    QTextEdit *currentSequenceWidget;
 
     PreferencesDialog *prefDialog;
     QActionGroup *sessionActionGroup;
@@ -266,8 +262,6 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
-    void writeSDData(const QByteArray &data);
-    void readSDData();
     void readPSData();
     void readPSStdErr();
     void pocketSphinx_errorOccurred(QProcess::ProcessError error);
@@ -322,8 +316,6 @@ private slots:
 
     void changeApplicationState(Qt::ApplicationState state);
     void focusChanged(QWidget *old, QWidget *now);
-
-    void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
 
     void lyricsDownloadEnd();
     void makeProgress();
@@ -575,7 +567,6 @@ private:
     QStringList flashCalls;
 
     // --------------
-    void restartSDprocess(QString SDdanceLevel);
     void initSDtab();
 
     QString currentSDVUILevel;
