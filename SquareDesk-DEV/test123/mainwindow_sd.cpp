@@ -219,6 +219,7 @@ static void draw_scene(const QStringList &sdformation,
 
 void MainWindow::initialize_internal_sd_tab()
 {
+    sdLastLineWasResolve = false;
     static QAction *danceProgramActionsStatic[] = {
         ui->actionSDDanceProgramMainstream,
         ui->actionSDDanceProgramPlus,
@@ -316,7 +317,7 @@ void MainWindow::initialize_internal_sd_tab()
     tableHeader << "call" << "result";
     ui->tableWidgetCurrentSequence->setHorizontalHeaderLabels(tableHeader);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
-    ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(true);
+    ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(false);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->tableWidgetCurrentSequence->setColumnWidth(1, currentSequenceIconSize + 8);
     QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
@@ -378,6 +379,19 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         str = str.trimmed();
         if (str.isEmpty())
             return;
+        if (sdLastLineWasResolve)
+        {
+            ui->label_SD_Resolve->setText(str);
+            sdLastLineWasResolve = false;
+        }
+        if (str.startsWith("resolve is:"))
+        {
+            sdLastLineWasResolve = true;
+        }
+    }
+    else
+    {
+        ui->label_SD_Resolve->setText("");
     }
 
     if (str.startsWith("Output file is \""))

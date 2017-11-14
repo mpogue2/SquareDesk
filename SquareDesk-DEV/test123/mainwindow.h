@@ -657,6 +657,7 @@ private: // SD
     QGraphicsScene sdscene;
     int sdLastLine;
     bool sdWasNotDrawingPicture;
+    bool sdLastLineWasResolve;
     QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
     QAction **danceProgramActions;

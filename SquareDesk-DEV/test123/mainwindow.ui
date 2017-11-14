@@ -1506,6 +1506,13 @@
                 </property>
                </widget>
               </item>
+              <item>
+               <widget class="QLabel" name="label_SD_Resolve">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
             <widget class="QWidget" name="tabWidget_2Page2">
