@@ -896,22 +896,21 @@ void SDThread::unlock()
 
 QString sd_strip_leading_selectors(QString originalText)
 {
+    QStringList selectors;
     for (size_t i = 0; selector_list[i].name; ++i)
     {
-        QString name(selector_list[i].name);
-        QString sing_name(selector_list[i].sing_name);
-//        qWarning() << "Checking '" << originalText << "' for '" << name << "' or '" << sing_name << "'";
+        selectors.append(selector_list[i].name);
+        selectors.append(selector_list[i].sing_name);
+    }
+    selectors.append("left");
+    selectors.append("reverse");
+    
+    for (QString name : selectors)
+    {
         if (originalText.startsWith(name, Qt::CaseInsensitive))
         {
             originalText.remove(0, name.length());
             originalText = originalText.simplified();
-//            qWarning() << "Trimming " << name << " to " << originalText;
-        }
-        if (originalText.startsWith(sing_name, Qt::CaseInsensitive))
-        {
-            originalText.remove(0, sing_name.length());
-            originalText = originalText.simplified();
-            qWarning() << "Trimming " << sing_name << " to " << originalText;
         }
     }
     return originalText;
