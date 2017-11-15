@@ -366,6 +366,21 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updateRecentPlaylistMenu();
 
+    // ---------------------------------------
+    // let's watch for changes in the musicDir
+    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    QRegExp ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
+    while (it.hasNext()) {
+        QString aPath = it.next();
+        if (ignoreTheseDirs.indexIn(aPath) == -1) {
+            musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
+        }
+    }
+
+    musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
+    QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+    // ---------------------------------------
+
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // initial Guest Mode stuff works on Mac OS and WIN32 only
     //   should be straightforward to extend to Linux.
@@ -429,6 +444,7 @@ MainWindow::MainWindow(QWidget *parent) :
         NULL
     };
     sessionActions = new QAction*[sizeof(localSessionActions) / sizeof(*localSessionActions)];
+
     for (size_t i = 0;
          i < sizeof(localSessionActions) / sizeof(*localSessionActions);
          ++i)
@@ -441,10 +457,12 @@ MainWindow::MainWindow(QWidget *parent) :
         0 : songSettings.currentDayOfWeek();
     sessionActions[sessionActionIndex]->setChecked(true);
 
-on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+    on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
     // used to store the file paths
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
     loadMusicList(); // and filter them into the songTable
+
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     ui->listWidgetChoreographySequences->setStyleSheet(
          "QListWidget::item { border-bottom: 1px solid black; }" );
@@ -654,7 +672,7 @@ on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
     sessionActionGroup->addAction(ui->actionFriday);
     sessionActionGroup->addAction(ui->actionSaturday);
     sessionActionGroup->addAction(ui->actionSunday);
-            
+
     // -----------------------
     // Make SD menu items for checker style mutually exclusive
     QList<QAction*> actions = ui->menuSequence->actions();
@@ -824,6 +842,15 @@ on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
     sdthread = new SDThread(this);
     sdthread->start();
     sdthread->unlock();
+}
+
+void MainWindow::musicRootModified(QString s)
+{
+    Q_UNUSED(s)
+    // reload the musicTable.  Note that it will switch to default sort order.
+    //   TODO: At some point, this probably should save the sort order, and then restore it.
+    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+    loadMusicList(); // and filter them into the songTable
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)

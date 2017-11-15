@@ -1489,7 +1489,7 @@
           <item>
            <widget class="QTabWidget" name="tabWidget_2">
             <property name="currentIndex">
-             <number>0</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tabWidget_2Page1">
              <attribute name="title">
@@ -1503,13 +1503,6 @@
                 </property>
                 <property name="selectionMode">
                  <enum>QAbstractItemView::ContiguousSelection</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_SD_Resolve">
-                <property name="text">
-                 <string/>
                 </property>
                </widget>
               </item>
@@ -1535,6 +1528,13 @@
                   <string>Result</string>
                  </property>
                 </column>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_SD_Resolve">
+                <property name="text">
+                 <string/>
+                </property>
                </widget>
               </item>
              </layout>
