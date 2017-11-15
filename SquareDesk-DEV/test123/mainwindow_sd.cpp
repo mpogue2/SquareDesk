@@ -469,7 +469,7 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
 }
 
 
-void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QListWidgetItem *item)
+void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item)
 {
     QVariant v = item->data(Qt::UserRole);
     if (!v.isNull())
@@ -503,6 +503,7 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,0);
     qDebug() << "Setting row " << row << " to formation " << formation;
     textItem->setData(Qt::UserRole, QVariant(formation));
+    ui->tableWidgetCurrentSequence->setItem(row, 0, textItem);    
 }
 
 void MainWindow::set_current_sequence_icons_visible(bool visible)
