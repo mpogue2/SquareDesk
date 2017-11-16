@@ -566,7 +566,10 @@ void MainWindow::do_sd_tab_completion()
 
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
-        if (ui->listWidgetSDOptions->item(i)->text().startsWith(callSearch, Qt::CaseInsensitive)
+        if ((ui->listWidgetSDOptions->item(i)->text().startsWith(callSearch,
+                                                                 Qt::CaseInsensitive)
+             || ui->listWidgetSDOptions->item(i)->text().startsWith(originalText,
+                                                                    Qt::CaseInsensitive))
             && !ui->listWidgetSDOptions->isRowHidden(i))
         {
             if (longestMatch.isEmpty())
@@ -610,14 +613,15 @@ void MainWindow::on_lineEditSDInput_textChanged()
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
 
-    QString s = ui->lineEditSDInput->text();
-    if (s.length() > 0 &&
-        (s[s.length() - 1] == '!' || s[s.length() - 1] == '?'))
+    QString currentText = ui->lineEditSDInput->text().simplified();
+    if (currentText.length() > 0 &&
+        (currentText[currentText.length() - 1] == '!' ||
+         currentText[currentText.length() - 1] == '?'))
     {
         on_lineEditSDInput_returnPressed();
         return;
     }
-    s = sd_strip_leading_selectors(s);
+    QString strippedText = sd_strip_leading_selectors(currentText);
 
     int current_dance_program = INT_MAX;
 
@@ -668,7 +672,8 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
-        bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(s, Qt::CaseInsensitive);
+        bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(currentText, Qt::CaseInsensitive) ||
+            ui->listWidgetSDOptions->item(i)->text().startsWith(strippedText, Qt::CaseInsensitive);
         if (show)
         {
             QVariant v = ui->listWidgetSDOptions->item(i)->data(Qt::UserRole);

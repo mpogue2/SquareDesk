@@ -8,6 +8,9 @@
 
 
 
+static QStringList selectors;
+
+
 class SquareDesk_iofull : public iobase {
 public:
     SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
@@ -118,8 +121,6 @@ void SquareDesk_iofull::add_string_input(const char *s)
     // variable wait, because that's when the mutex is unlocked.
     
     QMutexLocker locker(mutexMessageLoop);
-    qWarning() << "Add string input (" << currentInputState << "): " << s;
-
 
     switch (currentInputState)
     {
@@ -152,7 +153,6 @@ void SquareDesk_iofull::add_string_input(const char *s)
         }
             
 
-        qWarning() << "Matching: " << s;
         matcher.copy_to_user_input(s);
         int matches = matcher.match_user_input(nLastOne, false, false, false);
 
@@ -173,6 +173,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
         else
         {
             add_new_line("  (no matches)");
+#if 0            
             qWarning() << "No Match: " << s;
             qWarning() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
             qWarning() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
@@ -182,6 +183,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
             qWarning() << "  ui_call_select: " << ui_call_select;
             qWarning() << "  matcher.m_final_result.match.kind: " << matcher.m_final_result.match.kind;
             qWarning() << "  ui_concept_select: " << ui_concept_select;
+#endif
         }
     }
 
@@ -454,7 +456,6 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
                                                  Cstring /* seed */, char *dest)
 {
     QString prompt;
-    qWarning() << "SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,";
     if (prompt1 && prompt1[0] && prompt1[0] == '*')
     {
         prompt = QString(prompt1 + 1);
@@ -481,9 +482,7 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
     
     currentInputState = SDThread::InputStateText;
     emit sdthread->on_sd_awaiting_input();
-    qWarning() << "get_popup_string waiting on input";
     waitCondition->wait(mutexMessageLoop);
-    qWarning() << "get_popup_string got input " << currentInputText;
 
     if (currentInputState != SDThread::InputStateText)
     {
@@ -530,7 +529,6 @@ void SquareDesk_iofull::create_menu(call_list_kind /* cl */)
 
 selector_kind SquareDesk_iofull::do_selector_popup(matcher_class &/* matcher */)
 {
-    qWarning() << "SquareDesk_iofull::do_selector_popup(matcher_class &matcher);";
     matcher_class &matcher = *gg77->matcher_p;
     match_result saved_match = matcher.m_final_result;
    // We add 1 to the menu position to get the actual selector enum; the enum effectively starts at 1.
@@ -585,9 +583,7 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line(QString(title) + "\n" +  prompt);
     emit sdthread->on_sd_awaiting_input();
-    qWarning() << "yesnoconform awaiting input " << currentInputYesNo;
     waitCondition->wait(mutexMessageLoop);
-    qWarning() << "yesnoconform got input " << currentInputYesNo;
 
     if (currentInputState != SDThread::InputStateYesNo)
     {
@@ -600,7 +596,6 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
 
 void SquareDesk_iofull::set_pick_string(Cstring string)
 {
-    qWarning() << "SquareDesk_iofull::set_pick_string(Cstring string);";
     emit sdthread->on_sd_set_pick_string(QString(string));
 }
 
@@ -618,9 +613,7 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
     add_new_line("How many? (Type a number between 0 and 36):");
     currentInputState = SDThread::InputStateText;
     emit sdthread->on_sd_awaiting_input();
-    qWarning() << "get_popup_string waiting on input";
     waitCondition->wait(mutexMessageLoop);
-    qWarning() << "get_popup_string got input " << currentInputText;
 
     if (currentInputState != SDThread::InputStateText)
     {
@@ -639,7 +632,6 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
 
 uims_reply_thing SquareDesk_iofull::get_call_command()
 {
-    qWarning() << "SquareDesk_iofull::get_call_command();";
     matcher_class &matcher = *gg77->matcher_p;
 startover:
     if (allowing_modifications)
@@ -688,14 +680,12 @@ startover:
 
 void SquareDesk_iofull::dispose_of_abbreviation(const char *linebuff)
 {
-    qWarning() << "SquareDesk_iofull::dispose_of_abbreviation(const char *linebuff);";
     emit sdthread->on_sd_dispose_of_abbreviation(QString(linebuff));
     WaitingForCommand = false;
 }
 
 void SquareDesk_iofull::display_help()
 {
-    qWarning() << "SquareDesk_iofull::display_help();";
 }
 
 void SquareDesk_iofull::terminate(int code)
@@ -827,6 +817,62 @@ SDThread::SDThread(MainWindow *mw)
       eventLoopMutex(),
       abort(false)
 {
+    // We should expand these elsewhere for autocomplete stuff
+    
+    // Build our leading selector list, static to this file:
+    for (size_t i = 0; selector_list[i].name; ++i)
+    {
+        selectors.append(selector_list[i].name);
+        selectors.append(selector_list[i].sing_name);
+    }
+    // These are in mkcalls.cpp so we don't have a way to extract this list separately
+    // altdeftabh
+    selectors.append("diamond");
+    selectors.append("reverse");
+    selectors.append("left");
+    selectors.append("funny");
+    selectors.append("interlocked");
+    selectors.append("magic");
+    selectors.append("grand");
+    selectors.append("12matrix");
+    selectors.append("16matrix");
+    selectors.append("cross");
+    selectors.append("single");
+    selectors.append("singlefile");
+    selectors.append("half");
+    selectors.append("rewind");
+    selectors.append("straight");
+    selectors.append("twisted");
+    selectors.append("lasthalf");
+    selectors.append("fractal");
+    selectors.append("fast");
+
+    // const char *yoyotabplain[] = {
+    selectors.append("yoyo");
+    selectors.append("generous");
+    selectors.append("stingy");
+    // const char *mxntabplain[] = {
+    selectors.append("1x2");
+    selectors.append("2x1");
+    selectors.append("1x3");
+    selectors.append("3x1");
+    selectors.append("0x3");
+    selectors.append("3x0");
+    selectors.append("0x4");
+    selectors.append("4x0");
+    selectors.append("6x2");
+    selectors.append("3x2");
+
+    // const char *reverttabplain[] = {
+    selectors.append("revert");
+    selectors.append("reflect");
+    selectors.append("revertreflect");
+    selectors.append("reflectrevert");
+    selectors.append("revertreflectrevert");
+    selectors.append("reflectrevertreflect");
+    selectors.append("reflectreflect");
+    
+    
     // this will cause the thread startup to block until this
     // unlocked, which happens through SDThread::unlock() at the end
     // of the MainWindow constructor.
@@ -896,15 +942,8 @@ void SDThread::unlock()
 
 QString sd_strip_leading_selectors(QString originalText)
 {
-    QStringList selectors;
-    for (size_t i = 0; selector_list[i].name; ++i)
-    {
-        selectors.append(selector_list[i].name);
-        selectors.append(selector_list[i].sing_name);
-    }
-    selectors.append("left");
-    selectors.append("reverse");
-    
+
+
     for (QString name : selectors)
     {
         if (originalText.startsWith(name, Qt::CaseInsensitive))

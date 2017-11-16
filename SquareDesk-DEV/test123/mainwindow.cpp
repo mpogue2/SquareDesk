@@ -5834,7 +5834,6 @@ int MainWindow::getInputVolume()
 
 void MainWindow::setInputVolume(int newVolume)
 {
-    qInfo() << "Set input volume to " << newVolume;
 #if defined(Q_OS_MAC)
     if (newVolume != -1) {
         QProcess getVolumeProcess;
@@ -6730,7 +6729,6 @@ void MainWindow::readPSStdErr()
 
 void MainWindow::readPSData()
 {
-    qInfo() << "PocketSphinx: readPSData";
     // ASR --------------------------------------------
     // pocketsphinx has a valid string, send it to sd
     QByteArray s = ps->readAllStandardOutput();
@@ -6909,11 +6907,10 @@ void MainWindow::readPSData()
 
 void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
 {
-    qInfo() << "pocketSphinx_errorOccurred " << error;
+    Q_UNUSED(error);
 }
 void MainWindow::pocketSphinx_started()
 {
-    qInfo() << "pocketSphinx_started";
 }
 
 
@@ -6973,7 +6970,6 @@ void MainWindow::initSDtab() {
     ps = new QProcess(Q_NULLPTR);
 
     ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
-    qInfo() << "Starting " << pathToPS << " with " << PSargs;
 //    ps->setProcessChannelMode(QProcess::MergedChannels);
 //    ps->setReadChannel(QProcess::StandardOutput);
     connect(ps, SIGNAL(readyReadStandardOutput()),
@@ -6987,8 +6983,7 @@ void MainWindow::initSDtab() {
     ps->start(pathToPS, PSargs);
 
     bool startedStatus = ps->waitForStarted();
-    qInfo() << "Started status: " << startedStatus;
-
+    Q_UNUSED(startedStatus);
 
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
