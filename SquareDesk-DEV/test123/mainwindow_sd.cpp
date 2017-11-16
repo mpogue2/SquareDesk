@@ -503,7 +503,6 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,0);
     qDebug() << "Setting row " << row << " to formation " << formation;
     textItem->setData(Qt::UserRole, QVariant(formation));
-    ui->tableWidgetCurrentSequence->setItem(row, 0, textItem);    
 }
 
 void MainWindow::set_current_sequence_icons_visible(bool visible)
@@ -816,10 +815,10 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 }
 
 
-// actionNormal
-// actionColor_only
-// actionMental_image
-// actionSight
+void MainWindow::undo_last_sd_action()
+{
+    emit sdthread->on_user_input("undo last call");
+}
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
@@ -868,6 +867,9 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     QAction action1("Copy", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
     contextMenu.addAction(&action1);
+    QAction action2("Undo", this);
+    connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
+    contextMenu.addAction(&action2);
     contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
 }
 
@@ -879,5 +881,8 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
     QAction action1("Copy", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_listWidgetSDOutput()));
     contextMenu.addAction(&action1);
+    QAction action2("Undo", this);
+    connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
+    contextMenu.addAction(&action2);
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }
