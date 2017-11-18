@@ -2584,8 +2584,8 @@ void MainWindow::actionNextTab()
     int currentTab = ui->tabWidget->currentIndex();
     if (currentTab == 0) {
         // if Music tab active, go to Lyrics tab
-        ui->tabWidget->setCurrentIndex(1);
-    } else if (currentTab == 1) {
+        ui->tabWidget->setCurrentIndex(lyricsTabNumber);
+    } else if (currentTab == lyricsTabNumber) {
         // if Lyrics tab active, go to Music tab
         ui->tabWidget->setCurrentIndex(0);
     } else {
