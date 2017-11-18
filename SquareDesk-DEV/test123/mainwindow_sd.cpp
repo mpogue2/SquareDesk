@@ -379,6 +379,10 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         str = str.trimmed();
         if (str.isEmpty())
             return;
+        if (str == "(no matches)")
+        {
+            ui->label_SD_Resolve->setText(str);
+        }
         if (sdLastLineWasResolve)
         {
             ui->label_SD_Resolve->setText(str);
@@ -708,7 +712,6 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 //    }
     on_lineEditSDInput_textChanged();
 }
-
 
 void MainWindow::on_actionSDDanceProgramMainstream_triggered()
 {
