@@ -310,25 +310,28 @@ KeyAction::KeyAction()
 QVector<KeyAction*> KeyAction::availableActions()
 {
     QVector<KeyAction*> actions;
-    
+
 //    actions.append(&keyaction_KeyActionUnassignedNoAction);
-    actions.append(&keyaction_KeyActionStopSong);
     actions.append(&keyaction_KeyActionPlaySong);
+    actions.append(&keyaction_KeyActionStopSong);
     actions.append(&keyaction_KeyActionRestartSong);
     actions.append(&keyaction_KeyActionForward15Seconds);
     actions.append(&keyaction_KeyActionBackward15Seconds);
-    actions.append(&keyaction_KeyActionVolumeMinus);
-    actions.append(&keyaction_KeyActionVolumePlus);
+    actions.append(&keyaction_KeyActionPlayNext);
+    actions.append(&keyaction_KeyActionLoopToggle);
+
     actions.append(&keyaction_KeyActionTempoPlus);
     actions.append(&keyaction_KeyActionTempoMinus);
-    actions.append(&keyaction_KeyActionPlayNext);
-    actions.append(&keyaction_KeyActionMute);
     actions.append(&keyaction_KeyActionPitchPlus);
     actions.append(&keyaction_KeyActionPitchMinus);
+
+    actions.append(&keyaction_KeyActionVolumePlus);
+    actions.append(&keyaction_KeyActionVolumeMinus);
+    actions.append(&keyaction_KeyActionMute);
     actions.append(&keyaction_KeyActionFadeOut );
-    actions.append(&keyaction_KeyActionLoopToggle);
+
     actions.append(&keyaction_KeyActionNextTab);
-    
+
     return actions;
 }
 
@@ -392,7 +395,7 @@ QHash<QString, KeyAction*> KeyAction::actionNameToActionMappings()
 QHash<Qt::Key, KeyAction *> KeyAction::defaultKeyToActionMappings()
 {
     QHash<Qt::Key, KeyAction *> keyMappings;
-    
+
     keyMappings[Qt::Key_End] = &keyaction_KeyActionStopSong;
     keyMappings[Qt::Key_Space] = &keyaction_KeyActionPlaySong;
     keyMappings[Qt::Key_Home] = &keyaction_KeyActionRestartSong;
