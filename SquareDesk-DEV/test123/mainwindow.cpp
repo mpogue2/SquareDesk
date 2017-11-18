@@ -108,10 +108,6 @@ using namespace std;
 
 #include "typetracker.h"
 
-//#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-#define POCKETSPHINXSUPPORT 1
-//#endif
-
 using namespace TagLib;
 
 // =================================================================================================
@@ -494,13 +490,8 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
 
 // voice input is only available on MAC OS X and Win32 right now...
-#ifdef POCKETSPHINXSUPPORT
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
-#else
-    on_actionEnable_voice_input_toggled(false);
-    voiceInputEnabled = false;
-#endif
 
     on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
     autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
@@ -779,7 +770,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
-    initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
     initialize_internal_sd_tab();
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
@@ -1482,11 +1472,9 @@ MainWindow::~MainWindow()
     {
         sdthread->finishAndShutdownSD();
     }
-#if defined(POCKETSPHINXSUPPORT)
     if (ps) {
         ps->kill();
     }
-#endif
 
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
@@ -6634,6 +6622,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
         // SD Tab ---------------
+        
         ui->lineEditSDInput->setFocus();
 //        ui->actionSave_Lyrics->setDisabled(true);
 //        ui->actionSave_Lyrics_As->setDisabled(true);
@@ -6694,18 +6683,27 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 }
 
 void MainWindow::microphoneStatusUpdate() {
+    bool killVoiceInput(true);
+    
     int index = ui->tabWidget->currentIndex();
 
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
-        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
+        if (voiceInputEnabled &&
+            currentApplicationState == Qt::ApplicationActive) {
+            if (!ps)
+                initSDtab();
+        }
+        if (voiceInputEnabled && ps &&
+            currentApplicationState == Qt::ApplicationActive) {
+
+
             ui->statusBar->setStyleSheet("color: red");
             ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
-            unmuteInputVolume();
+            killVoiceInput = false;
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
-            muteInputVolume();                      // disable all input from the mics
         }
     } else {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
@@ -6717,6 +6715,12 @@ void MainWindow::microphoneStatusUpdate() {
             ui->statusBar->showMessage("Microphone disabled");
             muteInputVolume();                      // disable all input from the mics
         }
+    }
+    if (killVoiceInput && ps)
+    {
+        ps->kill();
+        delete ps;
+        ps = NULL;
     }
 }
 
@@ -6916,11 +6920,6 @@ void MainWindow::pocketSphinx_started()
 
 
 void MainWindow::initSDtab() {
-
-#ifndef POCKETSPHINXSUPPORT
-    ui->actionEnable_voice_input->setEnabled(false);  // if no PS support, grey out the menu item
-#endif
-
 //    console->setFixedHeight(150);
 
     // POCKET_SPHINX -------------------------------------------
@@ -6983,7 +6982,11 @@ void MainWindow::initSDtab() {
     ps->start(pathToPS, PSargs);
 
     bool startedStatus = ps->waitForStarted();
-    Q_UNUSED(startedStatus);
+    if (!startedStatus)
+    {
+        delete ps;
+        ps = NULL;
+    }
 
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
