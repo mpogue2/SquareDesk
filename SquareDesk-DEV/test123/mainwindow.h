@@ -114,6 +114,9 @@ public:
     QActionGroup *sdActionGroup1;
     QActionGroup *sdActionGroup2;
 
+    void checkLockFile();
+    void clearLockFile();
+
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);

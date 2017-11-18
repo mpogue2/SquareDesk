@@ -28,6 +28,7 @@
 #include <QCoreApplication>
 #include <QDesktopWidget>
 #include <QElapsedTimer>
+#include <QHostInfo>
 #include <QMap>
 #include <QMapIterator>
 #include <QMenu>
@@ -208,6 +209,8 @@ MainWindow::MainWindow(QWidget *parent) :
     totalZoom(0),
     hotkeyMappings(KeyAction::defaultKeyToActionMappings())
 {
+    checkLockFile(); // warn, if some other copy of SquareDesk has database open
+
     linesInCurrentPlaylist = 0;
 
     loadedCuesheetNameWithPath = "";
@@ -1482,6 +1485,8 @@ MainWindow::~MainWindow()
     }
 
     delete[] sessionActions;
+
+    clearLockFile(); // release the lock that we took (other locks were thrown away)
 }
 
 // ----------------------------------------------------------------------
@@ -4115,6 +4120,68 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 } // if
             } // if
         } // else
+    }
+}
+
+void MainWindow::checkLockFile() {
+//    qDebug() << "checkLockFile()";
+
+    PreferencesManager prefsManager;
+    QString musicRootPath = prefsManager.GetmusicPath();
+
+    QString databaseDir(musicRootPath + "/.squaredesk");
+
+    QFileInfo checkFile(databaseDir + "/lock.txt");
+    if (checkFile.exists()) {
+
+        // get the hostname of who is using it
+        QFile file(databaseDir + "/lock.txt");
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QTextStream lockfile(&file);
+        QString hostname = lockfile.readLine();
+        file.close();
+
+        QString myHostName = QHostInfo::localHostName();
+
+        if (hostname != myHostName) {
+            // probably another instance of SquareDesk somewhere
+            QMessageBox msgBox(QMessageBox::Warning,
+                               "TITLE",
+                               QString("The SquareDesk database is already being used by '") + hostname + QString("'.")
+                               );
+            msgBox.setInformativeText("If you continue, any changes might be lost.");
+            msgBox.addButton(tr("&Continue anyway"), QMessageBox::AcceptRole);
+            msgBox.addButton(tr("&Quit"), QMessageBox::RejectRole);
+            if (msgBox.exec() != QMessageBox::AcceptRole) {
+                exit(-1);
+            }
+        } else {
+            // probably a recent crash of SquareDesk on THIS device
+            // so we're already locked.  Just return, since we already have the lock.
+            return;
+        }
+    }
+
+    // Lock file does NOT exist yet: create a new lock file with our hostname inside
+    QFile file2(databaseDir + "/lock.txt");
+    file2.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream outfile(&file2);
+//    qDebug() << "localHostName: " << QHostInfo::localHostName();
+    outfile << QHostInfo::localHostName();
+    file2.close();
+}
+
+void MainWindow::clearLockFile() {
+//    qDebug() << "clearLockFile()";
+
+    PreferencesManager prefsManager;
+    QString musicRootPath = prefsManager.GetmusicPath();
+
+    QString databaseDir(musicRootPath + "/.squaredesk");
+    QFileInfo checkFile(databaseDir + "/lock.txt");
+    if (checkFile.exists()) {
+        QFile file(databaseDir + "/lock.txt");
+        file.remove();
     }
 }
 
