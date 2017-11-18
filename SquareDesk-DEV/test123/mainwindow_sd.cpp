@@ -70,10 +70,10 @@ static void draw_scene(const QStringList &sdformation,
     int coupleNumber = -1;
     int girl = 0;
     double max_y = (double)(sdformation.length());
-    qDebug() << "Formation: " << sdformation.length() << " " << max_y;
+//    qDebug() << "Formation: " << sdformation.length() << " " << max_y;
     for (int i = 0; i < sdformation.length(); ++i)
     {
-        qDebug() << "  " << i << ":" << sdformation[i];
+//        qDebug() << "  " << i << ":" << sdformation[i];
     }
 
 
@@ -189,7 +189,7 @@ static void draw_scene(const QStringList &sdformation,
             break;
         }
     }
-    qDebug() << "max_x " << max_x << " " << lowest_factor;
+//    qDebug() << "max_x " << max_x << " " << lowest_factor;
 
     max_x /= lowest_factor;
 
@@ -360,7 +360,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
         ui->listWidgetSDOutput->addItem(item);
     }
     if (!sdformation.empty() && sdLastLine >= 1)
-    { 
+    {
         int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
 
         render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
@@ -497,15 +497,15 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
     sdscene.render(&painter);
-        
+
     QTableWidgetItem *item = new QTableWidgetItem();
     item->setData(Qt::UserRole, formation);
     item->setData(Qt::DecorationRole,image);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
-    
+
     ui->tableWidgetCurrentSequence->setItem(row, 1, item);
     QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,0);
-    qDebug() << "Setting row " << row << " to formation " << formation;
+//    qDebug() << "Setting row " << row << " to formation " << formation;
     textItem->setData(Qt::UserRole, QVariant(formation));
 }
 

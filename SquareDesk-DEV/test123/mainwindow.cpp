@@ -204,7 +204,7 @@ MainWindow::MainWindow(QWidget *parent) :
     totalZoom(0),
     hotkeyMappings(KeyAction::defaultKeyToActionMappings()),
     sdLastLine(-1),
-    sdWasNotDrawingPicture(true)    
+    sdWasNotDrawingPicture(true)
 {
     linesInCurrentPlaylist = 0;
 
@@ -224,9 +224,9 @@ MainWindow::MainWindow(QWidget *parent) :
         hotkeyMappings = prefsHotkeyMappings;
     }
 
-    if (prefsManager.GetenableAutoMicsOff()) {
-        currentInputVolume = getInputVolume();  // save current volume
-    }
+//    if (prefsManager.GetenableAutoMicsOff()) {
+//        currentInputVolume = getInputVolume();  // save current volume
+//    }
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
@@ -827,6 +827,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
 
+    currentSDVUILevel      = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDKeyboardLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
     // Initializers for these should probably be up in the constructor
     sdthread = new SDThread(this);
@@ -1443,7 +1445,7 @@ void MainWindow::on_actionSunday_triggered(bool /* checked */)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    qDebug() << "Closing main window";
+//    qDebug() << "Closing main window";
     // Just before the app quits, save the current playlist state in "current.m3u", and it will be reloaded
     //   when the app starts up again.
     // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
@@ -1481,9 +1483,9 @@ MainWindow::~MainWindow()
         airplaneMode(false);
     }
 
-    if (prefsManager.GetenableAutoMicsOff()) {
-        unmuteInputVolume();  // if it was muted, it's now unmuted.
-    }
+//    if (prefsManager.GetenableAutoMicsOff()) {
+//        unmuteInputVolume();  // if it was muted, it's now unmuted.
+//    }
 
     delete[] sessionActions;
     delete[] danceProgramActions;
@@ -5102,9 +5104,9 @@ void MainWindow::on_actionPreferences_triggered()
             airplaneMode(false);
         }
 
-        if (prefsManager.GetenableAutoMicsOff()) {
-            microphoneStatusUpdate();
-        }
+//        if (prefsManager.GetenableAutoMicsOff()) {
+//            microphoneStatusUpdate();
+//        }
     }
 
     delete prefDialog;
@@ -5794,85 +5796,85 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 }
 
 // ---------------------------------------------------------
-int MainWindow::getInputVolume()
-{
-#if defined(Q_OS_MAC)
-    QProcess getVolumeProcess;
-    QStringList args;
-    args << "-e";
-    args << "set ivol to input volume of (get volume settings)";
+//int MainWindow::getInputVolume()
+//{
+//#if defined(Q_OS_MAC)
+//    QProcess getVolumeProcess;
+//    QStringList args;
+//    args << "-e";
+//    args << "set ivol to input volume of (get volume settings)";
 
-    getVolumeProcess.start("osascript", args);
-    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
-    QString output(getVolumeProcess.readAllStandardOutput());
+//    getVolumeProcess.start("osascript", args);
+//    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
+//    QString output(getVolumeProcess.readAllStandardOutput());
 
-    int vol = output.trimmed().toInt();
+//    int vol = output.trimmed().toInt();
 
-    return(vol);
-#endif
+//    return(vol);
+//#endif
 
-#if defined(Q_OS_WIN)
-    return(-1);
-#endif
+//#if defined(Q_OS_WIN)
+//    return(-1);
+//#endif
 
-#ifdef Q_OS_LINUX
-    return(-1);
-#endif
-}
+//#ifdef Q_OS_LINUX
+//    return(-1);
+//#endif
+//}
 
-void MainWindow::setInputVolume(int newVolume)
-{
-#if defined(Q_OS_MAC)
-    if (newVolume != -1) {
-        QProcess getVolumeProcess;
-        QStringList args;
-        args << "-e";
-        args << "set volume input volume " + QString::number(newVolume);
+//void MainWindow::setInputVolume(int newVolume)
+//{
+//#if defined(Q_OS_MAC)
+//    if (newVolume != -1) {
+//        QProcess getVolumeProcess;
+//        QStringList args;
+//        args << "-e";
+//        args << "set volume input volume " + QString::number(newVolume);
 
-        getVolumeProcess.start("osascript", args);
-        getVolumeProcess.waitForFinished();
-        QString output(getVolumeProcess.readAllStandardOutput());
-    }
-#else
-    Q_UNUSED(newVolume)
-#endif
+//        getVolumeProcess.start("osascript", args);
+//        getVolumeProcess.waitForFinished();
+//        QString output(getVolumeProcess.readAllStandardOutput());
+//    }
+//#else
+//    Q_UNUSED(newVolume)
+//#endif
 
-#if defined(Q_OS_WIN)
-#endif
+//#if defined(Q_OS_WIN)
+//#endif
 
-#ifdef Q_OS_LINUX
-#endif
-}
+//#ifdef Q_OS_LINUX
+//#endif
+//}
 
-void MainWindow::muteInputVolume()
-{
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-    if (!prefsManager.GetenableAutoMicsOff()) {
-        return;
-    }
+//void MainWindow::muteInputVolume()
+//{
+//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+//    if (!prefsManager.GetenableAutoMicsOff()) {
+//        return;
+//    }
 
-    int vol = getInputVolume();
-    if (vol > 0) {
-        // if not already muted, save the current volume (for later restore)
-        currentInputVolume = vol;
-        setInputVolume(0);
-    }
-}
+//    int vol = getInputVolume();
+//    if (vol > 0) {
+//        // if not already muted, save the current volume (for later restore)
+//        currentInputVolume = vol;
+//        setInputVolume(0);
+//    }
+//}
 
-void MainWindow::unmuteInputVolume()
-{
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-    if (!prefsManager.GetenableAutoMicsOff()) {
-        return;
-    }
+//void MainWindow::unmuteInputVolume()
+//{
+//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+//    if (!prefsManager.GetenableAutoMicsOff()) {
+//        return;
+//    }
 
-    int vol = getInputVolume();
-    if (vol > 0) {
-        // the user has changed it, so don't muck with it!
-    } else {
-        setInputVolume(currentInputVolume);     // restore input from the mics
-    }
-}
+//    int vol = getInputVolume();
+//    if (vol > 0) {
+//        // the user has changed it, so don't muck with it!
+//    } else {
+//        setInputVolume(currentInputVolume);     // restore input from the mics
+//    }
+//}
 
 // ----------------------------------------------------------------------
 int MainWindow::selectedSongRow() {
@@ -6622,7 +6624,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
         // SD Tab ---------------
-        
+
         ui->lineEditSDInput->setFocus();
 //        ui->actionSave_Lyrics->setDisabled(true);
 //        ui->actionSave_Lyrics_As->setDisabled(true);
@@ -6684,7 +6686,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 void MainWindow::microphoneStatusUpdate() {
     bool killVoiceInput(true);
-    
+
     int index = ui->tabWidget->currentIndex();
 
     if (ui->tabWidget->tabText(index) == "SD"
@@ -6699,6 +6701,7 @@ void MainWindow::microphoneStatusUpdate() {
 
 
             ui->statusBar->setStyleSheet("color: red");
+//            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             killVoiceInput = false;
         } else {
@@ -6709,11 +6712,11 @@ void MainWindow::microphoneStatusUpdate() {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
-            muteInputVolume();                      // disable all input from the mics
+//            muteInputVolume();                      // disable all input from the mics
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled");
-            muteInputVolume();                      // disable all input from the mics
+//            muteInputVolume();                      // disable all input from the mics
         }
     }
     if (killVoiceInput && ps)
@@ -6739,6 +6742,8 @@ void MainWindow::readPSData()
     QString str = QString::fromUtf8(s.data());
     if (str.startsWith("INFO: "))
         return;
+
+//    qDebug() << "PS str: " << str;
 
     int index = ui->tabWidget->currentIndex();
     if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
@@ -6930,8 +6935,6 @@ void MainWindow::initSDtab() {
     // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
     //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
     // TEST SD MANUALLY: ./sd
-    currentSDVUILevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-
     unsigned int whichModel = 5365;
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
@@ -6967,6 +6970,8 @@ void MainWindow::initSDtab() {
            << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
     ps = new QProcess(Q_NULLPTR);
+
+//    qDebug() << "PS start: " << pathToPS << PSargs;
 
     ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
 //    ps->setProcessChannelMode(QProcess::MergedChannels);
@@ -8031,7 +8036,7 @@ void MainWindow::on_actionFilePrint_triggered()
         paperSize.setWidth(printer.width());
         paperSize.setHeight(printer.height());
         doc.setPageSize(paperSize);
-                           
+
         QString contents("<html><head><title>Square Dance Sequence</title>\n"
                          "<body><h1>Square Dance Sequence</h1>\n");
         for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
