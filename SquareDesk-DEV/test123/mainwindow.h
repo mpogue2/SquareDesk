@@ -397,7 +397,7 @@ public:
     void on_sd_update_status_bar(QString str);
     void on_sd_awaiting_input();
     void initialize_internal_sd_tab();
-    
+
 private:
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
@@ -417,7 +417,7 @@ private:
 
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
-    
+
 
     bool justWentActive;
 
@@ -601,12 +601,12 @@ private:
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 
-    // get/set microphone volume
-    int currentInputVolume;
-    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
-    void setInputVolume(int newVolume);     // set the input volume, ignores -1
-    void muteInputVolume();         // call this one
-    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
+//    // get/set microphone volume
+//    int currentInputVolume;
+//    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
+//    void setInputVolume(int newVolume);     // set the input volume, ignores -1
+//    void muteInputVolume();         // call this one
+//    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
 
     // sound fx
     QString soundFXarray[6];

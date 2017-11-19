@@ -4,7 +4,7 @@
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
- 
+
 
 
 
@@ -20,10 +20,10 @@ public:
           currentInputState(SDThread::InputStateNormal),
           currentInputText(),
           currentInputYesNo(false)
-          
+
     {
     }
-    
+
     int do_abort_popup();
     void prepare_for_listing();
     uims_reply_thing get_startup_command();
@@ -65,11 +65,11 @@ public:
     ui_utils *get_utils_ptr();
 
     ui_utils *m_ui_utils_ptr;
-    
+
 public :
     void add_string_input(const char *str);
 
-    
+
 private:
     void add_new_line(const QString &the_line, uint32 drawing_picture = 0);
     void EnterMessageLoop();
@@ -89,7 +89,7 @@ private:
     friend class SDThread;
     bool answerYesToEverything;
     bool seenAFormation;
-    
+
     SDThread::CurrentInputState currentInputState;
     QString currentInputText;
     bool currentInputYesNo;
@@ -121,7 +121,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
 {
     // So this code should only execute when we're in the condition
     // variable wait, because that's when the mutex is unlocked.
-    
+
     QMutexLocker locker(mutexMessageLoop);
 
     switch (currentInputState)
@@ -158,7 +158,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
             qInfo() << "Listed options";
             break;
         }
-            
+
 
         matcher.copy_to_user_input(s);
         int matches = matcher.match_user_input(nLastOne, false, false, false);
@@ -180,7 +180,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
         else
         {
             add_new_line("  (no matches)");
-#if 0            
+#if 0
             qWarning() << "No Match: " << s;
             qWarning() << "  matcher.m_yielding_matches: " << matcher.m_yielding_matches;
             qWarning() << "  matcher.m_final_result.exact: " << matcher.m_final_result.exact;
@@ -206,7 +206,7 @@ void SquareDesk_iofull::UpdateStatusBar(const char *s)
 // SquareDesk_iofull
 void SquareDesk_iofull::EnterMessageLoop()
 {
- 
+
     gg77->matcher_p->m_active_result.valid = false;
     gg77->matcher_p->erase_matcher_input();
     WaitingForCommand = true;
@@ -228,7 +228,7 @@ int SquareDesk_iofull::do_abort_popup()
                  "The current sequence will be aborted. Do you really want to abort it? (Y/N):",
                  NULL,
                  false, false);
-    
+
     return currentInputYesNo ? POPUP_ACCEPT : POPUP_DECLINE;
 }
 
@@ -325,7 +325,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
                  nLastOne < matcher_class::e_match_taggers+NUM_TAGGER_CLASSES) {
             int tagclass = nLastOne - matcher_class::e_match_taggers;
             UpdateStatusBar("<tagging call>");
-        
+
             for (unsigned int iu=0 ; iu<number_of_taggers[tagclass] ; iu++)
             {
                 options.append(get_call_menu_name(tagger_calls[tagclass][iu]));
@@ -334,7 +334,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
         }
         else if (nLastOne == matcher_class::e_match_startup_commands) {
             UpdateStatusBar("<startup>");
-        
+
             for (int i=0 ; i<num_startup_commands ; i++)
             {
                 options.append(startup_commands[i]);
@@ -346,11 +346,11 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             {
                 options.append(resolve_command_strings[i]);
                 dance_levels.append(QString("%1").arg(0));
-            }                
+            }
         }
         else if (nLastOne == matcher_class::e_match_directions) {
             UpdateStatusBar("<direction>");
-          
+
             for (int i=0 ; i<last_direction_kind ; i++)
             {
                 options.append(direction_menu_list[i+1]);
@@ -369,7 +369,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
         }
         else {
             int i;
-        
+
             UpdateStatusBar(menu_names[nLastOne]);
 
             for (i=0; i<number_of_calls[nLastOne]; i++)
@@ -391,7 +391,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
             {
                 options.append(get_concept_menu_name(access_concept_descriptor_table(item[i])));
                 dance_levels.append(QString("%1").arg(0 + kSDCallTypeConcepts));
-            }                
+            }
 
             for (i=0 ;  ; i++) {
                 Cstring name = command_menu[i].command_name;
@@ -400,7 +400,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
                 dance_levels.append(QString("%1").arg(0 + kSDCallTypeCommands));
             }
         }
-        emit sdthread->on_sd_set_matcher_options(options, dance_levels); 
+        emit sdthread->on_sd_set_matcher_options(options, dance_levels);
    }
 }
 
@@ -448,7 +448,7 @@ bool SquareDesk_iofull::help_manual()
 //    qWarning() << "SquareDesk_iofull::help_manual();";
 //ZZZZZZZZZ   ShellExecute(NULL, "open", "c:\\sd\\sd_doc.html", NULL, NULL, SW_SHOWNORMAL);
     return TRUE;
-    
+
 }
 
 bool SquareDesk_iofull::help_faq()
@@ -481,12 +481,12 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
         prompt = prompt2;
     }
 
-    
+
     QStringList options;
-    QStringList dance_levels; 
+    QStringList dance_levels;
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line(prompt + "\n" + QString(final_inline_prompt));
-    
+
     currentInputState = SDThread::InputStateText;
     emit sdthread->on_sd_awaiting_input();
     waitCondition->wait(mutexMessageLoop);
@@ -495,21 +495,21 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
     {
         qWarning() << "Text state issue" << currentInputState;
     }
-    
+
     currentInputState = SDThread::InputStateNormal;
 
     QString sdest = currentInputText;
     memset(dest, '\0', MAX_TEXT_LINE_LENGTH);
     strncpy(dest, sdest.toStdString().c_str(), MAX_TEXT_LINE_LENGTH - 1);
-    
+
     return currentInputYesNo ? POPUP_ACCEPT_WITH_STRING : POPUP_DECLINE;
-}    
+}
 
 
 void SquareDesk_iofull::fatal_error_exit(int code, Cstring s1, Cstring s2)
 {
     QString message(s1);
-    
+
     if (s2 && s2[0])
     {
         message += ": ";
@@ -569,7 +569,7 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
 {
     if (answerYesToEverything)
         return POPUP_ACCEPT;
-    
+
     QString prompt("");
     if (line1 && line1[0])
     {
@@ -581,7 +581,7 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
     prompt += " (Y/N):";
     currentInputState = SDThread::InputStateYesNo;
     QStringList options;
-    QStringList dance_levels; 
+    QStringList dance_levels;
     options.append("yes");
     dance_levels.append("0");
     options.append("no");
@@ -615,7 +615,7 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
         options.append(QString("%1").arg(i));
         dance_levels.append("0");
     }
-    
+
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line("How many? (Type a number between 0 and 36):");
     currentInputState = SDThread::InputStateText;
@@ -626,7 +626,7 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
     {
         qWarning() << "Text state issue" << currentInputState;
     }
-    
+
     currentInputState = SDThread::InputStateNormal;
     if (!currentInputYesNo) return ~0U;
     else {
@@ -670,7 +670,7 @@ startover:
         if (!allowing_all_concepts && matcher.m_final_result.match.kind == ui_concept_select &&
             get_concept_level(matcher.m_final_result.match.concept_ptr) > calling_level)
             goto startover;
-        
+
         call_conc_option_state save_stuff = matcher.m_final_result.match.call_conc_options;
         there_is_a_call = false;
         uims_reply_kind my_reply = matcher.m_final_result.match.kind;
@@ -680,7 +680,7 @@ startover:
             parse_state.topcallflags1 = the_topcallflags;
             my_reply = ui_call_select;
         }
-        
+
         return uims_reply_thing(retval ? ui_user_cancel : my_reply, index);
     }
 }
@@ -697,7 +697,8 @@ void SquareDesk_iofull::display_help()
 
 void SquareDesk_iofull::terminate(int code)
 {
-    qWarning() << "SquareDesk_iofull::terminate(" <<  code << ");";
+    Q_UNUSED(code);
+//    qWarning() << "SquareDesk_iofull::terminate(" <<  code << ");";
 }
 
 void SquareDesk_iofull::process_command_line(int */* argcp */, char ***/* argvp */)
@@ -719,42 +720,42 @@ void SquareDesk_iofull::final_initialize()
 
 bool SquareDesk_iofull::init_step(init_callback_state s, int /* n */)
 {
-    switch (s) 
+    switch (s)
     {
     case get_session_info:
         // qWarning() << "get_session_info: " << s << " " << n;
         break;
-        
+
     case final_level_query:
         // qWarning() << "final_level_query: " << s << " " << n;
         break;
-        
+
     case init_database1:
         // qWarning() << "init_database1: " << s << " " << n;
         break;
-        
+
         // update status "Reading database"
     case init_database2:
         // qWarning() << "init_database2: " << s << " " << n;
         break;
-        
+
         // update status "Creating menus"
     case calibrate_tick:
         // qWarning() << "calibrate_tick: " << s << " " << n;
         break;
-       
+
     case do_tick:
         // qWarning() << "do_tick: " << s << " " << n;
         break;
-       
+
     case tick_end:
         // qWarning() << "tick_end: " << s << " " << n;
         break;
-       
+
     case do_accelerator:
         // qWarning() << "do_accelerator: " << s << " " << n;
         break;
-       
+
     default:
         // qWarning() << "init step " << s << " " << n;
         break;
@@ -793,7 +794,7 @@ uims_reply_thing SquareDesk_iofull::get_startup_command()
     matcher_class &matcher = *gg77->matcher_p;
     nLastOne = ui_undefined;
     MenuKind = ui_start_select;
-   
+
     ShowListBox(matcher_class::e_match_startup_commands);
 
     EnterMessageLoop();
@@ -825,7 +826,7 @@ SDThread::SDThread(MainWindow *mw)
       abort(false)
 {
     // We should expand these elsewhere for autocomplete stuff
-    
+
     // Build our leading selector list, static to this file:
     for (size_t i = 0; selector_list[i].name; ++i)
     {
@@ -878,8 +879,8 @@ SDThread::SDThread(MainWindow *mw)
     selectors.append("revertreflectrevert");
     selectors.append("reflectrevertreflect");
     selectors.append("reflectreflect");
-    
-    
+
+
     // this will cause the thread startup to block until this
     // unlocked, which happens through SDThread::unlock() at the end
     // of the MainWindow constructor.
