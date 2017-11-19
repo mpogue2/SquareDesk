@@ -604,12 +604,162 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 {
 //    qDebug() << "Return pressed, command is: " << ui->lineEditSDInput->text();
     QString cmd(ui->lineEditSDInput->text().trimmed());
+    ui->lineEditSDInput->clear();
+
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
         cmd = "abort this sequence";
+    }    
+    
+
+    // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
+    // must be in this order, and must be before number substitution.
+    cmd = cmd.replace("once and a half","1-1/2");
+    cmd = cmd.replace("one and a half","1-1/2");
+    cmd = cmd.replace("two and a half","2-1/2");
+    cmd = cmd.replace("three and a half","3-1/2");
+    cmd = cmd.replace("four and a half","4-1/2");
+    cmd = cmd.replace("five and a half","5-1/2");
+    cmd = cmd.replace("six and a half","6-1/2");
+    cmd = cmd.replace("seven and a half","7-1/2");
+    cmd = cmd.replace("eight and a half","8-1/2");
+
+    cmd = cmd.replace("four quarters","4/4");
+    cmd = cmd.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
+    cmd = cmd.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
+    cmd = cmd.replace("and a quarter more", "AND A QUARTER MORE");  // protect this.  Separate call, must NOT be "1/4"
+    cmd = cmd.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
+    cmd = cmd.replace("AND A QUARTER MORE", "and a quarter more");  // protect this.  Separate call, must NOT be "1/4"
+
+    // handle 1P2P
+    cmd = cmd.replace("one pee two pee","1P2P");
+
+    // handle "third" --> "3rd", for dixie grand
+    cmd = cmd.replace("third", "3rd");
+
+    // handle numbers: one -> 1, etc.
+    cmd = cmd.replace("eight chain","EIGHT CHAIN"); // sd wants "eight chain 4", not "8 chain 4", so protect it
+    cmd = cmd.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
+    cmd = cmd.replace("five","5").replace("six","6").replace("seven","7").replace("eight","8");
+    cmd = cmd.replace("EIGHT CHAIN","eight chain"); // sd wants "eight chain 4", not "8 chain 4", so protect it
+
+    // handle optional words at the beginning
+
+    cmd = cmd.replace("do the centers", "DOTHECENTERS");  // special case "do the centers part of load the boat"
+    cmd = cmd.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
+    cmd = cmd.replace("DOTHECENTERS", "do the centers");  // special case "do the centers part of load the boat"
+
+    // handle specialized sd spelling of flutter wheel, and specialized wording of reverse flutter wheel
+    cmd = cmd.replace("flutterwheel","flutter wheel");
+    cmd = cmd.replace("reverse the flutter","reverse flutter wheel");
+
+    // handle specialized sd wording of first go *, next go *
+    cmd = cmd.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
+    cmd = cmd.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
+    cmd = cmd.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go left"),"first couple go left, next go left");
+    cmd = cmd.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go right"),"first couple go right, next go right");
+
+    // handle "single circle to an ocean wave" -> "single circle to a wave"
+    cmd = cmd.replace("single circle to an ocean wave","single circle to a wave");
+
+    // handle manually-inserted brackets
+    cmd = cmd.replace(QRegExp("left bracket\\s+"), "[").replace(QRegExp("\\s+right bracket"),"]");
+
+    // handle "single hinge" --> "hinge", "single file circulate" --> "circulate", "all 8 circulate" --> "circulate" (quirk of sd)
+    cmd = cmd.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
+
+    // handle "men <anything>" and "ladies <anything>", EXCEPT for ladies chain
+    if (!cmd.contains("ladies chain") && !cmd.contains("men chain")) {
+        cmd = cmd.replace("men", "boys").replace("ladies", "girls");  // wacky sd!
     }
+
+    // handle "allemande left alamo style" --> "allemande left in the alamo style"
+    cmd = cmd.replace("allemande left alamo style", "allemande left in the alamo style");
+
+    // handle "right a left thru" --> "right and left thru"
+    cmd = cmd.replace("right a left thru", "right and left thru");
+
+    // handle "separate [go] around <n> [to a line]" --> delete "go"
+    cmd = cmd.replace("separate go around", "separate around");
+
+    // handle "dixie style [to a wave|to an ocean wave]" --> "dixie style to a wave"
+    cmd = cmd.replace(QRegExp("dixie style.*"), "dixie style to a wave\n");
+
+    // handle the <anything> and roll case
+    //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
+    if (!cmd.contains("[")) {
+        QRegExp andRollCall("(.*) and roll.*");
+        if (cmd.indexOf(andRollCall) != -1) {
+            cmd = "[" + andRollCall.cap(1) + "] and roll\n";
+        }
+
+        // explode must be handled *after* roll, because explode binds tightly with the call
+        // e.g. EXPLODE AND RIGHT AND LEFT THRU AND ROLL must be translated to:
+        //      [explode and [right and left thru]] and roll
+
+        // first, handle both: "explode and <anything> and roll"
+        //  by the time we're here, it's already "[explode and <anything>] and roll\n", because
+        //  we've already done the roll processing.
+        QRegExp explodeAndRollCall("\\[explode and (.*)\\] and roll");
+        QRegExp explodeAndNotRollCall("^explode and (.*)");
+
+        if (cmd.indexOf(explodeAndRollCall) != -1) {
+            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll\n";
+        } else if (cmd.indexOf(explodeAndNotRollCall) != -1) {
+            // not a roll, for sure.  Must be a naked "explode and <anything>\n"
+            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]\n";
+        } else {
+        }
+    }
+
+    // handle <ANYTHING> and spread
+    if (!cmd.contains("[")) {
+        QRegExp andSpreadCall("(.*) and spread");
+        if (cmd.indexOf(andSpreadCall) != -1) {
+            cmd = "[" + andSpreadCall.cap(1) + "] and spread\n";
+        }
+    }
+
+    // handle "undo [that]" --> "undo last call"
+    cmd = cmd.replace("undo that", "undo last call");
+    if (cmd == "undo\n") {
+        cmd = "undo last call\n";
+    }
+
+    // handle "peel your top" --> "peel the top"
+    cmd = cmd.replace("peel your top", "peel the top");
+
+    // handle "veer (to the) left/right" --> "veer left/right"
+    cmd = cmd.replace("veer to the", "veer");
+
+    // handle the <anything> and sweep case
+    // FIX: this needs to add center boys, etc, but that messes up the QRegExp
+
+    // <ANYTHING> AND SWEEP (A | ONE) QUARTER [MORE]
+    QRegExp andSweepPart(" and sweep.*");
+    int found = cmd.indexOf(andSweepPart);
+    if (found != -1) {
+        if (cmd.contains("[")) {
+            // if manual brackets added, don't add more of them.
+            cmd = cmd.replace(andSweepPart,"") + " and sweep 1/4\n";
+        } else {
+            cmd = "[" + cmd.replace(andSweepPart,"") + "] and sweep 1/4\n";
+        }
+    }
+
+    // handle "square thru" -> "square thru 4"
+    if (cmd == "square thru\n") {
+        cmd = "square thru 4\n";
+    }
+
+    // SD COMMANDS -------
+    // square your|the set -> square thru 4
+    if (cmd == "square the set\n" || cmd == "square your set\n") {
+        emit sdthread->on_user_input("abort this sequence");
+        emit sdthread->on_user_input("y");
+    }
+   
     emit sdthread->on_user_input(cmd);
-    ui->lineEditSDInput->clear();
 }
 
 void MainWindow::on_lineEditSDInput_textChanged()
@@ -623,8 +773,10 @@ void MainWindow::on_lineEditSDInput_textChanged()
          currentText[currentText.length() - 1] == '?'))
     {
         on_lineEditSDInput_returnPressed();
+        ui->lineEditSDInput->setText(currentText.left(currentText.length() - 1));
         return;
     }
+    
     QString strippedText = sd_strip_leading_selectors(currentText);
 
     int current_dance_program = INT_MAX;
@@ -704,7 +856,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
-    Q_UNUSED(dance_program);
+    sdthread->set_dance_program(dance_program);
 //    for (int i = 0; actions[i]; ++i)
 //    {
 //        bool checked = (i == (int)(dance_program));

@@ -14,7 +14,7 @@ static QStringList selectors;
 class SquareDesk_iofull : public iobase {
 public:
     SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
-        : dance_program((dance_level)(0)), sdthread(thread), mw(mw), waitCondition(waitCondition),
+        : sdthread(thread), mw(mw), waitCondition(waitCondition),
           WaitingForCommand(false), mutexMessageLoop(mutex),
           answerYesToEverything(false), seenAFormation(false),
           currentInputState(SDThread::InputStateNormal),
@@ -73,7 +73,6 @@ public :
 private:
     void add_new_line(const QString &the_line, uint32 drawing_picture = 0);
     void EnterMessageLoop();
-    dance_level dance_program;
 
     SDThread *sdthread;
     MainWindow *mw;
@@ -101,7 +100,10 @@ private:
 
 };
 
-
+void SDThread::set_dance_program(int dance_program)
+{
+    calling_level = (dance_level)(dance_program);
+}
 
 SDThread::CurrentInputState SDThread::currentInputState()
 {
@@ -148,7 +150,12 @@ void SquareDesk_iofull::add_string_input(const char *s)
             if (len > MAX_TEXT_LINE_LENGTH)
                 len = MAX_TEXT_LINE_LENGTH;
             strncpy(ach,s,len);
+            ach[len - 1] = '\0';
+            qInfo() << "Attempting match: " << ach;
+            matcher.copy_to_user_input(ach);
+            qInfo() << "Listing options";
             matcher.match_user_input(nLastOne, true, question_mark, false);
+            qInfo() << "Listed options";
             break;
         }
             

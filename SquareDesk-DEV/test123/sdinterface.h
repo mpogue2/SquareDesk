@@ -32,6 +32,8 @@ public:
         InputStateYesNo,
         InputStateText };
     CurrentInputState currentInputState();
+    void set_dance_program(int dance_program);
+
 
 signals:
     void on_sd_update_status_bar(QString s);
