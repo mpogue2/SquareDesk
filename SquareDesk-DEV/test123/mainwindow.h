@@ -121,10 +121,22 @@ public:
     QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
+    void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
+
+    void on_flashcallbasic_toggled(bool checked);
+    void on_flashcallmainstream_toggled(bool checked);
+    void on_flashcallplus_toggled(bool checked);
+    void on_flashcalla1_toggled(bool checked);
+    void on_flashcalla2_toggled(bool checked);
+    void on_flashcallc1_toggled(bool checked);
+    void on_flashcallc2_toggled(bool checked);
+    void on_flashcallc3a_toggled(bool checked);
+    void on_flashcallc3b_toggled(bool checked);
 
     void airplaneMode(bool turnItOn);
 
@@ -347,6 +359,24 @@ private slots:
     void on_actionFilePrint_triggered();
     void on_actionSave_triggered();
     void on_actionSave_As_triggered();
+
+    void on_actionFlashCallBasic_triggered();
+
+    void on_actionFlashCallMainstream_triggered();
+
+    void on_actionFlashCallPlus_triggered();
+
+    void on_actionFlashCallA1_triggered();
+
+    void on_actionFlashCallA2_triggered();
+
+    void on_actionFlashCallC1_triggered();
+
+    void on_actionFlashCallC2_triggered();
+
+    void on_actionFlashCallC3a_triggered();
+
+    void on_actionFlashCallC3b_triggered();
 
 private:
 

@@ -82,7 +82,7 @@ CONFIG_ATTRIBUTE_INT(initialBPMLineEdit,initialBPM, 125)
 
 CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
 
-CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)
+//CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(autostartplayback, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(forcemono, false);
@@ -102,3 +102,15 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPitchColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showTempoColumn, true);
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(songTableFontSize, 13);
+
+// flash call menu
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallbasic, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallmainstream, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallplus, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcalla1, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcalla2, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc1, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc2, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc3a, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc3b, false);
+

@@ -623,6 +623,35 @@ Click on a color square to change the color associated with that Music Type.  Se
          <string>Experimental</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
+         <item row="8" column="2">
+          <widget class="QLineEdit" name="initialBPMLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>65</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>125</string>
+           </property>
+           <property name="maxLength">
+            <number>3</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1" colspan="2">
+          <widget class="QCheckBox" name="thirtySecWarningCheckbox">
+           <property name="text">
+            <string>30 second warning before long tip warning</string>
+           </property>
+          </widget>
+         </item>
          <item row="9" column="1" colspan="3">
           <widget class="QCheckBox" name="useTimeRemainingCheckbox">
            <property name="text">
@@ -788,7 +817,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
           </widget>
          </item>
-         <item row="12" column="1" colspan="5">
+         <item row="11" column="1" colspan="5">
           <widget class="QCheckBox" name="enableAutoMicsOffCheckbox">
            <property name="text">
             <string>Disable microphone input (incl. Siri/Skype) when the SD tab is not open (Mac OS X only)</string>
@@ -802,7 +831,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="13" column="1">
+         <item row="12" column="1">
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -910,13 +939,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="10" column="1" colspan="3">
-          <widget class="QCheckBox" name="enableFlashCallsCheckbox">
-           <property name="text">
-            <string>Display &quot;Flash call&quot; every 15 seconds</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="ExpFeaturesLabel">
            <property name="font">
@@ -946,7 +968,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="11" column="1" colspan="5">
+         <item row="10" column="1" colspan="5">
           <widget class="QCheckBox" name="enableAutoAirplaneModeCheckbox">
            <property name="text">
             <string>Turn on Airplane Mode (radios OFF) when application is in use (Mac OS X only)</string>
@@ -1051,35 +1073,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
            <property name="text">
             <string>of inactivity, </string>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="2">
-          <widget class="QLineEdit" name="initialBPMLineEdit">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>65</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>125</string>
-           </property>
-           <property name="maxLength">
-            <number>3</number>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1" colspan="2">
-          <widget class="QCheckBox" name="thirtySecWarningCheckbox">
-           <property name="text">
-            <string>30 second warning before long tip warning</string>
            </property>
           </widget>
          </item>

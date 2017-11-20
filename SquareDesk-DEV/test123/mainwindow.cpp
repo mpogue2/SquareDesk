@@ -622,46 +622,23 @@ MainWindow::MainWindow(QWidget *parent) :
     //   file on those platforms.  It's convenient to stick it in the bundle on Mac OS X.  Maybe parallel with
     //   the executable on Windows and Linux?
 
-#if defined(Q_OS_MAC)
-    QString appPath = QApplication::applicationFilePath();
-    QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
-    allcallsPath.replace("Contents/MacOS/SquareDeskPlayer/","");
-#endif
+    // restore the Flash Calls menu checkboxes state -----
+    on_flashcallbasic_toggled(prefsManager.Getflashcallbasic());
+    on_flashcallmainstream_toggled(prefsManager.Getflashcallmainstream());
+    on_flashcallplus_toggled(prefsManager.Getflashcallplus());
+    on_flashcalla1_toggled(prefsManager.Getflashcalla1());
+    on_flashcalla2_toggled(prefsManager.Getflashcalla2());
+    on_flashcallc1_toggled(prefsManager.Getflashcallc1());
+    on_flashcallc2_toggled(prefsManager.Getflashcallc2());
+    on_flashcallc3a_toggled(prefsManager.Getflashcallc3a());
+    on_flashcallc3b_toggled(prefsManager.Getflashcallc3b());
 
-#if defined(Q_OS_WIN32)
-    // TODO: There has to be a better way to do this.
-    QString appPath = QApplication::applicationFilePath();
-    QString allcallsPath = appPath + "/allcalls.csv";
-    allcallsPath.replace("SquareDeskPlayer.exe/","");
-#endif
-
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-    QFile file(allcallsPath);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Could not open 'allcalls.csv' file.";
-        qDebug() << "looked here:" << allcallsPath;
-        return;
-    }
-
-    while (!file.atEnd()) {
-        QString line = file.readLine().simplified();
-        QStringList lineparts = line.split(',');
-        QString level = lineparts[0];
-        QString call = lineparts[1].replace("\"","");
-
-        if (level == "plus") {
-            flashCalls.append(call);
-        }
-    }
+    readFlashCallsList();
 
     currentSongType = "";
     currentSongTitle = "";
 
-    qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
-    randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
-
-#endif
-
+    // -----------------------------
     sessionActionGroup = new QActionGroup(this);
     sessionActionGroup->setExclusive(true);
     sessionActionGroup->addAction(ui->actionPractice);
@@ -2098,7 +2075,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             randomizeFlashCall();
         }
 
-        if (prefsManager.GetenableFlashCalls()) {
+        if (flashCalls.length() != 0) {
+            // if there are flash calls on the list, then Flash Calls are enabled.
              if (cBass.Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
@@ -2911,6 +2889,7 @@ void MainWindow::on_actionForce_Mono_Aahz_mode_triggered()
 {
     on_monoButton_toggled(ui->actionForce_Mono_Aahz_mode->isChecked());
 }
+
 
 // ------------------------------------------------------------------------
 void MainWindow::on_bassSlider_valueChanged(int value)
@@ -8532,4 +8511,197 @@ void MainWindow::on_actionSave_As_triggered()
         // timers
         // intentionally nothing...
     }
+}
+
+// ----------------------------------------------------------------------
+void MainWindow::on_flashcallbasic_toggled(bool checked)
+{
+    ui->actionFlashCallBasic->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallbasic(ui->actionFlashCallBasic->isChecked());
+}
+
+void MainWindow::on_actionFlashCallBasic_triggered()
+{
+    on_flashcallbasic_toggled(ui->actionFlashCallBasic->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcallmainstream_toggled(bool checked)
+{
+    ui->actionFlashCallMainstream->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallmainstream(ui->actionFlashCallMainstream->isChecked());
+}
+
+void MainWindow::on_actionFlashCallMainstream_triggered()
+{
+    on_flashcallmainstream_toggled(ui->actionFlashCallMainstream->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcallplus_toggled(bool checked)
+{
+    ui->actionFlashCallPlus->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallplus(ui->actionFlashCallPlus->isChecked());
+}
+
+void MainWindow::on_actionFlashCallPlus_triggered()
+{
+    on_flashcallplus_toggled(ui->actionFlashCallPlus->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcalla1_toggled(bool checked)
+{
+    ui->actionFlashCallA1->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcalla1(ui->actionFlashCallA1->isChecked());
+}
+
+void MainWindow::on_actionFlashCallA1_triggered()
+{
+    on_flashcalla1_toggled(ui->actionFlashCallA1->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcalla2_toggled(bool checked)
+{
+    ui->actionFlashCallA2->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcalla2(ui->actionFlashCallA2->isChecked());
+}
+
+void MainWindow::on_actionFlashCallA2_triggered()
+{
+    on_flashcalla2_toggled(ui->actionFlashCallA2->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcallc1_toggled(bool checked)
+{
+    ui->actionFlashCallC1->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallc1(ui->actionFlashCallC1->isChecked());
+}
+
+void MainWindow::on_actionFlashCallC1_triggered()
+{
+    on_flashcallc1_toggled(ui->actionFlashCallC1->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcallc2_toggled(bool checked)
+{
+    ui->actionFlashCallC2->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallc2(ui->actionFlashCallC2->isChecked());
+}
+
+void MainWindow::on_actionFlashCallC2_triggered()
+{
+    on_flashcallc2_toggled(ui->actionFlashCallC2->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcallc3a_toggled(bool checked)
+{
+    ui->actionFlashCallC3a->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallc3a(ui->actionFlashCallC3a->isChecked());
+}
+
+void MainWindow::on_actionFlashCallC3a_triggered()
+{
+    on_flashcallc3a_toggled(ui->actionFlashCallC3a->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_flashcallc3b_toggled(bool checked)
+{
+    ui->actionFlashCallC3b->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    prefsManager.Setflashcallc3b(ui->actionFlashCallC3b->isChecked());
+}
+
+void MainWindow::on_actionFlashCallC3b_triggered()
+{
+    on_flashcallc3b_toggled(ui->actionFlashCallC3b->isChecked());
+    readFlashCallsList();
+}
+
+// -----
+void MainWindow::readFlashCallsList() {
+#if defined(Q_OS_MAC)
+    QString appPath = QApplication::applicationFilePath();
+    QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
+    allcallsPath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#endif
+
+#if defined(Q_OS_WIN32)
+    // TODO: There has to be a better way to do this.
+    QString appPath = QApplication::applicationFilePath();
+    QString allcallsPath = appPath + "/allcalls.csv";
+    allcallsPath.replace("SquareDeskPlayer.exe/","");
+#endif
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+    QFile file(allcallsPath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Could not open 'allcalls.csv' file.";
+        qDebug() << "looked here:" << allcallsPath;
+        return;
+    }
+
+    flashCalls.clear();  // remove all calls, let's read them in again
+
+    while (!file.atEnd()) {
+        QString line = file.readLine().simplified();
+        QStringList lineparts = line.split(',');
+        QString level = lineparts[0];
+        QString call = lineparts[1].replace("\"","");
+
+        if ((level == "basic" && ui->actionFlashCallBasic->isChecked()) ||
+                (level == "ms" && ui->actionFlashCallMainstream->isChecked()) ||
+                (level == "plus" && ui->actionFlashCallPlus->isChecked()) ||
+                (level == "a1" && ui->actionFlashCallA1->isChecked()) ||
+                (level == "a2" && ui->actionFlashCallA2->isChecked()) ||
+                (level == "c1" && ui->actionFlashCallC1->isChecked()) ||
+                (level == "c2" && ui->actionFlashCallC2->isChecked()) ||
+                (level == "c3a" && ui->actionFlashCallC3a->isChecked()) ||
+                (level == "c3b" && ui->actionFlashCallC3b->isChecked()) ) {
+            flashCalls.append(call);
+        }
+    }
+
+    qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
+    if (flashCalls.length() == 0) {
+        randCallIndex = 0;
+    } else {
+        randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
+    }
+
+//    qDebug() << "flashCalls: " << flashCalls;
+//    qDebug() << "randCallIndex: " << randCallIndex;
+
+#endif
 }
