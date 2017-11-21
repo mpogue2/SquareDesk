@@ -3980,19 +3980,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->pushButtonSetIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->pushButtonSetOutroTime->setEnabled(true);
 
-    if (isPatter) {
-        on_loopButton_toggled(true); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
-        ui->pushButtonSetIntroTime->setText("Start Loop");
-        ui->pushButtonSetOutroTime->setText("End Loop");
-    } else {
-        // singing call or vocals or xtras, so Loop mode defaults to OFF
-        on_loopButton_toggled(false); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
-        ui->pushButtonSetIntroTime->setText("In");
-        ui->pushButtonSetOutroTime->setText("Out");
-    }
-
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
 
@@ -4010,6 +3997,19 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     Info_Volume();
 
 //    qDebug() << "load 2.8: " << t2.elapsed() << "ms";
+
+    if (isPatter) {
+        on_loopButton_toggled(true); // default is to loop, if type is patter
+//        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
+        ui->pushButtonSetIntroTime->setText("Start Loop");
+        ui->pushButtonSetOutroTime->setText("End Loop");
+    } else {
+        // singing call or vocals or xtras, so Loop mode defaults to OFF
+        on_loopButton_toggled(false); // default is to loop, if type is patter
+//        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
+        ui->pushButtonSetIntroTime->setText("In");
+        ui->pushButtonSetOutroTime->setText("Out");
+    }
 
     loadSettingsForSong(songTitle);
 
@@ -6343,8 +6343,15 @@ void MainWindow::saveCurrentSongSettings()
         setting.setMidrange( ui->midrangeSlider->value() );
         setting.setMix( ui->mixSlider->value() );
 
+        if (ui->actionLoop->isChecked()) {
+            setting.setLoop( 1 );
+        } else {
+            setting.setLoop( -1 );
+        }
+
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
+
         if (ui->checkBoxAutoSaveLyrics->isChecked())
         {
             writeCuesheet(cuesheetFilename);
@@ -6442,6 +6449,21 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         else
         {
             ui->mixSlider->setValue(0);
+        }
+
+        // Looping is similar to Mix, but it's a bit more complicated:
+        //   If the DB says +1, turn on loop.
+        //   If the DB says -1, turn looping off.
+        //   otherwise, the DB says "NULL", so use the default that we currently have (patter = loop).
+        if (settings.isSetLoop())
+        {
+            if (settings.getLoop() == -1) {
+                on_loopButton_toggled(false);
+            } else if (settings.getLoop() == 1) {
+                on_loopButton_toggled(true);
+            } else {
+                // DO NOTHING
+            }
         }
 
     }

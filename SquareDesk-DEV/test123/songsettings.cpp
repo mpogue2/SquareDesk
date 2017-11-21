@@ -180,7 +180,8 @@ RowDefinition song_rows[] =
     RowDefinition("bass", "int"),
     RowDefinition("midrange", "int"),
     RowDefinition("mix", "int"),
-    
+    RowDefinition("loop", "int"),   // 1 = yes, -1 = no, 0 = not set yet
+
     RowDefinition(NULL, NULL),
 };
 
@@ -555,7 +556,9 @@ SongSetting::SongSetting()
     m_midrange(0),
     set_midrange(false),
     m_mix(0),
-    set_mix(false)
+    set_mix(false),
+    m_loop(0),
+    set_loop(false)
 {
 }
 
@@ -574,12 +577,16 @@ QDebug operator<<(QDebug dbg, const SongSetting &setting)
                      "\n    outroPos: " << setting.m_outroPos << "," << setting.set_outroPos << ";" <<
                      "\n    cuesheetName: " << setting.m_cuesheetName << "," << setting.set_cuesheetName <<
                      "\n    introOutroIsTimeBased: " << setting.m_introOutroIsTimeBased << "," << setting.set_introOutroIsTimeBased <<
-                     "\n    songLength: " << setting.m_songLength << "," << setting.set_songLength << ")";
+                     "\n    songLength: " << setting.m_songLength << "," << setting.set_songLength <<
 
-
+                     "\n    treble: " << setting.m_treble << "," << setting.set_treble << ";" <<
+                     "\n    bass: " << setting.m_bass << "," << setting.set_bass << ";" <<
+                     "\n    midrange: " << setting.m_midrange << "," << setting.set_midrange << ";" <<
+                     "\n    mix: " << setting.m_mix << "," << setting.set_mix << ";" <<
+                     "\n    loop: " << setting.m_loop << "," << setting.set_loop << ";" <<
+                     ")";
     return dbg;
 }
-
 
 void SongSettings::saveSettings(const QString &filenameWithPath,
                                 const SongSetting &settings)
@@ -603,6 +610,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetBass()) { fields.append("bass"); }
     if (settings.isSetMidrange()) { fields.append("midrange"); }
     if (settings.isSetMix()) { fields.append("mix"); }
+    if (settings.isSetMix()) { fields.append("loop"); }
 
     QSqlQuery q(m_db);
     if (id == -1)
@@ -670,6 +678,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":bass", settings.getBass());
     q.bindValue(":midrange", settings.getMidrange());
     q.bindValue(":mix", settings.getMix());
+    q.bindValue(":loop", settings.getLoop());
 
     exec("saveSettings", q);
 }
@@ -691,12 +700,13 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(11).isNull()) { settings.setBass(q.value(11).toInt()); }
     if (!q.value(12).isNull()) { settings.setMidrange(q.value(12).toInt()); }
     if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
+    if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {
