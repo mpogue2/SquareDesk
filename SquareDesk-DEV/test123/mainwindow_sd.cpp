@@ -372,8 +372,38 @@ void MainWindow::on_sd_update_status_bar(QString str)
 }
 
 
+void MainWindow::sd_begin_available_call_list_output()
+{
+    sdOutputtingAvailableCalls = true;
+    sdAvailableCalls.clear();
+}
+void MainWindow::sd_end_available_call_list_output()
+{
+    dance_level current_dance_program = get_current_sd_dance_program();
+    
+    sdOutputtingAvailableCalls = false;
+    QString available("Available calls:");
+    for (auto available_call : sdAvailableCalls)
+    {
+        if (available_call.dance_program <= current_dance_program)
+            available += "\n   " + available_call.call_name;
+    }
+    ui->listWidgetSDOutput->addItem(available);
+}
+
+
+
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
+    if (sdOutputtingAvailableCalls)
+    {
+        SDAvailableCall available_call;
+        available_call.call_name = str.simplified();
+        available_call.dance_program = sdthread->find_dance_program(str);
+        sdAvailableCalls.append(available_call);
+        return;
+    }
+    
     if (!drawing_picture)
     {
         str = str.trimmed();
@@ -462,13 +492,18 @@ void MainWindow::on_sd_dispose_of_abbreviation(QString str)
 
 void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList levels)
 {
+    qInfo() << "setting matcher options " << options << " " << levels;
     ui->listWidgetSDOptions->clear();
     for (int i = 0; i < options.length(); ++i)
     {
-        QListWidgetItem *item = new QListWidgetItem(options[i]);
-        QVariant v(levels[i].toInt());
-        item->setData(Qt::UserRole, v);
-        ui->listWidgetSDOptions->addItem(item);
+        // if it's not "exit the program"
+        if (options[i].compare("exit the program"))
+        {
+            QListWidgetItem *item = new QListWidgetItem(options[i]);
+            QVariant v(levels[i].toInt());
+            item->setData(Qt::UserRole, v);
+            ui->listWidgetSDOptions->addItem(item);
+        }
     }
 }
 
@@ -595,6 +630,10 @@ void MainWindow::do_sd_tab_completion()
     }
     if (longestMatch.length() > callSearch.length())
     {
+        if (prefix.length() != 0 && !prefix.endsWith(" "))
+        {
+            prefix = prefix + " ";
+        }
         ui->lineEditSDInput->setText(prefix + longestMatch);
     }
 
@@ -762,74 +801,96 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     emit sdthread->on_user_input(cmd);
 }
 
+dance_level MainWindow::get_current_sd_dance_program()
+{
+    dance_level current_dance_program = (dance_level)(INT_MAX);
+
+    if (ui->actionSDDanceProgramMainstream->isChecked())
+    {
+        current_dance_program = l_mainstream;
+    }
+    if (ui->actionSDDanceProgramPlus->isChecked())
+    {
+        current_dance_program = l_plus;
+    }
+    if (ui->actionSDDanceProgramA1->isChecked())
+    {
+        current_dance_program = l_a1;
+    }
+    if (ui->actionSDDanceProgramA2->isChecked())
+    {
+        current_dance_program = l_a2;
+    }
+    if (ui->actionSDDanceProgramC1->isChecked())
+    {
+        current_dance_program = l_c1;
+    }
+    if (ui->actionSDDanceProgramC2->isChecked())
+    {
+        current_dance_program = l_c2;
+    }
+    if (ui->actionSDDanceProgramC3A->isChecked())
+    {
+        current_dance_program = l_c3a;
+    }
+    if (ui->actionSDDanceProgramC3->isChecked())
+    {
+        current_dance_program = l_c3;
+    }
+    if (ui->actionSDDanceProgramC3x->isChecked())
+    {
+        current_dance_program = l_c3x;
+    }
+    if (ui->actionSDDanceProgramC4->isChecked())
+    {
+        current_dance_program = l_c4;
+    }
+    if (ui->actionSDDanceProgramC4x->isChecked())
+    {
+        current_dance_program = l_c4x;
+    }
+    return current_dance_program;
+}
+
 void MainWindow::on_lineEditSDInput_textChanged()
 {
+    qInfo() << "lineEditSDInput_textChanged()";
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
 
+    
     QString currentText = ui->lineEditSDInput->text().simplified();
-    if (currentText.length() > 0 &&
-        (currentText[currentText.length() - 1] == '!' ||
-         currentText[currentText.length() - 1] == '?'))
+    int currentTextLastChar = currentText.length() - 1;
+    
+    if (currentTextLastChar > 0 &&
+        (currentText[currentTextLastChar] == '!' ||
+         currentText[currentTextLastChar] == '?'))
     {
         on_lineEditSDInput_returnPressed();
-        ui->lineEditSDInput->setText(currentText.left(currentText.length() - 1));
+        ui->lineEditSDInput->setText(currentText.left(currentTextLastChar));
+        sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = currentTextLastChar;
         return;
+    }
+    else
+    {
+        if (currentTextLastChar < sdLineEditSDInputLengthWhenAvailableCallsWasBuilt)
+            sdAvailableCalls.clear();
     }
     
     QString strippedText = sd_strip_leading_selectors(currentText);
 
-    int current_dance_program = INT_MAX;
-
-    if (ui->actionSDDanceProgramMainstream->isChecked())
-    {
-        current_dance_program = (int)(l_mainstream);
-    }
-    if (ui->actionSDDanceProgramPlus->isChecked())
-    {
-        current_dance_program = (int)(l_plus);
-    }
-    if (ui->actionSDDanceProgramA1->isChecked())
-    {
-        current_dance_program = (int)(l_a1);
-    }
-    if (ui->actionSDDanceProgramA2->isChecked())
-    {
-        current_dance_program = (int)(l_a2);
-    }
-    if (ui->actionSDDanceProgramC1->isChecked())
-    {
-        current_dance_program = (int)(l_c1);
-    }
-    if (ui->actionSDDanceProgramC2->isChecked())
-    {
-        current_dance_program = (int)(l_c2);
-    }
-    if (ui->actionSDDanceProgramC3A->isChecked())
-    {
-        current_dance_program = (int)(l_c3a);
-    }
-    if (ui->actionSDDanceProgramC3->isChecked())
-    {
-        current_dance_program = (int)(l_c3);
-    }
-    if (ui->actionSDDanceProgramC3x->isChecked())
-    {
-        current_dance_program = (int)(l_c3x);
-    }
-    if (ui->actionSDDanceProgramC4->isChecked())
-    {
-        current_dance_program = (int)(l_c4);
-    }
-    if (ui->actionSDDanceProgramC4x->isChecked())
-    {
-        current_dance_program = (int)(l_c4x);
-    }
+    dance_level current_dance_program = get_current_sd_dance_program();
+    
+    qInfo() << "Looking at call options for " << current_dance_program << " showCommands: "
+            << showCommands << " showConcepts " << showConcepts << " currentText " << currentText
+            << " options count " << ui->listWidgetSDOptions->count();
 
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
         bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(currentText, Qt::CaseInsensitive) ||
             ui->listWidgetSDOptions->item(i)->text().startsWith(strippedText, Qt::CaseInsensitive);
+
+//        qInfo() << "Showing " << ui->listWidgetSDOptions->item(i)->text() << " currentText " << currentText << " stripped " << strippedText << " / " << ui->listWidgetSDOptions->item(i);
         if (show)
         {
             QVariant v = ui->listWidgetSDOptions->item(i)->data(Qt::UserRole);
@@ -841,6 +902,30 @@ void MainWindow::on_lineEditSDInput_textChanged()
             }
             else if (dance_program & kSDCallTypeCommands)
             {
+                bool inAvailableCalls = false;
+                if (sdAvailableCalls.length() > 0)
+                {
+                    static QRegExp regexpReplaceableParts("<.*?>");
+                    QString callName = ui->listWidgetSDOptions->item(i)->text();
+                    QStringList callParts(callName.split(regexpReplaceableParts, QString::SkipEmptyParts));
+                    
+                    for (auto call : sdAvailableCalls)
+                    {
+                        bool containsAllParts = true;
+                        for (auto callPart : callParts)
+                        {
+                            if (!call.call_name.contains(callPart, Qt::CaseInsensitive))
+                            {
+                                containsAllParts = false;
+                            }
+                        }
+                        if (containsAllParts)
+                            inAvailableCalls = true;
+                    }
+                    qInfo() << "Call: " << callParts << " inAvailableCalls " << inAvailableCalls;
+                }
+                if (!inAvailableCalls)
+                    show = false;
                 if (!showCommands)
                     show = false;
             }

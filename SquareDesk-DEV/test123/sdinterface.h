@@ -5,6 +5,18 @@
 #include <QWaitCondition>
 #include <QMutex>
 
+// ZZZZ TODO: I realy don't want to clutter up this with sdlib
+// declarations, but I also don't want to duplicate `enum dance_level`
+#include "../sdlib/database.h"
+
+class SDAvailableCall {
+public :
+    dance_level dance_program;
+    QString call_name;
+SDAvailableCall() : dance_program(l_mainstream), call_name() {}
+};
+
+
 class SquareDesk_iofull;
 class MainWindow;
 
@@ -32,8 +44,8 @@ public:
         InputStateYesNo,
         InputStateText };
     CurrentInputState currentInputState();
-    void set_dance_program(int dance_program);
-
+    void set_dance_program(dance_level dance_program);
+    dance_level find_dance_program(QString call);
 
 signals:
     void on_sd_update_status_bar(QString s);
@@ -45,6 +57,8 @@ signals:
     void on_sd_dispose_of_abbreviation(QString);
     void do_message_box_question(QString title, QString message);
     void do_message_box_get_string(QString title, QString message);
+    void sd_begin_available_call_list_output();
+    void sd_end_available_call_list_output();
 
 private:
     MainWindow *mw;

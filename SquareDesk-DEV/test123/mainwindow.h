@@ -81,9 +81,6 @@
 #include <tidy/tidybuffio.h>
 
 #include "sdinterface.h"
-// ZZZZ TODO: I realy don't want to clutter up this with sdlib
-// declarations, but I also don't want to duplicate `enum dance_level`
-#include "../sdlib/database.h"
 
 class SDDancer
 {
@@ -396,6 +393,8 @@ public:
     void on_sd_set_matcher_options(QStringList options, QStringList levels);
     void on_sd_update_status_bar(QString str);
     void on_sd_awaiting_input();
+    void sd_begin_available_call_list_output();
+    void sd_end_available_call_list_output();
     void initialize_internal_sd_tab();
 
 private:
@@ -662,6 +661,9 @@ private: // SD
     int sdLastLine;
     bool sdWasNotDrawingPicture;
     bool sdLastLineWasResolve;
+    bool sdOutputtingAvailableCalls;
+    QList<SDAvailableCall> sdAvailableCalls;
+    int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;
     QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
     QAction **danceProgramActions;
@@ -671,6 +673,7 @@ private: // SD
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);
+    dance_level get_current_sd_dance_program();
 };
 
 // currentState:

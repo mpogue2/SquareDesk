@@ -98,12 +98,37 @@ private:
     void UpdateStatusBar(const char *);
     bool do_popup(int nWhichOne);
 
+    dance_level find_dance_program(QString call);
 };
 
-void SDThread::set_dance_program(int dance_program)
+void SDThread::set_dance_program(dance_level dance_program)
 {
-    calling_level = (dance_level)(dance_program);
+    calling_level = dance_program;
 }
+
+dance_level SDThread::find_dance_program(QString call)
+{
+    return iofull->find_dance_program(call);
+}
+
+dance_level SquareDesk_iofull::find_dance_program(QString call)
+{
+    dance_level dance_program(l_mainstream);
+    for (int i=0; i<number_of_calls[nLastOne]; i++)
+    {
+        QString this_name(get_call_menu_name(main_call_lists[nLastOne][i]));
+
+        if (call.contains(this_name))
+        {
+            if (dance_program == 0
+                || dance_program > (dance_level)(main_call_lists[nLastOne][i]->the_defn.level))
+            {
+                dance_program = (dance_level)(main_call_lists[nLastOne][i]->the_defn.level);
+            }
+        }
+    }
+}
+
 
 SDThread::CurrentInputState SDThread::currentInputState()
 {
@@ -153,9 +178,9 @@ void SquareDesk_iofull::add_string_input(const char *s)
             ach[len - 1] = '\0';
             qInfo() << "Attempting match: " << ach;
             matcher.copy_to_user_input(ach);
-            qInfo() << "Listing options";
+            emit sdthread->sd_begin_available_call_list_output();
             matcher.match_user_input(nLastOne, true, question_mark, false);
-            qInfo() << "Listed options";
+            emit sdthread->sd_end_available_call_list_output();
             break;
         }
 
@@ -293,6 +318,7 @@ const char *SquareDesk_iofull::version_string()
     return "SquareDesk-" VERSIONSTRING;
 //    qWarning() << "SquareDesk_iofull::char *version_string();";
 }
+
 
 void SquareDesk_iofull::ShowListBox(int nWhichOne) {
     QStringList options;
@@ -892,6 +918,8 @@ SDThread::SDThread(MainWindow *mw)
     QObject::connect(this, &SDThread::on_sd_set_matcher_options, mw, &MainWindow::on_sd_set_matcher_options);
     QObject::connect(this, &SDThread::on_sd_set_pick_string, mw, &MainWindow::on_sd_set_pick_string);
     QObject::connect(this, &SDThread::on_sd_dispose_of_abbreviation, mw, &MainWindow::on_sd_dispose_of_abbreviation);
+    QObject::connect(this, &SDThread::sd_begin_available_call_list_output, mw, &MainWindow::sd_begin_available_call_list_output);
+    QObject::connect(this, &SDThread::sd_end_available_call_list_output, mw, &MainWindow::sd_end_available_call_list_output);
 
 }
 

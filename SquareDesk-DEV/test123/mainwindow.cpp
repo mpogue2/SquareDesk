@@ -204,7 +204,11 @@ MainWindow::MainWindow(QWidget *parent) :
     totalZoom(0),
     hotkeyMappings(KeyAction::defaultKeyToActionMappings()),
     sdLastLine(-1),
-    sdWasNotDrawingPicture(true)
+    sdWasNotDrawingPicture(true),
+    sdLastLineWasResolve(false),
+    sdOutputtingAvailableCalls(false),
+    sdAvailableCalls(),
+    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1)
 {
     linesInCurrentPlaylist = 0;
 
