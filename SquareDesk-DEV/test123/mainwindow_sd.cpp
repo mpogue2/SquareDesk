@@ -22,6 +22,10 @@ static QBrush coupleColorBrushes[4] = { QBrush(COUPLE1COLOR),
                              QBrush(COUPLE3COLOR),
                              QBrush(COUPLE4COLOR)
 };
+static QStringList initialDancerLocations;
+static QHash<dance_level, QString> sdLevelEnumsToStrings;
+
+static const char *str_exit_from_the_program = "exit from the program";
 
 static QFont dancerLabelFont;
 
@@ -234,6 +238,7 @@ void MainWindow::initialize_internal_sd_tab()
         ui->actionSDDanceProgramC4x,
         NULL
     };
+ 
     danceProgramActions = new QAction *[sizeof(danceProgramActionsStatic) / sizeof(*danceProgramActionsStatic)];
 
     sdActionGroupDanceProgram = new QActionGroup(this);  // checker styles
@@ -245,6 +250,25 @@ void MainWindow::initialize_internal_sd_tab()
         QAction *action = danceProgramActions[i];
         sdActionGroupDanceProgram->addAction(action);
     }
+
+
+    sdLevelEnumsToStrings[l_mainstream] = "Mainstream";
+    sdLevelEnumsToStrings[l_plus] = "Plus";
+    sdLevelEnumsToStrings[l_a1] = "A1";
+    sdLevelEnumsToStrings[l_a2] = "A2";
+    sdLevelEnumsToStrings[l_c1] = "C1";
+    sdLevelEnumsToStrings[l_c2] = "C2";
+    sdLevelEnumsToStrings[l_c3a] = "C3a";
+    sdLevelEnumsToStrings[l_c3] = "C3";
+    sdLevelEnumsToStrings[l_c3x] = "C3x";
+    sdLevelEnumsToStrings[l_c4a] = "C4a";
+    sdLevelEnumsToStrings[l_c4] = "C4";
+    sdLevelEnumsToStrings[l_c4x] = "C4x";
+    sdLevelEnumsToStrings[l_dontshow] = "Dontshow";
+    sdLevelEnumsToStrings[l_nonexistent_concept] = "Nonexistent_concept";
+
+
+    
 #if defined(Q_OS_MAC)
     dancerLabelFont = QFont("Arial",11);
 #elif defined(Q_OS_WIN)
@@ -302,7 +326,6 @@ void MainWindow::initialize_internal_sd_tab()
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sdscene);
 
-    QStringList initialDancerLocations;
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    3GV   3BV    .");
     initialDancerLocations.append("");
@@ -342,6 +365,10 @@ void MainWindow::on_sd_set_window_title(QString /* str */)
 void MainWindow::on_sd_update_status_bar(QString str)
 {
 //    qDebug() << "on_sd_update_status_bar: " << str;
+    if (!str.compare("<startup>"))
+    {
+        sdformation = initialDancerLocations;
+    }
     graphicsTextItemSDStatusBarText->setPlainText(str);
     QString formation(graphicsTextItemSDStatusBarText->toPlainText() +
                       "\n" + sdformation.join("\n"));
@@ -383,12 +410,23 @@ void MainWindow::sd_end_available_call_list_output()
     
     sdOutputtingAvailableCalls = false;
     QString available("Available calls:");
+    ui->listWidgetSDOutput->addItem(available);
     for (auto available_call : sdAvailableCalls)
     {
+        QString call_text(available_call.call_name);
+        if (sdLevelEnumsToStrings.end() != sdLevelEnumsToStrings.find(available_call.dance_program))
+        {
+            call_text += " - " + sdLevelEnumsToStrings[available_call.dance_program];
+        }
+        else
+        {
+            call_text += QString(" - (%0)").arg(available_call.dance_program);
+        }
         if (available_call.dance_program <= current_dance_program)
-            available += "\n   " + available_call.call_name;
+        {
+            ui->listWidgetSDOutput->addItem(call_text);
+        }
     }
-    ui->listWidgetSDOutput->addItem(available);
 }
 
 
@@ -497,7 +535,7 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
     for (int i = 0; i < options.length(); ++i)
     {
         // if it's not "exit the program"
-        if (options[i].compare("exit the program"))
+        if (options[i].compare(str_exit_from_the_program))
         {
             QListWidgetItem *item = new QListWidgetItem(options[i]);
             QVariant v(levels[i].toInt());
@@ -634,7 +672,12 @@ void MainWindow::do_sd_tab_completion()
         {
             prefix = prefix + " ";
         }
-        ui->lineEditSDInput->setText(prefix + longestMatch);
+        QString new_line(prefix + longestMatch);
+        if (new_line.contains('<'))
+        {
+            new_line = new_line.left(new_line.indexOf('<'));
+        }
+        ui->lineEditSDInput->setText(new_line);
     }
 
 }
@@ -648,8 +691,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
         cmd = "abort this sequence";
-    }    
-    
+    }
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
@@ -722,14 +764,14 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     cmd = cmd.replace("separate go around", "separate around");
 
     // handle "dixie style [to a wave|to an ocean wave]" --> "dixie style to a wave"
-    cmd = cmd.replace(QRegExp("dixie style.*"), "dixie style to a wave\n");
+    cmd = cmd.replace(QRegExp("dixie style.*"), "dixie style to a wave");
 
     // handle the <anything> and roll case
     //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
     if (!cmd.contains("[")) {
         QRegExp andRollCall("(.*) and roll.*");
         if (cmd.indexOf(andRollCall) != -1) {
-            cmd = "[" + andRollCall.cap(1) + "] and roll\n";
+            cmd = "[" + andRollCall.cap(1) + "] and roll";
         }
 
         // explode must be handled *after* roll, because explode binds tightly with the call
@@ -737,16 +779,16 @@ void MainWindow::on_lineEditSDInput_returnPressed()
         //      [explode and [right and left thru]] and roll
 
         // first, handle both: "explode and <anything> and roll"
-        //  by the time we're here, it's already "[explode and <anything>] and roll\n", because
+        //  by the time we're here, it's already "[explode and <anything>] and roll", because
         //  we've already done the roll processing.
         QRegExp explodeAndRollCall("\\[explode and (.*)\\] and roll");
         QRegExp explodeAndNotRollCall("^explode and (.*)");
 
         if (cmd.indexOf(explodeAndRollCall) != -1) {
-            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll\n";
+            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll";
         } else if (cmd.indexOf(explodeAndNotRollCall) != -1) {
-            // not a roll, for sure.  Must be a naked "explode and <anything>\n"
-            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]\n";
+            // not a roll, for sure.  Must be a naked "explode and <anything>"
+            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]";
         } else {
         }
     }
@@ -755,14 +797,14 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     if (!cmd.contains("[")) {
         QRegExp andSpreadCall("(.*) and spread");
         if (cmd.indexOf(andSpreadCall) != -1) {
-            cmd = "[" + andSpreadCall.cap(1) + "] and spread\n";
+            cmd = "[" + andSpreadCall.cap(1) + "] and spread";
         }
     }
 
     // handle "undo [that]" --> "undo last call"
     cmd = cmd.replace("undo that", "undo last call");
-    if (cmd == "undo\n") {
-        cmd = "undo last call\n";
+    if (cmd == "undo") {
+        cmd = "undo last call";
     }
 
     // handle "peel your top" --> "peel the top"
@@ -780,20 +822,20 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     if (found != -1) {
         if (cmd.contains("[")) {
             // if manual brackets added, don't add more of them.
-            cmd = cmd.replace(andSweepPart,"") + " and sweep 1/4\n";
+            cmd = cmd.replace(andSweepPart,"") + " and sweep 1/4";
         } else {
-            cmd = "[" + cmd.replace(andSweepPart,"") + "] and sweep 1/4\n";
+            cmd = "[" + cmd.replace(andSweepPart,"") + "] and sweep 1/4";
         }
     }
 
     // handle "square thru" -> "square thru 4"
-    if (cmd == "square thru\n") {
-        cmd = "square thru 4\n";
+    if (cmd == "square thru") {
+        cmd = "square thru 4";
     }
 
     // SD COMMANDS -------
     // square your|the set -> square thru 4
-    if (cmd == "square the set\n" || cmd == "square your set\n") {
+    if (cmd == "square the set" || cmd == "square your set") {
         emit sdthread->on_user_input("abort this sequence");
         emit sdthread->on_user_input("y");
     }
@@ -1076,7 +1118,7 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
             if (item->isSelected())
             {
-                selected =true;
+                selected = true;
             }
         }
         if (selected)

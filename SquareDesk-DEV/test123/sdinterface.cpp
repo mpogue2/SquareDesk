@@ -113,20 +113,22 @@ dance_level SDThread::find_dance_program(QString call)
 
 dance_level SquareDesk_iofull::find_dance_program(QString call)
 {
-    dance_level dance_program(l_mainstream);
+    dance_level dance_program(l_nonexistent_concept);
     for (int i=0; i<number_of_calls[nLastOne]; i++)
     {
         QString this_name(get_call_menu_name(main_call_lists[nLastOne][i]));
 
-        if (call.contains(this_name))
+        if (call.endsWith(this_name, Qt::CaseInsensitive))
         {
-            if (dance_program == 0
+            if (dance_program == l_nonexistent_concept
                 || dance_program > (dance_level)(main_call_lists[nLastOne][i]->the_defn.level))
             {
                 dance_program = (dance_level)(main_call_lists[nLastOne][i]->the_defn.level);
+//                qInfo() << "Found " << this_name << " in " << call << " for level " << dance_program;
             }
         }
     }
+    return dance_program;
 }
 
 
