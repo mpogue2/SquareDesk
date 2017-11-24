@@ -190,7 +190,7 @@ macx {
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
-    QMAKE_MAC_SDK = macosx10.12
+    QMAKE_MAC_SDK = macosx10.13
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
