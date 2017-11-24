@@ -84,8 +84,8 @@
 
 #define VERSIONSTRING "0.8.2alpha7"
 
-#define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.03.14/"
-#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
+#define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
+#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.10.13"
 
 namespace Ui
 {
