@@ -173,9 +173,8 @@ using namespace TagLib;
 
 // GLOBALS:
 bass_audio cBass;
-static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };
-static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" };
-
+static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
+static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 
 #include <QProxyStyle>
 
@@ -1212,7 +1211,7 @@ void MainWindow::writeCuesheet(QString filename)
     {
         QString ext(".");
         ext.append(cuesheet_file_extensions[i]);
-        if (filename.endsWith(ext))
+        if (filename.endsWith(ext, Qt::CaseInsensitive))
         {
             needs_extension = false;
             break;
@@ -3288,7 +3287,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
-    if (cuesheetFilename.endsWith(".txt")) {
+    if (cuesheetFilename.endsWith(".txt", Qt::CaseInsensitive)) {
         // text files are read in, converted to HTML, and sent to the Lyrics tab
         QFile f1(cuesheetFilename);
         f1.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -3298,7 +3297,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
         loadedCuesheetNameWithPath = cuesheetFilename;
         f1.close();
     }
-    else if (cuesheetFilename.endsWith(".mp3")) {
+    else if (cuesheetFilename.endsWith(".mp3", Qt::CaseInsensitive)) {
 //        qDebug() << "loadCuesheet():";
         QString embeddedID3Lyrics = loadLyrics(cuesheetFilename);
 //        qDebug() << "embLyrics:" << embeddedID3Lyrics;
@@ -3504,11 +3503,11 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
         int extensionIndex = 0;
 
-        if (s.endsWith("htm")) {
+        if (s.endsWith("htm", Qt::CaseInsensitive)) {
             // nothing
-        } else if (s.endsWith("html")) {
+        } else if (s.endsWith("html", Qt::CaseInsensitive)) {
             extensionIndex = 1;
-        } else if (s.endsWith("txt")) {
+        } else if (s.endsWith("txt", Qt::CaseInsensitive)) {
             extensionIndex = 2;
         } else {
             continue;
@@ -4040,7 +4039,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
         QFileDialog::getOpenFileName(this,
                                      tr("Import Audio File"),
                                      startingDirectory,
-                                     tr("Audio Files (*.mp3 *.wav)"));
+                                     tr("Audio Files (*.mp3 *.m4a *.wav)"));
     if (MP3FileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
     }
@@ -4093,7 +4092,8 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QString path1 = resolvedFilePath;
                 QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
                 QStringList sections = baseName.split(".");
-                if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+                if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2].compare("mp3",Qt::CaseInsensitive)==0) {
+//                    if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
                     soundFXname[sections[0].toInt()-1] = sections[1];  // save for populating Preferences dropdown later
                     switch (sections[0].toInt()) {
                         case 1: ui->action_1->setText(sections[1]); break;
@@ -4221,6 +4221,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
         QStringList qsl;
         qsl.append("*.mp3");                // I only want MP3 files
+        qsl.append("*.m4a");                //          or M4A files
         qsl.append("*.wav");                //          or WAV files
         rootDir2.setNameFilters(qsl);
 
@@ -4355,7 +4356,7 @@ void MainWindow::loadMusicList()
         while (extensionIterator.hasNext())
         {
             QString extension(extensionIterator.next());
-            if (s.endsWith(extension))
+            if (s.endsWith(extension, Qt::CaseInsensitive))
             {
                 foundExtension = true;
             }
@@ -4734,7 +4735,7 @@ void MainWindow::loadChoreographyList()
     while (iter.hasNext()) {
         QString s = iter.next();
 
-        if (s.endsWith(".txt")
+        if (s.endsWith(".txt", Qt::CaseInsensitive)
             && (s.contains("sequence", Qt::CaseInsensitive)
                 || s.contains("singer", Qt::CaseInsensitive)))
         {
@@ -4790,7 +4791,7 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
             QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
             QFileInfo fi(origPath);
-            if (fi.dir().canonicalPath().endsWith("/reference"))
+            if (fi.dir().canonicalPath().endsWith("/reference", Qt::CaseInsensitive))
             {
                 programs << origPath;
             }
@@ -5244,7 +5245,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
         QTextStream in(&inputFile);
 
-        if (PlaylistFileName.endsWith(".csv")) {
+        if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
             // CSV FILE =================================
 
             QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
@@ -5475,7 +5476,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     //   Then on Save Playlist, write out the NEW patter and the rest
 
     QFile file(PlaylistFileName);
-    if (PlaylistFileName.endsWith(".m3u")) {
+    if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
             QTextStream stream(&file);
             stream << "#EXTM3U" << endl << endl;
@@ -5493,7 +5494,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
         }
     }
-    else if (PlaylistFileName.endsWith(".csv")) {
+    else if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
             stream << "abspath,pitch,tempo" << endl;
@@ -5552,10 +5553,10 @@ void MainWindow::on_actionSave_Playlist_triggered()
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
 
-    if (PlaylistFileName.endsWith(".csv")) {
+    if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         ui->statusBar->showMessage(QString("Playlist items saved as CSV file."));
     }
-    else if (PlaylistFileName.endsWith(".m3u")) {
+    else if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
         ui->statusBar->showMessage(QString("Playlist items saved as M3U file."));
     }
     else {
@@ -7696,7 +7697,8 @@ void MainWindow::maybeInstallSoundFX() {
         QString baseName = s1.replace(soundfxDir,"");
         QStringList sections = baseName.split(".");
 
-        if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+        if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2].compare("mp3",Qt::CaseInsensitive)==0) {
+//            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
             foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
         }
     } // while
@@ -9050,7 +9052,9 @@ QList<QString> MainWindow::getListOfMusicFiles()
         QString filename = sl1[1];  // everything else
 
         // TODO: should we allow "patter" to match cuesheets?
-        if ((type == "singing" || type == "vocals") && (filename.endsWith("mp3") || filename.endsWith("m4a") || filename.endsWith("wav"))) {
+        if ((type == "singing" || type == "vocals") && (filename.endsWith("mp3", Qt::CaseInsensitive) ||
+                                                        filename.endsWith("m4a", Qt::CaseInsensitive) ||
+                                                        filename.endsWith("wav", Qt::CaseInsensitive))) {
             QFileInfo fi(filename);
             QString justFilename = fi.fileName();
             list.append(justFilename);
