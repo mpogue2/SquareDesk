@@ -107,6 +107,8 @@ public:
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
+#define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
+
 namespace Ui
 {
 class MainWindow;
@@ -131,14 +133,29 @@ public:
     QActionGroup *sdActionGroup2;
     QActionGroup *sdActionGroupDanceProgram;
 
+    void checkLockFile();
+    void clearLockFile();
+
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
+
+    void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
+
+    void on_flashcallbasic_toggled(bool checked);
+    void on_flashcallmainstream_toggled(bool checked);
+    void on_flashcallplus_toggled(bool checked);
+    void on_flashcalla1_toggled(bool checked);
+    void on_flashcalla2_toggled(bool checked);
+    void on_flashcallc1_toggled(bool checked);
+    void on_flashcallc2_toggled(bool checked);
+    void on_flashcallc3a_toggled(bool checked);
+    void on_flashcallc3b_toggled(bool checked);
 
     void airplaneMode(bool turnItOn);
 
@@ -315,6 +332,8 @@ private slots:
     void focusChanged(QWidget *old, QWidget *now);
 
     void lyricsDownloadEnd();
+    void cuesheetListDownloadEnd();
+
     void makeProgress();
     void cancelProgress();
 
@@ -397,6 +416,26 @@ public:
     void sd_end_available_call_list_output();
     void initialize_internal_sd_tab();
 
+    void on_actionFlashCallBasic_triggered();
+
+    void on_actionFlashCallMainstream_triggered();
+
+    void on_actionFlashCallPlus_triggered();
+
+    void on_actionFlashCallA1_triggered();
+
+    void on_actionFlashCallA2_triggered();
+
+    void on_actionFlashCallC1_triggered();
+
+    void on_actionFlashCallC2_triggered();
+
+    void on_actionFlashCallC3a_triggered();
+
+    void on_actionFlashCallC3b_triggered();
+
+//    void on_actionDownload_matching_lyrics_triggered();
+
 private:
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
@@ -404,6 +443,12 @@ private:
     void saveLyrics();
     void saveLyricsAs();
     void saveSequenceAs();
+
+    void fetchListOfCuesheetsFromCloud();
+    QList<QString> getListOfCuesheets();
+    QList<QString> getListOfMusicFiles();
+    bool fuzzyMatchFilenameToCuesheetname(QString s1, QString s2);
+    void downloadCuesheetFileIfNeeded(QString cuesheetFilename);
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
 
@@ -467,6 +512,8 @@ private:
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
 
     float getID3BPM(QString MP3FileName);
+
+    void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
@@ -620,7 +667,9 @@ private:
 
     QProgressDialog *progressDialog;
     QTimer *progressTimer;
-    float progressTotal;
+    float progressTotal;    // 0 - 100 for each stage, resets to zero at start of each stage...
+    float progressOffset;   // 0, 33, 66 for each of the 3 stages of downloading/matching...
+    bool progressCancelled; // true if user said STOP
 
 private:
     QHash<Qt::Key, KeyAction *> hotkeyMappings;

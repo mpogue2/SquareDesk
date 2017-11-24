@@ -3,6 +3,7 @@
 Downloader::Downloader(QObject *parent) :
     QObject(parent)
 {
+    networkReply = 0;
 }
 
 void Downloader::doDownload(QUrl url, QString d)
@@ -11,14 +12,22 @@ void Downloader::doDownload(QUrl url, QString d)
     QNetworkRequest req(url);
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(finished(QNetworkReply*)), this,SLOT(replyFinished(QNetworkReply*)));
-    manager -> get(req);
+    networkReply = manager->get(req);
+}
+
+void Downloader::abortTransfer() {
+    // abort the transfer in progress...
+//    qDebug() << "Aborting the transfer...";
+    if (networkReply) {
+        networkReply->abort();
+    }
 }
 
 void Downloader::replyFinished(QNetworkReply *reply)
 {
-    qDebug() << "replyFinished()";
+//    qDebug() << "Downloader::replyFinished()";
     if(reply->error()) {
-        qDebug() << "Downloader -- ERROR:" << reply->errorString();
+//        qDebug() << "Downloader -- ERROR:" << reply->errorString();
     }
     else {
         QFile file(destPath);

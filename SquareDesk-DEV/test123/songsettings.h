@@ -42,6 +42,9 @@ private:
     int m_mix;
     bool set_mix;
 
+    int m_loop;
+    bool set_loop;
+
 public:
     SongSetting();
     QString getFilename() const { return m_filename; }
@@ -91,10 +94,15 @@ public:
     int getMidrange() const { return m_midrange; }
     bool isSetMidrange() const { return set_midrange; }
     void setMidrange(int p) { m_midrange = p; set_midrange = true; }
+
     int getMix() const { return m_mix; }
     bool isSetMix() const { return set_mix; }
     void setMix(int p) { m_mix = p; set_mix = true; }
-    
+
+    int getLoop() const { return m_loop; }
+    bool isSetLoop() const { return set_loop; }
+    void setLoop(int p) { m_loop = p; set_loop = true; }
+
     friend QDebug operator<<(QDebug dbg, const SongSetting &setting);  // DEBUG
 };
 

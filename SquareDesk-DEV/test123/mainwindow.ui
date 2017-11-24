@@ -1841,6 +1841,7 @@
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
     <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -1879,11 +1880,28 @@
      <addaction name="actionPitch"/>
      <addaction name="actionTempo"/>
     </widget>
+    <widget class="QMenu" name="menuFlash_Call">
+     <property name="title">
+      <string>Flash Call Levels</string>
+     </property>
+     <addaction name="actionFlashCallBasic"/>
+     <addaction name="actionFlashCallMainstream"/>
+     <addaction name="actionFlashCallPlus"/>
+     <addaction name="actionFlashCallA1"/>
+     <addaction name="actionFlashCallA2"/>
+     <addaction name="actionFlashCallC1"/>
+     <addaction name="actionFlashCallC2"/>
+     <addaction name="actionFlashCallC3a"/>
+     <addaction name="actionFlashCallC3b"/>
+    </widget>
     <addaction name="actionCompact"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
     <addaction name="separator"/>
     <addaction name="menuColumns"/>
+    <addaction name="separator"/>
+    <addaction name="menuFlash_Call"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
@@ -2588,7 +2606,7 @@
   </action>
   <action name="actionDownload_Cuesheets">
    <property name="text">
-    <string>Download Lyrics...</string>
+    <string>Download Matching Cuesheets...</string>
    </property>
   </action>
   <action name="actionLyricsCueSheetRevert_Edits">
@@ -2728,7 +2746,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show Concepts</string>
+     <string>Show Concepts</string>
    </property>
   </action>
   <action name="actionShow_Commands">
@@ -2795,6 +2813,11 @@
     <string>C3A</string>
    </property>
   </action>
+  <action name="actionFlashCallC3a">
+   <property name="text">
+    <string>C3a</string>
+   </property>
+  </action>
   <action name="actionSDDanceProgramC3">
    <property name="checkable">
     <bool>true</bool>
@@ -2835,7 +2858,52 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Formation Thumbnails</string>
+     <string>Formation Thumbnails</string>
+   </property>
+  </action>
+  <action name="actionFlashCallBasic">
+    <property name="text">
+    <string>Basic</string>
+   </property>
+  </action>
+  <action name="actionFlashCallMainstream">
+    <property name="text">
+      <string>Mainstream</string>
+    </property>
+  </action>
+  <action name="actionFlashCallPlus">
+    <property name="text">
+      <string>Plus</string>
+    </property>
+  </action>
+  <action name="actionFlashCallA1">
+    <property name="text">
+      <string>A1</string>
+    </property>
+  </action>
+  <action name="actionFlashCallA2">
+    <property name="text">
+      <string>A2</string>
+    </property>
+  </action>
+  <action name="actionFlashCallC1">
+    <property name="text">
+      <string>C1</string>
+    </property>
+  </action>
+  <action name="actionFlashCallC2">
+    <property name="text">
+      <string>C2</string>
+    </property>
+  </action>
+  <action name="actionFlashCallC3b">
+    <property name="text">
+      <string>C3b</string>
+    </property>
+  </action>
+  <action name="actionDownload_matching_lyrics">
+   <property name="text">
+    <string>TEST cuesheets...</string>
    </property>
   </action>
  </widget>
