@@ -3424,17 +3424,19 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
             ++i2;
         }
     }
+
+//    qDebug() << "Score" << score << " / " << l1.length() << "/" << l2.length() << " s1: " << l1.join("-") << " s2: " << l2.join("-");
+
     if (l1.length() >= 2 && l2.length() >= 2 &&
         (
             (score > ((l1.length() + l2.length()) / 4))
-            || (score >= l1.length())
-            || (score >= l2.length())
+            || (score >= l1.length())                       // all of l1 words matched something in l2
+            || (score >= l2.length())                       // all of l2 words matched something in l1
             )
         )
     {
         QString s1 = l1.join("-");
         QString s2 = l2.join("-");
-//        qDebug() << "Score" << score << " / " << l1.length() << "/" << l2.length() << " s1: " << s1 << " s2: " << s2;
         return score * 500 - 100 * (abs(l1.length()) - l2.length());
     }
     else
@@ -3808,6 +3810,13 @@ float MainWindow::getID3BPM(QString MP3FileName) {
     return(theBPM);
 }
 
+void MainWindow::reloadCurrentMP3File() {
+    // if there is a song loaded, reload it (to pick up, e.g. new cuesheets)
+    if ((currentMP3filenameWithPath != "")&&(currentSongTitle != "")&&(currentSongType != "")) {
+//        qDebug() << "reloading song: " << currentMP3filename;
+        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongType);
+    }
+}
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType)
 {
@@ -8164,71 +8173,76 @@ void MainWindow::stopLongSongTableOperation(QString s) {
 
 void MainWindow::on_actionDownload_Cuesheets_triggered()
 {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+    fetchListOfCuesheetsFromCloud();
+//  cuesheetListDownloadEnd();  // <-- will be called, when the fetch from the Cloud is complete
 
-    PreferencesManager prefsManager;
-    QString musicDirPath = prefsManager.GetmusicPath();
-    QString lyricsDirPath = musicDirPath + "/lyrics";
+//#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 
-    QDir lyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+//    PreferencesManager prefsManager;
+//    QString musicDirPath = prefsManager.GetmusicPath();
+//    QString lyricsDirPath = musicDirPath + "/lyrics";
 
-    if (lyricsDir.exists()) {
-//        qDebug() << "You already have the latest cuesheets downloaded.  Are you sure you want to download them again (erasing any edits you made)?";
+//    QDir lyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
 
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Warning);
-        msgBox.setText(QString("You already have the latest lyrics files: '") + CURRENTSQVIEWLYRICSNAME + "'");
-        msgBox.setInformativeText("Are you sure?  This will overwrite any lyrics that you have edited in that folder.");
-        QPushButton *downloadButton = msgBox.addButton(tr("Download Anyway"), QMessageBox::AcceptRole);
-        QPushButton *abortButton = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
-        msgBox.exec();
+//    if (lyricsDir.exists()) {
+////        qDebug() << "You already have the latest cuesheets downloaded.  Are you sure you want to download them again (erasing any edits you made)?";
 
-        if (msgBox.clickedButton() == downloadButton) {
-            // Download
-//            qDebug() << "DOWNLOAD WILL PROCEED NORMALLY.";
-        } else if (msgBox.clickedButton() == abortButton) {
-            // Abort
-//            qDebug() << "ABORTING DOWNLOAD.";
-            return;
-        }
-    }
+//        QMessageBox msgBox;
+//        msgBox.setIcon(QMessageBox::Warning);
+//        msgBox.setText(QString("You already have the latest lyrics files: '") + CURRENTSQVIEWLYRICSNAME + "'");
+//        msgBox.setInformativeText("Are you sure?  This will overwrite any lyrics that you have edited in that folder.");
+//        QPushButton *downloadButton = msgBox.addButton(tr("Download Anyway"), QMessageBox::AcceptRole);
+//        QPushButton *abortButton = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
+//        msgBox.exec();
 
-    Downloader *d = new Downloader(this);
+//        if (msgBox.clickedButton() == downloadButton) {
+//            // Download
+////            qDebug() << "DOWNLOAD WILL PROCEED NORMALLY.";
+//        } else if (msgBox.clickedButton() == abortButton) {
+//            // Abort
+////            qDebug() << "ABORTING DOWNLOAD.";
+//            return;
+//        }
+//    }
 
-    QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
-//    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
+//    Downloader *d = new Downloader(this);
 
-    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
+//    QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
+////    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
 
-    d->doDownload(lyricsZipFileURL, lyricsZipFileName);  // download URL and put it into lyricsZipFileName
+//    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
 
-    QObject::connect(d,SIGNAL(downloadFinished()), this, SLOT(lyricsDownloadEnd()));
-    QObject::connect(d,SIGNAL(downloadFinished()), d, SLOT(deleteLater()));
+//    d->doDownload(lyricsZipFileURL, lyricsZipFileName);  // download URL and put it into lyricsZipFileName
 
-    // PROGRESS BAR ---------------------
-    // assume ~10MB
-    progressDialog = new QProgressDialog("Downloading lyrics...", "Cancel Download", 0, 100, this);
-    connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelProgress()));
-    progressTimer = new QTimer(this);
-    connect(progressTimer, SIGNAL(timeout()), this, SLOT(makeProgress()));
-    progressTotal = 0.0;
-    progressTimer->start(500);  // once per second
-#endif
+//    QObject::connect(d,SIGNAL(downloadFinished()), this, SLOT(lyricsDownloadEnd()));
+//    QObject::connect(d,SIGNAL(downloadFinished()), d, SLOT(deleteLater()));
+
+//    // PROGRESS BAR ---------------------
+//    // assume ~10MB
+//    progressDialog = new QProgressDialog("Downloading lyrics...", "Cancel Download", 0, 100, this);
+//    connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelProgress()));
+//    progressTimer = new QTimer(this);
+//    connect(progressTimer, SIGNAL(timeout()), this, SLOT(makeProgress()));
+
+//    progressOffset = 0.0;
+//    progressTotal = 0.0;
+//    progressTimer->start(500);  // twice per second
+//#endif
 }
 
 void MainWindow::makeProgress() {
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-    if (progressTotal < 80) {
-        progressTotal += 10.0;
+    if (progressTotal < 70) {
+        progressTotal += 7.0;
     } else if (progressTotal < 90) {
-        progressTotal += 1.0;
+        progressTotal += 2.0;
     } else if (progressTotal < 98) {
-        progressTotal += 0.25;
+        progressTotal += 0.5;
     } // else no progress for you.
 
-//    qDebug() << "making progress..." << progressTotal;
+//    qDebug() << "making progress..." << progressOffset << "," << progressTotal;
 
-    progressDialog->setValue((unsigned int)progressTotal);
+    progressDialog->setValue((unsigned int)(progressOffset + 33.0*(progressTotal/100.0)));
 #endif
 }
 
@@ -8237,58 +8251,67 @@ void MainWindow::cancelProgress() {
 //    qDebug() << "cancelling progress...";
     progressTimer->stop();
     progressTotal = 0;
+    progressOffset = 0;
+    progressCancelled = true;
 #endif
 }
 
 
 void MainWindow::lyricsDownloadEnd() {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-//    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
+//#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+////    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
 
-//    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
-    PreferencesManager prefsManager;
-    QString musicDirPath = prefsManager.GetmusicPath();
-    QString lyricsDirPath = musicDirPath + "/lyrics";
-    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
+////    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
+//    PreferencesManager prefsManager;
+//    QString musicDirPath = prefsManager.GetmusicPath();
+//    QString lyricsDirPath = musicDirPath + "/lyrics";
+//    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
 
-    QString destinationDir = lyricsDirPath;
+//    QString destinationDir = lyricsDirPath;
 
-    // extract the ZIP file
-    QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
+//    // extract the ZIP file
+//    QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
 
-    if (extracted.empty()) {
-//        qDebug() << "There was a problem extracting the files.  No files extracted.";
-        progressDialog->setValue(100);  // kill the progress bar
-        progressTimer->stop();
-        QMessageBox msgBox;
-        msgBox.setText("The lyrics have been downloaded to <musicDirectory>/lyrics, but you need to manually unpack them.\nWindows: Right click, Extract All on: " +
-                       lyricsZipFileName);
-        msgBox.exec();
-        return;  // and don't delete the ZIP file, for debugging
-    }
+//    if (extracted.empty()) {
+////        qDebug() << "There was a problem extracting the files.  No files extracted.";
+//        progressDialog->setValue(100);  // kill the progress bar
+//        progressTimer->stop();
+//        progressOffset = 0;
+//        progressTotal = 0;
+//        progressCancelled = false;
 
-//    qDebug() << "DELETING ZIP FILE...";
-    QFile file(lyricsZipFileName);
-    file.remove();
+//        QMessageBox msgBox;
+//        msgBox.setText("The lyrics have been downloaded to <musicDirectory>/lyrics, but you need to manually unpack them.\nWindows: Right click, Extract All on: " +
+//                       lyricsZipFileName);
+//        msgBox.exec();
+//        return;  // and don't delete the ZIP file, for debugging
+//    }
 
-    QDir currentLyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
-    if (currentLyricsDir.exists()) {
-//        qDebug() << "Refused to overwrite existing cuesheets, renamed to: " << lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup";
-        QFile::rename(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME, lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup");
-    }
+////    qDebug() << "DELETING ZIP FILE...";
+//    QFile file(lyricsZipFileName);
+//    file.remove();
 
-//    qDebug() << "RENAMING Text/ TO SqViewCueSheets_2017.03.14/ ...";
-    QFile::rename(lyricsDirPath + "/Text", lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+//    QDir currentLyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
+//    if (currentLyricsDir.exists()) {
+////        qDebug() << "Refused to overwrite existing cuesheets, renamed to: " << lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup";
+//        QFile::rename(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME, lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup");
+//    }
 
-    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
-    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-    loadMusicList(); // and filter them into the songTable
+////    qDebug() << "RENAMING Text/ TO SqViewCueSheets_2017.03.14/ ...";
+//    QFile::rename(lyricsDirPath + "/Text", lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
 
-//    qDebug() << "DONE DOWNLOADING LATEST LYRICS: " << CURRENTSQVIEWLYRICSNAME << "\n";
+//    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
+//    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+//    loadMusicList(); // and filter them into the songTable
 
-    progressDialog->setValue(100);  // kill the progress bar
-    progressTimer->stop();
-#endif
+////    qDebug() << "DONE DOWNLOADING LATEST LYRICS: " << CURRENTSQVIEWLYRICSNAME << "\n";
+
+//    progressDialog->setValue(100);  // kill the progress bar
+//    progressTimer->stop();
+//    progressOffset = 0;
+//    progressTotal = 0;
+
+//#endif
 }
 
 QString MainWindow::filepath2SongType(QString MP3Filename)
@@ -8727,3 +8750,357 @@ void MainWindow::readFlashCallsList() {
 
 #endif
 }
+
+// -------------------------------------
+// LYRICS CUESHEET FETCHING
+
+void MainWindow::fetchListOfCuesheetsFromCloud() {
+//    qDebug() << "MainWindow::fetchListOfCuesheetsFromCloud() -- Download is STARTING...";
+
+    // TODO: only fetch if the time is newer than the one we got last time....
+    // TODO:    check Expires date.
+
+    QList<QString> cuesheets;
+
+    Downloader *d = new Downloader(this);
+
+    // Apache Directory Listing, because it ends in "/" (~1.1MB uncompressed, ~250KB compressed)
+    QUrl cuesheetListURL(QString(CURRENTSQVIEWCUESHEETSDIR));
+    QString cuesheetListFilename = musicRootPath + "/.squaredesk/publishedCuesheets.html";
+
+//    qDebug() << "cuesheet URL to download:" << cuesheetListURL.toDisplayString();
+//    qDebug() << "             put it here:" << cuesheetListFilename;
+
+    d->doDownload(cuesheetListURL, cuesheetListFilename);  // download URL and put it into cuesheetListFilename
+
+    QObject::connect(d,SIGNAL(downloadFinished()), this, SLOT(cuesheetListDownloadEnd()));
+    QObject::connect(d,SIGNAL(downloadFinished()), d, SLOT(deleteLater()));
+
+    // PROGRESS BAR ---------------------
+    progressDialog = new QProgressDialog("Downloading list of available cuesheets...\n ", "Cancel", 0, 100, this);
+    progressDialog->setMinimumDuration(0);  // start it up right away
+    progressCancelled = false;
+    progressDialog->setWindowModality(Qt::WindowModal);  // stays until cancelled
+    progressDialog->setMinimumWidth(450);  // avoid bug with Cancel button resizing itself
+
+    connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelProgress()));
+    connect(progressDialog, SIGNAL(canceled()), d, SLOT(abortTransfer()));      // if user hits CANCEL, abort transfer in progress.
+    progressTimer = new QTimer(this);
+
+    connect(progressTimer, SIGNAL(timeout()), this, SLOT(makeProgress()));
+    progressOffset = 0.0;
+    progressTotal = 0.0;
+    progressTimer->start(1000);  // once per second to 33%
+}
+
+bool MainWindow::fuzzyMatchFilenameToCuesheetname(QString s1, QString s2) {
+//    qDebug() << "trying to match: " << s1 << "," << s2;
+
+// **** EXACT MATCH OF COMPLETE BASENAME (just for testing)
+//    QFileInfo fi1(s1);
+//    QFileInfo fi2(s2);
+
+//    bool match = fi1.completeBaseName() == fi2.completeBaseName();
+//    if (match) {
+//        qDebug() << "fuzzy match: " << s1 << "," << s2;
+//    }
+
+//    return(match);
+
+// **** OUR FUZZY MATCHING (same as findPossibleCuesheets)
+
+    // SPLIT APART THE MUSIC FILENAME --------
+    QFileInfo mp3FileInfo(s1);
+    QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
+    QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
+    QString mp3Label = "";
+    QString mp3Labelnum = "";
+    QString mp3Labelnum_short = "";
+    QString mp3Labelnum_extra = "";
+    QString mp3Title = "";
+    QString mp3ShortTitle = "";
+    breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
+    QList<CuesheetWithRanking *> possibleRankings;
+
+    QStringList mp3Words = splitIntoWords(mp3CompleteBaseName);
+    mp3Labelnum_short = mp3Labelnum;
+    while (mp3Labelnum_short.length() > 0 && mp3Labelnum_short[0] == '0')
+    {
+        mp3Labelnum_short.remove(0,1);
+    }
+
+    // SPLIT APART THE CUESHEET FILENAME --------
+    QFileInfo fi(s2);
+    QString label = "";
+    QString labelnum = "";
+    QString title = "";
+    QString labelnum_extra;
+    QString shortTitle = "";
+
+    QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
+    breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
+    QStringList words = splitIntoWords(completeBaseName);
+    QString labelnum_short = labelnum;
+    while (labelnum_short.length() > 0 && labelnum_short[0] == '0')
+    {
+        labelnum_short.remove(0,1);
+    }
+
+    // NOW SCORE IT ----------------------------
+    int score = 0;
+//    qDebug() << "label: " << label;
+    if (completeBaseName.compare(mp3CompleteBaseName, Qt::CaseInsensitive) == 0         // exact match: entire filename
+        || title.compare(mp3Title, Qt::CaseInsensitive) == 0                            // exact match: title (without label/labelNum)
+        || (shortTitle.length() > 0                                                     // exact match: shortTitle
+            && shortTitle.compare(mp3ShortTitle, Qt::CaseInsensitive) == 0)
+        || (labelnum_short.length() > 0 && label.length() > 0                           // exact match: shortLabel + shortLabelNumber
+            &&  labelnum_short.compare(mp3Labelnum_short, Qt::CaseInsensitive) == 0
+            && label.compare(mp3Label, Qt::CaseInsensitive) == 0
+            )
+        || (labelnum.length() > 0 && label.length() > 0
+            && mp3Title.length() > 0
+            && mp3Title.compare(label + "-" + labelnum, Qt::CaseInsensitive) == 0)
+        )
+    {
+        // Minimum criteria (we will accept as a match, without looking at sorted words):
+//        qDebug() << "fuzzy match (meets minimum criteria): " << s1 << "," << s2;
+        return(true);
+    } else if ((score = compareSortedWordListsForRelevance(mp3Words, words)) > 0)
+    {
+        // fuzzy match, using the sorted words in the titles
+//        qDebug() << "fuzzy match (meets sorted words criteria): " << s1 << "," << s2;
+        return(true);
+    }
+
+    return(false);
+}
+
+void MainWindow::cuesheetListDownloadEnd() {
+
+    if (progressDialog->wasCanceled()) {
+        return;
+    }
+
+//    qDebug() << "MainWindow::cuesheetListDownloadEnd() -- Download is DONE";
+
+    qApp->processEvents();  // allow the progress bar to move
+//    qDebug() << "MainWindow::cuesheetListDownloadEnd() -- Making list of music files...";
+    QList<QString> musicFiles = getListOfMusicFiles();
+
+    qApp->processEvents();  // allow the progress bar to move
+//    qDebug() << "MainWindow::cuesheetListDownloadEnd() -- Making list of cuesheet files...";
+    QList<QString> cuesheetsInCloud = getListOfCuesheets();
+
+    progressOffset = 33;
+    progressTotal = 0;
+    progressDialog->setValue(33);
+//    progressDialog->setLabelText("Matching your music with cuesheets...");
+    progressTimer->stop();
+
+//    qDebug() << "MainWindow::cuesheetListDownloadEnd() -- Matching them up...";
+
+//    qDebug() << "***** Here's the list of musicFiles:" << musicFiles;
+//    qDebug() << "***** Here's the list of cuesheets:" << cuesheetsInCloud;
+
+    float numCuesheets = cuesheetsInCloud.length();
+    float numChecked = 0;
+
+    // match up the music filenames against the cuesheets that the Cloud has
+    QList<QString> maybeFilesToDownload;
+
+    QList<QString>::iterator i;
+    QList<QString>::iterator j;
+    for (j = cuesheetsInCloud.begin(); j != cuesheetsInCloud.end(); ++j) {
+        // should we download this Cloud cuesheet file?
+
+        if ( (unsigned int)(numChecked) % 50 == 0 ) {
+            progressDialog->setLabelText("Found matching cuesheets: " +
+                                         QString::number((unsigned int)maybeFilesToDownload.length()) +
+                                         " out of " + QString::number((unsigned int)numChecked) +
+                                         "\n" + (maybeFilesToDownload.length() > 0 ? maybeFilesToDownload.last() : "")
+                                         );
+            progressDialog->setValue((unsigned int)(33 + 33.0*(numChecked/numCuesheets)));
+            qApp->processEvents();  // allow the progress bar to move every 100 checks
+            if (progressDialog->wasCanceled()) {
+                return;
+            }
+        }
+
+        numChecked++;
+
+        for (i = musicFiles.begin(); i != musicFiles.end(); ++i) {
+            if (fuzzyMatchFilenameToCuesheetname(*i, *j)) {
+                // yes, let's download it, if we don't have it already.
+                maybeFilesToDownload.append(*j);
+//                qDebug() << "Will maybe download: " << *j;
+                break;  // once we've decided to download this file, go on and look at the NEXT cuesheet
+            }
+        }
+    }
+
+    progressDialog->setValue(66);
+
+//    qDebug() << "MainWindow::cuesheetListDownloadEnd() -- Maybe downloading " << maybeFilesToDownload.length() << " files";
+//  qDebug() << "***** Maybe downloading " << maybeFilesToDownload.length() << " files.";
+
+    float numDownloads = maybeFilesToDownload.length();
+    float numDownloaded = 0;
+
+    // download them (if we don't have them already)
+    QList<QString>::iterator k;
+    for (k = maybeFilesToDownload.begin(); k != maybeFilesToDownload.end(); ++k) {
+        progressDialog->setLabelText("Downloading matching cuesheets (if needed): " +
+                                     QString::number((unsigned int)numDownloaded++) +
+                                     " out of " +
+                                     QString::number((unsigned int)numDownloads) +
+                                     "\n" +
+                                     *k
+                                     );
+        progressDialog->setValue((unsigned int)(66 + 33.0*(numDownloaded/numDownloads)));
+        qApp->processEvents();  // allow the progress bar to move constantly
+        if (progressDialog->wasCanceled()) {
+            break;
+        }
+
+        downloadCuesheetFileIfNeeded(*k);
+    }
+
+// qDebug() << "MainWindow::cuesheetListDownloadEnd() -- DONE.  All cuesheets we didn't have are downloaded.";
+
+    progressDialog->setLabelText("Done.");
+    progressDialog->setValue(100);  // kill the progress bar
+    progressTimer->stop();
+    progressOffset = 0;
+    progressTotal = 0;
+
+    // FINALLY, RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
+    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+    loadMusicList(); // and filter them into the songTable
+
+    reloadCurrentMP3File(); // in case the list of matching cuesheets changed by the recent addition of cuesheets
+}
+
+void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
+
+//    qDebug() << "Maybe fetching: " << cuesheetFilename;
+//    cout << ".";
+
+    PreferencesManager prefsManager;
+    QString musicDirPath = prefsManager.GetmusicPath();
+    //    QString tempDirPath = "/Users/mpogue/clean4";
+    QString destinationFolder = musicDirPath + "/lyrics/downloaded/";
+
+    QDir dir(musicDirPath);
+    dir.mkpath("lyrics/downloaded");    // make sure that the destination path exists (including intermediates)
+
+    QFile file(destinationFolder + cuesheetFilename);
+    QFileInfo fileinfo(file);
+
+    // if we don't already have it...
+    if (!fileinfo.exists()) {
+        // ***** SYNCHRONOUS FETCH *****
+        // "http://squaredesk.net/cuesheets/SqViewCueSheets_2017.03.14/"
+        QNetworkAccessManager *networkMgr = new QNetworkAccessManager(this);
+        QString URLtoFetch = CURRENTSQVIEWCUESHEETSDIR + cuesheetFilename; // individual files (~10KB)
+        QNetworkReply *reply = networkMgr->get( QNetworkRequest( QUrl(URLtoFetch) ) );
+
+        QEventLoop loop;
+        QObject::connect(reply, SIGNAL(readyRead()), &loop, SLOT(quit()));
+
+//        qDebug() << "Fetching file we don't have: " << URLtoFetch;
+        // Execute the event loop here, now we will wait here until readyRead() signal is emitted
+        // which in turn will trigger event loop quit.
+        loop.exec();
+
+        QString resultString(reply->readAll());  // only fetch this once!
+        // qDebug() << "result:" << resultString;
+
+        // OK, we have the file now...
+        if (resultString.length() == 0) {
+            qDebug() << "ERROR: file we got was zero length.";
+            return;
+        }
+
+        // FIX FIX FIX
+//        qDebug() << "***** WRITING TO: " << destinationFolder + cuesheetFilename;
+        // let's try to write it
+        if ( file.open(QIODevice::WriteOnly) )
+        {
+            QTextStream stream( &file );
+            stream << resultString;
+            stream.flush();
+            file.close();
+        } else {
+            qDebug() << "ERROR: couldn't open the file for writing...";
+        }
+    } else {
+//        qDebug() << "     Not fetching it, because we already have it.";
+    }
+}
+
+QList<QString> MainWindow::getListOfMusicFiles()
+{
+    QList<QString> list;
+
+    QListIterator<QString> iter(*pathStack);
+    while (iter.hasNext()) {
+        QString s = iter.next();
+        QStringList sl1 = s.split("#!#");
+        QString type = sl1[0];      // the type (of original pathname, before following aliases)
+        QString filename = sl1[1];  // everything else
+
+        // TODO: should we allow "patter" to match cuesheets?
+        if ((type == "singing" || type == "vocals") && (filename.endsWith("mp3") || filename.endsWith("m4a") || filename.endsWith("wav"))) {
+            QFileInfo fi(filename);
+            QString justFilename = fi.fileName();
+            list.append(justFilename);
+//            qDebug() << "music that might have a cuesheet: " << type << ":" << justFilename;
+        }
+    }
+
+    return(list);
+}
+
+QList<QString> MainWindow::getListOfCuesheets() {
+
+    QList<QString> list;
+
+    QString cuesheetListFilename = musicRootPath + "/.squaredesk/publishedCuesheets.html";
+    QFile inputFile(cuesheetListFilename)
+            ;
+    if (inputFile.open(QIODevice::ReadOnly))
+    {
+        QTextStream in(&inputFile);
+        int line_number = 0;
+        while (!in.atEnd()) //  && line_number < 10)
+        {
+            line_number++;
+            QString line = in.readLine();
+
+            // <li><a href="RR%20147%20-%20Amarillo%20By%20Morning.html"> RR 147 - Amarillo By Morning.html</a></li>
+
+            QRegularExpression regex_cuesheetName("^<li><a href=\"(.*?)\">(.*)</a></li>$"); // don't be greedy!
+            QRegularExpressionMatch match = regex_cuesheetName.match(line);
+//            qDebug() << "line: " << line;
+            if (match.hasMatch())
+            {
+                QString cuesheetFilename(match.captured(2).trimmed());
+//                qDebug() << "****** Cloud has cuesheet: " << cuesheetFilename << " *****";
+
+                list.append(cuesheetFilename);
+//                downloadCuesheetFileIfNeeded(cuesheetFilename, &musicFiles);
+            }
+        }
+        inputFile.close();
+        } else {
+            qDebug() << "ERROR: could not open " << cuesheetListFilename;
+        }
+
+    return(list);
+}
+
+//void MainWindow::on_actionDownload_matching_lyrics_triggered()
+//{
+//   fetchListOfCuesheetsFromCloud();
+//// cuesheetListDownloadEnd();  // <-- will be called, when the fetch from the Cloud is complete
+//}

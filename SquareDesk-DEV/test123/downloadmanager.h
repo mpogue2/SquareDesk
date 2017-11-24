@@ -23,10 +23,12 @@ signals:
 public slots:
     void replyFinished (QNetworkReply *reply);
     void doDownload(QUrl url, QString destPath);
+    void abortTransfer();
 
 private:
     QNetworkAccessManager *manager;
     QString destPath;
+    QNetworkReply *networkReply;
 };
 
 #endif // DOWNLOADER_H

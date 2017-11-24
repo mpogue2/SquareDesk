@@ -1721,6 +1721,7 @@
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
     <addaction name="actionAuto_scroll_during_playback"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuSession">
     <property name="title">
@@ -2485,7 +2486,7 @@
   </action>
   <action name="actionDownload_Cuesheets">
    <property name="text">
-    <string>Download Lyrics...</string>
+    <string>Download Matching Cuesheets...</string>
    </property>
   </action>
   <action name="actionLyricsCueSheetRevert_Edits">
@@ -2690,6 +2691,11 @@
    </property>
    <property name="text">
     <string>C3b</string>
+   </property>
+  </action>
+  <action name="actionDownload_matching_lyrics">
+   <property name="text">
+    <string>TEST cuesheets...</string>
    </property>
   </action>
  </widget>

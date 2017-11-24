@@ -84,8 +84,7 @@
 
 #define VERSIONSTRING "0.8.2alpha7"
 
-// cuesheets are assumed to be at the top level of the SquareDesk repo, and they
-//   will be fetched from there.
+#define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.03.14/"
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
 
 namespace Ui
@@ -315,6 +314,8 @@ private slots:
     void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
 
     void lyricsDownloadEnd();
+    void cuesheetListDownloadEnd();
+
     void makeProgress();
     void cancelProgress();
 
@@ -378,6 +379,8 @@ private slots:
 
     void on_actionFlashCallC3b_triggered();
 
+//    void on_actionDownload_matching_lyrics_triggered();
+
 private:
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
@@ -385,6 +388,12 @@ private:
     void saveLyrics();
     void saveLyricsAs();
     void saveSequenceAs();
+
+    void fetchListOfCuesheetsFromCloud();
+    QList<QString> getListOfCuesheets();
+    QList<QString> getListOfMusicFiles();
+    bool fuzzyMatchFilenameToCuesheetname(QString s1, QString s2);
+    void downloadCuesheetFileIfNeeded(QString cuesheetFilename);
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
 
@@ -447,6 +456,8 @@ private:
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
 
     float getID3BPM(QString MP3FileName);
+
+    void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songType);
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
@@ -601,7 +612,9 @@ private:
 
     QProgressDialog *progressDialog;
     QTimer *progressTimer;
-    float progressTotal;
+    float progressTotal;    // 0 - 100 for each stage, resets to zero at start of each stage...
+    float progressOffset;   // 0, 33, 66 for each of the 3 stages of downloading/matching...
+    bool progressCancelled; // true if user said STOP
 
 private:
     QHash<Qt::Key, KeyAction *> hotkeyMappings;
