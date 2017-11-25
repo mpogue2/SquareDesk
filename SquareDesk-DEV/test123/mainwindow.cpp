@@ -379,6 +379,25 @@ MainWindow::MainWindow(QWidget *parent) :
 
     musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
     QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+
+    // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
+    //   it will cause a rescan of the songTable and dropdown
+
+    QDir dir(musicRootPath + "/lyrics/downloaded");
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+
+    // do the same for lyrics (included the "downloaded" subdirectory) -------
+    QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (it2.hasNext()) {
+        QString aPath = it2.next();
+        lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
+//        qDebug() << "adding lyrics path: " << aPath;
+    }
+
+    lyricsWatcher.addPath(musicRootPath + "/lyrics");  // add the root lyrics directory itself
+    QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
     // ---------------------------------------
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
@@ -8975,11 +8994,13 @@ void MainWindow::cuesheetListDownloadEnd() {
     progressOffset = 0;
     progressTotal = 0;
 
-    // FINALLY, RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
-    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-    loadMusicList(); // and filter them into the songTable
+    // FINALLY, RESCAN THE ENTIRE MUSIC DIRECTORY FOR SONGS AND LYRICS ------------
+    maybeLyricsChanged();
 
-    reloadCurrentMP3File(); // in case the list of matching cuesheets changed by the recent addition of cuesheets
+//    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+//    loadMusicList(); // and filter them into the songTable
+
+//    reloadCurrentMP3File(); // in case the list of matching cuesheets changed by the recent addition of cuesheets
 }
 
 void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
@@ -9103,8 +9124,12 @@ QList<QString> MainWindow::getListOfCuesheets() {
     return(list);
 }
 
-//void MainWindow::on_actionDownload_matching_lyrics_triggered()
-//{
-//   fetchListOfCuesheetsFromCloud();
-//// cuesheetListDownloadEnd();  // <-- will be called, when the fetch from the Cloud is complete
-//}
+void MainWindow::maybeLyricsChanged() {
+    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
+    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+    loadMusicList(); // and filter them into the songTable
+
+    // AND, just in case the list of matching cuesheets for the current song has been
+    //   changed by the recent addition of cuesheets...
+    reloadCurrentMP3File();
+}
