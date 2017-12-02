@@ -338,6 +338,8 @@ private slots:
     void cancelProgress();
 
     void musicRootModified(QString s);
+    void maybeLyricsChanged();
+
     // END SLOTS -----------
 
     void on_action_1_triggered();
@@ -473,6 +475,7 @@ private:
     enum SongFilenameMatchingType songFilenameFormat;
 
     QFileSystemWatcher musicRootWatcher;  // watch for add/deletes in musicRootPath
+    QFileSystemWatcher lyricsWatcher;     // watch for add/deletes in musicRootPath/lyrics
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF
