@@ -13,9 +13,14 @@ static QStringList selectors;
 
 class SquareDesk_iofull : public iobase {
 public:
-    SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondition, QMutex *mutex)
-        : sdthread(thread), mw(mw), waitCondition(waitCondition),
-          WaitingForCommand(false), mutexMessageLoop(mutex),
+    SquareDesk_iofull(SDThread *thread, MainWindow *mw, QWaitCondition *waitCondSDAwaitingInput, QMutex *mutex,
+                      QWaitCondition *waitCondAckToMainThread,
+                      QMutex *mutexAckToMainThread
+        )
+        : sdthread(thread), mw(mw), waitCondSDAwaitingInput(waitCondSDAwaitingInput),
+          WaitingForCommand(false), mutexSDAwaitingInput(mutex),
+          waitCondAckToMainThread(waitCondAckToMainThread),
+          mutexAckToMainThread(mutexAckToMainThread),
           answerYesToEverything(false), seenAFormation(false),
           currentInputState(SDThread::InputStateNormal),
           currentInputText(),
@@ -72,13 +77,17 @@ public :
 
 private:
     void add_new_line(const QString &the_line, uint32 drawing_picture = 0);
+    void wait_for_input();
     void EnterMessageLoop();
 
     SDThread *sdthread;
     MainWindow *mw;
-    QWaitCondition *waitCondition;
+    QWaitCondition *waitCondSDAwaitingInput;
     bool WaitingForCommand;
-    QMutex *mutexMessageLoop;
+    QMutex *mutexSDAwaitingInput;
+
+    QWaitCondition *waitCondAckToMainThread;
+    QMutex *mutexAckToMainThread;
     char szResolveWndTitle [MAX_TEXT_LINE_LENGTH];
 
     int nLastOne;
@@ -137,6 +146,16 @@ SDThread::CurrentInputState SDThread::currentInputState()
     return iofull->currentInputState;
 }
 
+void SDThread::do_user_input(QString str)
+{
+    qInfo() << "Main Process: Doing user input " << str;
+    on_user_input(str);
+    qInfo() << "Main Process: Waiting on ack " << str;
+
+    waitCondAckToMainThread.wait(&mutexAckToMainThread);
+    qInfo() << "Main Process: finished ack " << str;
+}
+
 void SDThread::on_user_input(QString str)
 {
     QByteArray inUtf8 = str.simplified().toUtf8();
@@ -149,18 +168,20 @@ void SquareDesk_iofull::add_string_input(const char *s)
     // So this code should only execute when we're in the condition
     // variable wait, because that's when the mutex is unlocked.
 
-    QMutexLocker locker(mutexMessageLoop);
+    QMutexLocker locker(mutexSDAwaitingInput);
 
     switch (currentInputState)
     {
     case SDThread::InputStateYesNo:
         currentInputYesNo = 'Y' == *s || 'y' == *s;
-        waitCondition->wakeAll();
+        qInfo() << "Main Process: waking thread";
+        waitCondSDAwaitingInput->wakeAll();
         break;
     case SDThread::InputStateText:
         currentInputYesNo = 0 != *s;
         currentInputText = s;
-        waitCondition->wakeAll();
+        qInfo() << "Main Process: waking thread";
+        waitCondSDAwaitingInput->wakeAll();
         break;
     default:
         qWarning() << "Unknown input state: " << currentInputState;
@@ -197,7 +218,8 @@ void SquareDesk_iofull::add_string_input(const char *s)
              matcher.m_final_result.match.kind == ui_concept_select))
         {
             WaitingForCommand = false;
-            waitCondition->wakeAll();
+            qInfo() << "Main Process: waking thread";
+            waitCondSDAwaitingInput->wakeAll();
         }
         else if (matches > 0)
         {
@@ -230,6 +252,22 @@ void SquareDesk_iofull::UpdateStatusBar(const char *s)
 }
 
 
+void SquareDesk_iofull::wait_for_input()
+{
+    emit sdthread->on_sd_awaiting_input();
+    qInfo() << "Thread: awaiting input";
+    waitCondSDAwaitingInput->wait(mutexSDAwaitingInput);
+    qInfo() << "Thread: got input";
+
+    if (1)
+    {
+        QMutexLocker locker(mutexAckToMainThread);
+        qInfo() << "Thread: waking main process";
+        waitCondAckToMainThread->wakeAll();
+        qInfo() << "Thread: woke main process";
+    }
+}
+
 // SquareDesk_iofull
 void SquareDesk_iofull::EnterMessageLoop()
 {
@@ -237,8 +275,7 @@ void SquareDesk_iofull::EnterMessageLoop()
     gg77->matcher_p->m_active_result.valid = false;
     gg77->matcher_p->erase_matcher_input();
     WaitingForCommand = true;
-    emit sdthread->on_sd_awaiting_input();
-    waitCondition->wait(mutexMessageLoop);
+    wait_for_input();
     if (WaitingForCommand)
     {
         general_final_exit(0);
@@ -516,8 +553,7 @@ popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt
     add_new_line(prompt + "\n" + QString(final_inline_prompt));
 
     currentInputState = SDThread::InputStateText;
-    emit sdthread->on_sd_awaiting_input();
-    waitCondition->wait(mutexMessageLoop);
+    wait_for_input();
 
     if (currentInputState != SDThread::InputStateText)
     {
@@ -617,8 +653,7 @@ int SquareDesk_iofull::yesnoconfirm(Cstring title , Cstring line1, Cstring line2
 
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line(QString(title) + "\n" +  prompt);
-    emit sdthread->on_sd_awaiting_input();
-    waitCondition->wait(mutexMessageLoop);
+    wait_for_input();
 
     if (currentInputState != SDThread::InputStateYesNo)
     {
@@ -647,8 +682,8 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
     emit sdthread->on_sd_set_matcher_options(options, dance_levels);
     add_new_line("How many? (Type a number between 0 and 36):");
     currentInputState = SDThread::InputStateText;
-    emit sdthread->on_sd_awaiting_input();
-    waitCondition->wait(mutexMessageLoop);
+
+    wait_for_input();
 
     if (currentInputState != SDThread::InputStateText)
     {
@@ -849,8 +884,8 @@ uims_reply_thing SquareDesk_iofull::get_startup_command()
 SDThread::SDThread(MainWindow *mw)
     : QThread(mw),
       mw(mw),
-      eventLoopWaitCond(),
-      eventLoopMutex(),
+      waitCondSDAwaitingInput(),
+      mutexSDAwaitingInput(),
       abort(false)
 {
     // We should expand these elsewhere for autocomplete stuff
@@ -912,7 +947,8 @@ SDThread::SDThread(MainWindow *mw)
     // this will cause the thread startup to block until this
     // unlocked, which happens through SDThread::unlock() at the end
     // of the MainWindow constructor.
-    eventLoopMutex.lock();
+    mutexSDAwaitingInput.lock();
+    mutexAckToMainThread.lock();
     QObject::connect(this, &SDThread::on_sd_update_status_bar, mw, &MainWindow::on_sd_update_status_bar);
     QObject::connect(this, &SDThread::on_sd_awaiting_input, mw, &MainWindow::on_sd_awaiting_input);
     QObject::connect(this, &SDThread::on_sd_set_window_title, mw, &MainWindow::on_sd_set_window_title);
@@ -929,28 +965,32 @@ void SDThread::finishAndShutdownSD()
 {
     iofull->answerYesToEverything = true;
     abort = true;
-    eventLoopMutex.lock();
+//    mutexSDAwaitingInput.lock();
     while (iofull->currentInputState != InputStateNormal)
     {
-        eventLoopMutex.unlock();
-        on_user_input("Yes");
-        eventLoopMutex.lock();
+//        mutexSDAwaitingInput.unlock();
+        do_user_input("Yes");
+//        mutexSDAwaitingInput.lock();
     }
-    eventLoopMutex.unlock();
+//    mutexSDAwaitingInput.unlock();
 
     if (!iofull->seenAFormation)
     {
-        on_user_input("heads start");
-        on_user_input("square thru 4");
+        do_user_input("heads start");
+        do_user_input("square thru 4");
     }
-    eventLoopWaitCond.wakeAll();
-    on_user_input("quit");
-    eventLoopWaitCond.wakeAll();
+//    waitCondSDAwaitingInput.wakeAll();
+    do_user_input("quit");
+    qDebug() << "Quit wake all 1";
+//    waitCondSDAwaitingInput.wakeAll();
+    qDebug() << "Quit wake all 2";
 }
 
 SDThread::~SDThread()
 {
-    eventLoopMutex.unlock();
+    qDebug() << "SDThread unlocking";
+    mutexSDAwaitingInput.unlock();
+    mutexAckToMainThread.unlock();
     if (!wait(250))
     {
         qWarning() << "Thread unable to stop, calling terminate";
@@ -960,11 +1000,13 @@ SDThread::~SDThread()
 
 void SDThread::run()
 {
-    eventLoopMutex.lock();
-    SquareDesk_iofull ggg(this, mw, &eventLoopWaitCond, &eventLoopMutex);
+    mutexSDAwaitingInput.lock();
+    SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
+                          &waitCondAckToMainThread, &mutexAckToMainThread);
     iofull = &ggg;
     char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
 
+    qInfo() << "Thread starting";
     sdmain(1, argv, ggg);
 }
 
@@ -974,7 +1016,7 @@ void SDThread::unlock()
     // let the thread run, because the thread attempts a lock at the
     // start of SDThread::run()
 
-    eventLoopMutex.unlock();
+    mutexSDAwaitingInput.unlock();
 }
 
 

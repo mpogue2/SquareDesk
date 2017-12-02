@@ -530,7 +530,7 @@ void MainWindow::on_sd_dispose_of_abbreviation(QString str)
 
 void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList levels)
 {
-    qInfo() << "setting matcher options " << options << " " << levels;
+//    qInfo() << "setting matcher options " << options << " " << levels;
     ui->listWidgetSDOptions->clear();
     for (int i = 0; i < options.length(); ++i)
     {
@@ -629,7 +629,7 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
     doubleClickedCall = prefix + doubleClickedCall;
 
 //    ui->lineEditSDInput->setText(doubleClickedCall);
-    emit sdthread->on_user_input(doubleClickedCall);
+    sdthread->do_user_input(doubleClickedCall);
     ui->lineEditSDInput->clear();
     ui->lineEditSDInput->setFocus();
 }
@@ -836,11 +836,11 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (cmd == "square the set" || cmd == "square your set") {
-        emit sdthread->on_user_input("abort this sequence");
-        emit sdthread->on_user_input("y");
+        sdthread->do_user_input("abort this sequence");
+        sdthread->do_user_input("y");
     }
    
-    emit sdthread->on_user_input(cmd);
+    sdthread->do_user_input(cmd);
 }
 
 dance_level MainWindow::get_current_sd_dance_program()
@@ -896,7 +896,7 @@ dance_level MainWindow::get_current_sd_dance_program()
 
 void MainWindow::on_lineEditSDInput_textChanged()
 {
-    qInfo() << "lineEditSDInput_textChanged()";
+//    qInfo() << "lineEditSDInput_textChanged()";
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
 
@@ -923,9 +923,9 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
     dance_level current_dance_program = get_current_sd_dance_program();
     
-    qInfo() << "Looking at call options for " << current_dance_program << " showCommands: "
-            << showCommands << " showConcepts " << showConcepts << " currentText " << currentText
-            << " options count " << ui->listWidgetSDOptions->count();
+//    qInfo() << "Looking at call options for " << current_dance_program << " showCommands: "
+//            << showCommands << " showConcepts " << showConcepts << " currentText " << currentText
+//            << " options count " << ui->listWidgetSDOptions->count();
 
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
@@ -964,7 +964,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
                         if (containsAllParts)
                             inAvailableCalls = true;
                     }
-                    qInfo() << "Call: " << callParts << " inAvailableCalls " << inAvailableCalls;
+//                    qInfo() << "Call: " << callParts << " inAvailableCalls " << inAvailableCalls;
                 }
                 if (!inAvailableCalls)
                     show = false;
@@ -1104,7 +1104,7 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 
 void MainWindow::undo_last_sd_action()
 {
-    emit sdthread->on_user_input("undo last call");
+    sdthread->do_user_input("undo last call");
 }
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()

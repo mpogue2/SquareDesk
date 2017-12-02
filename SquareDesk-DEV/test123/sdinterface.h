@@ -35,7 +35,6 @@ public:
     void run() override;
 
 public:
-    void on_user_input(QString str);
     void finishAndShutdownSD();
     void unlock();
 
@@ -46,6 +45,10 @@ public:
     CurrentInputState currentInputState();
     void set_dance_program(dance_level dance_program);
     dance_level find_dance_program(QString call);
+    void do_user_input(QString str);
+
+private:
+    void on_user_input(QString str);
 
 signals:
     void on_sd_update_status_bar(QString s);
@@ -62,8 +65,12 @@ signals:
 
 private:
     MainWindow *mw;
-    QWaitCondition eventLoopWaitCond;
-    QMutex eventLoopMutex;
+    QWaitCondition waitCondSDAwaitingInput;
+    QMutex mutexSDAwaitingInput;
+
+    QWaitCondition waitCondAckToMainThread;
+    QMutex mutexAckToMainThread;
+    
     bool abort;
     SquareDesk_iofull *iofull;    
 
