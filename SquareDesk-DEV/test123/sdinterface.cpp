@@ -72,7 +72,7 @@ public:
     ui_utils *m_ui_utils_ptr;
 
 public :
-    void add_string_input(const char *str);
+    bool add_string_input(const char *str);
 
 
 private:
@@ -149,22 +149,24 @@ SDThread::CurrentInputState SDThread::currentInputState()
 void SDThread::do_user_input(QString str)
 {
     qInfo() << "Main Process: Doing user input " << str;
-    on_user_input(str);
-    qInfo() << "Main Process: Waiting on ack " << str;
-
-    waitCondAckToMainThread.wait(&mutexAckToMainThread);
-    qInfo() << "Main Process: finished ack " << str;
+    if (on_user_input(str))
+    {
+        qInfo() << "Main Process: Waiting on ack " << str;
+        waitCondAckToMainThread.wait(&mutexAckToMainThread);
+        qInfo() << "Main Process: finished ack " << str;
+    }
 }
 
-void SDThread::on_user_input(QString str)
+bool SDThread::on_user_input(QString str)
 {
     QByteArray inUtf8 = str.simplified().toUtf8();
     const char *data = inUtf8.constData();
-    iofull->add_string_input(data);
+    return iofull->add_string_input(data);
 }
 
-void SquareDesk_iofull::add_string_input(const char *s)
+bool SquareDesk_iofull::add_string_input(const char *s)
 {
+    bool woke(false);
     // So this code should only execute when we're in the condition
     // variable wait, because that's when the mutex is unlocked.
 
@@ -176,12 +178,14 @@ void SquareDesk_iofull::add_string_input(const char *s)
         currentInputYesNo = 'Y' == *s || 'y' == *s;
         qInfo() << "Main Process: waking thread";
         waitCondSDAwaitingInput->wakeAll();
+        woke = true;
         break;
     case SDThread::InputStateText:
         currentInputYesNo = 0 != *s;
         currentInputText = s;
         qInfo() << "Main Process: waking thread";
         waitCondSDAwaitingInput->wakeAll();
+        woke = true;
         break;
     default:
         qWarning() << "Unknown input state: " << currentInputState;
@@ -220,6 +224,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
             WaitingForCommand = false;
             qInfo() << "Main Process: waking thread";
             waitCondSDAwaitingInput->wakeAll();
+            woke = true;
         }
         else if (matches > 0)
         {
@@ -244,6 +249,7 @@ void SquareDesk_iofull::add_string_input(const char *s)
     }
 
     //See the    use_computed_match: case
+    return woke;
 }
 
 void SquareDesk_iofull::UpdateStatusBar(const char *s)

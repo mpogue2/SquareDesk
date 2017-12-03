@@ -48,7 +48,7 @@ public:
     void do_user_input(QString str);
 
 private:
-    void on_user_input(QString str);
+    bool on_user_input(QString str);
 
 signals:
     void on_sd_update_status_bar(QString s);
