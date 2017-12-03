@@ -11,5 +11,21 @@ build-*
 /SquareDesk-DEV/taglib/taglib/Makefile
 /SquareDesk-DEV/Makefile
 /SquareDesk-DEV/html-tidy/Makefile
+/SquareDesk-DEV/test123/Makefile
+/SquareDesk-DEV/test123/moc_predefs.h
+/SquareDesk-DEV/test123/qrc_startupwizard.cpp
+/SquareDesk-DEV/test123/sd_calls.cache
+/SquareDesk-DEV/sdlib/Makefile
+/SquareDesk-DEV/sdlib/libsdlib.a
+/SquareDesk-DEV/sdlib/mkcalls
+/SquareDesk-DEV/sdlib/sd_calls.dat
+/SquareDesk-DEV/sdlib/sdtty
+
+/SquareDesk-DEV/.qmake.stash
+/SquareDesk-DEV/test123/.qmake.stash
+
+
+
+
 
 
