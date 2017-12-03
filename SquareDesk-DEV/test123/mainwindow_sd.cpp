@@ -688,6 +688,8 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     QString cmd(ui->lineEditSDInput->text().trimmed());
     ui->lineEditSDInput->clear();
 
+    qInfo() << "Doing user input 0" << cmd;
+
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
         cmd = "abort this sequence";
@@ -839,7 +841,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
         sdthread->do_user_input("abort this sequence");
         sdthread->do_user_input("y");
     }
-   
+    qInfo() << "Doing user input 1" << cmd;
     sdthread->do_user_input(cmd);
 }
 
@@ -904,7 +906,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
     QString currentText = ui->lineEditSDInput->text().simplified();
     int currentTextLastChar = currentText.length() - 1;
     
-    if (currentTextLastChar > 0 &&
+    if (currentTextLastChar >= 0 &&
         (currentText[currentTextLastChar] == '!' ||
          currentText[currentTextLastChar] == '?'))
     {

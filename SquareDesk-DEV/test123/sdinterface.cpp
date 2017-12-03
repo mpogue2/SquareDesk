@@ -625,8 +625,25 @@ direction_kind SquareDesk_iofull::do_direction_popup(matcher_class &/* matcher *
 
 int SquareDesk_iofull::do_circcer_popup()
 {
-    qWarning() << "SquareDesk_iofull::do_circcer_popup();";
-    return true;
+    matcher_class &matcher = *gg77->matcher_p;
+    uint32 retval = 0;
+
+    if (interactivity == interactivity_verify) {
+        retval = verify_options.circcer;
+        if (retval == 0) retval = 1;
+    }
+    else if (!matcher.m_final_result.valid || (matcher.m_final_result.match.call_conc_options.circcer == 0)) {
+        match_result saved_match = matcher.m_final_result;
+        if (do_popup((int) matcher_class::e_match_circcer))
+            retval = matcher.m_final_result.match.call_conc_options.circcer;
+        matcher.m_final_result = saved_match;
+    }
+    else {
+        retval = matcher.m_final_result.match.call_conc_options.circcer;
+        matcher.m_final_result.match.call_conc_options.circcer = 0;
+    }
+
+    return retval;
 }
 
 int SquareDesk_iofull::do_tagger_popup(int /* tagger_class */)
