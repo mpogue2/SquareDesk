@@ -410,7 +410,13 @@ void MainWindow::sd_end_available_call_list_output()
     
     sdOutputtingAvailableCalls = false;
     QString available("Available calls:");
-    ui->listWidgetSDOutput->addItem(available);
+    QListWidgetItem *availableItem = new QListWidgetItem(available);
+    QFont availableItemFont(availableItem->font());
+    availableItemFont.setBold(true);
+    availableItem->setFont(availableItemFont);
+    
+    ui->listWidgetSDOutput->addItem(availableItem);
+    
     for (auto available_call : sdAvailableCalls)
     {
         QString call_text(available_call.call_name);
