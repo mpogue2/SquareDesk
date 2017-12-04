@@ -385,6 +385,7 @@ private slots:
     void on_lineEditSDInput_textChanged();
     void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
     void on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidgetItem *item);
     void on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item);
     void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
     void copy_selection_from_tableWidgetCurrentSequence();
@@ -417,6 +418,7 @@ public:
     void sd_begin_available_call_list_output();
     void sd_end_available_call_list_output();
     void initialize_internal_sd_tab();
+    void do_sd_double_click_call_completion(QListWidgetItem *item);
 
     void on_actionFlashCallBasic_triggered();
 

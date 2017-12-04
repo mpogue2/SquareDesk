@@ -1571,16 +1571,40 @@
            </widget>
           </item>
           <item>
-           <widget class="QListWidget" name="listWidgetSDOptions">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
+            <property name="currentIndex">
+             <number>0</number>
             </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>Options</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDOptions">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="horizontalScrollBarPolicy">
+                 <enum>Qt::ScrollBarAlwaysOff</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_2">
+             <attribute name="title">
+              <string>Completion</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDQuestionMarkComplete"/>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -2746,7 +2770,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-     <string>Show Concepts</string>
+    <string>Show Concepts</string>
    </property>
   </action>
   <action name="actionShow_Commands">
@@ -2858,48 +2882,48 @@
     <bool>true</bool>
    </property>
    <property name="text">
-     <string>Formation Thumbnails</string>
+    <string>Formation Thumbnails</string>
    </property>
   </action>
   <action name="actionFlashCallBasic">
-    <property name="text">
+   <property name="text">
     <string>Basic</string>
    </property>
   </action>
   <action name="actionFlashCallMainstream">
-    <property name="text">
-      <string>Mainstream</string>
-    </property>
+   <property name="text">
+    <string>Mainstream</string>
+   </property>
   </action>
   <action name="actionFlashCallPlus">
-    <property name="text">
-      <string>Plus</string>
-    </property>
+   <property name="text">
+    <string>Plus</string>
+   </property>
   </action>
   <action name="actionFlashCallA1">
-    <property name="text">
-      <string>A1</string>
-    </property>
+   <property name="text">
+    <string>A1</string>
+   </property>
   </action>
   <action name="actionFlashCallA2">
-    <property name="text">
-      <string>A2</string>
-    </property>
+   <property name="text">
+    <string>A2</string>
+   </property>
   </action>
   <action name="actionFlashCallC1">
-    <property name="text">
-      <string>C1</string>
-    </property>
+   <property name="text">
+    <string>C1</string>
+   </property>
   </action>
   <action name="actionFlashCallC2">
-    <property name="text">
-      <string>C2</string>
-    </property>
+   <property name="text">
+    <string>C2</string>
+   </property>
   </action>
   <action name="actionFlashCallC3b">
-    <property name="text">
-      <string>C3b</string>
-    </property>
+   <property name="text">
+    <string>C3b</string>
+   </property>
   </action>
   <action name="actionDownload_matching_lyrics">
    <property name="text">

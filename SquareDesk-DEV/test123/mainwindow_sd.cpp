@@ -416,6 +416,7 @@ void MainWindow::sd_end_available_call_list_output()
     availableItemFont.setBold(true);
     availableItem->setFont(availableItemFont);
     ui->listWidgetSDOutput->addItem(availableItem);
+    ui->listWidgetSDQuestionMarkComplete->clear();
     
     for (auto available_call : sdAvailableCalls)
     {
@@ -431,13 +432,19 @@ void MainWindow::sd_end_available_call_list_output()
         if (available_call.dance_program <= current_dance_program
             && !call_text.startsWith("_"))
         {
+            ui->listWidgetSDQuestionMarkComplete->addItem(call_text);
             QListWidgetItem *callItem = new QListWidgetItem(call_text);
             callItem->setData(Qt::UserRole, stringClickableCall);
             ui->listWidgetSDOutput->addItem(callItem);
         }
     }
+    ui->tabWidgetSDMenuOptions->setCurrentIndex(1);
 }
 
+void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidgetItem *item)
+{
+    do_sd_double_click_call_completion(item);
+}
 
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
@@ -552,6 +559,8 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
             ui->listWidgetSDOptions->addItem(item);
         }
     }
+    ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+
 }
 
 
@@ -606,6 +615,21 @@ void MainWindow::set_current_sequence_icons_visible(bool visible)
     ui->tableWidgetCurrentSequence->setColumnHidden(1,!visible);
 }
 
+void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
+{
+    QString call(item->text());
+    QStringList calls = call.split(" - ");
+    if (calls.size() > 1)
+    {
+        call = calls[0];
+    }
+    ui->lineEditSDInput->setText(call);
+    if (!(call.contains("<") && call.contains(">")))
+    {
+        on_lineEditSDInput_returnPressed();
+    }
+}
+
 void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 {
     QVariant v = item->data(Qt::UserRole);
@@ -614,17 +638,7 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
         QString formation(v.toString());
         if (!formation.compare(stringClickableCall))
         {
-            QString call(item->text());
-            QStringList calls = call.split(" - ");
-            if (calls.size() > 1)
-            {
-                call = calls[0];
-            }
-            ui->lineEditSDInput->setText(call);
-            if (!(call.contains("<") && call.contains(">")))
-            {
-                on_lineEditSDInput_returnPressed();
-            }
+            do_sd_double_click_call_completion(item);
         }
         else
         {
