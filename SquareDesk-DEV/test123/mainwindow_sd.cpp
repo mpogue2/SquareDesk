@@ -28,6 +28,7 @@ static QHash<dance_level, QString> sdLevelEnumsToStrings;
 static const char *str_exit_from_the_program = "exit from the program";
 
 static QFont dancerLabelFont;
+static QString stringClickableCall("clickable call!");
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
@@ -414,7 +415,6 @@ void MainWindow::sd_end_available_call_list_output()
     QFont availableItemFont(availableItem->font());
     availableItemFont.setBold(true);
     availableItem->setFont(availableItemFont);
-    
     ui->listWidgetSDOutput->addItem(availableItem);
     
     for (auto available_call : sdAvailableCalls)
@@ -431,7 +431,9 @@ void MainWindow::sd_end_available_call_list_output()
         if (available_call.dance_program <= current_dance_program
             && !call_text.startsWith("_"))
         {
-            ui->listWidgetSDOutput->addItem(call_text);
+            QListWidgetItem *callItem = new QListWidgetItem(call_text);
+            callItem->setData(Qt::UserRole, stringClickableCall);
+            ui->listWidgetSDOutput->addItem(callItem);
         }
     }
 }
@@ -610,12 +612,29 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
     if (!v.isNull())
     {
         QString formation(v.toString());
-        QStringList formationList = formation.split("\n");
-        if (formationList.size() > 0)
+        if (!formation.compare(stringClickableCall))
         {
-            graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
-            formationList.removeFirst();
-            draw_scene(formationList, sdpeople);
+            QString call(item->text());
+            QStringList calls = call.split(" - ");
+            if (calls.size() > 1)
+            {
+                call = calls[0];
+            }
+            ui->lineEditSDInput->setText(call);
+            if (!(call.contains("<") && call.contains(">")))
+            {
+                on_lineEditSDInput_returnPressed();
+            }
+        }
+        else
+        {
+            QStringList formationList = formation.split("\n");
+            if (formationList.size() > 0)
+            {
+                graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
+                formationList.removeFirst();
+                draw_scene(formationList, sdpeople);
+            }
         }
 
     }
