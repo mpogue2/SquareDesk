@@ -463,7 +463,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         str = str.trimmed();
         if (str.isEmpty())
             return;
-        if (str == "(no matches)")
+        if (str == "(no matches)"
+            || str == "SUBSIDIARY CALL")
         {
             ui->label_SD_Resolve->setText(str);
         }
@@ -624,9 +625,19 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
         call = calls[0];
     }
     ui->lineEditSDInput->setText(call);
+    qInfo() << "Double click on " << call;
+    qInfo() << "   contains: " << (call.contains("<") && call.contains(">")) << " " << call.contains("<") << " " << call.contains(">");
+    
     if (!(call.contains("<") && call.contains(">")))
     {
         on_lineEditSDInput_returnPressed();
+    }
+    else
+    {
+        int lessThan = call.indexOf("<");
+        int greaterThan = call.indexOf(">");
+        ui->lineEditSDInput->setSelection(lessThan, greaterThan - lessThan + 1);
+        ui->lineEditSDInput->setFocus();
     }
 }
 
@@ -656,46 +667,31 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 
 void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
 {
-    QString originalText(ui->lineEditSDInput->text().simplified());
-    QString longestMatch;
-    QString callSearch = sd_strip_leading_selectors(originalText);
-    QString prefix = originalText.left(originalText.length() - callSearch.length());
-
-    QString doubleClickedCall = item->text().simplified();
-    if (prefix.length() != 0 && !prefix.endsWith(" "))
-    {
-        prefix = prefix + " ";
-    }
-    doubleClickedCall = prefix + doubleClickedCall;
-
-//    ui->lineEditSDInput->setText(doubleClickedCall);
-    sdthread->do_user_input(doubleClickedCall);
-    ui->lineEditSDInput->clear();
-    ui->lineEditSDInput->setFocus();
+    do_sd_double_click_call_completion(item);
 }
 
-void MainWindow::do_sd_tab_completion()
-{
-    QString originalText(ui->lineEditSDInput->text().simplified());
-    QString longestMatch;
-    QString callSearch = sd_strip_leading_selectors(originalText);
-    QString prefix = originalText.left(originalText.length() - callSearch.length());
 
-    for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
+static QString get_longest_match_from_list_widget(QListWidget *listWidget,
+                                                  QString originalText,
+                                                  QString callSearch,
+                                                  QString longestMatch = QString())
+{
+    
+    for (int i = 0; i < listWidget->count(); ++i)
     {
-        if ((ui->listWidgetSDOptions->item(i)->text().startsWith(callSearch,
+        if ((listWidget->item(i)->text().startsWith(callSearch,
                                                                  Qt::CaseInsensitive)
-             || ui->listWidgetSDOptions->item(i)->text().startsWith(originalText,
+             || listWidget->item(i)->text().startsWith(originalText,
                                                                     Qt::CaseInsensitive))
-            && !ui->listWidgetSDOptions->isRowHidden(i))
+            && !listWidget->isRowHidden(i))
         {
             if (longestMatch.isEmpty())
             {
-                longestMatch = ui->listWidgetSDOptions->item(i)->text();
+                longestMatch = listWidget->item(i)->text();
             }
             else
             {
-                QString thisItem = ui->listWidgetSDOptions->item(i)->text();
+                QString thisItem = listWidget->item(i)->text();
                 int substringMatch = 0;
                 while (substringMatch < longestMatch.length() && substringMatch < thisItem.length() &&
                        thisItem[substringMatch].toLower() == longestMatch[substringMatch].toLower())
@@ -706,6 +702,24 @@ void MainWindow::do_sd_tab_completion()
             }
         }
     }
+    return longestMatch;
+}
+
+void MainWindow::do_sd_tab_completion()
+{
+    QString originalText(ui->lineEditSDInput->text().simplified());
+    QString callSearch = sd_strip_leading_selectors(originalText);
+    QString prefix = originalText.left(originalText.length() - callSearch.length());
+
+    
+    QString longestMatch(get_longest_match_from_list_widget(ui->listWidgetSDOptions,
+                                                            originalText,
+                                                            callSearch));
+    longestMatch = get_longest_match_from_list_widget(ui->listWidgetSDQuestionMarkComplete,
+                                                      originalText,
+                                                      originalText,
+                                                      longestMatch);
+    
     if (longestMatch.length() > callSearch.length())
     {
         if (prefix.length() != 0 && !prefix.endsWith(" "))
