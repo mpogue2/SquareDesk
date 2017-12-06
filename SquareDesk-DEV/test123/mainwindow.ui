@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>918</width>
-    <height>511</height>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1573,7 +1573,7 @@
           <item>
            <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="tab">
              <attribute name="title">
@@ -1597,11 +1597,21 @@
             </widget>
             <widget class="QWidget" name="tab_2">
              <attribute name="title">
-              <string>Completion</string>
+              <string>'?' Completion</string>
              </attribute>
              <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
                <widget class="QListWidget" name="listWidgetSDQuestionMarkComplete"/>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_3">
+             <attribute name="title">
+              <string>Additional</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDAdditionalOptions"/>
               </item>
              </layout>
             </widget>

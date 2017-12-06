@@ -441,6 +441,94 @@ void MainWindow::sd_end_available_call_list_output()
     ui->tabWidgetSDMenuOptions->setCurrentIndex(1);
 }
 
+
+
+
+void MainWindow::highlight_sd_replaceables()
+{
+    QString call = ui->lineEditSDInput->text();
+
+    if (!(call.contains("<") && call.contains(">")))
+    {
+        on_lineEditSDInput_returnPressed();
+    }
+    else
+    {
+        int lessThan = call.indexOf("<");
+        int greaterThan = call.indexOf(">");
+        ui->lineEditSDInput->setSelection(lessThan, greaterThan - lessThan + 1);
+        ui->lineEditSDInput->setFocus();
+        QString selectedText = ui->lineEditSDInput->selectedText();
+
+        ui->listWidgetSDAdditionalOptions->clear();
+        if (selectedText == "<N>" /* /8 */)
+        {
+            for (int i = 1; i <= 8; ++i)
+            {
+                ui->listWidgetSDAdditionalOptions->addItem(QString("%1").arg(i));
+            }
+            ui->tabWidgetSDMenuOptions->setCurrentIndex(2);
+        }
+        if (selectedText == "<Nth>")
+        {
+            ui->listWidgetSDAdditionalOptions->addItem("1st");
+            ui->listWidgetSDAdditionalOptions->addItem("2nd");
+            ui->listWidgetSDAdditionalOptions->addItem("3rd");
+            ui->listWidgetSDAdditionalOptions->addItem("4th");
+            ui->tabWidgetSDMenuOptions->setCurrentIndex(2);
+        }
+        if (selectedText == "<N/4>")
+        {
+            for (int i = 1; i <= 4; ++i)
+            {
+                ui->listWidgetSDAdditionalOptions->addItem(QString("%1/4").arg(i));
+            }
+            ui->tabWidgetSDMenuOptions->setCurrentIndex(2);
+        }
+        if (selectedText == "<DIRECTION>")
+        {
+            sdthread->add_directions_to_list_widget(ui->listWidgetSDAdditionalOptions);
+            ui->tabWidgetSDMenuOptions->setCurrentIndex(2);
+        }
+        if (selectedText == "<ATC>")
+        {
+            on_lineEditSDInput_returnPressed();
+        }
+        if (selectedText == "<ANYCIRC>")
+        {
+            on_lineEditSDInput_returnPressed();
+        }
+        if (selectedText == "<ANYTHING>")
+        { 
+            on_lineEditSDInput_returnPressed();
+        }
+        if (selectedText == "<ANYONE>")
+        {
+            sdthread->add_selectors_to_list_widget(ui->listWidgetSDAdditionalOptions);
+            ui->tabWidgetSDMenuOptions->setCurrentIndex(2);
+        }
+    }
+}
+
+void MainWindow::on_listWidgetSDAdditionalOptions_itemDoubleClicked(QListWidgetItem *item)
+{
+    QString call = ui->lineEditSDInput->text();
+    if (call.contains("<") && call.contains(">"))
+    {
+        int lessThan = call.indexOf("<");
+        int greaterThan = call.indexOf(">");
+        call.replace(lessThan, greaterThan - lessThan + 1,
+                     item->text());
+        ui->lineEditSDInput->setText(call);
+    }
+    else
+    {
+        ui->lineEditSDInput->insert(item->text());
+    }
+    ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+    highlight_sd_replaceables();
+}
+
 void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidgetItem *item)
 {
     do_sd_double_click_call_completion(item);
@@ -628,17 +716,7 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
     qInfo() << "Double click on " << call;
     qInfo() << "   contains: " << (call.contains("<") && call.contains(">")) << " " << call.contains("<") << " " << call.contains(">");
     
-    if (!(call.contains("<") && call.contains(">")))
-    {
-        on_lineEditSDInput_returnPressed();
-    }
-    else
-    {
-        int lessThan = call.indexOf("<");
-        int greaterThan = call.indexOf(">");
-        ui->lineEditSDInput->setSelection(lessThan, greaterThan - lessThan + 1);
-        ui->lineEditSDInput->setFocus();
-    }
+    highlight_sd_replaceables();
 }
 
 void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)

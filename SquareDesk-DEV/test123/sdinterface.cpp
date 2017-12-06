@@ -906,7 +906,23 @@ uims_reply_thing SquareDesk_iofull::get_startup_command()
     return uims_reply_thing(matcher.m_final_result.match.kind, index);
 }
 
+void SDThread::add_selectors_to_list_widget(QListWidget *listWidget)
+{
+    // Skip ???
+    for (size_t i = 1; selector_list[i].name; ++i)
+    {
+        listWidget->addItem(selector_list[i].name);
+    }
+}
 
+void SDThread::add_directions_to_list_widget(QListWidget *listWidget)
+{
+    // Skip "???" and "(no direction)"
+    for (size_t i = 2; direction_names[i].name; ++i)
+    {
+        listWidget->addItem(direction_names[i].name);
+    }
+}
 
 SDThread::SDThread(MainWindow *mw)
     : QThread(mw),
