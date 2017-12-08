@@ -131,9 +131,9 @@ dance_level SquareDesk_iofull::find_dance_program(QString call)
 
         if (call.endsWith(this_name, Qt::CaseInsensitive))
         {
-            // dance_program > (dance_level)(main_call_lists[nLastOne][i]->the_defn.level))
             if (dance_program == l_nonexistent_concept
-                || length_of_longest_match < this_name.length())
+                || (length_of_longest_match < this_name.length()
+                    && dance_program > (dance_level)(main_call_lists[nLastOne][i]->the_defn.level)))
             {
                 length_of_longest_match = this_name.length();
                 dance_program = (dance_level)(main_call_lists[nLastOne][i]->the_defn.level);

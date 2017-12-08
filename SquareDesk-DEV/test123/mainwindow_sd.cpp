@@ -429,7 +429,8 @@ void MainWindow::sd_end_available_call_list_output()
         {
             call_text += QString(" - (%0)").arg(available_call.dance_program);
         }
-        if (available_call.dance_program <= current_dance_program
+        if (((available_call.dance_program <= current_dance_program)
+             || (available_call.dance_program == l_nonexistent_concept))
             && !call_text.startsWith("_"))
         {
             ui->listWidgetSDQuestionMarkComplete->addItem(call_text);
