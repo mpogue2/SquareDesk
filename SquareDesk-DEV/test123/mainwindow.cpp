@@ -69,6 +69,9 @@
 #include "JlCompress.h"
 #endif
 
+// experimental removal of silence at the beginning of the song
+#define REMOVESILENCE 1
+
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
@@ -1566,9 +1569,16 @@ void MainWindow::on_stopButton_clicked()
 
     ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
 
+#ifdef REMOVESILENCE
+    // last thing we do is move the stream position to 1 sec before start of music
+    // this will move BOTH seekBar's to the right spot
+    cBass.StreamSetPosition((double)startOfNonSilence_sec);
+    Info_Seekbar(false);  // update just the text
+#else
     ui->seekBar->setValue(0);
     ui->seekBarCuesheet->setValue(0);
     Info_Seekbar(false);  // update just the text
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -3891,7 +3901,14 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QDir md(MP3FileName);
     QString canonicalFN = md.canonicalPath();
 
-    cBass.StreamCreate(MP3FileName.toStdString().c_str());
+    startOfNonSilence_sec = cBass.StreamCreate(MP3FileName.toStdString().c_str());  // load song, and figure out where the song actually starts
+
+    // TODO: make this a preference! FIX FIX FIX ***************
+#ifdef REMOVESILENCE
+//        qDebug() << "startOfNonSilence_sec before: " << startOfNonSilence_sec;
+        startOfNonSilence_sec = (startOfNonSilence_sec > 1.0 ? startOfNonSilence_sec - 1.0 : 0.0);  // start 1 sec before non-silence
+//        qDebug() << "startOfNonSilence_sec: " << startOfNonSilence_sec;
+#endif
 
 //    qDebug() << "load 2.3: " << t2.elapsed() << "ms";
 
@@ -4054,6 +4071,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     loadSettingsForSong(songTitle);
 
 //    qDebug() << "load 2.9: " << t2.elapsed() << "ms";
+
+    cBass.StreamSetPosition((double)startOfNonSilence_sec);  // last thing we do is move the stream position to 1 sec before start of music
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()

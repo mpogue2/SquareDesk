@@ -127,7 +127,9 @@ bass_audio::~bass_audio(void)
 void bass_audio::Init(void)
 {
     //-------------------------------------------------------------
-    BASS_Init(-1, 44100, 0, NULL, NULL);
+    if (!BASS_Init(-1, 44100, 0, NULL, NULL)) {   // the "default" device
+        qDebug() << "ERROR " << BASS_ErrorGetCode() << " in bass_audio::Init(-1)";
+    }
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
     //-------------------------------------------------------------
 }
@@ -199,9 +201,70 @@ void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *us
     }
 }
 
+float bass_audio::songStartDetector(const char *filepath) {
+    // returns start of non-silence in seconds, max 20 seconds
+
+    int peak = 0;
+    int levels[200];
+
+    BASS_Init(0 /* "NO SOUND" device */, 44100, 0, 0, NULL);
+
+    HSTREAM chan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
+    if ( chan )
+    {
+        float block = 20;  // take a 20ms level sample every 20ms
+
+        // BASS_ChannelGetLevel takes 20ms from the channel
+        QWORD len = BASS_ChannelSeconds2Bytes(chan, block/1000.0 - 0.02);  // always takes a 0.02s level sample
+
+        char data[len];  // data sink
+        DWORD level, left, right;
+
+        int sampleNum = 0;
+        int j = 0;
+        int sum = 0;
+        while ( sampleNum < 200 && -1 != (int)(level = BASS_ChannelGetLevel(chan) ) ) // takes 20ms sample every 100ms for 20 sec
+        {
+            left=LOWORD(level); // the left level
+            right=HIWORD(level); // the right level
+            unsigned int avg = (left+right)/2;
+            if (j++ < 4) {
+                sum += avg;
+            } else {
+                levels[sampleNum] = sum/5;  // sum the 20ms contributions every 100ms, result is 100ms samples of energy
+                printf("%d: %d\n", sampleNum++, sum/5);
+                peak = (peak < sum/5 ? sum/5 : peak);  // this finds the peak of the 100ms samples
+                sum = 0;
+                j = 0;
+            }
+            BASS_ChannelGetData(chan, data, len); // get data away from the channel
+        }
+        BASS_StreamFree( chan );
+    }
+
+    BASS_Free();
+
+    int k = 0;
+    for (k = 0; k < 200; k++) {
+        if (levels[k] > 2000) {
+            break;  // we've found where the silence ends
+        }
+    }
+
+    float startOfNonSilence_sec = (float)k/10.0;
+    printf("peak value: %d, song start (sec): %f\n", peak, startOfNonSilence_sec);
+    fflush(stdout);
+
+    return(startOfNonSilence_sec);  // if it was all silence, 20.0 will be returned
+}
+
 // ------------------------------------------------------------------
-void bass_audio::StreamCreate(const char *filepath)
+float bass_audio::StreamCreate(const char *filepath)
 {
+    // finds non-silence
+    float startOfNonSilence = songStartDetector(filepath);
+    qDebug() << "non-silence detected @ " << startOfNonSilence << " seconds";
+
     BASS_StreamFree(Stream);
 
     // OPEN THE STREAM FOR PLAYBACK ------------------------
@@ -299,12 +362,15 @@ void bass_audio::StreamCreate(const char *filepath)
     // when the fade is done, call a SYNCPROC that pauses playback
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
     Q_UNUSED(handle)
+
+    return(startOfNonSilence);
 }
 
 // ------------------------------------------------------------------
-void bass_audio::StreamSetPosition(double Position)
+void bass_audio::StreamSetPosition(double Position_sec)
 {
-    BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, (double)Position), BASS_POS_BYTE);
+    BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, (double)Position_sec), BASS_POS_BYTE);
+//    Current_Position = Position_sec; // ??
 }
 
 // ------------------------------------------------------------------
