@@ -1353,6 +1353,10 @@ void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checke
 {
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
+
+    // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
+    cBass.songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
+
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     double length = cBass.FileLength;
@@ -3901,14 +3905,42 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QDir md(MP3FileName);
     QString canonicalFN = md.canonicalPath();
 
-    cBass.StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec);  // load song, and figure out where the song actually starts and ends
-//    qDebug() << "song starts: " << startOfSong_sec << ", ends: " << endOfSong_sec;
+//    qDebug() << "load 2.3.1: " << t2.elapsed() << "ms";
+
+    // let's do a quick preview (takes <1ms), to see if the intro/outro are already set.
+    SongSetting settings1;
+    double intro1 = 0.0;
+    double outro1 = 0.0;
+    bool introOutroSetAlready = false;
+    if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
+        if (settings1.isSetIntroPos()) {
+            intro1 = settings1.getIntroPos();
+            introOutroSetAlready = true;
+//            qDebug() << "intro was set to: " << intro1;
+        }
+        if (settings1.isSetOutroPos()) {
+            outro1 = settings1.getOutroPos();
+            introOutroSetAlready = true;
+//            qDebug() << "outro was set to: " << outro1;
+        }
+    }
+
+//    qDebug() << "load 2.3.1.2: " << t2.elapsed() << "ms";
+
+    cBass.StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec, intro1, outro1);  // load song, and figure out where the song actually starts and ends
+
+    // OK, by this time we always have an introOutro
+    //   if DB had one, we didn't scan, and just used that one
+    //   if DB did not have one, we scanned
+    introOutroSetAlready = true;
+
+    //    qDebug() << "song starts: " << startOfSong_sec << ", ends: " << endOfSong_sec;
 
 #ifdef REMOVESILENCE
         startOfSong_sec = (startOfSong_sec > 1.0 ? startOfSong_sec - 1.0 : 0.0);  // start 1 sec before non-silence
 #endif
 
-//    qDebug() << "load 2.3: " << t2.elapsed() << "ms";
+//    qDebug() << "load 2.3.2: " << t2.elapsed() << "ms";
 
     QStringList ss = MP3FileName.split('/');
     QString fn = ss.at(ss.size()-1);
@@ -4026,6 +4058,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
+
+    // NOTE: no need to scan for intro/outro here, because we are guaranteed that it was set by StreamCreate() above
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
 
@@ -4066,9 +4100,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->pushButtonSetOutroTime->setText("Out");
     }
 
+//    qDebug() << "load 2.9.1: " << t2.elapsed() << "ms";
     loadSettingsForSong(songTitle);
 
-//    qDebug() << "load 2.9: " << t2.elapsed() << "ms";
+//    qDebug() << "load 2.9.2: " << t2.elapsed() << "ms";
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition((double)startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
@@ -4908,6 +4943,7 @@ void MainWindow::on_titleSearch_textChanged()
 
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
+//    qDebug() << "Timer starting...";
 //    t2.start(); // DEBUG
 
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback

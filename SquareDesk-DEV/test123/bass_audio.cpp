@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <QDebug>
+//#include <QElapsedTimer>
 #include <QTimer>
 
 // GLOBALS =========
@@ -275,7 +276,7 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
 }
 
 // ------------------------------------------------------------------
-void bass_audio::StreamCreate(const char *filepath, float *pSongStart, float *pSongEnd)
+void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float *pSongEnd_sec, double intro1_frac, double outro1_frac)
 {
     BASS_StreamFree(Stream);
 
@@ -284,10 +285,21 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart, float *pS
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)100.0/100.0f);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)0);
-    StreamGetLength();
+    StreamGetLength(); // sets FileLength
 
     // finds song start and end points ------------
-    songStartDetector(filepath, pSongStart, pSongEnd);
+//    QElapsedTimer t3;
+//    t3.start();
+    if (intro1_frac != 0.0 || outro1_frac != 0.0) {
+//        qDebug() << "Not running songStartDetector, so using: " << intro1_frac << ", " << outro1_frac;
+        *pSongStart_sec = 0.0;
+        *pSongEnd_sec   = FileLength;
+    } else {
+        // both fractions (0-1.0) == zero means we haven't figured out the song length yet
+        //   so, figure it out now
+        songStartDetector(filepath, pSongStart_sec, pSongEnd_sec);
+    }
+//    qDebug() << "t3: " << t3.elapsed();
     // ------------------------------
 
     BASS_BFX_PEAKEQ eq;

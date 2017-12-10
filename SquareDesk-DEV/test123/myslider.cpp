@@ -52,7 +52,8 @@ bool MySlider::eventFilter(QObject *obj, QEvent *event)
     return false;  // don't stop anything else
 }
 
-void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM, float songStart_sec, float songEnd_sec, float songLength_sec)
+void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM,
+                                             float songStart_sec, float songEnd_sec, float songLength_sec)
 {
     if (!tempoIsBPM) {
         float defaultSingerLengthInBeats = (64 * 7 + 24);
@@ -70,17 +71,17 @@ void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM
         float loopEnd_sec = songStart_sec + phraseLength_sec * numPhrasesThatFit;
         float loopEnd_frac = loopEnd_sec/songLength_sec;
 
+        //        qDebug() << "songLength_beats" << songLength_beats;
+        //        qDebug() << "songLength_phrases" << songLength_phrases;
 //        qDebug() << "--------------";
 //        qDebug() << "estimatedBPM" << estimatedBPM;
 //        qDebug() << "songStart_sec" << songStart_sec;
 //        qDebug() << "songEnd_sec" << songEnd_sec;
 //        qDebug() << "songLength_sec" << songLength_sec;
 
-//        qDebug() << "songLength_beats" << songLength_beats;
 //        qDebug() << "phraseLength_beats" << phraseLength_beats;
 //        qDebug() << "phraseLength_sec" << phraseLength_sec;
-//        qDebug() << "songLength_phrases" << songLength_phrases;
-//        qDebug() << "loopStart_sec" << loopStart_sec;
+//qDebug() << "loopStart_sec" << loopStart_sec;
 //        qDebug() << "loopStart_frac" << loopStart_frac;
 //        qDebug() << "numPhrasesThatFit" << numPhrasesThatFit;
 //        qDebug() << "loopEnd_sec" << loopEnd_sec;
