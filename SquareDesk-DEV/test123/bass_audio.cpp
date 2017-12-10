@@ -201,12 +201,13 @@ void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *us
     }
 }
 
-float bass_audio::songStartDetector(const char *filepath) {
+void bass_audio::songStartDetector(const char *filepath, float *pSongStart, float *pSongEnd) {
     // returns start of non-silence in seconds, max 20 seconds
 
     int peak = 0;
-    int levels[200];
+    int sampleNum = 0;
 
+    int *levels = (int *)malloc((int)(FileLength * 10 + 10) * sizeof(int));  // allocate on the heap
     BASS_Init(0 /* "NO SOUND" device */, 44100, 0, 0, NULL);
 
     HSTREAM chan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
@@ -220,10 +221,9 @@ float bass_audio::songStartDetector(const char *filepath) {
         char data[len];  // data sink
         DWORD level, left, right;
 
-        int sampleNum = 0;
         int j = 0;
         int sum = 0;
-        while ( sampleNum < 200 && -1 != (int)(level = BASS_ChannelGetLevel(chan) ) ) // takes 20ms sample every 100ms for 20 sec
+        while ( (-1 != (int)(level = BASS_ChannelGetLevel(chan))) && (true || sampleNum < 200) ) // takes 20ms sample every 100ms for 20 sec
         {
             left=LOWORD(level); // the left level
             right=HIWORD(level); // the right level
@@ -232,7 +232,10 @@ float bass_audio::songStartDetector(const char *filepath) {
                 sum += avg;
             } else {
                 levels[sampleNum] = sum/5;  // sum the 20ms contributions every 100ms, result is 100ms samples of energy
-                printf("%d: %d\n", sampleNum++, sum/5);
+                if (true || sampleNum < 80) {
+//                    printf("%d: %d\n", sampleNum, sum/5);
+                }
+                sampleNum++;
                 peak = (peak < sum/5 ? sum/5 : peak);  // this finds the peak of the 100ms samples
                 sum = 0;
                 j = 0;
@@ -244,27 +247,36 @@ float bass_audio::songStartDetector(const char *filepath) {
 
     BASS_Free();
 
-    int k = 0;
+    // find START of song
+    int k;
     for (k = 0; k < 200; k++) {
-        if (levels[k] > 2000) {
+        if (levels[k] > 2500) {
             break;  // we've found where the silence ends
         }
     }
+    float startOfSong_sec = (float)k/10.0;
+//    printf("Song start (sec): %f\n", startOfSong_sec);
 
-    float startOfNonSilence_sec = (float)k/10.0;
-    printf("peak value: %d, song start (sec): %f\n", peak, startOfNonSilence_sec);
+    // find END of song
+    for (k = sampleNum-1; k > 0; k--) {
+        if (levels[k] > 1000) {
+            break;  // we've found where the silence starts at the end of the song
+        }
+    }
+    float endOfSong_sec = (float)k/10.0;
+//    printf("Song end (sec): %f\n", endOfSong_sec);
     fflush(stdout);
 
-    return(startOfNonSilence_sec);  // if it was all silence, 20.0 will be returned
+    free(levels);  // a tidy heap is a happy heap
+
+    // return values:
+    *pSongStart = startOfSong_sec;
+    *pSongEnd = endOfSong_sec;
 }
 
 // ------------------------------------------------------------------
-float bass_audio::StreamCreate(const char *filepath)
+void bass_audio::StreamCreate(const char *filepath, float *pSongStart, float *pSongEnd)
 {
-    // finds non-silence
-    float startOfNonSilence = songStartDetector(filepath);
-    qDebug() << "non-silence detected @ " << startOfNonSilence << " seconds";
-
     BASS_StreamFree(Stream);
 
     // OPEN THE STREAM FOR PLAYBACK ------------------------
@@ -273,6 +285,10 @@ float bass_audio::StreamCreate(const char *filepath)
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)100.0/100.0f);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)0);
     StreamGetLength();
+
+    // finds song start and end points ------------
+    songStartDetector(filepath, pSongStart, pSongEnd);
+    // ------------------------------
 
     BASS_BFX_PEAKEQ eq;
 
@@ -362,8 +378,6 @@ float bass_audio::StreamCreate(const char *filepath)
     // when the fade is done, call a SYNCPROC that pauses playback
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
     Q_UNUSED(handle)
-
-    return(startOfNonSilence);
 }
 
 // ------------------------------------------------------------------

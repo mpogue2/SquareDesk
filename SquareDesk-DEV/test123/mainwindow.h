@@ -431,7 +431,8 @@ private:
     unsigned short currentVolume;
     int previousVolume;
 
-    float startOfNonSilence_sec;  // beginning of the song!
+    float startOfSong_sec;  // beginning of the song that is loaded
+    float endOfSong_sec;    // end of the song that is loaded
 
     bool tempoIsBPM;
     float baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
