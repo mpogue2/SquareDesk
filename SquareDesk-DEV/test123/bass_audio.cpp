@@ -445,7 +445,7 @@ void bass_audio::FadeOutAndPause(void) {
     if (Stream_State == BASS_ACTIVE_PLAYING) {
 //        qDebug() << "starting fade...current streamvolume is " << Stream_Volume;
 
-        BASS_ChannelSlideAttribute(Stream, BASS_ATTRIB_VOL, 0.0, 3000);  // fade to 0 in 3s
+        BASS_ChannelSlideAttribute(Stream, BASS_ATTRIB_VOL, 0.0, 6000);  // fade to 0 in 6s
     }
 }
 
