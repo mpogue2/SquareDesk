@@ -7,6 +7,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 #include <QClipboard>
+#include <QtSvg/QSvgGenerator>
 #include "common.h"
 #include "../sdlib/database.h"
 
@@ -222,6 +223,63 @@ static void draw_scene(const QStringList &sdformation,
 }
 
 
+static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
+                             QGraphicsTextItem *&graphicsTextItemSDStatusBarText)
+{
+#if defined(Q_OS_MAC)
+    dancerLabelFont = QFont("Arial",11);
+#elif defined(Q_OS_WIN)
+    dancerLabelFont = QFont("Arial",8);
+#else
+    dancerLabelFont = QFont("Arial",8);
+#endif
+    
+    QPen backgroundPen(Qt::black);
+    QPen gridPen(Qt::black,0.25,Qt::DotLine);
+    QPen axisPen(Qt::darkGray,0.5);
+    QBrush backgroundBrush(QColor(240,240,240));
+    QRectF backgroundRect(-halfBackgroundSize,
+                          -halfBackgroundSize,
+                          halfBackgroundSize * 2,
+                          halfBackgroundSize * 2);
+    sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
+    graphicsTextItemSDStatusBarText = sdscene.addText("", dancerLabelFont);
+    QTransform statusBarTransform;
+    statusBarTransform.translate(-halfBackgroundSize, -halfBackgroundSize);
+    statusBarTransform.scale(2,2);
+    graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
+
+    for (double x =  -halfBackgroundSize + gridSize;
+         x < halfBackgroundSize; x += gridSize)
+    {
+        QPen &pen(x == 0 ? axisPen : gridPen);
+        sdscene.addLine(x, -halfBackgroundSize, x, halfBackgroundSize, pen);
+        sdscene.addLine(-halfBackgroundSize, x, halfBackgroundSize, x, pen);
+    }
+
+    for (int i = 0; i < 4; ++i)
+    {
+        QTransform boyTransform;
+        boyTransform.rotate(-90*i);
+        boyTransform.translate(-20, 50);
+
+        QTransform girlTransform;
+        girlTransform.rotate(-90*i);
+        girlTransform.translate(20, 50);
+
+        SDDancer boy, girl;
+
+        QGraphicsItemGroup *boyGroup = generateDancer(sdscene, boy, i, true);
+        QGraphicsItemGroup *girlGroup = generateDancer(sdscene, girl, i, false);
+
+        boyGroup->setTransform(boyTransform);
+        girlGroup->setTransform(girlTransform);
+
+        sdpeople.append(boy);
+        sdpeople.append(girl);
+    }
+}
+
 void MainWindow::initialize_internal_sd_tab()
 {
     sdLastLineWasResolve = false;
@@ -270,60 +328,9 @@ void MainWindow::initialize_internal_sd_tab()
 
 
     
-#if defined(Q_OS_MAC)
-    dancerLabelFont = QFont("Arial",11);
-#elif defined(Q_OS_WIN)
-    dancerLabelFont = QFont("Arial",8);
-#else
-    dancerLabelFont = QFont("Arial",8);
-#endif
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
 
-    QPen backgroundPen(Qt::black);
-    QPen gridPen(Qt::black,0.25,Qt::DotLine);
-    QPen axisPen(Qt::darkGray,0.5);
-    QBrush backgroundBrush(QColor(240,240,240));
-    QRectF backgroundRect(-halfBackgroundSize,
-                          -halfBackgroundSize,
-                          halfBackgroundSize * 2,
-                          halfBackgroundSize * 2);
-    sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
-    graphicsTextItemSDStatusBarText = sdscene.addText("", dancerLabelFont);
-    QTransform statusBarTransform;
-    statusBarTransform.translate(-halfBackgroundSize, -halfBackgroundSize);
-    statusBarTransform.scale(2,2);
-    graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
-
-    for (double x =  -halfBackgroundSize + gridSize;
-         x < halfBackgroundSize; x += gridSize)
-    {
-        QPen &pen(x == 0 ? axisPen : gridPen);
-        sdscene.addLine(x, -halfBackgroundSize, x, halfBackgroundSize, pen);
-        sdscene.addLine(-halfBackgroundSize, x, halfBackgroundSize, x, pen);
-    }
-
-    for (int i = 0; i < 4; ++i)
-    {
-        QTransform boyTransform;
-        boyTransform.rotate(-90*i);
-        boyTransform.translate(-20, 50);
-
-        QTransform girlTransform;
-        girlTransform.rotate(-90*i);
-        girlTransform.translate(20, 50);
-
-        SDDancer boy, girl;
-
-        QGraphicsItemGroup *boyGroup = generateDancer(sdscene, boy, i, true);
-        QGraphicsItemGroup *girlGroup = generateDancer(sdscene, girl, i, false);
-
-        boyGroup->setTransform(boyTransform);
-        girlGroup->setTransform(girlTransform);
-
-        sdpeople.append(boy);
-        sdpeople.append(girl);
-    }
-
+    initialize_scene(sdscene, sdpeople, graphicsTextItemSDStatusBarText);
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sdscene);
 
@@ -1269,6 +1276,7 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 void MainWindow::copy_selection_from_listWidgetSDOutput()
 {
     QString selection;
+    
     for (int row = 0; row < ui->listWidgetSDOutput->count(); ++row)
     {
         QListWidgetItem *item = ui->listWidgetSDOutput->item(row);
@@ -1282,9 +1290,15 @@ void MainWindow::copy_selection_from_listWidgetSDOutput()
     QApplication::clipboard()->setText(selection);
 }
 
-void MainWindow::export_sd_sequence_to_html()
+void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
 {
-    QString selection;
+    QGraphicsScene scene;
+    QList<SDDancer> people;
+    QGraphicsTextItem *graphicsTextItemStatusBar;
+
+    initialize_scene(scene,people, graphicsTextItemStatusBar);
+    
+    QString selection("<ol>");
     for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
     {
         bool selected(false);
@@ -1299,10 +1313,48 @@ void MainWindow::export_sd_sequence_to_html()
         if (selected)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
-            selection += item->text() + "\n";
+            selection += "<li>" + item->text().toHtmlEscaped();
+            QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,1);
+            if (1 || imageItem->isSelected())
+            {
+                QVariant v = imageItem->data(Qt::UserRole);
+                if (!v.isNull())
+                {
+                    QString formation(v.toString());
+                    QStringList formationList = formation.split("\n");
+                    if (formationList.size() > 0)
+                    {
+                        graphicsTextItemStatusBar->setPlainText(formationList[0]);
+                        QString formationName = formationList[0];
+                        formationList.removeFirst();
+                        draw_scene(formationList, people);
+                        QBuffer svgText;
+                        svgText.open(QBuffer::ReadWrite);
+                        QSvgGenerator svgGen;
+                        svgGen.setOutputDevice(&svgText);
+                        //svgGen.setFileName("/home/danlyke/foo.svg");
+                        svgGen.setSize(QSize(halfBackgroundSize * 2,
+                                             halfBackgroundSize * 2));
+                        svgGen.setTitle(formationName);
+                        svgGen.setDescription(formation.toHtmlEscaped());
+
+                        {
+                            QPainter painter( &svgGen );
+                            scene.render( &painter );
+                            painter.end();
+                        }
+                        svgText.seek(0);
+                        QString s(svgText.readAll());
+                        selection += "<br>" + s;
+                    }
+                }
+            }
+
+            selection +=  + "</li>\n";
         }
     }
 
+    selection += "</ol>";
     QApplication::clipboard()->setText(selection);
     
 }
@@ -1318,9 +1370,9 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
     contextMenu.addAction(&action2);
 
-    QAction action2("Copy as HTML", this);
-    connect(&action2, SIGNAL(triggered()), this, SLOT(export_sd_sequence_to_html()));
-    contextMenu.addAction(&action2);
+    QAction action3("Copy as HTML", this);
+    connect(&action3, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
+    contextMenu.addAction(&action3);
 
     contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
 }

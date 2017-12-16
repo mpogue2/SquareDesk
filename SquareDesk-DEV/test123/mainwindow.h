@@ -390,6 +390,8 @@ private slots:
     void on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item);
     void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
     void copy_selection_from_tableWidgetCurrentSequence();
+    void copy_selection_from_tableWidgetCurrentSequence_html();
+
     void undo_last_sd_action();
     void on_listWidgetSDOutput_customContextMenuRequested(const QPoint&);
     void copy_selection_from_listWidgetSDOutput();
