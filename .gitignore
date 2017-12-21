@@ -11,5 +11,9 @@ build-*
 /SquareDesk-DEV/taglib/taglib/Makefile
 /SquareDesk-DEV/Makefile
 /SquareDesk-DEV/html-tidy/Makefile
-
-
+.DS_Store
+._.DS_Store
+**/.DS_Store
+**/._.DS_Store
+**/CMakeOutput.log
+**/jquery*.zip
