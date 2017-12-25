@@ -65,6 +65,10 @@
 #include "startupwizard.h"
 #include "downloadmanager.h"
 
+#if defined(Q_OS_MAC)
+#include "src/communicator.h"
+#endif
+
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "JlCompress.h"
 #endif
@@ -833,6 +837,8 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeLoadCSSfileIntoTextBrowser();
 
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
+
+    initReftab();
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -2556,6 +2562,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->lineEditChoreographySearch->hasFocus() ||
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
+               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
                maybeMainWindow->console->hasFocus() )     ||
 
              ( (ui->labelSearch->hasFocus() ||
@@ -4866,12 +4873,15 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     QListIterator<QString> iter(*pathStack);
     QStringList programs;
 
-
+    // FIX: This should be changed to look only in <rootDir>/reference, rather than looking
+    //   at all pathnames in the <rootDir>.  It will be much faster.
     while (iter.hasNext()) {
         QString s = iter.next();
 
-        if (s.endsWith(".txt", Qt::CaseInsensitive))
+//        if (s.endsWith(".txt", Qt::CaseInsensitive))
+        if (QRegExp("reference/[a-zA-Z0-9]+\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
         {
+            //qDebug() << "Dance Program Match:" << s;
             QStringList sl1 = s.split("#!#");
             QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
@@ -7315,6 +7325,95 @@ void MainWindow::restartSDprocess(QString SDdanceLevel) {
 
     connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData, Qt::UniqueConnection);  // output data from sd (and don't make duplicate connections)
     connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
+}
+
+void MainWindow::initReftab() {
+#if defined(Q_OS_MAC)
+    documentsTab = new QTabWidget();
+    numWebviews = 0;
+
+    QString referencePath = musicRootPath + "/reference";
+    QDirIterator it(referencePath, QDir::NoDot | QDir::NoDotDot | QDir::Dirs | QDir::Files);
+    while (it.hasNext()) {
+        QString filename = it.next();
+//        qDebug() << filename;
+
+        QFileInfo info1(filename);
+        QString tabname;
+        bool HTMLfolderExists = false;
+        QString whichHTM = "";
+        if (info1.isDir()) {
+            QFileInfo info2(filename + "/index.html");
+            if (info2.exists()) {
+//                qDebug() << "    FOUND INDEX.HTML";
+                tabname = filename.split("/").last();
+                HTMLfolderExists = true;
+                whichHTM = "/index.html";
+            } else {
+                QFileInfo info3(filename + "/index.htm");
+                if (info3.exists()) {
+//                    qDebug() << "    FOUND INDEX.HTM";
+                    tabname = filename.split("/").last();
+                    HTMLfolderExists = true;
+                    whichHTM = "/index.htm";
+                }
+            }
+            if (HTMLfolderExists) {
+                webview[numWebviews] = new QWebEngineView();
+                QString indexFileURL = "file://" + filename + whichHTM;
+//                qDebug() << "    indexFileURL:" << indexFileURL;
+                webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                documentsTab->addTab(webview[numWebviews], tabname);
+                numWebviews++;
+            }
+        } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
+                   QRegExp("reference/[a-zA-Z0-9]+\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
+//                qDebug() << "    FOUND TXT FILE";
+                tabname = filename.split("/").last().remove(QRegExp(".txt$"));
+//                qDebug() << "    tabname:" << tabname;
+
+                webview[numWebviews] = new QWebEngineView();
+                QString indexFileURL = "file://" + filename;
+//                qDebug() << "    indexFileURL:" << indexFileURL;
+                webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                documentsTab->addTab(webview[numWebviews], tabname);
+                numWebviews++;
+        } else if (filename.endsWith(".pdf")) {
+//                qDebug() << "PDF FILE DETECTED:" << filename;
+
+                QString app_path = qApp->applicationDirPath();
+                auto url = QUrl::fromLocalFile(app_path+"/minified/web/viewer.html");  // point at the viewer
+//                qDebug() << "    Viewer URL:" << url;
+
+                QDir dir(app_path+"/minified/web/");
+                QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
+//                qDebug() << "    pdf_path: " << pdf_path;
+
+                Communicator *m_communicator = new Communicator(this);
+                m_communicator->setUrl(pdf_path);
+
+                webview[numWebviews] = new QWebEngineView();
+
+                QWebChannel * channel = new QWebChannel(this);
+                channel->registerObject(QStringLiteral("communicator"), m_communicator);
+                webview[numWebviews]->page()->setWebChannel(channel);
+
+                webview[numWebviews]->load(url);
+
+//                QString indexFileURL = "file://" + filename;
+//                qDebug() << "    indexFileURL:" << indexFileURL;
+
+//                webview[numWebviews]->setUrl(QUrl(pdf_path));
+                QFileInfo fInfo(filename);
+                documentsTab->addTab(webview[numWebviews], fInfo.baseName());
+
+                numWebviews++;
+        }
+
+    } // while iterating through <musicRoot>/reference
+
+    ui->refGridLayout->addWidget(documentsTab, 0,1);
+#endif
 }
 
 void MainWindow::initSDtab() {

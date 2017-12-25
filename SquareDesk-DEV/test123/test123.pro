@@ -4,12 +4,15 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network printsupport
+QT       += core gui sql network printsupport webenginewidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = SquareDeskPlayer
 TEMPLATE = app
+
+#  turn off QML warning for Debug builds
+DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -35,6 +38,10 @@ SOURCES += main.cpp\
     keybindings.cpp \
     calllistcheckbox.cpp \
     downloadmanager.cpp
+
+macx {
+SOURCES += ../qpdfjs/src/communicator.cpp
+}
 
 HEADERS  += mainwindow.h \
     bass.h \
@@ -69,7 +76,12 @@ HEADERS  += mainwindow.h \
     calllistcheckbox.h \
     downloadmanager.h
 
-    FORMS    += mainwindow.ui \
+macx {
+HEADERS += ../qpdfjs/src/communicator.h
+INCLUDEPATH += $$PWD/../qpdfjs
+}
+
+FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
     preferencesdialog.ui
@@ -261,6 +273,20 @@ macx {
     export(copydata12h.commands)
 
     QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+
+    # For the PDF viewer -----------------
+    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified
+    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified
+    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified
+    copydata4p.commands = $(RM) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified/web/compressed.*.pdf
+
+    first.depends += copydata1p copydata2p copydata3p copydata4p
+    export(first.depends)
+    export(copydata1p.commands)
+    export(copydata2p.commands)
+    export(copydata3p.commands)
+    export(copydata4p.commands)
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
 }
 
 win32:CONFIG(debug, debug|release): {

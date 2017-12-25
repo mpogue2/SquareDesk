@@ -52,6 +52,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#include <QtWebEngineWidgets>
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
@@ -121,6 +122,10 @@ public:
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
+
+    unsigned int numWebviews;
+    QWebEngineView* webview[16];  // max of 16 tabs
+    QTabWidget *documentsTab;
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -568,6 +573,7 @@ private:
     // --------------
     void restartSDprocess(QString SDdanceLevel);
     void initSDtab();
+    void initReftab();
 
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
