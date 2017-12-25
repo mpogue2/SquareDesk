@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1220,7 +1220,7 @@
                <string>Title</string>
               </property>
               <property name="checkable">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1251,7 +1251,7 @@
                <string>Label</string>
               </property>
               <property name="checkable">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1288,7 +1288,7 @@
                <string>Artist</string>
               </property>
               <property name="checkable">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1314,7 +1314,7 @@
                <string>HEADER</string>
               </property>
               <property name="checkable">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1332,7 +1332,7 @@
                <string>Lyrics</string>
               </property>
               <property name="checkable">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
              </widget>
             </item>

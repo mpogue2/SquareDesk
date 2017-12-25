@@ -225,7 +225,7 @@ private slots:
     void on_pushButtonCueSheetEditArtist_clicked(bool checked);
     void on_pushButtonCueSheetEditLabel_clicked(bool checked);
     void on_pushButtonCueSheetEditLyrics_clicked(bool checked);
-    void showHTML();
+    void showHTML(QString fromWhere);
 
     void on_pushButtonCueSheetEditSave_clicked();
 
@@ -388,6 +388,10 @@ private slots:
 //    void on_actionDownload_matching_lyrics_triggered();
 
 private:
+
+    enum charsType { TitleChars, LabelChars, ArtistChars, HeaderChars, LyricsChars, NoneChars};
+    charsType FG_BG_to_type(QColor fg, QColor bg);
+    QTextCharFormat lastKnownTextCharFormat;
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
 
