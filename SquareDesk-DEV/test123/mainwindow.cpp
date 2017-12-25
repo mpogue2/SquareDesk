@@ -69,6 +69,9 @@
 #include "JlCompress.h"
 #endif
 
+// experimental removal of silence at the beginning of the song
+#define REMOVESILENCE 1
+
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
 // TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
@@ -1350,8 +1353,12 @@ void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checke
 {
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
-    ui->seekBarCuesheet->SetDefaultIntroOutroPositions();
-    ui->seekBar->SetDefaultIntroOutroPositions();
+
+    // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
+    cBass.songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
+
+    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
+    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     double length = cBass.FileLength;
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
@@ -1566,9 +1573,16 @@ void MainWindow::on_stopButton_clicked()
 
     ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
 
+#ifdef REMOVESILENCE
+    // last thing we do is move the stream position to 1 sec before start of music
+    // this will move BOTH seekBar's to the right spot
+    cBass.StreamSetPosition((double)startOfSong_sec);
+    Info_Seekbar(false);  // update just the text
+#else
     ui->seekBar->setValue(0);
     ui->seekBarCuesheet->setValue(0);
     Info_Seekbar(false);  // update just the text
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -3891,9 +3905,42 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QDir md(MP3FileName);
     QString canonicalFN = md.canonicalPath();
 
-    cBass.StreamCreate(MP3FileName.toStdString().c_str());
+//    qDebug() << "load 2.3.1: " << t2.elapsed() << "ms";
 
-//    qDebug() << "load 2.3: " << t2.elapsed() << "ms";
+    // let's do a quick preview (takes <1ms), to see if the intro/outro are already set.
+    SongSetting settings1;
+    double intro1 = 0.0;
+    double outro1 = 0.0;
+    bool introOutroSetAlready = false;
+    if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
+        if (settings1.isSetIntroPos()) {
+            intro1 = settings1.getIntroPos();
+            introOutroSetAlready = true;
+//            qDebug() << "intro was set to: " << intro1;
+        }
+        if (settings1.isSetOutroPos()) {
+            outro1 = settings1.getOutroPos();
+            introOutroSetAlready = true;
+//            qDebug() << "outro was set to: " << outro1;
+        }
+    }
+
+//    qDebug() << "load 2.3.1.2: " << t2.elapsed() << "ms";
+
+    cBass.StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec, intro1, outro1);  // load song, and figure out where the song actually starts and ends
+
+    // OK, by this time we always have an introOutro
+    //   if DB had one, we didn't scan, and just used that one
+    //   if DB did not have one, we scanned
+    introOutroSetAlready = true;
+
+    //    qDebug() << "song starts: " << startOfSong_sec << ", ends: " << endOfSong_sec;
+
+#ifdef REMOVESILENCE
+        startOfSong_sec = (startOfSong_sec > 1.0 ? startOfSong_sec - 1.0 : 0.0);  // start 1 sec before non-silence
+#endif
+
+//    qDebug() << "load 2.3.2: " << t2.elapsed() << "ms";
 
     QStringList ss = MP3FileName.split('/');
     QString fn = ss.at(ss.size()-1);
@@ -4011,8 +4058,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
-    ui->seekBarCuesheet->SetDefaultIntroOutroPositions();
-    ui->seekBar->SetDefaultIntroOutroPositions();
+
+    // NOTE: no need to scan for intro/outro here, because we are guaranteed that it was set by StreamCreate() above
+    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
+    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
 
     ui->lineEditIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->lineEditOutroTime->setEnabled(true);
@@ -4051,9 +4100,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->pushButtonSetOutroTime->setText("Out");
     }
 
+//    qDebug() << "load 2.9.1: " << t2.elapsed() << "ms";
     loadSettingsForSong(songTitle);
 
-//    qDebug() << "load 2.9: " << t2.elapsed() << "ms";
+//    qDebug() << "load 2.9.2: " << t2.elapsed() << "ms";
+
+//    qDebug() << "setting stream position to: " << startOfSong_sec;
+    cBass.StreamSetPosition((double)startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -4890,6 +4943,7 @@ void MainWindow::on_titleSearch_textChanged()
 
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
+//    qDebug() << "Timer starting...";
 //    t2.start(); // DEBUG
 
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
@@ -6432,7 +6486,8 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
         if (settings.isSetCuesheetName()) { cuesheetName = settings.getCuesheetName(); } // ADDED *****
 
-        double length = (double)(ui->seekBarCuesheet->maximum());
+        // double length = (double)(ui->seekBarCuesheet->maximum());  // This is not correct, results in non-round-tripping
+        double length = cBass.FileLength;  // This seems to work better, and round-tripping looks like it is working now.
         if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
         {
             intro = intro / length;
@@ -6516,9 +6571,9 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->midrangeSlider->setValue(0);
         ui->mixSlider->setValue(0);
     }
-    double length = (double)(ui->seekBarCuesheet->maximum());
-    ui->lineEditIntroTime->setText(doubleToTime(intro * length));
-    ui->lineEditOutroTime->setText(doubleToTime(outro * length));
+//    double length = (double)(ui->seekBarCuesheet->maximum());      // I think these are redundant now...
+//    ui->lineEditIntroTime->setText(doubleToTime(intro * length));
+//    ui->lineEditOutroTime->setText(doubleToTime(outro * length));
 }
 
 // ------------------------------------------------------------------------------------------

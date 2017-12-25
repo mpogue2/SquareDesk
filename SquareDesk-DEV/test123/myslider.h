@@ -43,7 +43,8 @@ public:
     void SetOutro(float outro);
     float GetIntro() const;
     float GetOutro() const;
-    void SetDefaultIntroOutroPositions();
+    void SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM,
+                                       float songStart_sec, float songEnd_sec, float songLength_sec);
 
     bool eventFilter(QObject *obj, QEvent *event);
 

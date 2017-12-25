@@ -28,6 +28,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <QDebug>
+//#include <QElapsedTimer>
 #include <QTimer>
 
 // GLOBALS =========
@@ -127,7 +128,9 @@ bass_audio::~bass_audio(void)
 void bass_audio::Init(void)
 {
     //-------------------------------------------------------------
-    BASS_Init(-1, 44100, 0, NULL, NULL);
+    if (!BASS_Init(-1, 44100, 0, NULL, NULL)) {   // the "default" device
+        qDebug() << "ERROR " << BASS_ErrorGetCode() << " in bass_audio::Init(-1)";
+    }
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
     //-------------------------------------------------------------
 }
@@ -199,8 +202,81 @@ void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *us
     }
 }
 
+void bass_audio::songStartDetector(const char *filepath, float *pSongStart, float *pSongEnd) {
+    // returns start of non-silence in seconds, max 20 seconds
+
+    int peak = 0;
+    int sampleNum = 0;
+
+    int *levels = (int *)malloc((int)(FileLength * 10 + 10) * sizeof(int));  // allocate on the heap
+    BASS_Init(0 /* "NO SOUND" device */, 44100, 0, 0, NULL);
+
+    HSTREAM chan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
+    if ( chan )
+    {
+        float block = 20;  // take a 20ms level sample every 20ms
+
+        // BASS_ChannelGetLevel takes 20ms from the channel
+        QWORD len = BASS_ChannelSeconds2Bytes(chan, block/1000.0 - 0.02);  // always takes a 0.02s level sample
+
+        char data[len];  // data sink
+        DWORD level, left, right;
+
+        int j = 0;
+        int sum = 0;
+        while ( (-1 != (int)(level = BASS_ChannelGetLevel(chan))) && (true || sampleNum < 200) ) // takes 20ms sample every 100ms for 20 sec
+        {
+            left=LOWORD(level); // the left level
+            right=HIWORD(level); // the right level
+            unsigned int avg = (left+right)/2;
+            if (j++ < 4) {
+                sum += avg;
+            } else {
+                levels[sampleNum] = sum/5;  // sum the 20ms contributions every 100ms, result is 100ms samples of energy
+                if (true || sampleNum < 80) {
+//                    printf("%d: %d\n", sampleNum, sum/5);
+                }
+                sampleNum++;
+                peak = (peak < sum/5 ? sum/5 : peak);  // this finds the peak of the 100ms samples
+                sum = 0;
+                j = 0;
+            }
+            BASS_ChannelGetData(chan, data, len); // get data away from the channel
+        }
+        BASS_StreamFree( chan );
+    }
+
+    BASS_Free();
+
+    // find START of song
+    int k;
+    for (k = 0; k < 200; k++) {
+        if (levels[k] > 2500) {
+            break;  // we've found where the silence ends
+        }
+    }
+    float startOfSong_sec = (float)k/10.0;
+//    printf("Song start (sec): %f\n", startOfSong_sec);
+
+    // find END of song
+    for (k = sampleNum-1; k > 0; k--) {
+        if (levels[k] > 1000) {
+            break;  // we've found where the silence starts at the end of the song
+        }
+    }
+    float endOfSong_sec = (float)k/10.0;
+//    printf("Song end (sec): %f\n", endOfSong_sec);
+    fflush(stdout);
+
+    free(levels);  // a tidy heap is a happy heap
+
+    // return values:
+    *pSongStart = startOfSong_sec;
+    *pSongEnd = endOfSong_sec;
+}
+
 // ------------------------------------------------------------------
-void bass_audio::StreamCreate(const char *filepath)
+void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float *pSongEnd_sec, double intro1_frac, double outro1_frac)
 {
     BASS_StreamFree(Stream);
 
@@ -209,7 +285,22 @@ void bass_audio::StreamCreate(const char *filepath)
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)100.0/100.0f);
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)0);
-    StreamGetLength();
+    StreamGetLength(); // sets FileLength
+
+    // finds song start and end points ------------
+//    QElapsedTimer t3;
+//    t3.start();
+    if (intro1_frac != 0.0 || outro1_frac != 0.0) {
+//        qDebug() << "Not running songStartDetector, so using: " << intro1_frac << ", " << outro1_frac;
+        *pSongStart_sec = 0.0;
+        *pSongEnd_sec   = FileLength;
+    } else {
+        // both fractions (0-1.0) == zero means we haven't figured out the song length yet
+        //   so, figure it out now
+        songStartDetector(filepath, pSongStart_sec, pSongEnd_sec);
+    }
+//    qDebug() << "t3: " << t3.elapsed();
+    // ------------------------------
 
     BASS_BFX_PEAKEQ eq;
 
@@ -302,9 +393,10 @@ void bass_audio::StreamCreate(const char *filepath)
 }
 
 // ------------------------------------------------------------------
-void bass_audio::StreamSetPosition(double Position)
+void bass_audio::StreamSetPosition(double Position_sec)
 {
-    BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, (double)Position), BASS_POS_BYTE);
+    BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, (double)Position_sec), BASS_POS_BYTE);
+//    Current_Position = Position_sec; // ??
 }
 
 // ------------------------------------------------------------------

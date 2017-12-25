@@ -72,7 +72,8 @@ public:
     void SetMono(bool on);
 
     //Stream
-    void StreamCreate(const char *filepath);
+    void songStartDetector(const char *filepath, float *pSongStart, float *pSongEnd);
+    void StreamCreate(const char *filepath, float *pSongStart, float *pSongEnd, double i1, double o1);  // returns start of non-silence (seconds)
 
     void StreamGetLength(void);
     void StreamSetPosition(double Position);
