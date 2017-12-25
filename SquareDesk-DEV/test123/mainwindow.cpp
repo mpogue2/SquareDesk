@@ -1123,6 +1123,19 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
         cursor.endEditBlock(); // end of grouping for UNDO purposes
 }
 
+// Knowing what the FG and BG colors are (from cuesheet2.css) allows us to determine the character type
+// The parsing code below looks at FG and BG in a very specific order.  Be careful if making changes.
+// The cuesheet2.css file is also now fixed.  If you change colors there, you'll break editing.
+//
+//          fg                bg
+// -------  --------------    ------------
+// Title    0,0,0             1,1,0.878
+// Label    0.37,0.75,0.37    1,1,0.873
+// Artist   0,0,1             1,1,0.873
+// Header   1,0,0             1,1,0.873
+// Lyrics   0,0,0             1,0.75,0.79
+// None     0,0,0             0,0,0
+
 MainWindow::charsType MainWindow::FG_BG_to_type(QColor fg, QColor bg) {
     qDebug() << "fg: " << fg << ", bg: " << bg;
     if (bg.blueF() == 0.0) {
