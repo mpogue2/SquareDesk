@@ -1044,7 +1044,7 @@ void MainWindow::showHTML(QString fromWhere) {
 
 void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
 {
-    qDebug() << "on_toolButtonEditLyrics_toggled" << checkState;
+//    qDebug() << "on_toolButtonEditLyrics_toggled" << checkState;
     bool checked = (checkState != Qt::Unchecked);
 
     ui->pushButtonCueSheetEditTitle->setEnabled(checked);
@@ -1066,7 +1066,7 @@ void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
 {
-    qDebug() << "on_textBrowserCueSheet_selectionChanged";
+//    qDebug() << "on_textBrowserCueSheet_selectionChanged";
 ////    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 ////    QString selectedText = cursor.selectedText();
 ////    qDebug() << "New selected text: '" << selectedText << "'";
@@ -1084,7 +1084,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 
 void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 {
-    qDebug() << "on_pushButtonCueSheetClearFormatting_clicked";
+//    qDebug() << "on_pushButtonCueSheetClearFormatting_clicked";
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
         // NOTE: in this initial version, Clear Line Format works just on
@@ -1137,30 +1137,30 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 // None     0,0,0             0,0,0
 
 MainWindow::charsType MainWindow::FG_BG_to_type(QColor fg, QColor bg) {
-    qDebug() << "fg: " << fg << ", bg: " << bg;
+//    qDebug() << "fg: " << fg << ", bg: " << bg;
     if (bg.blueF() == 0.0) {
-        qDebug() << "None";
+//        qDebug() << "None";
         return(NoneChars);
     } else if (fg.blueF() == 1.0) {
-        qDebug() << "Artist";
+//        qDebug() << "Artist";
         return(ArtistChars);
     } else if (fg.redF() == 1.0) {
-        qDebug() << "Header";
+//        qDebug() << "Header";
         return(HeaderChars);
     } else if (fg.blueF() != 0.0) {
-        qDebug() << "Label";
+//        qDebug() << "Label";
         return(LabelChars);
     } else if (bg.greenF() != 1.0) {
-        qDebug() << "Lyrics";
+//        qDebug() << "Lyrics";
         return(LyricsChars);
     }
-    qDebug() << "Title";
+//    qDebug() << "Title";
     return(TitleChars);  // else
 }
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
 {
-    qDebug() << "on_textBrowserCueSheet_currentCharFormatChanged" << f;
+//    qDebug() << "on_textBrowserCueSheet_currentCharFormatChanged" << f;
 
     RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
 
@@ -1171,15 +1171,15 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 
     if (f.isCharFormat()) {
         QTextCharFormat tcf = (QTextCharFormat)f;
-        qDebug() << "tell me about: " << tcf.font();
-        qDebug() << "foreground: " << tcf.foreground();
-        qDebug() << "background: " << tcf.background();
-        qDebug() << "family: " << tcf.font().family();
-        qDebug() << "point size: " << tcf.font().pointSize();
-        qDebug() << "pixel size: " << tcf.font().pixelSize();
+//        qDebug() << "tell me about: " << tcf.font();
+//        qDebug() << "foreground: " << tcf.foreground();
+//        qDebug() << "background: " << tcf.background();
+//        qDebug() << "family: " << tcf.font().family();
+//        qDebug() << "point size: " << tcf.font().pointSize();
+//        qDebug() << "pixel size: " << tcf.font().pixelSize();
 
         charsType c = FG_BG_to_type(tcf.foreground().color(), tcf.background().color());
-        qDebug() << "charsType: " << c;
+//        qDebug() << "charsType: " << c;
 
         if (ui->toolButtonEditLyrics->isChecked()) {
             ui->pushButtonCueSheetEditTitle->setChecked(c == TitleChars);
@@ -1201,7 +1201,7 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 
 static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 {
-    qDebug() << "setSelectedTextToClass: " << blockClass;
+//    qDebug() << "setSelectedTextToClass: " << blockClass;
     QTextCursor cursor = editor->textCursor();
 
     if (!cursor.hasComplexSelection())
@@ -1233,7 +1233,7 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 
 void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
 {
-    qDebug() << "on_pushButtonCueSheetEditHeader_clicked";
+//    qDebug() << "on_pushButtonCueSheetEditHeader_clicked";
     if (!cuesheetEditorReactingToCursorMovement)
     {
         setSelectedTextToClass(ui->textBrowserCueSheet, "hdr");
@@ -1244,7 +1244,7 @@ void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
 
 void MainWindow::on_pushButtonCueSheetEditItalic_toggled(bool checked)
 {
-    qDebug() << "on_pushButtonCueSheetEditItalic_toggled" << checked;
+//    qDebug() << "on_pushButtonCueSheetEditItalic_toggled" << checked;
     if (!cuesheetEditorReactingToCursorMovement)
     {
         ui->textBrowserCueSheet->setFontItalic(checked);
@@ -1254,7 +1254,7 @@ void MainWindow::on_pushButtonCueSheetEditItalic_toggled(bool checked)
 
 void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
 {
-    qDebug() << "on_pushButtonCueSheetEditBold_toggled" << checked;
+//    qDebug() << "on_pushButtonCueSheetEditBold_toggled" << checked;
     if (!cuesheetEditorReactingToCursorMovement)
     {
         ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
@@ -1265,7 +1265,7 @@ void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
 
 void MainWindow::on_pushButtonCueSheetEditTitle_clicked(bool checked)
 {
-    qDebug() << "on_pushButtonCueSheetEditTitle_clicked" << checked;
+//    qDebug() << "on_pushButtonCueSheetEditTitle_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
@@ -1276,7 +1276,7 @@ void MainWindow::on_pushButtonCueSheetEditTitle_clicked(bool checked)
 
 void MainWindow::on_pushButtonCueSheetEditArtist_clicked(bool checked)
 {
-    qDebug() << "on_pushButtonCueSheetEditArtist_clicked" << checked;
+//    qDebug() << "on_pushButtonCueSheetEditArtist_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
@@ -1287,7 +1287,7 @@ void MainWindow::on_pushButtonCueSheetEditArtist_clicked(bool checked)
 
 void MainWindow::on_pushButtonCueSheetEditLabel_clicked(bool checked)
 {
-    qDebug() << "on_pushButtonCueSheetEditLabel_clicked" << checked;
+//    qDebug() << "on_pushButtonCueSheetEditLabel_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
@@ -1298,7 +1298,7 @@ void MainWindow::on_pushButtonCueSheetEditLabel_clicked(bool checked)
 
 void MainWindow::on_pushButtonCueSheetEditLyrics_clicked(bool checked)
 {
-    qDebug() << "on_pushButtonCueSheetEditLyrics_clicked" << checked;
+//    qDebug() << "on_pushButtonCueSheetEditLyrics_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
@@ -1321,60 +1321,78 @@ static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFil
     return false;
 }
 
+// This function is called to write out the tidied/semantically-processed HTML to a file.
+// If SAVE or SAVE AS..., then the file is read in again from disk, in case there are round-trip problems.
+//
 void MainWindow::writeCuesheet(QString filename)
 {
     qDebug() << "writeCuesheet: " << filename;
-//    bool needs_extension = true;
-//    for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
-//    {
-//        QString ext(".");
-//        ext.append(cuesheet_file_extensions[i]);
-//        if (filename.endsWith(ext, Qt::CaseInsensitive))
-//        {
-//            needs_extension = false;
-//            break;
-//        }
-//    }
-//    if (needs_extension)
-//    {
-//        filename += ".html";
-//    }
+    bool needs_extension = true;
+    for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
+    {
+        QString ext(".");
+        ext.append(cuesheet_file_extensions[i]);
+        if (filename.endsWith(ext, Qt::CaseInsensitive))
+        {
+            needs_extension = false;
+            break;
+        }
+    }
+    if (needs_extension)
+    {
+        filename += ".html";
+    }
 
-//    QFile file(filename);
-//    QDir d = QFileInfo(file).absoluteDir();
-//    QString directoryName = d.absolutePath();  // directory of the saved filename
+    QFile file(filename);
+    QDir d = QFileInfo(file).absoluteDir();
+    QString directoryName = d.absolutePath();  // directory of the saved filename
 
-//    lastCuesheetSavePath = directoryName;
+    lastCuesheetSavePath = directoryName;
 
-//    if ( file.open(QIODevice::WriteOnly) )
-//    {
-//        // Make sure the destructor gets called before we try to load this file...
-//        {
-//            QTextStream stream( &file );
-////                qDebug() << "************** SAVE FILE ***************";
-//            showHTML();
+#ifdef WRITETHEMODIFIEDLYRICSFILE
+    if ( file.open(QIODevice::WriteOnly) )
+    {
+        // Make sure the destructor gets called before we try to load this file...
+        {
+            // FIX FIX FIX TODO DEBUG
+            QTextStream stream( &file );
+//                qDebug() << "************** SAVE FILE ***************";
+            showHTML();
 
-//            QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-////                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
+            QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+//                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
 
-//            QString tEditedCuesheet = tidyHTML(editedCuesheet);
-////                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
-//            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
-////                qDebug().noquote() << "***** WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
+            QString tEditedCuesheet = tidyHTML(editedCuesheet);
+//                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
+            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+//                qDebug().noquote() << "***** WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
 
-//            stream << postProcessedCuesheet;
-//            stream.flush();
-//        }
+            stream << postProcessedCuesheet;
+            stream.flush();
+        }
 
-//        if (!isFileInPathStack(pathStack, filename))
-//        {
-//            QFileInfo fi(filename);
-//            QStringList section = fi.path().split("/");
-//            QString type = section[section.length()-1];  // must be the last item in the path
-////            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStack";
-//            pathStack->append(type + "#!#" + filename);
-//        }
-//    }
+        if (!isFileInPathStack(pathStack, filename))
+        {
+            QFileInfo fi(filename);
+            QStringList section = fi.path().split("/");
+            QString type = section[section.length()-1];  // must be the last item in the path
+//            qDebug() << "writeCuesheet() adding " + type + "#!#" + filename + " to pathStack";
+            pathStack->append(type + "#!#" + filename);
+        }
+    }
+#else
+                qDebug() << "************** SAVE FILE ***************";
+                showHTML(__FUNCTION__);
+
+                QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+    //                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
+
+                QString tEditedCuesheet = tidyHTML(editedCuesheet);
+    //                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
+
+                QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+                qDebug().noquote() << "***** I AM THINKING ABOUT WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
+#endif
 }
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
@@ -1483,88 +1501,85 @@ QString MainWindow::tidyHTML(QString cuesheet) {
 // ------------------------
 QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     qDebug() << "postProcessHTMLtoSemanticHTML";
-    qDebug() << "***********\npostProcessHTMLtoSemanticHTML, cuesheet in/out: " << cuesheet;
-//    qDebug() << "***********\npostProcessHTMLtoSemanticHTML, cuesheet out: " << cuesheet;
-    return(cuesheet);
 
-//    // margin-top:12px;
-//    // margin-bottom:12px;
-//    // margin-left:0px;
-//    // margin-right:0px;
-//    // -qt-block-indent:0;
-//    // text-indent:0px;
-//    // line-height:100%;
-//    // KEEP: background-color:#ffffe0;
-//    cuesheet
-//            .replace(QRegExp("margin-top:[0-9]+px;"), "")
-//            .replace(QRegExp("margin-bottom:[0-9]+px;"), "")
-//            .replace(QRegExp("margin-left:[0-9]+px;"), "")
-//            .replace(QRegExp("margin-right:[0-9]+px;"), "")
-//            .replace(QRegExp("text-indent:[0-9]+px;"), "")
-//            .replace(QRegExp("line-height:[0-9]+%;"), "")
-//            .replace(QRegExp("-qt-block-indent:[0-9]+;"), "")
-//            ;
+    // margin-top:12px;
+    // margin-bottom:12px;
+    // margin-left:0px;
+    // margin-right:0px;
+    // -qt-block-indent:0;
+    // text-indent:0px;
+    // line-height:100%;
+    // KEEP: background-color:#ffffe0;
+    cuesheet
+            .replace(QRegExp("margin-top:[0-9]+px;"), "")
+            .replace(QRegExp("margin-bottom:[0-9]+px;"), "")
+            .replace(QRegExp("margin-left:[0-9]+px;"), "")
+            .replace(QRegExp("margin-right:[0-9]+px;"), "")
+            .replace(QRegExp("text-indent:[0-9]+px;"), "")
+            .replace(QRegExp("line-height:[0-9]+%;"), "")
+            .replace(QRegExp("-qt-block-indent:[0-9]+;"), "")
+            ;
 
-//    // get rid of unwanted QTextEdit tags
-//    QRegExp styleRegExp("(<STYLE.*</STYLE>)|(<META.*>)");
-//    styleRegExp.setMinimal(true);
-//    styleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
-//    cuesheet.replace(styleRegExp,"");  // don't be greedy
+    // get rid of unwanted QTextEdit tags
+    QRegExp styleRegExp("(<STYLE.*</STYLE>)|(<META.*>)");
+    styleRegExp.setMinimal(true);
+    styleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet.replace(styleRegExp,"");  // don't be greedy
 
-////    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
-//    QString cuesheet3 = tidyHTML(cuesheet);
+//    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
+    QString cuesheet3 = tidyHTML(cuesheet);
 
-//    // now the semantic replacement.
-//    // assumes that QTextEdit spits out spans in a consistent way
-//    // TODO: allow embedded NL (due to line wrapping)
-//    // NOTE: background color is optional here, because I got rid of the the spec for it in BODY
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000;[\\s\n]*(background-color:#ffffe0;)*\">"),
-//                             "<SPAN class=\"hdr\">");
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),  // background-color required for lyrics
-//                             "<SPAN class=\"lyrics\">");
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
-//                             "<SPAN class=\"label\">");
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
-//                             "<SPAN class=\"artist\">");
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
-//                             "<SPAN class=\"title\">");
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
-//                                     "<SPAN style=\"font-weight: Bold;\">");
+    // now the semantic replacement.
+    // assumes that QTextEdit spits out spans in a consistent way
+    // TODO: allow embedded NL (due to line wrapping)
+    // NOTE: background color is optional here, because I got rid of the the spec for it in BODY
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"hdr\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),  // background-color required for lyrics
+                             "<SPAN class=\"lyrics\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"label\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"artist\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                             "<SPAN class=\"title\">");
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                                     "<SPAN style=\"font-weight: Bold;\">");
 
-//    cuesheet3.replace("<P style=\"\">","<P>");
-//    cuesheet3.replace("<P style=\"background-color:#ffffe0;\">","<P>");  // background color already defaults via the BODY statement
-//    cuesheet3.replace("<BODY bgcolor=\"#FFFFE0\" style=\"font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;\">","<BODY>");  // must go back to USER'S choices in cuesheet2.css
+    cuesheet3.replace("<P style=\"\">","<P>");
+    cuesheet3.replace("<P style=\"background-color:#ffffe0;\">","<P>");  // background color already defaults via the BODY statement
+    cuesheet3.replace("<BODY bgcolor=\"#FFFFE0\" style=\"font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;\">","<BODY>");  // must go back to USER'S choices in cuesheet2.css
 
-//    // multi-step replacement
-////    qDebug().noquote() << "***** REALLY BEFORE:\n" << cuesheet3;
-//    //      <SPAN style="font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffffe0;">
-//    cuesheet3.replace(QRegExp("\"font-family:'Verdana'; font-size:large; color:#000000;( background-color:#ffffe0;)*\""),"\"XXXXX\""); // must go back to USER'S choices in cuesheet2.css
-////    qDebug().noquote() << "***** BEFORE:\n" << cuesheet3;
-//    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"XXXXX\">"),"<SPAN>");
-////    qDebug().noquote() << "***** AFTER:\n" << cuesheet3;
+    // multi-step replacement
+//    qDebug().noquote() << "***** REALLY BEFORE:\n" << cuesheet3;
+    //      <SPAN style="font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffffe0;">
+    cuesheet3.replace(QRegExp("\"font-family:'Verdana'; font-size:large; color:#000000;( background-color:#ffffe0;)*\""),"\"XXXXX\""); // must go back to USER'S choices in cuesheet2.css
+//    qDebug().noquote() << "***** BEFORE:\n" << cuesheet3;
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"XXXXX\">"),"<SPAN>");
+//    qDebug().noquote() << "***** AFTER:\n" << cuesheet3;
 
-//    // now replace null SPAN tags
-//    QRegExp nullStyleRegExp("<SPAN>(.*)</SPAN>");
-//    nullStyleRegExp.setMinimal(true);
-//    nullStyleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
-//    cuesheet3.replace(nullStyleRegExp,"\\1");  // don't be greedy, and replace <SPAN>foo</SPAN> with foo
+    // now replace null SPAN tags
+    QRegExp nullStyleRegExp("<SPAN>(.*)</SPAN>");
+    nullStyleRegExp.setMinimal(true);
+    nullStyleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet3.replace(nullStyleRegExp,"\\1");  // don't be greedy, and replace <SPAN>foo</SPAN> with foo
 
-//    // TODO: bold -- <SPAN style="font-family:'Verdana'; font-size:large; font-weight:600; color:#000000;">
-//    // TODO: italic -- TBD
-//    // TODO: get rid of style="background-color:#ffffe0;, yellowish, put at top once
-//    // TODO: get rid of these, use body: <SPAN style="font-family:'Verdana'; font-size:large; color:#000000;">
+    // TODO: bold -- <SPAN style="font-family:'Verdana'; font-size:large; font-weight:600; color:#000000;">
+    // TODO: italic -- TBD
+    // TODO: get rid of style="background-color:#ffffe0;, yellowish, put at top once
+    // TODO: get rid of these, use body: <SPAN style="font-family:'Verdana'; font-size:large; color:#000000;">
 
-//    // put the <link rel="STYLESHEET" type="text/css" href="cuesheet2.css"> back in
-//    if (!cuesheet3.contains("<link",Qt::CaseInsensitive)) {
-////        qDebug() << "Putting the <LINK> back in...";
-//        cuesheet3.replace("</TITLE>","</TITLE><LINK rel=\"STYLESHEET\" type=\"text/css\" href=\"cuesheet2.css\">");
-//    }
-//    // tidy it one final time before writing it to a file (gets rid of blank SPAN's, among other things)
-//    QString cuesheet4 = tidyHTML(cuesheet3);
+    // put the <link rel="STYLESHEET" type="text/css" href="cuesheet2.css"> back in
+    if (!cuesheet3.contains("<link",Qt::CaseInsensitive)) {
+//        qDebug() << "Putting the <LINK> back in...";
+        cuesheet3.replace("</TITLE>","</TITLE><LINK rel=\"STYLESHEET\" type=\"text/css\" href=\"cuesheet2.css\">");
+    }
+    // tidy it one final time before writing it to a file (gets rid of blank SPAN's, among other things)
+    QString cuesheet4 = tidyHTML(cuesheet3);
 
 
-////    qDebug().noquote() << "***** postProcess 2: " << cuesheet4;
-//    return(cuesheet4);
+//    qDebug().noquote() << "***** postProcess 2: " << cuesheet4;
+    return(cuesheet4);
 }
 
 void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
