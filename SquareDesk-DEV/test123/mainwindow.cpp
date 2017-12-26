@@ -1034,12 +1034,13 @@ void breakDanceProgramIntoParts(const QString &filename,
 // START LYRICS EDITOR STUFF
 
 void MainWindow::showHTML(QString fromWhere) {
-    qDebug() << "***** showHTML(" << fromWhere << "):\n";
+    Q_UNUSED(fromWhere)
+//    qDebug() << "***** showHTML(" << fromWhere << "):\n";
 
-    QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-    QString tEditedCuesheet = tidyHTML(editedCuesheet);
-    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
-    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
+//    QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+//    QString tEditedCuesheet = tidyHTML(editedCuesheet);
+//    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+//    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
 void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
@@ -1100,7 +1101,10 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
     //  but is not selecting any text AND editing is enabled (i.e. the lock is UNLOCKED).
     //  Formatting will be cleared on that line only.  This is the best we can do right now, I think,
     //  given the limitations of QTextEdit (which is not a general HTML editor).
-    ui->pushButtonCueSheetClearFormatting->setEnabled(!ui->textBrowserCueSheet->textCursor().hasSelection() && ui->toolButtonEditLyrics->isChecked());
+
+    // DEBUG DEBUG FIX FIX
+//    ui->pushButtonCueSheetClearFormatting->setEnabled(!ui->textBrowserCueSheet->textCursor().hasSelection() && ui->toolButtonEditLyrics->isChecked());
+    ui->pushButtonCueSheetClearFormatting->setEnabled(ui->toolButtonEditLyrics->isChecked());
 
 //    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 //    qDebug() << "\n*****selection (rich text):\n " << cursor.selection().toHtml() << "\n";
@@ -1160,12 +1164,13 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
         //  on a selected block of text only.  It does not work properly when
         //  the current selection spans across lines.
 
-        cursor.movePosition(QTextCursor::StartOfLine);
-        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        // TEST TEST TEST FIX FIX FIX
+//        cursor.movePosition(QTextCursor::StartOfLine);
+//        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
 
         // now look at it as HTML
         QString selected = cursor.selection().toHtml();
-//        qDebug() << "cursor.selection(): " << selected;
+//        qDebug() << "\n***** initial selection (HTML): " << selected;
 
         // Qt gives us a whole HTML doc here.  Strip off all the parts we don't want.
         QRegExp startSpan("<span.*>");
@@ -1184,6 +1189,8 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
                 selected +
                 "</span>";
 
+//        qDebug() << "\n***** HTMLreplacement: " << HTMLreplacement;
+
         cursor.beginEditBlock(); // start of grouping for UNDO purposes
         cursor.removeSelectedText();  // remove the rich text...
 //        cursor.insertText(selected);  // ...and put back in the stripped-down text
@@ -1197,6 +1204,7 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 //
 
 MainWindow::charsType MainWindow::FG_BG_to_type(QColor fg, QColor bg) {
+    Q_UNUSED(bg)
 //    qDebug() << "fg: " << fg.blue() << ", bg: " << bg.blue();
     return((charsType)fg.blue());  // the blue channel encodes the type
 }
@@ -1257,7 +1265,7 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
             cursor.movePosition(QTextCursor::StartOfLine);
             cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
             selectedText = cursor.selectedText();
-            qDebug() << "setSelectedTestToClass: " << selectedText;
+//            qDebug() << "setSelectedTestToClass: " << selectedText;
         }
 
         if (!selectedText.isEmpty())  // this is not redundant.
@@ -1265,9 +1273,9 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
             cursor.beginEditBlock(); // start of grouping for UNDO purposes
             cursor.removeSelectedText();
             QString newText = "<SPAN class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</SPAN>";
-            qDebug() << "newText before: " << newText;
+//            qDebug() << "newText before: " << newText;
             newText = newText.replace(QChar(0x2028),"</SPAN><BR/><SPAN class=\"" + blockClass + "\">");  // 0x2028 = Unicode Line Separator
-            qDebug() << "newText after: " << newText;
+//            qDebug() << "newText after: " << newText;
             cursor.insertHtml(newText);
             cursor.endEditBlock(); // end of grouping for UNDO purposes
         }
@@ -1450,7 +1458,7 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 }
 
 QString MainWindow::tidyHTML(QString cuesheet) {
-    qDebug() << "tidyHTML";
+//    qDebug() << "tidyHTML";
 //    qDebug().noquote() << "************\ncuesheet in:" << cuesheet;
 
     // first get rid of <L> and </L>.  Those are ILLEGAL.
@@ -1548,7 +1556,7 @@ QString MainWindow::tidyHTML(QString cuesheet) {
 
 // ------------------------
 QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
-    qDebug() << "postProcessHTMLtoSemanticHTML";
+//    qDebug() << "postProcessHTMLtoSemanticHTML";
 
     // margin-top:12px;
     // margin-bottom:12px;
@@ -1631,7 +1639,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 }
 
 void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
-    qDebug() << "maybeLoadCSSfileIntoTextBrowser";
+//    qDebug() << "maybeLoadCSSfileIntoTextBrowser";
     // makes the /lyrics directory, if it doesn't exist already
     // also copies cuesheet2.css to /lyrics, if not already present
 
