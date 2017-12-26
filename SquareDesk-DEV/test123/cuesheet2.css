@@ -1,9 +1,9 @@
 /* Sample CSS stylesheet for singing call lyrics in HTML */
-/* For correct operation of the Lyrics editor, the colors must be distinct from each other */
-body, p, font { font-family: Verdana; font-size: large; font-weight: Normal; line-height: 100%; background: #FFFFE0; color: #000000; }
-.lyrics   { font-family: Verdana; font-size: large; font-weight: Normal; color: #000000; background-color: #FFC0CB;}
-.hdr      { font-family: Verdana; font-size: x-large; font-weight: Normal; color: #FF0000;}
-.title    { font-family: Verdana; font-size: x-large; font-weight: Bold; color: #000000;}
+/* For correction operation of the Lyrics editor, the colors must be distinct from each other */
+body, p, font { font-family: Verdana;     font-size: large;   font-weight: Normal;  color: #000000; line-height: 100%; background: #FFFFE0; }
 
-.artist    { font-family: Verdana; font-size: medium; font-weight: Normal; color: #0000FF;}
-.label     { font-family: Verdana; font-size: medium; font-weight: Normal; color: #60C060;}
+.title        { font-family: Arial Black; font-size: x-large; font-weight: Normal;  color: #010101;}
+.label        { font-family: Verdana;     font-size: medium;  font-weight: Normal;  color: #60C060;}
+.artist       { font-family: Verdana;     font-size: medium;  font-weight: Normal;  color: #0000FF;}
+.hdr          { font-family: Verdana;     font-size: x-large; font-weight: Normal;  color: #FF0002;}
+.lyrics       { font-family: Verdana;     font-size: large;   font-weight: Normal;  color: #030303; background-color: #FFC0CB;}

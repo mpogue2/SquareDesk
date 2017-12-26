@@ -1033,14 +1033,51 @@ void breakDanceProgramIntoParts(const QString &filename,
 // =============================================================================
 // START LYRICS EDITOR STUFF
 
+// get a resource file, and return as string or "" if not found
+QString MainWindow::getResourceFile(QString s) {
+#if defined(Q_OS_MAC)
+    QString appPath = QApplication::applicationFilePath();
+    QString patterTemplatePath = appPath + "/Contents/Resources/" + s;
+    patterTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
+#elif defined(Q_OS_WIN32)
+    // TODO: There has to be a better way to do this.
+    QString appPath = QApplication::applicationFilePath();
+    QString patterTemplatePath = appPath + "/" + s;
+    patterTemplatePath.replace("SquareDeskPlayer.exe/","");
+#else
+    // Linux
+    return("");
+#endif
+
+    QString fileContents;
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+    QFile file(patterTemplatePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Could not open '" + s + "' file.";
+        qDebug() << "looked here:" << patterTemplatePath;
+        return("");  // NOTE: early return, couldn't find template file
+    } else {
+        fileContents = file.readAll();
+        file.close();
+    }
+#else
+    // LINUX
+    // never gets here....
+#endif
+
+    return(fileContents);
+}
+
+
 void MainWindow::showHTML(QString fromWhere) {
     Q_UNUSED(fromWhere)
-//    qDebug() << "***** showHTML(" << fromWhere << "):\n";
+    qDebug() << "***** showHTML(" << fromWhere << "):\n";
 
-//    QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-//    QString tEditedCuesheet = tidyHTML(editedCuesheet);
-//    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
-//    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
+    QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
+    QString tEditedCuesheet = tidyHTML(editedCuesheet);
+    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+    qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
 void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
@@ -1053,14 +1090,15 @@ void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
     ui->pushButtonCueSheetEditArtist->setEnabled(checked);
     ui->pushButtonCueSheetEditHeader->setEnabled(checked);
     ui->pushButtonCueSheetEditLyrics->setEnabled(checked);
+
     ui->pushButtonCueSheetEditBold->setEnabled(checked);
     ui->pushButtonCueSheetEditItalic->setEnabled(checked);
 
-    ui->pushButtonCueSheetClearFormatting->setEnabled(checked);  // this one is special.
+    ui->pushButtonCueSheetClearFormatting->setEnabled(checked);
 
     if (checked) {
         // unlocked now, so must set up button state, too
-        qDebug() << "setting up button state using lastKnownTextCharFormat...";
+//        qDebug() << "setting up button state using lastKnownTextCharFormat...";
         on_textBrowserCueSheet_currentCharFormatChanged(lastKnownTextCharFormat);
     }
 }
@@ -1097,18 +1135,6 @@ int MainWindow::currentSelectionContains() {
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
 {
-    // the Clear Line Format is only available when the cursor is somewhere on a line,
-    //  but is not selecting any text AND editing is enabled (i.e. the lock is UNLOCKED).
-    //  Formatting will be cleared on that line only.  This is the best we can do right now, I think,
-    //  given the limitations of QTextEdit (which is not a general HTML editor).
-
-    // DEBUG DEBUG FIX FIX
-//    ui->pushButtonCueSheetClearFormatting->setEnabled(!ui->textBrowserCueSheet->textCursor().hasSelection() && ui->toolButtonEditLyrics->isChecked());
-    ui->pushButtonCueSheetClearFormatting->setEnabled(ui->toolButtonEditLyrics->isChecked());
-
-//    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-//    qDebug() << "\n*****selection (rich text):\n " << cursor.selection().toHtml() << "\n";
-
     if (ui->toolButtonEditLyrics->isChecked()) {
         // if editing is enabled:
         if (ui->textBrowserCueSheet->textCursor().hasSelection()) {
@@ -1159,15 +1185,6 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 //    qDebug() << "on_pushButtonCueSheetClearFormatting_clicked";
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
-        // NOTE: in this initial version, Clear Line Format works just on
-        //  the line that the cursor is on.  I'm not sure how to make it work
-        //  on a selected block of text only.  It does not work properly when
-        //  the current selection spans across lines.
-
-        // TEST TEST TEST FIX FIX FIX
-//        cursor.movePosition(QTextCursor::StartOfLine);
-//        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
-
         // now look at it as HTML
         QString selected = cursor.selection().toHtml();
 //        qDebug() << "\n***** initial selection (HTML): " << selected;
@@ -1183,7 +1200,7 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
                 ;
 //        qDebug() << "current replacement: " << selected;
 
-        // WARNING: this might have a dependency on cuesheet2.css's definition of BODY text.
+        // WARNING: this has a dependency on internal cuesheet2.css's definition of BODY text.
         QString HTMLreplacement =
                 "<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">" +
                 selected +
@@ -1198,9 +1215,9 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
         cursor.endEditBlock(); // end of grouping for UNDO purposes
 }
 
-// Knowing what the FG and BG colors are (from cuesheet2.css) allows us to determine the character type
+// Knowing what the FG and BG colors are (from internal cuesheet2.css) allows us to determine the character type
 // The parsing code below looks at FG and BG in a very specific order.  Be careful if making changes.
-// The cuesheet2.css file is also now fixed.  If you change colors there, you'll break editing.
+// The internal cuesheet2.css file is also now fixed.  If you change colors there, you'll break editing.
 //
 
 MainWindow::charsType MainWindow::FG_BG_to_type(QColor fg, QColor bg) {
@@ -1289,78 +1306,70 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 
 void MainWindow::on_pushButtonCueSheetEditHeader_clicked(bool /* checked */)
 {
-//    qDebug() << "on_pushButtonCueSheetEditHeader_clicked";
     if (!cuesheetEditorReactingToCursorMovement)
     {
         setSelectedTextToClass(ui->textBrowserCueSheet, "hdr");
-//    ui->textBrowserCueSheet->setFontPointSize(checked ? 18 : 14);
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 void MainWindow::on_pushButtonCueSheetEditItalic_toggled(bool checked)
 {
-//    qDebug() << "on_pushButtonCueSheetEditItalic_toggled" << checked;
     if (!cuesheetEditorReactingToCursorMovement)
     {
         ui->textBrowserCueSheet->setFontItalic(checked);
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 void MainWindow::on_pushButtonCueSheetEditBold_toggled(bool checked)
 {
-//    qDebug() << "on_pushButtonCueSheetEditBold_toggled" << checked;
     if (!cuesheetEditorReactingToCursorMovement)
     {
         ui->textBrowserCueSheet->setFontWeight(checked ? QFont::Bold : QFont::Normal);
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 
 void MainWindow::on_pushButtonCueSheetEditTitle_clicked(bool checked)
 {
-//    qDebug() << "on_pushButtonCueSheetEditTitle_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
         setSelectedTextToClass(ui->textBrowserCueSheet, "title");
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 void MainWindow::on_pushButtonCueSheetEditArtist_clicked(bool checked)
 {
-//    qDebug() << "on_pushButtonCueSheetEditArtist_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
         setSelectedTextToClass(ui->textBrowserCueSheet, "artist");
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 void MainWindow::on_pushButtonCueSheetEditLabel_clicked(bool checked)
 {
-//    qDebug() << "on_pushButtonCueSheetEditLabel_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
         setSelectedTextToClass(ui->textBrowserCueSheet, "label");
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 void MainWindow::on_pushButtonCueSheetEditLyrics_clicked(bool checked)
 {
-//    qDebug() << "on_pushButtonCueSheetEditLyrics_clicked" << checked;
     Q_UNUSED(checked)
     if (!cuesheetEditorReactingToCursorMovement)
     {
         setSelectedTextToClass(ui->textBrowserCueSheet, "lyrics");
     }
-    showHTML(__FUNCTION__);
+//    showHTML(__FUNCTION__);
 }
 
 static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFilename)
@@ -1382,7 +1391,7 @@ static bool isFileInPathStack(QList<QString> *pathStack, const QString &checkFil
 //
 void MainWindow::writeCuesheet(QString filename)
 {
-    qDebug() << "writeCuesheet: " << filename;
+//    qDebug() << "writeCuesheet: " << filename;
     bool needs_extension = true;
     for (size_t i = 0; i < (sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions)); ++i)
     {
@@ -1405,24 +1414,16 @@ void MainWindow::writeCuesheet(QString filename)
 
     lastCuesheetSavePath = directoryName;
 
+#define WRITETHEMODIFIEDLYRICSFILE
 #ifdef WRITETHEMODIFIEDLYRICSFILE
     if ( file.open(QIODevice::WriteOnly) )
     {
         // Make sure the destructor gets called before we try to load this file...
         {
-            // FIX FIX FIX TODO DEBUG
             QTextStream stream( &file );
-//                qDebug() << "************** SAVE FILE ***************";
-            showHTML();
-
             QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-//                qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
-
             QString tEditedCuesheet = tidyHTML(editedCuesheet);
-//                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
             QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
-//                qDebug().noquote() << "***** WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
-
             stream << postProcessedCuesheet;
             stream.flush();
         }
@@ -1453,8 +1454,8 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
-    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
-//    saveLyricsAs();
+//    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
+    saveLyricsAs();
 }
 
 QString MainWindow::tidyHTML(QString cuesheet) {
@@ -1533,7 +1534,7 @@ QString MainWindow::tidyHTML(QString cuesheet) {
     if ( rc >= 0 )
     {
         if ( rc > 0 ) {
-            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
+//            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
 //            qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
         }
         cuesheet_tidied = QString((char*)output.bp);
@@ -1654,49 +1655,16 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
         dir.mkpath(".");
     }
 
-    // now check for the cuesheet2.css file... ---------------
-    QString cuesheetCSSDestPath = lyricsDir + "/cuesheet2.css";
-    QFile cuesheetCSSDestFile(cuesheetCSSDestPath);
-
-#if defined(Q_OS_MAC)
-    QString appPath = QApplication::applicationFilePath();
-    QString cuesheet2SrcPath = appPath + "/Contents/Resources/cuesheet2.css";
-    cuesheet2SrcPath.replace("Contents/MacOS/SquareDeskPlayer/","");
-#elif defined(Q_OS_WIN32)
-    // TODO: There has to be a better way to do this.
-    QString appPath = QApplication::applicationFilePath();
-    QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
-    cuesheet2SrcPath.replace("SquareDeskPlayer.exe/","");
-#else
-    qWarning() << "Warning: cuesheet2 path is almost certainly wrong here for Linux.";
-    QString appPath = QApplication::applicationFilePath();
-    QString cuesheet2SrcPath = appPath + "/cuesheet2.css";
-    cuesheet2SrcPath.replace("SquareDeskPlayer/","");
-#endif
-
-//    qDebug() << "cuesheet paths:" << cuesheet2SrcPath << cuesheetCSSDestPath;
-    if (!cuesheetCSSDestFile.exists()) {
-        // copy in a cuesheet2 file, if there's not one there already
-        QFile::copy(cuesheet2SrcPath, cuesheetCSSDestPath);  // copy one in
-    }
-
-    // Now, open it. ---------------
-    QFile css(lyricsDir + "/cuesheet2.css");  // cuesheet2.css is located in the LYRICS directory (NOTE: GLOBAL! All others are now IGNORED)
-
-    QString cssString;
-    if ( css.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in1(&css);
-        cssString = in1.readAll();  // read the entire CSS file, if it exists
-        css.close();
+    // ------------------------------------------------------------------
+    // get internal cuesheet2.css file, if it exists
+    QString cuesheet2 = getResourceFile("cuesheet2.css");
+//    qDebug() << "cuesheet2: " << cuesheet2;
+    if (cuesheet2.isEmpty()) {
+        qDebug() << "SOMETHING WENT WRONG with fetching the internal cuesheet2.css";
     } else {
-        qDebug() << "couldn't open the cuesheet2.css file...";
+        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cuesheet2);
     }
 
-    // only set the CSS once
-//    if (ui->textBrowserCueSheet->document()->defaultStyleSheet() != "") {
-//        qDebug().noquote() << "***** CSS:\n" << cssString;
-        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cssString);
-//    }
 }
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
@@ -1765,7 +1733,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
             loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
-            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG
+//            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG
         }
 
     }
@@ -3935,43 +3903,22 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 //            qDebug() << "loadCuesheets 2: " << "setting to NOT *";
             ui->tabWidget->setTabText(lyricsTabNumber, "Patter");
 
-    #if defined(Q_OS_MAC)
-            QString appPath = QApplication::applicationFilePath();
-            QString patterTemplatePath = appPath + "/Contents/Resources/patter.template.html";
-            patterTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
-    #elif defined(Q_OS_WIN32)
-            // TODO: There has to be a better way to do this.
-            QString appPath = QApplication::applicationFilePath();
-            QString patterTemplatePath = appPath + "/patter.template.html";
-            patterTemplatePath.replace("SquareDeskPlayer.exe/","");
-    #else
-            // Linux
-    #endif
-
-    #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-            QFile file(patterTemplatePath);
-            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                qDebug() << "Could not open 'patter.template.html' file.";
-                qDebug() << "looked here:" << patterTemplatePath;
-                return;  // NOTE: early return, couldn't find template file
+            // ------------------------------------------------------------------
+            // get pre-made patter.template.html file, if it exists
+            QString patterTemplate = getResourceFile("patter.template.html");
+//            qDebug() << "patterTemplate: " << patterTemplate;
+            if (patterTemplate.isEmpty()) {
+                ui->textBrowserCueSheet->setHtml("No patter found for this song.");
+                loadedCuesheetNameWithPath = "";
             } else {
-                QString patterTemplate(file.readAll());
-                file.close();
-//                qDebug() << "setting HTML to: " << patterTemplate;
                 ui->textBrowserCueSheet->setHtml(patterTemplate);
-                loadedCuesheetNameWithPath = patterTemplatePath;
+                loadedCuesheetNameWithPath = "patter.template.html";  // as a special case, this is allowed to not be the full path
             }
-    #else
-            // LINUX
-            ui->textBrowserCueSheet->setHtml("No patter found for this song.");
-    #endif
+
         } // else (sequence could not be found)
     } else {
         // ----- SINGING CALL -----
         ui->menuLyrics->setTitle("Lyrics");
-//        ui->actionFilePrint->setText("Print Lyrics...");
-//        ui->actionSave_Lyrics->setText("Save Lyrics");
-//        ui->actionSave_Lyrics_As->setText("Save Lyrics As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
         if (hasLyrics && lyricsTabNumber != -1) {
@@ -3979,41 +3926,22 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
         } else {
             ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
 
-    #if defined(Q_OS_MAC)
-            QString appPath = QApplication::applicationFilePath();
-            QString lyricsTemplatePath = appPath + "/Contents/Resources/lyrics.template.html";
-            lyricsTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
-    #elif defined(Q_OS_WIN32)
-            // TODO: There has to be a better way to do this.
-            QString appPath = QApplication::applicationFilePath();
-            QString lyricsTemplatePath = appPath + "/lyrics.template.html";
-            lyricsTemplatePath.replace("SquareDeskPlayer.exe/","");
-    #else
-            // Linux
-    #endif
-
-    #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-            QFile file(lyricsTemplatePath);
-            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                qDebug() << "Could not open 'lyrics.template.html' file.";
-                qDebug() << "looked here:" << lyricsTemplatePath;
-                return;  // NOTE: early return, couldn't find template file
+            // ------------------------------------------------------------------
+            // get pre-made lyrics.template.html file, if it exists
+            QString lyricsTemplate = getResourceFile("lyrics.template.html");
+            qDebug() << "lyricsTemplate: " << lyricsTemplate;
+            if (lyricsTemplate.isEmpty()) {
+                ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
+                loadedCuesheetNameWithPath = "";
             } else {
-                QString lyricsTemplate(file.readAll());
-                file.close();
-//                qDebug() << "HTML for singing call: " << lyricsTemplate;
                 ui->textBrowserCueSheet->setHtml(lyricsTemplate);
-                loadedCuesheetNameWithPath = lyricsTemplatePath;
+                loadedCuesheetNameWithPath = "lyrics.template.html";  // as a special case, this is allowed to not be the full path
             }
-    #else
-            // LINUX
-            ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
-    #endif
+
         } // else (lyrics could not be found)
     } // isPatter
 
 //    qDebug() << "load 2.1.3: " << t2.elapsed() << "ms";
-
 }
 
 
@@ -6794,30 +6722,29 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 
 // ------------------------------------------------------------------------
 QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
-    QStringList pieces = filePathname.split( "/" );
-    pieces.pop_back(); // get rid of actual filename, keep the path
-    QString filedir = pieces.join("/"); // FIX: MAC SPECIFIC?
+    Q_UNUSED(filePathname)
 
-    // TODO: we could get fancy, and keep looking in parent directories until we
-    //  find a CSS file, or until we hit the musicRootPath.  That allows for an overall
-    //  default, with overrides for individual subdirs.
+//    QStringList pieces = filePathname.split( "/" );
+//    pieces.pop_back(); // get rid of actual filename, keep the path
+//    QString filedir = pieces.join("/"); // FIX: MAC SPECIFIC?
 
-    QString css("");
-    bool fileIsOpen = false;
-    QFile f1(filedir + "/cuesheet2.css");  // This is the SqView convention for a CSS file
-    if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        // if there's a "cuesheet2.css" file in the same directory as the .txt file,
-        //   then we're going to embed it into the HTML representation of the .txt file,
-        //   so that the font preferences therein apply.
-        fileIsOpen = true;
-        QTextStream in(&f1);
-        css = in.readAll();  // read the entire CSS file, if it exists
-    }
+//    QString css("");
+//    bool fileIsOpen = false;
+//    QFile f1(filedir + "/cuesheet2.css");  // This is the SqView convention for a CSS file
+//    if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
+//        // if there's a "cuesheet2.css" file in the same directory as the .txt file,
+//        //   then we're going to embed it into the HTML representation of the .txt file,
+//        //   so that the font preferences therein apply.
+//        fileIsOpen = true;
+//        QTextStream in(&f1);
+//        css = in.readAll();  // read the entire CSS file, if it exists
+//    }
+
+    // get internal CSS file (we no longer let users change it in individual folders)
+    QString css = getResourceFile("cuesheet2.css");
 
     text = text.toHtmlEscaped();  // convert ">" to "&gt;" etc
     text = text.replace(QRegExp("[\r|\n]"),"<br/>\n");
-
-    // TODO: fancier translation of .txt to .html, recognizing headers, etc.
 
     QString HTML;
     HTML += "<HTML>\n";
@@ -6825,9 +6752,9 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     HTML += "<BODY>\n" + text + "</BODY>\n";
     HTML += "</HTML>\n";
 
-    if (fileIsOpen) {
-        f1.close();
-    }
+//    if (fileIsOpen) {
+//        f1.close();
+//    }
     return(HTML);
 }
 
@@ -8847,7 +8774,6 @@ void MainWindow::saveLyricsAs()
             which++;
         }
     }
-//    qDebug() << "cuesheetName: " << lastCuesheetSavePath << loadedCuesheetNameWithPath << maybeFilename;
 
     QString filename = QFileDialog::getSaveFileName(this,
                                                     tr("Save"), // TODO: this could say Lyrics or Patter
@@ -9389,7 +9315,6 @@ void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
             return;
         }
 
-        // FIX FIX FIX
 //        qDebug() << "***** WRITING TO: " << destinationFolder + cuesheetFilename;
         // let's try to write it
         if ( file.open(QIODevice::WriteOnly) )

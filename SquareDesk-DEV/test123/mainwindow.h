@@ -400,6 +400,7 @@ private:
     const int headerBit = 0x08;
     const int lyricsBit = 0x10;
     const int noneBit = 0x20;
+    QString getResourceFile(QString s);  // get a resource file, and return as string or "" if not found
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
 
