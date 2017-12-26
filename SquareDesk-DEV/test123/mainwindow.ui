@@ -2629,6 +2629,9 @@
    </property>
   </action>
   <action name="actionIn_Out_Loop_points_to_default">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Reset In/Out/Loop Points</string>
    </property>
@@ -2711,6 +2714,9 @@
    </property>
   </action>
   <action name="actionTest_Loop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Test Loop</string>
    </property>

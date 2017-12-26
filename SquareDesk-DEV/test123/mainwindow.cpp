@@ -4035,6 +4035,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->actionMute->setEnabled(true);
     ui->actionLoop->setEnabled(true);
+    ui->actionTest_Loop->setEnabled(true);
+    ui->actionIn_Out_Loop_points_to_default->setEnabled(true);
 
     ui->actionVolume_Down->setEnabled(true);
     ui->actionVolume_Up->setEnabled(true);
