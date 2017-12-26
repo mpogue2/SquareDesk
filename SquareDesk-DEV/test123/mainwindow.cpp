@@ -8134,6 +8134,9 @@ void MainWindow::adjustFontSizes()
     float scaleWidth2 = 3.25;
     float scaleWidth3 = 8.5;
 
+    // lyrics buttons
+    unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
+
     float maxEQsize = 16;
     float scaleIcons = 24.0/13.0;
 
@@ -8161,6 +8164,9 @@ void MainWindow::adjustFontSizes()
     float scaleWidth1 = 12.75f;
     float scaleWidth2 = 5.25f;
     float scaleWidth3 = 10.5f;
+
+    // lyrics buttons
+    unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
 
     float maxEQsize = 16;
     float scaleIcons = (float)(1.5*24.0/13.0);
@@ -8252,8 +8258,18 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditLabel->setFont(currentFont);
     ui->pushButtonCueSheetEditArtist->setFont(currentFont);
     ui->pushButtonCueSheetEditHeader->setFont(currentFont);
+    ui->pushButtonCueSheetEditLyrics->setFont(currentFont);
+
     ui->pushButtonCueSheetEditBold->setFont(currentFont);
     ui->pushButtonCueSheetEditItalic->setFont(currentFont);
+
+    ui->pushButtonCueSheetEditTitle->setFixedWidth(TitleButtonWidth[index]);
+    ui->pushButtonCueSheetEditLabel->setFixedWidth(TitleButtonWidth[index]);
+    ui->pushButtonCueSheetEditArtist->setFixedWidth(TitleButtonWidth[index]);
+    ui->pushButtonCueSheetEditHeader->setFixedWidth(TitleButtonWidth[index] * 1.5);
+    ui->pushButtonCueSheetEditLyrics->setFixedWidth(TitleButtonWidth[index]);
+
+    ui->pushButtonCueSheetClearFormatting->setFixedWidth(TitleButtonWidth[index] * 2.25);
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
 
@@ -8275,6 +8291,8 @@ void MainWindow::adjustFontSizes()
     ui->playButton->setIconSize(newIconSize);
     ui->previousSongButton->setIconSize(newIconSize);
     ui->nextSongButton->setIconSize(newIconSize);
+
+    ui->toolButtonEditLyrics->setIconSize(newIconSize);
 
     // these are special MEDIUM
     int warningLabelFontSize = warningLabelSize[index]; // keep ratio constant
