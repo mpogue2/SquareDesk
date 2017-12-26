@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1639,6 +1639,7 @@
     <addaction name="actionFade_Out"/>
     <addaction name="separator"/>
     <addaction name="actionLoop"/>
+    <addaction name="actionTest_Loop"/>
     <addaction name="actionIn_Out_Loop_points_to_default"/>
     <addaction name="separator"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
@@ -2707,6 +2708,14 @@
   <action name="actionDownload_matching_lyrics">
    <property name="text">
     <string>TEST cuesheets...</string>
+   </property>
+  </action>
+  <action name="actionTest_Loop">
+   <property name="text">
+    <string>Test Loop</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
    </property>
   </action>
  </widget>

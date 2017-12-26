@@ -387,6 +387,8 @@ private slots:
 
 //    void on_actionDownload_matching_lyrics_triggered();
 
+    void on_actionTest_Loop_triggered();
+
 private:
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds

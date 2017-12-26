@@ -7794,7 +7794,7 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     if ( reply->error() != QNetworkReply::NoError ) {
         QMessageBox msgBox;
         msgBox.setIcon(QMessageBox::Warning);
-        msgBox.setText("<B>ERROR</B><P>Sorry, the GitHub server is not reachable right now.<P>" + reply->errorString());
+        msgBox.setText("<B>ERROR</B><P>Sorry, the update server is not reachable right now.<P>" + reply->errorString());
         msgBox.exec();
         return;
     }
@@ -9299,4 +9299,28 @@ void MainWindow::maybeLyricsChanged() {
     // AND, just in case the list of matching cuesheets for the current song has been
     //   changed by the recent addition of cuesheets...
     reloadCurrentMP3File();
+}
+
+void MainWindow::on_actionTest_Loop_triggered()
+{
+//    qDebug() << "Test Loop Intro: " << ui->seekBar->GetIntro() << ", outro: " << ui->seekBar->GetOutro();
+
+    if (!songLoaded) {
+        return;  // if there is no song loaded, no point in doing anything.
+    }
+
+    cBass.Stop();  // always pause playback
+
+    double songLength = cBass.FileLength;
+//    double intro = ui->seekBar->GetIntro(); // 0.0 - 1.0
+    double outro = ui->seekBar->GetOutro(); // 0.0 - 1.0
+
+    double startPosition_sec = fmax(0.0, songLength*outro - 5.0);
+
+    cBass.StreamSetPosition(startPosition_sec);
+    Info_Seekbar(false);  // update just the text
+
+//    on_playButton_clicked();  // play, starting 5 seconds before the loop
+
+    cBass.Play();  // currently paused, so start playing at new location
 }
