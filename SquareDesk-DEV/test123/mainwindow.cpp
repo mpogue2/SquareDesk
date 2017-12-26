@@ -1064,20 +1064,88 @@ void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
     }
 }
 
+int MainWindow::currentSelectionContains() {
+    int result = 0;
+    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+    QString theHTML = cursor.selection().toHtml();
+
+//    qDebug() << "\n*****selection (rich text):\n " << theHTML << "\n";
+
+    // NOTE: This code depends on using a special cuesheet2.css file...
+    if (theHTML.contains("color:#010101")) {
+        result |= titleBit;
+    }
+    if (theHTML.contains("color:#60c060")) {
+        result |= labelBit;
+    }
+    if (theHTML.contains("color:#0000ff")) {
+        result |= artistBit;
+    }
+    if (theHTML.contains("color:#ff0002")) {
+        result |= headerBit;
+    }
+    if (theHTML.contains("color:#030303")) {
+        result |= lyricsBit;
+    }
+    if (theHTML.contains("color:#000000")) {
+        result |= noneBit;
+    }
+
+    return (result);
+}
+
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
 {
-//    qDebug() << "on_textBrowserCueSheet_selectionChanged";
-////    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-////    QString selectedText = cursor.selectedText();
-////    qDebug() << "New selected text: '" << selectedText << "'";
-
     // the Clear Line Format is only available when the cursor is somewhere on a line,
     //  but is not selecting any text AND editing is enabled (i.e. the lock is UNLOCKED).
     //  Formatting will be cleared on that line only.  This is the best we can do right now, I think,
     //  given the limitations of QTextEdit (which is not a general HTML editor).
-    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
-    QString selectedText = cursor.selectedText();
-    ui->pushButtonCueSheetClearFormatting->setEnabled(selectedText.isEmpty() && ui->toolButtonEditLyrics->isChecked());
+    ui->pushButtonCueSheetClearFormatting->setEnabled(!ui->textBrowserCueSheet->textCursor().hasSelection() && ui->toolButtonEditLyrics->isChecked());
+
+//    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
+//    qDebug() << "\n*****selection (rich text):\n " << cursor.selection().toHtml() << "\n";
+
+    if (ui->toolButtonEditLyrics->isChecked()) {
+        // if editing is enabled:
+        if (ui->textBrowserCueSheet->textCursor().hasSelection()) {
+            // if it has a non-empty selection, then set the buttons based on what the selection contains
+            int selContains = currentSelectionContains();
+//            qDebug() << "currentSelectionContains: " << selContains;
+
+            ui->pushButtonCueSheetEditTitle->setChecked(selContains & titleBit);
+            ui->pushButtonCueSheetEditLabel->setChecked(selContains & labelBit);
+            ui->pushButtonCueSheetEditArtist->setChecked(selContains & artistBit);
+            ui->pushButtonCueSheetEditHeader->setChecked(selContains & headerBit);
+            ui->pushButtonCueSheetEditLyrics->setChecked(selContains & lyricsBit);
+        } else {
+            // else, base the button state on the charformat at the current cursor position
+            QTextCharFormat tcf = ui->textBrowserCueSheet->textCursor().charFormat();
+
+            //        qDebug() << "tell me about: " << tcf.font();
+            //        qDebug() << "foreground: " << tcf.foreground();
+            //        qDebug() << "background: " << tcf.background();
+            //        qDebug() << "family: " << tcf.font().family();
+            //        qDebug() << "point size: " << tcf.font().pointSize();
+            //        qDebug() << "pixel size: " << tcf.font().pixelSize();
+
+            charsType c = FG_BG_to_type(tcf.foreground().color(), tcf.background().color());
+//            qDebug() << "empty selection, charsType: " << c;
+
+            ui->pushButtonCueSheetEditTitle->setChecked(c == TitleChars);
+            ui->pushButtonCueSheetEditLabel->setChecked(c == LabelChars);
+            ui->pushButtonCueSheetEditArtist->setChecked(c == ArtistChars);
+            ui->pushButtonCueSheetEditHeader->setChecked(c == HeaderChars);
+            ui->pushButtonCueSheetEditLyrics->setChecked(c == LyricsChars);
+        }
+    } else {
+        // if editing is disabled, all the buttons are disabled.
+//        qDebug() << "selection, but editing is disabled.";
+        ui->pushButtonCueSheetEditTitle->setChecked(false);
+        ui->pushButtonCueSheetEditLabel->setChecked(false);
+        ui->pushButtonCueSheetEditArtist->setChecked(false);
+        ui->pushButtonCueSheetEditHeader->setChecked(false);
+        ui->pushButtonCueSheetEditLyrics->setChecked(false);
+    }
 }
 
 // TODO: can't make a doc from scratch yet.
@@ -1127,35 +1195,10 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 // The parsing code below looks at FG and BG in a very specific order.  Be careful if making changes.
 // The cuesheet2.css file is also now fixed.  If you change colors there, you'll break editing.
 //
-//          fg                bg
-// -------  --------------    ------------
-// Title    0,0,0             1,1,0.878
-// Label    0.37,0.75,0.37    1,1,0.873
-// Artist   0,0,1             1,1,0.873
-// Header   1,0,0             1,1,0.873
-// Lyrics   0,0,0             1,0.75,0.79
-// None     0,0,0             0,0,0
 
 MainWindow::charsType MainWindow::FG_BG_to_type(QColor fg, QColor bg) {
-//    qDebug() << "fg: " << fg << ", bg: " << bg;
-    if (bg.blueF() == 0.0) {
-//        qDebug() << "None";
-        return(NoneChars);
-    } else if (fg.blueF() == 1.0) {
-//        qDebug() << "Artist";
-        return(ArtistChars);
-    } else if (fg.redF() == 1.0) {
-//        qDebug() << "Header";
-        return(HeaderChars);
-    } else if (fg.blueF() != 0.0) {
-//        qDebug() << "Label";
-        return(LabelChars);
-    } else if (bg.greenF() != 1.0) {
-//        qDebug() << "Lyrics";
-        return(LyricsChars);
-    }
-//    qDebug() << "Title";
-    return(TitleChars);  // else
+//    qDebug() << "fg: " << fg.blue() << ", bg: " << bg.blue();
+    return((charsType)fg.blue());  // the blue channel encodes the type
 }
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
@@ -1169,32 +1212,32 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
     ui->pushButtonCueSheetEditItalic->setChecked(f.fontItalic());
     ui->pushButtonCueSheetEditBold->setChecked(f.fontWeight() == QFont::Bold);
 
-    if (f.isCharFormat()) {
-        QTextCharFormat tcf = (QTextCharFormat)f;
-//        qDebug() << "tell me about: " << tcf.font();
-//        qDebug() << "foreground: " << tcf.foreground();
-//        qDebug() << "background: " << tcf.background();
-//        qDebug() << "family: " << tcf.font().family();
-//        qDebug() << "point size: " << tcf.font().pointSize();
-//        qDebug() << "pixel size: " << tcf.font().pixelSize();
+//    if (f.isCharFormat()) {
+//        QTextCharFormat tcf = (QTextCharFormat)f;
+////        qDebug() << "tell me about: " << tcf.font();
+////        qDebug() << "foreground: " << tcf.foreground();
+////        qDebug() << "background: " << tcf.background();
+////        qDebug() << "family: " << tcf.font().family();
+////        qDebug() << "point size: " << tcf.font().pointSize();
+////        qDebug() << "pixel size: " << tcf.font().pixelSize();
 
-        charsType c = FG_BG_to_type(tcf.foreground().color(), tcf.background().color());
-//        qDebug() << "charsType: " << c;
+//        charsType c = FG_BG_to_type(tcf.foreground().color(), tcf.background().color());
+////        qDebug() << "charsType: " << c;
 
-        if (ui->toolButtonEditLyrics->isChecked()) {
-            ui->pushButtonCueSheetEditTitle->setChecked(c == TitleChars);
-            ui->pushButtonCueSheetEditLabel->setChecked(c == LabelChars);
-            ui->pushButtonCueSheetEditArtist->setChecked(c == ArtistChars);
-            ui->pushButtonCueSheetEditHeader->setChecked(c == HeaderChars);
-            ui->pushButtonCueSheetEditLyrics->setChecked(c == LyricsChars);
-        } else {
-            ui->pushButtonCueSheetEditTitle->setChecked(false);
-            ui->pushButtonCueSheetEditLabel->setChecked(false);
-            ui->pushButtonCueSheetEditArtist->setChecked(false);
-            ui->pushButtonCueSheetEditHeader->setChecked(false);
-            ui->pushButtonCueSheetEditLyrics->setChecked(false);
-        }
-    }
+//        if (ui->toolButtonEditLyrics->isChecked()) {
+//            ui->pushButtonCueSheetEditTitle->setChecked(c == TitleChars);
+//            ui->pushButtonCueSheetEditLabel->setChecked(c == LabelChars);
+//            ui->pushButtonCueSheetEditArtist->setChecked(c == ArtistChars);
+//            ui->pushButtonCueSheetEditHeader->setChecked(c == HeaderChars);
+//            ui->pushButtonCueSheetEditLyrics->setChecked(c == LyricsChars);
+//        } else {
+//            ui->pushButtonCueSheetEditTitle->setChecked(false);
+//            ui->pushButtonCueSheetEditLabel->setChecked(false);
+//            ui->pushButtonCueSheetEditArtist->setChecked(false);
+//            ui->pushButtonCueSheetEditHeader->setChecked(false);
+//            ui->pushButtonCueSheetEditLyrics->setChecked(false);
+//        }
+//    }
 
     lastKnownTextCharFormat = f;  // save it away for when we unlock editing
 }
@@ -1214,13 +1257,18 @@ static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
             cursor.movePosition(QTextCursor::StartOfLine);
             cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
             selectedText = cursor.selectedText();
+            qDebug() << "setSelectedTestToClass: " << selectedText;
         }
 
-        if (!selectedText.isEmpty())
+        if (!selectedText.isEmpty())  // this is not redundant.
         {
             cursor.beginEditBlock(); // start of grouping for UNDO purposes
             cursor.removeSelectedText();
-            cursor.insertHtml("<P class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</P>");
+            QString newText = "<SPAN class=\"" + blockClass + "\">" + selectedText.toHtmlEscaped() + "</SPAN>";
+            qDebug() << "newText before: " << newText;
+            newText = newText.replace(QChar(0x2028),"</SPAN><BR/><SPAN class=\"" + blockClass + "\">");  // 0x2028 = Unicode Line Separator
+            qDebug() << "newText after: " << newText;
+            cursor.insertHtml(newText);
             cursor.endEditBlock(); // end of grouping for UNDO purposes
         }
 
