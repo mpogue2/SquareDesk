@@ -389,6 +389,10 @@ private slots:
 
     void on_actionTest_Loop_triggered();
 
+    void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
+
+    void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
+
 private:
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds

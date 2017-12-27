@@ -639,6 +639,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // LYRICS TAB ------------
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
+    ui->dateTimeEditIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->dateTimeEditOutroTime->setEnabled(false);
 
     analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
 
@@ -1357,7 +1359,7 @@ void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
 
 void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */)
 {
-    ui->lineEditIntroTime->setText("");
+    ui->lineEditIntroTime->setText("");  // TODO: are these two lines redundant?
     ui->lineEditOutroTime->setText("");
 
     // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
@@ -1371,6 +1373,8 @@ void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checke
     ui->lineEditIntroTime->setText(doubleToTime(intro * length));
     ui->lineEditOutroTime->setText(doubleToTime(outro * length));
 
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length)));  // milliseconds
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*outro*length)));  // milliseconds
 }
 
 void MainWindow::on_actionCompact_triggered(bool checked)
@@ -2062,8 +2066,12 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         // singing call sections
         if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
-            double introLength = timeToDouble(ui->lineEditIntroTime->text());
-            double outroTime = timeToDouble(ui->lineEditOutroTime->text());
+//            double introLength = timeToDouble(ui->lineEditIntroTime->text());
+//            double outroTime = timeToDouble(ui->lineEditOutroTime->text());
+
+            double introLength = ui->seekBar->GetIntro() * cBass.FileLength; // seconds
+            double outroTime = ui->seekBar->GetOutro() * cBass.FileLength; // seconds
+            qDebug() << "InfoSeekbar()::introLength: " << introLength << ", " << outroTime;
             double outroLength = fileLen_i-outroTime;
 
             int section;
@@ -2222,39 +2230,39 @@ double timeToDouble(const QString &str, bool *ok)
 
 void MainWindow::on_lineEditOutroTime_textChanged()
 {
-    bool ok = false;
-    double position = timeToDouble(ui->lineEditOutroTime->text(),&ok);
-    if (ok)
-    {
-        double length = cBass.FileLength;
-        double t = position/length;
+//    bool ok = false;
+//    double position = timeToDouble(ui->lineEditOutroTime->text(),&ok);
+//    if (ok)
+//    {
+//        double length = cBass.FileLength;
+//        double t = position/length;
 
-        ui->seekBarCuesheet->SetOutro((float)t);
-        ui->seekBar->SetOutro((float)t);
+//        ui->seekBarCuesheet->SetOutro((float)t);
+//        ui->seekBar->SetOutro((float)t);
 
-//        qDebug() << "on_lineEditOutroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
+////        qDebug() << "on_lineEditOutroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
 
-        on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
-    }
+//        on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+//    }
 }
 
 void MainWindow::on_lineEditIntroTime_textChanged()
 {
-    bool ok = false;
-    double position = timeToDouble(ui->lineEditIntroTime->text(),&ok);
+//    bool ok = false;
+//    double position = timeToDouble(ui->lineEditIntroTime->text(),&ok);
 
-    if (ok)
-    {
-        double length = cBass.FileLength;
-        double t = position/length;
+//    if (ok)
+//    {
+//        double length = cBass.FileLength;
+//        double t = position/length;
 
-        ui->seekBarCuesheet->SetIntro((float)t);
-        ui->seekBar->SetIntro((float)t);
+//        ui->seekBarCuesheet->SetIntro((float)t);
+//        ui->seekBar->SetIntro((float)t);
 
-//        qDebug() << "on_lineEditIntroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
+////        qDebug() << "on_lineEditIntroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
 
-        on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
-    }
+//        on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+//    }
 }
 
 void MainWindow::on_pushButtonClearTaughtCalls_clicked()
@@ -2307,6 +2315,8 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     getCurrentPointInStream(&t, &position);
 
     ui->lineEditIntroTime->setText(doubleToTime(position));  // NOTE: This MUST be done first, because otherwise it messes up the blue bracket position due to conversions
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position))); // milliseconds
+
     ui->seekBarCuesheet->SetIntro((float)t);  // after the events are done, do this.
     ui->seekBar->SetIntro((float)t);
 
@@ -2321,6 +2331,8 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     getCurrentPointInStream(&t, &position);
 
     ui->lineEditOutroTime->setText(doubleToTime(position));    // NOTE: This MUST be done first, because otherwise it messes up the blue bracket position due to conversions
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position))); // milliseconds
+
     ui->seekBarCuesheet->SetOutro((float)t);  // after the events are done, do this.
     ui->seekBar->SetOutro((float)t);
 
@@ -2557,6 +2569,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||
                ui->lineEditIntroTime->hasFocus() ||
                ui->lineEditOutroTime->hasFocus() ||
+               ui->dateTimeEditIntroTime->hasFocus() ||
+               ui->dateTimeEditOutroTime->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->lineEditCountDownTimer->hasFocus() ||
                ui->lineEditChoreographySearch->hasFocus() ||
@@ -2570,6 +2584,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->titleSearch->hasFocus() ||
                 ui->lineEditIntroTime->hasFocus() ||
                 ui->lineEditOutroTime->hasFocus() ||
+                ui->dateTimeEditIntroTime->hasFocus() ||
+                ui->dateTimeEditOutroTime->hasFocus() ||
+
                 ui->lineEditCountDownTimer->hasFocus() ||
                 ui->textBrowserCueSheet->hasFocus()) &&
                 (KeyEvent->key() == Qt::Key_Escape) ) ||
@@ -4068,6 +4085,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->lineEditIntroTime->setText("");
     ui->lineEditOutroTime->setText("");
 
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0));
+
     // NOTE: no need to scan for intro/outro here, because we are guaranteed that it was set by StreamCreate() above
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
@@ -4075,8 +4095,14 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->lineEditIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->lineEditOutroTime->setEnabled(true);
 
+    ui->dateTimeEditIntroTime->setEnabled(true);
+    ui->dateTimeEditOutroTime->setEnabled(true);
+
     ui->pushButtonSetIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->pushButtonSetOutroTime->setEnabled(true);
+
+    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs((int)(1000.0*length_sec)));
+    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs((int)(1000.0*length_sec)));
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
@@ -6514,6 +6540,12 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 
         ui->lineEditIntroTime->setText(doubleToTime(intro * length));
         ui->lineEditOutroTime->setText(doubleToTime(outro * length));
+
+        QTime iTime = QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length));
+        QTime oTime = QTime(0,0,0,0).addMSecs((int)(1000.0*outro*length));
+        qDebug() << "loadSettingsForSong: " << iTime << ", " << oTime;
+        ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
+        ui->dateTimeEditOutroTime->setTime(oTime);
 
         if (cuesheetName.length() > 0)
         {
@@ -9325,4 +9357,38 @@ void MainWindow::on_actionTest_Loop_triggered()
 //    on_playButton_clicked();  // play, starting 5 seconds before the loop
 
     cBass.Play();  // currently paused, so start playing at new location
+}
+
+void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
+{
+//    qDebug() << "newIntroTime: " << time;
+
+    double position_ms = 60000*time.minute() + 1000*time.second() + time.msec();
+//    qDebug() << "position_ms: " << position_ms;
+    double length = cBass.FileLength;
+    double t_ms = position_ms/length;
+
+    ui->seekBarCuesheet->SetIntro((float)t_ms/1000.0);
+    ui->seekBar->SetIntro((float)t_ms/1000.0);
+
+//        qDebug() << "on_lineEditIntroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+}
+
+void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
+{
+//    qDebug() << "newOutroTime: " << time;
+
+    double position_ms = 60000*time.minute() + 1000*time.second() + time.msec();
+//    qDebug() << "position_ms: " << position_ms;
+    double length = cBass.FileLength;
+    double t_ms = position_ms/length;
+
+    ui->seekBarCuesheet->SetOutro((float)t_ms/1000.0);
+    ui->seekBar->SetOutro((float)t_ms/1000.0);
+
+//        qDebug() << "on_lineEditIntroTime_textChanged: " << position << ", t: " << t << ", length: " << length;
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
 }
