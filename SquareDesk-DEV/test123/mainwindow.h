@@ -209,9 +209,6 @@ private slots:
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
 
-    void on_lineEditOutroTime_textChanged();
-    void on_lineEditIntroTime_textChanged();
-
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
 
@@ -392,6 +389,8 @@ private slots:
     void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
 
     void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
+
+    void on_pushButtonTestLoop_clicked();
 
 private:
 
