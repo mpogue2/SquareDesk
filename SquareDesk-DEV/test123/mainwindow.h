@@ -204,7 +204,7 @@ private slots:
     void on_checkBoxPlayOnEnd_clicked();
     void on_checkBoxStartOnPlay_clicked();
 
-    void getCurrentPointInStream(double *tt, double *pos);
+    void getCurrentPointInStream(double *pos, double *len);
     void on_pushButtonSetIntroTime_clicked();
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);

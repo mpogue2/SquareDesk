@@ -2244,7 +2244,7 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
 }
 
 // --------------------------------1--------------------------------------
-void MainWindow::getCurrentPointInStream(double *tt, double *pos) {
+void MainWindow::getCurrentPointInStream(double *pos, double *len) {
     double position, length;
 
     if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
@@ -2253,50 +2253,57 @@ void MainWindow::getCurrentPointInStream(double *tt, double *pos) {
         position = cBass.Current_Position;
         length = cBass.FileLength;  // always use the value with maximum precision
 
-//        qDebug() << "     PLAYING length: " << length << ", position: " << position;
     } else {
-        // if we're NOT playing, this is accurate to the second.
+        // if we're NOT playing, this is accurate to the second.  (This should be fixed!)
         position = (double)(ui->seekBarCuesheet->value());
         length = ui->seekBarCuesheet->maximum();
-//        qDebug() << "     NOT PLAYING length: " << length << ", position: " << position;
     }
 
-    double t = (double)((double)position / (double)length);
-//    qDebug() << "     T: " << t;
-
     // return values
-    *tt = t;
     *pos = position;
+    *len = length;
 }
 
 // --------------------------------1--------------------------------------
 void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
-    double t, position;
-    getCurrentPointInStream(&t, &position);
+    double position, length;
+    getCurrentPointInStream(&position, &length);
 
+    QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
+    double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
+    position = fmax(0.0, fmin(position, (int)currentOutroTimeSec) );
+
+    // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
 
-    ui->seekBarCuesheet->SetIntro((float)t);  // after the events are done, do this.
-    ui->seekBar->SetIntro((float)t);
+    // set in fractional form
+    float frac = position/length;
+    ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
+    ui->seekBar->SetIntro(frac);
 
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
 // --------------------------------1--------------------------------------
-
 void MainWindow::on_pushButtonSetOutroTime_clicked()
 {
-    double t, position;
-    getCurrentPointInStream(&t, &position);
+    double position, length;
+    getCurrentPointInStream(&position, &length);
 
-//    ui->lineEditOutroTime->setText(doubleToTime(position));    // NOTE: This MUST be done first, because otherwise it messes up the blue bracket position due to conversions
+    QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
+    double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
+    position = fmin(length, fmax(position, (int)currentIntroTimeSec) );
+
+    // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
 
-    ui->seekBarCuesheet->SetOutro((float)t);  // after the events are done, do this.
-    ui->seekBar->SetOutro((float)t);
+    // set in fractional form
+    float frac = position/length;
+    ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
+    ui->seekBar->SetOutro(frac);
 
-    on_loopButton_toggled(ui->actionLoop->isChecked());  // then finally do this, so that cBass is told what the loop points are (or they are cleared)
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
 // --------------------------------1--------------------------------------
