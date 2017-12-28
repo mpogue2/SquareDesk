@@ -653,6 +653,7 @@ public:
     friend class KeyActionPitchMinus;
     friend class KeyActionFadeOut ;
     friend class KeyActionLoopToggle;
+    friend class KeyActionTestLoop;
     friend class KeyActionNextTab;
 
     // actions which aren't mapped to keys above:

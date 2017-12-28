@@ -19,6 +19,7 @@ static const char * keyActionName_PitchPlus = "Pitch +";
 static const char * keyActionName_PitchMinus = "Pitch -";
 static const char * keyActionName_FadeOut  = "Fade Out";
 static const char * keyActionName_LoopToggle = "Loop Toggle";
+static const char * keyActionName_TestLoop = "Test Loop";
 static const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
 static const char * keyActionName_PlaySong = "Play/Pause Song";
 
@@ -267,6 +268,19 @@ void KeyActionLoopToggle::doAction(MainWindow *mw) {
 };
 
 
+class KeyActionTestLoop : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionTestLoop::name() {
+    return keyActionName_TestLoop;
+};
+void KeyActionTestLoop::doAction(MainWindow *mw) {
+    mw->on_actionTest_Loop_triggered();
+};
+
 
 class KeyActionNextTab : public KeyAction {
 public:
@@ -300,6 +314,7 @@ static KeyActionPitchPlus keyaction_KeyActionPitchPlus;
 static KeyActionPitchMinus keyaction_KeyActionPitchMinus;
 static KeyActionFadeOut  keyaction_KeyActionFadeOut ;
 static KeyActionLoopToggle keyaction_KeyActionLoopToggle;
+static KeyActionTestLoop keyaction_KeyActionTestLoop;
 static KeyActionNextTab keyaction_KeyActionNextTab;
 
 
@@ -319,6 +334,7 @@ QVector<KeyAction*> KeyAction::availableActions()
     actions.append(&keyaction_KeyActionBackward15Seconds);
     actions.append(&keyaction_KeyActionPlayNext);
     actions.append(&keyaction_KeyActionLoopToggle);
+    actions.append(&keyaction_KeyActionTestLoop);
 
     actions.append(&keyaction_KeyActionTempoPlus);
     actions.append(&keyaction_KeyActionTempoMinus);
@@ -411,6 +427,7 @@ QHash<Qt::Key, KeyAction *> KeyAction::defaultKeyToActionMappings()
     keyMappings[Qt::Key_L] = &keyaction_KeyActionLoopToggle;
     keyMappings[Qt::Key_M] = &keyaction_KeyActionMute;
     keyMappings[Qt::Key_P] = &keyaction_KeyActionPlaySong;
+    keyMappings[Qt::Key_Q] = &keyaction_KeyActionTestLoop;
     keyMappings[Qt::Key_S] = &keyaction_KeyActionStopSong;
     keyMappings[Qt::Key_T] = &keyaction_KeyActionNextTab;
     keyMappings[Qt::Key_U] = &keyaction_KeyActionPitchPlus;
