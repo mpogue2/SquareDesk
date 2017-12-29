@@ -1165,7 +1165,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QDateTimeEdit" name="dateTimeEditIntroTime">
+             <widget class="myDateTimeEdit" name="dateTimeEditIntroTime">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -1191,7 +1191,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QDateTimeEdit" name="dateTimeEditOutroTime">
+             <widget class="myDateTimeEdit" name="dateTimeEditOutroTime">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -2760,6 +2760,11 @@
    <class>clickableLabel</class>
    <extends>QLabel</extends>
    <header location="global">clickablelabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>myDateTimeEdit</class>
+   <extends>QDateTimeEdit</extends>
+   <header location="global">mydatetimeedit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
