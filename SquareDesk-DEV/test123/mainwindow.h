@@ -222,7 +222,7 @@ private slots:
     void on_pushButtonCueSheetEditArtist_clicked(bool checked);
     void on_pushButtonCueSheetEditLabel_clicked(bool checked);
     void on_pushButtonCueSheetEditLyrics_clicked(bool checked);
-    void showHTML();
+    void showHTML(QString fromWhere);
 
     void on_pushButtonCueSheetEditSave_clicked();
 
@@ -393,6 +393,19 @@ private slots:
     void on_pushButtonTestLoop_clicked();
 
 private:
+
+    // Lyrics editor -------
+    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0}; // matches blue component of CSS definition
+    charsType FG_BG_to_type(QColor fg, QColor bg);
+    QTextCharFormat lastKnownTextCharFormat;
+    int currentSelectionContains();
+    const int titleBit = 0x01;
+    const int labelBit = 0x02;
+    const int artistBit = 0x04;
+    const int headerBit = 0x08;
+    const int lyricsBit = 0x10;
+    const int noneBit = 0x20;
+    QString getResourceFile(QString s);  // get a resource file, and return as string or "" if not found
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
 
