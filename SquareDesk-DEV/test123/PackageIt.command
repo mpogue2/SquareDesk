@@ -25,14 +25,23 @@ echo $dir
 # ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
 # ERROR: no file at "/usr/local/lib/libpq.5.dylib"
 
+echo Now running otool to fixup libraries...
+pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS
+otool -L SquareDeskPlayer | egrep "qua|tidy"
+install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
+install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
+echo Those two lines should now start with executable_path...
+otool -L SquareDeskPlayer | egrep "qua|tidy"
+popd
+
 echo Now running Mac Deploy Qt step...
- ~/Qt/5.7/clang_64/bin/macdeployqt SquareDeskPlayer.app 
+ ~/Qt/5.9.3/clang_64/bin/macdeployqt SquareDeskPlayer.app 
 echo Mac Deploy Qt step done.
 echo
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDeskPlayer"
-VERSION="0.8.2alpha4"
+VERSION="0.8.3alpha1"
 DMG_BACKGROUND_IMG="installer2.png"
 #MANUAL="SquareDeskManual.pdf"
 
@@ -69,7 +78,8 @@ rm -rf "${STAGING_DIR}" "${DMG_TMP}" "${DMG_FINAL}"
 
 # copy over the stuff we want in the final disk image to our staging dir
 mkdir -p "${STAGING_DIR}"
-cp -rpf "${APP_NAME}.app" "${STAGING_DIR}"
+#cp -rpf "${APP_NAME}.app" "${STAGING_DIR}"
+cp -Rpf "${APP_NAME}.app" "${STAGING_DIR}"
 
 # copy in the SquareDesk Manual
 #cp -rpf "${MANUAL}" "${STAGING_DIR}"
