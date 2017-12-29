@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1139,9 +1139,22 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayoutCueSheetAdditional">
             <item>
+             <widget class="QPushButton" name="pushButtonTestLoop">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Test Loop</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="pushButtonSetIntroTime">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -1152,19 +1165,22 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEditIntroTime">
+             <widget class="myDateTimeEdit" name="dateTimeEditIntroTime">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="displayFormat">
+               <string>mm:ss.zzz</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonSetOutroTime">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -1175,12 +1191,15 @@
              </widget>
             </item>
             <item>
-             <widget class="QLineEdit" name="lineEditOutroTime">
+             <widget class="myDateTimeEdit" name="dateTimeEditOutroTime">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="displayFormat">
+               <string>mm:ss.zzz</string>
               </property>
              </widget>
             </item>
@@ -1639,6 +1658,7 @@
     <addaction name="actionFade_Out"/>
     <addaction name="separator"/>
     <addaction name="actionLoop"/>
+    <addaction name="actionTest_Loop"/>
     <addaction name="actionIn_Out_Loop_points_to_default"/>
     <addaction name="separator"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
@@ -2628,6 +2648,9 @@
    </property>
   </action>
   <action name="actionIn_Out_Loop_points_to_default">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Reset In/Out/Loop Points</string>
    </property>
@@ -2709,6 +2732,17 @@
     <string>TEST cuesheets...</string>
    </property>
   </action>
+  <action name="actionTest_Loop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Test Loop</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -2726,6 +2760,11 @@
    <class>clickableLabel</class>
    <extends>QLabel</extends>
    <header location="global">clickablelabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>myDateTimeEdit</class>
+   <extends>QDateTimeEdit</extends>
+   <header location="global">mydatetimeedit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

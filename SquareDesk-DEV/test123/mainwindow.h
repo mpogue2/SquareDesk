@@ -204,13 +204,10 @@ private slots:
     void on_checkBoxPlayOnEnd_clicked();
     void on_checkBoxStartOnPlay_clicked();
 
-    void getCurrentPointInStream(double *tt, double *pos);
+    void getCurrentPointInStream(double *pos, double *len);
     void on_pushButtonSetIntroTime_clicked();
     void on_pushButtonSetOutroTime_clicked();
     void on_seekBarCuesheet_valueChanged(int);
-
-    void on_lineEditOutroTime_textChanged();
-    void on_lineEditIntroTime_textChanged();
 
     void on_textBrowserCueSheet_selectionChanged();
     void on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f);
@@ -386,6 +383,14 @@ private slots:
     void on_actionFlashCallC3b_triggered();
 
 //    void on_actionDownload_matching_lyrics_triggered();
+
+    void on_actionTest_Loop_triggered();
+
+    void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
+
+    void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
+
+    void on_pushButtonTestLoop_clicked();
 
 private:
 
@@ -648,6 +653,7 @@ public:
     friend class KeyActionPitchMinus;
     friend class KeyActionFadeOut ;
     friend class KeyActionLoopToggle;
+    friend class KeyActionTestLoop;
     friend class KeyActionNextTab;
 
     // actions which aren't mapped to keys above:

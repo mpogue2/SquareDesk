@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     startupwizard.cpp \
     keybindings.cpp \
     calllistcheckbox.cpp \
-    downloadmanager.cpp
+    downloadmanager.cpp \
+    mydatetimeedit.cpp
 
 macx {
 SOURCES += ../qpdfjs/src/communicator.cpp
@@ -74,7 +75,8 @@ HEADERS  += mainwindow.h \
     platform.h \
     keybindings.h \
     calllistcheckbox.h \
-    downloadmanager.h
+    downloadmanager.h \
+    mydatetimeedit.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h
