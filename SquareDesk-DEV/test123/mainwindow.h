@@ -83,7 +83,7 @@
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.8.3alpha1"
+#define VERSIONSTRING "0.8.3alpha2"
 
 #define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.10.13"
