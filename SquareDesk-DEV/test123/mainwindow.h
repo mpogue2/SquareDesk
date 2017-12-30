@@ -104,6 +104,7 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
+    bool someWebViewHasFocus();
 
     Console *console;                   // these are public so that eventFilter can browse them
     QTextEdit *currentSequenceWidget;

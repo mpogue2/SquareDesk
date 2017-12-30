@@ -2980,6 +2980,18 @@ void MainWindow::aboutBox()
     msgBox.exec();
 }
 
+bool MainWindow::someWebViewHasFocus() {
+//    qDebug() << "numWebviews: " << numWebviews;
+    bool hasFocus = false;
+    for (unsigned int i=0; i<numWebviews && !hasFocus; i++) {
+//        qDebug() << "     checking: " << i;
+        hasFocus = hasFocus || ((numWebviews > i) && (webview[i]->hasFocus()));
+    }
+//    qDebug() << "     returning: " << hasFocus;
+    return(hasFocus);
+}
+
+
 // ------------------------------------------------------------------------
 // http://www.codeprogress.com/cpp/libraries/qt/showQtExample.php?key=QApplicationInstallEventFilter&index=188
 bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
@@ -3010,7 +3022,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                ui->lineEditChoreographySearch->hasFocus() ||
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
-               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
+//               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
+               maybeMainWindow->someWebViewHasFocus() ||           // safe now (won't crash, if there are no webviews!)
                maybeMainWindow->console->hasFocus() )     ||
 
              ( (ui->labelSearch->hasFocus() ||
