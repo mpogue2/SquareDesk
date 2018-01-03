@@ -3390,6 +3390,19 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 
     }
     ui->textBrowserCueSheet->document()->setModified(false);
+
+    // -----------
+    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();     // cursor for this document
+    cursor.movePosition(QTextCursor::Start);
+    cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor); // select entire document
+
+    QTextBlockFormat fmt;       // = cursor.blockFormat(); // get format of current block
+    fmt.setTopMargin(0.0);
+    fmt.setBottomMargin(0.0);   // modify it
+
+    cursor.mergeBlockFormat(fmt); // set margins to zero for all blocks
+
+    cursor.movePosition(QTextCursor::Start);  // move cursor back to the start of the document
 }
 
 
