@@ -27,6 +27,7 @@ static QStringList initialDancerLocations;
 static QHash<dance_level, QString> sdLevelEnumsToStrings;
 
 static const char *str_exit_from_the_program = "exit from the program";
+static const char *str_abort_this_sequence = "abort this sequence";
 
 static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
@@ -646,6 +647,7 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
 {
 //    qInfo() << "setting matcher options " << options << " " << levels;
     ui->listWidgetSDOptions->clear();
+    
     for (int i = 0; i < options.length(); ++i)
     {
         // if it's not "exit the program"
@@ -833,7 +835,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
-        cmd = "abort this sequence";
+        cmd = str_abort_this_sequence;
     }
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
@@ -979,7 +981,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     // SD COMMANDS -------
     // square your|the set -> square thru 4
     if (cmd == "square the set" || cmd == "square your set") {
-        sdthread->do_user_input("abort this sequence");
+        sdthread->do_user_input(str_abort_this_sequence);
         sdthread->do_user_input("y");
     }
     qInfo() << "Doing user input 1" << cmd;
