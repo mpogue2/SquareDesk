@@ -459,6 +459,7 @@ void MainWindow::highlight_sd_replaceables()
     if (!(call.contains("<") && call.contains(">")))
     {
         on_lineEditSDInput_returnPressed();
+        ui->lineEditSDInput->setFocus();
     }
     else
     {
