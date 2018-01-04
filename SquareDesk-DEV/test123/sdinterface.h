@@ -73,7 +73,8 @@ private:
 
     QWaitCondition waitCondAckToMainThread;
     QMutex mutexAckToMainThread;
-    
+
+    QMutex mutexThreadRunning;
     bool abort;
     SquareDesk_iofull *iofull;    
 

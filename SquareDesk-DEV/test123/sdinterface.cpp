@@ -929,6 +929,7 @@ SDThread::SDThread(MainWindow *mw)
       mw(mw),
       waitCondSDAwaitingInput(),
       mutexSDAwaitingInput(),
+      mutexThreadRunning(),
       abort(false)
 {
     // We should expand these elsewhere for autocomplete stuff
@@ -1031,9 +1032,9 @@ void SDThread::finishAndShutdownSD()
 
 SDThread::~SDThread()
 {
-    qDebug() << "SDThread unlocking";
     mutexSDAwaitingInput.unlock();
     mutexAckToMainThread.unlock();
+    QMutexLocker locker(&mutexThreadRunning);
     if (!wait(250))
     {
         qWarning() << "Thread unable to stop, calling terminate";
@@ -1043,6 +1044,7 @@ SDThread::~SDThread()
 
 void SDThread::run()
 {
+    QMutexLocker locker(&mutexThreadRunning);
     mutexSDAwaitingInput.lock();
     SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
                           &waitCondAckToMainThread, &mutexAckToMainThread);
