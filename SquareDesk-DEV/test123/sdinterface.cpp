@@ -303,6 +303,8 @@ int SquareDesk_iofull::do_abort_popup()
                  NULL,
                  false, false);
 
+    if (currentInputYesNo)
+        seenAFormation = false;
     return currentInputYesNo ? POPUP_ACCEPT : POPUP_DECLINE;
 }
 
