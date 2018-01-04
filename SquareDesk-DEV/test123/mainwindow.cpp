@@ -1050,6 +1050,7 @@ QString MainWindow::getResourceFile(QString s) {
     QString patterTemplatePath = appPath + "/" + s;
     patterTemplatePath.replace("SquareDeskPlayer.exe/","");
 #else
+    Q_UNUSED(s);
     // Linux
     return("");
 #endif
@@ -8191,6 +8192,9 @@ void MainWindow::adjustFontSizes()
     float scaleWidth1 = 7.75;
     float scaleWidth2 = 3.25;
     float scaleWidth3 = 8.5;
+
+    // lyrics buttons
+    unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
 
     float maxEQsize = 16;
     float scaleIcons = 24.0/13.0;

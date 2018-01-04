@@ -52,7 +52,11 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include <QtWebEngineWidgets>
+#else
+#include <OxideQtQuick/oxideqquickwebview.h>
+#endif
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
@@ -125,7 +129,12 @@ public:
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
 
     unsigned int numWebviews;
-    QWebEngineView* webview[16];  // max of 16 tabs
+#define MAX_WEB_VIEWS 16
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
+    QWebEngineView* webview[MAX_WEB_VIEWS];  // max of 16 tabs
+#else
+    OxideQQuickWebView* webview[MAX_WEB_VIEWS];
+#endif    
     QTabWidget *documentsTab;
 
 protected:
