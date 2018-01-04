@@ -137,7 +137,6 @@ dance_level SquareDesk_iofull::find_dance_program(QString call)
             {
                 length_of_longest_match = this_name.length();
                 dance_program = (dance_level)(main_call_lists[nLastOne][i]->the_defn.level);
-//                qInfo() << "Found " << this_name << " in " << call << " for level " << dance_program;
             }
         }
     }
@@ -152,12 +151,9 @@ SDThread::CurrentInputState SDThread::currentInputState()
 
 void SDThread::do_user_input(QString str)
 {
-    qInfo() << "Main Process: Doing user input " << str;
     if (on_user_input(str))
     {
-        qInfo() << "Main Process: Waiting on ack " << str;
         waitCondAckToMainThread.wait(&mutexAckToMainThread);
-        qInfo() << "Main Process: finished ack " << str;
     }
 }
 
@@ -180,14 +176,12 @@ bool SquareDesk_iofull::add_string_input(const char *s)
     {
     case SDThread::InputStateYesNo:
         currentInputYesNo = 'Y' == *s || 'y' == *s;
-        qInfo() << "Main Process: waking thread";
         waitCondSDAwaitingInput->wakeAll();
         woke = true;
         break;
     case SDThread::InputStateText:
         currentInputYesNo = 0 != *s;
         currentInputText = s;
-        qInfo() << "Main Process: waking thread";
         waitCondSDAwaitingInput->wakeAll();
         woke = true;
         break;
@@ -207,7 +201,6 @@ bool SquareDesk_iofull::add_string_input(const char *s)
                 len = MAX_TEXT_LINE_LENGTH;
             strncpy(ach,s,len);
             ach[len - 1] = '\0';
-            qInfo() << "Attempting match: " << ach;
             matcher.copy_to_user_input(ach);
             emit sdthread->sd_begin_available_call_list_output();
             matcher.match_user_input(nLastOne, true, question_mark, false);
@@ -226,7 +219,6 @@ bool SquareDesk_iofull::add_string_input(const char *s)
              matcher.m_final_result.match.kind == ui_concept_select))
         {
             WaitingForCommand = false;
-            qInfo() << "Main Process: waking thread";
             waitCondSDAwaitingInput->wakeAll();
             woke = true;
         }
@@ -265,16 +257,12 @@ void SquareDesk_iofull::UpdateStatusBar(const char *s)
 void SquareDesk_iofull::wait_for_input()
 {
     emit sdthread->on_sd_awaiting_input();
-    qInfo() << "Thread: awaiting input";
     waitCondSDAwaitingInput->wait(mutexSDAwaitingInput);
-    qInfo() << "Thread: got input";
 
     if (1)
     {
         QMutexLocker locker(mutexAckToMainThread);
-        qInfo() << "Thread: waking main process";
         waitCondAckToMainThread->wakeAll();
-        qInfo() << "Thread: woke main process";
     }
 }
 
@@ -1027,11 +1015,7 @@ void SDThread::finishAndShutdownSD()
         do_user_input("heads start");
         do_user_input("square thru 4");
     }
-//    waitCondSDAwaitingInput.wakeAll();
     do_user_input("quit");
-    qDebug() << "Quit wake all 1";
-//    waitCondSDAwaitingInput.wakeAll();
-    qDebug() << "Quit wake all 2";
 }
 
 SDThread::~SDThread()
@@ -1055,7 +1039,6 @@ void SDThread::run()
     iofull = &ggg;
     char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
 
-    qInfo() << "Thread starting";
     sdmain(1, argv, ggg);
 }
 

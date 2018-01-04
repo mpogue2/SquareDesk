@@ -77,12 +77,6 @@ static void draw_scene(const QStringList &sdformation,
     int coupleNumber = -1;
     int girl = 0;
     double max_y = (double)(sdformation.length());
-//    qDebug() << "Formation: " << sdformation.length() << " " << max_y;
-    for (int i = 0; i < sdformation.length(); ++i)
-    {
-//        qDebug() << "  " << i << ":" << sdformation[i];
-    }
-
 
     for (int y = 0; y < sdformation.length(); ++y)
     {
@@ -196,7 +190,6 @@ static void draw_scene(const QStringList &sdformation,
             break;
         }
     }
-//    qDebug() << "max_x " << max_x << " " << lowest_factor;
 
     max_x /= lowest_factor;
 
@@ -363,17 +356,14 @@ void MainWindow::initialize_internal_sd_tab()
 
 void MainWindow::on_threadSD_errorString(QString /* str */)
 {
-//    qDebug() << "on_threadSD_errorString: " <<  str;
 }
 
 void MainWindow::on_sd_set_window_title(QString /* str */)
 {
-//    qDebug() << "on_sd_set_window_title: " << str;
 }
 
 void MainWindow::on_sd_update_status_bar(QString str)
 {
-//    qDebug() << "on_sd_update_status_bar: " << str;
     if (!str.compare("<startup>"))
     {
         sdformation = initialDancerLocations;
@@ -633,7 +623,6 @@ void MainWindow::on_sd_awaiting_input()
 
 void MainWindow::on_sd_set_pick_string(QString str)
 {
-
     qDebug() << "on_sd_set_pick_string: " <<  str;
 }
 
@@ -645,7 +634,6 @@ void MainWindow::on_sd_dispose_of_abbreviation(QString str)
 
 void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList levels)
 {
-//    qInfo() << "setting matcher options " << options << " " << levels;
     ui->listWidgetSDOptions->clear();
     
     for (int i = 0; i < options.length(); ++i)
@@ -696,7 +684,6 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
 
     ui->tableWidgetCurrentSequence->setItem(row, 1, item);
     QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,0);
-//    qDebug() << "Setting row " << row << " to formation " << formation;
     textItem->setData(Qt::UserRole, QVariant(formation));
 }
 
@@ -724,9 +711,6 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
         call = calls[0];
     }
     ui->lineEditSDInput->setText(call);
-    qInfo() << "Double click on " << call;
-    qInfo() << "   contains: " << (call.contains("<") && call.contains(">")) << " " << call.contains("<") << " " << call.contains(">");
-    
     highlight_sd_replaceables();
 }
 
@@ -827,11 +811,8 @@ void MainWindow::do_sd_tab_completion()
 
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
-//    qDebug() << "Return pressed, command is: " << ui->lineEditSDInput->text();
     QString cmd(ui->lineEditSDInput->text().trimmed());
     ui->lineEditSDInput->clear();
-
-    qInfo() << "Doing user input 0" << cmd;
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
@@ -984,7 +965,6 @@ void MainWindow::on_lineEditSDInput_returnPressed()
         sdthread->do_user_input(str_abort_this_sequence);
         sdthread->do_user_input("y");
     }
-    qInfo() << "Doing user input 1" << cmd;
     sdthread->do_user_input(cmd);
 }
 
@@ -1041,7 +1021,6 @@ dance_level MainWindow::get_current_sd_dance_program()
 
 void MainWindow::on_lineEditSDInput_textChanged()
 {
-//    qInfo() << "lineEditSDInput_textChanged()";
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
 
@@ -1068,16 +1047,11 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
     dance_level current_dance_program = get_current_sd_dance_program();
     
-//    qInfo() << "Looking at call options for " << current_dance_program << " showCommands: "
-//            << showCommands << " showConcepts " << showConcepts << " currentText " << currentText
-//            << " options count " << ui->listWidgetSDOptions->count();
-
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
         bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(currentText, Qt::CaseInsensitive) ||
             ui->listWidgetSDOptions->item(i)->text().startsWith(strippedText, Qt::CaseInsensitive);
 
-//        qInfo() << "Showing " << ui->listWidgetSDOptions->item(i)->text() << " currentText " << currentText << " stripped " << strippedText << " / " << ui->listWidgetSDOptions->item(i);
         if (show)
         {
             QVariant v = ui->listWidgetSDOptions->item(i)->data(Qt::UserRole);
@@ -1109,7 +1083,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
                         if (containsAllParts)
                             inAvailableCalls = true;
                     }
-//                    qInfo() << "Call: " << callParts << " inAvailableCalls " << inAvailableCalls;
                 }
                 if (!inAvailableCalls)
                     show = false;
