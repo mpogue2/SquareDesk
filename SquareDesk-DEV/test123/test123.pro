@@ -4,7 +4,14 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network printsupport webenginewidgets
+QT       += core gui sql network printsupport 
+
+macx {
+QT += webenginewidgets
+}
+win32 {
+QT += webenginewidgets
+}
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
