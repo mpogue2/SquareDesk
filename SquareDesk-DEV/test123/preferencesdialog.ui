@@ -963,7 +963,7 @@ Click on a color square to change the color associated with that Music Type.  Se
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="text">
+           <property name="text" stdset="0">
             <string>Set song's initial BPM to</string>
            </property>
           </widget>

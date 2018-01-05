@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network printsupport 
+QT       += core gui sql network printsupport svg
 
 macx {
 QT += webenginewidgets
@@ -12,6 +12,7 @@ QT += webenginewidgets
 win32 {
 QT += webenginewidgets
 }
+
 unix:!macx {
 QT += qml quick
 }
@@ -48,6 +49,8 @@ SOURCES += main.cpp\
     keybindings.cpp \
     calllistcheckbox.cpp \
     downloadmanager.cpp \
+    sdinterface.cpp \
+    mainwindow_sd.cpp \
     mydatetimeedit.cpp
 
 macx {
@@ -89,6 +92,7 @@ HEADERS  += mainwindow.h \
     keybindings.h \
     calllistcheckbox.h \
     downloadmanager.h \
+    sdinterface.h \
     mydatetimeedit.h
 
 macx {
@@ -114,7 +118,9 @@ DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
 unix:!macx {
 INCLUDEPATH += $$PWD/ $$PWD/../local/include /usr/include/x86_64-linux-gnu/oxide-qt/
 DEPENDPATH += $$PWD/ $$PWD/../local/include /usr/include/x86_64-linux-gnu/oxide-qt/
+LIBS += -L$$PWD/../sdlib -lsdlib
 }
+
 
 # NOTE: there is no debug version of libbass
 win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy -lquazip
@@ -125,6 +131,8 @@ win32 {
     RC_FILE = desk1d.rc
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
     INCLUDEPATH += $$PWD/../taglib/binaries/include
+
+    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
 }
 
 # copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
@@ -199,6 +207,9 @@ macx {
     # ZLIB ------------------------------------------
     LIBS += /usr/lib/libz.dylib
 
+    # SDLIB ------------------------------------------
+    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
+
     # ICONS, ALLCALLS.CSV ---------------------------
     ICON = $$PWD/desk1d.icns
     DISTFILES += desk1d.icns
@@ -219,7 +230,9 @@ macx {
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
     #  (inside the SquareDeskPlayer.app bundle)
     # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
-    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+#    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+
     copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
 

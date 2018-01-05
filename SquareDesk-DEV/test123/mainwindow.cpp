@@ -116,10 +116,6 @@ using namespace std;
 
 #include "typetracker.h"
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-#define POCKETSPHINXSUPPORT 1
-#endif
-
 using namespace TagLib;
 
 // =================================================================================================
@@ -213,10 +209,19 @@ MainWindow::MainWindow(QWidget *parent) :
     loadingSong(false),
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0),
-    hotkeyMappings(KeyAction::defaultKeyToActionMappings())
+    hotkeyMappings(KeyAction::defaultKeyToActionMappings()),
+    sdLastLine(-1),
+    sdWasNotDrawingPicture(true),
+    sdLastLineWasResolve(false),
+    sdOutputtingAvailableCalls(false),
+    sdAvailableCalls(),
+    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1)
 {
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
+    for (size_t i = 0; i < sizeof(webview) / sizeof(*webview); ++i)
+        webview[i] = 0;
+    
     linesInCurrentPlaylist = 0;
 
     loadedCuesheetNameWithPath = "";
@@ -235,9 +240,9 @@ MainWindow::MainWindow(QWidget *parent) :
         hotkeyMappings = prefsHotkeyMappings;
     }
 
-    if (prefsManager.GetenableAutoMicsOff()) {
-        currentInputVolume = getInputVolume();  // save current volume
-    }
+//    if (prefsManager.GetenableAutoMicsOff()) {
+//        currentInputVolume = getInputVolume();  // save current volume
+//    }
 
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
@@ -470,7 +475,8 @@ MainWindow::MainWindow(QWidget *parent) :
         NULL
     };
     sessionActions = new QAction*[sizeof(localSessionActions) / sizeof(*localSessionActions)];
-    for (unsigned int i = 0;
+
+    for (size_t i = 0;
          i < sizeof(localSessionActions) / sizeof(*localSessionActions);
          ++i)
     {
@@ -519,13 +525,8 @@ MainWindow::MainWindow(QWidget *parent) :
     on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
 
 // voice input is only available on MAC OS X and Win32 right now...
-#ifdef POCKETSPHINXSUPPORT
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
-#else
-    on_actionEnable_voice_input_toggled(false);
-    voiceInputEnabled = false;
-#endif
 
     on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
     autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
@@ -786,7 +787,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
-    initSDtab();  // init sd, pocketSphinx, and the sd tab widgets
+    initialize_internal_sd_tab();
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(true);
@@ -845,6 +846,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
 
     initReftab();
+    currentSDVUILevel      = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDKeyboardLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+
+    // Initializers for these should probably be up in the constructor
+    sdthread = new SDThread(this);
+    sdthread->start();
+    sdthread->unlock();
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -1639,8 +1647,6 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     }
     // tidy it one final time before writing it to a file (gets rid of blank SPAN's, among other things)
     QString cuesheet4 = tidyHTML(cuesheet3);
-
-
 //    qDebug().noquote() << "***** postProcess 2: " << cuesheet4;
     return(cuesheet4);
 }
@@ -1670,7 +1676,6 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
     } else {
         ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cuesheet2);
     }
-
 }
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
@@ -1946,24 +1951,31 @@ MainWindow::~MainWindow()
 #elif defined(Q_OS_WIN32)
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
 #endif
+    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
+#if defined(Q_OS_MAC)
+    macUtils.reenableScreensaver();
+#elif defined(Q_OS_WIN32)
+    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
+#endif
     if (sd) {
         sd->kill();
     }
-#if defined(POCKETSPHINXSUPPORT)
+    if (sdthread)
+    {
+        sdthread->finishAndShutdownSD();
+    }
     if (ps) {
         ps->kill();
     }
-#endif
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(false);
     }
 
-    if (prefsManager.GetenableAutoMicsOff()) {
-        unmuteInputVolume();  // if it was muted, it's now unmuted.
-    }
-
     delete[] sessionActions;
+    delete[] danceProgramActions;
+    delete sessionActionGroup;
+    delete sdActionGroupDanceProgram;
 
     clearLockFile(); // release the lock that we took (other locks were thrown away)
 }
@@ -2986,7 +2998,7 @@ bool MainWindow::someWebViewHasFocus() {
     bool hasFocus = false;
     for (unsigned int i=0; i<numWebviews && !hasFocus; i++) {
 //        qDebug() << "     checking: " << i;
-        hasFocus = hasFocus || ((numWebviews > i) && (webview[i]->hasFocus()));
+        hasFocus = hasFocus || ((numWebviews > i) && (webview[i] != nullptr) && (webview[i]->hasFocus()));
     }
 //    qDebug() << "     returning: " << hasFocus;
     return(hasFocus);
@@ -3012,20 +3024,26 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         //   stopping of music when editing a text field).  Sorry, can't use the SPACE BAR
         //   when editing a search field, because " " is a valid character to search for.
         //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
-        if ( !(ui->labelSearch->hasFocus() ||
+        if (ui->lineEditSDInput->hasFocus()
+            && KeyEvent->key() == Qt::Key_Tab)
+        {
+            maybeMainWindow->do_sd_tab_completion();
+            return true;
+        }
+        else if ( !(ui->labelSearch->hasFocus() ||
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
                (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||
                ui->dateTimeEditIntroTime->hasFocus() ||
                ui->dateTimeEditOutroTime->hasFocus() ||
+               ui->lineEditSDInput->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->lineEditCountDownTimer->hasFocus() ||
                ui->lineEditChoreographySearch->hasFocus() ||
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->songTable->isEditing() ||
 //               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
-               maybeMainWindow->someWebViewHasFocus() ||           // safe now (won't crash, if there are no webviews!)
-               maybeMainWindow->console->hasFocus() )     ||
+               maybeMainWindow->someWebViewHasFocus() ) ||           // safe now (won't crash, if there are no webviews!)
 
              ( (ui->labelSearch->hasFocus() ||
                 ui->typeSearch->hasFocus() ||
@@ -3035,7 +3053,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
                 ui->lineEditCountDownTimer->hasFocus() ||
                 ui->textBrowserCueSheet->hasFocus()) &&
-                (KeyEvent->key() == Qt::Key_Escape) ) ||
+                (KeyEvent->key() == Qt::Key_Escape) )  ||
 
              ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
                (KeyEvent->key() == Qt::Key_Return || KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down)
@@ -3085,7 +3103,7 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
-    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL) || console->hasFocus()) {
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
 
@@ -4021,16 +4039,13 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     SongSetting settings1;
     double intro1 = 0.0;
     double outro1 = 0.0;
-    bool introOutroSetAlready = false;
     if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
         if (settings1.isSetIntroPos()) {
             intro1 = settings1.getIntroPos();
-            introOutroSetAlready = true;
 //            qDebug() << "intro was set to: " << intro1;
         }
         if (settings1.isSetOutroPos()) {
             outro1 = settings1.getOutroPos();
-            introOutroSetAlready = true;
 //            qDebug() << "outro was set to: " << outro1;
         }
     }
@@ -4042,7 +4057,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     // OK, by this time we always have an introOutro
     //   if DB had one, we didn't scan, and just used that one
     //   if DB did not have one, we scanned
-    introOutroSetAlready = true;
 
     //    qDebug() << "song starts: " << startOfSong_sec << ", ends: " << endOfSong_sec;
 
@@ -5344,9 +5358,9 @@ void MainWindow::on_actionPreferences_triggered()
             airplaneMode(false);
         }
 
-        if (prefsManager.GetenableAutoMicsOff()) {
-            microphoneStatusUpdate();
-        }
+//        if (prefsManager.GetenableAutoMicsOff()) {
+//            microphoneStatusUpdate();
+//        }
     }
 
     delete prefDialog;
@@ -6036,85 +6050,85 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 }
 
 // ---------------------------------------------------------
-int MainWindow::getInputVolume()
-{
-#if defined(Q_OS_MAC)
-    QProcess getVolumeProcess;
-    QStringList args;
-    args << "-e";
-    args << "set ivol to input volume of (get volume settings)";
+//int MainWindow::getInputVolume()
+//{
+//#if defined(Q_OS_MAC)
+//    QProcess getVolumeProcess;
+//    QStringList args;
+//    args << "-e";
+//    args << "set ivol to input volume of (get volume settings)";
 
-    getVolumeProcess.start("osascript", args);
-    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
-    QString output(getVolumeProcess.readAllStandardOutput());
+//    getVolumeProcess.start("osascript", args);
+//    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
+//    QString output(getVolumeProcess.readAllStandardOutput());
 
-    int vol = output.trimmed().toInt();
+//    int vol = output.trimmed().toInt();
 
-    return(vol);
-#endif
+//    return(vol);
+//#endif
 
-#if defined(Q_OS_WIN)
-    return(-1);
-#endif
+//#if defined(Q_OS_WIN)
+//    return(-1);
+//#endif
 
-#ifdef Q_OS_LINUX
-    return(-1);
-#endif
-}
+//#ifdef Q_OS_LINUX
+//    return(-1);
+//#endif
+//}
 
-void MainWindow::setInputVolume(int newVolume)
-{
-#if defined(Q_OS_MAC)
-    if (newVolume != -1) {
-        QProcess getVolumeProcess;
-        QStringList args;
-        args << "-e";
-        args << "set volume input volume " + QString::number(newVolume);
+//void MainWindow::setInputVolume(int newVolume)
+//{
+//#if defined(Q_OS_MAC)
+//    if (newVolume != -1) {
+//        QProcess getVolumeProcess;
+//        QStringList args;
+//        args << "-e";
+//        args << "set volume input volume " + QString::number(newVolume);
 
-        getVolumeProcess.start("osascript", args);
-        getVolumeProcess.waitForFinished();
-        QString output(getVolumeProcess.readAllStandardOutput());
-    }
-#else
-    Q_UNUSED(newVolume);
-#endif
+//        getVolumeProcess.start("osascript", args);
+//        getVolumeProcess.waitForFinished();
+//        QString output(getVolumeProcess.readAllStandardOutput());
+//    }
+//#else
+//    Q_UNUSED(newVolume)
+//#endif
 
-#if defined(Q_OS_WIN)
-#endif
+//#if defined(Q_OS_WIN)
+//#endif
 
-#ifdef Q_OS_LINUX
-#endif
-}
+//#ifdef Q_OS_LINUX
+//#endif
+//}
 
-void MainWindow::muteInputVolume()
-{
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-    if (!prefsManager.GetenableAutoMicsOff()) {
-        return;
-    }
+//void MainWindow::muteInputVolume()
+//{
+//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+//    if (!prefsManager.GetenableAutoMicsOff()) {
+//        return;
+//    }
 
-    int vol = getInputVolume();
-    if (vol > 0) {
-        // if not already muted, save the current volume (for later restore)
-        currentInputVolume = vol;
-        setInputVolume(0);
-    }
-}
+//    int vol = getInputVolume();
+//    if (vol > 0) {
+//        // if not already muted, save the current volume (for later restore)
+//        currentInputVolume = vol;
+//        setInputVolume(0);
+//    }
+//}
 
-void MainWindow::unmuteInputVolume()
-{
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-    if (!prefsManager.GetenableAutoMicsOff()) {
-        return;
-    }
+//void MainWindow::unmuteInputVolume()
+//{
+//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+//    if (!prefsManager.GetenableAutoMicsOff()) {
+//        return;
+//    }
 
-    int vol = getInputVolume();
-    if (vol > 0) {
-        // the user has changed it, so don't muck with it!
-    } else {
-        setInputVolume(currentInputVolume);     // restore input from the mics
-    }
-}
+//    int vol = getInputVolume();
+//    if (vol > 0) {
+//        // the user has changed it, so don't muck with it!
+//    } else {
+//        setInputVolume(currentInputVolume);     // restore input from the mics
+//    }
+//}
 
 // ----------------------------------------------------------------------
 int MainWindow::selectedSongRow() {
@@ -6883,11 +6897,11 @@ void MainWindow::on_warningLabelCuesheet_clicked() {
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if (ui->tabWidget->tabText(index) == "SD") {
+    if (ui->tabWidget->tabText(index) == "SD"
+        || ui->tabWidget->tabText(index) == "SD 2") {
         // SD Tab ---------------
-        if (console != 0) {
-            console->setFocus();
-        }
+
+        ui->lineEditSDInput->setFocus();
 //        ui->actionSave_Lyrics->setDisabled(true);
 //        ui->actionSave_Lyrics_As->setDisabled(true);
 //        ui->actionPrint_Lyrics->setDisabled(true);
@@ -6947,225 +6961,69 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 }
 
 void MainWindow::microphoneStatusUpdate() {
+    bool killVoiceInput(true);
+
     int index = ui->tabWidget->currentIndex();
 
-    if (ui->tabWidget->tabText(index) == "SD") {
-        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
+    if (ui->tabWidget->tabText(index) == "SD"
+        || ui->tabWidget->tabText(index) == "SD 2") {
+        if (voiceInputEnabled &&
+            currentApplicationState == Qt::ApplicationActive) {
+            if (!ps)
+                initSDtab();
+        }
+        if (voiceInputEnabled && ps &&
+            currentApplicationState == Qt::ApplicationActive) {
+
+
             ui->statusBar->setStyleSheet("color: red");
+//            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
             ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
-            unmuteInputVolume();
+            killVoiceInput = false;
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
-            muteInputVolume();                      // disable all input from the mics
         }
     } else {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
-            muteInputVolume();                      // disable all input from the mics
+//            muteInputVolume();                      // disable all input from the mics
         } else {
             ui->statusBar->setStyleSheet("color: black");
             ui->statusBar->showMessage("Microphone disabled");
-            muteInputVolume();                      // disable all input from the mics
+//            muteInputVolume();                      // disable all input from the mics
         }
+    }
+    if (killVoiceInput && ps)
+    {
+        ps->kill();
+        delete ps;
+        ps = NULL;
     }
 }
 
-void MainWindow::writeSDData(const QByteArray &data)
+
+void MainWindow::readPSStdErr()
 {
-    if (data != "") {
-        // console has data, send to sd
-        QString d = data;
-        d.replace("\r","\n");
-        if (d.at(d.length()-1) == '\n') {
-            sd->write(d.toUtf8());
-            sd->waitForBytesWritten();
-        } else {
-            sd->write(d.toUtf8());
-            sd->waitForBytesWritten();
-        }
-    }
-}
-
-void MainWindow::readSDData()
-{
-    // sd has data, send to console
-    QByteArray s = sd->readAll();
-
-    s = s.replace("\r\n","\n");  // This should be safe on all platforms, but is required for Win32
-
-    QString qs(s);
-
-    if (qs.contains("\a")) {
-        QApplication::beep();
-        qs = qs.replace("\a","");  // delete all BEL chars
-    }
-
-    uneditedData.append(qs);
-
-    // do deletes early
-    bool done = false;
-    while (!done) {
-        int beforeLength = uneditedData.length();
-        uneditedData.replace(QRegExp(".\b \b"),""); // if coming in as bulk text, delete one char
-        int afterLength = uneditedData.length();
-        done = (beforeLength == afterLength);
-    }
-
-    QString lastLayout1;
-    QString format2line;
-    QList<QString> lastFormatList;
-
-    QRegExp sequenceLine("^ *([0-9]+):(.*)");
-    QRegExp sectionStart("Sd 38.89");
-
-    QStringList currentSequence;
-    QString lastPrompt;
-
-    // TODO: deal with multiple resolve lines
-    QString errorLine;
-    QString resolveLine;
-    copyrightText = "";
-    bool grabResolve = false;
-
-    // scan the unedited lines for sectionStart, layout1/2, and sequence lines
-    QStringList lines = uneditedData.split("\n");
-    foreach (const QString &line, lines) {
-        if (grabResolve) {
-            resolveLine = line;  // grabs next line, then stops.
-            grabResolve = false;
-        } else if (line.contains("layout1:")) {
-            lastLayout1 = line;
-            lastLayout1 = lastLayout1.replace("layout1: ","").replace("\"","");
-            lastFormatList.clear();
-        } else if (line.contains("layout2:")) {
-            format2line = line;
-            format2line = format2line.replace("layout2: ","").replace("\"","");
-            lastFormatList.append(format2line);
-            errorLine = "";     // clear out possible error line
-            resolveLine = "";   // clear out possible resolve line
-        } else if (sequenceLine.indexIn(line) > -1) {
-            // line like "3: square thru"
-            int itemNumber = sequenceLine.cap(1).toInt();
-            QString call = sequenceLine.cap(2).trimmed();
-
-            if (call == "HEADS" || call == "SIDES") {
-                call += " start";
-            }
-
-            if (itemNumber-1 < currentSequence.length()) {
-                currentSequence.replace(itemNumber-1, call);
-            } else {
-                currentSequence.append(call);
-            }
-        } else if (line.contains(sectionStart)) {
-            currentSequence.clear();
-            editedData = "";  // sectionStart causes clear of editedData
-        } else if (line == "") {
-            // skip blank lines
-        } else if (line.contains("Enter startup command>") ||
-                   line.contains("Do you really want to abort it?") ||
-                   line.contains("Enter search command>") ||
-                   line.contains("Enter comment:") ||
-                   line.contains("Do you want to write it anyway?")) {
-            // PROMPTS
-            lastPrompt = errorLine + line;  // this is a bold idea.  treat this as the last prompt, too.
-        } else if (line.startsWith("SD --") || line.contains("Copyright") || line.contains("Gildea")) {
-            copyrightText += line + "\n";
-        } else if (line.contains("(no matches)")) {
-            // special case for this error message
-             errorLine = line + "\n";
-        } else if (line.contains("resolve is:")) {
-            // special case for this line
-            grabResolve = true;
-        } else if (line.contains("-->")) {
-            // suppress output, but record it
-            lastPrompt = errorLine + line;  // this is a bold idea.  show last error only.
-        } else {
-            editedData += line;  // no layout lines make it into here
-            editedData += "\n";  // no layout lines make it into here
-        }
-    }
-
-    editedData += lastPrompt.replace("\a","");  // keep only the last prompt (no NL)
-
-    // echo is needed for entering the level and entering comments, but NOT wanted after that
-    if (lastPrompt.contains("Enter startup command>") || lastPrompt.contains("Enter comment:")) {
-        console->setLocalEchoEnabled(true);
-    } else {
-        console->setLocalEchoEnabled(false);
-    }
-
-    // capitalize all the words in each call
-    for (int i=0; i < currentSequence.length(); i++ ) {
-        QString current = currentSequence.at(i);
-        QStringList words = current.split(" ");
-        for (int j=0; j < words.length(); j++ ) {
-            QString current2 = words.at(j);
-            QString replacement2;
-            if (current2.length() >= 1 && current2.at(0) == '[') {
-                // left bracket case
-                replacement2 = "[" + QString(current2.at(1)).toUpper() + current2.mid(2).toLower();
-            } else {
-                // normal case
-                replacement2 = current2.left(1).toUpper() + current2.mid(1).toLower();
-            }
-            words.replace(j, replacement2);
-        }
-        QString replacement = words.join(" ");
-        currentSequence.replace(i, replacement);
-    }
-
-    if (resolveLine == "") {
-        currentSequenceWidget->setText(currentSequence.join("\n"));
-    } else {
-        currentSequenceWidget->setText(currentSequence.join("\n") + "\nresolve is: " + resolveLine);
-    }
-
-    // always scroll to make the last line visible, as we're adding lines
-    QScrollBar *sb = currentSequenceWidget->verticalScrollBar();
-    sb->setValue(sb->maximum());
-
-    console->clear();
-    console->putData(QByteArray(editedData.toLatin1()));
-
-    // look at unedited last line to see if there's a prompt
-    if (lines[lines.length()-1].contains("-->")) {
-        QString formation;
-        QRegExp r1( "[(](.*)[)]-->" );
-        int pos = r1.indexIn( lines[lines.length()-1] );
-        if ( pos > -1 ) {
-            formation = r1.cap( 1 ); // "waves"
-        }
-        renderArea->setFormation(formation);
-    }
-
-    if (lastPrompt.contains("Enter startup command>")) {
-        renderArea->setLayout1("");
-        renderArea->setLayout2(QStringList());      // show squared up dancers
-        renderArea->setFormation("Squared set");    // starting formation
-        if (!copyrightShown) {
-            currentSequenceWidget->setText(copyrightText + "\nSquared set\n\nTry: 'Heads start'");    // clear out current sequence
-            copyrightShown = true;
-        } else {
-            currentSequenceWidget->setText("Squared set\n\nTry: 'Heads start'");    // clear out current sequence
-        }
-    } else {
-        renderArea->setLayout1(lastLayout1);
-        renderArea->setLayout2(lastFormatList);
-    }
-
+    QByteArray s(ps->readAllStandardError());
+    QString str = QString::fromUtf8(s.data());
 }
 
 void MainWindow::readPSData()
 {
     // ASR --------------------------------------------
     // pocketsphinx has a valid string, send it to sd
-    QByteArray s = ps->readAll();
+    QByteArray s = ps->readAllStandardOutput();
+    QString str = QString::fromUtf8(s.data());
+    if (str.startsWith("INFO: "))
+        return;
+
+//    qDebug() << "PS str: " << str;
 
     int index = ui->tabWidget->currentIndex();
-    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) || (ui->tabWidget->tabText(index) != "SD")) {
+    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
+        ((ui->tabWidget->tabText(index) != "SD" && ui->tabWidget->tabText(index) != "SD 2"))) {
         // if voiceInput is explicitly disabled, or the app is not Active, we're not on the sd tab, then voiceInput is disabled,
         //  and we're going to read the data from PS and just throw it away.
         // This is a cheesy way to do it.  We really should disable the mics somehow.
@@ -7176,263 +7034,33 @@ void MainWindow::readPSData()
     // This section does the impedance match between what you can say and the exact wording that sd understands.
     // TODO: put this stuff into an external text file, read in at runtime?
     //
-    QString s2 = s.toLower();
+    QString s2 = str.toLower();
     s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
     s2.replace(QRegExp("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
+    s2 = s2.simplified();
 
-    // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
-    // must be in this order, and must be before number substitution.
-    s2 = s2.replace("once and a half","1-1/2");
-    s2 = s2.replace("one and a half","1-1/2");
-    s2 = s2.replace("two and a half","2-1/2");
-    s2 = s2.replace("three and a half","3-1/2");
-    s2 = s2.replace("four and a half","4-1/2");
-    s2 = s2.replace("five and a half","5-1/2");
-    s2 = s2.replace("six and a half","6-1/2");
-    s2 = s2.replace("seven and a half","7-1/2");
-    s2 = s2.replace("eight and a half","8-1/2");
-
-    s2 = s2.replace("four quarters","4/4");
-    s2 = s2.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
-    s2 = s2.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
-    s2 = s2.replace("and a quarter more", "AND A QUARTER MORE");  // protect this.  Separate call, must NOT be "1/4"
-    s2 = s2.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
-    s2 = s2.replace("AND A QUARTER MORE", "and a quarter more");  // protect this.  Separate call, must NOT be "1/4"
-
-    // handle 1P2P
-    s2 = s2.replace("one pee two pee","1P2P");
-
-    // handle "third" --> "3rd", for dixie grand
-    s2 = s2.replace("third", "3rd");
-
-    // handle numbers: one -> 1, etc.
-    s2 = s2.replace("eight chain","EIGHT CHAIN"); // sd wants "eight chain 4", not "8 chain 4", so protect it
-    s2 = s2.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
-    s2 = s2.replace("five","5").replace("six","6").replace("seven","7").replace("eight","8");
-    s2 = s2.replace("EIGHT CHAIN","eight chain"); // sd wants "eight chain 4", not "8 chain 4", so protect it
-
-    // handle optional words at the beginning
-
-    s2 = s2.replace("do the centers", "DOTHECENTERS");  // special case "do the centers part of load the boat"
-    s2 = s2.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
-    s2 = s2.replace("DOTHECENTERS", "do the centers");  // special case "do the centers part of load the boat"
-
-    // handle specialized sd spelling of flutter wheel, and specialized wording of reverse flutter wheel
-    s2 = s2.replace("flutterwheel","flutter wheel");
-    s2 = s2.replace("reverse the flutter","reverse flutter wheel");
-
-    // handle specialized sd wording of first go *, next go *
-    s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
-    s2 = s2.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
-    s2 = s2.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go left"),"first couple go left, next go left");
-    s2 = s2.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go right"),"first couple go right, next go right");
-
-    // handle "single circle to an ocean wave" -> "single circle to a wave"
-    s2 = s2.replace("single circle to an ocean wave","single circle to a wave");
-
-    // handle manually-inserted brackets
-    s2 = s2.replace(QRegExp("left bracket\\s+"), "[").replace(QRegExp("\\s+right bracket"),"]");
-
-    // handle "single hinge" --> "hinge", "single file circulate" --> "circulate", "all 8 circulate" --> "circulate" (quirk of sd)
-    s2 = s2.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
-
-    // handle "men <anything>" and "ladies <anything>", EXCEPT for ladies chain
-    if (!s2.contains("ladies chain") && !s2.contains("men chain")) {
-        s2 = s2.replace("men", "boys").replace("ladies", "girls");  // wacky sd!
+    if (s2 == "erase" || s2 == "erase that") {
+        ui->lineEditSDInput->clear();
     }
-
-    // handle "allemande left alamo style" --> "allemande left in the alamo style"
-    s2 = s2.replace("allemande left alamo style", "allemande left in the alamo style");
-
-    // handle "right a left thru" --> "right and left thru"
-    s2 = s2.replace("right a left thru", "right and left thru");
-
-    // handle "separate [go] around <n> [to a line]" --> delete "go"
-    s2 = s2.replace("separate go around", "separate around");
-
-    // handle "dixie style [to a wave|to an ocean wave]" --> "dixie style to a wave"
-    s2 = s2.replace(QRegExp("dixie style.*"), "dixie style to a wave\n");
-
-    // handle the <anything> and roll case
-    //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
-    if (!s2.contains("[")) {
-        QRegExp andRollCall("(.*) and roll.*");
-        if (s2.indexOf(andRollCall) != -1) {
-            s2 = "[" + andRollCall.cap(1) + "] and roll\n";
-        }
-
-        // explode must be handled *after* roll, because explode binds tightly with the call
-        // e.g. EXPLODE AND RIGHT AND LEFT THRU AND ROLL must be translated to:
-        //      [explode and [right and left thru]] and roll
-
-        // first, handle both: "explode and <anything> and roll"
-        //  by the time we're here, it's already "[explode and <anything>] and roll\n", because
-        //  we've already done the roll processing.
-        QRegExp explodeAndRollCall("\\[explode and (.*)\\] and roll");
-        QRegExp explodeAndNotRollCall("^explode and (.*)");
-
-        if (s2.indexOf(explodeAndRollCall) != -1) {
-            s2 = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll\n";
-        } else if (s2.indexOf(explodeAndNotRollCall) != -1) {
-            // not a roll, for sure.  Must be a naked "explode and <anything>\n"
-            s2 = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]\n";
-        } else {
-        }
-    }
-
-    // handle <ANYTHING> and spread
-    if (!s2.contains("[")) {
-        QRegExp andSpreadCall("(.*) and spread");
-        if (s2.indexOf(andSpreadCall) != -1) {
-            s2 = "[" + andSpreadCall.cap(1) + "] and spread\n";
-        }
-    }
-
-    // handle "undo [that]" --> "undo last call"
-    s2 = s2.replace("undo that", "undo last call");
-    if (s2 == "undo\n") {
-        s2 = "undo last call\n";
-    }
-
-    // handle "peel your top" --> "peel the top"
-    s2 = s2.replace("peel your top", "peel the top");
-
-    // handle "veer (to the) left/right" --> "veer left/right"
-    s2 = s2.replace("veer to the", "veer");
-
-    // handle the <anything> and sweep case
-    // FIX: this needs to add center boys, etc, but that messes up the QRegExp
-
-    // <ANYTHING> AND SWEEP (A | ONE) QUARTER [MORE]
-    QRegExp andSweepPart(" and sweep.*");
-    int found = s2.indexOf(andSweepPart);
-    if (found != -1) {
-        if (s2.contains("[")) {
-            // if manual brackets added, don't add more of them.
-            s2 = s2.replace(andSweepPart,"") + " and sweep 1/4\n";
-        } else {
-            s2 = "[" + s2.replace(andSweepPart,"") + "] and sweep 1/4\n";
-        }
-    }
-
-    // handle "square thru" -> "square thru 4"
-    if (s2 == "square thru\n") {
-        s2 = "square thru 4\n";
-    }
-
-    // SD COMMANDS -------
-    // square your|the set -> square thru 4
-    if (s2 == "square the set\n" || s2 == "square your set\n") {
-#if defined(Q_OS_MAC)
-        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
-#endif
-        sd->waitForBytesWritten();
-
-        console->clear();
-
-        sd->write("abort this sequence\n");
-        sd->waitForBytesWritten();
-
-        sd->write("y\n");
-        sd->waitForBytesWritten();
-
-    } else if (s2 == "undo last call\n") {
-        // TODO: put more synonyms of this in...
-#if defined(Q_OS_MAC)
-        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
-#endif
-        sd->waitForBytesWritten();
-
-        sd->write("undo last call\n");  // back up one call
-        sd->waitForBytesWritten();
-
-        sd->write("refresh display\n");  // refresh
-        sd->waitForBytesWritten();
-    } else if (s2 == "erase\n" || s2 == "erase that\n") {
-        // TODO: put more synonyms in, e.g. "cancel that"
-#if defined(Q_OS_MAC)
-        sd->write(QByteArray("\x15"));  // send a Ctrl-U to clear the current user string
-#endif
-#if defined(Q_OS_WIN32) | defined(Q_OS_LINUX)
-        sd->write(QByteArray("\x1B"));  // send an ESC to clear the current user string
-#endif
-        sd->waitForBytesWritten();
-    } else if (s2 != "\n") {
-        sd->write(s2.toLatin1());
-        sd->waitForBytesWritten();
+    else
+    {
+        ui->lineEditSDInput->setText(s2);
+        on_lineEditSDInput_returnPressed();
     }
 }
 
-void MainWindow::showContextMenu(const QPoint &pt)
+void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
 {
-    QMenu *menu = currentSequenceWidget->createStandardContextMenu();
-    menu->exec(currentSequenceWidget->mapToGlobal(pt));
-    delete menu;
+    Q_UNUSED(error);
 }
-
-void MainWindow::restartSDprocess(QString SDdanceLevel) {
-
-    if (sd) {
-        sd->kill();  // kill the current one, if there's already one running
-    }
-
-    currentSDKeyboardLevel = SDdanceLevel;  // remember it for the status message
-
-#if defined(Q_OS_MAC)
-    // NOTE: sd and sd_calls.dat must be in the same directory in the SDP bundle (Mac OS X).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sd";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#else
-    // NOTE: sd and sd_calls.dat must be in the same directory as SquareDeskPlayer.exe (Win32).
-    QString pathToSD          = QCoreApplication::applicationDirPath() + "/sdtty.exe";
-    QString pathToSD_CALLSDAT = QCoreApplication::applicationDirPath() + "/sd_calls.dat";
-#endif
-
-    // start sd as a process -----
-    QStringList SDargs;
-//    SDargs << "-help";  // this is an excellent place to start!
-//    SDargs << "-no_color" << "-no_cursor" << "-no_console" << "-no_graphics" // act as server only
-      SDargs << "-no_color" << "-no_cursor" << "-no_graphics" // act as server only. TEST WIN32
-           << "-lines" << "1000"
-           << "-db" << pathToSD_CALLSDAT                        // sd_calls.dat file is in same directory as sd
-           << SDdanceLevel;                                       // default level for sd
-    sd = new QProcess(Q_NULLPTR);
-
-    // Let's make an "sd" directory in the Music Directory
-    //  This will be used for storing sequences (until we move that into SQLite).
-    PreferencesManager prefsManager;
-    QString sequencesDir = prefsManager.GetmusicPath() + "/sd";
-
-    // if the sequences directory doesn't exist, create it
-    QDir dir(sequencesDir);
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-
-    sd->setWorkingDirectory(sequencesDir);
-    sd->setProcessChannelMode(QProcess::MergedChannels);
-    sd->start(pathToSD, SDargs);
-
-    if (sd->waitForStarted() == false) {
-        qDebug() << "ERROR: sd did not start properly.";
-    } else {
-//        qDebug() << "sd started.";
-    }
-
-    connect(sd, &QProcess::readyReadStandardOutput, this, &MainWindow::readSDData, Qt::UniqueConnection);  // output data from sd (and don't make duplicate connections)
-    connect(console, &Console::getData, this, &MainWindow::writeSDData, Qt::UniqueConnection);      // input data to sd (and don't make duplicate connections)
+void MainWindow::pocketSphinx_started()
+{
 }
 
 void MainWindow::initReftab() {
+    numWebviews = 0;
 #if defined(Q_OS_MAC)
     documentsTab = new QTabWidget();
-    numWebviews = 0;
 
     QString referencePath = musicRootPath + "/reference";
     QDirIterator it(referencePath, QDir::NoDot | QDir::NoDotDot | QDir::Dirs | QDir::Files);
@@ -7519,35 +7147,6 @@ void MainWindow::initReftab() {
 }
 
 void MainWindow::initSDtab() {
-
-#ifndef POCKETSPHINXSUPPORT
-    ui->actionEnable_voice_input->setEnabled(false);  // if no PS support, grey out the menu item
-#endif
-
-    renderArea = new RenderArea;
-    renderArea->setPen(QPen(Qt::blue));
-    renderArea->setBrush(QBrush(Qt::green));
-
-    console = new Console;
-    console->setEnabled(true);
-    console->setLocalEchoEnabled(true);
-    console->setFixedHeight(100);
-
-    currentSequenceWidget = new QTextEdit();
-    currentSequenceWidget->setStyleSheet("QLabel { background-color : white; color : black; }");
-    currentSequenceWidget->setAlignment(Qt::AlignTop);
-    currentSequenceWidget->setReadOnly(true);
-    currentSequenceWidget->setFocusPolicy(Qt::NoFocus);  // do not allow this widget to get focus (console always has it)
-
-    // allow for cut/paste from the sequence window using Right-click
-    currentSequenceWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(currentSequenceWidget,SIGNAL(customContextMenuRequested(const QPoint&)),
-            this,SLOT(showContextMenu(const QPoint &)));
-
-    ui->seqGridLayout->addWidget(currentSequenceWidget,0,0,1,1);
-    ui->seqGridLayout->addWidget(console, 1,0,1,2);
-    ui->seqGridLayout->addWidget(renderArea, 0,1);
-
 //    console->setFixedHeight(150);
 
     // POCKET_SPHINX -------------------------------------------
@@ -7558,17 +7157,17 @@ void MainWindow::initSDtab() {
     // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
     //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
     // TEST SD MANUALLY: ./sd
-    currentSDVUILevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-
-#if defined(POCKETSPHINXSUPPORT)
     unsigned int whichModel = 5365;
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
     QString pathToPS = appDir + "pocketsphinx_continuous";
-
 #if defined(Q_OS_WIN32)
     pathToPS += ".exe";   // executable has a different name on Win32
 #endif
 
+#else /* must be (Q_OS_LINUX) */
+    QString pathToPS = "pocketsphinx_continuous";
+#endif
     // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
     QString pathToDict = QString::number(whichModel) + "a.dic";
     QString pathToJSGF = currentSDVUILevel + ".jsgf";
@@ -7581,6 +7180,9 @@ void MainWindow::initSDtab() {
     // The acoustic models are at the same level, but in the models subdirectory on MAC
     QString pathToHMM  = "models/en-us";
 #endif
+#if defined(Q_OS_LINUX)
+    QString pathToHMM = "../pocketsphinx/binaries/win32/models/en-us/";
+#endif
 
     QStringList PSargs;
     PSargs << "-dict" << pathToDict     // pronunciation dictionary
@@ -7591,22 +7193,30 @@ void MainWindow::initSDtab() {
 
     ps = new QProcess(Q_NULLPTR);
 
+//    qDebug() << "PS start: " << pathToPS << PSargs;
+
     ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
+//    ps->setProcessChannelMode(QProcess::MergedChannels);
+//    ps->setReadChannel(QProcess::StandardOutput);
+    connect(ps, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(readPSData()));                 // output data from ps
+    connect(ps, SIGNAL(readyReadStandardError()),
+            this, SLOT(readPSStdErr()));                 // output data from ps
+    connect(ps, SIGNAL(errorOccurred(QProcess::ProcessError)),
+            this, SLOT(pocketSphinx_errorOccurred(QProcess::ProcessError)));
+    connect(ps, SIGNAL(started()),
+            this, SLOT(pocketSphinx_started()));
     ps->start(pathToPS, PSargs);
 
-    ps->waitForStarted();
-
-    connect(ps,   &QProcess::readyReadStandardOutput,
-            this, &MainWindow::readPSData);                 // output data from ps
+    bool startedStatus = ps->waitForStarted();
+    if (!startedStatus)
+    {
+        delete ps;
+        ps = NULL;
+    }
 
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
-
-    restartSDprocess("plus"); // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-
-    highlighter = new Highlighter(console->document());
-
-#endif
 }
 
 void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
@@ -7718,13 +7328,13 @@ void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     renderArea->setCoupleColoringScheme(action->text());
+    setSDCoupleColoringScheme(action->text());
 }
 
 void MainWindow::sdAction2Triggered(QAction * action) {
 //    qDebug() << "***** sdAction2Triggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     currentSDKeyboardLevel = action->text().toLower();   // convert to all lower case for SD
-    restartSDprocess(currentSDKeyboardLevel);  // convert to all lower case for sd restart
     microphoneStatusUpdate();  // update status message, based on new keyboard SD level
 }
 
@@ -7738,7 +7348,7 @@ void MainWindow::airplaneMode(bool turnItOn) {
     }
     system(cmd);
 #else
-    Q_UNUSED(turnItOn);
+    Q_UNUSED(turnItOn)
 #endif
 }
 
@@ -8239,8 +7849,6 @@ void MainWindow::adjustFontSizes()
     ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
     ui->currentMixLabel->setFixedWidth(newCurrentWidth);
 
-    currentSequenceWidget->setFont(currentFont); // In the SD tab, follow the user-selected font size
-
     ui->statusBar->setFont(currentFont);
 
     ui->currentLocLabel->setFont(currentFont);
@@ -8679,8 +8287,23 @@ void MainWindow::on_actionFilePrint_triggered()
             return;
         }
 
-        currentSequenceWidget->print(&printer);
+        QTextDocument doc;
+        QSizeF paperSize;
+        paperSize.setWidth(printer.width());
+        paperSize.setHeight(printer.height());
+        doc.setPageSize(paperSize);
 
+        QString contents("<html><head><title>Square Dance Sequence</title>\n"
+                         "<body><h1>Square Dance Sequence</h1>\n");
+        for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
+             ++row)
+        {
+            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+            contents += item->text() + "<br>\n";
+        }
+        contents += "</body></html>\n";
+        doc.setHtml(contents);
+        doc.print(&printer);
     } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         QPrinter printer;
         QPrintDialog printDialog(&printer, this);
@@ -8820,7 +8443,12 @@ void MainWindow::saveSequenceAs()
         if ( file.open(QIODevice::WriteOnly) )
         {
             QTextStream stream( &file );
-            stream << currentSequenceWidget->toPlainText();
+            for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
+                 ++row)
+            {
+                QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+                stream << item->text() + "\n";
+            }
             stream.flush();
             file.close();
         }

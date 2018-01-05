@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1027</width>
-    <height>603</height>
+    <width>918</width>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1535,13 +1535,145 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="sequencer">
+      <widget class="QWidget" name="tabSDIntegration">
        <attribute name="title">
         <string>SD</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_8">
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="seqGridLayout"/>
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QTabWidget" name="tabWidget_2">
+            <property name="currentIndex">
+             <number>1</number>
+            </property>
+            <widget class="QWidget" name="tabWidget_2Page1">
+             <attribute name="title">
+              <string>SD Output</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDOutput">
+                <property name="contextMenuPolicy">
+                 <enum>Qt::CustomContextMenu</enum>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ContiguousSelection</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tabWidget_2Page2">
+             <attribute name="title">
+              <string>Current Sequence</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <widget class="QTableWidget" name="tableWidgetCurrentSequence">
+                <property name="contextMenuPolicy">
+                 <enum>Qt::CustomContextMenu</enum>
+                </property>
+                <column>
+                 <property name="text">
+                  <string>Call</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Result</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_SD_Resolve">
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditSDInput"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayoutSDStatus">
+          <item>
+           <widget class="QGraphicsView" name="graphicsViewSDFormation">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>290</width>
+              <height>290</height>
+             </size>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
+            <property name="currentIndex">
+             <number>2</number>
+            </property>
+            <widget class="QWidget" name="tab">
+             <attribute name="title">
+              <string>Options</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDOptions">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="horizontalScrollBarPolicy">
+                 <enum>Qt::ScrollBarAlwaysOff</enum>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_2">
+             <attribute name="title">
+              <string>'?' Completion</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_9">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDQuestionMarkComplete"/>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_3">
+             <attribute name="title">
+              <string>Additional</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QListWidget" name="listWidgetSDAdditionalOptions"/>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -1635,7 +1767,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1027</width>
+     <width>918</width>
      <height>22</height>
     </rect>
    </property>
@@ -1774,6 +1906,26 @@
      <addaction name="actionC4"/>
      <addaction name="actionC4x"/>
     </widget>
+    <widget class="QMenu" name="menuDance_Program">
+     <property name="title">
+      <string>Dance Program</string>
+     </property>
+     <addaction name="actionSDDanceProgramMainstream"/>
+     <addaction name="actionSDDanceProgramPlus"/>
+     <addaction name="actionSDDanceProgramA1"/>
+     <addaction name="actionSDDanceProgramA2"/>
+     <addaction name="actionSDDanceProgramC1"/>
+     <addaction name="actionSDDanceProgramC2"/>
+     <addaction name="actionSDDanceProgramC3A"/>
+     <addaction name="actionSDDanceProgramC3"/>
+     <addaction name="actionSDDanceProgramC3x"/>
+     <addaction name="actionSDDanceProgramC4"/>
+     <addaction name="actionSDDanceProgramC4x"/>
+    </widget>
+    <addaction name="menuDance_Program"/>
+    <addaction name="actionShow_Concepts"/>
+    <addaction name="actionShow_Commands"/>
+    <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
     <addaction name="menuEnable_keyboard_input"/>
     <addaction name="separator"/>
@@ -1781,6 +1933,8 @@
     <addaction name="actionColor_only"/>
     <addaction name="actionMental_image"/>
     <addaction name="actionSight"/>
+    <addaction name="separator"/>
+    <addaction name="actionFormation_Thumbnails"/>
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
@@ -2692,15 +2846,23 @@
     <string>Reset In/Out/Loop Points</string>
    </property>
   </action>
-  <action name="actionFlashCallBasic">
+  <action name="actionShow_Concepts">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Basic</string>
+    <string>Show Concepts</string>
    </property>
   </action>
-  <action name="actionFlashCallMainstream">
+  <action name="actionShow_Commands">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Commands</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramMainstream">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2708,7 +2870,7 @@
     <string>Mainstream</string>
    </property>
   </action>
-  <action name="actionFlashCallPlus">
+  <action name="actionSDDanceProgramPlus">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2716,7 +2878,7 @@
     <string>Plus</string>
    </property>
   </action>
-  <action name="actionFlashCallA1">
+  <action name="actionSDDanceProgramA1">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2724,7 +2886,7 @@
     <string>A1</string>
    </property>
   </action>
-  <action name="actionFlashCallA2">
+  <action name="actionSDDanceProgramA2">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2732,7 +2894,7 @@
     <string>A2</string>
    </property>
   </action>
-  <action name="actionFlashCallC1">
+  <action name="actionSDDanceProgramC1">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2740,7 +2902,7 @@
     <string>C1</string>
    </property>
   </action>
-  <action name="actionFlashCallC2">
+  <action name="actionSDDanceProgramC2">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2748,18 +2910,98 @@
     <string>C2</string>
    </property>
   </action>
-  <action name="actionFlashCallC3a">
+  <action name="actionSDDanceProgramC3A">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
+    <string>C3A</string>
+   </property>
+  </action>
+  <action name="actionFlashCallC3a">
+   <property name="text">
     <string>C3a</string>
    </property>
   </action>
-  <action name="actionFlashCallC3b">
+  <action name="actionSDDanceProgramC3">
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="text">
+    <string>C3</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC3x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C3x</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C4</string>
+   </property>
+  </action>
+  <action name="actionSDDanceProgramC4x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>C4x</string>
+   </property>
+  </action>
+  <action name="actionFormation_Thumbnails">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Formation Thumbnails</string>
+   </property>
+  </action>
+  <action name="actionFlashCallBasic">
+   <property name="text">
+    <string>Basic</string>
+   </property>
+  </action>
+  <action name="actionFlashCallMainstream">
+   <property name="text">
+    <string>Mainstream</string>
+   </property>
+  </action>
+  <action name="actionFlashCallPlus">
+   <property name="text">
+    <string>Plus</string>
+   </property>
+  </action>
+  <action name="actionFlashCallA1">
+   <property name="text">
+    <string>A1</string>
+   </property>
+  </action>
+  <action name="actionFlashCallA2">
+   <property name="text">
+    <string>A2</string>
+   </property>
+  </action>
+  <action name="actionFlashCallC1">
+   <property name="text">
+    <string>C1</string>
+   </property>
+  </action>
+  <action name="actionFlashCallC2">
+   <property name="text">
+    <string>C2</string>
+   </property>
+  </action>
+  <action name="actionFlashCallC3b">
    <property name="text">
     <string>C3b</string>
    </property>

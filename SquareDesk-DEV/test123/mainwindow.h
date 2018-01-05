@@ -60,7 +60,8 @@
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
-
+#include <QGraphicsScene>
+#include <QGraphicsItemGroup>
 #include <QDateTime>
 
 #include "common_enums.h"
@@ -84,13 +85,34 @@
 #include <tidy/tidy.h>
 #include <tidy/tidybuffio.h>
 
+#include "sdinterface.h"
+
+class SDDancer
+{
+public:
+    QGraphicsItemGroup *graphics;
+    QGraphicsItem *mainItem;
+    QGraphicsRectItem *directionRectItem;
+    QGraphicsTextItem *label;
+    double x;
+    double y;
+    double direction;
+    double labelTranslateX;
+    double labelTranslateY;
+
+    void setColor(const QColor &color);
+};
+
+
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
 #define VERSIONSTRING "0.8.3alpha3"
 
+// cuesheets are assumed to be at the top level of the SquareDesk repo, and they
+//   will be fetched from there.
+#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
 #define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
-#define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.10.13"
 
 namespace Ui
 {
@@ -110,14 +132,12 @@ public:
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
 
-    Console *console;                   // these are public so that eventFilter can browse them
-    QTextEdit *currentSequenceWidget;
-
     PreferencesDialog *prefDialog;
     QActionGroup *sessionActionGroup;
     QAction **sessionActions;
     QActionGroup *sdActionGroup1;
     QActionGroup *sdActionGroup2;
+    QActionGroup *sdActionGroupDanceProgram;
 
     void checkLockFile();
     void clearLockFile();
@@ -268,10 +288,10 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
-    void writeSDData(const QByteArray &data);
-    void readSDData();
     void readPSData();
-
+    void readPSStdErr();
+    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
+    void pocketSphinx_started();
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 
@@ -323,8 +343,6 @@ private slots:
     void changeApplicationState(Qt::ApplicationState state);
     void focusChanged(QWidget *old, QWidget *now);
 
-    void showContextMenu(const QPoint &pt);  // popup context window for sequence pane in SD
-
     void lyricsDownloadEnd();
     void cuesheetListDownloadEnd();
 
@@ -373,6 +391,50 @@ private slots:
     void on_actionFilePrint_triggered();
     void on_actionSave_triggered();
     void on_actionSave_As_triggered();
+
+    // SD integration
+    void on_lineEditSDInput_returnPressed();
+    void on_lineEditSDInput_textChanged();
+    void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetSDAdditionalOptions_itemDoubleClicked(QListWidgetItem *item);
+    void on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidgetItem *item);
+    void on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item);
+    void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
+    void copy_selection_from_tableWidgetCurrentSequence();
+    void copy_selection_from_tableWidgetCurrentSequence_html();
+
+    void undo_last_sd_action();
+    void on_listWidgetSDOutput_customContextMenuRequested(const QPoint&);
+    void copy_selection_from_listWidgetSDOutput();
+    void on_actionSDDanceProgramMainstream_triggered();
+    void on_actionSDDanceProgramPlus_triggered();
+    void on_actionSDDanceProgramA1_triggered();
+    void on_actionSDDanceProgramA2_triggered();
+    void on_actionSDDanceProgramC1_triggered();
+    void on_actionSDDanceProgramC2_triggered();
+    void on_actionSDDanceProgramC3A_triggered();
+    void on_actionSDDanceProgramC3_triggered();
+    void on_actionSDDanceProgramC3x_triggered();
+    void on_actionSDDanceProgramC4_triggered();
+    void on_actionSDDanceProgramC4x_triggered();
+    void on_actionShow_Concepts_triggered();
+    void on_actionShow_Commands_triggered();
+    void on_actionFormation_Thumbnails_triggered();
+public:
+    void on_threadSD_errorString(QString str);
+    void on_sd_set_window_title(QString str);
+    void on_sd_add_new_line(QString, int drawing_picture);
+    void on_sd_set_pick_string(QString);
+    void on_sd_dispose_of_abbreviation(QString);;
+    void on_sd_set_matcher_options(QStringList options, QStringList levels);
+    void on_sd_update_status_bar(QString str);
+    void on_sd_awaiting_input();
+    void sd_begin_available_call_list_output();
+    void sd_end_available_call_list_output();
+    void initialize_internal_sd_tab();
+    void do_sd_double_click_call_completion(QListWidgetItem *item);
+    void highlight_sd_replaceables();
 
     void on_actionFlashCallBasic_triggered();
 
@@ -440,6 +502,7 @@ private:
 
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
+
 
     bool justWentActive;
 
@@ -599,7 +662,6 @@ private:
     QStringList flashCalls;
 
     // --------------
-    void restartSDprocess(QString SDdanceLevel);
     void initSDtab();
     void initReftab();
 
@@ -631,12 +693,12 @@ private:
 
     Qt::ApplicationState currentApplicationState;  // if app state is inactive, mics are disabled.
 
-    // get/set microphone volume
-    int currentInputVolume;
-    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
-    void setInputVolume(int newVolume);     // set the input volume, ignores -1
-    void muteInputVolume();         // call this one
-    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
+//    // get/set microphone volume
+//    int currentInputVolume;
+//    int getInputVolume();                   // returns the current input volume, or -1 if it doesn't know.
+//    void setInputVolume(int newVolume);     // set the input volume, ignores -1
+//    void muteInputVolume();         // call this one
+//    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
 
     // sound fx
     QString soundFXarray[6];
@@ -687,6 +749,27 @@ public:
 
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
+
+private: // SD
+    SDThread *sdthread;
+    QStringList sdformation;
+    QGraphicsScene sdscene;
+    int sdLastLine;
+    bool sdWasNotDrawingPicture;
+    bool sdLastLineWasResolve;
+    bool sdOutputtingAvailableCalls;
+    QList<SDAvailableCall> sdAvailableCalls;
+    int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;
+    QList<SDDancer> sdpeople;
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText;
+    QAction **danceProgramActions;
+    void setSDCoupleColoringScheme(const QString &scheme);
+    void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
+    void set_current_sequence_icons_visible(bool visible);
+public:
+    void do_sd_tab_completion();
+    void setCurrentSDDanceProgram(dance_level);
+    dance_level get_current_sd_dance_program();
 };
 
 // currentState:
