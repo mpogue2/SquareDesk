@@ -3052,6 +3052,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->dateTimeEditOutroTime->hasFocus() ||
 
                 ui->lineEditCountDownTimer->hasFocus() ||
+                ui->lineEditSDInput->hasFocus() || 
                 ui->textBrowserCueSheet->hasFocus()) &&
                 (KeyEvent->key() == Qt::Key_Escape) )  ||
 
