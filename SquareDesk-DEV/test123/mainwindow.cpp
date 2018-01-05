@@ -7060,7 +7060,7 @@ void MainWindow::pocketSphinx_started()
 
 void MainWindow::initReftab() {
     numWebviews = 0;
-#if defined(Q_OS_MAC)
+    
     documentsTab = new QTabWidget();
 
     QString referencePath = musicRootPath + "/reference";
@@ -7090,7 +7090,11 @@ void MainWindow::initReftab() {
                 }
             }
             if (HTMLfolderExists) {
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
+#else
+                webview[numWebviews] = new QWebView();
+#endif                
                 QString indexFileURL = "file://" + filename + whichHTM;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
@@ -7103,7 +7107,11 @@ void MainWindow::initReftab() {
                 tabname = filename.split("/").last().remove(QRegExp(".txt$"));
 //                qDebug() << "    tabname:" << tabname;
 
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
+#else
+                webview[numWebviews] = new QWebView();
+#endif                
                 QString indexFileURL = "file://" + filename;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
@@ -7120,31 +7128,34 @@ void MainWindow::initReftab() {
                 QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
 //                qDebug() << "    pdf_path: " << pdf_path;
 
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 Communicator *m_communicator = new Communicator(this);
                 m_communicator->setUrl(pdf_path);
 
                 webview[numWebviews] = new QWebEngineView();
-
                 QWebChannel * channel = new QWebChannel(this);
                 channel->registerObject(QStringLiteral("communicator"), m_communicator);
                 webview[numWebviews]->page()->setWebChannel(channel);
 
                 webview[numWebviews]->load(url);
+#else
+                webview[numWebviews] = new QWebView();
+                webview[numWebviews]->setUrl(url);
+#endif                
+
 
 //                QString indexFileURL = "file://" + filename;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
 
 //                webview[numWebviews]->setUrl(QUrl(pdf_path));
-                QFileInfo fInfo(filename);
+                QFileInfo fInfo(filename); 
                 documentsTab->addTab(webview[numWebviews], fInfo.baseName());
-
                 numWebviews++;
         }
 
     } // while iterating through <musicRoot>/reference
 
     ui->refGridLayout->addWidget(documentsTab, 0,1);
-#endif
 }
 
 void MainWindow::initSDtab() {

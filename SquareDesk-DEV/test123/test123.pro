@@ -14,7 +14,7 @@ QT += webenginewidgets
 }
 
 unix:!macx {
-QT += qml quick
+QT += webkitwidgets
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

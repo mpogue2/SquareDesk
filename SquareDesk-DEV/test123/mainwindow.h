@@ -55,7 +55,7 @@
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include <QtWebEngineWidgets>
 #else
-#include <OxideQtQuick/oxideqquickwebview.h>
+#include <QtWebKitWidgets/QWebView>
 #endif
 #include <QWheelEvent>
 #include <QWidget>
@@ -153,7 +153,7 @@ public:
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
     QWebEngineView* webview[MAX_WEB_VIEWS];  // max of 16 tabs
 #else
-    OxideQQuickWebView* webview[MAX_WEB_VIEWS];
+    QWebView* webview[MAX_WEB_VIEWS];
 #endif    
     QTabWidget *documentsTab;
 
