@@ -421,6 +421,24 @@ private slots:
     void on_actionShow_Concepts_triggered();
     void on_actionShow_Commands_triggered();
     void on_actionFormation_Thumbnails_triggered();
+
+    void on_actionFlashCallBasic_triggered();
+    void on_actionFlashCallMainstream_triggered();
+    void on_actionFlashCallPlus_triggered();
+    void on_actionFlashCallA1_triggered();
+    void on_actionFlashCallA2_triggered();
+    void on_actionFlashCallC1_triggered();
+    void on_actionFlashCallC2_triggered();
+    void on_actionFlashCallC3a_triggered();
+    void on_actionFlashCallC3b_triggered();
+
+//    void on_actionDownload_matching_lyrics_triggered();
+
+    void on_actionTest_Loop_triggered();
+    void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
+    void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
+    void on_pushButtonTestLoop_clicked();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -435,34 +453,6 @@ public:
     void initialize_internal_sd_tab();
     void do_sd_double_click_call_completion(QListWidgetItem *item);
     void highlight_sd_replaceables();
-
-    void on_actionFlashCallBasic_triggered();
-
-    void on_actionFlashCallMainstream_triggered();
-
-    void on_actionFlashCallPlus_triggered();
-
-    void on_actionFlashCallA1_triggered();
-
-    void on_actionFlashCallA2_triggered();
-
-    void on_actionFlashCallC1_triggered();
-
-    void on_actionFlashCallC2_triggered();
-
-    void on_actionFlashCallC3a_triggered();
-
-    void on_actionFlashCallC3b_triggered();
-
-//    void on_actionDownload_matching_lyrics_triggered();
-
-    void on_actionTest_Loop_triggered();
-
-    void on_dateTimeEditIntroTime_timeChanged(const QTime &time);
-
-    void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
-
-    void on_pushButtonTestLoop_clicked();
 
 private:
 
