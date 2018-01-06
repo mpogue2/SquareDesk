@@ -520,6 +520,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
 
+    on_actionRecent_toggled(prefsManager.GetshowRecentColumn());
     on_actionAge_toggled(prefsManager.GetshowAgeColumn());
     on_actionPitch_toggled(prefsManager.GetshowPitchColumn());
     on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
@@ -807,6 +808,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kTypeCol,96);
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kRecentCol, 70);
     ui->songTable->setColumnWidth(kAgeCol, 36);
     ui->songTable->setColumnWidth(kPitchCol,60);
     ui->songTable->setColumnWidth(kTempoCol,60);
@@ -916,6 +918,13 @@ void MainWindow::reloadSongAges(bool show_all_ages)
 
         ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : age.value());
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+        QString recentString;
+        if (age.value() != "") {
+            recentString = "X";
+        }
+        ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : recentString);
+        ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
     }
     ui->songTable->show();
     ui->songTable->setSortingEnabled(true);
@@ -1985,6 +1994,7 @@ void MainWindow::updateSongTableColumnView()
 {
     PreferencesManager prefsManager;
 
+    ui->songTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
     ui->songTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
     ui->songTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
     ui->songTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
@@ -1995,6 +2005,8 @@ void MainWindow::updateSongTableColumnView()
     headerView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+
+    headerView->setSectionResizeMode(kRecentCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
@@ -2113,6 +2125,9 @@ void MainWindow::on_playButton_clicked()
             {
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+                ui->songTable->item(row, kRecentCol)->setText("X");
+                ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
             }
             ui->songTable->setSortingEnabled(true);
 
@@ -4450,7 +4465,7 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     }
     newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);      // not editable
     newTableItem->setTextColor(textCol);
-    if (column == kAgeCol || column == kPitchCol || column == kTempoCol) {
+    if (column == kRecentCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
         newTableItem->setTextAlignment(Qt::AlignCenter);
     }
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
@@ -4633,10 +4648,14 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable,
-                                      songSettings.getSongAge(fi.completeBaseName(), origPath,
-                                                              show_all_ages),
-                                      kAgeCol);
+        QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
+                                                    show_all_ages);
+        addStringToLastRowOfSongTable(textCol, ui->songTable, ageString, kAgeCol);
+        QString recentString;
+        if (ageString != "") {
+            recentString = "X";
+        }
+        addStringToLastRowOfSongTable(textCol, ui->songTable, recentString, kRecentCol);
 
         int pitch = 0;
         int tempo = 0;
@@ -7740,10 +7759,12 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float recentBase = 5.0;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
     float tempoFactor = 0.9;
@@ -7771,10 +7792,12 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
+    float recentBase = 8.0f;
     float ageBase = 5.5f;
     float pitchBase = 6.0f;
     float tempoBase = 7.5f;
 
+    float recentFactor = 0.0f;
     float ageFactor = 0.0f;
     float pitchFactor = 0.0f;
     float tempoFactor = 0.0f;
@@ -7802,10 +7825,12 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float recentBase = 5.0;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
     float tempoFactor = 0.9;
@@ -7832,6 +7857,7 @@ void MainWindow::adjustFontSizes()
 #endif
 
     // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kRecentCol, (recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kAgeCol, (ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kPitchCol, (pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kTempoCol, (tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraColWidth[index])*currentFontPointSize);
@@ -8038,6 +8064,17 @@ void MainWindow::on_actionReset_triggered()
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+void MainWindow::on_actionRecent_toggled(bool checked)
+{
+    ui->actionRecent->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showRecentColumn setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.SetshowRecentColumn(checked);
+
+    updateSongTableColumnView();
+}
+
 void MainWindow::on_actionAge_toggled(bool checked)
 {
     ui->actionAge->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
