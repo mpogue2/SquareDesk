@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk/SquareDeskPlayer application.
@@ -853,6 +853,9 @@ MainWindow::MainWindow(QWidget *parent) :
     sdthread = new SDThread(this);
     sdthread->start();
     sdthread->unlock();
+
+    ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
+
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -1114,6 +1117,10 @@ void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
         // unlocked now, so must set up button state, too
 //        qDebug() << "setting up button state using lastKnownTextCharFormat...";
         on_textBrowserCueSheet_currentCharFormatChanged(lastKnownTextCharFormat);
+        ui->textBrowserCueSheet->setFocusPolicy(Qt::ClickFocus);  // now it can get focus
+    } else {
+        ui->textBrowserCueSheet->clearFocus();  // if the user locks the editor, remove focus
+        ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // and don't allow it to get focus
     }
 }
 
