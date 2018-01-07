@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>923</width>
-    <height>579</height>
+    <height>582</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -2930,6 +2930,9 @@
    </property>
   </action>
   <action name="actionFlashCallC3a">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>C3a</string>
    </property>
@@ -2978,41 +2981,65 @@
    </property>
   </action>
   <action name="actionFlashCallBasic">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Basic</string>
    </property>
   </action>
   <action name="actionFlashCallMainstream">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Mainstream</string>
    </property>
   </action>
   <action name="actionFlashCallPlus">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Plus</string>
    </property>
   </action>
   <action name="actionFlashCallA1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>A1</string>
    </property>
   </action>
   <action name="actionFlashCallA2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>A2</string>
    </property>
   </action>
   <action name="actionFlashCallC1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>C1</string>
    </property>
   </action>
   <action name="actionFlashCallC2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>C2</string>
    </property>
   </action>
   <action name="actionFlashCallC3b">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>C3b</string>
    </property>
