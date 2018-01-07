@@ -681,6 +681,8 @@ private:
     void setCurrentSessionIdReloadSongAges(int id);
 
     QString ageToRecent(QString age);
+    QString ageToIntString(QString ageString);
+
     QDateTime recentFenceDateTime;  // the fence -- older than this, and Recent is blank
 
     void reloadSongAges(bool show_all_sessions);

@@ -235,7 +235,7 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeInstallSoundFX();
 
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
+//    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
     recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
@@ -909,6 +909,16 @@ void MainWindow::setCurrentSessionId(int id)
     songSettings.setCurrentSession(id);
 }
 
+QString MainWindow::ageToIntString(QString ageString) {
+    if (ageString == "") {
+        return(QString(""));
+    }
+    int ageAsInt = (int)(ageString.toFloat());
+    QString ageAsIntString(QString("%1").arg(ageAsInt, 3).trimmed());
+//    qDebug() << "ageString: " << ageString << ", ageAsInt: " << ageAsInt << ", ageAsIntString: " << ageAsIntString;
+    return(ageAsIntString);
+}
+
 QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
     QDateTime now = QDateTime::currentDateTimeUtc();
 
@@ -917,17 +927,22 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
         qint64 ageInSecs = (qint64)(60.0*60.0*24.0*ageInDaysFloatString.toFloat());
         bool newerThanFence = now.addSecs(-ageInSecs) > recentFenceDateTime;
         if (newerThanFence) {
-            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
+//            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
             recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
         } // else it will be ""
     }
     return(recentString);
 }
 
-void MainWindow::reloadSongAges(bool show_all_ages)
+void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
+
+//    QHash<QString,QString>::const_iterator i;
+//    for (i = ages.constBegin(); i != ages.constEnd(); ++i) {
+//        qDebug() << "key: " << i.key() << ", val: " << i.value();
+//    }
 
     ui->songTable->setSortingEnabled(false);
     ui->songTable->hide();
@@ -937,14 +952,10 @@ void MainWindow::reloadSongAges(bool show_all_ages)
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
 
-        int ageAsInt = 23; // age.value().toInt();
-        QString ageAsIntString(QString("%1").arg(ageAsInt, 3));
-
-        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageAsIntString);
+        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-        QString recentString = ageToRecent(age.value());  // pass it as a float string
-        ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : recentString);
+        ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : ageToRecent(age.value()));
         ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
     }
     ui->songTable->show();
@@ -4671,8 +4682,8 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
                                                     show_all_ages);
-        int ageAsInt = ageString.toInt();
-        QString ageAsIntString(QString("%1").arg(ageAsInt, 3));
+
+        QString ageAsIntString = ageToIntString(ageString);
 
         addStringToLastRowOfSongTable(textCol, ui->songTable, ageAsIntString, kAgeCol);
         QString recentString = ageToRecent(ageString);  // passed as float string
@@ -7780,7 +7791,7 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
-    float recentBase = 5.0;
+    float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
@@ -7813,7 +7824,7 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
-    float recentBase = 8.0f;
+    float recentBase = 7.5f;
     float ageBase = 5.5f;
     float pitchBase = 6.0f;
     float tempoBase = 7.5f;
@@ -7846,7 +7857,7 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
-    float recentBase = 5.0;
+    float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
@@ -9180,8 +9191,18 @@ void MainWindow::on_pushButtonTestLoop_clicked()
 void MainWindow::on_actionClear_Recent_triggered()
 {
     QString nowISO8601 = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // add days is for later
-    qDebug() << "Setting fence to: " << nowISO8601;
+//    qDebug() << "Setting fence to: " << nowISO8601;
 
     PreferencesManager prefsManager;
     prefsManager.SetrecentFenceDateTime(nowISO8601);  // e.g. "2018-01-01T01:23:45Z"
+    recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
+                                                          "yyyy-MM-dd'T'hh:mm:ss'Z'");
+    recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+
+    firstTimeSongIsPlayed = true;   // this forces writing another record to the songplays DB when the song is next played
+                                    //   so that the song will be marked Recent if it is played again after a Clear Recents,
+                                    //   even though it was already loaded and played once before the Clear Recents.
+
+    // update the song table
+    reloadSongAges(ui->actionShow_All_Ages->isChecked());
 }
