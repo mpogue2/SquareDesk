@@ -864,6 +864,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
 
+    // can't move this up, because the DB needs to be open already...
+    setCurrentSessionIdReloadSongAges(sessionActionIndex + 1); // on app entry, ages must show current session
 }
 
 void MainWindow::musicRootModified(QString s)
