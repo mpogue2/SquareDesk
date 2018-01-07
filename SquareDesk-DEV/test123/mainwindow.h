@@ -107,7 +107,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.8.3alpha3"
+#define VERSIONSTRING "0.8.3alpha4"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
