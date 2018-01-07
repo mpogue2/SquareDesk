@@ -115,3 +115,4 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc2, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc3a, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc3b, false);
 
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(recentFenceDateTime, "2018-01-01T00:00:00Z"); // songs played earlier than this date are not "recently played", ISO8601

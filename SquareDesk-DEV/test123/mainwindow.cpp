@@ -26,6 +26,7 @@
 #include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDesktopWidget>
 #include <QElapsedTimer>
 #include <QHostInfo>
@@ -234,6 +235,11 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeInstallSoundFX();
 
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
+    recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
+                                                          "yyyy-MM-dd'T'hh:mm:ss'Z'");
+    recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+
     QHash<Qt::Key, KeyAction *> prefsHotkeyMappings = prefsManager.GetHotkeyMappings();
     if (!prefsHotkeyMappings.empty())
     {
@@ -903,6 +909,21 @@ void MainWindow::setCurrentSessionId(int id)
     songSettings.setCurrentSession(id);
 }
 
+QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
+    QDateTime now = QDateTime::currentDateTimeUtc();
+
+    QString recentString = "";
+    if (ageInDaysFloatString != "") {
+        qint64 ageInSecs = (qint64)(60.0*60.0*24.0*ageInDaysFloatString.toFloat());
+        bool newerThanFence = now.addSecs(-ageInSecs) > recentFenceDateTime;
+        if (newerThanFence) {
+            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
+            recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
+        } // else it will be ""
+    }
+    return(recentString);
+}
+
 void MainWindow::reloadSongAges(bool show_all_ages)
 {
     QHash<QString,QString> ages;
@@ -916,13 +937,13 @@ void MainWindow::reloadSongAges(bool show_all_ages)
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
 
-        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : age.value());
+        int ageAsInt = 23; // age.value().toInt();
+        QString ageAsIntString(QString("%1").arg(ageAsInt, 3));
+
+        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageAsIntString);
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-        QString recentString;
-        if (age.value() != "") {
-            recentString = "X";
-        }
+        QString recentString = ageToRecent(age.value());  // pass it as a float string
         ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : recentString);
         ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
     }
@@ -2126,7 +2147,7 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-                ui->songTable->item(row, kRecentCol)->setText("X");
+                ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
                 ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
             }
             ui->songTable->setSortingEnabled(true);
@@ -4650,11 +4671,11 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
                                                     show_all_ages);
-        addStringToLastRowOfSongTable(textCol, ui->songTable, ageString, kAgeCol);
-        QString recentString;
-        if (ageString != "") {
-            recentString = "X";
-        }
+        int ageAsInt = ageString.toInt();
+        QString ageAsIntString(QString("%1").arg(ageAsInt, 3));
+
+        addStringToLastRowOfSongTable(textCol, ui->songTable, ageAsIntString, kAgeCol);
+        QString recentString = ageToRecent(ageString);  // passed as float string
         addStringToLastRowOfSongTable(textCol, ui->songTable, recentString, kRecentCol);
 
         int pitch = 0;
@@ -9154,4 +9175,13 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 void MainWindow::on_pushButtonTestLoop_clicked()
 {
     on_actionTest_Loop_triggered();
+}
+
+void MainWindow::on_actionClear_Recent_triggered()
+{
+    QString nowISO8601 = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // add days is for later
+    qDebug() << "Setting fence to: " << nowISO8601;
+
+    PreferencesManager prefsManager;
+    prefsManager.SetrecentFenceDateTime(nowISO8601);  // e.g. "2018-01-01T01:23:45Z"
 }

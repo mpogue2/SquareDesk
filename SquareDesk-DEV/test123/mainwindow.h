@@ -440,6 +440,8 @@ private slots:
     void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
     void on_pushButtonTestLoop_clicked();
 
+    void on_actionClear_Recent_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -456,7 +458,6 @@ public:
     void highlight_sd_replaceables();
 
 private:
-
     // Lyrics editor -------
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0}; // matches blue component of CSS definition
     charsType FG_BG_to_type(QColor fg, QColor bg);
@@ -678,6 +679,10 @@ private:
     bool cuesheetEditorReactingToCursorMovement;
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadSongAges(int id);
+
+    QString ageToRecent(QString age);
+    QDateTime recentFenceDateTime;  // the fence -- older than this, and Recent is blank
+
     void reloadSongAges(bool show_all_sessions);
     bool autoScrollLyricsEnabled;
     void loadDanceProgramList(QString lastDanceProgram);
