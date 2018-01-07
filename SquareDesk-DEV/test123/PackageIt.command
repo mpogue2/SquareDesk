@@ -41,7 +41,7 @@ echo
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDeskPlayer"
-VERSION="0.8.3alpha1"
+VERSION="0.8.3alpha4"
 DMG_BACKGROUND_IMG="installer2.png"
 #MANUAL="SquareDeskManual.pdf"
 
@@ -86,6 +86,7 @@ cp -Rpf "${APP_NAME}.app" "${STAGING_DIR}"
 
 # ... cp anything else you want in the DMG - documentation, etc.
 
+echo STAGING_DIR: ${STAGING_DIR}
 pushd "${STAGING_DIR}"
 
 # strip the executable
@@ -106,12 +107,17 @@ popd
 # figure out how big our DMG needs to be
 #  assumes our contents are at least 1M!
 SIZE=`du -sh "${STAGING_DIR}" | sed 's/\([0-9\.]*\)M\(.*\)/\1/'` 
-SIZE=`echo "${SIZE} + 1.0" | bc | awk '{print int($1+0.5)}'`
+SIZE=`echo "${SIZE} + 5.0" | bc | awk '{print int($1+0.5)}'`
 
 if [ $? -ne 0 ]; then
    echo "Error: Cannot compute size of staging dir"
    exit
 fi
+
+echo SIZE: ${SIZE} MB
+echo STAGING_DIR: ${STAGING_DIR}
+echo VOL_NAME: ${VOL_NAME}
+echo DMG_TMP: ${DMG_TMP}
 
 # create the temp DMG file
 hdiutil create -srcfolder "${STAGING_DIR}" -volname "${VOL_NAME}" -fs HFS+ \
