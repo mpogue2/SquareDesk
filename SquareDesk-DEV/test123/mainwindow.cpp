@@ -26,6 +26,7 @@
 #include <QActionGroup>
 #include <QColorDialog>
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDesktopWidget>
 #include <QElapsedTimer>
 #include <QHostInfo>
@@ -234,6 +235,11 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeInstallSoundFX();
 
     PreferencesManager prefsManager; // Will be using application information for correct location of your settings
+//    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
+    recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
+                                                          "yyyy-MM-dd'T'hh:mm:ss'Z'");
+    recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+
     QHash<Qt::Key, KeyAction *> prefsHotkeyMappings = prefsManager.GetHotkeyMappings();
     if (!prefsHotkeyMappings.empty())
     {
@@ -520,6 +526,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
 
+    on_actionRecent_toggled(prefsManager.GetshowRecentColumn());
     on_actionAge_toggled(prefsManager.GetshowAgeColumn());
     on_actionPitch_toggled(prefsManager.GetshowPitchColumn());
     on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
@@ -807,6 +814,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kTypeCol,96);
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kRecentCol, 70);
     ui->songTable->setColumnWidth(kAgeCol, 36);
     ui->songTable->setColumnWidth(kPitchCol,60);
     ui->songTable->setColumnWidth(kTempoCol,60);
@@ -904,10 +912,40 @@ void MainWindow::setCurrentSessionId(int id)
     songSettings.setCurrentSession(id);
 }
 
-void MainWindow::reloadSongAges(bool show_all_ages)
+QString MainWindow::ageToIntString(QString ageString) {
+    if (ageString == "") {
+        return(QString(""));
+    }
+    int ageAsInt = (int)(ageString.toFloat());
+    QString ageAsIntString(QString("%1").arg(ageAsInt, 3).trimmed());
+//    qDebug() << "ageString: " << ageString << ", ageAsInt: " << ageAsInt << ", ageAsIntString: " << ageAsIntString;
+    return(ageAsIntString);
+}
+
+QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
+    QDateTime now = QDateTime::currentDateTimeUtc();
+
+    QString recentString = "";
+    if (ageInDaysFloatString != "") {
+        qint64 ageInSecs = (qint64)(60.0*60.0*24.0*ageInDaysFloatString.toFloat());
+        bool newerThanFence = now.addSecs(-ageInSecs) > recentFenceDateTime;
+        if (newerThanFence) {
+//            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
+            recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
+        } // else it will be ""
+    }
+    return(recentString);
+}
+
+void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
+
+//    QHash<QString,QString>::const_iterator i;
+//    for (i = ages.constBegin(); i != ages.constEnd(); ++i) {
+//        qDebug() << "key: " << i.key() << ", val: " << i.value();
+//    }
 
     ui->songTable->setSortingEnabled(false);
     ui->songTable->hide();
@@ -917,8 +955,11 @@ void MainWindow::reloadSongAges(bool show_all_ages)
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
 
-        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : age.value());
+        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
         ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+        ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : ageToRecent(age.value()));
+        ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
     }
     ui->songTable->show();
     ui->songTable->setSortingEnabled(true);
@@ -1992,6 +2033,7 @@ void MainWindow::updateSongTableColumnView()
 {
     PreferencesManager prefsManager;
 
+    ui->songTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
     ui->songTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
     ui->songTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
     ui->songTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
@@ -2002,6 +2044,8 @@ void MainWindow::updateSongTableColumnView()
     headerView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
     headerView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+
+    headerView->setSectionResizeMode(kRecentCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
@@ -2120,6 +2164,9 @@ void MainWindow::on_playButton_clicked()
             {
                 ui->songTable->item(row, kAgeCol)->setText("0");
                 ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+                ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
             }
             ui->songTable->setSortingEnabled(true);
 
@@ -4457,7 +4504,7 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     }
     newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);      // not editable
     newTableItem->setTextColor(textCol);
-    if (column == kAgeCol || column == kPitchCol || column == kTempoCol) {
+    if (column == kRecentCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
         newTableItem->setTextAlignment(Qt::AlignCenter);
     }
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
@@ -4640,10 +4687,14 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
         addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-        addStringToLastRowOfSongTable(textCol, ui->songTable,
-                                      songSettings.getSongAge(fi.completeBaseName(), origPath,
-                                                              show_all_ages),
-                                      kAgeCol);
+        QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
+                                                    show_all_ages);
+
+        QString ageAsIntString = ageToIntString(ageString);
+
+        addStringToLastRowOfSongTable(textCol, ui->songTable, ageAsIntString, kAgeCol);
+        QString recentString = ageToRecent(ageString);  // passed as float string
+        addStringToLastRowOfSongTable(textCol, ui->songTable, recentString, kRecentCol);
 
         int pitch = 0;
         int tempo = 0;
@@ -7747,10 +7798,12 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
     float tempoFactor = 0.9;
@@ -7778,10 +7831,12 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
+    float recentBase = 7.5f;
     float ageBase = 5.5f;
     float pitchBase = 6.0f;
     float tempoBase = 7.5f;
 
+    float recentFactor = 0.0f;
     float ageFactor = 0.0f;
     float pitchFactor = 0.0f;
     float tempoFactor = 0.0f;
@@ -7809,10 +7864,12 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
     float tempoFactor = 0.9;
@@ -7839,6 +7896,7 @@ void MainWindow::adjustFontSizes()
 #endif
 
     // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kRecentCol, (recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kAgeCol, (ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kPitchCol, (pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kTempoCol, (tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraColWidth[index])*currentFontPointSize);
@@ -8045,6 +8103,17 @@ void MainWindow::on_actionReset_triggered()
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+void MainWindow::on_actionRecent_toggled(bool checked)
+{
+    ui->actionRecent->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
+
+    // the showRecentColumn setting is persistent across restarts of the application
+    PreferencesManager prefsManager;
+    prefsManager.SetshowRecentColumn(checked);
+
+    updateSongTableColumnView();
+}
+
 void MainWindow::on_actionAge_toggled(bool checked)
 {
     ui->actionAge->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
@@ -9124,4 +9193,23 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 void MainWindow::on_pushButtonTestLoop_clicked()
 {
     on_actionTest_Loop_triggered();
+}
+
+void MainWindow::on_actionClear_Recent_triggered()
+{
+    QString nowISO8601 = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // add days is for later
+//    qDebug() << "Setting fence to: " << nowISO8601;
+
+    PreferencesManager prefsManager;
+    prefsManager.SetrecentFenceDateTime(nowISO8601);  // e.g. "2018-01-01T01:23:45Z"
+    recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
+                                                          "yyyy-MM-dd'T'hh:mm:ss'Z'");
+    recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+
+    firstTimeSongIsPlayed = true;   // this forces writing another record to the songplays DB when the song is next played
+                                    //   so that the song will be marked Recent if it is played again after a Clear Recents,
+                                    //   even though it was already loaded and played once before the Clear Recents.
+
+    // update the song table
+    reloadSongAges(ui->actionShow_All_Ages->isChecked());
 }

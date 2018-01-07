@@ -377,6 +377,7 @@ private slots:
     void on_actionZoom_Out_triggered();
     void on_actionReset_triggered();
 
+    void on_actionRecent_toggled(bool arg1);
     void on_actionAge_toggled(bool arg1);
     void on_actionPitch_toggled(bool arg1);
     void on_actionTempo_toggled(bool arg1);
@@ -439,6 +440,8 @@ private slots:
     void on_dateTimeEditOutroTime_timeChanged(const QTime &time);
     void on_pushButtonTestLoop_clicked();
 
+    void on_actionClear_Recent_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -455,7 +458,6 @@ public:
     void highlight_sd_replaceables();
 
 private:
-
     // Lyrics editor -------
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0}; // matches blue component of CSS definition
     charsType FG_BG_to_type(QColor fg, QColor bg);
@@ -677,6 +679,12 @@ private:
     bool cuesheetEditorReactingToCursorMovement;
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadSongAges(int id);
+
+    QString ageToRecent(QString age);
+    QString ageToIntString(QString ageString);
+
+    QDateTime recentFenceDateTime;  // the fence -- older than this, and Recent is blank
+
     void reloadSongAges(bool show_all_sessions);
     bool autoScrollLyricsEnabled;
     void loadDanceProgramList(QString lastDanceProgram);
@@ -774,11 +782,12 @@ public:
 // path is stored in the userData portion of the Type column...
 #define kLabelCol 2
 #define kTitleCol 3
-#define kAgeCol   4
 
-// hidden columns:
-#define kPitchCol 5
-#define kTempoCol 6
+// POSSIBLY hidden columns:
+#define kRecentCol 4
+#define kAgeCol   5
+#define kPitchCol 6
+#define kTempoCol 7
 
 // font sizes
 #define SMALLESTZOOM (11)

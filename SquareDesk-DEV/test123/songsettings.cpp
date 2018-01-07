@@ -473,8 +473,9 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
     exec("songAges", q);
     while (q.next())
     {
-        int age = q.value(1).toInt();
-        QString str(QString("%1").arg(age, 3));
+//        int age = q.value(1).toInt();
+//        QString str(QString("%1").arg(age, 3));
+        QString str = q.value(1).toString();  // leave it as a float string
         ages[q.value(0).toString()] = str;
     }
 }
@@ -499,8 +500,9 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
 
         if (q.next())
         {
-            int age = q.value(0).toInt();
-            QString str(QString("%1").arg(age, 3));
+//            int age = q.value(0).toInt();
+//            QString str(QString("%1").arg(age, 3));
+            QString str = q.value(0).toString();  // leave it as a float string
             return str;
         }
     }
@@ -514,8 +516,9 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
 
         if (q.next())
         {
-            int age = q.value(0).toInt();
-            QString str(QString("%1").arg(age, 3));
+//            int age = q.value(0).toInt();
+//            QString str(QString("%1").arg(age, 3));
+            QString str = q.value(0).toString();  // leave it as a float string
             return str;
         }
     }

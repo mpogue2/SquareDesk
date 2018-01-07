@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>918</width>
-    <height>549</height>
+    <width>923</width>
+    <height>579</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -115,6 +115,14 @@
            <column>
             <property name="text">
              <string>Title</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Recent</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
             </property>
            </column>
            <column>
@@ -1767,7 +1775,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>918</width>
+     <width>923</width>
      <height>22</height>
     </rect>
    </property>
@@ -1960,6 +1968,8 @@
     <addaction name="actionSunday"/>
     <addaction name="separator"/>
     <addaction name="actionShow_All_Ages"/>
+    <addaction name="separator"/>
+    <addaction name="actionClear_Recent"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -1978,6 +1988,7 @@
      <property name="title">
       <string>Columns</string>
      </property>
+     <addaction name="actionRecent"/>
      <addaction name="actionAge"/>
      <addaction name="actionPitch"/>
      <addaction name="actionTempo"/>
@@ -3020,6 +3031,22 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+L</string>
+   </property>
+  </action>
+  <action name="actionRecent">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Recent</string>
+   </property>
+  </action>
+  <action name="actionClear_Recent">
+   <property name="text">
+    <string>Clear Recent</string>
    </property>
   </action>
  </widget>
