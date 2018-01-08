@@ -2325,6 +2325,7 @@ bool open_session(int argc, char **argv)
    // abs_max_calls and max_base_calls.
    // Must do before telling the uims so any open failure messages
    // come out first.
+   printf("TRYING TO OPEN: '%s'\n", database_filename);
 
    const char *sourcenames[2] = {database_filename, abridge_filename};
    bool binaryfileflags[2] = {true, false};

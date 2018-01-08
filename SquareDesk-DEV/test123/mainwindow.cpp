@@ -218,6 +218,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sdAvailableCalls(),
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1)
 {
+    qDebug() << "current working directory(): " << QFileInfo(".").absolutePath();
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
     for (size_t i = 0; i < sizeof(webview) / sizeof(*webview); ++i)

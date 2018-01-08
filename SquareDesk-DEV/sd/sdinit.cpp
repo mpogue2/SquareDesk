@@ -2322,6 +2322,8 @@ bool open_session(int argc, char **argv)
    // Must do before telling the uims so any open failure messages
    // come out first.
 
+//   printf("DEBUG: TRIED TO OPEN: '%s'\n", database_filename);
+
    const char *sourcenames[2] = {database_filename, abridge_filename};
    bool binaryfileflags[2] = {true, false};
    FILE *database_input_files[2];

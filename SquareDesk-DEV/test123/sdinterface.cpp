@@ -1037,7 +1037,11 @@ void SDThread::run()
     SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
                           &waitCondAckToMainThread, &mutexAckToMainThread);
     iofull = &ggg;
-    char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
+//    char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
+    char *argv[] = {const_cast<char *>("SquareDesk"),
+                    const_cast<char *>("-db"),
+                    const_cast<char *>("/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-Debug/test123/Install/SquareDeskPlayer.app/Contents/MacOS/sd_calls2.dat"),
+                    NULL};
 
     sdmain(1, argv, ggg);
 }
