@@ -660,7 +660,6 @@ private:
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
 
-    QProcess *sd;  // sd process
     QProcess *ps;  // pocketsphinx process
     Highlighter *highlighter;
     RenderArea *renderArea;

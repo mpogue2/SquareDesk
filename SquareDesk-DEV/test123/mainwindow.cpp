@@ -205,7 +205,7 @@ MainWindow::MainWindow(QWidget *parent) :
     timerCountUp(NULL),
     timerCountDown(NULL),
     trapKeypresses(true),
-    sd(NULL),
+    ps(nullptr),
     firstTimeSongIsPlayed(false),
     loadingSong(false),
     cuesheetEditorReactingToCursorMovement(false),
@@ -2007,9 +2007,6 @@ MainWindow::~MainWindow()
 #elif defined(Q_OS_WIN32)
     SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
 #endif
-    if (sd) {
-        sd->kill();
-    }
     if (sdthread)
     {
         sdthread->finishAndShutdownSD();
