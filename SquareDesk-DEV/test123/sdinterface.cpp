@@ -1037,7 +1037,18 @@ void SDThread::run()
     SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
                           &waitCondAckToMainThread, &mutexAckToMainThread);
     iofull = &ggg;
-    char *argv[] = {const_cast<char *>("SquareDesk"), NULL};
+    QString executableDir = QDir::currentPath();
+    QString sdCallsFilename = executableDir + "/sd_calls.dat";
+    std::string str = sdCallsFilename.toStdString();
+    const char* p = str.c_str();
+
+//    printf("p: '%s'\n", p);
+//    fflush(stdout);
+
+    char *argv[] = {const_cast<char *>("SquareDesk"),
+                    const_cast<char *>("-db"),
+                    const_cast<char *>(p),
+                    NULL};
 
     sdmain(1, argv, ggg);
 }

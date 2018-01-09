@@ -23,6 +23,7 @@
 /* The Sd program reads this binary file for its calls database */
 #ifndef DATABASE_FILENAME
 #define DATABASE_FILENAME "sd_calls.dat"
+//#define DATABASE_FILENAME "/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-Debug/test123/Install/SquareDeskPlayer.app/Contents/MacOS/sd_calls.dat"
 #endif
 
 /* The source form of the calls database.  The mkcalls program compiles it. */
