@@ -2068,6 +2068,8 @@ bool open_session(int argc, char **argv)
    glob_abridge_mode = abridge_mode_none;
    calling_level = l_nonexistent_concept;    /* Mark it uninitialized. */
 
+//   printf("found %d args\n", nargs);
+//   fflush(stdout);
    for (argno=1; argno < nargs; argno++) {
       if (args[argno][0] == '-') {
          if (strcmp(&args[argno][1], "write_list") == 0) {
@@ -2089,7 +2091,12 @@ bool open_session(int argc, char **argv)
 	     if (argno+1 < nargs) new_outfile_string = args[argno+1];
          }
          else if (strcmp(&args[argno][1], "db") == 0) {
-            if (argno+1 < nargs) database_filename = args[argno+1];
+//             printf("found a -db flag...\n");
+            if (argno+1 < nargs) {
+                database_filename = args[argno+1];
+//                printf("database_filename: '%s'\n", database_filename);
+            }
+//            fflush(stdout);
          }
          else if (strcmp(&args[argno][1], "output_prefix") == 0) {
             if (argno+1 < nargs) strncpy(outfile_prefix, args[argno+1], MAX_FILENAME_LENGTH);
@@ -2325,6 +2332,8 @@ bool open_session(int argc, char **argv)
    // abs_max_calls and max_base_calls.
    // Must do before telling the uims so any open failure messages
    // come out first.
+   printf("TRYING TO OPEN: '%s'\n", database_filename);  // I'm gonna leave this one in here temporarily.
+   fflush(stdout);
 
    const char *sourcenames[2] = {database_filename, abridge_filename};
    bool binaryfileflags[2] = {true, false};

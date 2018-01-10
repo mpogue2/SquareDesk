@@ -1006,6 +1006,8 @@ ui_option_type::ui_option_type() :
 
 extern int sdmain(int argc, char *argv[], iobase & ggg)
 {
+//    printf("sdmain: argc=%d\n", argc);
+//    fflush(stdout);
    bool just_get_out_of_here = false;
 
    if (argc >= 2 && strcmp(argv[1], "-help") == 0) {
