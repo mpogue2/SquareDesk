@@ -183,7 +183,8 @@ macx {
     # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
     # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
     LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    LIBS += $$PWD/libquazip.1.dylib
+    #LIBS += $$PWD/libquazip.1.dylib
+    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
     LIBS += $$PWD/../local/lib/libtidy.5.dylib
     LIBS += -framework CoreFoundation
     LIBS += -framework AppKit
@@ -191,7 +192,8 @@ macx {
     mylib.path = Contents/MacOS
     mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
     mylib.files += $$PWD/../local/lib/libtidy.5.dylib
-    mylib.files += $$PWD/libquazip.1.dylib
+    #mylib.files += $$PWD/libquazip.1.dylib
+    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
     QMAKE_BUNDLE_DATA += mylib
 
     # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
@@ -233,7 +235,7 @@ macx {
 #    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
 
-    copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    #copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
 
     # PS --------------------------------------------
@@ -256,7 +258,8 @@ macx {
     copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
     copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
 
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    #first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     #export(first.depends)
     export(copydata0a.commands)
@@ -315,6 +318,18 @@ macx {
     export(copydata3p.commands)
     export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
+
+    # For the QUAZIP library -- we need exactly the right name on the library -----------------
+    # yes, this is a rename.  I don't know how to do this in QMake directly.
+    copydata1q.commands = $(RM) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.dylib
+    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.dylib
+    copydata3q.commands = $(RM) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.0.0.dylib
+    first.depends += copydata1q copydata2q copydata3q
+    export(first.depends)
+    export(copydata1q.commands)
+    export(copydata2q.commands)
+    export(copydata3q.commands)
+    QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
 }
 
 win32:CONFIG(debug, debug|release): {
