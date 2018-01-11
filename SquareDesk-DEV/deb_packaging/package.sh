@@ -1,47 +1,35 @@
 #!/bin/bash
 
-export DEBFULLNAME="Dan Lyke"
-export DEBEMAIL="danlyke@flutterby.com"
-export VERSION=0.1
-export PACKAGE=squaredesk
-export SRCDIR=${PACKAGE}_${VERSION}
+rm -rf SquareDeskPlayer
+mkdir -p SquareDeskPlayer/usr/bin
+mkdir -p SquareDeskPlayer/usr/lib
+mkdir -p SquareDeskPlayer/usr/share/SquareDeskPlayer
+mkdir -p SquareDeskPlayer/DEBIAN
 
-rm -r ${SRCDIR} ${SRCDIR}.orig.tar.gz ${PACKAGE}_${VERSION}.orig.tar.xz ${SRCDIR}-1_amd64.build
-mkdir -p ${SRCDIR}
-cp ../test123/*.{ui,h,cpp,pro,qrc,ico,mm} ${SRCDIR}
-cp ./debian/libbass{,_fx,mix}.so ${SRCDIR}
-cp ../test123/Makefile ${SRCDIR}
-cp -r ../test123/{images,graphics,startupwizardimages} ${SRCDIR}
-cp -r debian ${SRCDIR}
-pushd ${SRCDIR}
+echo 'Package: squaredesk' > SquareDeskPlayer/DEBIAN/control
+echo 'Version: 0.1' >> SquareDeskPlayer/DEBIAN/control
+echo 'Maintainer: Dan Lyke <danlyke@flutterby.com>' >> SquareDeskPlayer/DEBIAN/control
+echo 'Architecture: all' >> SquareDeskPlayer/DEBIAN/control
+echo 'Description: music player and choreography management for square dance callers' >> SquareDeskPlayer/DEBIAN/control
 
-
-echo "images.path = /usr/share/${PACKAGE}/images" >> test123.pro
-echo "images.files = images/*" >> test123.pro
-echo "INSTALLS += images" >> test123.pro
-
-echo "startupwizardimages.path = /usr/share/${PACKAGE}/startupwizardimages" >> test123.pro
-echo "startupwizardimages.files = startupwizardimages/*" >> test123.pro
-echo "INSTALLS += startupwizardimages" >> test123.pro
-
-echo "graphics.path = /usr/share/${PACKAGE}/graphics" >> test123.pro
-echo "graphics.files = graphics/*" >> test123.pro
-echo "INSTALLS += graphics" >> test123.pro
-
-echo "target.path=/usr/bin" >> test123.pro
-echo "INSTALLS += target" >> test123.pro
-
+cp foo/libbass*.so SquareDeskPlayer/usr/lib
+pushd ..
+qmake
+make
 popd
-rm -f ${SRCDIR}.orig.tar.gz
-tar czvf ${SRCDIR}.orig.tar.gz ${SRCDIR}
-pushd ${SRCDIR}
+cp ../test123/SquareDeskPlayer SquareDeskPlayer/usr/bin
 
-dh_make --yes -s -p ${SRCDIR} -c gpl2 --createorig
-rm -f debian/*.ex debian/*.EX
-rm -f debian/README.Debian
-rm -f qdebian/README.source
+pushd ../sdlib
+./mkcalls
+popd
+cp ../sdlib/sd_calls.dat SquareDeskPlayer/usr/share/SquareDeskPlayer
+cp ../sdlib/sd_calls.dat SquareDeskPlayer/usr/share/SquareDeskPlayer
+cp ../test123/{cuesheet2.css,patter.template.html,lyrics.template.html} \
+   SquareDeskPlayer/usr/share/SquareDeskPlayer
 
-debuild
 
-#debuild -us -uc
+cp -r ../test123/{soundfx,images,graphics,startupwizardimages} SquareDeskPlayer/usr/share/SquareDeskPlayer
+
+dpkg-deb --build SquareDeskPlayer
+
 

@@ -1104,8 +1104,21 @@ QString MainWindow::getResourceFile(QString s) {
     QString patterTemplatePath = appPath + "/" + s;
     patterTemplatePath.replace("SquareDeskPlayer.exe/","");
 #else
-    Q_UNUSED(s);
     // Linux
+    QStringList paths;
+    paths.append(QApplication::applicationFilePath());
+    paths.append("/usr/share/SquareDeskPlayer");
+    paths.append(".");
+
+    for (auto path : paths)
+    {
+        QString filename(path + "/" + s);
+        QFileInfo check_file(filename);
+        if (check_file.exists() && check_file.isFile())
+        {
+            return filename;
+        }
+    }
     return("");
 #endif
 

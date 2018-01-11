@@ -1037,9 +1037,17 @@ void SDThread::run()
     SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
                           &waitCondAckToMainThread, &mutexAckToMainThread);
     iofull = &ggg;
-
     QString executableDir = QCoreApplication::applicationDirPath(); // this is where the executable is (not necessarily the current working directory)
     QString sdCallsFilename = executableDir + "/sd_calls.dat";
+
+#if !(defined(Q_OS_MAC) || defined(Q_OS_WIN))
+    // if it's Linux, look in /usr/share/SquareDeskPlayer
+    QFileInfo check_file(sdCallsFilename);
+    if (!(check_file.exists() && check_file.isFile()))
+    {
+        sdCallsFilename = "/usr/share/SquareDeskPlayer/sd_calls.dat";
+    }
+#endif
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
 
@@ -1049,6 +1057,8 @@ void SDThread::run()
     char *argv[] = {const_cast<char *>("SquareDesk"),
                     const_cast<char *>("-db"), //
                     const_cast<char *>(p),
+                    const_cast<char *>("-minigrand_getouts"),
+                    const_cast<char *>("-bend_line_home_getouts"),
                     NULL};
 
     sdmain(3, argv, ggg);  // note: manually set argc to match number of argv arguments...
