@@ -1061,7 +1061,7 @@ void SDThread::run()
                     const_cast<char *>("-bend_line_home_getouts"),
                     NULL};
 
-    sdmain(3, argv, ggg);  // note: manually set argc to match number of argv arguments...
+    sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
 }
 
 void SDThread::unlock()
