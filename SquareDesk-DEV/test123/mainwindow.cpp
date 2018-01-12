@@ -675,6 +675,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     currentSongType = "";
     currentSongTitle = "";
+    currentSongLabel = "";
 
     // -----------------------------
     sessionActionGroup = new QActionGroup(this);
@@ -2819,7 +2820,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
-    position = fmax(0.0, fmin(position, (int)currentOutroTimeSec) );
+    position = fmax(0.0, fmin(position, (int)currentOutroTimeSec-6) );
 
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
@@ -2840,7 +2841,7 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
-    position = fmin(length, fmax(position, (int)currentIntroTimeSec) );
+    position = fmin(length, fmax(position, (int)currentIntroTimeSec+6) );
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
@@ -4054,12 +4055,13 @@ void MainWindow::reloadCurrentMP3File() {
     // if there is a song loaded, reload it (to pick up, e.g. new cuesheets)
     if ((currentMP3filenameWithPath != "")&&(currentSongTitle != "")&&(currentSongType != "")) {
 //        qDebug() << "reloading song: " << currentMP3filename;
-        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongType);
+        loadMP3File(currentMP3filenameWithPath, currentSongTitle, currentSongType, currentSongLabel);
     }
 }
 
-void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType)
+void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
+//    qDebug() << "songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
     RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
 
@@ -4073,6 +4075,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
 
     currentSongType = songType;  // save it for session coloring on the analog clock later...
+    currentSongLabel = songLabel;   // remember it, in case we need it later
 
     ui->toolButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
 
@@ -4139,6 +4142,20 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     int length_sec = cBass.FileLength;
     int songBPM = round(cBass.Stream_BPM);  // libbass's idea of the BPM
+
+    bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
+                         songTypeNamesForCalled.contains(songType);
+
+    bool isPatter = songTypeNamesForPatter.contains(songType);
+
+    bool isRiverboat = songLabel.startsWith(QString("riv"), Qt::CaseInsensitive);
+
+    if (isRiverboat && isPatter) {
+        // All Riverboat patter records are recorded at 126BPM, according to the publisher.
+        // This can always be overridden using TBPM in the ID3 tag inside a specific patter song, if needed.
+        //        qDebug() << "Riverboat patter detected!";
+        songBPM = 126;
+    }
 
     // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
     float songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
@@ -4244,11 +4261,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 //    qDebug() << "load 2.7: " << t2.elapsed() << "ms";
 
-    bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
-                         songTypeNamesForCalled.contains(songType);
-
-    bool isPatter = songTypeNamesForPatter.contains(songType);
-
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0));
 
@@ -4329,7 +4341,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
     ui->previousSongButton->setEnabled(false);
 
     // --------
-    loadMP3File(MP3FileName, QString(""), QString(""));  // "" means use title from the filename
+    loadMP3File(MP3FileName, QString(""), QString(""), QString(""));  // "" means use title from the filename
 }
 
 
@@ -5156,6 +5168,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
     QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
+    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
 
     // these must be up here to get the correct values...
     QString pitch = ui->songTable->item(row,kPitchCol)->text();
@@ -5163,7 +5176,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 
 //    qDebug() << "load 2: " << t2.elapsed() << "ms";
 
-    loadMP3File(pathToMP3, songTitle, songType);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
 //    qDebug() << "load 3: " << t2.elapsed() << "ms";
 
@@ -5892,12 +5905,13 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
+    QString songLabel = ui->songTable->item(row,kLabelCol)->text();
 
     // must be up here...
     QString pitch = ui->songTable->item(row,kPitchCol)->text();
     QString tempo = ui->songTable->item(row,kTempoCol)->text();
 
-    loadMP3File(pathToMP3, songTitle, songType);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
     // must be down here...
     int pitchInt = pitch.toInt();
@@ -5958,12 +5972,13 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
+    QString songLabel = ui->songTable->item(row,kLabelCol)->text();
 
     // must be up here...
     QString pitch = ui->songTable->item(row,kPitchCol)->text();
     QString tempo = ui->songTable->item(row,kTempoCol)->text();
 
-    loadMP3File(pathToMP3, songTitle, songType);
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
     // must be down here...
     int pitchInt = pitch.toInt();
@@ -9178,28 +9193,57 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 {
 //    qDebug() << "newIntroTime: " << time;
 
-    double position_ms = 60000*time.minute() + 1000*time.second() + time.msec();
+    double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
     double length = cBass.FileLength;
-    double t_ms = position_ms/length;
+//    double t_ms = position_ms/length;
 
-    ui->seekBarCuesheet->SetIntro((float)t_ms/1000.0);
-    ui->seekBar->SetIntro((float)t_ms/1000.0);
+//    ui->seekBarCuesheet->SetIntro((float)t_ms/1000.0);
+//    ui->seekBar->SetIntro((float)t_ms/1000.0);
 
-    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+//    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+
+    QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
+    double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
+    position_sec = fmax(0.0, fmin(position_sec, (int)currentOutroTimeSec-6) );
+
+    // set in ms
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
+
+    // set in fractional form
+    float frac = position_sec/length;
+    ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
+    ui->seekBar->SetIntro(frac);
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
+
 }
 
 void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 {
 //    qDebug() << "newOutroTime: " << time;
 
-    double position_ms = 60000*time.minute() + 1000*time.second() + time.msec();
+    double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
     double length = cBass.FileLength;
-    double t_ms = position_ms/length;
+//    double t_ms = position_ms/length;
 
-    ui->seekBarCuesheet->SetOutro((float)t_ms/1000.0);
-    ui->seekBar->SetOutro((float)t_ms/1000.0);
+//    ui->seekBarCuesheet->SetOutro((float)t_ms/1000.0);
+//    ui->seekBar->SetOutro((float)t_ms/1000.0);
 
-    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+//    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+
+    QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
+    double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
+    position_sec = fmin(length, fmax(position_sec, (int)currentIntroTimeSec+6) );
+
+    // set in ms
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
+
+    // set in fractional form
+    float frac = position_sec/length;
+    ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
+    ui->seekBar->SetOutro(frac);
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
 void MainWindow::on_pushButtonTestLoop_clicked()
