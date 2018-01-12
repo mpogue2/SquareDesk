@@ -7,14 +7,17 @@
 QT       += core gui sql network printsupport svg
 
 macx {
-QT += webenginewidgets
+    QT += webenginewidgets
+    PRE_TARGETDEPS = $$OUT_PWD/../sdlib/libsdlib.a
 }
 win32 {
-QT += webenginewidgets
+    QT += webenginewidgets
+    PRE_TARGETDEPS = $$OUT_PWD/../sdlib/sdlib.lib
 }
 
 unix:!macx {
-QT += webkitwidgets
+    QT += webkitwidgets
+    # PRE_TARGETDEPS = $$OUT_PWD/../sdlib/libsdlib.a  # IS THIS CORRECT?
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
