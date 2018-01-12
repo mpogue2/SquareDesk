@@ -2820,7 +2820,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
-    position = fmax(0.0, fmin(position, (int)currentOutroTimeSec) );
+    position = fmax(0.0, fmin(position, (int)currentOutroTimeSec-6) );
 
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
@@ -2841,7 +2841,7 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
-    position = fmin(length, fmax(position, (int)currentIntroTimeSec) );
+    position = fmin(length, fmax(position, (int)currentIntroTimeSec+6) );
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
@@ -9193,28 +9193,57 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 {
 //    qDebug() << "newIntroTime: " << time;
 
-    double position_ms = 60000*time.minute() + 1000*time.second() + time.msec();
+    double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
     double length = cBass.FileLength;
-    double t_ms = position_ms/length;
+//    double t_ms = position_ms/length;
 
-    ui->seekBarCuesheet->SetIntro((float)t_ms/1000.0);
-    ui->seekBar->SetIntro((float)t_ms/1000.0);
+//    ui->seekBarCuesheet->SetIntro((float)t_ms/1000.0);
+//    ui->seekBar->SetIntro((float)t_ms/1000.0);
 
-    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+//    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+
+    QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
+    double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
+    position_sec = fmax(0.0, fmin(position_sec, (int)currentOutroTimeSec-6) );
+
+    // set in ms
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
+
+    // set in fractional form
+    float frac = position_sec/length;
+    ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
+    ui->seekBar->SetIntro(frac);
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
+
 }
 
 void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 {
 //    qDebug() << "newOutroTime: " << time;
 
-    double position_ms = 60000*time.minute() + 1000*time.second() + time.msec();
+    double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
     double length = cBass.FileLength;
-    double t_ms = position_ms/length;
+//    double t_ms = position_ms/length;
 
-    ui->seekBarCuesheet->SetOutro((float)t_ms/1000.0);
-    ui->seekBar->SetOutro((float)t_ms/1000.0);
+//    ui->seekBarCuesheet->SetOutro((float)t_ms/1000.0);
+//    ui->seekBar->SetOutro((float)t_ms/1000.0);
 
-    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+//    on_loopButton_toggled(ui->actionLoop->isChecked()); // call this, so that cBass is told what the loop points are (or they are cleared)
+
+    QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
+    double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
+    position_sec = fmin(length, fmax(position_sec, (int)currentIntroTimeSec+6) );
+
+    // set in ms
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
+
+    // set in fractional form
+    float frac = position_sec/length;
+    ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
+    ui->seekBar->SetOutro(frac);
+
+    on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
 void MainWindow::on_pushButtonTestLoop_clicked()
