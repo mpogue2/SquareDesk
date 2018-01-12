@@ -539,6 +539,8 @@ private:
 
     QString currentSongType;
     QString currentSongTitle;
+    QString currentSongLabel;  // record label, e.g. RIV
+
     int randCallIndex;     // for Flash Calls
 
     void writeCuesheet(QString filename);
@@ -551,7 +553,7 @@ private:
     float getID3BPM(QString MP3FileName);
 
     void reloadCurrentMP3File();
-    void loadMP3File(QString filepath, QString songTitle, QString songType);
+    void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel);
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
