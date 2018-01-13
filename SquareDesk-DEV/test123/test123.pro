@@ -20,7 +20,7 @@ unix:!macx {
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = SquareDeskPlayer
+TARGET = SquareDesk
 TEMPLATE = app
 
 #  turn off QML warning for Debug builds
@@ -225,19 +225,19 @@ macx {
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
-    copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
-    copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
-    copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
+    copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+    copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
+    copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
     # SD --------------------------------------------
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
-    #  (inside the SquareDeskPlayer.app bundle)
+    #  (inside the SquareDesk.app bundle)
     # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
-#    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+#    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
-    #copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-    copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDeskPlayer.app/Contents/Resources
+    #copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDesk.app/Contents/Resources
 
     # PS --------------------------------------------
     # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
@@ -247,17 +247,17 @@ macx {
     #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
     #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
 
-    # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
+    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-    copydata5.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDeskPlayer.app/Contents
+    copydata4.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata5.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDesk.app/Contents
 
-    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/models/en-us
-    copydata6b.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDeskPlayer.app/Contents/models
+    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/models/en-us
+    copydata6b.commands = $(COPY_DIR) /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/SquareDesk-DEV/pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDesk.app/Contents/models
 
     # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
-    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS
+    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
     #first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
     first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
@@ -279,16 +279,16 @@ macx {
     QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     # SOUNDFX STARTER SET --------------------------------------------
-    copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
-    copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDeskPlayer.app/Contents/soundfx
+    copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
 
     first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 
@@ -307,10 +307,10 @@ macx {
     QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 
     # For the PDF viewer -----------------
-    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified
-    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified
-    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified
-    copydata4p.commands = $(RM) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/minified/web/compressed.*.pdf
+    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
 
     first.depends += copydata1p copydata2p copydata3p copydata4p
     export(first.depends)
@@ -322,9 +322,9 @@ macx {
 
     # For the QUAZIP library -- we need exactly the right name on the library -----------------
     # yes, this is a rename.  I don't know how to do this in QMake directly.
-    copydata1q.commands = $(RM) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.dylib
-    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.dylib
-    copydata3q.commands = $(RM) $$OUT_PWD/SquareDeskPlayer.app/Contents/MacOS/libquazip.1.0.0.dylib
+    copydata1q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
+    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
+    copydata3q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib
     first.depends += copydata1q copydata2q copydata3q
     export(first.depends)
     export(copydata1q.commands)
@@ -335,7 +335,7 @@ macx {
 
 win32:CONFIG(debug, debug|release): {
     # PS --------------------------------------------
-    # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
+    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
     copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/debug)
     copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/debug)
@@ -393,7 +393,7 @@ win32:CONFIG(debug, debug|release): {
 
 win32:CONFIG(release, debug|release): {
     # PS --------------------------------------------
-    # Copy the ps executable and the libraries it depends on (into the SquareDeskPlayer.app bundle)
+    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
     copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/release)
     copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/release)

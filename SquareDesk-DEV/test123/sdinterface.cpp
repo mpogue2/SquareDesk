@@ -1041,11 +1041,11 @@ void SDThread::run()
     QString sdCallsFilename = executableDir + "/sd_calls.dat";
 
 #if !(defined(Q_OS_MAC) || defined(Q_OS_WIN))
-    // if it's Linux, look in /usr/share/SquareDeskPlayer
+    // if it's Linux, look in /usr/share/SquareDesk
     QFileInfo check_file(sdCallsFilename);
     if (!(check_file.exists() && check_file.isFile()))
     {
-        sdCallsFilename = "/usr/share/SquareDeskPlayer/sd_calls.dat";
+        sdCallsFilename = "/usr/share/SquareDesk/sd_calls.dat";
     }
 #endif
     std::string str = sdCallsFilename.toStdString();

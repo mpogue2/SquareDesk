@@ -120,7 +120,7 @@ using namespace std;
 using namespace TagLib;
 
 // =================================================================================================
-// SquareDeskPlayer Keyboard Shortcuts:
+// SquareDesk Keyboard Shortcuts:
 //
 // function                 MAC                         PC                                SqView
 // -------------------------------------------------------------------------------------------------
@@ -1098,17 +1098,17 @@ QString MainWindow::getResourceFile(QString s) {
 #if defined(Q_OS_MAC)
     QString appPath = QApplication::applicationFilePath();
     QString patterTemplatePath = appPath + "/Contents/Resources/" + s;
-    patterTemplatePath.replace("Contents/MacOS/SquareDeskPlayer/","");
+    patterTemplatePath.replace("Contents/MacOS/SquareDesk/","");
 #elif defined(Q_OS_WIN32)
     // TODO: There has to be a better way to do this.
     QString appPath = QApplication::applicationFilePath();
     QString patterTemplatePath = appPath + "/" + s;
-    patterTemplatePath.replace("SquareDeskPlayer.exe/","");
+    patterTemplatePath.replace("SquareDesk.exe/","");
 #else
     // Linux
     QStringList paths;
     paths.append(QApplication::applicationFilePath());
-    paths.append("/usr/share/SquareDeskPlayer");
+    paths.append("/usr/share/SquareDesk");
     paths.append(".");
 
     for (auto path : paths)
@@ -3045,8 +3045,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk Player, V") + QString(VERSIONSTRING) + QString("</h2>") +
-                   QString("<p>See our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
+    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("</h2>") +
+                   QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
@@ -7264,7 +7264,7 @@ void MainWindow::initSDtab() {
     //    WHICH=5365
     //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
     // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
-    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDeskPlayer/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS
+    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDesk/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDesk.app/Contents/MacOS
     // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
     //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
     // TEST SD MANUALLY: ./sd
@@ -8766,14 +8766,14 @@ void MainWindow::readFlashCallsList() {
 #if defined(Q_OS_MAC)
     QString appPath = QApplication::applicationFilePath();
     QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
-    allcallsPath.replace("Contents/MacOS/SquareDeskPlayer/","");
+    allcallsPath.replace("Contents/MacOS/SquareDesk/","");
 #endif
 
 #if defined(Q_OS_WIN32)
     // TODO: There has to be a better way to do this.
     QString appPath = QApplication::applicationFilePath();
     QString allcallsPath = appPath + "/allcalls.csv";
-    allcallsPath.replace("SquareDeskPlayer.exe/","");
+    allcallsPath.replace("SquareDesk.exe/","");
 #endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
