@@ -49,10 +49,10 @@
 ****************************************************************************/
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017 Mike Pogue, Dan Lyke
+** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
-** This file is part of the SquareDesk/SquareDeskPlayer application.
+** This file is part of the SquareDesk application.
 **
 ** $SQUAREDESK_BEGIN_LICENSE$
 **

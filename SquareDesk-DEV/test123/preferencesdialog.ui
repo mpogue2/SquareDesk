@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>SquareDeskPlayer Preferences</string>
+   <string>SquareDesk Preferences</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="2" column="0">
@@ -963,7 +963,7 @@ Click on a color square to change the color associated with that Music Type.  Se
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
-           <property name="text" stdset="0">
+           <property name="text">
             <string>Set song's initial BPM to</string>
            </property>
           </widget>
