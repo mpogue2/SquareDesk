@@ -5078,8 +5078,8 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
     while (iter.hasNext()) {
         QString s = iter.next();
 
-//        if (s.endsWith(".txt", Qt::CaseInsensitive))
-        if (QRegExp("reference/[a-zA-Z0-9]+\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
+        // Dance Program file names must begin with 0 then exactly 2 numbers followed by a dot, followed by the dance program name, dot text.
+        if (QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
         {
             //qDebug() << "Dance Program Match:" << s;
             QStringList sl1 = s.split("#!#");
@@ -7148,11 +7148,19 @@ void MainWindow::initReftab() {
     
     documentsTab = new QTabWidget();
 
+    // Items in the Reference tab are sorted, and are ordered by an optional 3 digits: 1 X X then a dot, then the tabname, then .txt/pdf
     QString referencePath = musicRootPath + "/reference";
-    QDirIterator it(referencePath, QDir::NoDot | QDir::NoDotDot | QDir::Dirs | QDir::Files);
-    while (it.hasNext()) {
-        QString filename = it.next();
-//        qDebug() << filename;
+    QDir dir(referencePath);
+    dir.setFilter(QDir::Files | QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    dir.setSorting(QDir::Name);
+
+    QFileInfoList list = dir.entryInfoList();
+
+    // FOR EACH FILE IN /REFERENCE
+    for (int i = 0; i < list.size(); ++i) {
+        QFileInfo fileInfo = list.at(i);
+        QString filename = fileInfo.absoluteFilePath();
+//        qDebug() << "filename: " << filename;
 
         QFileInfo info1(filename);
         QString tabname;
@@ -7163,6 +7171,7 @@ void MainWindow::initReftab() {
             if (info2.exists()) {
 //                qDebug() << "    FOUND INDEX.HTML";
                 tabname = filename.split("/").last();
+                tabname.remove(QRegExp("^1[0-9][0-9]\\."));  // 101.foo/index.html -> "foo"
                 HTMLfolderExists = true;
                 whichHTM = "/index.html";
             } else {
@@ -7170,6 +7179,7 @@ void MainWindow::initReftab() {
                 if (info3.exists()) {
 //                    qDebug() << "    FOUND INDEX.HTM";
                     tabname = filename.split("/").last();
+                    tabname.remove(QRegExp("^1[0-9][0-9]\\."));  // 101.foo/index.htm -> "foo"
                     HTMLfolderExists = true;
                     whichHTM = "/index.htm";
                 }
@@ -7179,7 +7189,7 @@ void MainWindow::initReftab() {
                 webview[numWebviews] = new QWebEngineView();
 #else
                 webview[numWebviews] = new QWebView();
-#endif                
+#endif
                 QString indexFileURL = "file://" + filename + whichHTM;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
@@ -7187,16 +7197,18 @@ void MainWindow::initReftab() {
                 numWebviews++;
             }
         } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
-                   QRegExp("reference/[a-zA-Z0-9]+\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
+                   QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
 //                qDebug() << "    FOUND TXT FILE";
                 tabname = filename.split("/").last().remove(QRegExp(".txt$"));
+                tabname.remove(QRegExp("^1[0-9][0-9]\\."));  // 122.bar.txt -> "bar"
+
 //                qDebug() << "    tabname:" << tabname;
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
 #else
                 webview[numWebviews] = new QWebView();
-#endif                
+#endif
                 QString indexFileURL = "file://" + filename;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
@@ -7226,19 +7238,21 @@ void MainWindow::initReftab() {
 #else
                 webview[numWebviews] = new QWebView();
                 webview[numWebviews]->setUrl(url);
-#endif                
+#endif
 
 
 //                QString indexFileURL = "file://" + filename;
 //                qDebug() << "    indexFileURL:" << indexFileURL;
 
 //                webview[numWebviews]->setUrl(QUrl(pdf_path));
-                QFileInfo fInfo(filename); 
-                documentsTab->addTab(webview[numWebviews], fInfo.baseName());
+                QFileInfo fInfo(filename);
+                tabname = filename.split("/").last().remove(QRegExp(".pdf$"));      // get basename, remove .pdf
+                tabname.remove(QRegExp("^1[0-9][0-9]\\."));                         // 122.bar.txt -> "bar"  // remove optional 1##. at front
+                documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         }
 
-    } // while iterating through <musicRoot>/reference
+    } // for loop, iterating through <musicRoot>/reference
 
     ui->refGridLayout->addWidget(documentsTab, 0,1);
 }
