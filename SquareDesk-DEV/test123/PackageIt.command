@@ -26,23 +26,23 @@ echo $dir
 # ERROR: no file at "/usr/local/lib/libpq.5.dylib"
 
 echo Now running otool to fixup libraries...
-pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-Debug/test123/SquareDeskPlayer.app/Contents/MacOS
-otool -L SquareDeskPlayer | egrep "qua|tidy"
-install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
-install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
+pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-Debug/test123/SquareDesk.app/Contents/MacOS
+otool -L SquareDesk | egrep "qua|tidy"
+install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
+install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
 echo Those two lines should now start with executable_path...
-otool -L SquareDeskPlayer | egrep "qua|tidy"
+otool -L SquareDesk | egrep "qua|tidy"
 popd
 
 echo Now running Mac Deploy Qt step...
- ~/Qt/5.9.3/clang_64/bin/macdeployqt SquareDeskPlayer.app 
+ ~/Qt/5.9.3/clang_64/bin/macdeployqt SquareDesk.app 
 echo Mac Deploy Qt step done.
 echo
 
 # set up your app name, version number, and background image file name
-APP_NAME="SquareDeskPlayer"
-VERSION="0.8.3alpha4"
-DMG_BACKGROUND_IMG="installer2.png"
+APP_NAME="SquareDesk"
+VERSION="0.8.3alpha6"
+DMG_BACKGROUND_IMG="installer3.png"
 #MANUAL="SquareDeskManual.pdf"
 
 echo "--------------------------------------"
@@ -176,7 +176,7 @@ hdiutil convert "${DMG_TMP}" -format UDZO -imagekey zlib-level=9 -o "${DMG_FINAL
 
 # clean up
 rm -rf "${DMG_TMP}"
-rm -rf "${STAGING_DIR}"
+#rm -rf "${STAGING_DIR}"     #  keep this one around, because it's useful for testing
 
 echo 'Done.'
 
