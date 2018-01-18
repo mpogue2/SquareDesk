@@ -117,15 +117,15 @@ DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
 }
 
 unix:!macx {
-INCLUDEPATH += $$PWD/ $$PWD/../local/include /usr/include/x86_64-linux-gnu/oxide-qt/
-DEPENDPATH += $$PWD/ $$PWD/../local/include /usr/include/x86_64-linux-gnu/oxide-qt/
+INCLUDEPATH += $$PWD/ $$PWD/../local/include
+DEPENDPATH += $$PWD/ $$PWD/../local/include
 LIBS += -L$$PWD/../sdlib -lsdlib
 }
 
 
 # NOTE: there is no debug version of libbass
 win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy -lquazip
-else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys -lOxideQtQuick
+else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
 # macx: see below...
 
 win32 {
