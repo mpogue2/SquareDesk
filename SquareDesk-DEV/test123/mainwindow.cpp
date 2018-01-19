@@ -75,7 +75,8 @@
 #endif
 
 // experimental removal of silence at the beginning of the song
-#define REMOVESILENCE 1
+// disabled right now, because it's not reliable enough.
+//#define REMOVESILENCE 1
 
 // BUG: Cmd-K highlights the next row, and hangs the app
 // BUG: searching then clearing search will lose selection in songTable
