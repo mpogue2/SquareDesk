@@ -4262,7 +4262,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 //    qDebug() << "load 2.7: " << t2.elapsed() << "ms";
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
-    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0));
+    ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
     // NOTE: no need to scan for intro/outro here, because we are guaranteed that it was set by StreamCreate() above
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
