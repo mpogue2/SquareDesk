@@ -1827,6 +1827,8 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
     cursor.mergeBlockFormat(fmt); // set margins to zero for all blocks
 
     cursor.movePosition(QTextCursor::Start);  // move cursor back to the start of the document
+
+    ui->toolButtonEditLyrics->setChecked(false);  // locked for editing, in case this is just a change in the dropdown
 }
 
 // END LYRICS EDITOR STUFF
