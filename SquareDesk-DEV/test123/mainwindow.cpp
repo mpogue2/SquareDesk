@@ -66,7 +66,7 @@
 #include "startupwizard.h"
 #include "downloadmanager.h"
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "src/communicator.h"
 #endif
 

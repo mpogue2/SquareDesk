@@ -47,7 +47,8 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 /* should be in some equivalent to <sys/types.h> */
-typedef __int8            int8_t;
+//typedef __int8            int8_t;
+typedef signed char int8_t;  // for MSVC 17
 typedef __int16           int16_t; 
 typedef __int32           int32_t;
 typedef __int64           int64_t;

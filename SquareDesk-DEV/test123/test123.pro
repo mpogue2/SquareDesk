@@ -5,17 +5,19 @@
 #-------------------------------------------------
 
 QT       += core gui sql network printsupport svg
-PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 
 macx {
     QT += webenginewidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
 win32 {
     QT += webenginewidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/debug/sdlib.lib
 }
 
 unix:!macx {
     QT += webkitwidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -101,6 +103,12 @@ HEADERS += ../qpdfjs/src/communicator.h
 INCLUDEPATH += $$PWD/../qpdfjs
 }
 
+win32 {
+SOURCES += ../qpdfjs/src/communicator.cpp
+HEADERS += ../qpdfjs/src/communicator.h
+INCLUDEPATH += $$PWD/../qpdfjs
+}
+
 FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
@@ -133,18 +141,20 @@ win32 {
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
     INCLUDEPATH += $$PWD/../taglib/binaries/include
 
-    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
+    LIBS += -L$$OUT_PWD/../sdlib/debug -lsdlib
 }
 
 # copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
 win32:CONFIG(debug, debug|release): {
     copydata.commands = xcopy /q /y $$shell_path($$PWD/windll/*.dll) $$shell_path($$OUT_PWD\debug)
     copydata3.commands = xcopy /q /y $$shell_path($$PWD/allcalls.csv) $$shell_path($$OUT_PWD\debug)
-    first.depends = $(first) copydata copydata3
+    copydata30.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\debug)
+    first.depends = $(first) copydata copydata3 copydata30
     export(first.depends)
     export(copydata.commands)
     export(copydata3.commands)
-    QMAKE_EXTRA_TARGETS += first copydata copydata3
+    export(copydata30.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata3 copydata30
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
@@ -162,11 +172,13 @@ win32:CONFIG(debug, debug|release): {
 win32:CONFIG(release, debug|release): {
     copydata.commands = xcopy /q /y $$shell_path($$PWD/windll/*.dll) $$shell_path($$OUT_PWD\release)
     copydata3.commands = xcopy /q /y $$shell_path($$PWD/allcalls.csv) $$shell_path($$OUT_PWD\release)
-    first.depends = $(first) copydata copydata3
+    copydata30.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\release)
+    first.depends = $(first) copydata copydata3 copydata30
     export(first.depends)
     export(copydata.commands)
     export(copydata3.commands)
-    QMAKE_EXTRA_TARGETS += first copydata copydata3
+    export(copydata30.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata3 copydata30
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place

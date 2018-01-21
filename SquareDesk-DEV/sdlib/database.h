@@ -188,7 +188,8 @@ typedef uint32_t uint32;
 typedef int16_t int16;
 typedef uint16_t uint16;
 typedef int8_t veryshort;
-typedef int8_t int8;
+//typedef int8_t int8;
+typedef signed char int8;  // for MSVC 17
 typedef uint8_t uint8;
 // Except this one.
 typedef const char *Cstring;
