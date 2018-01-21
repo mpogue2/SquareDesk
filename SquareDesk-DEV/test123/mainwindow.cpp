@@ -7441,7 +7441,7 @@ void MainWindow::sortByDefaultSortOrder()
 void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
-    renderArea->setCoupleColoringScheme(action->text());
+//    renderArea->setCoupleColoringScheme(action->text());  // removed: causes crash on Win32, and not needed
     setSDCoupleColoringScheme(action->text());
 }
 
