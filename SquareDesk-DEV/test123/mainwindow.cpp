@@ -7193,7 +7193,13 @@ void MainWindow::initReftab() {
 #else
                 webview[numWebviews] = new QWebView();
 #endif
-                QString indexFileURL = "file://" + filename + whichHTM;
+
+//                QString indexFileURL = "file://" + filename + whichHTM;
+#if defined(Q_OS_WIN32)
+                QString indexFileURL = "file:///" + filename + whichHTM;  // Yes, Windows is special
+#else
+                QString indexFileURL = "file://" + filename + whichHTM;   // UNIX-like OS's only need one slash.
+#endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
                 documentsTab->addTab(webview[numWebviews], tabname);
@@ -7212,7 +7218,12 @@ void MainWindow::initReftab() {
 #else
                 webview[numWebviews] = new QWebView();
 #endif
-                QString indexFileURL = "file://" + filename;
+
+#if defined(Q_OS_WIN32)
+                QString indexFileURL = "file:///" + filename;  // Yes, Windows is special: file:///Y:/Dropbox/__squareDanceMusic/reference/100.Broken Hearts.txt
+#else
+                QString indexFileURL = "file://" + filename;   // UNIX-like OS's only need one slash.
+#endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
                 documentsTab->addTab(webview[numWebviews], tabname);
