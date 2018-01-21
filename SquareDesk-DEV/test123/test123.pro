@@ -10,9 +10,14 @@ macx {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
-win32 {
+
+win32:CONFIG(debug, debug|release): {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/debug/sdlib.lib
+}
+win32:CONFIG(release, debug|release): {
+    QT += webenginewidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/release/sdlib.lib
 }
 
 unix:!macx {
@@ -136,12 +141,19 @@ win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -l
 else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
 # macx: see below...
 
-win32 {
+win32:CONFIG(debug, debug|release): {
     RC_FILE = desk1d.rc
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
     INCLUDEPATH += $$PWD/../taglib/binaries/include
 
     LIBS += -L$$OUT_PWD/../sdlib/debug -lsdlib
+}
+win32:CONFIG(release, debug|release): {
+    RC_FILE = desk1d.rc
+    LIBS += -L$$OUT_PWD/../taglib -ltaglib
+    INCLUDEPATH += $$PWD/../taglib/binaries/include
+
+    LIBS += -L$$OUT_PWD/../sdlib/release -lsdlib
 }
 
 # copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
