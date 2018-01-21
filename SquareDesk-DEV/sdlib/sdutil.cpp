@@ -2308,7 +2308,8 @@ static parse_state_type saved_parse_state;
 static parse_block *saved_command_root;
 
 
-SDLIB_API extern void reset_parse_tree(parse_block *original_tree, parse_block *final_head)
+// SDLIB_API
+extern void reset_parse_tree(parse_block *original_tree, parse_block *final_head)
 {
    parse_block *new_item = final_head;
    parse_block *old_item = original_tree;
