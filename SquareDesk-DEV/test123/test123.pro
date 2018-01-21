@@ -401,6 +401,21 @@ win32:CONFIG(debug, debug|release): {
     export(copydata12h.commands)
 
     QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+
+    # For the PDF viewer -----------------
+    copydata1p.commands = if not exist $$shell_path($$OUT_PWD/debug/minified) $(MKDIR) $$shell_path($$OUT_PWD/debug/minified)
+    copydata2p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/web)   $$shell_path($$OUT_PWD/debug/minified/web)
+    copydata3p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/build) $$shell_path($$OUT_PWD/debug/minified/build)
+    #copydata4p.commands = $(RM) $$shell_path($$OUT_PWD/debug/minified/web/compressed.*.pdf)
+
+    first.depends += copydata1p copydata2p copydata3p #copydata4p
+    export(first.depends)
+    export(copydata1p.commands)
+    export(copydata2p.commands)
+    export(copydata3p.commands)
+    #export(copydata4p.commands)
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
+
 }
 
 win32:CONFIG(release, debug|release): {
@@ -459,6 +474,21 @@ win32:CONFIG(release, debug|release): {
     export(copydata12h.commands)
 
     QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+
+    # For the PDF viewer -----------------
+    # For the PDF viewer -----------------
+    copydata1p.commands = if not exist $$shell_path($$OUT_PWD/release/minified) $(MKDIR) $$shell_path($$OUT_PWD/release/minified)
+    copydata2p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/web)   $$shell_path($$OUT_PWD/release/minified/web)
+    copydata3p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/build) $$shell_path($$OUT_PWD/release/minified/build)
+    #copydata4p.commands = $(RM) $$shell_path($$OUT_PWD/debug/minified/web/compressed.*.pdf)
+
+    first.depends += copydata1p copydata2p copydata3p #copydata4p
+    export(first.depends)
+    export(copydata1p.commands)
+    export(copydata2p.commands)
+    export(copydata3p.commands)
+    #export(copydata4p.commands)
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
 }
 
 RESOURCES += resources.qrc
