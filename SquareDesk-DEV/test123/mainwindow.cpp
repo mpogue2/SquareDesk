@@ -247,10 +247,6 @@ MainWindow::MainWindow(QWidget *parent) :
         hotkeyMappings = prefsHotkeyMappings;
     }
 
-//    if (prefsManager.GetenableAutoMicsOff()) {
-//        currentInputVolume = getInputVolume();  // save current volume
-//    }
-
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
     macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
@@ -271,6 +267,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     ui->statusBar->showMessage("");
+
+    micStatusLabel = new QLabel("MICS OFF");
+    ui->statusBar->addPermanentWidget(micStatusLabel);
 
     setFontSizes();
 
@@ -5444,10 +5443,6 @@ void MainWindow::on_actionPreferences_triggered()
             // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
             airplaneMode(false);
         }
-
-//        if (prefsManager.GetenableAutoMicsOff()) {
-//            microphoneStatusUpdate();
-//        }
     }
 
     delete prefDialog;
@@ -6137,87 +6132,6 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
     QProcess::startDetached("xdg-open", args);
 #endif // ifdef Q_OS_LINUX
 }
-
-// ---------------------------------------------------------
-//int MainWindow::getInputVolume()
-//{
-//#if defined(Q_OS_MAC)
-//    QProcess getVolumeProcess;
-//    QStringList args;
-//    args << "-e";
-//    args << "set ivol to input volume of (get volume settings)";
-
-//    getVolumeProcess.start("osascript", args);
-//    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
-//    QString output(getVolumeProcess.readAllStandardOutput());
-
-//    int vol = output.trimmed().toInt();
-
-//    return(vol);
-//#endif
-
-//#if defined(Q_OS_WIN)
-//    return(-1);
-//#endif
-
-//#ifdef Q_OS_LINUX
-//    return(-1);
-//#endif
-//}
-
-//void MainWindow::setInputVolume(int newVolume)
-//{
-//#if defined(Q_OS_MAC)
-//    if (newVolume != -1) {
-//        QProcess getVolumeProcess;
-//        QStringList args;
-//        args << "-e";
-//        args << "set volume input volume " + QString::number(newVolume);
-
-//        getVolumeProcess.start("osascript", args);
-//        getVolumeProcess.waitForFinished();
-//        QString output(getVolumeProcess.readAllStandardOutput());
-//    }
-//#else
-//    Q_UNUSED(newVolume)
-//#endif
-
-//#if defined(Q_OS_WIN)
-//#endif
-
-//#ifdef Q_OS_LINUX
-//#endif
-//}
-
-//void MainWindow::muteInputVolume()
-//{
-//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-//    if (!prefsManager.GetenableAutoMicsOff()) {
-//        return;
-//    }
-
-//    int vol = getInputVolume();
-//    if (vol > 0) {
-//        // if not already muted, save the current volume (for later restore)
-//        currentInputVolume = vol;
-//        setInputVolume(0);
-//    }
-//}
-
-//void MainWindow::unmuteInputVolume()
-//{
-//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-//    if (!prefsManager.GetenableAutoMicsOff()) {
-//        return;
-//    }
-
-//    int vol = getInputVolume();
-//    if (vol > 0) {
-//        // the user has changed it, so don't muck with it!
-//    } else {
-//        setInputVolume(currentInputVolume);     // restore input from the mics
-//    }
-//}
 
 // ----------------------------------------------------------------------
 int MainWindow::selectedSongRow() {
@@ -7054,6 +6968,9 @@ void MainWindow::microphoneStatusUpdate() {
 
     int index = ui->tabWidget->currentIndex();
 
+    QString micsON("MICS ON (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
+    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
+
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
         if (voiceInputEnabled &&
@@ -7063,25 +6980,20 @@ void MainWindow::microphoneStatusUpdate() {
         }
         if (voiceInputEnabled && ps &&
             currentApplicationState == Qt::ApplicationActive) {
-
-
-            ui->statusBar->setStyleSheet("color: red");
-//            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
-            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
+            micStatusLabel->setStyleSheet("color: red");
+            micStatusLabel->setText(micsON);
             killVoiceInput = false;
         } else {
-            ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
+            micStatusLabel->setStyleSheet("color: black");
+            micStatusLabel->setText(micsOFF);
         }
     } else {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
-            ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
-//            muteInputVolume();                      // disable all input from the mics
+            micStatusLabel->setStyleSheet("color: black");
+            micStatusLabel->setText(micsOFF);
         } else {
-            ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled");
-//            muteInputVolume();                      // disable all input from the mics
+            micStatusLabel->setStyleSheet("color: black");
+            micStatusLabel->setText(micsOFF);
         }
     }
     if (killVoiceInput && ps)
@@ -7809,6 +7721,7 @@ void MainWindow::setFontSizes()
     font.setPointSize(preferredSmallFontSize);
     ui->tabWidget->setFont(font);  // most everything inherits from this one
     ui->statusBar->setFont(font);
+    micStatusLabel->setFont(font);
     ui->currentLocLabel->setFont(font);
     ui->songLengthLabel->setFont(font);
 
@@ -7982,6 +7895,7 @@ void MainWindow::adjustFontSizes()
     ui->currentMixLabel->setFixedWidth(newCurrentWidth);
 
     ui->statusBar->setFont(currentFont);
+    micStatusLabel->setFont(currentFont);
 
     ui->currentLocLabel->setFont(currentFont);
     ui->songLengthLabel->setFont(currentFont);

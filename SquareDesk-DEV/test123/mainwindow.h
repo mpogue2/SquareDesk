@@ -295,7 +295,6 @@ private slots:
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 
-
     void on_actionShow_All_Ages_triggered(bool checked);
     void on_actionPractice_triggered(bool checked);
     void on_actionMonday_triggered(bool checked);
@@ -473,6 +472,8 @@ private:
     QString getResourceFile(QString s);  // get a resource file, and return as string or "" if not found
 
     unsigned int screensaverSeconds;  // increments every second, disable screensaver every 60 seconds
+
+    QLabel *micStatusLabel;
 
     void saveLyrics();
     void saveLyricsAs();
