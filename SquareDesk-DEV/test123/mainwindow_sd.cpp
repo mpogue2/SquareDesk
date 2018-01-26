@@ -1250,6 +1250,14 @@ void MainWindow::undo_last_sd_action()
     sdthread->do_user_input("undo last call");
 }
 
+void MainWindow::undo_sd_to_row()
+{
+    while (--sdUndoToLine)
+    {
+        undo_last_sd_action();
+    }
+}
+
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
     QString selection;
@@ -1370,6 +1378,11 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     QAction action2("Undo", this);
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
     contextMenu.addAction(&action2);
+
+    sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
+    QAction action4("Go Back To Here", this);
+    connect(&action4, SIGNAL(triggered()), this, SLOT(undo_sd_to_row()));
+    contextMenu.addAction(&action4);
 
     QAction action3("Copy as HTML", this);
     connect(&action3, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));

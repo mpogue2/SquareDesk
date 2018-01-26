@@ -405,6 +405,7 @@ private slots:
     void copy_selection_from_tableWidgetCurrentSequence();
     void copy_selection_from_tableWidgetCurrentSequence_html();
 
+    void undo_sd_to_row();
     void undo_last_sd_action();
     void on_listWidgetSDOutput_customContextMenuRequested(const QPoint&);
     void copy_selection_from_listWidgetSDOutput();
@@ -754,6 +755,7 @@ private: // SD
     QStringList sdformation;
     QGraphicsScene sdscene;
     int sdLastLine;
+    int sdUndoToLine;
     bool sdWasNotDrawingPicture;
     bool sdLastLineWasResolve;
     bool sdOutputtingAvailableCalls;
