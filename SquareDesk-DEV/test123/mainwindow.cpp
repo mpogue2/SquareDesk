@@ -272,6 +272,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->statusBar->showMessage("");
 
+    micStatusLabel = new QLabel("MICS OFF");
+    ui->statusBar->addPermanentWidget(micStatusLabel);
+
     setFontSizes();
 
     this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
@@ -7054,6 +7057,9 @@ void MainWindow::microphoneStatusUpdate() {
 
     int index = ui->tabWidget->currentIndex();
 
+    QString micsON("MICS ON (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
+    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
+
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
         if (voiceInputEnabled &&
@@ -7063,25 +7069,20 @@ void MainWindow::microphoneStatusUpdate() {
         }
         if (voiceInputEnabled && ps &&
             currentApplicationState == Qt::ApplicationActive) {
-
-
-            ui->statusBar->setStyleSheet("color: red");
-//            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
-            ui->statusBar->showMessage("Microphone enabled for voice input (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
+            micStatusLabel->setStyleSheet("color: red");
+            micStatusLabel->setText(micsON);
             killVoiceInput = false;
         } else {
-            ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled (Voice level: " + currentSDVUILevel.toUpper() + ", Keyboard level: " + currentSDKeyboardLevel.toUpper() + ")");
+            micStatusLabel->setStyleSheet("color: black");
+            micStatusLabel->setText(micsOFF);
         }
     } else {
         if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
-            ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone will be enabled for voice input in SD tab");
-//            muteInputVolume();                      // disable all input from the mics
+            micStatusLabel->setStyleSheet("color: black");
+            micStatusLabel->setText(micsOFF);
         } else {
-            ui->statusBar->setStyleSheet("color: black");
-            ui->statusBar->showMessage("Microphone disabled");
-//            muteInputVolume();                      // disable all input from the mics
+            micStatusLabel->setStyleSheet("color: black");
+            micStatusLabel->setText(micsOFF);
         }
     }
     if (killVoiceInput && ps)
@@ -7809,6 +7810,7 @@ void MainWindow::setFontSizes()
     font.setPointSize(preferredSmallFontSize);
     ui->tabWidget->setFont(font);  // most everything inherits from this one
     ui->statusBar->setFont(font);
+    micStatusLabel->setFont(font);
     ui->currentLocLabel->setFont(font);
     ui->songLengthLabel->setFont(font);
 
@@ -7982,6 +7984,7 @@ void MainWindow::adjustFontSizes()
     ui->currentMixLabel->setFixedWidth(newCurrentWidth);
 
     ui->statusBar->setFont(currentFont);
+    micStatusLabel->setFont(currentFont);
 
     ui->currentLocLabel->setFont(currentFont);
     ui->songLengthLabel->setFont(currentFont);
