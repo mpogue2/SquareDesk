@@ -1307,7 +1307,14 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
 
     initialize_scene(scene,people, graphicsTextItemStatusBar);
     
-    QString selection("<ol>");
+    QString selection("<!DOCTYPE html>\n"
+                      "<html lang=\"en\">\n"
+                      "  <head>\n"
+                      "    <meta charset=\"utf-8\">\n"
+                      "    <title>title</title>\n"
+                      "  </head>\n"
+                      "  <body>\n"
+                      "    <ol>\n");
     for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
     {
         bool selected(false);
@@ -1363,7 +1370,9 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
         }
     }
 
-    selection += "</ol>";
+    selection += "    </ol>\n"
+        "  </body>\n"
+        "</html>\n";
     QApplication::clipboard()->setText(selection);
     
 }
