@@ -142,7 +142,7 @@ MAPPED_CACHE_FILE::MAPPED_CACHE_FILE(int numsourcefiles,
 
 #if defined(WIN32)
    innards->maphandle = (HANDLE) 0;
-   innards->filehandle = CreateFile(innards->mapfilename, GENERIC_READ,
+   innards->filehandle = CreateFileA(innards->mapfilename, GENERIC_READ,
                                     FILE_SHARE_READ, 0, OPEN_EXISTING,
                                     FILE_ATTRIBUTE_NORMAL, 0);
 
@@ -235,7 +235,7 @@ void MAPPED_CACHE_FILE::map_for_writing(int clientmapfilesizeinbytes)
 
    // Open the map file again, this time for writing.
 
-   innards->filehandle = CreateFile(innards->mapfilename, GENERIC_READ|GENERIC_WRITE,
+   innards->filehandle = CreateFileA(innards->mapfilename, GENERIC_READ|GENERIC_WRITE,
                                     0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 
    if (!innards->filehandle) return;

@@ -86,28 +86,28 @@ void RenderArea::setFormation(QString s)
 }
 
 void RenderArea::setCoupleColoringScheme(QString colorScheme) {
-    coupleColoringScheme = colorScheme;  // save as QString
-    if (colorScheme == "Normal" || colorScheme == "Color only") {
-        coupleColor[COUPLE1] = COUPLE1COLOR;
-        coupleColor[COUPLE2] = COUPLE2COLOR;
-        coupleColor[COUPLE3] = COUPLE3COLOR;
-        coupleColor[COUPLE4] = COUPLE4COLOR;
-        mentalImageMode = false;
-    } else if (colorScheme == "Mental image") {
-        coupleColor[COUPLE1] = COUPLE1COLOR;
-        coupleColor[COUPLE2] = GREYCOUPLECOLOR;
-        coupleColor[COUPLE3] = GREYCOUPLECOLOR;
-        coupleColor[COUPLE4] = GREYCOUPLECOLOR;
-        mentalImageMode = true;
-    } else {
-        // Sight
-        coupleColor[COUPLE1] = COUPLE1COLOR;
-        coupleColor[COUPLE2] = GREYCOUPLECOLOR;
-        coupleColor[COUPLE3] = GREYCOUPLECOLOR;
-        coupleColor[COUPLE4] = COUPLE4COLOR;
-        mentalImageMode = false;
-    }
-    update();  // re-render the area
+//    coupleColoringScheme = colorScheme;  // save as QString
+//    if (colorScheme == "Normal" || colorScheme == "Color only") {
+//        coupleColor[COUPLE1] = COUPLE1COLOR;
+//        coupleColor[COUPLE2] = COUPLE2COLOR;
+//        coupleColor[COUPLE3] = COUPLE3COLOR;
+//        coupleColor[COUPLE4] = COUPLE4COLOR;
+//        mentalImageMode = false;
+//    } else if (colorScheme == "Mental image") {
+//        coupleColor[COUPLE1] = COUPLE1COLOR;
+//        coupleColor[COUPLE2] = GREYCOUPLECOLOR;
+//        coupleColor[COUPLE3] = GREYCOUPLECOLOR;
+//        coupleColor[COUPLE4] = GREYCOUPLECOLOR;
+//        mentalImageMode = true;
+//    } else {
+//        // Sight
+//        coupleColor[COUPLE1] = COUPLE1COLOR;
+//        coupleColor[COUPLE2] = GREYCOUPLECOLOR;
+//        coupleColor[COUPLE3] = GREYCOUPLECOLOR;
+//        coupleColor[COUPLE4] = COUPLE4COLOR;
+//        mentalImageMode = false;
+//    }
+//    update();  // re-render the area
 }
 
 

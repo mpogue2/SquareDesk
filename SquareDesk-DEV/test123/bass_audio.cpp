@@ -219,7 +219,8 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
         // BASS_ChannelGetLevel takes 20ms from the channel
         QWORD len = BASS_ChannelSeconds2Bytes(chan, block/1000.0 - 0.02);  // always takes a 0.02s level sample
 
-        char data[len];  // data sink
+        //char data[len];  // data sink
+        char *data = new char[len];
         DWORD level, left, right;
 
         int j = 0;

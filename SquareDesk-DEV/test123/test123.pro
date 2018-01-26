@@ -5,17 +5,24 @@
 #-------------------------------------------------
 
 QT       += core gui sql network printsupport svg
-PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 
 macx {
     QT += webenginewidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
-win32 {
+
+win32:CONFIG(debug, debug|release): {
     QT += webenginewidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/debug/sdlib.lib
+}
+win32:CONFIG(release, debug|release): {
+    QT += webenginewidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/release/sdlib.lib
 }
 
 unix:!macx {
     QT += webkitwidgets
+    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -101,6 +108,12 @@ HEADERS += ../qpdfjs/src/communicator.h
 INCLUDEPATH += $$PWD/../qpdfjs
 }
 
+win32 {
+SOURCES += ../qpdfjs/src/communicator.cpp
+HEADERS += ../qpdfjs/src/communicator.h
+INCLUDEPATH += $$PWD/../qpdfjs
+}
+
 FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
@@ -128,23 +141,32 @@ win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -l
 else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
 # macx: see below...
 
-win32 {
+win32:CONFIG(debug, debug|release): {
     RC_FILE = desk1d.rc
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
     INCLUDEPATH += $$PWD/../taglib/binaries/include
 
-    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
+    LIBS += -L$$OUT_PWD/../sdlib/debug -lsdlib
+}
+win32:CONFIG(release, debug|release): {
+    RC_FILE = desk1d.rc
+    LIBS += -L$$OUT_PWD/../taglib -ltaglib
+    INCLUDEPATH += $$PWD/../taglib/binaries/include
+
+    LIBS += -L$$OUT_PWD/../sdlib/release -lsdlib
 }
 
 # copy the 3 libbass DLLs and the allcalls.csv file to the executable directory (DEBUG ONLY)
 win32:CONFIG(debug, debug|release): {
     copydata.commands = xcopy /q /y $$shell_path($$PWD/windll/*.dll) $$shell_path($$OUT_PWD\debug)
     copydata3.commands = xcopy /q /y $$shell_path($$PWD/allcalls.csv) $$shell_path($$OUT_PWD\debug)
-    first.depends = $(first) copydata copydata3
+    copydata30.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\debug)
+    first.depends = $(first) copydata copydata3 copydata30
     export(first.depends)
     export(copydata.commands)
     export(copydata3.commands)
-    QMAKE_EXTRA_TARGETS += first copydata copydata3
+    export(copydata30.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata3 copydata30
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
@@ -162,11 +184,13 @@ win32:CONFIG(debug, debug|release): {
 win32:CONFIG(release, debug|release): {
     copydata.commands = xcopy /q /y $$shell_path($$PWD/windll/*.dll) $$shell_path($$OUT_PWD\release)
     copydata3.commands = xcopy /q /y $$shell_path($$PWD/allcalls.csv) $$shell_path($$OUT_PWD\release)
-    first.depends = $(first) copydata copydata3
+    copydata30.commands = xcopy /q /y $$shell_path($$PWD/sd_calls.dat) $$shell_path($$OUT_PWD\release)
+    first.depends = $(first) copydata copydata3 copydata30
     export(first.depends)
     export(copydata.commands)
     export(copydata3.commands)
-    QMAKE_EXTRA_TARGETS += first copydata copydata3
+    export(copydata30.commands)
+    QMAKE_EXTRA_TARGETS += first copydata copydata3 copydata30
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
@@ -389,6 +413,21 @@ win32:CONFIG(debug, debug|release): {
     export(copydata12h.commands)
 
     QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+
+    # For the PDF viewer -----------------
+    copydata1p.commands = if not exist $$shell_path($$OUT_PWD/debug/minified) $(MKDIR) $$shell_path($$OUT_PWD/debug/minified)
+    copydata2p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/web)   $$shell_path($$OUT_PWD/debug/minified/web)
+    copydata3p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/build) $$shell_path($$OUT_PWD/debug/minified/build)
+    #copydata4p.commands = $(RM) $$shell_path($$OUT_PWD/debug/minified/web/compressed.*.pdf)
+
+    first.depends += copydata1p copydata2p copydata3p #copydata4p
+    export(first.depends)
+    export(copydata1p.commands)
+    export(copydata2p.commands)
+    export(copydata3p.commands)
+    #export(copydata4p.commands)
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
+
 }
 
 win32:CONFIG(release, debug|release): {
@@ -447,6 +486,21 @@ win32:CONFIG(release, debug|release): {
     export(copydata12h.commands)
 
     QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+
+    # For the PDF viewer -----------------
+    # For the PDF viewer -----------------
+    copydata1p.commands = if not exist $$shell_path($$OUT_PWD/release/minified) $(MKDIR) $$shell_path($$OUT_PWD/release/minified)
+    copydata2p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/web)   $$shell_path($$OUT_PWD/release/minified/web)
+    copydata3p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/build) $$shell_path($$OUT_PWD/release/minified/build)
+    #copydata4p.commands = $(RM) $$shell_path($$OUT_PWD/debug/minified/web/compressed.*.pdf)
+
+    first.depends += copydata1p copydata2p copydata3p #copydata4p
+    export(first.depends)
+    export(copydata1p.commands)
+    export(copydata2p.commands)
+    export(copydata3p.commands)
+    #export(copydata4p.commands)
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
 }
 
 RESOURCES += resources.qrc

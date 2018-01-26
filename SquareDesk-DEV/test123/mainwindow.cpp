@@ -66,7 +66,7 @@
 #include "startupwizard.h"
 #include "downloadmanager.h"
 
-#if defined(Q_OS_MAC)
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "src/communicator.h"
 #endif
 
@@ -7193,7 +7193,13 @@ void MainWindow::initReftab() {
 #else
                 webview[numWebviews] = new QWebView();
 #endif
-                QString indexFileURL = "file://" + filename + whichHTM;
+
+//                QString indexFileURL = "file://" + filename + whichHTM;
+#if defined(Q_OS_WIN32)
+                QString indexFileURL = "file:///" + filename + whichHTM;  // Yes, Windows is special
+#else
+                QString indexFileURL = "file://" + filename + whichHTM;   // UNIX-like OS's only need one slash.
+#endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
                 documentsTab->addTab(webview[numWebviews], tabname);
@@ -7212,7 +7218,12 @@ void MainWindow::initReftab() {
 #else
                 webview[numWebviews] = new QWebView();
 #endif
-                QString indexFileURL = "file://" + filename;
+
+#if defined(Q_OS_WIN32)
+                QString indexFileURL = "file:///" + filename;  // Yes, Windows is special: file:///Y:/Dropbox/__squareDanceMusic/reference/100.Broken Hearts.txt
+#else
+                QString indexFileURL = "file://" + filename;   // UNIX-like OS's only need one slash.
+#endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
                 documentsTab->addTab(webview[numWebviews], tabname);
@@ -7441,7 +7452,7 @@ void MainWindow::sortByDefaultSortOrder()
 void MainWindow::sdActionTriggered(QAction * action) {
 //    qDebug() << "***** sdActionTriggered()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
-    renderArea->setCoupleColoringScheme(action->text());
+//    renderArea->setCoupleColoringScheme(action->text());  // removed: causes crash on Win32, and not needed
     setSDCoupleColoringScheme(action->text());
 }
 
