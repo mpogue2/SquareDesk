@@ -247,10 +247,6 @@ MainWindow::MainWindow(QWidget *parent) :
         hotkeyMappings = prefsHotkeyMappings;
     }
 
-//    if (prefsManager.GetenableAutoMicsOff()) {
-//        currentInputVolume = getInputVolume();  // save current volume
-//    }
-
     // Disable ScreenSaver while SquareDesk is running
 #if defined(Q_OS_MAC)
     macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
@@ -5447,10 +5443,6 @@ void MainWindow::on_actionPreferences_triggered()
             // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
             airplaneMode(false);
         }
-
-//        if (prefsManager.GetenableAutoMicsOff()) {
-//            microphoneStatusUpdate();
-//        }
     }
 
     delete prefDialog;
@@ -6140,87 +6132,6 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
     QProcess::startDetached("xdg-open", args);
 #endif // ifdef Q_OS_LINUX
 }
-
-// ---------------------------------------------------------
-//int MainWindow::getInputVolume()
-//{
-//#if defined(Q_OS_MAC)
-//    QProcess getVolumeProcess;
-//    QStringList args;
-//    args << "-e";
-//    args << "set ivol to input volume of (get volume settings)";
-
-//    getVolumeProcess.start("osascript", args);
-//    getVolumeProcess.waitForFinished(); // sets current thread to sleep and waits for pingProcess end
-//    QString output(getVolumeProcess.readAllStandardOutput());
-
-//    int vol = output.trimmed().toInt();
-
-//    return(vol);
-//#endif
-
-//#if defined(Q_OS_WIN)
-//    return(-1);
-//#endif
-
-//#ifdef Q_OS_LINUX
-//    return(-1);
-//#endif
-//}
-
-//void MainWindow::setInputVolume(int newVolume)
-//{
-//#if defined(Q_OS_MAC)
-//    if (newVolume != -1) {
-//        QProcess getVolumeProcess;
-//        QStringList args;
-//        args << "-e";
-//        args << "set volume input volume " + QString::number(newVolume);
-
-//        getVolumeProcess.start("osascript", args);
-//        getVolumeProcess.waitForFinished();
-//        QString output(getVolumeProcess.readAllStandardOutput());
-//    }
-//#else
-//    Q_UNUSED(newVolume)
-//#endif
-
-//#if defined(Q_OS_WIN)
-//#endif
-
-//#ifdef Q_OS_LINUX
-//#endif
-//}
-
-//void MainWindow::muteInputVolume()
-//{
-//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-//    if (!prefsManager.GetenableAutoMicsOff()) {
-//        return;
-//    }
-
-//    int vol = getInputVolume();
-//    if (vol > 0) {
-//        // if not already muted, save the current volume (for later restore)
-//        currentInputVolume = vol;
-//        setInputVolume(0);
-//    }
-//}
-
-//void MainWindow::unmuteInputVolume()
-//{
-//    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-//    if (!prefsManager.GetenableAutoMicsOff()) {
-//        return;
-//    }
-
-//    int vol = getInputVolume();
-//    if (vol > 0) {
-//        // the user has changed it, so don't muck with it!
-//    } else {
-//        setInputVolume(currentInputVolume);     // restore input from the mics
-//    }
-//}
 
 // ----------------------------------------------------------------------
 int MainWindow::selectedSongRow() {
