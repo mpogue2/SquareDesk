@@ -3099,7 +3099,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             maybeMainWindow->do_sd_tab_completion();
             return true;
         }
-        else if ( !(ui->labelSearch->hasFocus() ||
+        else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
                (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||
@@ -3114,7 +3114,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //               maybeMainWindow->webview[0]->hasFocus() ||      // EXPERIMENTAL FIX FIX FIX, will crash if webview[n] not exist yet
                maybeMainWindow->someWebViewHasFocus() ) ||           // safe now (won't crash, if there are no webviews!)
 
-             ( (ui->labelSearch->hasFocus() ||
+             ( (ui->labelSearch->hasFocus() ||          // OR IF A TEXT HANDLING WIDGET HAS FOCUS AND ESC/` IS PRESSED
                 ui->typeSearch->hasFocus() ||
                 ui->titleSearch->hasFocus() ||
                 ui->dateTimeEditIntroTime->hasFocus() ||
@@ -3129,13 +3129,24 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                  || KeyEvent->key() == Qt::Key_QuoteLeft
 #endif
                                                           ) )  ||
-
+                  // OR, IF ONE OF THE SEARCH FIELDS HAS FOCUS, AND RETURN/UP/DOWN_ARROW IS PRESSED
              ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
                (KeyEvent->key() == Qt::Key_Return || KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down)
              )
+                  // These next 3 help work around a problem where going to a different non-SDesk window and coming back
+                  //   puts the focus into a the Type field, where there was NO FOCUS before.  But, that field usually doesn't
+                  //   have any characters in it, so if the user types SPACE, the right thing happens, and it goes back to NO FOCUS.
+                  // I think this is a reasonable tradeoff right now.
+                  // OR, IF THE LABEL SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
+                  || (ui->labelSearch->hasFocus() && ui->labelSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  // OR, IF THE TYPE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
+                  || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  // OR, IF THE TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
+                  || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
 //            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
+            // THEN HANDLE IT AS A SPECIAL KEY
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
 
