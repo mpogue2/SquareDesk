@@ -3123,7 +3123,12 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->lineEditCountDownTimer->hasFocus() ||
                 ui->lineEditSDInput->hasFocus() || 
                 ui->textBrowserCueSheet->hasFocus()) &&
-                (KeyEvent->key() == Qt::Key_Escape) )  ||
+                (KeyEvent->key() == Qt::Key_Escape
+#if defined(Q_OS_MACOS)
+                 // on MAC OS X, backtick is equivalent to ESC (e.g. devices that have TouchBar)
+                 || KeyEvent->key() == Qt::Key_QuoteLeft
+#endif
+                                                          ) )  ||
 
              ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
                (KeyEvent->key() == Qt::Key_Return || KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down)
@@ -3180,6 +3185,10 @@ bool MainWindow::handleKeypress(int key, QString text)
     switch (key) {
 
         case Qt::Key_Escape:
+#if defined(Q_OS_MACOS)
+        // on MAC OS X, backtick is equivalent to ESC (e.g. devices that have TouchBar)
+        case Qt::Key_QuoteLeft:
+#endif
             // ESC is special:  it always gets you out of editing a search field or timer field, and it can
             //   also STOP the music (second press, worst case)
 
