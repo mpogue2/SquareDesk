@@ -1299,7 +1299,7 @@ void MainWindow::copy_selection_from_listWidgetSDOutput()
     QApplication::clipboard()->setText(selection);
 }
 
-void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
+QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphics_as_text)
 {
     QGraphicsScene scene;
     QList<SDDancer> people;
@@ -1311,13 +1311,14 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
                       "<html lang=\"en\">\n"
                       "  <head>\n"
                       "    <meta charset=\"utf-8\">\n"
-                      "    <title>title</title>\n"
+                      "    <title>Square Dance Sequence</title>\n"
                       "  </head>\n"
                       "  <body>\n"
+                      "    <h1>Square Dance Sequence</h1>\n"
                       "    <ol>\n");
     for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
     {
-        bool selected(false);
+        bool selected(all_fields);
         for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
@@ -1329,7 +1330,7 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
         if (selected)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
-            selection += "<li>" + item->text().toHtmlEscaped();
+            selection += "<li><b>" + item->text().toHtmlEscaped() + "</b>";
             QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,1);
             if (1 || imageItem->isSelected())
             {
@@ -1337,31 +1338,39 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
                 if (!v.isNull())
                 {
                     QString formation(v.toString());
+
                     QStringList formationList = formation.split("\n");
                     if (formationList.size() > 0)
                     {
-                        graphicsTextItemStatusBar->setPlainText(formationList[0]);
                         QString formationName = formationList[0];
                         formationList.removeFirst();
-                        draw_scene(formationList, people);
-                        QBuffer svgText;
-                        svgText.open(QBuffer::ReadWrite);
-                        QSvgGenerator svgGen;
-                        svgGen.setOutputDevice(&svgText);
-                        //svgGen.setFileName("/home/danlyke/foo.svg");
-                        svgGen.setSize(QSize(halfBackgroundSize * 2,
-                                             halfBackgroundSize * 2));
-                        svgGen.setTitle(formationName);
-                        svgGen.setDescription(formation.toHtmlEscaped());
-
+                        
+                        if (graphics_as_text)
                         {
-                            QPainter painter( &svgGen );
-                            scene.render( &painter );
-                            painter.end();
+                            selection += ": " + formationName.toHtmlEscaped();
+                            formationList.removeFirst();
+                            selection += "<pre>" + formationList.join("\n").toHtmlEscaped() + "</pre>";
                         }
-                        svgText.seek(0);
-                        QString s(svgText.readAll());
-                        selection += "<br>" + s;
+                        else
+                        {
+                            draw_scene(formationList, people);
+                            QBuffer svgText;
+                            svgText.open(QBuffer::ReadWrite);
+                            QSvgGenerator svgGen;
+                            svgGen.setOutputDevice(&svgText);
+                            svgGen.setSize(QSize(halfBackgroundSize * 2,
+                                                 halfBackgroundSize * 2));
+                            svgGen.setTitle(formationName);
+                            svgGen.setDescription(formation.toHtmlEscaped());
+                            {
+                                QPainter painter( &svgGen );
+                                scene.render( &painter );
+                                painter.end();
+                            }
+                            svgText.seek(0);
+                            QString s(svgText.readAll());
+                            selection += "<br>" + s;
+                        }
                     }
                 }
             }
@@ -1373,6 +1382,12 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
     selection += "    </ol>\n"
         "  </body>\n"
         "</html>\n";
+    return selection;
+}
+
+void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
+{
+    QString selection(get_current_sd_sequence_as_html(false, false));
     QApplication::clipboard()->setText(selection);
     
 }

@@ -8349,16 +8349,8 @@ void MainWindow::on_actionFilePrint_triggered()
         paperSize.setWidth(printer.width());
         paperSize.setHeight(printer.height());
         doc.setPageSize(paperSize);
-
-        QString contents("<html><head><title>Square Dance Sequence</title>\n"
-                         "<body><h1>Square Dance Sequence</h1>\n");
-        for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
-             ++row)
-        {
-            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
-            contents += item->text() + "<br>\n";
-        }
-        contents += "</body></html>\n";
+        
+        QString contents(get_current_sd_sequence_as_html(true, true));
         doc.setHtml(contents);
         doc.print(&printer);
     } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
@@ -8476,7 +8468,7 @@ void MainWindow::saveLyricsAs()
     QString filename = QFileDialog::getSaveFileName(this,
                                                     tr("Save"), // TODO: this could say Lyrics or Patter
                                                     maybeFilename,
-                                                    tr("HTML (*.html)"));
+                                                    tr("HTML (*.html *.htm)"));
     if (!filename.isNull())
     {
         writeCuesheet(filename);
@@ -8493,18 +8485,27 @@ void MainWindow::saveSequenceAs()
     QString sequenceFilename = QFileDialog::getSaveFileName(this,
                                                     tr("Save SD Sequence"),
                                                     musicRootPath + "/sd/sequence.txt",
-                                                    tr("TXT (*.txt)"));
+                                                    tr("TXT (*.txt);;HTML (*.html *.htm)"));
     if (!sequenceFilename.isNull())
     {
         QFile file(sequenceFilename);
         if ( file.open(QIODevice::WriteOnly) )
         {
             QTextStream stream( &file );
-            for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
-                 ++row)
+            if (sequenceFilename.endsWith(".html", Qt::CaseInsensitive)
+                || sequenceFilename.endsWith(".htm", Qt::CaseInsensitive))
             {
-                QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
-                stream << item->text() + "\n";
+                QTextStream stream( &file );
+                stream << get_current_sd_sequence_as_html(true, false);
+            }
+            else
+            {
+                for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
+                     ++row)
+                {
+                    QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+                    stream << item->text() + "\n";
+                }
             }
             stream.flush();
             file.close();

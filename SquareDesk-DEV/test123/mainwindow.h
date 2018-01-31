@@ -766,6 +766,7 @@ private: // SD
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
+    QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
     void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
     void set_current_sequence_icons_visible(bool visible);
 public:
