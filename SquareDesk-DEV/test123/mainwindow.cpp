@@ -2565,9 +2565,11 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
             float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
 
-            // NOTE: only auto-scroll when the lyrics are LOCKED (if not locked, you're probably editing)
+            // NOTE: only auto-scroll when the lyrics are LOCKED (if not locked, you're probably editing).
+            //   AND you must be playing.  If you're not playing, we're not going to override the InfoBar position.
             if (autoScrollLyricsEnabled &&
-                    !ui->toolButtonEditLyrics->isChecked()) {
+                    !ui->toolButtonEditLyrics->isChecked() &&
+                    currentState == kPlaying) {
                 // lyrics scrolling at the same time as the InfoBar
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
             }
