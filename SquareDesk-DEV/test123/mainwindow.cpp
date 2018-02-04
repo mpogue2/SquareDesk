@@ -1171,6 +1171,9 @@ void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
     ui->pushButtonCueSheetEditBold->setEnabled(checked);
     ui->pushButtonCueSheetEditItalic->setEnabled(checked);
 
+    ui->actionBold->setEnabled(checked);
+    ui->actionItalic->setEnabled(checked);
+
     ui->pushButtonCueSheetClearFormatting->setEnabled(checked);
 
     if (checked) {
@@ -9236,4 +9239,22 @@ void MainWindow::on_actionClear_Recent_triggered()
 
     // update the song table
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
+}
+
+void MainWindow::on_actionBold_triggered()
+{
+    bool isBoldNow = ui->pushButtonCueSheetEditBold->isChecked();
+    bool isEditable = ui->toolButtonEditLyrics->isChecked();
+    if (isEditable) {
+        ui->textBrowserCueSheet->setFontWeight(isBoldNow ? QFont::Normal : QFont::Bold);
+    }
+}
+
+void MainWindow::on_actionItalic_triggered()
+{
+    bool isItalicsNow = ui->pushButtonCueSheetEditItalic->isChecked();
+    bool isEditable = ui->toolButtonEditLyrics->isChecked();
+    if (isEditable) {
+        ui->textBrowserCueSheet->setFontItalic(!isItalicsNow);
+    }
 }

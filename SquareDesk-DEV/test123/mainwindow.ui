@@ -1948,6 +1948,15 @@
     <property name="title">
      <string>Lyrics</string>
     </property>
+    <widget class="QMenu" name="menuFont">
+     <property name="title">
+      <string>Font</string>
+     </property>
+     <addaction name="actionBold"/>
+     <addaction name="actionItalic"/>
+    </widget>
+    <addaction name="menuFont"/>
+    <addaction name="separator"/>
     <addaction name="actionLyricsCueSheetRevert_Edits"/>
     <addaction name="separator"/>
     <addaction name="actionAuto_scroll_during_playback"/>
@@ -2387,7 +2396,7 @@
     <string>Enable voice input (Plus only)</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+I</string>
+    <string>Ctrl+;</string>
    </property>
   </action>
   <action name="actionAuto_scroll_during_playback">
@@ -3074,6 +3083,28 @@
   <action name="actionClear_Recent">
    <property name="text">
     <string>Clear Recent</string>
+   </property>
+  </action>
+  <action name="actionBold">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Bold</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionItalic">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Italic</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
  </widget>

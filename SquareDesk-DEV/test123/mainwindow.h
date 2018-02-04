@@ -442,6 +442,10 @@ private slots:
 
     void on_actionClear_Recent_triggered();
 
+    void on_actionBold_triggered();
+
+    void on_actionItalic_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
