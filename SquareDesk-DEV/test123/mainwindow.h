@@ -462,6 +462,9 @@ public:
     void highlight_sd_replaceables();
 
 private:
+
+    bool flashCallsVisible;
+
     // Lyrics editor -------
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0}; // matches blue component of CSS definition
     charsType FG_BG_to_type(QColor fg, QColor bg);

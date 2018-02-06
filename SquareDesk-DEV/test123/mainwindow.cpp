@@ -221,6 +221,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
+    flashCallsVisible = false;
+
     for (size_t i = 0; i < sizeof(webview) / sizeof(*webview); ++i)
         webview[i] = 0;
     
@@ -2664,9 +2666,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
         // FLASH CALL FEATURE ======================================
-        // TODO: do this only if patter? -------------------
-        // TODO: right now this is hard-coded for Plus calls.  Need to add a preference to specify other levels (not
-        //   mutually exclusive, either).
         int flashCallEverySeconds = 10;
         if (currentPos_i % flashCallEverySeconds == 0 && currentPos_i != 0) {
             // Now pick a new random number, but don't pick the same one twice in a row.
@@ -2683,10 +2682,24 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                  // TODO: don't show any random calls until at least the end of the first N seconds
                  ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
                  ui->nowPlayingLabel->setText(flashCalls[randCallIndex]);
+                 flashCallsVisible = true;
              } else {
-                 ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                 ui->nowPlayingLabel->setText(currentSongTitle);
+                 // flash calls on the list, but not playing, or not patter
+                 if (flashCallsVisible) {
+                     // if they were visible, they're not now
+                     ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+                     ui->nowPlayingLabel->setText(currentSongTitle);
+                     flashCallsVisible = false;
+                 }
              }
+        } else {
+            // no flash calls on the list
+            if (flashCallsVisible) {
+                // if they were visible, they're not now
+                ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+                ui->nowPlayingLabel->setText(currentSongTitle);
+                flashCallsVisible = false;
+            }
         }
 #endif
     }
