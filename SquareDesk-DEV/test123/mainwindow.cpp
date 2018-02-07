@@ -3761,7 +3761,7 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
     {
         QString s1 = l1.join("-");
         QString s2 = l2.join("-");
-        return score * 500 - 100 * (abs(l1.length()) - l2.length());
+        return score * 500 + 100 * (abs(l1.length()) - l2.length());
     }
     else
         return 0;
