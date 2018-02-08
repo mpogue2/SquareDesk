@@ -3733,6 +3733,7 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
     while (i1 < l1.length() &&  i2 < l2.length())
     {
         int comp = l1[i1].compare(l2[i2], Qt::CaseInsensitive);
+
         if (comp == 0)
         {
             ++score;
@@ -3749,14 +3750,12 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
         }
     }
 
-//    qDebug() << "Score" << score << " / " << l1.length() << "/" << l2.length() << " s1: " << l1.join("-") << " s2: " << l2.join("-");
-
     if (l1.length() >= 2 && l2.length() >= 2 &&
         (
             (score > ((l1.length() + l2.length()) / 4))
             || (score >= l1.length())                       // all of l1 words matched something in l2
             || (score >= l2.length())                       // all of l2 words matched something in l1
-            )
+            || score >= 4)
         )
     {
         QString s1 = l1.join("-");
