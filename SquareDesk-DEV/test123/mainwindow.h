@@ -776,6 +776,9 @@ private: // SD
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
     void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
     void set_current_sequence_icons_visible(bool visible);
+    QString sdLastFormationName;
+
+    void set_sd_last_formation_name(const QString&);    
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);

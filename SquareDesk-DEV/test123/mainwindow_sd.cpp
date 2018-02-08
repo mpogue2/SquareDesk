@@ -387,14 +387,20 @@ void MainWindow::on_sd_set_window_title(QString /* str */)
 {
 }
 
+void MainWindow::set_sd_last_formation_name(const QString &str)
+{
+    sdLastFormationName = str;
+    graphicsTextItemSDStatusBarText->setPlainText(sdLastFormationName.compare("(any setup)") == 0 ? "" : sdLastFormationName);
+}
+
 void MainWindow::on_sd_update_status_bar(QString str)
 {
     if (!str.compare("<startup>"))
     {
         sdformation = initialDancerLocations;
     }
-    graphicsTextItemSDStatusBarText->setPlainText(str);
-    QString formation(graphicsTextItemSDStatusBarText->toPlainText() +
+    set_sd_last_formation_name(str);
+    QString formation(sdLastFormationName +
                       "\n" + sdformation.join("\n"));
     if (!sdformation.empty())
     {
@@ -686,7 +692,7 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetIte
         QStringList formationList = formation.split("\n");
         if (formationList.size() > 0)
         {
-            graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
+            set_sd_last_formation_name(formationList[0]);            
             formationList.removeFirst();
             draw_scene(formationList, sdpeople);
         }
@@ -754,7 +760,7 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
             {
-                graphicsTextItemSDStatusBarText->setPlainText(formationList[0]);
+                set_sd_last_formation_name(formationList[0]);            
                 formationList.removeFirst();
                 draw_scene(formationList, sdpeople);
             }
