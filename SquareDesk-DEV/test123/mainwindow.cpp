@@ -373,6 +373,7 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->setFixedSize(QSize(110,110));
     analogClock->setEnabled(true);
     analogClock->setVisible(true);
+    ui->gridLayout_2->setAlignment(analogClock, Qt::AlignHCenter);  // center the clock horizontally
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
@@ -7842,7 +7843,8 @@ void MainWindow::adjustFontSizes()
     float scaleIcons = 24.0/13.0;
 
     unsigned int warningLabelSize[8] = {16,20,23,26, 29,32,35,38};  // basically 20/13 * pointSize
-    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
+//    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
+    unsigned int warningLabelWidth[8] = {65,75,85,95, 105,115,125,135};  // basically 20/13 * pointSize * 5.5
 
     unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
 
