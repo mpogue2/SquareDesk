@@ -199,8 +199,17 @@ RowDefinition song_play_rows[] =
 {
     RowDefinition("song_rowid", "int references songs(rowid)"),
     RowDefinition("session_rowid", "int references session(rowid)"),
+
+// Dan's fix #1:
+//    -             "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
+//    +             "CREATE INDEX song_play_song_session_played_idx ON songs(song_rowid,session_rowid,played_on)"),
+//                   RowDefinition(NULL, NULL),
+//
+//  RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
+//                "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
+//
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
-                  "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
+                  "CREATE INDEX song_play_song_session_played_idx ON songs(song_rowid,session_rowid,played_on)"),
     RowDefinition(NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
@@ -210,8 +219,19 @@ RowDefinition call_taught_on_rows[] =
 {
     RowDefinition("dance_program", "TEXT"),
     RowDefinition("call_name", "TEXT"),
+// Dan's fix #2:
+//    -                  "CREATE INDEX
+//      call_taught_on_dance_program_call_name_session ON
+//      call_taught_on(dance_program, call_name, session_rowid"),
+//    +                  "CREATE INDEX
+//      call_taught_on_dance_program_call_name_session ON
+//      call_taught_on(dance_program, call_name, session_rowid)"),
+//
+//    RowDefinition("session_rowid", "INT REFERENCES session(rowid)",
+//                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid"),
+//
     RowDefinition("session_rowid", "INT REFERENCES session(rowid)",
-                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid"),
+                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid)"),
     RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
     RowDefinition(NULL, NULL),
 };
