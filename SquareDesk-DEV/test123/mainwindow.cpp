@@ -4054,7 +4054,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
             // ------------------------------------------------------------------
             // get pre-made lyrics.template.html file, if it exists
             QString lyricsTemplate = getResourceFile("lyrics.template.html");
-            qDebug() << "lyricsTemplate: " << lyricsTemplate;
+//            qDebug() << "lyricsTemplate: " << lyricsTemplate;
             if (lyricsTemplate.isEmpty()) {
                 ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
                 loadedCuesheetNameWithPath = "";
@@ -4678,6 +4678,8 @@ void MainWindow::loadMusicList()
     }
     bool show_all_ages = ui->actionShow_All_Ages->isChecked();
 
+//    QElapsedTimer t;
+//    t.start();
     while (iter.hasNext()) {
         QString s = iter.next();
 
@@ -4691,13 +4693,19 @@ void MainWindow::loadMusicList()
                 foundExtension = true;
             }
         }
-        if (!foundExtension)
+        if (!foundExtension) {
             continue;
+        }
 
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         s = sl1[1];  // everything else
         QString origPath = s;  // for when we double click it later on...
+
+        // double check that type is non-music type (see Issue #298)
+        if (type == "reference" || type == "soundfx" || type == "sd") {
+            continue;
+        }
 
         QFileInfo fi(s);
 
@@ -4822,6 +4830,8 @@ void MainWindow::loadMusicList()
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
     ui->statusBar->showMessage(msg1);
+
+//    qDebug() << "Time to loadMusicList:" << t.elapsed() << "ms";
 }
 
 QString processSequence(QString sequence,
