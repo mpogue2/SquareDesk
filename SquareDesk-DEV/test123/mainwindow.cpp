@@ -2168,8 +2168,9 @@ void MainWindow::on_playButton_clicked()
         return;  // if there is no song loaded, no point in toggling anything.
     }
 
-    cBass.Play();  // currently paused, so start playing
     if (currentState == kStopped || currentState == kPaused) {
+        cBass.Play();  // currently stopped or paused, so start playing
+
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
         randomizeFlashCall();
 
@@ -2218,11 +2219,14 @@ void MainWindow::on_playButton_clicked()
     }
     else {
         // TODO: we might want to restore focus here....
+        // currently playing, so pause playback
+        cBass.Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
         currentState = kPaused;
         ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
+
     if (ui->checkBoxStartOnPlay->isChecked()) {
         on_pushButtonCountUpTimerStartStop_clicked();
     }

@@ -80,9 +80,10 @@ public:
     void StreamGetPosition(void);
 
     //Controls
-    void Play(void);
-    void Stop(void);
-    void FadeOutAndPause(void);
+    void Play(void);  // forces stream to play
+    void Stop(void);  // forces stream to stop playback, and rewinds to 0
+    void Pause(void); // forces stream to stop playback
+    void FadeOutAndPause(void);  // 6 second fade, then pause
 
     int StreamGetVuMeter(void); // get VU meter level (mono)
 
