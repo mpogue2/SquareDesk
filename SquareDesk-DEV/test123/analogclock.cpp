@@ -103,8 +103,8 @@ void AnalogClock::redrawTimerExpired()
                 // AND if also it's not break or the break timer is disabled
                 //timerLabel->setVisible(false);  // make the timerLabel disappear
                 // it's either a singing call, or we're stopped.  Leave it VISIBLE.
-                timerLabel->setAlignment(Qt::AlignHCenter);
-                timerLabelCuesheet->setAlignment(Qt::AlignHCenter);
+                timerLabel->setAlignment(Qt::AlignCenter);
+                timerLabelCuesheet->setAlignment(Qt::AlignCenter);
                 timerLabel->setStyleSheet("QLabel { color : red; }");
                 timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");
 
@@ -121,15 +121,17 @@ void AnalogClock::redrawTimerExpired()
                 // it is for sure a BREAK, the break timer is enabled, and it's under the break time limit,
                 //   and we played something before the break, and we're currently in state NONE (NOTE: can't use patter or singing calls or extras as break music)
 //                qDebug() << "for sure a BREAK";
-                timerLabel->setAlignment(Qt::AlignHCenter);
+                timerLabel->setAlignment(Qt::AlignCenter);
                 timerLabel->setVisible(true);
                 timerLabel->setStyleSheet("QLabel { color : blue; }");
-                timerLabel->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+//                timerLabel->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+                timerLabel->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
 //                timerLabelCuesheet->setVisible(true);
-                timerLabelCuesheet->setAlignment(Qt::AlignHCenter);
+                timerLabelCuesheet->setAlignment(Qt::AlignCenter);
                 timerLabelCuesheet->setStyleSheet("QLabel { color : blue; }");
-                timerLabelCuesheet->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+//                timerLabelCuesheet->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+                timerLabelCuesheet->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
                 currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
                 currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
@@ -137,17 +139,19 @@ void AnalogClock::redrawTimerExpired()
                 // the break has expired.  We played something before the break, and we're currently in NONE state.
 //                qDebug() << "expired BREAK";
                 timerLabel->setVisible(true);
-                timerLabel->setAlignment(Qt::AlignHCenter);
+                timerLabel->setAlignment(Qt::AlignCenter);
                 timerLabel->setStyleSheet("QLabel { color : red; }");  // turns red when break is over
 
 //                timerLabelCuesheet->setVisible(true);
-                timerLabelCuesheet->setAlignment(Qt::AlignHCenter);
+                timerLabelCuesheet->setAlignment(Qt::AlignCenter);
                 timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");  // turns red when break is over
 
                 // alternate the time (negative now), and "END BREAK"
                 if (b_ss % 2 == 0) {
-                    timerLabel->setText("END BREAK");
-                    timerLabelCuesheet->setText("END BREAK");
+//                    timerLabel->setText("END BREAK");
+//                    timerLabelCuesheet->setText("END BREAK");
+                    timerLabel->setText("End BRK");
+                    timerLabelCuesheet->setText("End BRK");
                 } else {
                     timerLabelCuesheet->setText(QString("-") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
                 }
@@ -165,14 +169,18 @@ void AnalogClock::redrawTimerExpired()
 //            qDebug() << "patter under the time limit";
             // UNDER THE TIME LIMIT
             timerLabel->setVisible(true);
-            timerLabel->setAlignment(Qt::AlignLeft);
+//            timerLabel->setAlignment(Qt::AlignLeft);
+            timerLabel->setAlignment(Qt::AlignCenter);
             timerLabel->setStyleSheet("QLabel { color : black; }");
-            timerLabel->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+//            timerLabel->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 //            timerLabelCuesheet->setVisible(true);
 
-            timerLabelCuesheet->setAlignment(Qt::AlignLeft);
+//            timerLabelCuesheet->setAlignment(Qt::AlignLeft);
+            timerLabelCuesheet->setAlignment(Qt::AlignCenter);
             timerLabelCuesheet->setStyleSheet("QLabel { color : black; }");
-            timerLabelCuesheet->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+//            timerLabelCuesheet->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
             currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
@@ -188,14 +196,18 @@ void AnalogClock::redrawTimerExpired()
 //            qDebug() << "patter OVER the time limit";
             // OVER THE TIME LIMIT, so make the time-in-patter RED.
             timerLabel->setVisible(true);
-            timerLabel->setAlignment(Qt::AlignLeft);
+//            timerLabel->setAlignment(Qt::AlignLeft);
+            timerLabel->setAlignment(Qt::AlignCenter);
             timerLabel->setStyleSheet("QLabel { color : red; }");
-            timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+//            timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
 //            timerLabelCuesheet->setVisible(true);
-            timerLabelCuesheet->setAlignment(Qt::AlignLeft);
+//            timerLabelCuesheet->setAlignment(Qt::AlignLeft);
+            timerLabelCuesheet->setAlignment(Qt::AlignCenter);
             timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");
-            timerLabelCuesheet->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+//            timerLabelCuesheet->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+            timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
             currentTimerState |= LONGTIPTIMEREXPIRED;  // set
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
@@ -204,19 +216,21 @@ void AnalogClock::redrawTimerExpired()
 //            qDebug() << "patter REALLY over the time limit";
             // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
             timerLabel->setVisible(true);
-            timerLabel->setAlignment(Qt::AlignHCenter);
+            timerLabel->setAlignment(Qt::AlignCenter);
             timerLabel->setStyleSheet("QLabel { color : red; }");
 
 //            timerLabelCuesheet->setVisible(true);
-            timerLabelCuesheet->setAlignment(Qt::AlignHCenter);
+            timerLabelCuesheet->setAlignment(Qt::AlignCenter);
             timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");
 
             if (ss % 2 == 0) {
-                timerLabel->setText("LONG TIP");
-                timerLabelCuesheet->setText("LONG TIP");
+                timerLabel->setText("LONG");
+                timerLabelCuesheet->setText("LONG");
             } else {
-                timerLabel->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
-                timerLabelCuesheet->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+//                timerLabel->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+//                timerLabelCuesheet->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+                timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+                timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             }
             // TODO: play a more serious sound, if enabled
             currentTimerState |= LONGTIPTIMEREXPIRED;  // set
@@ -422,7 +436,8 @@ void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLab
 
 void AnalogClock::resetPatter(void)
 {
-    timerLabel->setText("PT=00:00");
+    timerLabel->setText("00:00");
+    timerLabelCuesheet->setText("00:00");
     typeTracker.addStop();
 }
 
