@@ -31,6 +31,7 @@
 #include <map>
 
 #include "songsettings.h"
+#include "sessioninfo.h"
 using namespace std;
 
 
@@ -45,31 +46,41 @@ void SongSettings::exec(const char *where, QSqlQuery &q)
 void SongSettings::exec(const char *where, QSqlQuery &q, const QString &str)
 {
     q.exec(str);
-    debugErrors(where, q);
+    if (debugErrors(where, q))
+    {
+        qInfo() << str;
+    }
 }
 
 
-void SongSettings::debugErrors(const char *where, QSqlQuery & /* q */)
+bool SongSettings::debugErrors(const char *where, QSqlQuery & q)
 {
+    bool hadError = false;
     if (m_db.lastError().type() != QSqlError::NoError)
     {
+        hadError = true;
         qDebug() << where << ":" << m_db.lastError();
+        qInfo() << where << ":" << m_db.lastError();
     }
+    if (q.lastError().type() != QSqlError::NoError)
+    {
+        hadError = true;
+        qDebug() << where << ":" << q.lastError();
+        qInfo() << where << ":" << q.lastError();
+    }
+    return hadError;
 }
 
 
 class RowDefinition {
 public:
-    RowDefinition(const char *name, const char *definition,
-        const char *index = NULL)
+    RowDefinition(const char *name, const char *definition)
         :
         name(name), definition(definition),
-        index(index),
         found(false)
     {}
     const char *name;
     const char *definition;
-    const char *index;
     bool found;
 };
 
@@ -83,6 +94,38 @@ public:
     RowDefinition *rows;
 };
 
+class IndexDefinition {
+public:
+    IndexDefinition(const char *name, const char *definition, bool unique = false) :
+        name(name), definition(definition), unique(unique)
+    {}
+
+    const char *name;
+    const char *definition;
+    bool unique;
+};
+
+
+void SongSettings::ensureIndex(IndexDefinition *index_definition)
+{
+    QSqlQuery q(m_db);
+    exec("ensureIndex", q, "PRAGMA INDEX_INFO(" + QString(index_definition->name) + ")");
+    bool found_any_fields = false;
+    while (q.next())
+    {
+        found_any_fields = true;
+    }
+    if (!found_any_fields)
+    {
+        QString sql = "CREATE ";
+        sql +=(index_definition->unique ? "UNIQUE " : "");
+        sql += "INDEX ";
+        sql += index_definition->name;
+        sql += " ON ";
+        sql += index_definition->definition;
+        exec("ensureIndex: create", q, sql);
+    }
+}
 
 void SongSettings::ensureSchema(TableDefinition *table_definition)
 {
@@ -120,10 +163,6 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
                 alter += " ";
                 alter += row->definition;
                 alter_statements.push_back(alter);
-                if (row->index)
-                {
-                    alter_statements.push_back(row->index);
-                }
             }
         }
     }
@@ -142,10 +181,6 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
             if (table_definition->rows[i+1].name)
                 alter += ",";
             alter += "\n";
-            if (row->index != NULL)
-            {
-                alter_statements.push_back(row->index);
-            }
         }
         alter += "\n)\n";
 
@@ -163,10 +198,8 @@ void SongSettings::ensureSchema(TableDefinition *table_definition)
 RowDefinition song_rows[] =
 {
     RowDefinition("filename", "text PRIMARY KEY"),
-    RowDefinition("songname", "text",
-        "CREATE INDEX songs_songname ON songs(songname)"),
-    RowDefinition("name", "text",
-        "CREATE INDEX songs_name_idx ON songs(name)"),
+    RowDefinition("songname", "text"),
+    RowDefinition("name", "text"),
     RowDefinition("pitch", "int"),
     RowDefinition("tempo", "int"),
     RowDefinition("tempoIsPercent", "int"),
@@ -189,18 +222,20 @@ TableDefinition song_table("songs", song_rows);
 
 RowDefinition session_rows[] =
 {
-    RowDefinition("name", "text",
-                  "CREATE UNIQUE INDEX session_name_idx ON session(name)"),
+    RowDefinition("name", "text"),
+    RowDefinition("order_number", "INTEGER DEFAULT 0"),
+    RowDefinition("deleted", "INTEGER DEFAULT 0"),
+    RowDefinition("day_of_week", "INTEGER DEFAULT -1"),
+    RowDefinition("start_minutes", "INTEGER DEFAULT 0"),
     RowDefinition(NULL, NULL),
 };
-TableDefinition session_table("sessions", song_rows);
+TableDefinition session_table("sessions", session_rows);
 
 RowDefinition song_play_rows[] =
 {
     RowDefinition("song_rowid", "int references songs(rowid)"),
     RowDefinition("session_rowid", "int references session(rowid)"),
-    RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP",
-                  "CREATE INDEX song_play_song_session_played_on songs(song_rowid,session_rowid,played_on)"),
+    RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
     RowDefinition(NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
@@ -210,12 +245,20 @@ RowDefinition call_taught_on_rows[] =
 {
     RowDefinition("dance_program", "TEXT"),
     RowDefinition("call_name", "TEXT"),
-    RowDefinition("session_rowid", "INT REFERENCES session(rowid)",
-                  "CREATE INDEX call_taught_on_dance_program_call_name_session ON call_taught_on(dance_program, call_name, session_rowid"),
+    RowDefinition("session_rowid", "INT REFERENCES session(rowid)"),
     RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
     RowDefinition(NULL, NULL),
 };
 TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
+
+
+IndexDefinition index_definitions[] = {
+    IndexDefinition("songs_songname", "songs(songname)"),
+    IndexDefinition("songs_name_idx","songs(name)"),
+    IndexDefinition("session_name_idx", "sessions(name)", true),
+    IndexDefinition("song_play_song_session_played_idx", "song_plays(song_rowid,session_rowid,played_on)"),
+    IndexDefinition("call_taught_on_dance_program_call_name_session","call_taught_on(dance_program, call_name, session_rowid)")
+};
 
 /*
 "CREATE TABLE play_history (
@@ -227,15 +270,29 @@ TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 */
 
 SongSettings::SongSettings() :
-    databaseOpened(false)
+    databaseOpened(false),
+    current_session_id(0)
 {
-    current_session_id = currentDayOfWeek() + 1;
 }
 
-int SongSettings::currentDayOfWeek()
+int SongSettings::currentSessionIDByTime()
 {
+    int session_id = 0;
     QDate date(QDate::currentDate());
-    return date.dayOfWeek();
+    QTime time(QTime::currentTime());
+    int day_of_week = date.dayOfWeek();
+    int start_minutes = time.hour() * 60 + time.minute();
+    QSqlQuery q(m_db);
+    q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
+    q.bindValue(":day_of_week", day_of_week);
+    q.bindValue(":start_minutes", start_minutes);
+
+    exec("currentSession", q);
+    if (q.next())
+    {
+        session_id = q.value(0).toInt();
+    }
+    return session_id;
 }
 
 static const char *default_session_names[] =
@@ -293,34 +350,36 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&session_table);
     ensureSchema(&song_plays_table);
     ensureSchema(&call_taught_on_table);
+
+    for (size_t i = 0; i < sizeof(index_definitions) / sizeof(*index_definitions); ++i)
     {
-        unsigned int sessions_available = 0;
+        ensureIndex(&index_definitions[i]);
+    }
+    {
+        bool sessions_available = false;
         {
             QSqlQuery q(m_db);
-            q.prepare("SELECT rowid FROM sessions WHERE id <= 8");
+            q.prepare("SELECT rowid FROM sessions WHERE NOT deleted");
             exec("openDatabase", q);
             while (q.next())
             {
-                int id = q.value(0).toInt();
-                sessions_available |= (1 << id);
+                sessions_available = true;
             }
         }
+        if (!sessions_available)
         {
-            for (int id = 1; default_session_names[id - 1]; ++id)
+            QSqlQuery q(m_db);
+            q.prepare("INSERT INTO sessions(name,order_number,day_of_week) "
+                      " VALUES(:name, :order_number, :day_of_week)");
+            for (int id = 0; default_session_names[id]; ++id)
             {
-                if (!(sessions_available & (1 << id)))
-                {
-                    QSqlQuery q(m_db);
-                    q.prepare("INSERT into SESSIONS(rowid,name) VALUES(:id, :name)");
-                    q.bindValue(":name",default_session_names[id - 1]);
-                    q.bindValue(":id", id);
-                    exec("openDatabase", q);
-                }
+                q.bindValue(":name",default_session_names[id]);
+                q.bindValue(":order_number", id);
+                q.bindValue(":day_of_week", id);
+                exec("openDatabase", q);
             }
         }
     }
-
-    initializeSessionsModel();
 }
 
 
@@ -376,16 +435,6 @@ int SongSettings::getSessionIDFromName(const QString &name)
     return id;
 }
 
-
-void SongSettings::initializeSessionsModel()
-{
-    modelSessions.setTable("sessions");
-    modelSessions.setEditStrategy(QSqlTableModel::OnManualSubmit);
-    modelSessions.select();
-    modelSessions.setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-    modelSessions.setHeaderData(1, Qt::Horizontal, QObject::tr("Name"));
-
-}
 
 QString SongSettings::primaryRootDir()
 {
@@ -761,5 +810,89 @@ void SongSettings::closeDatabase()
         m_db.close();
         m_db = QSqlDatabase();
         m_db.removeDatabase(connection);
+    }
+}
+
+
+QList<SessionInfo> SongSettings::getSessionInfo()
+{
+    QList<SessionInfo> sessions;
+    
+    QString sql = "SELECT name, order_number, rowid, day_of_week, start_minutes FROM sessions WHERE NOT deleted ORDER BY order_number, rowid";
+    QSqlQuery q(m_db);
+    q.prepare(sql);
+    exec("getSessionInfo", q);
+    
+    while (q.next())
+    {
+        SessionInfo session;
+        session.name = q.value(0).toString();
+        session.order_number = q.value(1).toInt();
+        session.id = q.value(2).toInt();
+        session.day_of_week = q.value(3).toInt();
+        if (session.day_of_week < 0)
+            session.day_of_week = session.id - 1;
+        session.start_minutes = q.value(4).toInt();
+        sessions.append(session);
+    }
+    return sessions;
+}
+
+void SongSettings::setSessionInfo(const QList<SessionInfo> &sessions)
+{
+    QList<SessionInfo> currentSessions(getSessionInfo());
+    QHash<int, SessionInfo> sessionsById;
+    QHash<QString, SessionInfo> sessionsByName;
+
+    for (auto session : currentSessions)
+    {
+        sessionsById[session.id] = session;
+        sessionsByName[session.name] = session;
+    }
+    
+    {
+        QSqlQuery q(m_db);
+        q.prepare("BEGIN");
+        exec("SessionInfo BEGIN", q);
+    }
+
+    {
+        QSqlQuery q(m_db);
+        exec("SessionInfo DELETE", q, "UPDATE sessions SET deleted = 1,name = 'GarbageValueForUniquifier' || rowid");
+    }
+
+    {
+        QSqlQuery q_insert(m_db);
+        QSqlQuery q_update(m_db);
+        q_insert.prepare("INSERT INTO sessions(deleted,name,order_number,day_of_week,start_minutes) "
+                         " VALUES (0, :name, :order_number, :day_of_week, :start_minutes)");
+        q_update.prepare("UPDATE sessions SET deleted=0,name=:name,order_number=:order_number, "
+                         " day_of_week=:day_of_week,start_minutes=:start_minutes"
+                         " WHERE rowid=:id");
+        for (const SessionInfo &session : sessions)
+        {
+            QSqlQuery *pq;
+            if (session.id > 0)
+            {
+                pq = &q_update; 
+                pq->bindValue(":id", session.id);
+            }
+            else
+            {
+                pq = &q_insert;
+            }
+            pq->bindValue(":name", session.name);
+            pq->bindValue(":order_number", session.order_number);
+            pq->bindValue(":day_of_week", session.day_of_week);
+            pq->bindValue(":start_minutes", session.start_minutes);
+            exec("SessionInfo UPDATE/INSERT", *pq);
+        }
+    }
+
+
+    {
+        QSqlQuery q(m_db);
+        q.prepare("COMMIT");
+        exec("SessionInfo COMMIT", q);
     }
 }

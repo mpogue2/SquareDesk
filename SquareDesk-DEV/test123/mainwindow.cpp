@@ -60,6 +60,7 @@
 #include "importdialog.h"
 #include "exportdialog.h"
 #include "calllistcheckbox.h"
+#include "sessioninfo.h"
 
 #include "danceprograms.h"
 #define CUSTOM_FILTER
@@ -471,30 +472,6 @@ MainWindow::MainWindow(QWidget *parent) :
     value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
-    QAction *localSessionActions[] = {
-        ui->actionPractice,
-        ui->actionMonday,
-        ui->actionTuesday,
-        ui->actionWednesday,
-        ui->actionThursday,
-        ui->actionFriday,
-        ui->actionSaturday,
-        ui->actionSunday,
-        NULL
-    };
-    sessionActions = new QAction*[sizeof(localSessionActions) / sizeof(*localSessionActions)];
-
-    for (size_t i = 0;
-         i < sizeof(localSessionActions) / sizeof(*localSessionActions);
-         ++i)
-    {
-        sessionActions[i] = localSessionActions[i];
-    }
-    // -------------------------
-    int sessionActionIndex = SessionDefaultPractice ==
-        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) ?
-        0 : songSettings.currentDayOfWeek();
-    sessionActions[sessionActionIndex]->setChecked(true);
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
@@ -682,19 +659,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // -----------------------------
     sessionActionGroup = new QActionGroup(this);
     sessionActionGroup->setExclusive(true);
-    sessionActionGroup->addAction(ui->actionPractice);
-    sessionActionGroup->addAction(ui->actionMonday);
-    sessionActionGroup->addAction(ui->actionTuesday);
-    sessionActionGroup->addAction(ui->actionWednesday);
-    sessionActionGroup->addAction(ui->actionThursday);
-    sessionActionGroup->addAction(ui->actionFriday);
-    sessionActionGroup->addAction(ui->actionSaturday);
-    sessionActionGroup->addAction(ui->actionSunday);
 
     // -----------------------
-    // Make SD menu items for checker style mutually exclusive
-    QList<QAction*> actions = ui->menuSequence->actions();
-    //    qDebug() << "ACTIONS 1:" << actions;
 
     sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
@@ -868,7 +834,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
 
     // can't move this up, because the DB needs to be open already...
-    setCurrentSessionIdReloadSongAges(sessionActionIndex + 1); // on app entry, ages must show current session
+    if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW))
+    {
+        setCurrentSessionIdReloadSongAges(songSettings.currentSessionIDByTime()); // on app entry, ages must show current session
+    }
+    populateMenuSessionOptions();
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -1894,6 +1864,56 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
     }
 }
 
+void MainWindow::on_action_session_change_triggered()
+{
+    
+    QList<QAction *> actions(sessionActionGroup->actions());
+    for (auto action : actions)
+    {
+        if (action->isChecked())
+        {
+            QString name(action->text());
+            QList<SessionInfo> sessions(songSettings.getSessionInfo());
+            for (auto session : sessions)
+            {
+                if (name == session.name)
+                {
+                    setCurrentSessionIdReloadSongAges(session.id);
+                    break;
+                }
+            }
+            break;
+        }
+    }
+}
+
+void MainWindow::populateMenuSessionOptions()
+{
+    QList<QAction *> oldActions(sessionActionGroup->actions());
+    for (auto action : oldActions)
+    {
+        sessionActionGroup->removeAction(action);
+        ui->menuSession->removeAction(action);
+    }
+
+    QList<QAction *> sessionActions(ui->menuSession->actions());
+    QAction *topSeparator = sessionActions[0];
+    
+    int id = songSettings.getCurrentSession();
+    QList<SessionInfo> sessions(songSettings.getSessionInfo());
+    
+    for (auto session : sessions)
+    {
+        QAction *action = new QAction(session.name, this);
+        action->setCheckable(true);
+        ui->menuSession->insertAction(topSeparator, action);
+        connect(action, SIGNAL(triggered()), this, SLOT(on_action_session_change_triggered()));
+        sessionActionGroup->addAction(action);
+        if (session.id == id)
+            action->setChecked(true);
+    }
+}
+
 void MainWindow::on_menuLyrics_aboutToShow()
 {
     // only allow Save if it's not a template, and the doc was modified
@@ -1960,45 +1980,6 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
     reloadSongAges(checked);
 }
 
-void MainWindow::on_actionPractice_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(1);
-}
-
-void MainWindow::on_actionMonday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(2);
-}
-
-void MainWindow::on_actionTuesday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(3);
-}
-
-void MainWindow::on_actionWednesday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(4);
-}
-
-void MainWindow::on_actionThursday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(5);
-}
-
-void MainWindow::on_actionFriday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(6);
-}
-
-void MainWindow::on_actionSaturday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(7);
-}
-
-void MainWindow::on_actionSunday_triggered(bool /* checked */)
-{
-    setCurrentSessionIdReloadSongAges(8);
-}
 
 
 // ----------------------------------------------------------------------
@@ -2043,7 +2024,6 @@ MainWindow::~MainWindow()
         airplaneMode(false);
     }
 
-    delete[] sessionActions;
     delete[] danceProgramActions;
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
@@ -5362,6 +5342,8 @@ void MainWindow::on_actionPreferences_triggered()
     SessionDefaultType previousSessionDefaultType =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
 
+    prefDialog->setSessionInfoList(songSettings.getSessionInfo());
+
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
@@ -5376,14 +5358,9 @@ void MainWindow::on_actionPreferences_triggered()
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
 
-        if (previousSessionDefaultType !=
-            static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()))
-        {
-            int sessionActionIndex = SessionDefaultPractice ==
-                static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) ?
-                0 : songSettings.currentDayOfWeek();
-            sessionActions[sessionActionIndex]->setChecked(true);
-        }
+        songSettings.setSessionInfo(prefDialog->getSessionInfoList());
+
+        populateMenuSessionOptions();
 
         findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
         switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
@@ -5474,6 +5451,11 @@ void MainWindow::on_actionPreferences_triggered()
 
         if (prefDialog->songTableReloadNeeded) {
             loadMusicList();
+        }
+        if (previousSessionDefaultType != static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())
+            && static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultDOW)
+        {
+            setCurrentSessionIdReloadSongAges(songSettings.currentSessionIDByTime());
         }
 
         if (prefsManager.GetenableAutoAirplaneMode()) {

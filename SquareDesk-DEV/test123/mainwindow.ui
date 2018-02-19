@@ -1972,15 +1972,6 @@
     <property name="title">
      <string>Session</string>
     </property>
-    <addaction name="actionPractice"/>
-    <addaction name="separator"/>
-    <addaction name="actionMonday"/>
-    <addaction name="actionTuesday"/>
-    <addaction name="actionWednesday"/>
-    <addaction name="actionThursday"/>
-    <addaction name="actionFriday"/>
-    <addaction name="actionSaturday"/>
-    <addaction name="actionSunday"/>
     <addaction name="separator"/>
     <addaction name="actionShow_All_Ages"/>
     <addaction name="separator"/>
