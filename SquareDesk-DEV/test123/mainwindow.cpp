@@ -374,6 +374,7 @@ MainWindow::MainWindow(QWidget *parent) :
     analogClock->setFixedSize(QSize(110,110));
     analogClock->setEnabled(true);
     analogClock->setVisible(true);
+    ui->gridLayout_2->setAlignment(analogClock, Qt::AlignHCenter);  // center the clock horizontally
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
@@ -2148,8 +2149,9 @@ void MainWindow::on_playButton_clicked()
         return;  // if there is no song loaded, no point in toggling anything.
     }
 
-    cBass.Play();  // currently paused, so start playing
     if (currentState == kStopped || currentState == kPaused) {
+        cBass.Play();  // currently stopped or paused, so start playing
+
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
         randomizeFlashCall();
 
@@ -2198,11 +2200,14 @@ void MainWindow::on_playButton_clicked()
     }
     else {
         // TODO: we might want to restore focus here....
+        // currently playing, so pause playback
+        cBass.Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
         currentState = kPaused;
         ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
+
     if (ui->checkBoxStartOnPlay->isChecked()) {
         on_pushButtonCountUpTimerStartStop_clicked();
     }
@@ -4034,7 +4039,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
             // ------------------------------------------------------------------
             // get pre-made lyrics.template.html file, if it exists
             QString lyricsTemplate = getResourceFile("lyrics.template.html");
-            qDebug() << "lyricsTemplate: " << lyricsTemplate;
+//            qDebug() << "lyricsTemplate: " << lyricsTemplate;
             if (lyricsTemplate.isEmpty()) {
                 ui->textBrowserCueSheet->setHtml("No lyrics found for this song.");
                 loadedCuesheetNameWithPath = "";
@@ -4658,6 +4663,8 @@ void MainWindow::loadMusicList()
     }
     bool show_all_ages = ui->actionShow_All_Ages->isChecked();
 
+//    QElapsedTimer t;
+//    t.start();
     while (iter.hasNext()) {
         QString s = iter.next();
 
@@ -4671,13 +4678,19 @@ void MainWindow::loadMusicList()
                 foundExtension = true;
             }
         }
-        if (!foundExtension)
+        if (!foundExtension) {
             continue;
+        }
 
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         s = sl1[1];  // everything else
         QString origPath = s;  // for when we double click it later on...
+
+        // double check that type is non-music type (see Issue #298)
+        if (type == "reference" || type == "soundfx" || type == "sd") {
+            continue;
+        }
 
         QFileInfo fi(s);
 
@@ -4802,6 +4815,8 @@ void MainWindow::loadMusicList()
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
     ui->statusBar->showMessage(msg1);
+
+//    qDebug() << "Time to loadMusicList:" << t.elapsed() << "ms";
 }
 
 QString processSequence(QString sequence,
@@ -7810,7 +7825,8 @@ void MainWindow::adjustFontSizes()
     float scaleIcons = 24.0/13.0;
 
     unsigned int warningLabelSize[8] = {16,20,23,26, 29,32,35,38};  // basically 20/13 * pointSize
-    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
+//    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
+    unsigned int warningLabelWidth[8] = {65,75,85,95, 105,115,125,135};  // basically 20/13 * pointSize * 5.5
 
     unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
 

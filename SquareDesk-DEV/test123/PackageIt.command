@@ -25,8 +25,11 @@ echo $dir
 # ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
 # ERROR: no file at "/usr/local/lib/libpq.5.dylib"
 
+#WHICH=Debug
+WHICH=Release
+
 echo Now running otool to fixup libraries...
-pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-Debug/test123/SquareDesk.app/Contents/MacOS
+pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-${WHICH}/test123/SquareDesk.app/Contents/MacOS
 otool -L SquareDesk | egrep "qua|tidy"
 install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
 install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
@@ -41,7 +44,7 @@ echo
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="0.8.3alpha6"
+VERSION="0.9.1"
 DMG_BACKGROUND_IMG="installer3.png"
 #MANUAL="SquareDeskManual.pdf"
 
@@ -129,6 +132,8 @@ echo "Created DMG: ${DMG_TMP}"
 DEVICE=$(hdiutil attach -readwrite -noverify "${DMG_TMP}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
 
+echo "DEVICE: ${DEVICE}"
+
 sleep 2
 
 # add a link to the Applications dir
@@ -138,13 +143,21 @@ ln -s /Applications
 popd
 
 # add a background image
+echo "Make the .background directory"
 mkdir /Volumes/"${VOL_NAME}"/.background
+echo "Copy in the background image: ${DMG_BACKGROUND_IMG}"
 cp "${DMG_BACKGROUND_IMG}" /Volumes/"${VOL_NAME}"/.background/
 
 # tell the Finder to resize the window, set the background,
 #  change the icon size, place the icons in the right position, etc.
+echo "Telling Finder to make it pretty: ${VOL_NAME} ${APP_NAME} ${DMG_BACKGROUND_IMG}"
+
+echo "Sleeping 5 seconds to work around the -1728 error..."
+sleep 5
+
 echo '
    tell application "Finder"
+     #list disks
      tell disk "'${VOL_NAME}'"
            open
            set current view of container window to icon view
@@ -165,9 +178,11 @@ echo '
    end tell
 ' | osascript
 
+echo "Syncing..."
 sync
 
 # unmount it
+echo "Unmounting..."
 hdiutil detach "${DEVICE}"
 
 # now make the final image a compressed disk image
@@ -175,9 +190,10 @@ echo "Creating compressed image"
 hdiutil convert "${DMG_TMP}" -format UDZO -imagekey zlib-level=9 -o "${DMG_FINAL}"
 
 # clean up
+echo "Cleaning up..."
 rm -rf "${DMG_TMP}"
 #rm -rf "${STAGING_DIR}"     #  keep this one around, because it's useful for testing
 
-echo 'Done.'
+echo 'DONE.'
 
 exit

@@ -489,40 +489,43 @@ void bass_audio::SetMono(bool on)
 // ------------------------------------------------------------------
 void bass_audio::Play(void)
 {
-    // Check for current state
     bPaused = false;
-    Stream_State = BASS_ChannelIsActive(Stream);
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+    BASS_ChannelPlay(Stream, false);
+    StreamGetPosition();  // tell the position bar in main window where we are
+
+//    Stream_State = BASS_ChannelIsActive(Stream);
 //    qDebug() << "current state: " << Stream_State << ", curPos: " << Current_Position;
-    switch (Stream_State) {
-        // Play
-        case BASS_ACTIVE_STOPPED:
-            // put the volume back where it was, now that we're paused.
-//            qDebug() << "PLAY: Setting volume back to" << 1.0;
-            BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
-
-            // if stopped (initial load or reached EOS), start from
-            //  wherever the currentposition is (set by the slider)
-            BASS_ChannelPlay(Stream, false);
-            StreamGetPosition();
-            break;
-        // Resume
-        case BASS_ACTIVE_PAUSED:
-            // put the volume back where it was, now that we're paused.
-//            qDebug() << "RESUME: Setting volume back to" << 1.0;
-            BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
-
-            BASS_ChannelPlay(Stream, false);
-            StreamGetPosition();
-            break;
-        // Pause
-        case BASS_ACTIVE_PLAYING:
-            BASS_ChannelPause(Stream);
-            StreamGetPosition();
-            bPaused = true;
-            break;
-        default:
-            break;
-    }
+//    switch (Stream_State) {
+//        // Play
+//        case BASS_ACTIVE_STOPPED:
+//            // put the volume back where it was, now that we're paused.
+////            qDebug() << "PLAY: Setting volume back to" << 1.0;
+//            BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+//
+//            // if stopped (initial load or reached EOS), start from
+//            //  wherever the currentposition is (set by the slider)
+//            BASS_ChannelPlay(Stream, false);
+//            StreamGetPosition();
+//            break;
+//        // Resume
+//        case BASS_ACTIVE_PAUSED:
+//            // put the volume back where it was, now that we're paused.
+////            qDebug() << "RESUME: Setting volume back to" << 1.0;
+//            BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+//
+//            BASS_ChannelPlay(Stream, false);
+//            StreamGetPosition();
+//            break;
+//        // Pause
+//        case BASS_ACTIVE_PLAYING:
+//            BASS_ChannelPause(Stream);
+//            StreamGetPosition();
+//            bPaused = true;
+//            break;
+//        default:
+//            break;
+//    }
 }
 
 // ------------------------------------------------------------------
@@ -530,8 +533,18 @@ void bass_audio::Stop(void)
 {
     BASS_ChannelPause(Stream);
     StreamSetPosition(0);
+    StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;
 }
+
+// ------------------------------------------------------------------
+void bass_audio::Pause(void)
+{
+    BASS_ChannelPause(Stream);
+    StreamGetPosition();  // tell the position bar in main window where we are
+    bPaused = true;
+}
+
 
 void bass_audio::FadeOutAndPause(void) {
     Stream_State = BASS_ChannelIsActive(Stream);
