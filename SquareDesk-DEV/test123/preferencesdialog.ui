@@ -443,20 +443,6 @@
            </property>
           </widget>
          </item>
-         <item row="14" column="2">
-          <widget class="QComboBox" name="comboBoxSessionDefault">
-           <item>
-            <property name="text">
-             <string>Default to 'Practice' session</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Default to the current day of the week</string>
-            </property>
-           </item>
-          </widget>
-         </item>
          <item row="12" column="2" colspan="4">
           <widget class="QLabel" name="musicTypesHelpLabel">
            <property name="sizePolicy">
@@ -522,24 +508,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </spacer>
          </item>
-         <item row="14" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-             <weight>75</weight>
-             <italic>false</italic>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Sessions:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
          <item row="13" column="0">
           <widget class="QLabel" name="label_4">
            <property name="font">
@@ -561,6 +529,38 @@ Click on a color square to change the color associated with that Music Type.  Se
           <widget class="QCheckBox" name="checkBoxSwitchToLyricsOnPlay">
            <property name="text">
             <string>Switch to Lyrics tab on first play (when lyrics are available)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="2">
+          <widget class="QComboBox" name="comboBoxSessionDefault">
+           <item>
+            <property name="text">
+             <string>Default to 'Practice' session</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Default to the current day of the week</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="14" column="0">
+          <widget class="QLabel" name="label_3">
+           <property name="font">
+            <font>
+             <pointsize>13</pointsize>
+             <weight>75</weight>
+             <italic>false</italic>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Sessions:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -615,6 +615,106 @@ Click on a color square to change the color associated with that Music Type.  Se
             </property>
            </column>
           </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_2">
+        <attribute name="title">
+         <string>Sessions</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QTableWidget" name="tableWidgetSessionsList">
+             <column>
+              <property name="text">
+               <string>Name</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Day</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>From</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Database ID</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QToolButton" name="toolButtonSessionAddItem">
+               <property name="text">
+                <string>+</string>
+               </property>
+               <property name="icon">
+                 <iconset resource="resources.qrc">
+                   <normaloff>:/graphics/list-add.png</normaloff>
+                   <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonSessionRemoveItem">
+               <property name="text">
+                <string>-</string>
+               </property>
+               <property name="icon">
+                 <iconset resource="resources.qrc">
+                   <normaloff>:/graphics/list-remove.png</normaloff>
+                   <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonSessionMoveItemUp">
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                 <iconset resource="resources.qrc">
+                   <normalon>:/graphics/go-up.png</normalon>
+                   <normaloff>:/graphics/go-up.png</normaloff>:/graphics/go-up.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonSessionMoveItemDown">
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="resources.qrc">
+                  <normaloff>:/graphics/go-down.png</normaloff>
+                  <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </item>
         </layout>
        </widget>

@@ -29,6 +29,8 @@
 #include <QtSql>
 #include <vector>
 
+class SessionInfo;
+
 class SongSetting
 {
 private:
@@ -133,6 +135,8 @@ public:
 
 
 class TableDefinition;
+class IndexDefinition;
+
 class SongSettings
 {
 public:
@@ -147,8 +151,6 @@ public:
     bool loadSettings(const QString &filenameWithPath,
                       SongSetting &settings);
 
-    void initializeSessionsModel();
-    QSqlTableModel modelSessions;
     void setCurrentSession(int id) { current_session_id = id; }
     int getCurrentSession() { return current_session_id; }
     void getSongAges(QHash<QString,QString> &ages, bool show_all_sessions);
@@ -162,11 +164,13 @@ public:
     void setCallTaught(const QString &program, const QString &call_name);
     void deleteCallTaught(const QString &program, const QString &call_name);
     void clearTaughtCalls(const QString &program);
-    int currentDayOfWeek();
+    int currentSessionIDByTime();
 
+    QList<SessionInfo> getSessionInfo();
+    void setSessionInfo(const QList<SessionInfo> &sessions);
 
 private:
-    void debugErrors(const char *where, QSqlQuery &q);
+    bool debugErrors(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
 
@@ -175,6 +179,7 @@ private:
     int current_session_id;
 
     void ensureSchema(TableDefinition *);
+    void ensureIndex(IndexDefinition *index_definition);
     int getSongIDFromFilename(const QString &filename, const QString &filenameWithPathNormalized);
     int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);

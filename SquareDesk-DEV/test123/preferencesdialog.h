@@ -37,6 +37,9 @@
 #include "default_colors.h"
 #include "keybindings.h"
 
+
+class SessionInfo;
+
 namespace Ui
 {
 class PreferencesDialog;
@@ -59,6 +62,9 @@ public:
 
     QHash<Qt::Key, KeyAction *> getHotkeys();
     void setHotkeys(QHash<Qt::Key, KeyAction *>);
+
+    void setSessionInfoList(const QList<SessionInfo> &);
+    QList<SessionInfo> getSessionInfoList();
 
 
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
@@ -116,6 +122,10 @@ private slots:
     void on_comboBoxMusicFormat_currentIndexChanged(int /* currentIndex */);
     void on_pushButtonResetHotkeysToDefaults_clicked();
 
+    void on_toolButtonSessionAddItem_clicked();
+    void on_toolButtonSessionMoveItemDown_clicked();
+    void on_toolButtonSessionMoveItemUp_clicked();
+    void on_toolButtonSessionRemoveItem_clicked();
 private:
     Ui::PreferencesDialog *ui;
 };

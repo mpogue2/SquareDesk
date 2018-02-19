@@ -3,5 +3,9 @@
         <file>Graphicrating-Koloria-Button-Rec.ico</file>
         <file>graphics/lock_icon.png</file>
         <file>graphics/unlock_icon.png</file>
+        <file>graphics/list-remove.png</file>
+        <file>graphics/list-add.png</file>
+        <file>graphics/go-up.png</file>
+        <file>graphics/go-down.png</file>
     </qresource>
 </RCC>

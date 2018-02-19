@@ -29,6 +29,14 @@
 #include <QMessageBox>
 #include "keybindings.h"
 #include <QKeySequenceEdit>
+#include <QTimeEdit>
+#include "sessioninfo.h"
+
+
+static const int kSessionsColName = 0;
+static const int kSessionsColDay = 1;
+static const int kSessionsColTime = 2;
+static const int kSessionsColID = 3;
 
 static void  SetTimerPulldownValuesToFirstDigit(QComboBox *comboBox)
 {
@@ -51,7 +59,6 @@ static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
 
 
 
-
 // -------------------------------------------------------------------
 PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     QDialog(parent),
@@ -61,6 +68,13 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
 
     ui->setupUi(this);
 
+    {
+        ui->tableWidgetSessionsList->setColumnHidden(kSessionsColID, true);
+        QHeaderView *headerView = ui->tableWidgetSessionsList->horizontalHeader();
+        headerView->setSectionResizeMode(kSessionsColName, QHeaderView::Stretch);
+        headerView->setSectionResizeMode(kSessionsColDay, QHeaderView::Interactive);
+        headerView->setSectionResizeMode(kSessionsColTime, QHeaderView::Stretch);
+    }
     // validator for initial BPM setting
     validator = new QIntValidator(100, 150, this);
     ui->initialBPMLineEdit->setValidator(validator);
@@ -294,6 +308,225 @@ void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
 
 #endif
 }
+
+static QComboBox *weekSelectionComboBox()
+{
+    QComboBox *comboDay = new QComboBox();
+    comboDay->addItem("<none>", 0);
+    comboDay->addItem("Monday", 1);
+    comboDay->addItem("Tuesday", 2);
+    comboDay->addItem("Wednesday", 3);
+    comboDay->addItem("Thursday", 4);
+    comboDay->addItem("Friday", 5);
+    comboDay->addItem("Saturday", 6);
+    comboDay->addItem("Sunday", 7);
+    return comboDay;
+}
+
+
+static QTimeEdit *timeSelectionControl(int start_minutes)
+{
+    QTimeEdit *timeEdit = new QTimeEdit(QTime((int)(start_minutes / 60),
+                                              start_minutes % 60));
+    timeEdit->setDisplayFormat("h:mm AP");
+    return timeEdit;
+}
+
+
+void PreferencesDialog::setSessionInfoList(const QList<SessionInfo> &sessions)
+{
+    ui->tableWidgetSessionsList->setRowCount(sessions.length());
+    for (int row = 0; row < sessions.length(); ++row)
+    {
+        const SessionInfo &session(sessions[row]);
+        QTableWidgetItem *item = new QTableWidgetItem(session.name);
+        ui->tableWidgetSessionsList->setItem(row, 0, item);
+
+        QComboBox *comboDay = weekSelectionComboBox();
+        comboDay->setCurrentIndex(session.day_of_week);
+        ui->tableWidgetSessionsList->setCellWidget(row, 1, comboDay);
+
+        QTimeEdit *timeEdit = timeSelectionControl(session.start_minutes);
+                
+        ui->tableWidgetSessionsList->setCellWidget(row,2,timeEdit);
+        
+        QTableWidgetItem *itemId = new QTableWidgetItem(QString("%1").arg(session.id));
+        ui->tableWidgetSessionsList->setItem(row,3,itemId);
+    }
+ 
+}
+
+
+QList<SessionInfo> PreferencesDialog::getSessionInfoList()
+{
+    QList<SessionInfo> info;
+    for (int row = 0; row < ui->tableWidgetSessionsList->rowCount(); ++row)
+    {
+        SessionInfo session;
+
+        session.name = ui->tableWidgetSessionsList->item(row,kSessionsColName)->text();;
+        QComboBox *comboDay = dynamic_cast<QComboBox *>(ui->tableWidgetSessionsList->cellWidget(row,kSessionsColDay));
+        if (comboDay)
+            session.day_of_week = comboDay->currentIndex();
+        QTimeEdit *timeEdit = dynamic_cast<QTimeEdit *>(ui->tableWidgetSessionsList->cellWidget(row,kSessionsColTime));
+        QTime t(timeEdit->time());
+        session.start_minutes = t.hour() * 60 + t.minute();
+        session.id = -1;
+        if (ui->tableWidgetSessionsList->item(row, kSessionsColID) != NULL)
+        {
+            QString session_id(ui->tableWidgetSessionsList->item(row, kSessionsColID)->text());
+            session.id = session_id.toInt();
+        }
+        session.order_number = row;
+        info.append(session);
+    }
+    return info;
+}
+
+
+void PreferencesDialog::on_toolButtonSessionAddItem_clicked()
+{
+    int lastSelectedRow = -1;
+    for (int row = 0; row < ui->tableWidgetSessionsList->rowCount(); ++row)
+    {
+        for (int col = 0; col < ui->tableWidgetSessionsList->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetSessionsList->item(row,col);
+            if (item && item->isSelected())
+            {
+                lastSelectedRow = row;
+            }
+        }
+    }
+    if (lastSelectedRow < 0)
+    {
+        lastSelectedRow = ui->tableWidgetSessionsList->rowCount();
+    }
+//    ui->tableWidgetSessionsList->setRowCount(ui->tableWidgetSessionsList->rowCount() + 1);
+    ui->tableWidgetSessionsList->insertRow(lastSelectedRow);
+    QComboBox *comboDay = weekSelectionComboBox();
+    comboDay->setCurrentIndex(0);
+    ui->tableWidgetSessionsList->setCellWidget(lastSelectedRow, kSessionsColDay, comboDay);
+    QTimeEdit *timeEdit = timeSelectionControl(0);
+    ui->tableWidgetSessionsList->setCellWidget(lastSelectedRow, kSessionsColTime, timeEdit);
+}
+
+void PreferencesDialog::on_toolButtonSessionRemoveItem_clicked()
+{
+    for (int row = 0; row < ui->tableWidgetSessionsList->rowCount(); ++row)
+    {
+        for (int col = 0; col < ui->tableWidgetSessionsList->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetSessionsList->item(row,col);
+            if (item && item->isSelected())
+            {
+                ui->tableWidgetSessionsList->removeRow(row);
+                --row;
+                break;
+            }
+        } /* end of column iteration */
+    } /* end of row iteration */
+    
+}
+
+
+static void swapSessionInfoRows(QTableWidget *tableWidget, int rowA, int rowB)
+{
+    // Doing selection state for both rows independently 'cause who
+    // knows what's going on with swapping values vs widgets.
+    
+    bool *selectedA = new bool[tableWidget->columnCount()];
+    bool *selectedB = new bool[tableWidget->columnCount()];
+    for (int col = 0; col < tableWidget->columnCount(); col++)
+    {
+        {
+            QTableWidgetItem *item = tableWidget->item(rowA,col);
+            selectedA[col] = item && item->isSelected();
+        }
+        {
+            QTableWidgetItem *item = tableWidget->item(rowB,col);
+            selectedB[col] = item && item->isSelected();
+        }
+    }
+    
+    QTableWidgetItem *itemName(tableWidget->takeItem(rowA, kSessionsColName));
+    QComboBox *comboDayA = dynamic_cast<QComboBox *>(tableWidget->cellWidget(rowA,kSessionsColDay));
+    int day_of_week = comboDayA->currentIndex();
+    QTimeEdit *timeEditA = dynamic_cast<QTimeEdit *>(tableWidget->cellWidget(rowA,kSessionsColTime));
+    QTime t(timeEditA->time());
+    QTableWidgetItem *itemID(tableWidget->takeItem(rowA, kSessionsColID));
+
+
+    tableWidget->setItem(rowA, kSessionsColName, tableWidget->takeItem(rowB, kSessionsColName));
+    QComboBox *comboDayB = dynamic_cast<QComboBox *>(tableWidget->cellWidget(rowB,kSessionsColDay));
+    comboDayA->setCurrentIndex(comboDayB->currentIndex());
+    QTimeEdit *timeEditB = dynamic_cast<QTimeEdit *>(tableWidget->cellWidget(rowB,kSessionsColTime));
+    timeEditA->setTime(timeEditB->time());
+    tableWidget->setItem(rowA, kSessionsColID, tableWidget->takeItem(rowB, kSessionsColID));
+
+    tableWidget->setItem(rowB, kSessionsColName, itemName);
+    comboDayB->setCurrentIndex(day_of_week);
+    timeEditB->setTime(t);
+    tableWidget->setItem(rowB, kSessionsColID, itemID);
+
+    for (int col = 0; col < tableWidget->columnCount(); col++)
+    {
+        {
+            QTableWidgetItem *item = tableWidget->item(rowA,col);
+            if (item) item->setSelected(selectedB[col]);
+        }
+        {
+            QTableWidgetItem *item = tableWidget->item(rowB,col);
+            if (item) item->setSelected(selectedA[col]);
+        }
+    }
+    delete[] selectedA;
+    delete[] selectedB;
+}
+
+
+void PreferencesDialog::on_toolButtonSessionMoveItemDown_clicked()
+{
+    for (int row = ui->tableWidgetSessionsList->rowCount() - 2; row >= 0 ; --row)
+    {
+        bool rowSelected = false;
+        for (int col = 0; col < ui->tableWidgetSessionsList->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetSessionsList->item(row,col);
+            if (item && item->isSelected())
+            {
+                rowSelected = true;
+            }
+        } /* end of column iteration */
+        if (rowSelected)
+        {
+            swapSessionInfoRows(ui->tableWidgetSessionsList, row, row + 1);
+        }
+    } /* end of row iteration */
+}
+
+void PreferencesDialog::on_toolButtonSessionMoveItemUp_clicked()
+{
+    for (int row = 1; row < ui->tableWidgetSessionsList->rowCount(); ++row)
+    {
+        bool rowSelected = false;
+        for (int col = 0; col < ui->tableWidgetSessionsList->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetSessionsList->item(row,col);
+            if (item && item->isSelected())
+            {
+                rowSelected = true;
+            }
+        } /* end of column iteration */
+        if (rowSelected)
+        {
+            swapSessionInfoRows(ui->tableWidgetSessionsList, row, row - 1);
+        }
+        
+    } /* end of row iteration */
+}
+
+
 
 
 void PreferencesDialog::on_pushButtonResetHotkeysToDefaults_clicked()
