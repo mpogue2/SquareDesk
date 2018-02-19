@@ -10,7 +10,7 @@ You can also use LD_LIBRARY_PATH, but this is simplest.
 
 First, install the additional packages we're now using (one at a time)
 
-`sudo apt-get install build-essential git g++ qt5-default libqt5svg5-dev libqt5webkit5-dev libtag1-dev cmake libsqlite3-dev sqlite3`
+`sudo apt-get install build-essential git g++ qt5-default libqt5svg5-dev libqt5webkit5-dev libtag1-dev cmake libsqlite3-dev sqlite3 xsltproc`
 
 ```
 # this'll reset you to /home/tj
