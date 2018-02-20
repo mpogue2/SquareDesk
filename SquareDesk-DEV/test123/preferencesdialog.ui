@@ -492,7 +492,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="15" column="2">
+         <item row="14" column="2">
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -529,38 +529,6 @@ Click on a color square to change the color associated with that Music Type.  Se
           <widget class="QCheckBox" name="checkBoxSwitchToLyricsOnPlay">
            <property name="text">
             <string>Switch to Lyrics tab on first play (when lyrics are available)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="14" column="2">
-          <widget class="QComboBox" name="comboBoxSessionDefault">
-           <item>
-            <property name="text">
-             <string>Default to 'Practice' session</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Default to the current day of the week</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="14" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-             <weight>75</weight>
-             <italic>false</italic>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Sessions:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -657,9 +625,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>+</string>
                </property>
                <property name="icon">
-                 <iconset resource="resources.qrc">
-                   <normaloff>:/graphics/list-add.png</normaloff>
-                   <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/list-add.png</normaloff>
+                 <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
                </property>
               </widget>
              </item>
@@ -669,9 +637,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>-</string>
                </property>
                <property name="icon">
-                 <iconset resource="resources.qrc">
-                   <normaloff>:/graphics/list-remove.png</normaloff>
-                   <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/list-remove.png</normaloff>
+                 <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
                </property>
               </widget>
              </item>
@@ -681,9 +649,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                 <iconset resource="resources.qrc">
-                   <normalon>:/graphics/go-up.png</normalon>
-                   <normaloff>:/graphics/go-up.png</normaloff>:/graphics/go-up.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/go-up.png</normaloff>
+                 <normalon>:/graphics/go-up.png</normalon>:/graphics/go-up.png</iconset>
                </property>
               </widget>
              </item>
@@ -693,9 +661,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                  <normaloff>:/graphics/go-down.png</normaloff>
-                  <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/go-down.png</normaloff>
+                 <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
                </property>
               </widget>
              </item>
@@ -711,6 +679,20 @@ Click on a color square to change the color associated with that Music Type.  Se
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBoxSessionDefault">
+               <item>
+                <property name="text">
+                 <string>Default to 'Practice' session</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Default to the current day of the week</string>
+                </property>
+               </item>
+              </widget>
              </item>
             </layout>
            </item>

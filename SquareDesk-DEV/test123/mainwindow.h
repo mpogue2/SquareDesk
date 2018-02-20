@@ -323,7 +323,7 @@ private slots:
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
     void on_comboBoxCallListProgram_currentIndexChanged(int currentIndex);
-    void on_action_session_change_triggered();
+    void action_session_change_triggered();
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     void on_listWidgetChoreographyFiles_itemChanged(QListWidgetItem *item);
     void on_lineEditChoreographySearch_textChanged();
@@ -682,6 +682,7 @@ private:
     bool cuesheetEditorReactingToCursorMovement;
     void setCurrentSessionId(int id);
     void setCurrentSessionIdReloadSongAges(int id);
+    void setCurrentSessionIdReloadSongAgesCheckMenu(int id);
 
     QString ageToRecent(QString age);
     QString ageToIntString(QString ageString);

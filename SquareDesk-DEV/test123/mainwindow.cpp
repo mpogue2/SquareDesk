@@ -834,11 +834,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
 
-    // can't move this up, because the DB needs to be open already...
-    if (static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW))
-    {
-        setCurrentSessionIdReloadSongAges(songSettings.currentSessionIDByTime()); // on app entry, ages must show current session
-    }
+    setCurrentSessionIdReloadSongAgesCheckMenu(
+        static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW)
+        ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session
     populateMenuSessionOptions();
 }
 
@@ -949,6 +947,11 @@ void MainWindow::setCurrentSessionIdReloadSongAges(int id)
     setCurrentSessionId(id);
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
     on_comboBoxCallListProgram_currentIndexChanged(ui->comboBoxCallListProgram->currentIndex());
+}
+
+void MainWindow::setCurrentSessionIdReloadSongAgesCheckMenu(int id)
+{
+    setCurrentSessionIdReloadSongAges(id);
 }
 
 static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
@@ -1865,16 +1868,15 @@ void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentInde
     }
 }
 
-void MainWindow::on_action_session_change_triggered()
+void MainWindow::action_session_change_triggered()
 {
-    
     QList<QAction *> actions(sessionActionGroup->actions());
+    QList<SessionInfo> sessions(songSettings.getSessionInfo());
     for (auto action : actions)
     {
         if (action->isChecked())
         {
             QString name(action->text());
-            QList<SessionInfo> sessions(songSettings.getSessionInfo());
             for (auto session : sessions)
             {
                 if (name == session.name)
@@ -1908,7 +1910,7 @@ void MainWindow::populateMenuSessionOptions()
         QAction *action = new QAction(session.name, this);
         action->setCheckable(true);
         ui->menuSession->insertAction(topSeparator, action);
-        connect(action, SIGNAL(triggered()), this, SLOT(on_action_session_change_triggered()));
+        connect(action, SIGNAL(triggered()), this, SLOT(action_session_change_triggered()));
         sessionActionGroup->addAction(action);
         if (session.id == id)
             action->setChecked(true);
@@ -5374,7 +5376,11 @@ void MainWindow::on_actionPreferences_triggered()
         musicRootPath = prefsManager.GetmusicPath();
 
         songSettings.setSessionInfo(prefDialog->getSessionInfoList());
-
+        if (previousSessionDefaultType != static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())
+            && static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultDOW)
+        {
+            setCurrentSessionIdReloadSongAgesCheckMenu(songSettings.currentSessionIDByTime());
+        }
         populateMenuSessionOptions();
 
         findMusic(musicRootPath, "", "main", true); // always refresh the songTable after the Prefs dialog returns with OK
@@ -5466,11 +5472,6 @@ void MainWindow::on_actionPreferences_triggered()
 
         if (prefDialog->songTableReloadNeeded) {
             loadMusicList();
-        }
-        if (previousSessionDefaultType != static_cast<SessionDefaultType>(prefsManager.GetSessionDefault())
-            && static_cast<SessionDefaultType>(prefsManager.GetSessionDefault()) == SessionDefaultDOW)
-        {
-            setCurrentSessionIdReloadSongAges(songSettings.currentSessionIDByTime());
         }
 
         if (prefsManager.GetenableAutoAirplaneMode()) {

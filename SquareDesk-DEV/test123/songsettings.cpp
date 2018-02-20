@@ -277,7 +277,7 @@ SongSettings::SongSettings() :
 
 int SongSettings::currentSessionIDByTime()
 {
-    int session_id = 0;
+    int session_id = 1;
     QDate date(QDate::currentDate());
     QTime time(QTime::currentTime());
     int day_of_week = date.dayOfWeek();
@@ -292,6 +292,8 @@ int SongSettings::currentSessionIDByTime()
     {
         session_id = q.value(0).toInt();
     }
+    q.prepare("SELECT rowid FROM sessions WHERE day_of_week = :day_of_week AND start_minutes < :start_minutes AND NOT deleted ORDER BY start_minutes DESC LIMIT 1");
+    
     return session_id;
 }
 
