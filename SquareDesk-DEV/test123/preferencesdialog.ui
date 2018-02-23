@@ -684,12 +684,12 @@ Click on a color square to change the color associated with that Music Type.  Se
               <widget class="QComboBox" name="comboBoxSessionDefault">
                <item>
                 <property name="text">
-                 <string>Default to 'Practice' session</string>
+                 <string>Default to first session</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>Default to the current day of the week</string>
+                 <string>Set session on startup to specific day and time</string>
                 </property>
                </item>
               </widget>
