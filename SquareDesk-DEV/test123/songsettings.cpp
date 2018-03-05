@@ -214,6 +214,7 @@ RowDefinition song_rows[] =
     RowDefinition("midrange", "int"),
     RowDefinition("mix", "int"),
     RowDefinition("loop", "int"),   // 1 = yes, -1 = no, 0 = not set yet
+    RowDefinition("tags", "text"),
 
     RowDefinition(NULL, NULL),
 };
@@ -638,6 +639,7 @@ QDebug operator<<(QDebug dbg, const SongSetting &setting)
                      "\n    midrange: " << setting.m_midrange << "," << setting.set_midrange << ";" <<
                      "\n    mix: " << setting.m_mix << "," << setting.set_mix << ";" <<
                      "\n    loop: " << setting.m_loop << "," << setting.set_loop << ";" <<
+                     "\n    tags: " << setting.m_tags << "," << setting.set_tags << ";" <<
                      ")";
     return dbg;
 }
@@ -665,6 +667,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetMidrange()) { fields.append("midrange"); }
     if (settings.isSetMix()) { fields.append("mix"); }
     if (settings.isSetMix()) { fields.append("loop"); }
+    if (settings.isSetTags()) { fields.append("tags"); }
 
     QSqlQuery q(m_db);
     if (id == -1)
@@ -733,6 +736,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":midrange", settings.getMidrange());
     q.bindValue(":mix", settings.getMix());
     q.bindValue(":loop", settings.getLoop());
+    q.bindValue(":tags", settings.getTags());
 
     exec("saveSettings", q);
 }
@@ -755,12 +759,13 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(12).isNull()) { settings.setMidrange(q.value(12).toInt()); }
     if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
     if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
+    if (!q.value(15).isNull()) { settings.setTags(q.value(15).toString()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {

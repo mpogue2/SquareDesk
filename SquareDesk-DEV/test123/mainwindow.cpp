@@ -47,6 +47,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QWidget>
+#include <QInputDialog>
 
 #include <QPrinter>
 #include <QPrintDialog>
@@ -181,6 +182,9 @@ using namespace TagLib;
 bass_audio cBass;
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
+
+static QString title_tags_prefix = " <font color=\"#855454\">";
+static QString title_tags_suffix = "</font>"; 
 
 #include <QProxyStyle>
 
@@ -4563,7 +4567,19 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
 }
 
+static QString getTitleColText(MyTableWidget *songTable,int row)
+{
+    return dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->text();
+}
 
+static QString getTitleColTitle(MyTableWidget *songTable,int row)
+{
+    QString title = getTitleColText(songTable, row);
+    int where = title.indexOf(title_tags_prefix);
+    if (where >= 0)
+        title.truncate(where);
+    return title;
+}
 
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
@@ -4581,7 +4597,7 @@ void MainWindow::filterMusic()
     int rowsVisible = initialRowCount;
     int firstVisibleRow = -1;
     for (int i=0; i<ui->songTable->rowCount(); i++) {
-        QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+        QString songTitle = getTitleColText(ui->songTable, i);
         QString songType = ui->songTable->item(i,kTypeCol)->text();
         QString songLabel = ui->songTable->item(i,kLabelCol)->text();
 
@@ -4747,7 +4763,22 @@ void MainWindow::loadMusicList()
 
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
-        addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
+//        addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
+
+        SongSetting settings;
+        songSettings.loadSettings(origPath,
+                                  settings);
+
+        QString titlePlusTags(title.toHtmlEscaped());
+        if (settings.isSetTags())
+            titlePlusTags += title_tags_prefix + settings.getTags().toHtmlEscaped() + title_tags_suffix;
+        QLabel *titleLabel = new QLabel();
+        titleLabel->setTextFormat(Qt::RichText);
+        titleLabel->setText(titlePlusTags);
+        ui->songTable->setCellWidget(ui->songTable->rowCount()-1, kTitleCol, titleLabel);
+
+            
+        
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
                                                     show_all_ages);
 
@@ -4760,9 +4791,6 @@ void MainWindow::loadMusicList()
         int pitch = 0;
         int tempo = 0;
         bool loadedTempoIsPercent(false);
-        SongSetting settings;
-        songSettings.loadSettings(origPath,
-                                  settings);
 
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
         if (settings.isSetTempo()) { tempo = settings.getTempo(); }
@@ -5203,7 +5231,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     int row = item->row();
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
 
-    QString songTitle = ui->songTable->item(row,kTitleCol)->text();
+    QString songTitle = getTitleColTitle(ui->songTable, row);
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
     QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
@@ -5779,7 +5807,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         QString playlistIndex = theItem->text();
         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-        QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+        QString songTitle = getTitleColTitle(ui->songTable, i);
         QString pitch = ui->songTable->item(i,kPitchCol)->text();
         QString tempo = ui->songTable->item(i,kTempoCol)->text();
 
@@ -5937,7 +5965,7 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
 
     // load all the UI fields, as if we double-clicked on the new row
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-    QString songTitle = ui->songTable->item(row,kTitleCol)->text();
+    QString songTitle = getTitleColTitle(ui->songTable, row);
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
@@ -6004,7 +6032,7 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 
     // load all the UI fields, as if we double-clicked on the new row
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-    QString songTitle = ui->songTable->item(row,kTitleCol)->text();
+    QString songTitle = getTitleColTitle(ui->songTable, row);
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
     QString songType = ui->songTable->item(row,kTypeCol)->text();
@@ -6454,9 +6482,43 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 #if defined(Q_OS_LINUX)
         menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
 #endif
+        menu.addAction( "Edit Tags ...", this, SLOT (editTags()) );
 
         menu.popup(QCursor::pos());
         menu.exec();
+    }
+}
+
+
+void MainWindow::editTags()
+{
+    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+        QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+        QString tags;
+        bool ok(false);
+        if (settings.isSetTags())
+            tags = settings.getTags();
+        QString newtags(QInputDialog::getText(this, "Edit Tags", "Tags for " + pathToMP3, QLineEdit::Normal, tags, &ok));
+        if (ok)
+        {
+            settings.setTags(newtags);
+            songSettings.saveSettings(pathToMP3, settings);
+
+            QString title = getTitleColTitle(ui->songTable, row);
+            title += title_tags_prefix + newtags.toHtmlEscaped() + title_tags_suffix;
+            dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(title);
+        }
+    }
+    else {
+        // more than 1 row or no rows at all selected (BAD)
     }
 }
 
@@ -8417,7 +8479,7 @@ void MainWindow::on_actionFilePrint_triggered()
             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
             QString playlistIndex = theItem->text();
             QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-            QString songTitle = ui->songTable->item(i,kTitleCol)->text();
+            QString songTitle = getTitleColTitle(ui->songTable, i);
             QString pitch = ui->songTable->item(i,kPitchCol)->text();
             QString tempo = ui->songTable->item(i,kTempoCol)->text();
 

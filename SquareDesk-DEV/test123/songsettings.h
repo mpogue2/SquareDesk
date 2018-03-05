@@ -72,6 +72,9 @@ private:
     int m_loop;
     bool set_loop;
 
+    QString m_tags;
+    bool set_tags;
+    
 public:
     SongSetting();
     QString getFilename() const { return m_filename; }
@@ -130,6 +133,10 @@ public:
     bool isSetLoop() const { return set_loop; }
     void setLoop(int p) { m_loop = p; set_loop = true; }
 
+    QString getTags() const { return m_tags; }
+    bool isSetTags() const { return set_tags; }
+    void setTags(QString p) { m_tags = p; set_tags = true; }
+    
     friend QDebug operator<<(QDebug dbg, const SongSetting &setting);  // DEBUG
 };
 
