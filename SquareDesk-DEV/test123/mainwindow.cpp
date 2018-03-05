@@ -4581,13 +4581,33 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
     return title;
 }
 
+
+bool filterContains(const QString &str, const QStringList &list)
+{
+    if (list.isEmpty())
+        return true;
+    
+    int index = 0;
+
+    for (auto t : list)
+    {
+        int i = str.indexOf(t, index, Qt::CaseInsensitive);
+        if (i < 0)
+            return false;
+        index = i + t.length();
+    }
+    return true;
+}
+
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
 #ifdef CUSTOM_FILTER
-    QString label = ui->labelSearch->text();
-    QString type = ui->typeSearch->text();
-    QString title = ui->titleSearch->text();
+    QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+
+    QStringList label = ui->labelSearch->text().split(rx);
+    QStringList type = ui->typeSearch->text().split(rx);
+    QStringList title = ui->titleSearch->text().split(rx);
 
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
 
@@ -4603,18 +4623,9 @@ void MainWindow::filterMusic()
 
         bool show = true;
 
-        if (!(label.isEmpty()
-              || songLabel.contains(label, Qt::CaseInsensitive)))
-        {
-            show = false;
-        }
-        if (!(type.isEmpty()
-              || songType.contains(type, Qt::CaseInsensitive)))
-        {
-            show = false;
-        }
-        if (!(title.isEmpty()
-              || songTitle.contains(title, Qt::CaseInsensitive)))
+        if (!filterContains(songLabel,label)
+            || !filterContains(songType, type)
+            || !filterContains(songTitle, title))
         {
             show = false;
         }
