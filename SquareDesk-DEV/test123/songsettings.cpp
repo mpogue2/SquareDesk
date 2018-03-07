@@ -783,7 +783,7 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
     if (!foundResults && settings.isSetFilename())
     {
         QSqlQuery q(m_db);
-        q.prepare(baseSql + " WHERE filename=:filename");
+        q.prepare(baseSql + " filename=:filename");
         q.bindValue(":filename", settings.getFilename());
         exec("loadSettings", q);
 
@@ -796,7 +796,7 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
     if (!foundResults && settings.isSetSongname())
     {
         QSqlQuery q(m_db);
-        q.prepare(baseSql + " WHERE name=:name");
+        q.prepare(baseSql + " name=:name");
         q.bindValue(":name", settings.getSongname());
         exec("loadSettings", q);
         while (q.next())
