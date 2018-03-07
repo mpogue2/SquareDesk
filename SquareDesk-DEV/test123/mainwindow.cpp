@@ -4582,15 +4582,23 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 }
 
 
-bool filterContains(const QString &str, const QStringList &list)
+bool filterContains(QString str, const QStringList &list)
 {
     if (list.isEmpty())
         return true;
-    
+
+    int title_end = str.indexOf(title_tags_prefix);
+    str.replace(title_tags_prefix, " ");
+    str.replace(title_tags_suffix, " ");
     int index = 0;
 
+    if (title_end < 0) title_end = str.length();
+                
     for (auto t : list)
     {
+        // Keywords can get matched in any order
+        if (index > title_end)
+            index = title_end;
         int i = str.indexOf(t, index, Qt::CaseInsensitive);
         if (i < 0)
             return false;
