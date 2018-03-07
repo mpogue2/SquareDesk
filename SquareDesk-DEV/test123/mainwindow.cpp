@@ -6494,6 +6494,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
 #endif
         menu.addAction( "Edit Tags ...", this, SLOT (editTags()) );
+        menu.addAction( "Load Song", this, SLOT (loadSong()) );
 
         menu.popup(QCursor::pos());
         menu.exec();
@@ -6527,6 +6528,22 @@ void MainWindow::editTags()
             title += title_tags_prefix + newtags.toHtmlEscaped() + title_tags_suffix;
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(title);
         }
+    }
+    else {
+        // more than 1 row or no rows at all selected (BAD)
+    }
+}
+
+void MainWindow::loadSong()
+{
+    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+        on_songTable_itemDoubleClicked(ui->songTable->item(row,kPathCol));
     }
     else {
         // more than 1 row or no rows at all selected (BAD)

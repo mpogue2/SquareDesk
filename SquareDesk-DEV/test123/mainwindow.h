@@ -279,6 +279,7 @@ private slots:
 
     void on_songTable_customContextMenuRequested(const QPoint &pos);
     void editTags();
+    void loadSong();
     void revealInFinder();
 
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
