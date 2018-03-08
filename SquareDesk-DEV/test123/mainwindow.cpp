@@ -184,8 +184,8 @@ bass_audio cBass;
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 
-static QString title_tags_prefix = " <font color=\"#855454\">";
-static QString title_tags_suffix = "</font>"; 
+static QString title_tags_prefix = R"**(&nbsp;<span style="background-color:#67c998"> )**";
+static QString title_tags_suffix = " </span>"; 
 
 #include <QProxyStyle>
 
@@ -4790,8 +4790,14 @@ void MainWindow::loadMusicList()
                                   settings);
 
         QString titlePlusTags(title.toHtmlEscaped());
-        if (settings.isSetTags())
-            titlePlusTags += title_tags_prefix + settings.getTags().toHtmlEscaped() + title_tags_suffix;
+        if (settings.isSetTags() && !settings.getTags().isEmpty())
+        {
+            QStringList tags = settings.getTags().split(" ");
+            for (auto tag : tags)
+            {
+                titlePlusTags += title_tags_prefix + tag.toHtmlEscaped() + title_tags_suffix;
+            }
+        }
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
