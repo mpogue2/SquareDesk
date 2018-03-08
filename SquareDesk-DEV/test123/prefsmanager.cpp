@@ -269,6 +269,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 #undef CONFIG_ATTRIBUTE_COLOR
 
     MySettings.sync();
+    prefDialog->finishPopulation();
 }
 
 

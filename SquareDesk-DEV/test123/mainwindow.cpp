@@ -183,9 +183,17 @@ using namespace TagLib;
 bass_audio cBass;
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
+static QString title_tags_prefix(" "); // = "&nbsp;<span style=\"background-color:" ##DEFAULTTAGSBACKGROUNDCOLOR "; color:" ##DEFAULTTAGSFOREGROUNDCOLOR ";\">";
+static QString title_tags_suffix(""); //  = " </span>"; 
 
-static QString title_tags_prefix = R"**(&nbsp;<span style="background-color:#67c998"> )**";
-static QString title_tags_suffix = " </span>"; 
+static void SetTagsColorsFromPrefsManager(PreferencesManager &prefsManager)
+{
+    QString str = "&nbsp;<span style=\"background-color:%1; color: %2;\"> ";
+    title_tags_prefix = str.arg(prefsManager.GettagsBackgroundColorString()).arg(prefsManager.GettagsForegroundColorString());
+    title_tags_suffix = " </span>";
+    
+}
+
 
 #include <QProxyStyle>
 
@@ -439,6 +447,9 @@ MainWindow::MainWindow(QWidget *parent) :
     singingColorString = prefsManager.GetsingingColorString();
     calledColorString = prefsManager.GetcalledColorString();
     extrasColorString = prefsManager.GetextrasColorString();
+
+    SetTagsColorsFromPrefsManager(prefsManager);
+    
 
     // Tell the clock what colors to use for session segments
     analogClock->setColorForType(PATTER, QColor(patterColorString));
@@ -4660,6 +4671,20 @@ void MainWindow::filterMusic()
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
+
+static QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags)
+{
+    QString titlePlusTags(title.toHtmlEscaped());
+    if (setTags && !strtags.isEmpty())
+    {
+        QStringList tags = strtags.split(" ");
+        for (auto tag : tags)
+        {
+            titlePlusTags += title_tags_prefix + tag.toHtmlEscaped() + title_tags_suffix;
+        }
+    }
+    return titlePlusTags;
+}    
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
@@ -4789,15 +4814,7 @@ void MainWindow::loadMusicList()
         songSettings.loadSettings(origPath,
                                   settings);
 
-        QString titlePlusTags(title.toHtmlEscaped());
-        if (settings.isSetTags() && !settings.getTags().isEmpty())
-        {
-            QStringList tags = settings.getTags().split(" ");
-            for (auto tag : tags)
-            {
-                titlePlusTags += title_tags_prefix + tag.toHtmlEscaped() + title_tags_suffix;
-            }
-        }
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
@@ -5461,7 +5478,7 @@ void MainWindow::on_actionPreferences_triggered()
         singingColorString = prefsManager.GetsingingColorString();
         calledColorString = prefsManager.GetcalledColorString();
         extrasColorString = prefsManager.GetextrasColorString();
-
+        SetTagsColorsFromPrefsManager(prefsManager);
         // ----------------------------------------------------------------
         // Show the Timers tab, if it is enabled now
         if (prefsManager.GetexperimentalTimersEnabled()) {
@@ -6556,8 +6573,8 @@ void MainWindow::editTags()
             songSettings.saveSettings(pathToMP3, settings);
 
             QString title = getTitleColTitle(ui->songTable, row);
-            title += title_tags_prefix + newtags.toHtmlEscaped() + title_tags_suffix;
-            dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(title);
+            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
+            dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
     }
     else {

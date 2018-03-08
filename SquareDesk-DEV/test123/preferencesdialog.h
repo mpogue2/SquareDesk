@@ -52,6 +52,7 @@ class PreferencesDialog : public QDialog
 public:
     PreferencesDialog(QString *soundFXname, QWidget *parent = 0);
     ~PreferencesDialog();
+    void finishPopulation();
 
     QString musicPath;
     void setFontSizes();
@@ -83,11 +84,11 @@ public:
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name,default)
 #define CONFIG_ATTRIBUTE_INT_NO_PREFS(name,default)
 
-#define CONFIG_ATTRIBUTE_STRING(control, name, default) QString Get##name(); void Set##name(QString value);
-#define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) bool Get##name(); void Set##name(bool value);
-#define CONFIG_ATTRIBUTE_COMBO(control, name, default) int Get##name(); void Set##name(int value);
-#define CONFIG_ATTRIBUTE_COLOR(control, name, default) QString Get##name(); void Set##name(QString value);
-#define CONFIG_ATTRIBUTE_INT(control, name, default) int Get##name(); void Set##name(int value);
+#define CONFIG_ATTRIBUTE_STRING(control, name, default) QString Get##name() const; void Set##name(QString value);
+#define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) bool Get##name() const; void Set##name(bool value);
+#define CONFIG_ATTRIBUTE_COMBO(control, name, default) int Get##name() const; void Set##name(int value);
+#define CONFIG_ATTRIBUTE_COLOR(control, name, default) QString Get##name() const; void Set##name(QString value);
+#define CONFIG_ATTRIBUTE_INT(control, name, default) int Get##name() const; void Set##name(int value);
 
     #include "prefs_options.h"
 
@@ -126,7 +127,10 @@ private slots:
     void on_toolButtonSessionMoveItemDown_clicked();
     void on_toolButtonSessionMoveItemUp_clicked();
     void on_toolButtonSessionRemoveItem_clicked();
+    void on_pushButtonTagsBackgroundColor_clicked();
+    void on_pushButtonTagsForegroundColor_clicked();
 private:
+    void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;
 };
 
