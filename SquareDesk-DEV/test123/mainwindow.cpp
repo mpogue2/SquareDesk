@@ -62,6 +62,7 @@
 #include "exportdialog.h"
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
+#include "songtitlelabel.h"
 
 #include "danceprograms.h"
 #define CUSTOM_FILTER
@@ -4791,12 +4792,10 @@ void MainWindow::loadMusicList()
         QString titlePlusTags(title.toHtmlEscaped());
         if (settings.isSetTags())
             titlePlusTags += title_tags_prefix + settings.getTags().toHtmlEscaped() + title_tags_suffix;
-        QLabel *titleLabel = new QLabel();
+        SongTitleLabel *titleLabel = new SongTitleLabel(this);
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
         ui->songTable->setCellWidget(ui->songTable->rowCount()-1, kTitleCol, titleLabel);
-
-            
         
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
                                                     show_all_ages);
@@ -5235,6 +5234,24 @@ void MainWindow::on_typeSearch_textChanged()
 void MainWindow::on_titleSearch_textChanged()
 {
     filterMusic();
+}
+
+
+void MainWindow::titleLabelDoubleClicked(QMouseEvent * /* event */)
+{
+    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+        on_songTable_itemDoubleClicked(ui->songTable->item(row,kPathCol));
+    }
+    else {
+        // more than 1 row or no rows at all selected (BAD)
+    }
+    
 }
 
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)

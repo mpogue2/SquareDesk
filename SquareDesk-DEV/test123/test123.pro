@@ -59,6 +59,7 @@ SOURCES += main.cpp\
     downloadmanager.cpp \
     sdinterface.cpp \
     mainwindow_sd.cpp \
+    songtitlelabel.cpp \
     mydatetimeedit.cpp
 
 macx {
@@ -101,6 +102,7 @@ HEADERS  += mainwindow.h \
     calllistcheckbox.h \
     downloadmanager.h \
     sdinterface.h \
+    songtitlelabel.h \
     mydatetimeedit.h
 
 macx {

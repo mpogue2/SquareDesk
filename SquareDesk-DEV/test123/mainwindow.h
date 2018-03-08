@@ -456,6 +456,7 @@ public:
     void do_sd_double_click_call_completion(QListWidgetItem *item);
     void highlight_sd_replaceables();
     void populateMenuSessionOptions();
+    void titleLabelDoubleClicked(QMouseEvent * /* event */);
 private:
 
     bool flashCallsVisible;
