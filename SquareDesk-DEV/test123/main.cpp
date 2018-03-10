@@ -30,6 +30,8 @@
 
 int main(int argc, char *argv[])
 {
+    // From: https://stackoverflow.com/questions/4954140/how-to-redirect-qdebug-qwarning-qcritical-etc-output
+
     QApplication a(argc, argv);
     a.setApplicationName("SquareDesk");
     a.setOrganizationName("Zenstar Software");
@@ -52,6 +54,14 @@ int main(int argc, char *argv[])
     a.installEventFilter(new GlobalEventFilter(w.ui));
 
     Q_INIT_RESOURCE(startupwizard); // resources for the startup wizard
+
+    // If running from QtCreator, use normal debugging -------------
+    QByteArray envVar = qgetenv("QTDIR");       //  check if the app is ran in Qt Creator
+
+    if (envVar.isEmpty()) {
+        // if running as a standalone app, log to a file instead of the console
+        qInstallMessageHandler(MainWindow::customMessageOutput); // custom message handler for debugging
+    }
 
     return a.exec();
 }

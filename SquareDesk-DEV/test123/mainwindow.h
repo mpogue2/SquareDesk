@@ -107,7 +107,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.1"
+#define VERSIONSTRING "0.9.2alpha1"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -131,6 +131,10 @@ public:
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
+
+    // ERROR LOGGING...
+    static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    static QString logFilePath;
 
     PreferencesDialog *prefDialog;
     QActionGroup *sessionActionGroup;

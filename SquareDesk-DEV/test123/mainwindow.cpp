@@ -384,6 +384,9 @@ MainWindow::MainWindow(QWidget *parent) :
     guestVolume = "";   // and no guest volume present
     guestMode = "main"; // and not guest mode
 
+    // ERROR LOGGING ------
+    logFilePath = musicRootPath + "/.squaredesk/debug.log";
+
     switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
     updateRecentPlaylistMenu();
@@ -2518,12 +2521,14 @@ void InitializeSeekBar(MySlider *seekBar)
     seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: TRICKY, counts on == below
     seekBar->setTickInterval(10);  // 10 seconds per tick
 }
+
 void SetSeekBarPosition(MySlider *seekBar, int currentPos_i)
 {
     seekBar->blockSignals(true); // setValue should NOT initiate a valueChanged()
     seekBar->setValue(currentPos_i);
     seekBar->blockSignals(false);
 }
+
 void SetSeekBarNoSongLoaded(MySlider *seekBar)
 {
     seekBar->setMinimum(0);
@@ -2539,12 +2544,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     }
     RecursionGuard recursion_guard(in_Info_Seekbar);
 
-    if (songLoaded) {  // FIX: this needs to pay attention to the bool
-        // FIX: this code doesn't need to be executed so many times.
-        InitializeSeekBar(ui->seekBar);
-        InitializeSeekBar(ui->seekBarCuesheet);
-
+    if (songLoaded) {
         cBass.StreamGetPosition();  // update cBass.Current_Position
+
+        if (ui->pitchSlider->value() != cBass.Stream_Pitch) {
+            qDebug() << "ERROR: Song was loaded, and cBass pitch did not match pitch slider!";
+            qDebug() << "    pitchSlider =" << ui->pitchSlider->value();
+            qDebug() << "    cBass.Pitch/Tempo/Volume = " << cBass.Stream_Pitch << ", " << cBass.Stream_Tempo << ", " << cBass.Stream_Volume;
+            cBass.SetPitch(ui->pitchSlider->value());
+        }
 
         int currentPos_i = (int)cBass.Current_Position;
         if (forceSlider) {
@@ -2917,6 +2925,7 @@ void MainWindow::on_actionLoop_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_UIUpdateTimerTick(void)
 {
+    // This is called once per second, to update the seekbar and associated dynamic text
 
 #if defined(Q_OS_MAC)
     if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
@@ -4090,6 +4099,8 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
+    songLoaded = false;  // seekBar updates are disabled, while we are loading
+
 //    qDebug() << "songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
     RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
@@ -4285,8 +4296,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 //    qDebug() << "load 2.6: " << t2.elapsed() << "ms";
 
-    songLoaded = true;
-    Info_Seekbar(true);
+    // song is loaded now, so init the seekbar min/max (once)
+    InitializeSeekBar(ui->seekBar);
+    InitializeSeekBar(ui->seekBarCuesheet);
+
+    Info_Seekbar(true);  // update the slider and all the text
 
 //    qDebug() << "load 2.7: " << t2.elapsed() << "ms";
 
@@ -4339,6 +4353,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition((double)startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
+
+    songLoaded = true;  // now seekBar can be updated
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -9267,5 +9283,31 @@ void MainWindow::on_actionItalic_triggered()
     bool isEditable = ui->toolButtonEditLyrics->isChecked();
     if (isEditable) {
         ui->textBrowserCueSheet->setFontItalic(!isItalicsNow);
+    }
+}
+
+// --------------------------
+QString MainWindow::logFilePath;  // static members must be explicitly instantiated if in class scope
+
+void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
+    QByteArray localMsg = msg.toLocal8Bit();
+    QTime time = QTime::currentTime();
+    QString formattedTime = time.toString("hh:mm:ss.zzz");
+    QByteArray formattedTimeMsg = formattedTime.toLocal8Bit();
+    QString logLevelName = msgLevelHash[type];
+    QByteArray logLevelMsg = logLevelName.toLocal8Bit();
+
+    QString txt = QString("%1 %2: %3 (%4)").arg(formattedTime, logLevelName, msg, context.file);
+
+    QFile outFile(logFilePath);
+    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream ts(&outFile);
+    ts << txt << endl;
+    outFile.close();
+
+    if (type == QtFatalMsg) {
+        abort();
     }
 }
