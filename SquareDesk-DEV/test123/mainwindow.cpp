@@ -6541,7 +6541,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 #if defined(Q_OS_LINUX)
         menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
 #endif
-        menu.addAction( "Edit Tags ...", this, SLOT (editTags()) );
+        menu.addAction( "Edit Tags...", this, SLOT (editTags()) );
         menu.addAction( "Load Song", this, SLOT (loadSong()) );
 
         menu.popup(QCursor::pos());
