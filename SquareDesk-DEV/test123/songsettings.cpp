@@ -613,7 +613,9 @@ SongSetting::SongSetting()
     m_mix(0),
     set_mix(false),
     m_loop(0),
-    set_loop(false)
+    set_loop(false),
+    m_tags(),
+    set_tags(false)
 {
 }
 
