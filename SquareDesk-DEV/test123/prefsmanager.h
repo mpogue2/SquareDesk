@@ -39,9 +39,14 @@ public:
 
     void populatePreferencesDialog(PreferencesDialog *prefDialog);
     void extractValuesFromPreferencesDialog(PreferencesDialog *prefDialog);
+    void setTagColors( const QHash<QString,QPair<QString,QString>> &);
+    const QHash<QString,QPair<QString,QString>> &getTagColors();
 
     QHash<Qt::Key, KeyAction *> GetHotkeyMappings();
     void SetHotkeyMappings(QHash<Qt::Key, KeyAction *>);
+private:
+    QHash<QString,QPair<QString,QString>> tagColors;
+public:
 
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)  bool Get##name(); void Set##name(bool value);
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)  QString Get##name(); void Set##name(QString value);

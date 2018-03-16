@@ -74,7 +74,7 @@ private:
 
     QString m_tags;
     bool set_tags;
-    
+
 public:
     SongSetting();
     QString getFilename() const { return m_filename; }
@@ -175,15 +175,24 @@ public:
 
     QList<SessionInfo> getSessionInfo();
     void setSessionInfo(const QList<SessionInfo> &sessions);
+    void setTagColors( const QHash<QString,QPair<QString,QString>> &);
+    QHash<QString,QPair<QString,QString>> getTagColors();
 
+    QPair<QString,QString> getColorForTag(const QString &tag);
+    void addTags(const QString &str);
+    void removeTags(const QString &str);
+    void setDefaultTagColors( const QString &background, const QString & foreground);    
+    
 private:
     bool debugErrors(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q, const QString &str);
-
+    QString tagsBackgroundColorString;
+    QString tagsForegroundColorString;
     bool databaseOpened;
     QSqlDatabase m_db;
     int current_session_id;
+    QHash<QString, int> tagCounts;
 
     void ensureSchema(TableDefinition *);
     void ensureIndex(IndexDefinition *index_definition);
@@ -191,6 +200,9 @@ private:
     int getSongIDFromFilenameAlone(const QString &filename);
     int getSessionIDFromName(const QString &name);
 
+    bool tagColorCacheSet;
+    QHash<QString,QPair<QString,QString>> tagColorCache;
+    
     std::vector<QString> root_directories;
 };
 

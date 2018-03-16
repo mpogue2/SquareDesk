@@ -241,10 +241,20 @@ void PreferencesManager::Set##name(int value)          \
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
 #undef CONFIG_ATTRIBUTE_INT_NO_PREFS
 
+void PreferencesManager::setTagColors( const QHash<QString,QPair<QString,QString>> &tagColors)
+{
+    this->tagColors = tagColors;
+}
+
+const QHash<QString,QPair<QString,QString>> &PreferencesManager::getTagColors()
+{
+    return this->tagColors;
+}
 
 void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog)
 {
     prefDialog->setHotkeys(GetHotkeyMappings());
+    prefDialog->setTagColors(getTagColors());
     
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
@@ -276,6 +286,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *prefDialog)
 {
     SetHotkeyMappings(prefDialog->getHotkeys());
+    setTagColors(prefDialog->getTagColors());
     
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)

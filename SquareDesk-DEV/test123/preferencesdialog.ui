@@ -70,30 +70,13 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
          <string>Music</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="14" column="0">
-          <widget class="QLabel" name="label_3">
-           <property name="font">
-            <font>
-             <pointsize>13</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Tags:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="2" colspan="4">
           <widget class="QLabel" name="musicDirHelpLabel">
            <property name="sizePolicy">
@@ -549,43 +532,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="14" column="2" colspan="4">
-          <layout class="QHBoxLayout" name="horizontalLayout_3">
-           <item>
-            <widget class="QPushButton" name="pushButtonTagsForegroundColor">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Foreground</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButtonTagsBackgroundColor">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Background</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="labelTagAppearance">
-             <property name="text">
-              <string>TextLabel</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
         </layout>
        </widget>
        <widget class="QWidget" name="tab">
@@ -679,9 +625,8 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>+</string>
                </property>
                <property name="icon">
-                <iconset>
-                 <normaloff>:/graphics/list-add.png</normaloff>
-                 <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
+                <iconset theme="list-add">
+                 <normaloff>.</normaloff>.</iconset>
                </property>
               </widget>
              </item>
@@ -691,9 +636,8 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>-</string>
                </property>
                <property name="icon">
-                <iconset>
-                 <normaloff>:/graphics/list-remove.png</normaloff>
-                 <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
+                <iconset theme="list-remove">
+                 <normaloff>.</normaloff>.</iconset>
                </property>
               </widget>
              </item>
@@ -703,9 +647,8 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset>
-                 <normaloff>:/graphics/go-up.png</normaloff>
-                 <normalon>:/graphics/go-up.png</normalon>:/graphics/go-up.png</iconset>
+                <iconset theme="up">
+                 <normaloff>.</normaloff>.</iconset>
                </property>
               </widget>
              </item>
@@ -715,9 +658,8 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset>
-                 <normaloff>:/graphics/go-down.png</normaloff>
-                 <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
+                <iconset theme="down">
+                 <normaloff>.</normaloff>.</iconset>
                </property>
               </widget>
              </item>
@@ -747,6 +689,151 @@ Click on a color square to change the color associated with that Music Type.  Se
                 </property>
                </item>
               </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="tab_5">
+        <attribute name="title">
+         <string>Tags</string>
+        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout_8">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <widget class="QLabel" name="label_3">
+                 <property name="font">
+                  <font>
+                   <pointsize>13</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Default:</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButtonTagsForegroundColor">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Foreground</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButtonTagsBackgroundColor">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="text">
+                  <string>Background</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="labelTagAppearance">
+                 <property name="text">
+                  <string>TextLabel</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QTableWidget" name="tableWidgetTagColors">
+             <column>
+              <property name="text">
+               <string>Name</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Foreground</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Background</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string>Sample</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QToolButton" name="toolButtonTagAdd">
+               <property name="text">
+                <string>+</string>
+               </property>
+               <property name="icon">
+                <iconset theme="list-add">
+                 <normaloff>.</normaloff>.</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="toolButtonTagRemove">
+               <property name="text">
+                <string>-</string>
+               </property>
+               <property name="icon">
+                <iconset theme="list-remove">
+                 <normaloff>.</normaloff>.</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>

@@ -183,17 +183,10 @@ using namespace TagLib;
 bass_audio cBass;
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
-static QString title_tags_prefix(" "); // = "&nbsp;<span style=\"background-color:" ##DEFAULTTAGSBACKGROUNDCOLOR "; color:" ##DEFAULTTAGSFOREGROUNDCOLOR ";\">";
-static QString title_tags_suffix(""); //  = " </span>"; 
-
-static void SetTagsColorsFromPrefsManager(PreferencesManager &prefsManager)
-{
-    QString str = "&nbsp;<span style=\"background-color:%1; color: %2;\"> ";
-    title_tags_prefix = str.arg(prefsManager.GettagsBackgroundColorString()).arg(prefsManager.GettagsForegroundColorString());
-    title_tags_suffix = " </span>";
-    
-}
-
+static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
+static QString title_tags_suffix(" </span>");
+static QString title_tags_prefix_invisible("<span style=\"display: none;\">");
+static QRegularExpression title_tags_remover("(\\&nbsp\\;)?\\<\\/?span( .*?)?>");
 
 #include <QProxyStyle>
 
@@ -447,9 +440,6 @@ MainWindow::MainWindow(QWidget *parent) :
     singingColorString = prefsManager.GetsingingColorString();
     calledColorString = prefsManager.GetcalledColorString();
     extrasColorString = prefsManager.GetextrasColorString();
-
-    SetTagsColorsFromPrefsManager(prefsManager);
-    
 
     // Tell the clock what colors to use for session segments
     analogClock->setColorForType(PATTER, QColor(patterColorString));
@@ -850,6 +840,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
 
+    songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
     setCurrentSessionIdReloadSongAgesCheckMenu(
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW)
         ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session
@@ -4587,7 +4578,8 @@ static QString getTitleColText(MyTableWidget *songTable,int row)
 static QString getTitleColTitle(MyTableWidget *songTable,int row)
 {
     QString title = getTitleColText(songTable, row);
-    int where = title.indexOf(title_tags_prefix);
+    int where = title.indexOf(title_tags_remover);
+    qDebug() << "TItle" << title << " tags remover at " << where;
     if (where >= 0)
         title.truncate(where);
     return title;
@@ -4599,9 +4591,8 @@ bool filterContains(QString str, const QStringList &list)
     if (list.isEmpty())
         return true;
 
-    int title_end = str.indexOf(title_tags_prefix);
-    str.replace(title_tags_prefix, " ");
-    str.replace(title_tags_suffix, " ");
+    int title_end = str.indexOf(title_tags_remover);
+    str.replace(title_tags_remover, " ");
     int index = 0;
 
     if (title_end < 0) title_end = str.length();
@@ -4672,7 +4663,7 @@ void MainWindow::filterMusic()
 }
 
 
-static QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags)
+QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags)
 {
     QString titlePlusTags(title.toHtmlEscaped());
     if (setTags && !strtags.isEmpty())
@@ -4680,7 +4671,11 @@ static QString FormatTitlePlusTags(const QString &title, bool setTags, const QSt
         QStringList tags = strtags.split(" ");
         for (auto tag : tags)
         {
-            titlePlusTags += title_tags_prefix + tag.toHtmlEscaped() + title_tags_suffix;
+            QPair<QString,QString> color = songSettings.getColorForTag(tag);
+            QString prefix = title_tags_prefix.arg(color.first).arg(color.second);
+            qDebug() << "Adding tag " << tag;
+            titlePlusTags +=  prefix + tag.toHtmlEscaped() + title_tags_suffix;
+            qDebug() << "Title plus tags is " << titlePlusTags;
         }
     }
     return titlePlusTags;
@@ -4813,6 +4808,8 @@ void MainWindow::loadMusicList()
         SongSetting settings;
         songSettings.loadSettings(origPath,
                                   settings);
+        if (settings.isSetTags())
+            songSettings.addTags(settings.getTags());
 
         QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
@@ -5441,6 +5438,7 @@ void MainWindow::on_actionPreferences_triggered()
 
     prefDialog = new PreferencesDialog(soundFXname);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
+    prefsManager.setTagColors(songSettings.getTagColors());
     prefsManager.populatePreferencesDialog(prefDialog);
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
     SessionDefaultType previousSessionDefaultType =
@@ -5457,7 +5455,9 @@ void MainWindow::on_actionPreferences_triggered()
         // OK clicked
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
+        songSettings.setTagColors(prefsManager.getTagColors());
         hotkeyMappings = prefsManager.GetHotkeyMappings();
+        songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
@@ -5478,7 +5478,6 @@ void MainWindow::on_actionPreferences_triggered()
         singingColorString = prefsManager.GetsingingColorString();
         calledColorString = prefsManager.GetcalledColorString();
         extrasColorString = prefsManager.GetextrasColorString();
-        SetTagsColorsFromPrefsManager(prefsManager);
         // ----------------------------------------------------------------
         // Show the Timers tab, if it is enabled now
         if (prefsManager.GetexperimentalTimersEnabled()) {
@@ -6569,10 +6568,13 @@ void MainWindow::editTags()
         QString newtags(QInputDialog::getText(this, "Edit Tags", "Tags for " + pathToMP3, QLineEdit::Normal, tags, &ok));
         if (ok)
         {
+            songSettings.removeTags(tags);
             settings.setTags(newtags);
             songSettings.saveSettings(pathToMP3, settings);
+            songSettings.addTags(newtags);
 
             QString title = getTitleColTitle(ui->songTable, row);
+            qDebug() << "Got tags " << tags << " to replace with " << newtags << " for title " << title;
             QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
@@ -9389,6 +9391,7 @@ void MainWindow::on_actionClear_Recent_triggered()
     // update the song table
     reloadSongAges(ui->actionShow_All_Ages->isChecked());
 }
+
 
 void MainWindow::on_actionBold_triggered()
 {

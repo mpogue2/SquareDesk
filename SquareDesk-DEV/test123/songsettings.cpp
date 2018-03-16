@@ -32,6 +32,7 @@
 
 #include "songsettings.h"
 #include "sessioninfo.h"
+#include "default_colors.h"
 using namespace std;
 
 
@@ -252,6 +253,14 @@ RowDefinition call_taught_on_rows[] =
 };
 TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 
+RowDefinition tag_colors_rows[] =
+{
+    RowDefinition("tag", "TEXT PRIMARY KEY"),
+    RowDefinition("background", "TEXT"),
+    RowDefinition("foreground", "TEXT"),
+};
+
+TableDefinition tag_colors_table("tag_colors", tag_colors_rows);
 
 IndexDefinition index_definitions[] = {
     IndexDefinition("songs_songname", "songs(songname)"),
@@ -260,6 +269,7 @@ IndexDefinition index_definitions[] = {
     IndexDefinition("song_play_song_session_played_idx", "song_plays(song_rowid,session_rowid,played_on)"),
     IndexDefinition("call_taught_on_dance_program_call_name_session","call_taught_on(dance_program, call_name, session_rowid)")
 };
+
 
 /*
 "CREATE TABLE play_history (
@@ -272,9 +282,18 @@ IndexDefinition index_definitions[] = {
 
 SongSettings::SongSettings() :
     databaseOpened(false),
-    current_session_id(0)
+    current_session_id(0),
+    tagColorCacheSet(false),
+    tagsBackgroundColorString(DEFAULTTAGSBACKGROUNDCOLOR),
+    tagsForegroundColorString(DEFAULTTAGSFOREGROUNDCOLOR)
+    
 {
 }
+
+void SongSettings::setDefaultTagColors( const QString &background, const QString & foreground)
+{
+}
+
 
 int SongSettings::currentSessionIDByTime()
 {
@@ -353,7 +372,8 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&session_table);
     ensureSchema(&song_plays_table);
     ensureSchema(&call_taught_on_table);
-
+    ensureSchema(&tag_colors_table);
+    
     for (size_t i = 0; i < sizeof(index_definitions) / sizeof(*index_definitions); ++i)
     {
         ensureIndex(&index_definitions[i]);
@@ -383,6 +403,106 @@ void SongSettings::openDatabase(const QString& path,
             }
         }
     }
+}
+
+void SongSettings::setTagColors( const QHash<QString,QPair<QString,QString>> &colors)
+{
+    tagColorCache = colors;
+    tagColorCacheSet = true;
+    {
+        QSqlQuery q(m_db);
+        q.prepare("BEGIN");
+        exec("setTagColors BEGIN", q);
+    }
+    {
+        QSqlQuery q(m_db);
+        q.prepare("DELETE FROM tag_colors");
+        exec("setTagColors DELETE", q);
+    }
+    
+    {
+        QSqlQuery q(m_db);
+        q.prepare("INSERT INTO tag_colors(tag,background,foreground) VALUES (:tag,:background,:foreground)");
+        for (auto color = colors.cbegin(); color != colors.cend(); ++color)
+        {
+            q.bindValue(":tag", color.key());
+            q.bindValue(":background", color.value().first);
+            q.bindValue(":foreground", color.value().second);
+            exec("setTagColors INSERT", q);
+        }
+    }
+
+    {
+        QSqlQuery q(m_db);
+        q.prepare("COMMIT");
+        exec("setTagColors COMMIT", q);
+    }
+}
+
+
+void SongSettings::addTags(const QString &str)
+{
+    QStringList tags = str.split(" ");
+    for (auto tag : tags)
+    {
+        if (tagCounts.contains(tag))
+        {
+            tagCounts[tag] = tagCounts[tag] + 1;
+        }
+        else
+        {
+            tagCounts[tag] = 1;
+        }
+          
+    }
+}
+void SongSettings::removeTags(const QString &str)
+{
+    QStringList tags = str.split(" ");
+    for (auto tag : tags)
+    {
+        if (tagCounts.contains(tag))
+        {
+            tagCounts[tag] = tagCounts[tag] - 1;
+        }
+        else
+        {
+            qDebug() << "Trying to remove nonexistent tag " << tag;
+        }
+    }
+}
+
+
+QPair<QString,QString> SongSettings::getColorForTag(const QString &tag)
+{
+    if (!tagColorCacheSet)
+        getTagColors();
+    if (tagColorCache.contains(tag))
+        return tagColorCache[tag];
+    return QPair<QString,QString>(tagsBackgroundColorString, tagsForegroundColorString);
+}
+
+
+QHash<QString,QPair<QString,QString>> SongSettings::getTagColors()
+{
+    QHash<QString, QPair<QString,QString>> colors;
+    QSqlQuery q(m_db);
+    exec("getTagColors", q, "SELECT tag,background, foreground FROM tag_colors");
+    while (q.next())
+    {
+        colors[q.value(0).toString()] = QPair<QString,QString>(q.value(1).toString(),q.value(2).toString());
+    }
+    for (auto tag = tagCounts.cbegin(); tag != tagCounts.cend(); ++tag)
+    {
+        if (tag.value() > 0 && !colors.contains(tag.key()))
+        {
+            colors[tag.key()] = QPair<QString,QString>(tagsBackgroundColorString, tagsForegroundColorString);
+        }
+    }
+    tagColorCache = colors;
+    tagColorCacheSet = true;
+    
+    return colors;
 }
 
 
@@ -806,6 +926,10 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
             foundResults = true;
             setSongSettingFromSQLQuery(q, settings);
         }
+    }
+    if (foundResults && settings.isSetTags() && !settings.getTags().isNull())
+    {
+        addTags(settings.getTags());
     }
     return foundResults;
 }

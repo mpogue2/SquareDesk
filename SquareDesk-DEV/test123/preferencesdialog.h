@@ -36,7 +36,7 @@
 #include "common_enums.h"
 #include "default_colors.h"
 #include "keybindings.h"
-
+#include <QPushButton>
 
 class SessionInfo;
 
@@ -44,6 +44,8 @@ namespace Ui
 {
 class PreferencesDialog;
 }
+
+
 
 class PreferencesDialog : public QDialog
 {
@@ -63,9 +65,12 @@ public:
 
     QHash<Qt::Key, KeyAction *> getHotkeys();
     void setHotkeys(QHash<Qt::Key, KeyAction *>);
+    void setTagColors( const QHash<QString,QPair<QString,QString>> &);
+    QHash<QString,QPair<QString,QString>> getTagColors();
 
     void setSessionInfoList(const QList<SessionInfo> &);
     QList<SessionInfo> getSessionInfoList();
+    void setTagColor(const QString &tagName, const QString &color, bool foreground);
 
 
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
@@ -129,9 +134,29 @@ private slots:
     void on_toolButtonSessionRemoveItem_clicked();
     void on_pushButtonTagsBackgroundColor_clicked();
     void on_pushButtonTagsForegroundColor_clicked();
+
+    void on_pushButtonTagAdd_clicked();
+    void on_pushButtonTagRemove_clicked();
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;
+};
+
+class PushButtonColorTag : public QPushButton {
+    Q_OBJECT;
+private:
+    PreferencesDialog *prefsDialog;
+    QString tagName;
+    QString color;
+    bool foreground;
+    
+public:
+    PushButtonColorTag(PreferencesDialog *prefsDialog,
+                       const QString &tagName,
+                       const QString &initialColor,
+                       bool foreground);
+private slots:
+    void selectColor();
 };
 
 #endif // PREFERENCESDIALOG_H

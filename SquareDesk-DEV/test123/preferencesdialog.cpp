@@ -38,6 +38,12 @@ static const int kSessionsColDay = 1;
 static const int kSessionsColTime = 2;
 static const int kSessionsColID = 3;
 
+static const int kTagsColTag = 0;
+static const int kTagsColForeground = 1;
+static const int kTagsColBackground = 2;
+static const int kTagsColExample = 3;
+
+
 static const QString COLOR_STYLE("QPushButton { background-color : %1; color : %1; }");
 
 static void  SetTimerPulldownValuesToFirstDigit(QComboBox *comboBox)
@@ -181,6 +187,145 @@ void PreferencesDialog::setFontSizes()
 
 }
 
+static int getLastSelectedRow(QTableWidget *tableWidget)
+{
+    int lastSelectedRow = -1;
+    for (int row = 0; row < tableWidget->rowCount(); ++row)
+    {
+        for (int col = 0; col < tableWidget->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = tableWidget->item(row,col);
+            if (item && item->isSelected())
+            {
+                lastSelectedRow = row;
+            }
+        }
+    }
+    if (lastSelectedRow < 0)
+    {
+        lastSelectedRow = tableWidget->rowCount();
+    }
+    return lastSelectedRow;
+}
+
+static void setPushButtonColor(QPushButton *pushButton, QString color)
+{
+    pushButton->setStyleSheet(COLOR_STYLE.arg(color));
+    pushButton->setAutoFillBackground(true);
+    pushButton->setFlat(true);
+    pushButton->setAutoFillBackground(true);
+    pushButton->setText(color);
+}
+
+
+PushButtonColorTag::PushButtonColorTag(PreferencesDialog *prefsDialog,
+                                       const QString &tagName,
+                                       const QString &initialColor,
+                                       bool foreground) :
+        prefsDialog(prefsDialog), tagName(tagName), color(initialColor), foreground(foreground)
+{
+    setPushButtonColor(this, initialColor);
+    connect(this, SIGNAL(clicked()), this, SLOT(selectColor()));
+}
+
+void PushButtonColorTag::selectColor()
+{
+    QColor chosenColor = QColorDialog::getColor(QColor(color), this); //return the color chosen by user
+    if (chosenColor.isValid())
+    {
+        color = chosenColor.name();
+        setPushButtonColor(this, color);
+        prefsDialog->setTagColor(tagName, color, foreground);
+    }
+}
+
+
+static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tableWidget, QString tag, QString background, QString foreground)
+{
+    int row = getLastSelectedRow(tableWidget);
+    tableWidget->insertRow(row);
+    tableWidget->setCellWidget(row, kTagsColForeground, new PushButtonColorTag(prefsDialog, tag, foreground, true));
+    tableWidget->setCellWidget(row, kTagsColBackground, new PushButtonColorTag(prefsDialog, tag, background, false));
+    QTableWidgetItem *widgetItem(new QTableWidgetItem( tag ));
+    tableWidget->setItem(row, kTagsColTag, widgetItem);
+    
+    QLabel *labelItem(new QLabel(tableWidget));
+    labelItem->setTextFormat(Qt::RichText);
+
+    QString str("<span style=\"background-color:%1; color: %2;\">");
+    str = str.arg(background).arg(foreground);
+    str += tag.toHtmlEscaped();
+    str += "</span>";
+    labelItem->setText(str);
+    tableWidget->setCellWidget(row, kTagsColExample, labelItem);
+}
+
+
+void PreferencesDialog::on_pushButtonTagAdd_clicked()
+{
+    addRowToTagColors(this, ui->tableWidgetTagColors, "<new>", ui->pushButtonTagsBackgroundColor->text(), ui->pushButtonTagsForegroundColor->text());
+}
+
+void PreferencesDialog::on_pushButtonTagRemove_clicked()
+{
+    for (int row = 0; row < ui->tableWidgetTagColors->rowCount(); ++row)
+    {
+        for (int col = 0; col < ui->tableWidgetTagColors->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetTagColors->item(row,col);
+            if (item && item->isSelected())
+            {
+                ui->tableWidgetTagColors->removeRow(row);
+                --row;
+                break;
+            }
+        } /* end of column iteration */
+    } /* end of row iteration */
+}
+
+void PreferencesDialog::setTagColors( const QHash<QString,QPair<QString,QString>> &colors)
+{
+    ui->tableWidgetTagColors->setSortingEnabled(false);
+    for (auto color = colors.cbegin(); color != colors.cend(); ++color)
+    {
+        addRowToTagColors(this, ui->tableWidgetTagColors, color.key(), color.value().first, color.value().second);
+    }
+    ui->tableWidgetTagColors->setSortingEnabled(true);
+    ui->tableWidgetTagColors->sortByColumn(kTagsColTag, Qt::AscendingOrder);
+
+}
+
+void PreferencesDialog::setTagColor(const QString &tagName, const QString & /* color */, bool /* foreground */)
+{
+    for (int row = 0; row < ui->tableWidgetTagColors->rowCount(); ++row)
+    {
+        if (0 == tagName.compare(ui->tableWidgetTagColors->item(row, kTagsColTag)->text()))
+        {
+            QPushButton *foregroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColForeground));
+            QPushButton *backgroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColBackground));
+            QString format("<span style=\"background-color:%1; color:%2\"> %3 </span>");
+            QString str(format.arg(backgroundButton->text()).arg(foregroundButton->text()).arg(tagName.toHtmlEscaped()));
+            dynamic_cast<QLabel*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColExample))->setText(str);
+
+        }
+    }
+}
+
+QHash<QString,QPair<QString,QString>> PreferencesDialog::getTagColors()
+{
+    QHash<QString,QPair<QString,QString>> tagColors;
+    for (int row = 0; row < ui->tableWidgetTagColors->rowCount(); ++row)
+    {
+        QTableWidgetItem *item = ui->tableWidgetTagColors->item(row, kTagsColTag);
+        QString tagName = item->text();
+        QPushButton *foregroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColForeground));
+        QPushButton *backgroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColBackground));
+       tagColors[tagName] =
+            QPair<QString, QString>(backgroundButton->text(),
+                                    foregroundButton->text());
+    }
+    return tagColors;
+}
 
 QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
 {
@@ -388,22 +533,7 @@ QList<SessionInfo> PreferencesDialog::getSessionInfoList()
 
 void PreferencesDialog::on_toolButtonSessionAddItem_clicked()
 {
-    int lastSelectedRow = -1;
-    for (int row = 0; row < ui->tableWidgetSessionsList->rowCount(); ++row)
-    {
-        for (int col = 0; col < ui->tableWidgetSessionsList->columnCount(); ++col)
-        {
-            QTableWidgetItem *item = ui->tableWidgetSessionsList->item(row,col);
-            if (item && item->isSelected())
-            {
-                lastSelectedRow = row;
-            }
-        }
-    }
-    if (lastSelectedRow < 0)
-    {
-        lastSelectedRow = ui->tableWidgetSessionsList->rowCount();
-    }
+    int lastSelectedRow = getLastSelectedRow(ui->tableWidgetSessionsList);
 //    ui->tableWidgetSessionsList->setRowCount(ui->tableWidgetSessionsList->rowCount() + 1);
     ui->tableWidgetSessionsList->insertRow(lastSelectedRow);
     QComboBox *comboDay = weekSelectionComboBox();
