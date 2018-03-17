@@ -3481,7 +3481,7 @@ void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
 {
     cBass.StreamGetPosition();  // update the position
     // set the position to one second before the end, so that RIGHT ARROW works as expected
-    cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 15.0, cBass.FileLength-1.0));
+    cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 10.0, cBass.FileLength-1.0));
     Info_Seekbar(true);
 }
 
@@ -3489,7 +3489,7 @@ void MainWindow::on_actionSkip_Back_15_sec_triggered()
 {
     Info_Seekbar(true);
     cBass.StreamGetPosition();  // update the position
-    cBass.StreamSetPosition((int)fmax(cBass.Current_Position - 15.0, 0.0));
+    cBass.StreamSetPosition((int)fmax(cBass.Current_Position - 10.0, 0.0));
 }
 
 // ------------------------------------------------------------------------
