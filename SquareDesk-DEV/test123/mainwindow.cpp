@@ -4670,9 +4670,13 @@ QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, cons
         QStringList tags = strtags.split(" ");
         for (auto tag : tags)
         {
-            QPair<QString,QString> color = songSettings.getColorForTag(tag);
-            QString prefix = title_tags_prefix.arg(color.first).arg(color.second);
-            titlePlusTags +=  prefix + tag.toHtmlEscaped() + title_tags_suffix;
+            QString tagTrimmed(tag.trimmed());
+            if (tagTrimmed.length() > 0)
+            {
+                QPair<QString,QString> color = songSettings.getColorForTag(tag);
+                QString prefix = title_tags_prefix.arg(color.first).arg(color.second);
+                titlePlusTags +=  prefix + tag.toHtmlEscaped() + title_tags_suffix;
+            }
         }
     }
     return titlePlusTags;
