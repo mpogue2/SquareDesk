@@ -801,7 +801,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <widget class="QToolButton" name="toolButtonTagAdd">
+              <widget class="QToolButton" name="pushButtonTagAdd">
                <property name="text">
                 <string>+</string>
                </property>
@@ -812,7 +812,7 @@ Click on a color square to change the color associated with that Music Type.  Se
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="toolButtonTagRemove">
+              <widget class="QToolButton" name="pushButtonTagRemove">
                <property name="text">
                 <string>-</string>
                </property>

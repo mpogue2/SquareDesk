@@ -208,14 +208,31 @@ static int getLastSelectedRow(QTableWidget *tableWidget)
     return lastSelectedRow;
 }
 
+
 static void setPushButtonColor(QPushButton *pushButton, QString color)
 {
     pushButton->setStyleSheet(COLOR_STYLE.arg(color));
-    pushButton->setAutoFillBackground(true);
     pushButton->setFlat(true);
     pushButton->setAutoFillBackground(true);
     pushButton->setText(color);
 }
+
+static void setTagColorsSample(QTableWidget *tableWidget, int row)
+{
+    QString tag(tableWidget->item(row, kTagsColTag)->text().toHtmlEscaped());
+    PushButtonColorTag *foregroundButton(dynamic_cast<PushButtonColorTag*>(tableWidget->cellWidget(row, kTagsColForeground)));
+    PushButtonColorTag *backgroundButton(dynamic_cast<PushButtonColorTag*>(tableWidget->cellWidget(row, kTagsColBackground)));
+    QLabel *labelItem(dynamic_cast<QLabel *>(tableWidget->cellWidget(row, kTagsColExample)));
+
+    QString foreground = foregroundButton->text();
+    QString background = backgroundButton->text();
+    QString str("<span style=\"background-color:%1; color: %2;\">");
+    str = str.arg(background).arg(foreground);
+    str += tag;
+    str += "</span>";
+    labelItem->setText(str);
+}
+
 
 
 PushButtonColorTag::PushButtonColorTag(PreferencesDialog *prefsDialog,
@@ -240,24 +257,25 @@ void PushButtonColorTag::selectColor()
 }
 
 
+
 static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tableWidget, QString tag, QString background, QString foreground)
 {
+    PushButtonColorTag *backgroundButton(new PushButtonColorTag(prefsDialog, tag, background, false));
+    PushButtonColorTag *foregroundButton(new PushButtonColorTag(prefsDialog, tag, foreground, false));
     int row = getLastSelectedRow(tableWidget);
     tableWidget->insertRow(row);
-    tableWidget->setCellWidget(row, kTagsColForeground, new PushButtonColorTag(prefsDialog, tag, foreground, true));
-    tableWidget->setCellWidget(row, kTagsColBackground, new PushButtonColorTag(prefsDialog, tag, background, false));
+    tableWidget->setCellWidget(row, kTagsColForeground, foregroundButton);
+    tableWidget->setCellWidget(row, kTagsColBackground, backgroundButton);
     QTableWidgetItem *widgetItem(new QTableWidgetItem( tag ));
     tableWidget->setItem(row, kTagsColTag, widgetItem);
     
     QLabel *labelItem(new QLabel(tableWidget));
     labelItem->setTextFormat(Qt::RichText);
-
-    QString str("<span style=\"background-color:%1; color: %2;\">");
-    str = str.arg(background).arg(foreground);
-    str += tag.toHtmlEscaped();
-    str += "</span>";
-    labelItem->setText(str);
     tableWidget->setCellWidget(row, kTagsColExample, labelItem);
+
+    setPushButtonColor(backgroundButton, background);
+    setPushButtonColor(foregroundButton, foreground);
+    setTagColorsSample(tableWidget, row);
 }
 
 
@@ -290,6 +308,7 @@ void PreferencesDialog::setTagColors( const QHash<QString,QPair<QString,QString>
     {
         addRowToTagColors(this, ui->tableWidgetTagColors, color.key(), color.value().first, color.value().second);
     }
+    
     ui->tableWidgetTagColors->setSortingEnabled(true);
     ui->tableWidgetTagColors->sortByColumn(kTagsColTag, Qt::AscendingOrder);
 
@@ -301,14 +320,10 @@ void PreferencesDialog::setTagColor(const QString &tagName, const QString & /* c
     {
         if (0 == tagName.compare(ui->tableWidgetTagColors->item(row, kTagsColTag)->text()))
         {
-            QPushButton *foregroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColForeground));
-            QPushButton *backgroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColBackground));
-            QString format("<span style=\"background-color:%1; color:%2\"> %3 </span>");
-            QString str(format.arg(backgroundButton->text()).arg(foregroundButton->text()).arg(tagName.toHtmlEscaped()));
-            dynamic_cast<QLabel*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColExample))->setText(str);
-
+            setTagColorsSample(ui->tableWidgetTagColors, row);
         }
     }
+    songTableReloadNeeded = true;
 }
 
 QHash<QString,QPair<QString,QString>> PreferencesDialog::getTagColors()
@@ -320,7 +335,7 @@ QHash<QString,QPair<QString,QString>> PreferencesDialog::getTagColors()
         QString tagName = item->text();
         QPushButton *foregroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColForeground));
         QPushButton *backgroundButton = dynamic_cast<QPushButton*>(ui->tableWidgetTagColors->cellWidget(row, kTagsColBackground));
-       tagColors[tagName] =
+        tagColors[tagName] =
             QPair<QString, QString>(backgroundButton->text(),
                                     foregroundButton->text());
     }
@@ -710,11 +725,7 @@ void PreferencesDialog::on_calledColorButton_clicked()
             calledColorString = DEFAULTCALLEDCOLOR;  // a way to reset the colors individually
         }
 
-        ui->calledColorButton->setStyleSheet(COLOR_STYLE.arg(calledColorString).arg(calledColorString));
-        ui->calledColorButton->setAutoFillBackground(true);
-        ui->calledColorButton->setFlat(true);
-        ui->calledColorButton->setText(calledColorString);  // remember it in the control's text
-
+        setPushButtonColor(ui->calledColorButton, calledColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
@@ -730,11 +741,7 @@ void PreferencesDialog::on_extrasColorButton_clicked()
             extrasColorString = DEFAULTEXTRASCOLOR;  // a way to reset the colors individually
         }
 
-        ui->extrasColorButton->setStyleSheet(COLOR_STYLE.arg(extrasColorString).arg(extrasColorString));
-        ui->extrasColorButton->setAutoFillBackground(true);
-        ui->extrasColorButton->setFlat(true);
-        ui->extrasColorButton->setText(extrasColorString);  // remember it in the control's text
-
+        setPushButtonColor(ui->extrasColorButton, extrasColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
@@ -750,11 +757,7 @@ void PreferencesDialog::on_patterColorButton_clicked()
             patterColorString = DEFAULTPATTERCOLOR;  // a way to reset the colors individually
         }
 
-        ui->patterColorButton->setStyleSheet(COLOR_STYLE.arg(patterColorString).arg(patterColorString));
-        ui->patterColorButton->setAutoFillBackground(true);
-        ui->patterColorButton->setFlat(true);
-        ui->patterColorButton->setText(patterColorString);  // remember it in the control's text
-
+        setPushButtonColor(ui->patterColorButton, patterColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
@@ -770,11 +773,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
             singingColorString = DEFAULTSINGINGCOLOR;  // a way to reset the colors individually
         }
 
-        ui->singingColorButton->setStyleSheet(COLOR_STYLE.arg(singingColorString).arg(singingColorString));
-        ui->singingColorButton->setAutoFillBackground(true);
-        ui->singingColorButton->setFlat(true);
-        ui->singingColorButton->setText(singingColorString);  // remember it in the control's text
-
+        setPushButtonColor(ui->singingColorButton, singingColorString);
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
 }
@@ -794,10 +793,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
     QString PreferencesDialog::Get##name() const { return ui->control->text(); } \
     void PreferencesDialog::Set##name(QString value) \
     { \
-       ui->control->setStyleSheet(COLOR_STYLE.arg(value)); \
-       ui->control->setAutoFillBackground(true); \
-       ui->control->setFlat(true); \
-       ui->control->setText(value); \
+        setPushButtonColor(ui->control, value); \
     }
 
 #define CONFIG_ATTRIBUTE_BOOLEAN(control, name, default) \
@@ -875,10 +871,7 @@ void PreferencesDialog::on_pushButtonTagsBackgroundColor_clicked()
     if (chosenColor.isValid()) {
         originalColorString = chosenColor.name();
 
-        ui->pushButtonTagsBackgroundColor->setStyleSheet(COLOR_STYLE.arg(originalColorString));
-        ui->pushButtonTagsBackgroundColor->setAutoFillBackground(true);
-        ui->pushButtonTagsBackgroundColor->setFlat(true);
-        ui->pushButtonTagsBackgroundColor->setText(originalColorString);  // remember it in the control's text
+        setPushButtonColor(ui->pushButtonTagsBackgroundColor,originalColorString);
         SetLabelTagAppearanceColors();
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
@@ -891,10 +884,7 @@ void PreferencesDialog::on_pushButtonTagsForegroundColor_clicked()
     if (chosenColor.isValid()) {
         originalColorString = chosenColor.name();
 
-        ui->pushButtonTagsForegroundColor->setStyleSheet(COLOR_STYLE.arg(originalColorString));
-        ui->pushButtonTagsForegroundColor->setAutoFillBackground(true);
-        ui->pushButtonTagsForegroundColor->setFlat(true);
-        ui->pushButtonTagsForegroundColor->setText(originalColorString);  // remember it in the control's text
+        setPushButtonColor(ui->pushButtonTagsForegroundColor,originalColorString);
         SetLabelTagAppearanceColors();
         songTableReloadNeeded = true;  // change to colors requires reload of the songTable
     }
