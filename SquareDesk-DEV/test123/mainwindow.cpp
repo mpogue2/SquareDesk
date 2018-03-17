@@ -7608,20 +7608,39 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     // "latest" is of the form "X.Y.Z\n", so trim off the NL
     QString latestVersionNumber = QString(result).trimmed();
 
-    if (latestVersionNumber == VERSIONSTRING) {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Information);
+    // extract the pieces of the latest one
+    QRegularExpression rxVersion("^(\\d+)\\.(\\d+)\\.(\\d+)");
+    QRegularExpressionMatch match1 = rxVersion.match(latestVersionNumber);
+    unsigned int major1 = match1.captured(1).toInt();
+    unsigned int minor1 = match1.captured(2).toInt();
+    unsigned int little1 = match1.captured(3).toInt();
+    unsigned int iVersionLatest = 100*(100*major1 + minor1) + little1;
+
+    // extract the pieces of the current one
+    QRegularExpressionMatch match2 = rxVersion.match(VERSIONSTRING);
+    unsigned int major2 = match2.captured(1).toInt();
+    unsigned int minor2 = match2.captured(2).toInt();
+    unsigned int little2 = match2.captured(3).toInt();
+    unsigned int iVersionCurrent = 100*(100*major2 + minor2) + little2;
+
+//    qDebug() << "***** iVersionLatest: " << iVersionLatest << match1.captured(1) << match1.captured(2) << match1.captured(3);
+//    qDebug() << "***** iVersionCurrent: " << iVersionCurrent << match2.captured(1) << match2.captured(2) << match2.captured(3);
+
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+
+    if (iVersionLatest == iVersionCurrent) {
         msgBox.setText("<B>You are running the latest version of SquareDesk.</B>");
-        msgBox.exec();
+    } else if (iVersionLatest < iVersionCurrent) {
+        msgBox.setText("<H2>You are ahead of the latest Beta version.</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
+                       "<P>Latest version of SquareDesk: " + latestVersionNumber);
     } else {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Information);
         msgBox.setText("<H2>Newer version available</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
                        "<P>Latest version of SquareDesk: " + latestVersionNumber +
                        "<P><a href=\"https://github.com/mpogue2/SquareDesk/releases\">Download new version</a>");
-        msgBox.exec();
     }
 
+    msgBox.exec();
 }
 
 void MainWindow::maybeInstallSoundFX() {
