@@ -53,6 +53,7 @@ static QHash<dance_level, QString> sdLevelEnumsToStrings;
 
 static const char *str_exit_from_the_program = "exit from the program";
 static const char *str_abort_this_sequence = "abort this sequence";
+static const char *str_square_your_sets = "square your sets";
 
 static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
@@ -845,7 +846,8 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     QString cmd(ui->lineEditSDInput->text().trimmed());
     ui->lineEditSDInput->clear();
 
-    if (!cmd.compare("quit", Qt::CaseInsensitive))
+    if (!cmd.compare("quit", Qt::CaseInsensitive)
+        || !cmd.compare(str_square_your_sets, Qt::CaseInsensitive))
     {
         cmd = str_abort_this_sequence;
     }
@@ -992,7 +994,8 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 
     // SD COMMANDS -------
     // square your|the set -> square thru 4
-    if (cmd == "square the set" || cmd == "square your set") {
+    if (cmd == "square the set" || cmd == "square your set"
+        || cmd == str_square_your_sets) {
         sdthread->do_user_input(str_abort_this_sequence);
         sdthread->do_user_input("y");
     }
