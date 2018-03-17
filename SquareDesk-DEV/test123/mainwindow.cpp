@@ -4814,6 +4814,8 @@ void MainWindow::loadMusicList()
 
         QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
+        QString songNameStyleSheet("QLabel { color : %1; }");
+        titleLabel->setStyleSheet(songNameStyleSheet.arg(textCol.name()));
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
         ui->songTable->setCellWidget(ui->songTable->rowCount()-1, kTitleCol, titleLabel);
