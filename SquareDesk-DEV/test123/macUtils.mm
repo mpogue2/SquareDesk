@@ -33,15 +33,15 @@ MacUtils::MacUtils() {
 MacUtils::~MacUtils() {
 }
 
-void MacUtils::disableScreensaver() {
-    // I could not get the standard kIOPMAssertionTypePreventUserIdleDisplaySleep method
-    //   to return success, and screensaver was not getting disabled, so switching to an alternate method
-    UpdateSystemActivity(UsrActivity);  // alternate method, call it every N seconds
-}
+//void MacUtils::disableScreensaver() {
+//    // I could not get the standard kIOPMAssertionTypePreventUserIdleDisplaySleep method
+//    //   to return success, and screensaver was not getting disabled, so switching to an alternate method
+//    UpdateSystemActivity(UsrActivity);  // alternate method, call it every N seconds
+//}
 
-void MacUtils::reenableScreensaver() {
-    // IOPMAssertionRelease(assertionID);
-}
+//void MacUtils::reenableScreensaver() {
+//    // IOPMAssertionRelease(assertionID);
+//}
 
 // Disables auto window tabbing where supported, otherwise a no-op.
 //    from: http://lists.qt-project.org/pipermail/interest/2016-September/024488.html

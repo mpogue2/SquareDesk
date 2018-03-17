@@ -251,14 +251,14 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     // Disable ScreenSaver while SquareDesk is running
-#if defined(Q_OS_MAC)
-    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
-#elif defined(Q_OS_WIN)
-#pragma comment(lib, "user32.lib")
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
-#elif defined(Q_OS_LINUX)
-    // TODO
-#endif
+//#if defined(Q_OS_MAC)
+//    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
+//#elif defined(Q_OS_WIN)
+//#pragma comment(lib, "user32.lib")
+//    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
+//#elif defined(Q_OS_LINUX)
+//    // TODO
+//#endif
 
     // Disable extra (Native Mac) tab bar
 #if defined(Q_OS_MAC)
@@ -2015,18 +2015,12 @@ MainWindow::~MainWindow()
 
     delete ui;
 
-    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
-#if defined(Q_OS_MAC)
-    macUtils.reenableScreensaver();
-#elif defined(Q_OS_WIN32)
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
-#endif
-    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
-#if defined(Q_OS_MAC)
-    macUtils.reenableScreensaver();
-#elif defined(Q_OS_WIN32)
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
-#endif
+//    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
+//#if defined(Q_OS_MAC)
+//    macUtils.reenableScreensaver();
+//#elif defined(Q_OS_WIN32)
+//    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
+//#endif
     if (sdthread)
     {
         sdthread->finishAndShutdownSD();
@@ -2936,11 +2930,11 @@ void MainWindow::on_UIUpdateTimerTick(void)
 {
     // This is called once per second, to update the seekbar and associated dynamic text
 
-#if defined(Q_OS_MAC)
-    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
-        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
-    }
-#endif
+//#if defined(Q_OS_MAC)
+//    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
+//        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
+//    }
+//#endif
 
     Info_Seekbar(true);
 
