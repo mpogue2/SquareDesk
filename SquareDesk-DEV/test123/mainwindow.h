@@ -570,6 +570,7 @@ private:
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags);
+    void changeTagOnCurrentSongSelection(QString tag, bool add);
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();

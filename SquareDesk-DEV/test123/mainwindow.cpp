@@ -4579,7 +4579,6 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 {
     QString title = getTitleColText(songTable, row);
     int where = title.indexOf(title_tags_remover);
-    qDebug() << "TItle" << title << " tags remover at " << where;
     if (where >= 0)
         title.truncate(where);
     return title;
@@ -4673,9 +4672,7 @@ QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, cons
         {
             QPair<QString,QString> color = songSettings.getColorForTag(tag);
             QString prefix = title_tags_prefix.arg(color.first).arg(color.second);
-            qDebug() << "Adding tag " << tag;
             titlePlusTags +=  prefix + tag.toHtmlEscaped() + title_tags_suffix;
-            qDebug() << "Title plus tags is " << titlePlusTags;
         }
     }
     return titlePlusTags;
@@ -6481,6 +6478,7 @@ void MainWindow::PlaylistItemRemove() {
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 {
     Q_UNUSED(pos);
+    QStringList currentTags;
 
     if (ui->songTable->selectionModel()->hasSelection()) {
         QMenu menu(this);
@@ -6492,6 +6490,15 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
             QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
             int currentNumberInt = currentNumberText.toInt();
             int playlistItemCount = PlaylistItemCount();
+            
+            QString pathToMP3 = ui->songTable->item(selectedRow,kPathCol)->data(Qt::UserRole).toString();
+            SongSetting settings;
+            songSettings.loadSettings(pathToMP3, settings);
+            if (settings.isSetTags())
+            {
+                currentTags = settings.getTags().split(" ");
+            }
+            
 
             if (currentNumberText == "") {
                 if (playlistItemCount == 0) {
@@ -6541,13 +6548,77 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
 #endif
         menu.addAction( "Edit Tags...", this, SLOT (editTags()) );
-        menu.addAction( "Load Song", this, SLOT (loadSong()) );
 
+        QMenu *tagsMenu(new QMenu("Tags"));
+        QHash<QString,QPair<QString,QString>> tagColors(songSettings.getTagColors());
+
+        QStringList tags(tagColors.keys());
+        tags.sort(Qt::CaseInsensitive);
+
+        for (auto tag : tags)
+        {
+            bool set = false;
+            for (auto t : currentTags)
+            {
+                if (t.compare(tag, Qt::CaseInsensitive) == 0)
+                {
+                    set = true;
+                }
+            }
+            QAction *action(new QAction(tag));
+            action->setCheckable(true);
+            action->setChecked(set);
+            connect(action, &QAction::triggered,
+                    [this, set, tag]()
+                    {
+                        this->changeTagOnCurrentSongSelection(tag, !set);
+                    });
+            tagsMenu->addAction(action);
+        }
+
+        menu.addMenu(tagsMenu);
+        menu.addAction( "Load Song", this, SLOT (loadSong()) );
         menu.popup(QCursor::pos());
         menu.exec();
     }
 }
 
+void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
+{
+    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+        QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+        QStringList tags;
+        QString oldTags;
+        if (settings.isSetTags())
+        {
+            oldTags = settings.getTags();
+            tags = oldTags.split(" ");
+            songSettings.removeTags(oldTags);
+        }
+
+        if (add && !tags.contains(tag, Qt::CaseInsensitive))
+            tags.append(tag);
+        if (!add)
+        {
+            int i = tags.indexOf(tag, Qt::CaseInsensitive);
+            if (i >= 0)
+                tags.removeAt(i);
+        }
+        settings.setTags(tags.join(" "));
+        songSettings.saveSettings(pathToMP3, settings);
+        QString title = getTitleColTitle(ui->songTable, row);
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
+    }
+}
 
 void MainWindow::editTags()
 {
@@ -6574,7 +6645,6 @@ void MainWindow::editTags()
             songSettings.addTags(newtags);
 
             QString title = getTitleColTitle(ui->songTable, row);
-            qDebug() << "Got tags " << tags << " to replace with " << newtags << " for title " << title;
             QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
