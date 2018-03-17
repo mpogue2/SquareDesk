@@ -496,7 +496,10 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors()
     {
         if (tag.value() > 0 && !colors.contains(tag.key()))
         {
-            colors[tag.key()] = QPair<QString,QString>(tagsBackgroundColorString, tagsForegroundColorString);
+            if (tag.key().trimmed().length() > 0)
+            {
+                colors[tag.key()] = QPair<QString,QString>(tagsBackgroundColorString, tagsForegroundColorString);
+            }
         }
     }
     tagColorCache = colors;
