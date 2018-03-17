@@ -6559,8 +6559,13 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         QStringList tags(tagColors.keys());
         tags.sort(Qt::CaseInsensitive);
 
-        for (auto tag : tags)
+        for (auto tagUntrimmed : tags)
         {
+            QString tag(tagUntrimmed.trimmed());
+
+            if (tag.length() <= 0)
+                continue;
+            
             bool set = false;
             for (auto t : currentTags)
             {
