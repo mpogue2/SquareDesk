@@ -293,6 +293,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // ============
     ui->menuFile->addSeparator();
 
+    // disable clear buttons on Mac OS X and Windows (they take up too much space)
+    bool enableClearButtons = true;
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
+    enableClearButtons = false;
+#endif
+    ui->typeSearch->setClearButtonEnabled(enableClearButtons);
+    ui->labelSearch->setClearButtonEnabled(enableClearButtons);
+    ui->titleSearch->setClearButtonEnabled(enableClearButtons);
+
     // ------------
     // NOTE: MAC OS X ONLY
 #if defined(Q_OS_MAC)
