@@ -35,8 +35,8 @@ public:
     MacUtils();
     ~MacUtils();
 
-    void disableScreensaver();
-    void reenableScreensaver();
+//    void disableScreensaver();
+//    void reenableScreensaver();
     void disableWindowTabbing();
 
 //private:

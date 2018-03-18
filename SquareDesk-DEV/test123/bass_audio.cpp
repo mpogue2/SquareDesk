@@ -291,15 +291,15 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float
     // finds song start and end points ------------
 //    QElapsedTimer t3;
 //    t3.start();
-    if (intro1_frac != 0.0 || outro1_frac != 0.0) {
+//    if (intro1_frac != 0.0 || outro1_frac != 0.0) {
 //        qDebug() << "Not running songStartDetector, so using: " << intro1_frac << ", " << outro1_frac;
-        *pSongStart_sec = 0.0;
-        *pSongEnd_sec   = FileLength;
-    } else {
+    *pSongStart_sec = 0.0;
+    *pSongEnd_sec   = FileLength;
+//    } else {
         // both fractions (0-1.0) == zero means we haven't figured out the song length yet
         //   so, figure it out now
-        songStartDetector(filepath, pSongStart_sec, pSongEnd_sec);
-    }
+//        songStartDetector(filepath, pSongStart_sec, pSongEnd_sec);
+//    }
 //    qDebug() << "t3: " << t3.elapsed();
     // ------------------------------
 
