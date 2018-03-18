@@ -769,6 +769,10 @@ MainWindow::MainWindow(QWidget *parent) :
         loadDanceProgramList(lastDanceProgram);
     }
 
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
+    ui->songTable->verticalScrollBar()->setSingleStep(10);
+#endif
+
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
     initialize_internal_sd_tab();
