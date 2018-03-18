@@ -503,6 +503,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // -----------
     ui->actionAutostart_playback->setChecked(prefsManager.Getautostartplayback());
+    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags());
 
     // -----------
 
@@ -4665,7 +4666,7 @@ void MainWindow::filterMusic()
 QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags)
 {
     QString titlePlusTags(title.toHtmlEscaped());
-    if (setTags && !strtags.isEmpty())
+    if (setTags && !strtags.isEmpty() && ui->actionViewTags->isChecked())
     {
         QStringList tags = strtags.split(" ");
         for (auto tag : tags)
@@ -8337,6 +8338,13 @@ void MainWindow::on_actionReset_triggered()
         dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
+}
+
+void MainWindow::on_actionViewTags_toggled(bool /* checked */)
+{
+    PreferencesManager prefsManager;
+    prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
+    loadMusicList();
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

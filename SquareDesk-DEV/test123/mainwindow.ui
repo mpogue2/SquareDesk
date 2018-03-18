@@ -2027,6 +2027,7 @@
     <addaction name="separator"/>
     <addaction name="menuFlash_Call"/>
     <addaction name="separator"/>
+    <addaction name="actionViewTags"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuPlaylist"/>
@@ -3108,6 +3109,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="actionViewTags">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Tags</string>
    </property>
   </action>
  </widget>
