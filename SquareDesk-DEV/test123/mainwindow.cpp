@@ -8251,6 +8251,8 @@ void MainWindow::usePersistentFontSize() {
     currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
+    for (int row = 0; row < ui->songTable->rowCount(); ++row)
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
 
     adjustFontSizes();  // use that font size to scale everything else (relative)
 }
@@ -8283,6 +8285,8 @@ void MainWindow::on_actionZoom_In_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
+    for (int row = 0; row < ui->songTable->rowCount(); ++row)
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
 
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
@@ -8307,6 +8311,8 @@ void MainWindow::on_actionZoom_Out_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
+    for (int row = 0; row < ui->songTable->rowCount(); ++row)
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
 
     adjustFontSizes();
 
@@ -8327,6 +8333,8 @@ void MainWindow::on_actionReset_triggered()
     totalZoom = 0;
 
     persistNewFontSize(currentMacPointSize);
+    for (int row = 0; row < ui->songTable->rowCount(); ++row)
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
 }
