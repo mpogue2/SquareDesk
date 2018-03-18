@@ -4283,11 +4283,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->seekBar->setEnabled(true);
     ui->seekBarCuesheet->setEnabled(true);
 
-    // when we add Pitch to the songTable as a hidden column, we do NOT need to force pitch anymore, because it
-    //   will be set by the loader to the correct value (which is zero, if the MP3 file wasn't on the current playlist).
-//    ui->pitchSlider->valueChanged(ui->pitchSlider->value()); // force pitch change, if pitch slider preset before load
-    ui->volumeSlider->valueChanged(ui->volumeSlider->value()); // force vol change, if vol slider preset before load
-    ui->mixSlider->valueChanged(ui->mixSlider->value()); // force mix change, if mix slider preset before load
+    ui->pitchSlider->valueChanged(ui->pitchSlider->value());    // force pitch change, if pitch slider preset before load
+    ui->volumeSlider->valueChanged(ui->volumeSlider->value());  // force vol change, if vol slider preset before load
+    ui->mixSlider->valueChanged(ui->mixSlider->value());        // force mix change, if mix slider preset before load
 
     ui->actionMute->setEnabled(true);
     ui->actionLoop->setEnabled(true);
@@ -6056,21 +6054,21 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     QString songType = ui->songTable->item(row,kTypeCol)->text();
     QString songLabel = ui->songTable->item(row,kLabelCol)->text();
 
-    // must be up here...
-    QString pitch = ui->songTable->item(row,kPitchCol)->text();
-    QString tempo = ui->songTable->item(row,kTempoCol)->text();
+//    // must be up here...
+//    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+//    QString tempo = ui->songTable->item(row,kTempoCol)->text();
 
     loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
-    // must be down here...
-    int pitchInt = pitch.toInt();
-    ui->pitchSlider->setValue(pitchInt);
+//    // must be down here...
+//    int pitchInt = pitch.toInt();
+//    ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "0") {
-        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
-        int tempoInt = tempo2.toInt();
-        ui->tempoSlider->setValue(tempoInt);
-    }
+//    if (tempo != "0") {
+//        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
+//        int tempoInt = tempo2.toInt();
+//        ui->tempoSlider->setValue(tempoInt);
+//    }
 
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();

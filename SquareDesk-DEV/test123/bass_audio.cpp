@@ -144,6 +144,7 @@ void bass_audio::Exit(void)
 // ------------------------------------------------------------------
 void bass_audio::SetVolume(int inVolume)
 {
+//    qDebug() << "Setting new volume: " << inVolume;
     Stream_Volume = inVolume;
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
 }
@@ -151,6 +152,7 @@ void bass_audio::SetVolume(int inVolume)
 // ------------------------------------------------------------------
 void bass_audio::SetTempo(int newTempo)
 {
+//    qDebug() << "Setting new tempo: " << newTempo;
     Stream_Tempo = newTempo;
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)(newTempo-100.0f)); // pass -10 to go 10% slower
 }
@@ -158,6 +160,7 @@ void bass_audio::SetTempo(int newTempo)
 // ------------------------------------------------------------------
 void bass_audio::SetPitch(int newPitch)
 {
+//    qDebug() << "Setting new pitch: " << newPitch;
     Stream_Pitch = newPitch;
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO_PITCH, (float)newPitch);
 }
