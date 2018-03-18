@@ -258,6 +258,7 @@ RowDefinition tag_colors_rows[] =
     RowDefinition("tag", "TEXT PRIMARY KEY"),
     RowDefinition("background", "TEXT"),
     RowDefinition("foreground", "TEXT"),
+    RowDefinition(NULL, NULL),
 };
 
 TableDefinition tag_colors_table("tag_colors", tag_colors_rows);
