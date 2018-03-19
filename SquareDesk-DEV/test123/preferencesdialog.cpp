@@ -83,7 +83,12 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
         headerView->setSectionResizeMode(kSessionsColDay, QHeaderView::Interactive);
         headerView->setSectionResizeMode(kSessionsColTime, QHeaderView::Stretch);
     }
-    // validator for initial BPM setting
+
+    {
+        QHeaderView *headerView = ui->tableWidgetTagColors->horizontalHeader();
+        headerView->setSectionResizeMode(kTagsColExample, QHeaderView::Stretch);
+    }
+// validator for initial BPM setting
     validator = new QIntValidator(100, 150, this);
     ui->initialBPMLineEdit->setValidator(validator);
 
@@ -226,10 +231,10 @@ static void setTagColorsSample(QTableWidget *tableWidget, int row)
 
     QString foreground = foregroundButton->text();
     QString background = backgroundButton->text();
-    QString str("<span style=\"background-color:%1; color: %2;\">");
+    QString str("<span style=\"background-color:%1; color: %2;\">&nbsp;");
     str = str.arg(background).arg(foreground);
     str += tag;
-    str += "</span>";
+    str += "&nbsp;</span>";
     labelItem->setText(str);
 }
 
@@ -270,6 +275,7 @@ static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tabl
     tableWidget->setItem(row, kTagsColTag, widgetItem);
     
     QLabel *labelItem(new QLabel(tableWidget));
+    labelItem->setAlignment(Qt::AlignCenter);
     labelItem->setTextFormat(Qt::RichText);
     tableWidget->setCellWidget(row, kTagsColExample, labelItem);
 
