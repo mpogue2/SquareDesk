@@ -6583,6 +6583,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 #if defined(Q_OS_LINUX)
         menu.addAction ( "Open containing folder" , this , SLOT (revealInFinder()) );
 #endif
+        menu.addSeparator();
         menu.addAction( "Edit Tags...", this, SLOT (editTags()) );
 
         QMenu *tagsMenu(new QMenu("Tags"));
