@@ -144,6 +144,7 @@ void bass_audio::Exit(void)
 // ------------------------------------------------------------------
 void bass_audio::SetVolume(int inVolume)
 {
+//    qDebug() << "Setting new volume: " << inVolume;
     Stream_Volume = inVolume;
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
 }
@@ -151,6 +152,7 @@ void bass_audio::SetVolume(int inVolume)
 // ------------------------------------------------------------------
 void bass_audio::SetTempo(int newTempo)
 {
+//    qDebug() << "Setting new tempo: " << newTempo;
     Stream_Tempo = newTempo;
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)(newTempo-100.0f)); // pass -10 to go 10% slower
 }
@@ -158,6 +160,7 @@ void bass_audio::SetTempo(int newTempo)
 // ------------------------------------------------------------------
 void bass_audio::SetPitch(int newPitch)
 {
+//    qDebug() << "Setting new pitch: " << newPitch;
     Stream_Pitch = newPitch;
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO_PITCH, (float)newPitch);
 }
@@ -291,15 +294,15 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float
     // finds song start and end points ------------
 //    QElapsedTimer t3;
 //    t3.start();
-    if (intro1_frac != 0.0 || outro1_frac != 0.0) {
+//    if (intro1_frac != 0.0 || outro1_frac != 0.0) {
 //        qDebug() << "Not running songStartDetector, so using: " << intro1_frac << ", " << outro1_frac;
-        *pSongStart_sec = 0.0;
-        *pSongEnd_sec   = FileLength;
-    } else {
+    *pSongStart_sec = 0.0;
+    *pSongEnd_sec   = FileLength;
+//    } else {
         // both fractions (0-1.0) == zero means we haven't figured out the song length yet
         //   so, figure it out now
-        songStartDetector(filepath, pSongStart_sec, pSongEnd_sec);
-    }
+//        songStartDetector(filepath, pSongStart_sec, pSongEnd_sec);
+//    }
 //    qDebug() << "t3: " << t3.elapsed();
     // ------------------------------
 

@@ -257,14 +257,14 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     // Disable ScreenSaver while SquareDesk is running
-#if defined(Q_OS_MAC)
-    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
-#elif defined(Q_OS_WIN)
-#pragma comment(lib, "user32.lib")
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
-#elif defined(Q_OS_LINUX)
-    // TODO
-#endif
+//#if defined(Q_OS_MAC)
+//    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
+//#elif defined(Q_OS_WIN)
+//#pragma comment(lib, "user32.lib")
+//    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
+//#elif defined(Q_OS_LINUX)
+//    // TODO
+//#endif
 
     // Disable extra (Native Mac) tab bar
 #if defined(Q_OS_MAC)
@@ -298,6 +298,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ============
     ui->menuFile->addSeparator();
+
+    // disable clear buttons on Mac OS X and Windows (they take up too much space)
+    bool enableClearButtons = true;
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
+    enableClearButtons = false;
+#endif
+    ui->typeSearch->setClearButtonEnabled(enableClearButtons);
+    ui->labelSearch->setClearButtonEnabled(enableClearButtons);
+    ui->titleSearch->setClearButtonEnabled(enableClearButtons);
 
     // ------------
     // NOTE: MAC OS X ONLY
@@ -389,6 +398,9 @@ MainWindow::MainWindow(QWidget *parent) :
     guestRootPath = ""; // initially, no guest music
     guestVolume = "";   // and no guest volume present
     guestMode = "main"; // and not guest mode
+
+    // ERROR LOGGING ------
+    logFilePath = musicRootPath + "/.squaredesk/debug.log";
 
     switchToLyricsOnPlay = prefsManager.GetswitchToLyricsOnPlay();
 
@@ -768,6 +780,10 @@ MainWindow::MainWindow(QWidget *parent) :
         QString lastDanceProgram(settings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
     }
+
+#if defined(Q_OS_MAC) || defined(Q_OS_WIN)
+    ui->songTable->verticalScrollBar()->setSingleStep(10);
+#endif
 
     lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
 
@@ -2009,18 +2025,12 @@ MainWindow::~MainWindow()
 
     delete ui;
 
-    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
-#if defined(Q_OS_MAC)
-    macUtils.reenableScreensaver();
-#elif defined(Q_OS_WIN32)
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
-#endif
-    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
-#if defined(Q_OS_MAC)
-    macUtils.reenableScreensaver();
-#elif defined(Q_OS_WIN32)
-    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
-#endif
+//    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
+//#if defined(Q_OS_MAC)
+//    macUtils.reenableScreensaver();
+//#elif defined(Q_OS_WIN32)
+//    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
+//#endif
     if (sdthread)
     {
         sdthread->finishAndShutdownSD();
@@ -2524,12 +2534,14 @@ void InitializeSeekBar(MySlider *seekBar)
     seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: TRICKY, counts on == below
     seekBar->setTickInterval(10);  // 10 seconds per tick
 }
+
 void SetSeekBarPosition(MySlider *seekBar, int currentPos_i)
 {
     seekBar->blockSignals(true); // setValue should NOT initiate a valueChanged()
     seekBar->setValue(currentPos_i);
     seekBar->blockSignals(false);
 }
+
 void SetSeekBarNoSongLoaded(MySlider *seekBar)
 {
     seekBar->setMinimum(0);
@@ -2545,12 +2557,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     }
     RecursionGuard recursion_guard(in_Info_Seekbar);
 
-    if (songLoaded) {  // FIX: this needs to pay attention to the bool
-        // FIX: this code doesn't need to be executed so many times.
-        InitializeSeekBar(ui->seekBar);
-        InitializeSeekBar(ui->seekBarCuesheet);
-
+    if (songLoaded) {
         cBass.StreamGetPosition();  // update cBass.Current_Position
+
+        if (ui->pitchSlider->value() != cBass.Stream_Pitch) {
+            qDebug() << "ERROR: Song was loaded, and cBass pitch did not match pitch slider!";
+            qDebug() << "    pitchSlider =" << ui->pitchSlider->value();
+            qDebug() << "    cBass.Pitch/Tempo/Volume = " << cBass.Stream_Pitch << ", " << cBass.Stream_Tempo << ", " << cBass.Stream_Volume;
+            cBass.SetPitch(ui->pitchSlider->value());
+        }
 
         int currentPos_i = (int)cBass.Current_Position;
         if (forceSlider) {
@@ -2923,12 +2938,13 @@ void MainWindow::on_actionLoop_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_UIUpdateTimerTick(void)
 {
+    // This is called once per second, to update the seekbar and associated dynamic text
 
-#if defined(Q_OS_MAC)
-    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
-        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
-    }
-#endif
+//#if defined(Q_OS_MAC)
+//    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
+//        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
+//    }
+//#endif
 
     Info_Seekbar(true);
 
@@ -3475,7 +3491,7 @@ void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
 {
     cBass.StreamGetPosition();  // update the position
     // set the position to one second before the end, so that RIGHT ARROW works as expected
-    cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 15.0, cBass.FileLength-1.0));
+    cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 10.0, cBass.FileLength-1.0));
     Info_Seekbar(true);
 }
 
@@ -3483,7 +3499,7 @@ void MainWindow::on_actionSkip_Back_15_sec_triggered()
 {
     Info_Seekbar(true);
     cBass.StreamGetPosition();  // update the position
-    cBass.StreamSetPosition((int)fmax(cBass.Current_Position - 15.0, 0.0));
+    cBass.StreamSetPosition((int)fmax(cBass.Current_Position - 10.0, 0.0));
 }
 
 // ------------------------------------------------------------------------
@@ -4096,6 +4112,8 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
+    songLoaded = false;  // seekBar updates are disabled, while we are loading
+
 //    qDebug() << "songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
     RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
@@ -4263,11 +4281,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->seekBar->setEnabled(true);
     ui->seekBarCuesheet->setEnabled(true);
 
-    // when we add Pitch to the songTable as a hidden column, we do NOT need to force pitch anymore, because it
-    //   will be set by the loader to the correct value (which is zero, if the MP3 file wasn't on the current playlist).
-//    ui->pitchSlider->valueChanged(ui->pitchSlider->value()); // force pitch change, if pitch slider preset before load
-    ui->volumeSlider->valueChanged(ui->volumeSlider->value()); // force vol change, if vol slider preset before load
-    ui->mixSlider->valueChanged(ui->mixSlider->value()); // force mix change, if mix slider preset before load
+    ui->pitchSlider->valueChanged(ui->pitchSlider->value());    // force pitch change, if pitch slider preset before load
+    ui->volumeSlider->valueChanged(ui->volumeSlider->value());  // force vol change, if vol slider preset before load
+    ui->mixSlider->valueChanged(ui->mixSlider->value());        // force mix change, if mix slider preset before load
 
     ui->actionMute->setEnabled(true);
     ui->actionLoop->setEnabled(true);
@@ -4291,8 +4307,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 //    qDebug() << "load 2.6: " << t2.elapsed() << "ms";
 
-    songLoaded = true;
-    Info_Seekbar(true);
+    // song is loaded now, so init the seekbar min/max (once)
+    InitializeSeekBar(ui->seekBar);
+    InitializeSeekBar(ui->seekBarCuesheet);
+
+    Info_Seekbar(true);  // update the slider and all the text
 
 //    qDebug() << "load 2.7: " << t2.elapsed() << "ms";
 
@@ -4345,6 +4364,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition((double)startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
+
+    songLoaded = true;  // now seekBar can be updated
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -6041,21 +6062,21 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     QString songType = ui->songTable->item(row,kTypeCol)->text();
     QString songLabel = ui->songTable->item(row,kLabelCol)->text();
 
-    // must be up here...
-    QString pitch = ui->songTable->item(row,kPitchCol)->text();
-    QString tempo = ui->songTable->item(row,kTempoCol)->text();
+//    // must be up here...
+//    QString pitch = ui->songTable->item(row,kPitchCol)->text();
+//    QString tempo = ui->songTable->item(row,kTempoCol)->text();
 
     loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
-    // must be down here...
-    int pitchInt = pitch.toInt();
-    ui->pitchSlider->setValue(pitchInt);
+//    // must be down here...
+//    int pitchInt = pitch.toInt();
+//    ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "0") {
-        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
-        int tempoInt = tempo2.toInt();
-        ui->tempoSlider->setValue(tempoInt);
-    }
+//    if (tempo != "0") {
+//        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
+//        int tempoInt = tempo2.toInt();
+//        ui->tempoSlider->setValue(tempoInt);
+//    }
 
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
@@ -7819,20 +7840,39 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     // "latest" is of the form "X.Y.Z\n", so trim off the NL
     QString latestVersionNumber = QString(result).trimmed();
 
-    if (latestVersionNumber == VERSIONSTRING) {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Information);
+    // extract the pieces of the latest one
+    QRegularExpression rxVersion("^(\\d+)\\.(\\d+)\\.(\\d+)");
+    QRegularExpressionMatch match1 = rxVersion.match(latestVersionNumber);
+    unsigned int major1 = match1.captured(1).toInt();
+    unsigned int minor1 = match1.captured(2).toInt();
+    unsigned int little1 = match1.captured(3).toInt();
+    unsigned int iVersionLatest = 100*(100*major1 + minor1) + little1;
+
+    // extract the pieces of the current one
+    QRegularExpressionMatch match2 = rxVersion.match(VERSIONSTRING);
+    unsigned int major2 = match2.captured(1).toInt();
+    unsigned int minor2 = match2.captured(2).toInt();
+    unsigned int little2 = match2.captured(3).toInt();
+    unsigned int iVersionCurrent = 100*(100*major2 + minor2) + little2;
+
+//    qDebug() << "***** iVersionLatest: " << iVersionLatest << match1.captured(1) << match1.captured(2) << match1.captured(3);
+//    qDebug() << "***** iVersionCurrent: " << iVersionCurrent << match2.captured(1) << match2.captured(2) << match2.captured(3);
+
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+
+    if (iVersionLatest == iVersionCurrent) {
         msgBox.setText("<B>You are running the latest version of SquareDesk.</B>");
-        msgBox.exec();
+    } else if (iVersionLatest < iVersionCurrent) {
+        msgBox.setText("<H2>You are ahead of the latest Beta version.</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
+                       "<P>Latest version of SquareDesk: " + latestVersionNumber);
     } else {
-        QMessageBox msgBox;
-        msgBox.setIcon(QMessageBox::Information);
         msgBox.setText("<H2>Newer version available</H2>\nYour version of SquareDesk: " + QString(VERSIONSTRING) +
                        "<P>Latest version of SquareDesk: " + latestVersionNumber +
                        "<P><a href=\"https://github.com/mpogue2/SquareDesk/releases\">Download new version</a>");
-        msgBox.exec();
     }
 
+    msgBox.exec();
 }
 
 void MainWindow::maybeInstallSoundFX() {
@@ -9508,5 +9548,31 @@ void MainWindow::on_actionItalic_triggered()
     bool isEditable = ui->toolButtonEditLyrics->isChecked();
     if (isEditable) {
         ui->textBrowserCueSheet->setFontItalic(!isItalicsNow);
+    }
+}
+
+// --------------------------
+QString MainWindow::logFilePath;  // static members must be explicitly instantiated if in class scope
+
+void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
+    QByteArray localMsg = msg.toLocal8Bit();
+    QTime time = QTime::currentTime();
+    QString formattedTime = time.toString("hh:mm:ss.zzz");
+    QByteArray formattedTimeMsg = formattedTime.toLocal8Bit();
+    QString logLevelName = msgLevelHash[type];
+    QByteArray logLevelMsg = logLevelName.toLocal8Bit();
+
+    QString txt = QString("%1 %2: %3 (%4)").arg(formattedTime, logLevelName, msg, context.file);
+
+    QFile outFile(logFilePath);
+    outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    QTextStream ts(&outFile);
+    ts << txt << endl;
+    outFile.close();
+
+    if (type == QtFatalMsg) {
+        abort();
     }
 }
