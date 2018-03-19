@@ -6676,9 +6676,10 @@ void MainWindow::editTags()
         songSettings.loadSettings(pathToMP3, settings);
         QString tags;
         bool ok(false);
+        QString title = getTitleColTitle(ui->songTable, row);
         if (settings.isSetTags())
             tags = settings.getTags();
-        QString newtags(QInputDialog::getText(this, "Edit Tags", "Tags for " + pathToMP3, QLineEdit::Normal, tags, &ok));
+        QString newtags(QInputDialog::getText(this, "Edit Tags", "Tags for " + title, QLineEdit::Normal, tags, &ok));
         if (ok)
         {
             songSettings.removeTags(tags);
@@ -6686,7 +6687,6 @@ void MainWindow::editTags()
             songSettings.saveSettings(pathToMP3, settings);
             songSettings.addTags(newtags);
 
-            QString title = getTitleColTitle(ui->songTable, row);
             QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
