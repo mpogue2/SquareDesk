@@ -797,8 +797,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->setColumnWidth(kTempoCol,60);
 
     usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
-
-    adjustFontSizes();  // now adjust to match contents ONCE
     //on_actionReset_triggered();  // set initial layout
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 
@@ -4681,7 +4679,15 @@ QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, cons
         }
     }
     return titlePlusTags;
-}    
+}
+
+void setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
+{
+    for (int row = 0; row < songTable->rowCount(); ++row)
+        dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
+}
+
+
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
@@ -4871,6 +4877,8 @@ void MainWindow::loadMusicList()
 #endif /* ifndef CUSTOM_FILTER */
     }
 
+    QFont currentFont = ui->songTable->font();
+    setSongTableFont(ui->songTable, currentFont);
 #ifdef CUSTOM_FILTER
     filterMusic();
 #endif /* ifdef CUSTOM_FILTER */
@@ -6589,7 +6597,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         }
 
         menu.addMenu(tagsMenu);
-        menu.addAction( "Load Song", this, SLOT (loadSong()) );
+//        menu.addAction( "Load Song", this, SLOT (loadSong()) );
         menu.popup(QCursor::pos());
         menu.exec();
     }
@@ -8231,6 +8239,7 @@ void MainWindow::adjustFontSizes()
     ui->nextSongButton->setFixedSize(buttonSizeH*nowPlayingLabelFontSize,buttonSizeV*nowPlayingLabelFontSize);
 }
 
+
 void MainWindow::usePersistentFontSize() {
     PreferencesManager prefsManager;
 
@@ -8252,9 +8261,8 @@ void MainWindow::usePersistentFontSize() {
     currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
-    for (int row = 0; row < ui->songTable->rowCount(); ++row)
-        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
 
+    setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();  // use that font size to scale everything else (relative)
 }
 
@@ -8286,9 +8294,7 @@ void MainWindow::on_actionZoom_In_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
-    for (int row = 0; row < ui->songTable->rowCount(); ++row)
-        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
-
+    setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
 }
@@ -8312,9 +8318,7 @@ void MainWindow::on_actionZoom_Out_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
-    for (int row = 0; row < ui->songTable->rowCount(); ++row)
-        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
-
+    setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
@@ -8334,8 +8338,7 @@ void MainWindow::on_actionReset_triggered()
     totalZoom = 0;
 
     persistNewFontSize(currentMacPointSize);
-    for (int row = 0; row < ui->songTable->rowCount(); ++row)
-        dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setFont(currentFont);
+    setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << currentMacPointSize << ", totalZoom:" << totalZoom;
 }

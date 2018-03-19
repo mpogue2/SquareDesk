@@ -625,9 +625,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>+</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                <normaloff>:/graphics/list-add.png</normaloff>
-                <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/list-add.png</normaloff>
+                 <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
                </property>
               </widget>
              </item>
@@ -637,9 +637,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>-</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                <normaloff>:/graphics/list-remove.png</normaloff>
-                <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/list-remove.png</normaloff>
+                 <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
                </property>
               </widget>
              </item>
@@ -649,9 +649,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                <normaloff>:/graphics/go-up.png</normaloff>
-                <normalon>:/graphics/go-up.png</normalon>:/graphics/go-up.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/go-up.png</normaloff>
+                 <normalon>:/graphics/go-up.png</normalon>:/graphics/go-up.png</iconset>
                </property>
               </widget>
              </item>
@@ -661,9 +661,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                <normaloff>:/graphics/go-down.png</normaloff>
-                <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/go-down.png</normaloff>
+                 <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
                </property>
               </widget>
              </item>
@@ -799,6 +799,9 @@ Click on a color square to change the color associated with that Music Type.  Se
               <property name="text">
                <string>Sample</string>
               </property>
+              <property name="textAlignment">
+               <set>AlignCenter</set>
+              </property>
              </column>
             </widget>
            </item>
@@ -810,9 +813,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>+</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                <normaloff>:/graphics/list-add.png</normaloff>
-                <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/list-add.png</normaloff>
+                 <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
                </property>
               </widget>
              </item>
@@ -822,9 +825,9 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>-</string>
                </property>
                <property name="icon">
-                <iconset resource="resources.qrc">
-                <normaloff>:/graphics/list-remove.png</normaloff>
-                <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
+                <iconset>
+                 <normaloff>:/graphics/list-remove.png</normaloff>
+                 <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
                </property>
               </widget>
              </item>

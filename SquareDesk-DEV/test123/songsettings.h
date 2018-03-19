@@ -176,7 +176,7 @@ public:
     QList<SessionInfo> getSessionInfo();
     void setSessionInfo(const QList<SessionInfo> &sessions);
     void setTagColors( const QHash<QString,QPair<QString,QString>> &);
-    QHash<QString,QPair<QString,QString>> getTagColors();
+    QHash<QString,QPair<QString,QString>> getTagColors(bool loadCache = true);
 
     QPair<QString,QString> getColorForTag(const QString &tag);
     void addTags(const QString &str);

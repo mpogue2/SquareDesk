@@ -281,11 +281,13 @@ static void addRowToTagColors(PreferencesDialog *prefsDialog, QTableWidget *tabl
 
 void PreferencesDialog::on_pushButtonTagAdd_clicked()
 {
+    songTableReloadNeeded = true;
     addRowToTagColors(this, ui->tableWidgetTagColors, "<new>", ui->pushButtonTagsBackgroundColor->text(), ui->pushButtonTagsForegroundColor->text());
 }
 
 void PreferencesDialog::on_pushButtonTagRemove_clicked()
 {
+    songTableReloadNeeded = true;
     for (int row = 0; row < ui->tableWidgetTagColors->rowCount(); ++row)
     {
         for (int col = 0; col < ui->tableWidgetTagColors->columnCount(); ++col)
@@ -303,6 +305,8 @@ void PreferencesDialog::on_pushButtonTagRemove_clicked()
 
 void PreferencesDialog::setTagColors( const QHash<QString,QPair<QString,QString>> &colors)
 {
+    songTableReloadNeeded = true;
+
     ui->tableWidgetTagColors->setSortingEnabled(false);
     for (auto color = colors.cbegin(); color != colors.cend(); ++color)
     {

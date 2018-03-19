@@ -282,17 +282,18 @@ IndexDefinition index_definitions[] = {
 */
 
 SongSettings::SongSettings() :
+    tagsBackgroundColorString(DEFAULTTAGSBACKGROUNDCOLOR),
+    tagsForegroundColorString(DEFAULTTAGSFOREGROUNDCOLOR),
     databaseOpened(false),
     current_session_id(0),
-    tagColorCacheSet(false),
-    tagsBackgroundColorString(DEFAULTTAGSBACKGROUNDCOLOR),
-    tagsForegroundColorString(DEFAULTTAGSFOREGROUNDCOLOR)
-    
+    tagColorCacheSet(false)
 {
 }
 
 void SongSettings::setDefaultTagColors( const QString &background, const QString & foreground)
 {
+    tagsBackgroundColorString = background;
+    tagsForegroundColorString = foreground;
 }
 
 
@@ -408,6 +409,8 @@ void SongSettings::openDatabase(const QString& path,
 
 void SongSettings::setTagColors( const QHash<QString,QPair<QString,QString>> &colors)
 {
+    QHash<QString, QPair<QString,QString> > existingColors = getTagColors(false);
+    
     tagColorCache = colors;
     tagColorCacheSet = true;
     {
@@ -426,6 +429,8 @@ void SongSettings::setTagColors( const QHash<QString,QPair<QString,QString>> &co
         q.prepare("INSERT INTO tag_colors(tag,background,foreground) VALUES (:tag,:background,:foreground)");
         for (auto color = colors.cbegin(); color != colors.cend(); ++color)
         {
+            existingColors.remove(color.key());
+                
             q.bindValue(":tag", color.key());
             q.bindValue(":background", color.value().first);
             q.bindValue(":foreground", color.value().second);
@@ -437,6 +442,41 @@ void SongSettings::setTagColors( const QHash<QString,QPair<QString,QString>> &co
         QSqlQuery q(m_db);
         q.prepare("COMMIT");
         exec("setTagColors COMMIT", q);
+    }
+
+    {
+        QHash<int, QString> updates;
+        
+        QSqlQuery q(m_db);
+        q.prepare("SELECT rowid, tags FROM songs");
+        exec("Tag cleanup", q);
+        while (q.next())
+        {
+            int rowid = q.value(0).toInt();
+            QString tagstr = q.value(1).toString();
+            QStringList tags = tagstr.split(" ");
+            bool changed(false);
+            for (int i = 0; i < tags.size(); ++i)
+            {
+                QString tag = tags[i];
+                if (existingColors.contains(tag))
+                {
+                    changed = true;
+                    tags.removeAt(i);
+                    --i;
+                }
+            }
+            if (changed)
+                updates[rowid] = tags.join(" ");
+        }
+        QSqlQuery qupdate(m_db);
+        qupdate.prepare("UPDATE songs SET tags=:tags WHERE rowid=:rowid");
+        for (auto update = updates.cbegin(); update != updates.cend(); ++update)
+        {
+            qupdate.bindValue(":tags", update.value());
+            qupdate.bindValue(":rowid", update.key());
+            exec("Tag cleanup update", qupdate);
+        }
     }
 }
 
@@ -484,7 +524,7 @@ QPair<QString,QString> SongSettings::getColorForTag(const QString &tag)
 }
 
 
-QHash<QString,QPair<QString,QString>> SongSettings::getTagColors()
+QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
 {
     QHash<QString, QPair<QString,QString>> colors;
     QSqlQuery q(m_db);
@@ -503,8 +543,11 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors()
             }
         }
     }
-    tagColorCache = colors;
-    tagColorCacheSet = true;
+    if (loadCache)
+    {
+        tagColorCache = colors;
+        tagColorCacheSet = true;
+    }
     
     return colors;
 }
