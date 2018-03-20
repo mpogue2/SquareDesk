@@ -107,7 +107,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.2alpha1"
+#define VERSIONSTRING "0.9.2alpha2"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -524,7 +524,7 @@ private:
 
     QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
 
-    unsigned char currentState;
+//    unsigned char currentState;
     short int currentPitch;
     unsigned short currentVolume;
     int previousVolume;

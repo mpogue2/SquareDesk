@@ -344,7 +344,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuFile->addAction(closeAct);
 #endif
 
-    currentState = kStopped;
+//    currentState = kStopped;
     currentPitch = 0;
     tempoIsBPM = false;
     switchToLyricsOnPlay = false;
@@ -2129,7 +2129,7 @@ void MainWindow::on_stopButton_clicked()
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
-    currentState = kStopped;
+//    currentState = kStopped;
 
     cBass.Stop();  // Stop playback, rewind to the beginning
 
@@ -2167,7 +2167,9 @@ void MainWindow::on_playButton_clicked()
         return;  // if there is no song loaded, no point in toggling anything.
     }
 
-    if (currentState == kStopped || currentState == kPaused) {
+//    if (currentState == kStopped || currentState == kPaused) {
+    uint32_t Stream_State = cBass.currentStreamState();
+    if (Stream_State == BASS_ACTIVE_STOPPED || Stream_State == BASS_ACTIVE_PAUSED) {
         cBass.Play();  // currently stopped or paused, so start playing
 
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
@@ -2214,7 +2216,7 @@ void MainWindow::on_playButton_clicked()
         }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
-        currentState = kPlaying;
+//        currentState = kPlaying;
     }
     else {
         // TODO: we might want to restore focus here....
@@ -2222,7 +2224,7 @@ void MainWindow::on_playButton_clicked()
         cBass.Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
-        currentState = kPaused;
+//        currentState = kPaused;
         ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
 
@@ -2346,9 +2348,12 @@ void MainWindow::timerCountUp_update()
 // ----------------------------------------------------------------------
 void MainWindow::timerCountDown_update()
 {
+    uint32_t Stream_State = cBass.currentStreamState();
+
     if (updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer) >= 0
             && ui->checkBoxPlayOnEnd->isChecked()
-            && currentState == kStopped) {
+//            && currentState == kStopped) {
+            && Stream_State == BASS_ACTIVE_STOPPED) {
         on_playButton_clicked();
     }
 }
@@ -2560,7 +2565,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     if (songLoaded) {
         cBass.StreamGetPosition();  // update cBass.Current_Position
 
-        if (ui->pitchSlider->value() != cBass.Stream_Pitch) {
+        if (ui->pitchSlider->value() != cBass.Stream_Pitch) {  // DEBUG DEBUG DEBUG
             qDebug() << "ERROR: Song was loaded, and cBass pitch did not match pitch slider!";
             qDebug() << "    pitchSlider =" << ui->pitchSlider->value();
             qDebug() << "    cBass.Pitch/Tempo/Volume = " << cBass.Stream_Pitch << ", " << cBass.Stream_Tempo << ", " << cBass.Stream_Volume;
@@ -2582,7 +2587,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             //   AND you must be playing.  If you're not playing, we're not going to override the InfoBar position.
             if (autoScrollLyricsEnabled &&
                     !ui->toolButtonEditLyrics->isChecked() &&
-                    currentState == kPlaying) {
+//                    currentState == kPlaying) {
+                    cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
                 // lyrics scrolling at the same time as the InfoBar
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
             }
@@ -2655,7 +2661,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             sectionName << "Intro" << "Opener" << "Figure 1" << "Figure 2"
                         << "Break" << "Figure 3" << "Figure 4" << "Closer" << "Tag";
 
-            if (cBass.Stream_State == BASS_ACTIVE_PLAYING &&
+//            if (cBass.Stream_State == BASS_ACTIVE_PLAYING &&
+            if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING &&
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType))) {
                 // if singing call OR called, then tell the clock to show the section type
                 analogClock->setSingingCallSection(sectionName[section]);
@@ -2685,7 +2692,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         if (flashCalls.length() != 0) {
             // if there are flash calls on the list, then Flash Calls are enabled.
-             if (cBass.Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
+//            if (cBass.Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
+            if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
                  ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
@@ -2826,7 +2834,8 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
 void MainWindow::getCurrentPointInStream(double *pos, double *len) {
     double position, length;
 
-    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+//    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+    if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
         // if we're playing, this is accurate to sub-second.
         cBass.StreamGetPosition(); // snapshot the current position
         position = cBass.Current_Position;
@@ -2952,7 +2961,9 @@ void MainWindow::on_UIUpdateTimerTick(void)
     QTime time = QTime::currentTime();
     int theType = NONE;
 //    qDebug() << "Stream_State:" << cBass.Stream_State; //FIX
-    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+//    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
+    uint32_t Stream_State = cBass.currentStreamState();
+    if (Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
         if (songTypeNamesForPatter.contains(currentSongType)) {
@@ -2972,12 +2983,13 @@ void MainWindow::on_UIUpdateTimerTick(void)
         }
 
         analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
-    } else if (cBass.Stream_State == BASS_ACTIVE_PAUSED) {
+//    } else if (cBass.Stream_State == BASS_ACTIVE_PAUSED) {
+    } else if (Stream_State == BASS_ACTIVE_PAUSED) {
         // if we paused due to FADE, for example...
         // FIX: this could be factored out, it's used twice.
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
-        currentState = kPaused;
+//        currentState = kPaused;
         ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
     }
 
@@ -3253,7 +3265,8 @@ bool MainWindow::handleKeypress(int key, QString text)
                 //   of ESCAPE when the search function was not being used).  So, ONLY NOW do we Stop Playback.
                 // So, GET ME OUT OF HERE is now "ESC ESC", or "Hit ESC a couple of times".
                 //    and, CLEAR SEARCH is just ESC (or click on the Clear Search button).
-                if (currentState == kPlaying) {
+//                if (currentState == kPlaying) {
+                if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
                     on_playButton_clicked();  // we were playing, so PAUSE now.
                 }
             }

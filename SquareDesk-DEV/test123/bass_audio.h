@@ -94,9 +94,13 @@ public:
     void StartVolumeDucking(int duckToPercent, float forSeconds);
     void StopVolumeDucking();
 
+    // always asks the engine what the state is (NOT CACHED), then returns one of:
+    //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
+    uint32_t currentStreamState();
+
     int  currentSoundEffectID;
 
-    DWORD                           Stream_State;  // intentionally public // FIX: add getStreamState()
+//    DWORD                           Stream_State;  // intentionally public // FIX: add getStreamState()
     //-------------------------------------------------------------
 private:
     //-------------------------------------------------------------
