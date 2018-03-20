@@ -9572,13 +9572,15 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
 {
     QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
     QByteArray localMsg = msg.toLocal8Bit();
-    QTime time = QTime::currentTime();
-    QString formattedTime = time.toString("hh:mm:ss.zzz");
-    QByteArray formattedTimeMsg = formattedTime.toLocal8Bit();
-    QString logLevelName = msgLevelHash[type];
-    QByteArray logLevelMsg = logLevelName.toLocal8Bit();
 
-    QString txt = QString("%1 %2: %3 (%4)").arg(formattedTime, logLevelName, msg, context.file);
+    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
+    QString logLevelName = msgLevelHash[type];
+    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
+
+    if (msg.contains("The provided value 'moz-chunked-arraybuffer' is not a valid enum value of type XMLHttpRequestResponseType")) {
+//         This is a known warning that is spit out once per loaded PDF file.  It's just noise, so suppressing it from the debug.log file.
+        return;
+    }
 
     QFile outFile(logFilePath);
     outFile.open(QIODevice::WriteOnly | QIODevice::Append);
