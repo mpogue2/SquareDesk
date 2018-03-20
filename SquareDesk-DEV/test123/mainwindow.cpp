@@ -77,6 +77,24 @@
 #include "JlCompress.h"
 #endif
 
+
+class InvisibleTableWidgetItem : public QTableWidgetItem {
+private:
+    QString text;
+public:
+    InvisibleTableWidgetItem(const QString &t);
+    bool operator< (const QTableWidgetItem &other) const override;
+    virtual ~InvisibleTableWidgetItem();
+};
+
+InvisibleTableWidgetItem::InvisibleTableWidgetItem(const QString &t) : QTableWidgetItem(), text(t) {}
+InvisibleTableWidgetItem::~InvisibleTableWidgetItem() {}
+bool InvisibleTableWidgetItem::operator< (const QTableWidgetItem &other) const
+{
+    const InvisibleTableWidgetItem *otherItem = dynamic_cast<const InvisibleTableWidgetItem*>(&other);
+    return this->text < otherItem->text;
+}
+
 // experimental removal of silence at the beginning of the song
 // disabled right now, because it's not reliable enough.
 //#define REMOVESILENCE 1
@@ -4846,13 +4864,15 @@ void MainWindow::loadMusicList()
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
         addStringToLastRowOfSongTable(textCol, ui->songTable, label + " " + labelnum, kLabelCol );
 //        addStringToLastRowOfSongTable(textCol, ui->songTable, title, kTitleCol);
-
+       
+        InvisibleTableWidgetItem *titleItem(new InvisibleTableWidgetItem(title));
+        ui->songTable->setItem(ui->songTable->rowCount()-1, kTitleCol, titleItem);
         SongSetting settings;
         songSettings.loadSettings(origPath,
                                   settings);
         if (settings.isSetTags())
             songSettings.addTags(settings.getTags());
-
+        
         QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
         QString songNameStyleSheet("QLabel { color : %1; }");
