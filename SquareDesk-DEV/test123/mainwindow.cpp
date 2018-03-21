@@ -2613,12 +2613,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
         int fileLen_i = (int)cBass.FileLength;
 
-        if (currentPos_i == fileLen_i) {  // NOTE: TRICKY, counts on -1 above
+        // songs must be longer than 5 seconds for this to work (belt and suspenders)
+        if ((currentPos_i == fileLen_i) && (currentPos_i > 5) && (fileLen_i > 5)) {  // NOTE: TRICKY, counts on -1 above in InitializeSeekBar()
             // avoids the problem of manual seek to max slider value causing auto-STOP
             if (!ui->actionContinuous_Play->isChecked()) {
+                qDebug() << "AUTO_STOP TRIGGERED (NORMAL): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
             }
             else {
+                qDebug() << "AUTO_STOP TRIGGERED (CONT PLAY): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 // figure out which row is currently selected
                 QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
                 QModelIndexList selected = selectionModel->selectedRows();
