@@ -4373,7 +4373,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 //    qDebug() << "load 2.8: " << t2.elapsed() << "ms";
 
-    if (isPatter) {
+    if (!isSingingCall) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
         ui->pushButtonSetIntroTime->setText("Start Loop");
