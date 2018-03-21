@@ -8118,7 +8118,7 @@ void MainWindow::adjustFontSizes()
     float pitchFactor = 0.5;
     float tempoFactor = 0.9;
 
-    unsigned int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
+    unsigned int searchBoxesHeight[8] = {20, 21, 22, 24,  26, 28, 30, 32};
     float scaleWidth1 = 7.75;
     float scaleWidth2 = 3.25;
     float scaleWidth3 = 8.5;
@@ -8215,6 +8215,14 @@ void MainWindow::adjustFontSizes()
     ui->typeSearch->setFixedHeight(searchBoxesHeight[index]);
     ui->labelSearch->setFixedHeight(searchBoxesHeight[index]);
     ui->titleSearch->setFixedHeight(searchBoxesHeight[index]);
+
+    ui->dateTimeEditIntroTime->setFixedHeight(searchBoxesHeight[index]);  // this scales the intro/outro button height, too...
+    ui->dateTimeEditOutroTime->setFixedHeight(searchBoxesHeight[index]);
+
+#if defined(Q_OS_MAC)
+    // the Mac combobox is not height resizeable.  This styled one is, and it looks fine.
+    ui->comboBoxCuesheetSelector->setStyle(QStyleFactory::create("Windows"));
+#endif
 
     // set all the related fonts to the same size
     ui->typeSearch->setFont(currentFont);
