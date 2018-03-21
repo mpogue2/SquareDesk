@@ -186,7 +186,7 @@ void MySlider::paintEvent(QPaintEvent *e)
 #endif
         QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
 //        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
-        QColor colors[3] = { Qt::red, Qt::darkGray, Qt::darkBlue };
+        QColor colors[3] = { Qt::red, Qt::cyan, Qt::blue };
 
         float left = 1;
         float right = width + offset + 5;
