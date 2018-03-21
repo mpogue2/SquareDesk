@@ -1156,19 +1156,6 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayoutCueSheetAdditional">
             <item>
-             <widget class="QPushButton" name="pushButtonTestLoop">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Test Loop</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="pushButtonSetIntroTime">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
@@ -1193,6 +1180,9 @@
                <string>mm:ss.zzz</string>
               </property>
              </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBoxCuesheetSelector"/>
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonSetOutroTime">
@@ -1227,7 +1217,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBoxCuesheetSelector"/>
+             <widget class="QPushButton" name="pushButtonTestLoop">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Test Loop</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
