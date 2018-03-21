@@ -2680,7 +2680,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                         << "Break" << "Figure 3" << "Figure 4" << "Closer" << "Tag";
 
 //            if (cBass.Stream_State == BASS_ACTIVE_PLAYING &&
-            if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING &&
+            if (//cBass.currentStreamState() == BASS_ACTIVE_PLAYING &&
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType))) {
                 // if singing call OR called, then tell the clock to show the section type
                 analogClock->setSingingCallSection(sectionName[section]);
@@ -4379,6 +4379,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->pushButtonSetIntroTime->setText("Start Loop");
         ui->pushButtonSetOutroTime->setText("End Loop");
         ui->pushButtonTestLoop->setHidden(false);
+        analogClock->setSingingCallSection("");
     } else {
         // singing call or vocals or xtras, so Loop mode defaults to OFF
         on_loopButton_toggled(false); // default is to loop, if type is patter

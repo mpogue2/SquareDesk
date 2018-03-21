@@ -114,7 +114,8 @@ void AnalogClock::redrawTimerExpired()
 //                    timerLabelCuesheet->setVisible(true);  // make the timerLabel appear
                     timerLabelCuesheet->setText(singingCallSection);
                 } else {
-                    timerLabel->setVisible(false);  // make the timerLabel disappear
+//                    timerLabel->setVisible(false);  // make the timerLabel disappear
+                    timerLabel->setText("");
 //                    timerLabelCuesheet->setVisible(false);  // make the timerLabel disappear
                 }
             } else if (breakLengthSecs < maxBreakLength && typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
@@ -162,7 +163,8 @@ void AnalogClock::redrawTimerExpired()
                 // either we have 1 state known (e.g. NONE for 3600 secs), OR
                 //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
 //                qDebug() << "none state";
-                timerLabel->setVisible(false);
+//                timerLabel->setVisible(false);
+                timerLabel->setText("");
 //                timerLabelCuesheet->setVisible(false);
             }
         } else if (patterLengthSecs < maxPatterLength) {
