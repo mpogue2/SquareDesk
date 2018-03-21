@@ -8269,6 +8269,7 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetClearFormatting->setFixedWidth(TitleButtonWidth[index] * 2.25);
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
+    ui->songTable->horizontalHeader()->setFont(currentFont);
 
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67*(currentMacPointSize/13.0));
     ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34*(currentMacPointSize/13.0));
