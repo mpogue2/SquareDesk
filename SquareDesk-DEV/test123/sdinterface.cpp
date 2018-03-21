@@ -486,6 +486,8 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
                 dance_levels.append(QString("%1").arg(0 + kSDCallTypeCommands));
             }
             options.append("abort this sequence");
+            dance_levels.append(0);
+
             options.append("square your sets");
             dance_levels.append(0);
         }
