@@ -1555,8 +1555,18 @@ void MainWindow::writeCuesheet(QString filename)
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
-    saveLyricsAs();
+//    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
+        saveLyrics();
+//        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
+//    }
 }
+
+void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
+{
+//    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
+    saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
+}
+
 
 QString MainWindow::tidyHTML(QString cuesheet) {
 //    qDebug() << "tidyHTML";
@@ -2613,12 +2623,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
         int fileLen_i = (int)cBass.FileLength;
 
-        if (currentPos_i == fileLen_i) {  // NOTE: TRICKY, counts on -1 above
+        // songs must be longer than 5 seconds for this to work (belt and suspenders)
+        if ((currentPos_i == fileLen_i) && (currentPos_i > 5) && (fileLen_i > 5)) {  // NOTE: TRICKY, counts on -1 above in InitializeSeekBar()
             // avoids the problem of manual seek to max slider value causing auto-STOP
             if (!ui->actionContinuous_Play->isChecked()) {
+                qDebug() << "AUTO_STOP TRIGGERED (NORMAL): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
             }
             else {
+                qDebug() << "AUTO_STOP TRIGGERED (CONT PLAY): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 // figure out which row is currently selected
                 QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
                 QModelIndexList selected = selectionModel->selectedRows();
@@ -6902,10 +6915,10 @@ void MainWindow::saveCurrentSongSettings()
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
 
-        if (ui->checkBoxAutoSaveLyrics->isChecked())
-        {
-            writeCuesheet(cuesheetFilename);
-        }
+//        if (ui->checkBoxAutoSaveLyrics->isChecked())
+//        {
+//            //writeCuesheet(cuesheetFilename);
+//        }
     }
 
 
@@ -8878,6 +8891,7 @@ void MainWindow::saveSequenceAs()
 
 void MainWindow::on_actionSave_triggered()
 {
+//    qDebug() << "actionSave";
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
@@ -8899,6 +8913,7 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionSave_As_triggered()
 {
+//    qDebug() << "actionSave_As";
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
@@ -9622,3 +9637,4 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
         abort();
     }
 }
+

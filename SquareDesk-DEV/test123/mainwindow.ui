@@ -1532,14 +1532,20 @@
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Save As...</string>
+               <string>Save</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBoxAutoSaveLyrics">
+             <widget class="QPushButton" name="pushButtonCueSheetEditSaveAs">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="text">
-               <string>Auto-Save</string>
+               <string>Save As...</string>
               </property>
              </widget>
             </item>
