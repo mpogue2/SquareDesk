@@ -846,8 +846,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     QString cmd(ui->lineEditSDInput->text().trimmed());
     ui->lineEditSDInput->clear();
 
-    if (!cmd.compare("quit", Qt::CaseInsensitive)
-        || !cmd.compare(str_square_your_sets, Qt::CaseInsensitive))
+    if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
         cmd = str_abort_this_sequence;
     }
@@ -999,7 +998,10 @@ void MainWindow::on_lineEditSDInput_returnPressed()
         sdthread->do_user_input(str_abort_this_sequence);
         sdthread->do_user_input("y");
     }
-    sdthread->do_user_input(cmd);
+    else
+    {
+        sdthread->do_user_input(cmd);
+    }
 }
 
 dance_level MainWindow::get_current_sd_dance_program()
