@@ -107,7 +107,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.2alpha4"
+#define VERSIONSTRING "0.9.2alpha5"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -445,6 +445,8 @@ private slots:
     void on_actionBold_triggered();
 
     void on_actionItalic_triggered();
+
+    void on_pushButtonCueSheetEditSaveAs_clicked();
 
 public:
     void on_threadSD_errorString(QString str);

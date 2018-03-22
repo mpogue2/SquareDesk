@@ -1555,8 +1555,18 @@ void MainWindow::writeCuesheet(QString filename)
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
-    saveLyricsAs();
+//    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
+        saveLyrics();
+//        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
+//    }
 }
+
+void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
+{
+//    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
+    saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
+}
+
 
 QString MainWindow::tidyHTML(QString cuesheet) {
 //    qDebug() << "tidyHTML";
@@ -6905,10 +6915,10 @@ void MainWindow::saveCurrentSongSettings()
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);
 
-        if (ui->checkBoxAutoSaveLyrics->isChecked())
-        {
-            writeCuesheet(cuesheetFilename);
-        }
+//        if (ui->checkBoxAutoSaveLyrics->isChecked())
+//        {
+//            //writeCuesheet(cuesheetFilename);
+//        }
     }
 
 
@@ -8881,6 +8891,7 @@ void MainWindow::saveSequenceAs()
 
 void MainWindow::on_actionSave_triggered()
 {
+//    qDebug() << "actionSave";
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
@@ -8902,6 +8913,7 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionSave_As_triggered()
 {
+//    qDebug() << "actionSave_As";
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
@@ -9625,3 +9637,4 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
         abort();
     }
 }
+
