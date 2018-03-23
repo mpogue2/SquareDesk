@@ -42,8 +42,8 @@ public:
     void setTagColors( const QHash<QString,QPair<QString,QString>> &);
     const QHash<QString,QPair<QString,QString>> &getTagColors();
 
-    QHash<Qt::Key, KeyAction *> GetHotkeyMappings();
-    void SetHotkeyMappings(QHash<Qt::Key, KeyAction *>);
+    QHash<QString, KeyAction *> GetHotkeyMappings();
+    void SetHotkeyMappings(QHash<QString, KeyAction *>);
 private:
     QHash<QString,QPair<QString,QString>> tagColors;
 public:

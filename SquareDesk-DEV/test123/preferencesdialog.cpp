@@ -116,45 +116,23 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
     SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
 
-#ifdef KEYBINDINGS_KEY_FIRST
-    QVector<KeyAction*> availableActions(KeyAction::availableActions());
-    QVector<enum Qt::Key> mappableKeys(KeyAction::mappableKeys());
 
-    ui->tableWidgetKeyBindings->setColumnWidth(0,80);
-    QHeaderView *headerView = ui->tableWidgetKeyBindings->horizontalHeader();
-    headerView->setSectionResizeMode(1, QHeaderView::Stretch);
-
-    size_t key_binding_count = mappableKeys.length();
-    ui->tableWidgetKeyBindings->setRowCount(key_binding_count);
-    for (size_t row = 0; row < key_binding_count; ++row)
-    {
-        QTableWidgetItem *newTableItem(new QTableWidgetItem(QKeySequence(mappableKeys[row]).toString()));
-        newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);
-        ui->tableWidgetKeyBindings->setItem(row, 0, newTableItem);
-        QComboBox *comboBox(new QComboBox);
-        for (auto action: availableActions)
-        {
-            QString function_name(action->name());
-            comboBox->addItem(function_name, function_name);
-        }
-        ui->tableWidgetKeyBindings->setCellWidget(row, 1, comboBox);
-    }
-#else
     QVector<KeyAction*> availableActions(KeyAction::availableActions());
-    QVector<enum Qt::Key> mappableKeys(KeyAction::mappableKeys());
 
     ui->tableWidgetKeyBindings->setRowCount(availableActions.length());
     for (int row = 0; row < availableActions.length(); ++row)
     {
         QTableWidgetItem *newTableItem(new QTableWidgetItem(availableActions[row]->name()));
         ui->tableWidgetKeyBindings->setItem(row, 0, newTableItem);
-        QKeySequenceEdit *keySequenceEdit(new QKeySequenceEdit);
-        ui->tableWidgetKeyBindings->setCellWidget(row, 1, keySequenceEdit);
+        for (int col = 1; col < ui->tableWidgetKeyBindings->columnCount(); ++col)
+        {
+            QKeySequenceEdit *keySequenceEdit(new QKeySequenceEdit);
+            ui->tableWidgetKeyBindings->setCellWidget(row, col, keySequenceEdit);
+        }
     }
 
     ui->tableWidgetKeyBindings->resizeColumnToContents(0);
     ui->tableWidgetKeyBindings->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-#endif
 
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
@@ -352,133 +330,57 @@ QHash<QString,QPair<QString,QString>> PreferencesDialog::getTagColors()
     return tagColors;
 }
 
-QHash<Qt::Key, KeyAction *> PreferencesDialog::getHotkeys()
+QHash<QString, KeyAction *> PreferencesDialog::getHotkeys()
 {
-    QHash<Qt::Key, KeyAction *> keyActionBindings;
-#ifdef KEYBINDINGS_KEY_FIRST
-    QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
-
-    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
-    QHash<QString, Qt::Key> keysByName;
-    for (auto key : mappableKeys)
-    {
-        keysByName[QKeySequence(key).toString()] = key;
-    }
-
-    for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
-    {
-        QString keyName = ui->tableWidgetKeyBindings->item(row,0)->text();
-        QComboBox *comboBox = dynamic_cast<QComboBox*>(ui->tableWidgetKeyBindings->cellWidget(row, 1));
-        if (comboBox->currentIndex() > 0)
-        {
-            QString actionName = comboBox->itemData(comboBox->currentIndex()).toString();
-            auto action = actions.find(actionName);
-            QHash<QString, Qt::Key>::iterator key = keysByName.find(keyName);
-
-            if (action != actions.end() && key != keysByName.end())
-            {
-                keyActionBindings[*key] = *action;
-            }
-        }
-    }
-#else
+    QHash<QString, KeyAction *> keyActionBindings;
     QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
     for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
     {
         QString actionName(ui->tableWidgetKeyBindings->item(row, 0)->text());
-        QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit*>(ui->tableWidgetKeyBindings->cellWidget(row,1));
-        QKeySequence keySequence = keySequenceEdit->keySequence();
-        for (int i = 0; i < keySequence.count(); ++i)
+
+
+        for (int col = 1; col < ui->tableWidgetKeyBindings->columnCount(); ++col)
         {
-            keyActionBindings[static_cast<Qt::Key>(keySequence[i])] = actions[actionName];
+            QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit*>(ui->tableWidgetKeyBindings->cellWidget(row,col));
+            QKeySequence keySequence = keySequenceEdit->keySequence();
+            keyActionBindings[keySequence.toString()] = actions[actionName];
         }
     }
-#endif
 
     return keyActionBindings;
 }
 
 
 
-void PreferencesDialog::setHotkeys(QHash<Qt::Key, KeyAction *> keyActions)
+void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
 {
-#if 0
-    QHash<QString, KeyAction*> actionsByName(KeyAction::actionNameToActionMappings());
-    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
-    QHash<QString, Qt::Key> keysByName;
-    for (auto key : mappableKeys)
-    {
-        keysByName[QKeySequence(key).toString()] = key;
-    }
-    for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
-    {
-        int selectedKeyRow = 0;
-        QComboBox *comboBox = dynamic_cast<QComboBox *>(ui->tableWidgetKeyBindings->cellWidget(row, 1));
-        auto keyName = ui->tableWidgetKeyBindings->item(row,0)->text();
-        auto key = keysByName[keyName];
-        auto keyAction = keyActions.find(key);
-        if (keyAction != keyActions.end())
-        {
-            for (int i = 0; i < comboBox->count(); ++i)
-            {
-                if (comboBox->itemData(i).toString() == keyAction.value()->name())
-                {
-                    selectedKeyRow = i;
-                    break;
-                }
-            }
-        }
-        comboBox->setCurrentIndex(selectedKeyRow);
-    }
-#else
-    QHash<QString, QKeySequence > keysByActionName;
+    QHash<QString, QStringList> keysByActionName;
 
-    for (QHash<Qt::Key, KeyAction *>::iterator keyAction = keyActions.begin();
+    for (QHash<QString, KeyAction *>::iterator keyAction = keyActions.begin();
          keyAction != keyActions.end();
          ++keyAction)
     {
-        auto keyMap = keysByActionName.find(keyAction.value()->name());
-        if (keyMap != keysByActionName.end())
-        {
-            switch (keyMap.value().count())
-            {
-            case 1 :
-                keysByActionName[keyAction.value()->name()] =
-                    QKeySequence(keyMap.value()[0],keyAction.key());
-                break;
-            case 2 :
-                keysByActionName[keyAction.value()->name()] =
-                    QKeySequence(keyMap.value()[0],keyMap.value()[1],keyAction.key());
-                break;
-            case 3 :
-                keysByActionName[keyAction.value()->name()] =
-                    QKeySequence(keyMap.value()[0],keyMap.value()[1],
-                                keyMap.value()[2],keyAction.key());
-                break;
-
-            default :
-                qDebug() << "Whoah, too many or too few keyMap values " << keyMap.value().count();
-                break;
-            }
-        }
-        else
-        {
-            keysByActionName[keyAction.value()->name()] = QKeySequence(keyAction.key());
-        }
+        keysByActionName[keyAction.value()->name()].append(keyAction.key());
     }
 
     for (int row = 0; row < ui->tableWidgetKeyBindings->rowCount(); ++row)
     {
-        QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit *>(ui->tableWidgetKeyBindings->cellWidget(row, 1));
-        auto actionName = ui->tableWidgetKeyBindings->item(row,0)->text();
+        QString actionName(ui->tableWidgetKeyBindings->item(row, 0)->text());
         auto keyAction = keysByActionName.find(actionName);
         if (keyAction != keysByActionName.end())
         {
-            keySequenceEdit->setKeySequence(keyAction.value());
+            QStringList keys(keyAction.value());
+            for (int col = 1;
+                 col < ui->tableWidgetKeyBindings->columnCount()
+                     && col <= keys.length();
+                 ++col)
+                 {
+                     QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit *>(ui->tableWidgetKeyBindings->cellWidget(row, col));
+                     QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
+                     keySequenceEdit->setKeySequence(sequence);
+                 }
         }
     }
-
-#endif
 }
 
 static QComboBox *weekSelectionComboBox()

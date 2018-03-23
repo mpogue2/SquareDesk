@@ -222,6 +222,42 @@ public:
 };
 
 
+static void SetKeyMappings(QHash<QString, QVector<QShortcut* > > hotkeyShortcuts, PreferencesManager &prefsManager)
+{
+    QVector<KeyAction *> availableActions = KeyAction::availableActions();
+    QHash<QString, int> keysSetPerAction;
+    for (auto action : availableActions)
+    {
+        keysSetPerAction[action->name()] = 0;
+        for (int keypress = 0; keypress < MAX_KEYPRESSES_PER_ACTION; ++keypress)
+        {
+            hotkeyShortcuts[action->name()][keypress]->setEnabled(false);
+            hotkeyShortcuts[action->name()][keypress]->setKey(0);
+        }
+    }
+        
+    QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
+    if (hotkeyMappings.empty())
+    {
+        hotkeyMappings = KeyAction::defaultKeyToActionMappings();
+    }
+    for (auto mapping = hotkeyMappings.cbegin(); mapping != hotkeyMappings.cend(); ++mapping)
+    {
+        QKeySequence keySequence(mapping.key());
+        QString actionName(mapping.value()->name());
+            int index = keysSetPerAction[actionName];
+            if (index < hotkeyShortcuts[actionName].length())
+            {
+                hotkeyShortcuts[actionName][index]->setKey(keySequence);
+                hotkeyShortcuts[actionName][index]->setEnabled(true);
+            }
+            ++index;
+            keysSetPerAction[actionName] = index;
+        }
+    }
+    
+
+
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -236,7 +272,7 @@ MainWindow::MainWindow(QWidget *parent) :
     loadingSong(false),
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0),
-    hotkeyMappings(KeyAction::defaultKeyToActionMappings()),
+    hotkeyShortcuts(),
     sdLastLine(-1),
     sdWasNotDrawingPicture(true),
     sdLastLineWasResolve(false),
@@ -268,11 +304,22 @@ MainWindow::MainWindow(QWidget *parent) :
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
     recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
 
-    QHash<Qt::Key, KeyAction *> prefsHotkeyMappings = prefsManager.GetHotkeyMappings();
-    if (!prefsHotkeyMappings.empty())
+    QVector<KeyAction *> availableActions = KeyAction::availableActions();
+    for (auto action : availableActions)
     {
-        hotkeyMappings = prefsHotkeyMappings;
+        action->setMainWindow(this);
+        for (int keypress = 0; keypress < MAX_KEYPRESSES_PER_ACTION; ++keypress)
+        {
+            QString what("%1 - %2");
+            QShortcut *shortcut(new QShortcut(this));
+            shortcut->setEnabled(false);
+            shortcut->setWhatsThis(what.arg(action->name()).arg(keypress));
+            hotkeyShortcuts[action->name()].append(shortcut);
+            connect(shortcut, SIGNAL(activated()), action, SLOT(do_activated()));
+        }
     }
+
+    SetKeyMappings(hotkeyShortcuts, prefsManager);
 
     // Disable ScreenSaver while SquareDesk is running
 //#if defined(Q_OS_MAC)
@@ -3305,81 +3352,6 @@ bool MainWindow::handleKeypress(int key, QString text)
             cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
             break;
 
-            // TO BE REMOVED ONCE WE SETTLE ON HOTKEY EDITING
-#if 0
-        case Qt::Key_End:  // FIX: should END go to the end of the song? or stop playback?
-        case Qt::Key_S:
-            on_stopButton_clicked();
-            break;
-
-        case Qt::Key_P:
-        case Qt::Key_Space:  // for SqView compatibility ("play/pause")
-            // if Stopped, PLAY;  if Playing, Pause.  If Paused, Resume.
-            on_playButton_clicked();
-            break;
-
-        case Qt::Key_Home:
-        case Qt::Key_Period:  // for SqView compatibility ("restart")
-            on_stopButton_clicked();
-            on_playButton_clicked();
-            on_warningLabel_clicked();  // also reset the Patter Timer to zero
-            break;
-
-        case Qt::Key_Right:
-            on_actionSkip_Ahead_15_sec_triggered();
-            break;
-        case Qt::Key_Left:
-            on_actionSkip_Back_15_sec_triggered();
-            break;
-
-        case Qt::Key_Backspace:  // either one will delete a row
-        case Qt::Key_Delete:
-            break;
-
-        case Qt::Key_Down:
-            ui->volumeSlider->setValue(ui->volumeSlider->value() - 5);
-            break;
-        case Qt::Key_Up:
-            ui->volumeSlider->setValue(ui->volumeSlider->value() + 5);
-            break;
-
-        case Qt::Key_Plus:
-        case Qt::Key_Equal:
-            actionTempoPlus();
-            break;
-        case Qt::Key_Minus:
-            actionTempoMinus();
-            break;
-
-        case Qt::Key_K:
-            on_actionNext_Playlist_Item_triggered();  // compatible with SqView!
-            break;
-
-        case Qt::Key_M:
-            on_actionMute_triggered();
-            break;
-
-        case Qt::Key_U:
-            on_actionPitch_Up_triggered();
-            break;
-
-        case Qt::Key_D:
-            on_actionPitch_Down_triggered();
-            break;
-
-        case Qt::Key_Y:
-            actionFadeOutAndPause();
-            break;
-
-        case Qt::Key_L:
-            on_loopButton_toggled(!ui->actionLoop->isChecked());  // toggle it
-            break;
-
-        case Qt::Key_T:
-            actionNextTab();
-            break;
-#endif // #if 0 - temporarily leaving in 'til we agree on hotkey editing
-
         case Qt::Key_PageDown:
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
             //   or if Patter is currently showing and patter is loaded
@@ -3503,12 +3475,12 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
-        default:
-            auto keyMapping = hotkeyMappings.find((Qt::Key)(key));
-            if (keyMapping != hotkeyMappings.end())
-            {
-                keyMapping.value()->doAction(this);
-            }
+//        default:
+//            auto keyMapping = hotkeyMappings.find((Qt::Key)(key));
+//            if (keyMapping != hotkeyMappings.end())
+//            {
+//                keyMapping.value()->doAction(this);
+//            }
 //            qDebug() << "unhandled key:" << key;
             break;
     }
@@ -5515,6 +5487,21 @@ void MainWindow::on_actionPreferences_triggered()
     trapKeypresses = false;
 //    on_stopButton_clicked();  // stop music, if it was playing...
     PreferencesManager prefsManager;
+    QHash<QString, KeyAction *> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
+    QHash<QString, KeyAction *> hotkeyMappings;
+
+    for (auto hotkey = hotkeyShortcuts.cbegin(); hotkey != hotkeyShortcuts.cend(); ++hotkey)
+    {
+        QVector<QShortcut *> shortcuts(hotkey.value());
+        for (int keypress = 0; keypress < shortcuts.length(); ++keypress)
+        {
+            QShortcut *shortcut = shortcuts[keypress];
+            if (shortcut->isEnabled())
+            {
+                hotkeyMappings[shortcut->key().toString()] = actionNameToActionMappings[hotkey.key()];
+            }
+        }
+    }
 
     prefDialog = new PreferencesDialog(soundFXname);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
@@ -5536,7 +5523,7 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
         songSettings.setTagColors(prefsManager.getTagColors());
-        hotkeyMappings = prefsManager.GetHotkeyMappings();
+        SetKeyMappings(hotkeyShortcuts, prefsManager);
         songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------

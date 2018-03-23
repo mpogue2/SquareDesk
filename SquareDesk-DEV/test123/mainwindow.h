@@ -52,6 +52,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#include <QShortcut>
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include <QtWebEngineWidgets>
 #else
@@ -732,7 +733,7 @@ private:
     bool progressCancelled; // true if user said STOP
 
 private:
-    QHash<Qt::Key, KeyAction *> hotkeyMappings;
+    QHash<QString, QVector<QShortcut *> > hotkeyShortcuts;
 public:
 
 

@@ -27,6 +27,7 @@
 #define KEYBINDINGS_H_INCLUDED
 #include <QVector>
 #include <QHash>
+#include <QObject>
 
 namespace Ui
 {
@@ -36,17 +37,28 @@ class MainWindow;
 
 class MainWindow;
 
+#define MAX_KEYPRESSES_PER_ACTION 5
 
-class KeyAction
+class KeyAction : public QObject
 {
+    Q_OBJECT;
 public:
     KeyAction();
     virtual const char *name() = 0;
     virtual void doAction(MainWindow *) = 0;
     static QVector<KeyAction*> availableActions();
-    static QVector<Qt::Key> mappableKeys();
-    static QHash<Qt::Key, KeyAction *> defaultKeyToActionMappings();
+    static QHash<QString, KeyAction *> defaultKeyToActionMappings();
     static QHash<QString, KeyAction*> actionNameToActionMappings();
+
+    void setMainWindow(MainWindow *mainWindow)
+    {
+        mw = mainWindow;
+    }
+    virtual ~KeyAction();
+private:
+    MainWindow *mw;
+public slots:
+    void do_activated();
 };
 
 
