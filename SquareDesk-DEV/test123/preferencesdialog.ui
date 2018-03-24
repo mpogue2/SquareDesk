@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>3</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -625,7 +625,7 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>+</string>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resources.qrc">
                  <normaloff>:/graphics/list-add.png</normaloff>
                  <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
                </property>
@@ -637,7 +637,7 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>-</string>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resources.qrc">
                  <normaloff>:/graphics/list-remove.png</normaloff>
                  <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
                </property>
@@ -649,7 +649,7 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resources.qrc">
                  <normaloff>:/graphics/go-up.png</normaloff>
                  <normalon>:/graphics/go-up.png</normalon>:/graphics/go-up.png</iconset>
                </property>
@@ -661,7 +661,7 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>...</string>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resources.qrc">
                  <normaloff>:/graphics/go-down.png</normaloff>
                  <normalon>:/graphics/go-down.png</normalon>:/graphics/go-down.png</iconset>
                </property>
@@ -813,7 +813,7 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>+</string>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resources.qrc">
                  <normaloff>:/graphics/list-add.png</normaloff>
                  <normalon>:/graphics/list-add.png</normalon>:/graphics/list-add.png</iconset>
                </property>
@@ -825,7 +825,7 @@ Click on a color square to change the color associated with that Music Type.  Se
                 <string>-</string>
                </property>
                <property name="icon">
-                <iconset>
+                <iconset resource="resources.qrc">
                  <normaloff>:/graphics/list-remove.png</normaloff>
                  <normalon>:/graphics/list-remove.png</normalon>:/graphics/list-remove.png</iconset>
                </property>
@@ -912,7 +912,7 @@ Click on a color square to change the color associated with that Music Type.  Se
             </size>
            </property>
            <property name="text">
-            <string>Long tip warning: After</string>
+            <string>Patter timer: After</string>
            </property>
           </widget>
          </item>
@@ -969,6 +969,11 @@ Click on a color square to change the color associated with that Music Type.  Se
            <item>
             <property name="text">
              <string>play 6</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>visual indicator only</string>
             </property>
            </item>
           </widget>
@@ -1036,6 +1041,11 @@ Click on a color square to change the color associated with that Music Type.  Se
            <item>
             <property name="text">
              <string> play 6</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>visual indicator only</string>
             </property>
            </item>
           </widget>
@@ -1318,7 +1328,9 @@ Click on a color square to change the color associated with that Music Type.  Se
   <tabstop>EnableTimersTabCheckbox</tabstop>
   <tabstop>EnableClockColoring</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

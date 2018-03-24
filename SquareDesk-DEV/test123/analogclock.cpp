@@ -78,6 +78,7 @@ void AnalogClock::redrawTimerExpired()
     //   but it keeps on counting
 
     // DEBUG: change to 5 seconds per minute of patter, just for debugging
+//#define DEBUGCLOCK
 #ifdef DEBUGCLOCK
 #define SECSPERMIN  5
 #else
