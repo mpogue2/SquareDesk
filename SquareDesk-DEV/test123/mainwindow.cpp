@@ -203,8 +203,7 @@ static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOT
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
 static QString title_tags_suffix(" </span>");
-static QString title_tags_prefix_invisible("<span style=\"display: none;\">");
-static QRegularExpression title_tags_remover("(\\&nbsp\\;)?\\<\\/?span( .*?)?>");
+static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 
 #include <QProxyStyle>
 
@@ -4732,6 +4731,7 @@ QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, cons
     QString titlePlusTags(title.toHtmlEscaped());
     if (setTags && !strtags.isEmpty() && ui->actionViewTags->isChecked())
     {
+        titlePlusTags += "&nbsp;";
         QStringList tags = strtags.split(" ");
         for (auto tag : tags)
         {
