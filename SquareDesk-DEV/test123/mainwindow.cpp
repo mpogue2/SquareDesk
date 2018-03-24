@@ -3042,24 +3042,24 @@ void MainWindow::on_UIUpdateTimerTick(void)
         }
     }
 
-    if ((newTimerState & LONGTIPTIMEREXPIRED)&&!(oldTimerState & LONGTIPTIMEREXPIRED)) {
+    if ((newTimerState & LONGTIPTIMEREXPIRED) && !(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
         switch (tipLengthAlarmAction) {
         case 1: playSFX("long_tip"); break;
         default:
-            if (tipLengthAlarmAction < 6) {  // unsigned, so always >= 0
+            if (tipLengthAlarmAction < 8) {  // unsigned, so always >= 0; 8 = visual indicator only
                 playSFX(QString::number(tipLengthAlarmAction-1));
             }
             break;
         }
     }
 
-    if ((newTimerState & BREAKTIMEREXPIRED)&&!(oldTimerState & BREAKTIMEREXPIRED)) {
+    if ((newTimerState & BREAKTIMEREXPIRED) && !(oldTimerState & BREAKTIMEREXPIRED)) {
         // one-shot transitioned to End of Break
         switch (breakLengthAlarmAction) {
         case 1: playSFX("break_over"); break;
         default:
-            if (breakLengthAlarmAction < 6) {  // unsigned, so always >= 0
+            if (breakLengthAlarmAction < 8) {  // unsigned, so always >= 0;  8 = visual indicator only
                 playSFX(QString::number(breakLengthAlarmAction-1));
             }
             break;
