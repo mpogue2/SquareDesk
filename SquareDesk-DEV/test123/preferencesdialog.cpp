@@ -370,14 +370,22 @@ void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
         if (keyAction != keysByActionName.end())
         {
             QStringList keys(keyAction.value());
+            keys.sort();
             for (int col = 1;
-                 col < ui->tableWidgetKeyBindings->columnCount()
-                     && col <= keys.length();
+                 col < ui->tableWidgetKeyBindings->columnCount();
                  ++col)
                  {
                      QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit *>(ui->tableWidgetKeyBindings->cellWidget(row, col));
-                     QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
-                     keySequenceEdit->setKeySequence(sequence);
+
+                     if (col <= keys.length())
+                     {
+                         QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
+                         keySequenceEdit->setKeySequence(sequence);
+                     }
+                     else
+                     {
+                         keySequenceEdit->setKeySequence(QKeySequence());
+                     }
                  }
         }
     }
