@@ -579,27 +579,27 @@ Click on a color square to change the color associated with that Music Type.  Se
            </column>
            <column>
             <property name="text">
-             <string>Hotkey</string>
+             <string>Hotkey 1</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Hotkey</string>
+             <string>Hotkey 2</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Hotkey</string>
+             <string>Hotkey 3</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Hotkey</string>
+             <string>Hotkey 4</string>
             </property>
            </column>
            <column>
             <property name="text">
-             <string>Hotkey</string>
+             <string>Hotkey 5</string>
             </property>
            </column>
           </widget>
