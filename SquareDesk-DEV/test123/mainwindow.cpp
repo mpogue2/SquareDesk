@@ -221,8 +221,9 @@ public:
 };
 
 
-static void SetKeyMappings(QHash<QString, QVector<QShortcut* > > hotkeyShortcuts, PreferencesManager &prefsManager)
+void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMappings, QHash<QString, QVector<QShortcut* > > hotkeyShortcuts)
 {
+    QStringList hotkeys(hotkeyMappings.keys());
     QVector<KeyAction *> availableActions = KeyAction::availableActions();
     QHash<QString, int> keysSetPerAction;
     for (auto action : availableActions)
@@ -234,14 +235,12 @@ static void SetKeyMappings(QHash<QString, QVector<QShortcut* > > hotkeyShortcuts
             hotkeyShortcuts[action->name()][keypress]->setKey(0);
         }
     }
-        
-    QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
-    if (hotkeyMappings.empty())
+
+    std::sort(hotkeys.begin(), hotkeys.end(), LongStringsFirstThenAlpha);
+
+    for (QString hotkey : hotkeys)
     {
-        hotkeyMappings = KeyAction::defaultKeyToActionMappings();
-    }
-    for (auto mapping = hotkeyMappings.cbegin(); mapping != hotkeyMappings.cend(); ++mapping)
-    {
+        auto mapping = hotkeyMappings.find(hotkey);
         QKeySequence keySequence(mapping.key());
         QString actionName(mapping.value()->name());
             int index = keysSetPerAction[actionName];
@@ -249,6 +248,10 @@ static void SetKeyMappings(QHash<QString, QVector<QShortcut* > > hotkeyShortcuts
             {
                 hotkeyShortcuts[actionName][index]->setKey(keySequence);
                 hotkeyShortcuts[actionName][index]->setEnabled(true);
+                if (index == 0 && keybindingActionToMenuAction.contains(actionName))
+                {
+                    keybindingActionToMenuAction[actionName]->setShortcut(keySequence);
+                }
             }
             ++index;
             keysSetPerAction[actionName] = index;
@@ -303,22 +306,6 @@ MainWindow::MainWindow(QWidget *parent) :
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
     recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
 
-    QVector<KeyAction *> availableActions = KeyAction::availableActions();
-    for (auto action : availableActions)
-    {
-        action->setMainWindow(this);
-        for (int keypress = 0; keypress < MAX_KEYPRESSES_PER_ACTION; ++keypress)
-        {
-            QString what("%1 - %2");
-            QShortcut *shortcut(new QShortcut(this));
-            shortcut->setEnabled(false);
-            shortcut->setWhatsThis(what.arg(action->name()).arg(keypress));
-            hotkeyShortcuts[action->name()].append(shortcut);
-            connect(shortcut, SIGNAL(activated()), action, SLOT(do_activated()));
-        }
-    }
-
-    SetKeyMappings(hotkeyShortcuts, prefsManager);
 
     // Disable ScreenSaver while SquareDesk is running
 //#if defined(Q_OS_MAC)
@@ -407,6 +394,57 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
     ui->menuFile->addAction(closeAct);
 #endif
+
+
+    keybindingActionToMenuAction[keyActionName_StopSong] = ui->actionStop;
+ //   keybindingActionToMenuAction[keyActionName_RestartSong] = ;
+    keybindingActionToMenuAction[keyActionName_Forward15Seconds] = ui->actionSkip_Ahead_15_sec;
+    keybindingActionToMenuAction[keyActionName_Backward15Seconds] = ui->actionSkip_Back_15_sec;
+    keybindingActionToMenuAction[keyActionName_VolumePlus] = ui->actionVolume_Up;
+    keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
+    keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
+    keybindingActionToMenuAction[keyActionName_TempoMinus] = ui->actionSlow_Down;
+    keybindingActionToMenuAction[keyActionName_PlayNext] = ui->actionNext_Playlist_Item;
+    keybindingActionToMenuAction[keyActionName_Mute] = ui->actionMute;
+    keybindingActionToMenuAction[keyActionName_PitchPlus] = ui->actionPitch_Up;
+    keybindingActionToMenuAction[keyActionName_PitchMinus] = ui->actionPitch_Down;
+    keybindingActionToMenuAction[keyActionName_FadeOut ] = ui->actionFade_Out;
+    keybindingActionToMenuAction[keyActionName_LoopToggle] = ui->actionLoop;
+    keybindingActionToMenuAction[keyActionName_TestLoop] = ui->actionTest_Loop;
+//    keybindingActionToMenuAction[keyActionName_NextTab] = ;
+    keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
+
+    QHash<QString, KeyAction*> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
+    QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
+
+    // Add the menu hotkeys back in.
+    for (auto binding = keybindingActionToMenuAction.cbegin(); binding != keybindingActionToMenuAction.cend(); ++binding)
+    {
+        if (binding.value() && !hotkeyMappings.contains(binding.value()->shortcut().toString()))
+        {
+            hotkeyMappings[binding.value()->shortcut().toString()] =
+                actionNameToActionMappings[binding.key()];
+        }
+    }    
+    
+    QVector<KeyAction *> availableActions = KeyAction::availableActions();
+    for (auto action : availableActions)
+    {
+        action->setMainWindow(this);
+        for (int keypress = 0; keypress < MAX_KEYPRESSES_PER_ACTION; ++keypress)
+        {
+            QString what("%1 - %2");
+            QShortcut *shortcut(new QShortcut(this));
+            shortcut->setEnabled(false);
+            shortcut->setWhatsThis(what.arg(action->name()).arg(keypress));
+            hotkeyShortcuts[action->name()].append(shortcut);
+            connect(shortcut, SIGNAL(activated()), action, SLOT(do_activated()));
+            connect(shortcut, SIGNAL(activatedAmbiguously()), action, SLOT(do_activated()));
+        }
+    }
+
+    SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
+    
 
 //    currentState = kStopped;
     currentPitch = 0;
@@ -5523,7 +5561,8 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for musicPath --------
         prefsManager.extractValuesFromPreferencesDialog(prefDialog);
         songSettings.setTagColors(prefsManager.getTagColors());
-        SetKeyMappings(hotkeyShortcuts, prefsManager);
+        QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
+        SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
         songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------

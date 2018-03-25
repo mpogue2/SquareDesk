@@ -29,24 +29,24 @@
 
 
 
-static const char * keyActionName_UnassignedNoAction = "<unassigned>";
-static const char * keyActionName_StopSong = "Stop Song";
-static const char * keyActionName_RestartSong = "Restart Song";
-static const char * keyActionName_Forward15Seconds = "Forward 15 Seconds";
-static const char * keyActionName_Backward15Seconds = "Backward 15 Seconds";
-static const char * keyActionName_VolumeMinus = "Volume -";
-static const char * keyActionName_VolumePlus = "Volume +";
-static const char * keyActionName_TempoPlus = "Tempo +";
-static const char * keyActionName_TempoMinus = "Tempo -";
-static const char * keyActionName_PlayNext = "Load Next Song";
-static const char * keyActionName_Mute = "Mute";
-static const char * keyActionName_PitchPlus = "Pitch +";
-static const char * keyActionName_PitchMinus = "Pitch -";
-static const char * keyActionName_FadeOut  = "Fade Out";
-static const char * keyActionName_LoopToggle = "Loop Toggle";
-static const char * keyActionName_TestLoop = "Test Loop";
-static const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
-static const char * keyActionName_PlaySong = "Play/Pause Song";
+const char * keyActionName_UnassignedNoAction = "<unassigned>";
+const char * keyActionName_StopSong = "Stop Song";
+const char * keyActionName_RestartSong = "Restart Song";
+const char * keyActionName_Forward15Seconds = "Forward 15 Seconds";
+const char * keyActionName_Backward15Seconds = "Backward 15 Seconds";
+const char * keyActionName_VolumeMinus = "Volume -";
+const char * keyActionName_VolumePlus = "Volume +";
+const char * keyActionName_TempoPlus = "Tempo +";
+const char * keyActionName_TempoMinus = "Tempo -";
+const char * keyActionName_PlayNext = "Load Next Song";
+const char * keyActionName_Mute = "Mute";
+const char * keyActionName_PitchPlus = "Pitch +";
+const char * keyActionName_PitchMinus = "Pitch -";
+const char * keyActionName_FadeOut  = "Fade Out";
+const char * keyActionName_LoopToggle = "Loop Toggle";
+const char * keyActionName_TestLoop = "Test Loop";
+const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
+const char * keyActionName_PlaySong = "Play/Pause Song";
 
 // ----------------------------------------------------------------------
 

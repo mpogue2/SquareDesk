@@ -159,4 +159,6 @@ private slots:
     void selectColor();
 };
 
+extern bool LongStringsFirstThenAlpha(const QString &a, const QString &b);
+
 #endif // PREFERENCESDIALOG_H

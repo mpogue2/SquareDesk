@@ -351,7 +351,7 @@ QHash<QString, KeyAction *> PreferencesDialog::getHotkeys()
 }
 
 
-static bool LongStringsFirstThenAlpha(const QString &a, const QString &b)
+bool LongStringsFirstThenAlpha(const QString &a, const QString &b)
 {
     if (a.length() > 1 && b.length() > 1)
     {

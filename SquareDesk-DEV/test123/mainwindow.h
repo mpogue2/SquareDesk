@@ -734,6 +734,7 @@ private:
 
 private:
     QHash<QString, QVector<QShortcut *> > hotkeyShortcuts;
+    void SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMappings, QHash<QString, QVector<QShortcut* > > hotkeyShortcuts);
 public:
 
 
@@ -764,6 +765,9 @@ public:
 
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
+
+private:
+    QHash<QString, QAction *> keybindingActionToMenuAction;
 
 private: // SD
     SDThread *sdthread;
