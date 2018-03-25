@@ -31,7 +31,7 @@
 #include <QKeySequenceEdit>
 #include <QTimeEdit>
 #include "sessioninfo.h"
-
+#include <algorithm>
 
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;
@@ -351,6 +351,23 @@ QHash<QString, KeyAction *> PreferencesDialog::getHotkeys()
 }
 
 
+static bool LongStringsFirstThenAlpha(const QString &a, const QString &b)
+{
+    if (a.length() > 1 && b.length() > 1)
+    {
+        return a < b;
+    }
+    else if (a.length() > 1)
+    {
+        return true;
+    }
+    else if (b.length() > 1)
+    {
+        return false;
+    }
+    return a < b;
+          
+}
 
 void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
 {
@@ -370,7 +387,7 @@ void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
         if (keyAction != keysByActionName.end())
         {
             QStringList keys(keyAction.value());
-            keys.sort();
+            std::sort(keys.begin(), keys.end(), LongStringsFirstThenAlpha);
             for (int col = 1;
                  col < ui->tableWidgetKeyBindings->columnCount();
                  ++col)
@@ -379,6 +396,7 @@ void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
 
                      if (col <= keys.length())
                      {
+                         qDebug() << "Setting " << row << "," << col << " : " << keys[col - 1];
                          QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
                          keySequenceEdit->setKeySequence(sequence);
                      }

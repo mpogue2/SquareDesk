@@ -58,8 +58,10 @@ QHash<QString, KeyAction *> PreferencesManager::GetHotkeyMappings()
                 {
                     QString justKey(key);
                     justKey.replace(hotkeyPrefix,"");
-                
-                    mappings[justKey] = action.value();
+                    if (justKey.length() > 0)
+                    {
+                        mappings[justKey] = action.value();
+                    }
                 }
             }
         } // end of all of the mappable keys
