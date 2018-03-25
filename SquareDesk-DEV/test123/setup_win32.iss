@@ -4,7 +4,7 @@
 ; after compile, result will be in "Y:\clean3\Win32Installers\SquareDeskP_X.Y.Z_setup.exe"
 
 #define MyAppName "SquareDesk"
-#define MyAppVersion "0.9.0"
+#define MyAppVersion "0.9.2alpha6"
 #define MyAppPublisher "Zenstar Software"
 #define MyAppURL "http://www.squaredesk.net"
 #define MyAppExeName "SquareDesk.exe"
