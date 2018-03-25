@@ -401,9 +401,16 @@ QHash<QString, KeyAction*> KeyAction::actionNameToActionMappings()
 }
 
 
+QHash<QString, KeyAction *>menuKeyMappings;
+
+void KeyAction::setKeybindingsFromMenuObjects(const QHash<QString, KeyAction *> &keyMappings)
+{
+    menuKeyMappings = keyMappings;
+}
+
 QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
 {
-    QHash<QString, KeyAction *> keyMappings;
+    QHash<QString, KeyAction *> keyMappings(menuKeyMappings);
 
     keyMappings[QKeySequence(Qt::Key_End).toString()] = &keyaction_KeyActionStopSong;
     keyMappings[QKeySequence(Qt::Key_Space).toString()] = &keyaction_KeyActionPlaySong;

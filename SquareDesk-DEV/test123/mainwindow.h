@@ -735,6 +735,8 @@ private:
 private:
     QHash<QString, QVector<QShortcut *> > hotkeyShortcuts;
     void SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMappings, QHash<QString, QVector<QShortcut* > > hotkeyShortcuts);
+    void AddHotkeyMappingsFromMenus(QHash<QString, KeyAction *> &hotkeyMappings);
+    void AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hotkeyMappings);
 public:
 
 

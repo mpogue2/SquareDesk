@@ -228,7 +228,7 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
     QHash<QString, int> keysSetPerAction;
     for (auto action : availableActions)
     {
-        keysSetPerAction[action->name()] = 0;
+        keysSetPerAction[action->name()] = -1;
         for (int keypress = 0; keypress < MAX_KEYPRESSES_PER_ACTION; ++keypress)
         {
             hotkeyShortcuts[action->name()][keypress]->setEnabled(false);
@@ -243,18 +243,24 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
         auto mapping = hotkeyMappings.find(hotkey);
         QKeySequence keySequence(mapping.key());
         QString actionName(mapping.value()->name());
-            int index = keysSetPerAction[actionName];
-            if (index < hotkeyShortcuts[actionName].length())
-            {
-                hotkeyShortcuts[actionName][index]->setKey(keySequence);
-                hotkeyShortcuts[actionName][index]->setEnabled(true);
-                if (index == 0 && keybindingActionToMenuAction.contains(actionName))
-                {
-                    keybindingActionToMenuAction[actionName]->setShortcut(keySequence);
-                }
-            }
-            ++index;
-            keysSetPerAction[actionName] = index;
+        int index = keysSetPerAction[actionName];
+
+        if (index < 0 && keybindingActionToMenuAction.contains(mapping.value()->name()))
+        {
+            keybindingActionToMenuAction[actionName]->setShortcut(keySequence);
+            keysSetPerAction[actionName] = 0;
+            continue;
+        }
+
+        if (index < 0) index = 0;
+        
+        if (index < hotkeyShortcuts[actionName].length())
+        {
+            hotkeyShortcuts[actionName][index]->setKey(keySequence);
+            hotkeyShortcuts[actionName][index]->setEnabled(true);
+        }
+        ++index;
+        keysSetPerAction[actionName] = index;
         }
     }
     
@@ -415,17 +421,14 @@ MainWindow::MainWindow(QWidget *parent) :
     keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
 
     QHash<QString, KeyAction*> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
-    QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
 
-    // Add the menu hotkeys back in.
-    for (auto binding = keybindingActionToMenuAction.cbegin(); binding != keybindingActionToMenuAction.cend(); ++binding)
-    {
-        if (binding.value() && !hotkeyMappings.contains(binding.value()->shortcut().toString()))
-        {
-            hotkeyMappings[binding.value()->shortcut().toString()] =
-                actionNameToActionMappings[binding.key()];
-        }
-    }    
+    // This lets us set default hotkeys in the menus so that the default button in the dialog box works.
+    QHash<QString, KeyAction*> menuHotkeyMappings;
+    AddHotkeyMappingsFromMenus(menuHotkeyMappings);
+    KeyAction::setKeybindingsFromMenuObjects(menuHotkeyMappings);
+    
+    QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
+    AddHotkeyMappingsFromMenus(hotkeyMappings);
     
     QVector<KeyAction *> availableActions = KeyAction::availableActions();
     for (auto action : availableActions)
@@ -5518,16 +5521,23 @@ void MainWindow::on_actionExport_triggered()
     }
 }
 
-// --------------------------------------------------------
-void MainWindow::on_actionPreferences_triggered()
+void MainWindow::AddHotkeyMappingsFromMenus(QHash<QString, KeyAction *> &hotkeyMappings)
 {
-    RecursionGuard dialog_guard(inPreferencesDialog);
-    trapKeypresses = false;
-//    on_stopButton_clicked();  // stop music, if it was playing...
-    PreferencesManager prefsManager;
-    QHash<QString, KeyAction *> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
-    QHash<QString, KeyAction *> hotkeyMappings;
+    QHash<QString, KeyAction*> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
+    // Add the menu hotkeys back in.
+    for (auto binding = keybindingActionToMenuAction.cbegin(); binding != keybindingActionToMenuAction.cend(); ++binding)
+    {
+        if (binding.value() && !hotkeyMappings.contains(binding.value()->shortcut().toString()))
+        {
+            hotkeyMappings[binding.value()->shortcut().toString()] =
+                actionNameToActionMappings[binding.key()];
+        }
+    }    
+}
 
+void MainWindow::AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hotkeyMappings)
+{
+    QHash<QString, KeyAction *> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
     for (auto hotkey = hotkeyShortcuts.cbegin(); hotkey != hotkeyShortcuts.cend(); ++hotkey)
     {
         QVector<QShortcut *> shortcuts(hotkey.value());
@@ -5540,6 +5550,19 @@ void MainWindow::on_actionPreferences_triggered()
             }
         }
     }
+}
+
+// --------------------------------------------------------
+void MainWindow::on_actionPreferences_triggered()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    trapKeypresses = false;
+//    on_stopButton_clicked();  // stop music, if it was playing...
+    PreferencesManager prefsManager;
+    QHash<QString, KeyAction *> hotkeyMappings;
+
+    AddHotkeyMappingsFromShortcuts(hotkeyMappings);
+    AddHotkeyMappingsFromMenus(hotkeyMappings);
 
     prefDialog = new PreferencesDialog(soundFXname);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
