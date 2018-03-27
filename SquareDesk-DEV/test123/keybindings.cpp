@@ -387,17 +387,30 @@ QVector<KeyAction*> KeyAction::availableActions()
     return actions;
 }
 
+static QHash<QString, KeyAction*> actionNameToActionMap;
+
 
 QHash<QString, KeyAction*> KeyAction::actionNameToActionMappings()
 {
-    QHash<QString, KeyAction*> actionMappings;
-    QVector<KeyAction*> actions(availableActions());
-
-    for (auto action = actions.begin(); action != actions.end(); ++action)
+    if (actionNameToActionMap.empty())
     {
-        actionMappings[(*action)->name()] = *action;
+        QVector<KeyAction*> actions(availableActions());
+
+        for (auto action = actions.begin(); action != actions.end(); ++action)
+        {
+            actionNameToActionMap[(*action)->name()] = *action;
+        }
     }
-    return actionMappings;
+    return actionNameToActionMap;
+}
+
+KeyAction * KeyAction::actionByName(const QString &name)
+{
+    if (actionNameToActionMap.empty())
+    {
+        actionNameToActionMappings();
+    }
+    return actionNameToActionMap[name];
 }
 
 

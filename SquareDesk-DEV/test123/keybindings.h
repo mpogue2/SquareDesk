@@ -49,6 +49,7 @@ public:
     static QVector<KeyAction*> availableActions();
     static QHash<QString, KeyAction *> defaultKeyToActionMappings();
     static QHash<QString, KeyAction*> actionNameToActionMappings();
+    static KeyAction *actionByName(const QString &name);
     static void setKeybindingsFromMenuObjects(const QHash<QString, KeyAction *> &keyMappings);
     
     void setMainWindow(MainWindow *mainWindow)

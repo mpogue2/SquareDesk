@@ -420,8 +420,6 @@ MainWindow::MainWindow(QWidget *parent) :
 //    keybindingActionToMenuAction[keyActionName_NextTab] = ;
     keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
 
-    QHash<QString, KeyAction*> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
-
     // This lets us set default hotkeys in the menus so that the default button in the dialog box works.
     QHash<QString, KeyAction*> menuHotkeyMappings;
     AddHotkeyMappingsFromMenus(menuHotkeyMappings);
@@ -5523,21 +5521,19 @@ void MainWindow::on_actionExport_triggered()
 
 void MainWindow::AddHotkeyMappingsFromMenus(QHash<QString, KeyAction *> &hotkeyMappings)
 {
-    QHash<QString, KeyAction*> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
     // Add the menu hotkeys back in.
     for (auto binding = keybindingActionToMenuAction.cbegin(); binding != keybindingActionToMenuAction.cend(); ++binding)
     {
         if (binding.value() && !hotkeyMappings.contains(binding.value()->shortcut().toString()))
         {
             hotkeyMappings[binding.value()->shortcut().toString()] =
-                actionNameToActionMappings[binding.key()];
+                KeyAction::actionByName(binding.key());
         }
     }    
 }
 
 void MainWindow::AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hotkeyMappings)
 {
-    QHash<QString, KeyAction *> actionNameToActionMappings(KeyAction::actionNameToActionMappings());
     for (auto hotkey = hotkeyShortcuts.cbegin(); hotkey != hotkeyShortcuts.cend(); ++hotkey)
     {
         QVector<QShortcut *> shortcuts(hotkey.value());
@@ -5546,7 +5542,7 @@ void MainWindow::AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hot
             QShortcut *shortcut = shortcuts[keypress];
             if (shortcut->isEnabled())
             {
-                hotkeyMappings[shortcut->key().toString()] = actionNameToActionMappings[hotkey.key()];
+                hotkeyMappings[shortcut->key().toString()] = KeyAction::actionByName(hotkey.key());
             }
         }
     }
