@@ -550,13 +550,13 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
     {
         colors["irish"] = QPair<QString,QString>("#44dd44", "#004400");
         colors["xmas"]  = QPair<QString,QString>("#008800", "#ffaaaa");
-        colors["sfgs"] = QPair<QString,QString>("#99cde3","#000000");
         colors["teach"] = QPair<QString,QString>("#d9a6e3","#000000");
         colors["closer"] = QPair<QString,QString>("#0000ff","#ffffff");
         colors["Latin"] = QPair<QString,QString>("#099f9d","#bebf23");
         colors["HOT"] = QPair<QString,QString>("#ff0000","#000000");
         colors["Swing"] = QPair<QString,QString>("#ffdd00","#0000ff");
         colors["Bollywood"] = QPair<QString,QString>("#ff8b00","#000000");
+        colors["halloween"] = QPair<QString,QString>("#ff8b00","#00ff00");
         colors["DUET"] = QPair<QString,QString>("#ae8eff","#781e19");
 
         for (auto color = colors.cbegin(); color != colors.cend(); ++color)

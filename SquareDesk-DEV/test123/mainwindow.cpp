@@ -2064,20 +2064,20 @@ void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
     on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex());
 }
 
-void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */)
-{
-    // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
-    cBass.songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
+//void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */)
+//{
+//    // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
+//    cBass.songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
 
-    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
-    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
-    double length = cBass.FileLength;
-    double intro = ui->seekBarCuesheet->GetIntro();
-    double outro = ui->seekBarCuesheet->GetOutro();
+//    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
+//    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
+//    double length = cBass.FileLength;
+//    double intro = ui->seekBarCuesheet->GetIntro();
+//    double outro = ui->seekBarCuesheet->GetOutro();
 
-    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length+0.5)));  // milliseconds
-    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*outro*length+0.5)));  // milliseconds
-}
+//    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length+0.5)));  // milliseconds
+//    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*outro*length+0.5)));  // milliseconds
+//}
 
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
@@ -4373,7 +4373,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
-    // NOTE: no need to scan for intro/outro here, because we are guaranteed that it was set by StreamCreate() above
+    // NOTE: we need to set the bounds BEFORE we set the actual positions
+    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs((int)(1000.0*length_sec+0.5)));
+    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs((int)(1000.0*length_sec+0.5)));
+
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
 
@@ -4383,9 +4386,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->pushButtonSetIntroTime->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->pushButtonSetOutroTime->setEnabled(true);
     ui->pushButtonTestLoop->setEnabled(true);
-
-    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs((int)(1000.0*length_sec+0.5)));
-    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs((int)(1000.0*length_sec+0.5)));
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
@@ -7011,6 +7011,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->tempoSlider->setValue(tempo);
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
+//        qDebug() << "loadSettingsForSong: " << outro;
         ui->seekBarCuesheet->SetOutro(outro);
 
         QTime iTime = QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length+0.5));
@@ -9574,6 +9575,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     position_sec = fmax(0.0, fmin(position_sec, (int)currentOutroTimeSec-6) );
 
     // set in ms
+//    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
@@ -9603,6 +9605,7 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
     position_sec = fmin(length, fmax(position_sec, (int)currentIntroTimeSec+6) );
 
     // set in ms
+//    qDebug() << "dateTimeEditOutro changed: " << currentIntroTimeSec << "," << position_sec;
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form

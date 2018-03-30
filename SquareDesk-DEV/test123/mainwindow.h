@@ -304,7 +304,7 @@ private slots:
 
     void on_actionShow_All_Ages_triggered(bool checked);
 
-    void on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */);
+//    void on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */);
     void on_actionCompact_triggered(bool checked);
     void on_actionAuto_scroll_during_playback_toggled(bool arg1);
 
