@@ -56,23 +56,32 @@ void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM
                                              float songStart_sec, float songEnd_sec, float songLength_sec)
 {
     if (!tempoIsBPM) {
-        float defaultSingerLengthInBeats = (64 * 7 + 24);
+        float defaultSingerLengthInBeats = (64 * 7 + 24);  // 16 beat intro + 8 beat tag = 24
         introPosition = (float)(16 / defaultSingerLengthInBeats);           // 0.0 - 1.0
         outroPosition = (float)(1.0 - 8 / defaultSingerLengthInBeats );     // 0.0 - 1.0
     } else {
+        // we are using BPM (not %)
 //        float songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
         float phraseLength_beats = 32.0;  // everything is 32-beat phrases
         float phraseLength_sec = 60.0 * phraseLength_beats/estimatedBPM;
 //        float songLength_phrases = songLength_beats/phraseLength_beats;
         float loopStart_sec = songStart_sec + 0.05 * (songEnd_sec - songStart_sec);
-        float loopStart_frac = loopStart_sec/songLength_sec;
+        float loopStart_frac = loopStart_sec/songLength_sec;   // 0.0 - 1.0
 
         int numPhrasesThatFit = (int)((songEnd_sec - loopStart_sec)/phraseLength_sec);
-        float loopEnd_sec = songStart_sec + phraseLength_sec * numPhrasesThatFit;
-        float loopEnd_frac = loopEnd_sec/songLength_sec;
+        float loopEnd_sec = loopStart_sec + phraseLength_sec * numPhrasesThatFit;
+        float loopEnd_frac = loopEnd_sec/songLength_sec;  // 0.0 - 1.0
 
-        //        qDebug() << "songLength_beats" << songLength_beats;
-        //        qDebug() << "songLength_phrases" << songLength_phrases;
+        if (songLength_sec - loopEnd_sec < 7) {
+            // if too close to the end of the song (because an integer number of phrases just happens to fit)
+            //  average phrase is about 15 sec, so 7 is a little less than 1/2 of a phrase
+            loopEnd_sec -= phraseLength_sec;  // go back one
+            loopEnd_frac = loopEnd_sec/songLength_sec;  // and recalculate it
+//            qDebug() << "TOO CLOSE TRIGGERED!";
+        }
+
+//        qDebug() << "songLength_beats" << songLength_beats;
+//        qDebug() << "songLength_phrases" << songLength_phrases;
 //        qDebug() << "--------------";
 //        qDebug() << "estimatedBPM" << estimatedBPM;
 //        qDebug() << "songStart_sec" << songStart_sec;
@@ -81,11 +90,12 @@ void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM
 
 //        qDebug() << "phraseLength_beats" << phraseLength_beats;
 //        qDebug() << "phraseLength_sec" << phraseLength_sec;
-//qDebug() << "loopStart_sec" << loopStart_sec;
+//        qDebug() << "loopStart_sec" << loopStart_sec;
 //        qDebug() << "loopStart_frac" << loopStart_frac;
 //        qDebug() << "numPhrasesThatFit" << numPhrasesThatFit;
 //        qDebug() << "loopEnd_sec" << loopEnd_sec;
 //        qDebug() << "loopEnd_frac" << loopEnd_frac;
+//        qDebug() << "--------------";
 
         introPosition = loopStart_frac;
         outroPosition = loopEnd_frac;
@@ -100,11 +110,13 @@ void MySlider::SetLoop(bool b)
 
 void MySlider::SetIntro(float intro)
 {
+//    qDebug() << "SetIntro: " << intro;
     introPosition = intro;
 }
 
 void MySlider::SetOutro(float outro)
 {
+//    qDebug() << "SetOutro: " << outro;
     outroPosition = outro;
 }
 
@@ -163,6 +175,7 @@ void MySlider::paintEvent(QPaintEvent *e)
 
         // float from = 0.9f;
         float from = outroPosition;
+//        qDebug() << "repaint: " << from;
         QLineF line1(from * width + offset, 3,          from * width + offset, height-4);
         QLineF line2(from * width + offset, 3,          from * width + offset - 5, 3);
         QLineF line3(from * width + offset, height-4,   from * width + offset - 5, height-4);
