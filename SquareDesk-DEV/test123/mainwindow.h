@@ -143,6 +143,8 @@ public:
     QActionGroup *sdActionGroup2;
     QActionGroup *sdActionGroupDanceProgram;
 
+    QActionGroup *flashCallTimingActionGroup;
+
     void checkLockFile();
     void clearLockFile();
 
@@ -447,6 +449,14 @@ private slots:
     void on_actionItalic_triggered();
 
     void on_pushButtonCueSheetEditSaveAs_clicked();
+
+    void on_action5_seconds_triggered();
+
+    void on_action10_seconds_triggered();
+
+    void on_action15_seconds_triggered();
+
+    void on_action20_seconds_triggered();
 
 public:
     void on_threadSD_errorString(QString str);
