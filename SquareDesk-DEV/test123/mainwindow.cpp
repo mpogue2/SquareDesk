@@ -67,6 +67,7 @@
 #include "danceprograms.h"
 #define CUSTOM_FILTER
 #include "startupwizard.h"
+#include "makeflashdrivewizard.h"
 #include "downloadmanager.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
@@ -9684,4 +9685,57 @@ void MainWindow::on_action20_seconds_triggered()
 {
     PreferencesManager prefsManager;
     prefsManager.Setflashcalltiming("20");
+}
+
+void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
+{
+    MakeFlashDriveWizard wizard(this);
+    int dialogCode = wizard.exec();
+
+    if(dialogCode == QDialog::Accepted) {
+        QString destVol = wizard.field("destinationVolume").toString();
+        qDebug() << "MAKE FLASH DRIVE WIZARD ACCEPTED." << destVol;
+
+        QProcess rsync;
+        rsync.start("/bin/sleep", QStringList() << "10");
+
+        if (!rsync.waitForStarted()) {
+            return;
+        }
+
+        float p = 0;
+        QProgressDialog progress("Copying files...", "Abort Copy", 0, 10, this);
+        progress.setRange(0,100);
+        progress.setValue((int)p);
+        progress.setWindowModality(Qt::WindowModal);
+
+        while(1) {
+            if (rsync.waitForFinished(1000)) { // 1 sec at a time
+                // rsync completed
+                break;
+            }
+
+            if (p < 25) {           // fast until 25 sec (25 sec)
+                p += 1;
+            } else if (p < 50) {    // half speed until 50 (50 sec)
+                p += 0.5;
+            } else if (p < 75) {    // quarter speed until 75 (125 sec)
+                p += 0.2;
+            } else if (p < 95) {    // tenth speed until 95 (200 sec)
+                p += 0.1;
+            } else {
+                p += 0.05;           // twentieth speed until 99 (100 sec)
+                p = fmin(p,99.0);  // holding at 99, after 500 sec (~8 minutes)
+            }
+            progress.setValue((int)p);
+
+            QCoreApplication::processEvents();
+            if (progress.wasCanceled()) {
+                // user manually cancelled the dialog
+                break;
+            }
+        }
+//        qDebug() << "Done with copy.\n----------";
+
+    } // if accepted
 }

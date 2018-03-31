@@ -1811,6 +1811,7 @@
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
+    <addaction name="actionMake_Flash_Drive_Wizard"/>
     <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
     <addaction name="actionCheck_for_Updates"/>
@@ -3171,6 +3172,11 @@
    </property>
    <property name="text">
     <string>20 seconds</string>
+   </property>
+  </action>
+  <action name="actionMake_Flash_Drive_Wizard">
+   <property name="text">
+    <string>Make Flash Drive Wizard...</string>
    </property>
   </action>
  </widget>

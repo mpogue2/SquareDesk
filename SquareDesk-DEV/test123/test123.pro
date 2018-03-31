@@ -60,7 +60,8 @@ SOURCES += main.cpp\
     sdinterface.cpp \
     mainwindow_sd.cpp \
     songtitlelabel.cpp \
-    mydatetimeedit.cpp
+    mydatetimeedit.cpp \
+    makeflashdrivewizard.cpp
 
 macx {
 SOURCES += ../qpdfjs/src/communicator.cpp
@@ -103,7 +104,8 @@ HEADERS  += mainwindow.h \
     downloadmanager.h \
     sdinterface.h \
     songtitlelabel.h \
-    mydatetimeedit.h
+    mydatetimeedit.h \
+    makeflashdrivewizard.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h
