@@ -2449,13 +2449,20 @@ void MainWindow::Info_Volume(void)
 {
     int volSliderPos = ui->volumeSlider->value();
     if (volSliderPos == 0) {
-        ui->currentVolumeLabel->setText("Mute");
+        ui->currentVolumeLabel->setText("MUTE");
+        ui->currentVolumeLabel->setStyleSheet("QLabel { color : red; }");
     }
     else if (volSliderPos == 100) {
         ui->currentVolumeLabel->setText("MAX");
+        ui->currentVolumeLabel->setStyleSheet("QLabel { color : black; }");
     }
     else {
         ui->currentVolumeLabel->setText(QString::number(volSliderPos)+"%");
+        if (volSliderPos >= 50) {
+            ui->currentVolumeLabel->setStyleSheet("QLabel { color : royalblue; }");
+        } else {
+            ui->currentVolumeLabel->setStyleSheet("QLabel { color : indianred; }");
+        }
     }
 }
 
