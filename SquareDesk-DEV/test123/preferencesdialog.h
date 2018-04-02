@@ -137,6 +137,7 @@ private slots:
 
     void on_pushButtonTagAdd_clicked();
     void on_pushButtonTagRemove_clicked();
+    void on_tabWidget_currentChanged(int /* tab */);
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;

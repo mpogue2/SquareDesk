@@ -43,6 +43,8 @@ static const int kTagsColForeground = 1;
 static const int kTagsColBackground = 2;
 static const int kTagsColExample = 3;
 
+static const char *strWhiteHashFFFFFF = "#ffffff";
+
 
 static const QString COLOR_STYLE("QPushButton { background-color : %1; color : %1; }");
 
@@ -216,7 +218,8 @@ static int getLastSelectedRow(QTableWidget *tableWidget)
 
 static void setPushButtonColor(QPushButton *pushButton, QString color)
 {
-    pushButton->setStyleSheet(COLOR_STYLE.arg(color));
+    QString styleSheet(COLOR_STYLE.arg(color));
+    pushButton->setStyleSheet(styleSheet);
     pushButton->setFlat(true);
     pushButton->setAutoFillBackground(true);
     pushButton->setText(color);
@@ -731,7 +734,7 @@ void PreferencesDialog::on_calledColorButton_clicked()
     if (chosenColor.isValid()) {
         calledColorString = chosenColor.name();
 
-        if (chosenColor.name() == "#ffffff") {
+        if (chosenColor.name() == strWhiteHashFFFFFF) {
             calledColorString = DEFAULTCALLEDCOLOR;  // a way to reset the colors individually
         }
 
@@ -747,7 +750,7 @@ void PreferencesDialog::on_extrasColorButton_clicked()
     if (chosenColor.isValid()) {
         extrasColorString = chosenColor.name();
 
-        if (chosenColor == "#ffffff") {
+        if (chosenColor == strWhiteHashFFFFFF) {
             extrasColorString = DEFAULTEXTRASCOLOR;  // a way to reset the colors individually
         }
 
@@ -763,7 +766,7 @@ void PreferencesDialog::on_patterColorButton_clicked()
     if (chosenColor.isValid()) {
         patterColorString = chosenColor.name();
 
-        if (chosenColor == "#ffffff") {
+        if (chosenColor == strWhiteHashFFFFFF) {
             patterColorString = DEFAULTPATTERCOLOR;  // a way to reset the colors individually
         }
 
@@ -779,7 +782,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
     if (chosenColor.isValid()) {
         singingColorString = chosenColor.name();
 
-        if (chosenColor == "#ffffff") {
+        if (chosenColor == strWhiteHashFFFFFF) {
             singingColorString = DEFAULTSINGINGCOLOR;  // a way to reset the colors individually
         }
 
@@ -902,11 +905,18 @@ void PreferencesDialog::on_pushButtonTagsForegroundColor_clicked()
 
 void PreferencesDialog::SetLabelTagAppearanceColors()
 {
-    QString format("<span style=\"background-color:%1; color:%2\"> tags </span>&nbsp;<span style=\"background-color:%1; color:%2\"> look </span>&nbsp;<span style=\"background-color:%1; color:%2\"> like </span>&nbsp;<span style=\"background-color:%1; color:%2\"> this </span>");
+    QString format("<span style=\"background-color:%1; color:%2\">&nbsp;tags </span>&nbsp;<span style=\"background-color:%1; color:%2\"> look </span>&nbsp;<span style=\"background-color:%1; color:%2\"> like </span>&nbsp;<span style=\"background-color:%1; color:%2\"> this </span>");
     QString str(format.arg(ui->pushButtonTagsBackgroundColor->text()).arg(ui->pushButtonTagsForegroundColor->text()));
     ui->labelTagAppearance->setText(str);
 }
 
+void PreferencesDialog::on_tabWidget_currentChanged(int /* tab */)
+{
+    setPushButtonColor(ui->pushButtonTagsBackgroundColor,
+                       ui->pushButtonTagsBackgroundColor->text());
+    setPushButtonColor(ui->pushButtonTagsForegroundColor,
+                       ui->pushButtonTagsForegroundColor->text());
+}
 
 void PreferencesDialog::finishPopulation()
 {
