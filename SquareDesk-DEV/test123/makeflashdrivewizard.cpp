@@ -144,20 +144,20 @@ void ConclusionMakeFlashDrivePage::initializePage()
 {
     QString confirmText;
     QString volName = field("destinationVolume").toString();
-    confirmText = QString("Flash drive to copy to: '%1'\n     ").arg(volName);
-    confirmText += "\nItems to copy:\n";
-    confirmText += QString("     <Music Directory> --> /Volumes/%1/<Music Directory>\n").arg(volName);
-    confirmText += QString("     SquareDesk Application  --> /Volumes/%1/SquareDesk.app\n").arg(volName);
+    confirmText = QString("<b>Flash drive to copy to:</b> '%1'<br/><br/>").arg(volName);
+    confirmText += "\n<b>Folder to create:</b>";
+    confirmText += QString("     /Volumes/%1/SquareDesk<br/><br/>").arg(volName);
+    confirmText += "\n<b>Items to copy:</b><br/>";
+    confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;Music Directory&gt; --> /Volumes/%1/SquareDesk/&lt;Music Directory&gt;<br/>").arg(volName);
+    confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SquareDesk Application  --> /Volumes/%1/SquareDesk/SquareDesk.app<br/><br/>").arg(volName);
 
-    confirmText += "\nNOTE: only those files which do not already exist on the destination drive will be copied.\n\n";
+    confirmText += "NOTE: only those files which do not already exist on the destination drive will be copied.<br/><br/>";
 
 #if defined(Q_OS_MAC) | defined(Q_OS_LINUX)
-    confirmText += "Click Done to copy your entire Music Directory and the SquareDesk application itself.";
+    confirmText += "Make sure there is enough space on the flash drive, and then click Done to do the actions above.";
 #elif defined(Q_OS_WIN)
-    confirmText += "Click Finish to copy your entire Music Directory and the SquareDesk application itself.";
+    confirmText += "Make sure there is enough space on the flash drive, and then click Finish to do the actions above.";
 #endif
-
-
 
     label->setText(confirmText);
 }

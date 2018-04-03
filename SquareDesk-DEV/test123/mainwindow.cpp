@@ -9692,19 +9692,40 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
     MakeFlashDriveWizard wizard(this);
     int dialogCode = wizard.exec();
 
-    if(dialogCode == QDialog::Accepted) {
+    if (dialogCode == QDialog::Accepted) {
         QString destVol = wizard.field("destinationVolume").toString();
         qDebug() << "MAKE FLASH DRIVE WIZARD ACCEPTED." << destVol;
 
+        // make the directory, if it doesn't already exist
+        QDir dir(QString("/Volumes/%1/SquareDesk").arg(destVol));
+        if (!dir.exists()) {
+            qDebug() << "Making it...";
+            dir.mkpath(".");
+        }
+
+        // --------------------
+        // create a command to copy the executable
+
+        QString command1 = "/usr/bin/rsync";
+        QString sourceDir1 = QCoreApplication::applicationDirPath();  // e.g.
+        sourceDir1 += "/../..";
+        qDebug() << "sourceDir1" << sourceDir1;
+        QString destDir1 = QString("/Volumes/%1/SquareDesk/SquareDesk.app").arg(destVol); // e.g. /Volumes/PATRIOT/squareDesk
+        qDebug() << "destDir1" << destDir1;
+
+        QStringList parms1;
+        parms1 << "--archive" << "--recursive" << sourceDir1 << destDir1;
+
+        qDebug() << "Copying the SquareDesk.app files ....\n----------";
         QProcess rsync;
-        rsync.start("/bin/sleep", QStringList() << "10");
+        rsync.start(command1, parms1);
 
         if (!rsync.waitForStarted()) {
             return;
         }
 
         float p = 0;
-        QProgressDialog progress("Copying files...", "Abort Copy", 0, 10, this);
+        QProgressDialog progress("Copying SquareDesk...", "Abort Copy", 0, 10, this);
         progress.setRange(0,100);
         progress.setValue((int)p);
         progress.setWindowModality(Qt::WindowModal);
@@ -9712,6 +9733,7 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
         while(1) {
             if (rsync.waitForFinished(1000)) { // 1 sec at a time
                 // rsync completed
+                progress.setValue(100);
                 break;
             }
 
@@ -9735,7 +9757,65 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
                 break;
             }
         }
-//        qDebug() << "Done with copy.\n----------";
+
+        // COPY THE MUSIC FILES ==========
+        qDebug() << "Copying music files....\n----------";
+        // --------------------
+        // create an rsync command to do the heavy lifting.  It will avoid copying, where
+        //   the file already exists in the destination.
+        QString command = "/usr/bin/rsync";
+        PreferencesManager prefs;
+        QDir musicDir(prefs.GetmusicPath());
+        QString sourceDir = musicDir.canonicalPath();  // e.g. /Users/mpogue/squareDanceMusic
+        QString destDir = QString("/Volumes/%1/SquareDesk").arg(destVol); // e.g. /Volumes/PATRIOT/squareDesk
+
+        QStringList parms;
+        parms << "--archive" << "--recursive" << sourceDir << destDir;
+
+        qDebug() << parms;
+
+        QProcess rsync2;
+        rsync2.start(command, parms);
+
+        if (!rsync2.waitForStarted()) {
+            return;
+        }
+
+        p = 0;
+        QProgressDialog progress2("Copying Music...", "Abort Copy", 0, 10, this);
+        progress2.setRange(0,100);
+        progress2.setValue((int)p);
+        progress2.setWindowModality(Qt::WindowModal);
+
+        while(1) {
+            if (rsync2.waitForFinished(1000)) { // 1 sec at a time
+                // rsync completed
+                progress2.setValue(100);
+                break;
+            }
+
+            if (p < 25) {           // fast until 25 sec (25 sec)
+                p += 1;
+            } else if (p < 50) {    // half speed until 50 (50 sec)
+                p += 0.5;
+            } else if (p < 75) {    // quarter speed until 75 (125 sec)
+                p += 0.2;
+            } else if (p < 95) {    // tenth speed until 95 (200 sec)
+                p += 0.1;
+            } else {
+                p += 0.05;           // twentieth speed until 99 (100 sec)
+                p = fmin(p,99.0);  // holding at 99, after 500 sec (~8 minutes)
+            }
+            progress2.setValue((int)p);
+
+            QCoreApplication::processEvents();
+            if (progress.wasCanceled()) {
+                // user manually cancelled the dialog
+                break;
+            }
+        }
+
+        qDebug() << "Done with copy.\n----------";
 
     } // if accepted
 }
