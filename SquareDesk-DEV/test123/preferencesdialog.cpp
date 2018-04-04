@@ -125,7 +125,9 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     for (int row = 0; row < availableActions.length(); ++row)
     {
         QTableWidgetItem *newTableItem(new QTableWidgetItem(availableActions[row]->name()));
+        newTableItem->setFlags(newTableItem->flags() ^ Qt::ItemIsEditable);
         ui->tableWidgetKeyBindings->setItem(row, 0, newTableItem);
+        
         for (int col = 1; col < ui->tableWidgetKeyBindings->columnCount(); ++col)
         {
             QKeySequenceEdit *keySequenceEdit(new QKeySequenceEdit);
@@ -399,7 +401,6 @@ void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
 
                      if (col <= keys.length())
                      {
-                         qDebug() << "Setting " << row << "," << col << " : " << keys[col - 1];
                          QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
                          keySequenceEdit->setKeySequence(sequence);
                      }
