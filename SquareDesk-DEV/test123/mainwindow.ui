@@ -2025,6 +2025,15 @@
      <addaction name="actionFlashCallC3a"/>
      <addaction name="actionFlashCallC3b"/>
     </widget>
+    <widget class="QMenu" name="menuFlash_Call_Timing">
+     <property name="title">
+      <string>Flash Call Timing</string>
+     </property>
+     <addaction name="action5_seconds"/>
+     <addaction name="action10_seconds"/>
+     <addaction name="action15_seconds"/>
+     <addaction name="action20_seconds"/>
+    </widget>
     <addaction name="actionCompact"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
@@ -2032,6 +2041,7 @@
     <addaction name="menuColumns"/>
     <addaction name="separator"/>
     <addaction name="menuFlash_Call"/>
+    <addaction name="menuFlash_Call_Timing"/>
     <addaction name="separator"/>
     <addaction name="actionViewTags"/>
    </widget>
@@ -3126,6 +3136,41 @@
    </property>
    <property name="text">
     <string>Tags</string>
+   </property>
+  </action>
+  <action name="action5_seconds">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>5 seconds</string>
+   </property>
+  </action>
+  <action name="action10_seconds">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>10 seconds</string>
+   </property>
+  </action>
+  <action name="action15_seconds">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>15 seconds</string>
+   </property>
+  </action>
+  <action name="action20_seconds">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>20 seconds</string>
    </property>
   </action>
  </widget>

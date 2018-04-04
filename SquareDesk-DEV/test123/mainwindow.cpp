@@ -963,6 +963,25 @@ MainWindow::MainWindow(QWidget *parent) :
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault() == SessionDefaultDOW)
         ? songSettings.currentSessionIDByTime() : 1); // on app entry, ages must show current session
     populateMenuSessionOptions();
+
+    // mutually exclusive items in Flash Call Timing menu
+    flashCallTimingActionGroup = new QActionGroup(this);
+    ui->action5_seconds->setActionGroup(flashCallTimingActionGroup);
+    ui->action10_seconds->setActionGroup(flashCallTimingActionGroup);
+    ui->action15_seconds->setActionGroup(flashCallTimingActionGroup);
+    ui->action20_seconds->setActionGroup(flashCallTimingActionGroup);
+    ui->action15_seconds->setChecked(true);
+
+    QString flashCallTimingSecs = prefsManager.Getflashcalltiming();
+    if (flashCallTimingSecs == "5") {
+        ui->action5_seconds->setChecked(true);
+    } else if (flashCallTimingSecs == "10") {
+        ui->action10_seconds->setChecked(true);
+    } else if (flashCallTimingSecs == "15") {
+        ui->action15_seconds->setChecked(true);
+    } else {
+        ui->action20_seconds->setChecked(true);
+    }
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -2516,13 +2535,20 @@ void MainWindow::Info_Volume(void)
 {
     int volSliderPos = ui->volumeSlider->value();
     if (volSliderPos == 0) {
-        ui->currentVolumeLabel->setText("Mute");
+        ui->currentVolumeLabel->setText("MUTE");
+        ui->currentVolumeLabel->setStyleSheet("QLabel { color : red; }");
     }
     else if (volSliderPos == 100) {
         ui->currentVolumeLabel->setText("MAX");
+        ui->currentVolumeLabel->setStyleSheet("QLabel { color : black; }");
     }
     else {
         ui->currentVolumeLabel->setText(QString::number(volSliderPos)+"%");
+        if (volSliderPos >= 50) {
+            ui->currentVolumeLabel->setStyleSheet("QLabel { color : royalblue; }");
+        } else {
+            ui->currentVolumeLabel->setStyleSheet("QLabel { color : indianred; }");
+        }
     }
 }
 
@@ -2797,7 +2823,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
         // FLASH CALL FEATURE ======================================
-        int flashCallEverySeconds = 10;
+        int flashCallEverySeconds = prefsManager.Getflashcalltiming().toInt();
         if (currentPos_i % flashCallEverySeconds == 0 && currentPos_i != 0) {
             // Now pick a new random number, but don't pick the same one twice in a row.
             // TODO: should really do a permutation over all the allowed calls, with no repeats
@@ -9687,3 +9713,27 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     }
 }
 
+// ----------------------------------------------------------------------
+void MainWindow::on_action5_seconds_triggered()
+{
+    PreferencesManager prefsManager;
+    prefsManager.Setflashcalltiming("5");
+}
+
+void MainWindow::on_action10_seconds_triggered()
+{
+    PreferencesManager prefsManager;
+    prefsManager.Setflashcalltiming("10");
+}
+
+void MainWindow::on_action15_seconds_triggered()
+{
+    PreferencesManager prefsManager;
+    prefsManager.Setflashcalltiming("15");
+}
+
+void MainWindow::on_action20_seconds_triggered()
+{
+    PreferencesManager prefsManager;
+    prefsManager.Setflashcalltiming("20");
+}
