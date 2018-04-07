@@ -1718,22 +1718,42 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // assumes that QTextEdit spits out spans in a consistent way
     // TODO: allow embedded NL (due to line wrapping)
     // NOTE: background color is optional here, because I got rid of the the spec for it in BODY
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    // <SPAN style="font-family:'Verdana'; font-size:x-large; color:#ff0002; background-color:#ffffe0;">
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0002;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"hdr\">");
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffc0cb;\">"),  // background-color required for lyrics
+    // <SPAN style="font-family:'Verdana'; font-size:large; color:#030303; background-color:#ffc0cb;">
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#030303; background-color:#ffc0cb;\">"),  // background-color required for lyrics
                              "<SPAN class=\"lyrics\">");
     cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"label\">");
     cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"artist\">");
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    // <SPAN style="font-family:'Arial Black'; font-size:x-large; color:#010101; background-color:#ffffe0;">
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Arial Black'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#010101;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"title\">");
     cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
                                      "<SPAN style=\"font-weight: Bold;\">");
+    // <SPAN style="font-family:'Verdana'; font-size:large; font-style:italic; color:#000000;">
+    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-style:italic;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+                                     "<SPAN style=\"font-style: Italic;\">");
 
     cuesheet3.replace("<P style=\"\">","<P>");
     cuesheet3.replace("<P style=\"background-color:#ffffe0;\">","<P>");  // background color already defaults via the BODY statement
     cuesheet3.replace("<BODY bgcolor=\"#FFFFE0\" style=\"font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;\">","<BODY>");  // must go back to USER'S choices in cuesheet2.css
+
+    // now replace <SPAN bold...>foo</SPAN> --> <B>foo</B>
+    QRegExp boldRegExp("<SPAN style=\"font-weight: Bold;\">(.*)</SPAN>");
+    boldRegExp.setMinimal(true);
+    boldRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet3.replace(boldRegExp,"<B>\\1</B>");  // don't be greedy, and replace <SPAN bold> -> <B>
+
+    // now do the same for Italic...
+    // "<SPAN style=\"font-style: Italic;\">"
+    QRegExp italicRegExp("<SPAN style=\"font-style: Italic;\">(.*)</SPAN>");
+    italicRegExp.setMinimal(true);
+    italicRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    cuesheet3.replace(italicRegExp,"<I>\\1</I>");  // don't be greedy, and replace <SPAN italic> -> <B>
+
 
     // multi-step replacement
 //    qDebug().noquote() << "***** REALLY BEFORE:\n" << cuesheet3;
