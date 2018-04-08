@@ -362,6 +362,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuFile->addAction(closeAct);
 #endif
 
+#if !defined(Q_OS_MAC)
+    // disable this menu item for WIN and LINUX, until
+    //   the rsync stuff is ported to those platforms
+    ui->actionMake_Flash_Drive_Wizard->setVisible(false);
+#endif
+
 //    currentState = kStopped;
     currentPitch = 0;
     tempoIsBPM = false;
@@ -9688,6 +9694,7 @@ void MainWindow::on_action20_seconds_triggered()
 }
 
 int MainWindow::getRsyncFileCount(QString sourceDir, QString destDir) {
+#if defined(Q_OS_MAC)
     QString rsyncCommand = "/usr/bin/rsync";
 //    qDebug() << "sourceDir" << sourceDir;
 //    qDebug() << "destDir" << destDir;
@@ -9706,10 +9713,15 @@ int MainWindow::getRsyncFileCount(QString sourceDir, QString destDir) {
 //    qDebug() << pieces.length() << pieces;
 
     return(pieces.length());
+#else
+    Q_UNUSED(sourceDir)
+    Q_UNUSED(destDir)
+#endif
 }
 
 void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
 {
+#if defined(Q_OS_MAC)
     MakeFlashDriveWizard wizard(this);
     int dialogCode = wizard.exec();
 
@@ -9837,4 +9849,5 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
         msgBox.exec();
 
     } // if accepted
+#endif
 }
