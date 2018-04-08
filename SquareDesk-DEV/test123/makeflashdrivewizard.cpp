@@ -151,10 +151,10 @@ void ConclusionMakeFlashDrivePage::initializePage()
     confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;Music Directory&gt; --> /Volumes/%1/SquareDesk/&lt;Music Directory&gt;<br/>").arg(volName);
     confirmText += QString("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SquareDesk Application  --> /Volumes/%1/SquareDesk/SquareDesk.app<br/><br/>").arg(volName);
 
-    confirmText += "NOTE: only those files which do not already exist on the destination drive will be copied.<br/><br/>";
+    confirmText += "NOTE: To save time, only those files which do not already exist on the destination drive will be copied.<br/><br/>";
 
 #if defined(Q_OS_MAC) | defined(Q_OS_LINUX)
-    confirmText += "Make sure there is enough space on the flash drive, and then click Done to do the actions above.";
+    confirmText += "Make sure there is enough space on the flash drive, and then click Done to start copying.";
 #elif defined(Q_OS_WIN)
     confirmText += "Make sure there is enough space on the flash drive, and then click Finish to do the actions above.";
 #endif

@@ -574,6 +574,8 @@ private:
 
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
 
+    int getRsyncFileCount(QString sourceDir, QString destDir);
+
     float getID3BPM(QString MP3FileName);
 
     void reloadCurrentMP3File();
