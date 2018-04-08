@@ -9705,7 +9705,6 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
 
         // --------------------
         // create a command to copy the executable
-
         QString command1 = "/usr/bin/rsync";
         QString sourceDir1 = QCoreApplication::applicationDirPath();  // e.g.
         sourceDir1 += "/../..";
@@ -9713,9 +9712,28 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
         QString destDir1 = QString("/Volumes/%1/SquareDesk/SquareDesk.app").arg(destVol); // e.g. /Volumes/PATRIOT/squareDesk
         qDebug() << "destDir1" << destDir1;
 
-        QStringList parms1;
-        parms1 << "--archive" << "--recursive" << sourceDir1 << destDir1;
+        QStringList parms1DryRun;
+        parms1DryRun << "-avn" << "--modify-window=2" << sourceDir1 << destDir1;
 
+        QStringList parms1;
+        parms1 << "-av" << "--modify-window=2" << sourceDir1 << destDir1;
+        //        parms1 << "--archive" << "--recursive" << sourceDir1 << destDir1;
+
+        qDebug() << parms1DryRun;
+        qDebug() << parms1;
+
+        // ------- DRY RUN to see how many files will be copied...
+        QProcess rsync4;
+        rsync4.start(command1, parms1DryRun);
+        rsync4.waitForFinished();
+        QString output4(rsync4.readAllStandardOutput());
+        QStringList pieces4 = output4.split( "\n" );
+
+        qDebug() << output4 << pieces4 << pieces4.length()-5;
+
+        // ----------------------------------
+        // BUG: COPIES TOO OFTEN, EVEN IF THE FILES WERE JUST COPIED **************
+        // DO THE ACTUAL APP COPY
         qDebug() << "Copying the SquareDesk.app files ....\n----------";
         QProcess rsync;
         rsync.start(command1, parms1);
@@ -9726,30 +9744,38 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
 
         float p = 0;
         QProgressDialog progress("Copying SquareDesk...", "Abort Copy", 0, 10, this);
-        progress.setRange(0,100);
+        progress.setRange(0,pieces4.length());
         progress.setValue((int)p);
         progress.setWindowModality(Qt::WindowModal);
 
         while(1) {
             if (rsync.waitForFinished(1000)) { // 1 sec at a time
                 // rsync completed
-                progress.setValue(100);
+                progress.setValue(pieces4.length());
                 break;
             }
 
-            if (p < 25) {           // fast until 25 sec (25 sec)
-                p += 1;
-            } else if (p < 50) {    // half speed until 50 (50 sec)
-                p += 0.5;
-            } else if (p < 75) {    // quarter speed until 75 (125 sec)
-                p += 0.2;
-            } else if (p < 95) {    // tenth speed until 95 (200 sec)
-                p += 0.1;
-            } else {
-                p += 0.05;           // twentieth speed until 99 (100 sec)
-                p = fmin(p,99.0);  // holding at 99, after 500 sec (~8 minutes)
+            while(rsync.canReadLine()) {
+                QString line4 = QString::fromLocal8Bit(rsync.readLine());
+                int count4 = line4.count("\n");
+                p += count4;
+                qDebug() << count4 << line4;
+                progress.setValue((int)p);
             }
-            progress.setValue((int)p);
+
+//            if (p < 25) {           // fast until 25 sec (25 sec)
+//                p += 1;
+//            } else if (p < 50) {    // half speed until 50 (50 sec)
+//                p += 0.5;
+//            } else if (p < 75) {    // quarter speed until 75 (125 sec)
+//                p += 0.2;
+//            } else if (p < 95) {    // tenth speed until 95 (200 sec)
+//                p += 0.1;
+//            } else {
+//                p += 0.05;           // twentieth speed until 99 (100 sec)
+//                p = fmin(p,99.0);  // holding at 99, after 500 sec (~8 minutes)
+//            }
+//            progress.setValue((int)p);
 
             QCoreApplication::processEvents();
             if (progress.wasCanceled()) {
@@ -9758,58 +9784,89 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
             }
         }
 
+        QString output1(rsync.readAllStandardOutput());
+        QStringList pieces1 = output1.split( "\n" );
+        qDebug() << "pieces1: " << pieces1;
+
         // COPY THE MUSIC FILES ==========
         qDebug() << "Copying music files....\n----------";
         // --------------------
         // create an rsync command to do the heavy lifting.  It will avoid copying, where
         //   the file already exists in the destination.
+        // should be THIS one, since destination is probably FAT32:
+        //   rsync -avn --no-times --no-perms --size-only ./__squareDanceMusic/ /Volumes/PATRIOT/SquareDesk/__squareDanceMusic/
+        //   rsync -avn --no-times --no-perms --size-only ./__squareDanceMusic /Volumes/PATRIOT/SquareDesk
         QString command = "/usr/bin/rsync";
         PreferencesManager prefs;
         QDir musicDir(prefs.GetmusicPath());
-        QString sourceDir = musicDir.canonicalPath();  // e.g. /Users/mpogue/squareDanceMusic
-        QString destDir = QString("/Volumes/%1/SquareDesk").arg(destVol); // e.g. /Volumes/PATRIOT/squareDesk
+        QString sourceDir = musicDir.canonicalPath();  // e.g. /Users/mpogue/squareDanceMusic  (NOTE: no trailing '/')
+        QString destDir = QString("/Volumes/%1/SquareDesk").arg(destVol); // e.g. /Volumes/PATRIOT/SquareDesk/ (NOTE: no trailing '/')
+
+        QStringList parmsDryRun;
+        parmsDryRun << "-avn" << "--no-times" << "--no-perms" << "--size-only" << sourceDir << destDir;
 
         QStringList parms;
-        parms << "--archive" << "--recursive" << sourceDir << destDir;
+        parms << "-av" << "--no-times" << "--no-perms" << "--size-only" << sourceDir << destDir;
 
+        qDebug() << parmsDryRun;
         qDebug() << parms;
 
+        // ------- DRY RUN to see how many files will be copied...
         QProcess rsync2;
-        rsync2.start(command, parms);
+        rsync2.start(command, parmsDryRun);
+        rsync2.waitForFinished();
+        QString output(rsync2.readAllStandardOutput());
+        QStringList pieces = output.split( "\n" );
 
-        if (!rsync2.waitForStarted()) {
+        qDebug() << output << pieces << pieces.length()-5;
+
+        // ------- HERE IS THE REAL FILE COPY (takes a long time, maybe)
+        QProcess rsync3;
+        rsync3.start(command, parms);
+        rsync3.setReadChannel(QProcess::StandardOutput);
+
+        if (!rsync3.waitForStarted()) {
             return;
         }
 
         p = 0;
         QProgressDialog progress2("Copying Music...", "Abort Copy", 0, 10, this);
-        progress2.setRange(0,100);
+        progress2.setRange(0,pieces.length());  // set ticks to number of files to copy...
         progress2.setValue((int)p);
         progress2.setWindowModality(Qt::WindowModal);
 
         while(1) {
-            if (rsync2.waitForFinished(1000)) { // 1 sec at a time
+            if (rsync3.waitForFinished(1000)) { // 1 sec at a time
                 // rsync completed
-                progress2.setValue(100);
+                progress2.setValue(pieces.length());
+                qDebug() << "rsync finished.";
                 break;
             }
 
-            if (p < 25) {           // fast until 25 sec (25 sec)
-                p += 1;
-            } else if (p < 50) {    // half speed until 50 (50 sec)
-                p += 0.5;
-            } else if (p < 75) {    // quarter speed until 75 (125 sec)
-                p += 0.2;
-            } else if (p < 95) {    // tenth speed until 95 (200 sec)
-                p += 0.1;
-            } else {
-                p += 0.05;           // twentieth speed until 99 (100 sec)
-                p = fmin(p,99.0);  // holding at 99, after 500 sec (~8 minutes)
+            while(rsync3.canReadLine()) {
+                QString line = QString::fromLocal8Bit(rsync3.readLine());
+                int count = line.count("\n");
+                p += count;
+                qDebug() << count << line;
+                progress2.setValue((int)p);
             }
-            progress2.setValue((int)p);
+
+//            if (p < 25) {           // fast until 25 sec (25 sec)
+//                p += 1;
+//            } else if (p < 50) {    // half speed until 50 (50 sec)
+//                p += 0.5;
+//            } else if (p < 75) {    // quarter speed until 75 (125 sec)
+//                p += 0.2;
+//            } else if (p < 95) {    // tenth speed until 95 (200 sec)
+//                p += 0.1;
+//            } else {
+//                p += 0.05;           // twentieth speed until 99 (100 sec)
+//                p = fmin(p,99.0);  // holding at 99, after 500 sec (~8 minutes)
+//            }
+//            progress2.setValue((int)p);
 
             QCoreApplication::processEvents();
-            if (progress.wasCanceled()) {
+            if (progress2.wasCanceled()) {
                 // user manually cancelled the dialog
                 break;
             }
