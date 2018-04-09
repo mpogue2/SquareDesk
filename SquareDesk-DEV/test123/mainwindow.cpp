@@ -1142,6 +1142,7 @@ QString MainWindow::getResourceFile(QString s) {
     QString patterTemplatePath = appPath + "/" + s;
     patterTemplatePath.replace("SquareDesk.exe/","");
 #else
+    QString patterTemplatePath = s;
     // Linux
     QStringList paths;
     paths.append(QApplication::applicationFilePath());
@@ -1154,15 +1155,14 @@ QString MainWindow::getResourceFile(QString s) {
         QFileInfo check_file(filename);
         if (check_file.exists() && check_file.isFile())
         {
-            return filename;
+            patterTemplatePath = s;
+            break;
         }
     }
-    return("");
 #endif
 
     QString fileContents;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QFile file(patterTemplatePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open '" + s + "' file.";
@@ -1172,11 +1172,6 @@ QString MainWindow::getResourceFile(QString s) {
         fileContents = file.readAll();
         file.close();
     }
-#else
-    // LINUX
-    // never gets here....
-#endif
-
     return(fileContents);
 }
 
