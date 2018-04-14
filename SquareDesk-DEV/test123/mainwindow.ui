@@ -3176,7 +3176,7 @@
   </action>
   <action name="actionMake_Flash_Drive_Wizard">
    <property name="text">
-    <string>Make Flash Drive Wizard...</string>
+    <string>Backup to Flash Drive...</string>
    </property>
   </action>
  </widget>

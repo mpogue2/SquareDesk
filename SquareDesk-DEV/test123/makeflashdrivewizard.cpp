@@ -82,7 +82,7 @@ IntroMakeFlashDrivePage::IntroMakeFlashDrivePage(QWidget *parent)
 VolumeMakeFlashDrivePage::VolumeMakeFlashDrivePage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(tr("Choose a Flash Drive"));
+    setTitle(tr("Choose a Destination Drive"));
 
 #if !defined(Q_OS_MAC)
     setPixmap(QWizard::WatermarkPixmap, QPixmap(":/startupwizardimages/watermark1.png"));
@@ -103,19 +103,18 @@ VolumeMakeFlashDrivePage::VolumeMakeFlashDrivePage(QWidget *parent)
 
 void VolumeMakeFlashDrivePage::initializePage()
 {
+    combobox->clear();
 
-    QDir dir("/Volumes/");
-    dir.setFilter(QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    foreach (const QStorageInfo &storage, QStorageInfo::mountedVolumes()) {
+            if (storage.isValid() && storage.isReady()) {
+                if (!storage.isReadOnly() & !storage.isRoot()) {
+//                    qDebug() << "Storage:" << storage.name();
+                    combobox->addItem(storage.name());
+                }
+            }
+        }
 
-    QFileInfoList list = dir.entryInfoList();
-    for (int i = 0; i < list.size(); ++i) {
-        QFileInfo fileInfo = list.at(i);
-//        qDebug() << qPrintable(QString("%1 %2").arg(fileInfo.size(), 10)
-//                                                .arg(fileInfo.fileName()));
-        combobox->addItem(fileInfo.fileName());
-    }
-
-    QString confirmText = "Choose the flash drive you want to copy to, and click Continue:\n\n";
+    QString confirmText = "Choose the drive you want to copy to, and click Continue:\n\n";
     label->setText(confirmText);
 }
 
