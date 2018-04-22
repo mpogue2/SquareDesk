@@ -9803,7 +9803,11 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
         progress.setLabelText(QString("Copying Music..."));
 
         QStringList musicParms;
-        musicParms << "-av" << "--no-times" << "--no-perms" << "--size-only" << sourceDir << destDir;
+
+        musicParms << "-av" << "--no-times" << "--no-perms" << "--size-only"
+                   << "--exclude" << "lock.txt"   // note: do NOT copy the 'lock.txt' file, because flash copy is never locked
+                   << "--exclude" << "debug.log"  // note: do NOT copy the 'debug.log' file, because flash copy does not need it
+                   << sourceDir << destDir;
 
         // ------- HERE IS THE REAL FILE COPY (takes a long time, maybe)
         QProcess rsync3;
