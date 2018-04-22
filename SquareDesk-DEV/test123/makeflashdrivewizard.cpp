@@ -93,7 +93,7 @@ VolumeMakeFlashDrivePage::VolumeMakeFlashDrivePage(QWidget *parent)
 
     combobox = new QComboBox();
 
-    registerField("destinationVolume", combobox, "currentText");
+    registerField("destinationVolume*", combobox, "currentText");  // * = mandatory must not be blank
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(label);
