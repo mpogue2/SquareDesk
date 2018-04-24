@@ -21,7 +21,7 @@ NOTE: some distros (like Ubuntu) don't have /usr/local/lib in
 
 First, install the additional packages we're now using (one at a time)
 
-`sudo apt-get install build-essential git g++ qt5-default libqt5svg5-dev libqt5webkit5-dev libtag1-dev cmake libsqlite3-dev sqlite3 xsltproc`
+`sudo apt-get install build-essential git g++ qt5-default libqt5svg5-dev libqt5webkit5-dev libtag1-dev cmake libsqlite3-dev sqlite3 xsltproc qtbase5-dev`
 
 # Main Instructions
 ```
