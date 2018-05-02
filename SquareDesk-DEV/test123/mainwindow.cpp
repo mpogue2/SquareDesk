@@ -56,6 +56,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utility.h"
+#include "perftimer.h"
 #include "tablenumberitem.h"
 #include "prefsmanager.h"
 #include "importdialog.h"
@@ -243,6 +244,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sdAvailableCalls(),
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1)
 {
+    PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
     flashCallsVisible = false;
@@ -974,6 +976,7 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
 
 void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
+    PerfTimer t("reloadSongAges");
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
 
@@ -2224,6 +2227,7 @@ void MainWindow::randomizeFlashCall() {
 // ----------------------------------------------------------------------
 void MainWindow::on_playButton_clicked()
 {
+    PerfTimer t("MainWindow::on_playButtonClicked");
     if (!songLoaded) {
         return;  // if there is no song loaded, no point in toggling anything.
     }
@@ -2238,6 +2242,8 @@ void MainWindow::on_playButton_clicked()
 
         if (firstTimeSongIsPlayed)
         {
+            PerfTimer t("MainWindow::on_playButtonClicked firstTimeSongIsPlayed");
+
             firstTimeSongIsPlayed = false;
             saveCurrentSongSettings();
             songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
@@ -2254,7 +2260,6 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
                 ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
             }
-            ui->songTable->setSortingEnabled(true);
 
             if (switchToLyricsOnPlay &&
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
@@ -2269,6 +2274,7 @@ void MainWindow::on_playButton_clicked()
                     }
                 }
             }
+            ui->songTable->setSortingEnabled(true);
         }
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != NULL) {
@@ -3863,6 +3869,7 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
+    PerfTimer t("findPossibleCuesheets");
     QString fileType = filepath2SongType(MP3Filename);
     bool fileTypeIsPatter = (fileType == "patter");
 
@@ -4606,6 +4613,7 @@ void MainWindow::clearLockFile() {
 
 void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase)
 {
+    PerfTimer t("findMusic");
     QString databaseDir(mainRootDir + "/.squaredesk");
 
     if (refreshDatabase)
@@ -4799,6 +4807,7 @@ void setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
+    PerfTimer t("loadMusicList");
     startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
 
     // Need to remember the PL# mapping here, and reapply it after the filter
