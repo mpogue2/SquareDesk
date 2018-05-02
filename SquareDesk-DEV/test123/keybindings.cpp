@@ -362,7 +362,7 @@ QVector<KeyAction*> KeyAction::availableActions()
 {
     QVector<KeyAction*> actions;
 
-//    actions.append(&keyaction_KeyActionUnassignedNoAction);
+    actions.append(&keyaction_KeyActionUnassignedNoAction);
     actions.append(&keyaction_KeyActionPlaySong);
     actions.append(&keyaction_KeyActionStopSong);
     actions.append(&keyaction_KeyActionRestartSong);
