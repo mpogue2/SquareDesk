@@ -68,6 +68,28 @@ static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
 }
 
 
+static void RemoveAllOtherHotkeysFromTable(QTableWidget *tableWidgetKeyBindings,
+                                           int rowNewKey,
+                                           int colNewKey,
+                                           QKeySequence keySequenceNewKey)
+{
+    for (int row = 0; row < tableWidgetKeyBindings->rowCount(); ++row)
+    {
+        for (int col = 1; col < tableWidgetKeyBindings->columnCount(); ++col)
+        {
+            if (row != rowNewKey || col != colNewKey)
+            {
+                QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit*>(tableWidgetKeyBindings->cellWidget(row,col));
+                QKeySequence keySequence = keySequenceEdit->keySequence();
+                if (keySequence.toString() == keySequenceNewKey.toString())
+                {
+                    keySequenceEdit->clear();
+                }
+            }
+        }
+    }
+}
+
 
 // -------------------------------------------------------------------
 PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
@@ -121,17 +143,23 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
 
     QVector<KeyAction*> availableActions(KeyAction::availableActions());
 
-    ui->tableWidgetKeyBindings->setRowCount(availableActions.length());
+    QTableWidget *tableWidgetKeyBindings = ui->tableWidgetKeyBindings;
+
+    tableWidgetKeyBindings->setRowCount(availableActions.length());
     for (int row = 0; row < availableActions.length(); ++row)
     {
         QTableWidgetItem *newTableItem(new QTableWidgetItem(availableActions[row]->name()));
         newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);
-        ui->tableWidgetKeyBindings->setItem(row, 0, newTableItem);
+        tableWidgetKeyBindings->setItem(row, 0, newTableItem);
         
-        for (int col = 1; col < ui->tableWidgetKeyBindings->columnCount(); ++col)
+        for (int col = 1; col < tableWidgetKeyBindings->columnCount(); ++col)
         {
             QKeySequenceEdit *keySequenceEdit(new QKeySequenceEdit);
-            ui->tableWidgetKeyBindings->setCellWidget(row, col, keySequenceEdit);
+            tableWidgetKeyBindings->setCellWidget(row, col, keySequenceEdit);
+            connect(keySequenceEdit, &QKeySequenceEdit::editingFinished, this, [keySequenceEdit, tableWidgetKeyBindings, row, col]()
+                    {
+                        RemoveAllOtherHotkeysFromTable(tableWidgetKeyBindings, row, col, keySequenceEdit->keySequence());
+                    });
         }
     }
 
