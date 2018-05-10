@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -1229,7 +1229,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="11" column="1">
+         <item row="12" column="1">
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -1376,6 +1376,13 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
            <property name="text">
             <string>of patter,</string>
+           </property>
+          </widget>
+         </item>
+         <item row="11" column="1" colspan="2">
+          <widget class="QCheckBox" name="checkBoxExtendedFiltering">
+           <property name="text">
+            <string>Allow extended filtering ('-' excludes, '#' restricts to tags)</string>
            </property>
           </widget>
          </item>

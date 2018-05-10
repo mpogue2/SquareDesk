@@ -66,7 +66,6 @@
 #include "songtitlelabel.h"
 
 #include "danceprograms.h"
-#define CUSTOM_FILTER
 #include "startupwizard.h"
 #include "downloadmanager.h"
 
@@ -703,6 +702,7 @@ MainWindow::MainWindow(QWidget *parent) :
         showTimersTab = false;
     }
 
+    enableExtendedFiltering = prefsManager.GetenableExtendedFiltering();
     // ----------
     bool lyricsEnabled = true;
     showLyricsTab = true;
@@ -4710,7 +4710,7 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 }
 
 
-bool filterContains(QString str, const QStringList &list)
+bool filterContains(QString str, const QStringList &list, bool enableExtendedFiltering = false)
 {
     if (list.isEmpty())
         return true;
@@ -4723,13 +4723,41 @@ bool filterContains(QString str, const QStringList &list)
                 
     for (auto t : list)
     {
+        QString filterWord(t);
+        bool tagsOnly(false);
+        bool exclude(false);
+        if (enableExtendedFiltering)
+        {
+            while (filterWord.length() > 0 &&
+                   ('#' == filterWord[0] ||
+                    '-' == filterWord[0]))
+            {
+                tagsOnly = ('#' == filterWord[0]);
+                exclude = ('-' == filterWord[0]);
+                filterWord.remove(0,1);
+            }
+            if (filterWord.length() == 0)
+                continue;
+        }
+
         // Keywords can get matched in any order
         if (index > title_end)
             index = title_end;
-        int i = str.indexOf(t, index, Qt::CaseInsensitive);
+        int i = str.indexOf(filterWord,
+                            tagsOnly ? title_end : index,
+                            Qt::CaseInsensitive);
         if (i < 0)
-            return false;
-        index = i + t.length();
+        {
+            if (!exclude)
+                return false;
+        }
+        else
+        {
+            if (exclude)
+                return false;
+        }
+        if (!tagsOnly)
+            index = i + t.length();
     }
     return true;
 }
@@ -4737,7 +4765,6 @@ bool filterContains(QString str, const QStringList &list)
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
-#ifdef CUSTOM_FILTER
     QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
 
     QStringList label = ui->labelSearch->text().split(rx);
@@ -4760,7 +4787,7 @@ void MainWindow::filterMusic()
 
         if (!filterContains(songLabel,label)
             || !filterContains(songType, type)
-            || !filterContains(songTitle, title))
+            || !filterContains(songTitle, title, enableExtendedFiltering))
         {
             show = false;
         }
@@ -4778,10 +4805,6 @@ void MainWindow::filterMusic()
     } else {
         ui->songTable->clearSelection();
     }
-
-#else /* ifdef CUSTOM_FILTER */
-    loadMusicList();
-#endif /* else ifdef CUSTOM_FILTER */
 
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
@@ -4990,28 +5013,11 @@ void MainWindow::loadMusicList()
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
         QString labelPlusNumber = label + " " + labelnum;
-#ifndef CUSTOM_FILTER
-        if (ui->labelSearch->text() != "" &&
-                !labelPlusNumber.contains(QString(ui->labelSearch->text()),Qt::CaseInsensitive)) {
-            ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
-        }
-
-        if (ui->typeSearch->text() != "" && !type.contains(QString(ui->typeSearch->text()),Qt::CaseInsensitive)) {
-            ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
-        }
-
-        if (ui->titleSearch->text() != "" &&
-                !title.contains(QString(ui->titleSearch->text()),Qt::CaseInsensitive)) {
-            ui->songTable->setRowHidden(ui->songTable->rowCount()-1,true);
-        }
-#endif /* ifndef CUSTOM_FILTER */
     }
 
     QFont currentFont = ui->songTable->font();
     setSongTableFont(ui->songTable, currentFont);
-#ifdef CUSTOM_FILTER
     filterMusic();
-#endif /* ifdef CUSTOM_FILTER */
 
     sortByDefaultSortOrder();
     stopLongSongTableOperation("loadMusicList");  // for performance, sorting on again and show
@@ -5671,6 +5677,7 @@ void MainWindow::on_actionPreferences_triggered()
             showTimersTab = false;
         }
 
+        enableExtendedFiltering = prefsManager.GetenableExtendedFiltering();
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
         lyricsTabNumber = (showTimersTab ? 2 : 1);
