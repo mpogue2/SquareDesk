@@ -4745,7 +4745,7 @@ bool filterContains(QString str, const QStringList &list, bool enableExtendedFil
             if (exclude)
                 return false;
         }
-        if (!tagsOnly)
+        if (!tagsOnly && !exclude)
             index = i + t.length();
     }
     return true;
@@ -4774,8 +4774,8 @@ void MainWindow::filterMusic()
 
         bool show = true;
 
-        if (!filterContains(songLabel,label)
-            || !filterContains(songType, type)
+        if (!filterContains(songLabel,label, enableExtendedFiltering)
+            || !filterContains(songType, type, enableExtendedFiltering)
             || !filterContains(songTitle, title, enableExtendedFiltering))
         {
             show = false;
