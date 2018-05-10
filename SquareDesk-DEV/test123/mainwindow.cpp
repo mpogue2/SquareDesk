@@ -3388,6 +3388,21 @@ void MainWindow::actionNextTab()
     }
 }
 
+
+void MainWindow::actionSwitchToTab(const char *tabname)
+{
+    for (int tabnum = 0; tabnum < ui->tabWidget->count(); ++tabnum)
+    {
+        QString tabTitle = ui->tabWidget->tabText(tabnum);
+        if (tabTitle.contains(tabname))
+        {
+            ui->tabWidget->setCurrentIndex(tabnum);
+            return;
+        }
+    }
+}
+
+
 // ----------------------------------------------------------------------
 bool MainWindow::handleKeypress(int key, QString text)
 {

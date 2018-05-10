@@ -48,6 +48,13 @@ const char * keyActionName_TestLoop = "Test Loop";
 const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
 const char * keyActionName_PlaySong = "Play/Pause Song";
 
+const char * keyActionName_SwitchToMusicTab = "Switch to Music Tab";
+const char * keyActionName_SwitchToTimersTab = "Switch to Timers Tab";
+const char * keyActionName_SwitchToLyricsTab = "Switch to Lyrics/Patter Tab";
+const char * keyActionName_SwitchToSDTab = "Switch to SD Tab";
+const char * keyActionName_SwitchToDanceProgramsTab = "Switch to Dance Programs Tab";
+const char * keyActionName_SwitchToReferenceTab = "Switch to Reference Tab";
+
 // ----------------------------------------------------------------------
 
 class KeyActionUnassignedNoAction : public KeyAction {
@@ -321,6 +328,92 @@ void KeyActionNextTab::doAction(MainWindow *mw) {
 };
 
 
+class KeyActionSwitchToMusicTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToMusicTab::name() {
+    return keyActionName_SwitchToMusicTab;
+};
+void KeyActionSwitchToMusicTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Music");
+};
+
+
+class KeyActionSwitchToTimersTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToTimersTab::name() {
+    return keyActionName_SwitchToTimersTab;
+};
+void KeyActionSwitchToTimersTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Timers");
+};
+
+
+class KeyActionSwitchToLyricsTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToLyricsTab::name() {
+    return keyActionName_SwitchToLyricsTab;
+};
+void KeyActionSwitchToLyricsTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Lyrics");
+    mw->actionSwitchToTab("Patter");
+};
+
+
+class KeyActionSwitchToSDTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToSDTab::name() {
+    return keyActionName_SwitchToSDTab;
+};
+void KeyActionSwitchToSDTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("SD");
+};
+
+
+class KeyActionSwitchToDanceProgramsTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToDanceProgramsTab::name() {
+    return keyActionName_SwitchToDanceProgramsTab;
+};
+void KeyActionSwitchToDanceProgramsTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Dance Programs");
+};
+
+
+class KeyActionSwitchToReferenceTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToReferenceTab::name() {
+    return keyActionName_SwitchToReferenceTab;
+};
+void KeyActionSwitchToReferenceTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Reference");
+};
+
+
+
 
 // --------------------------------------------------------------------
 static KeyActionUnassignedNoAction keyaction_KeyActionUnassignedNoAction;
@@ -341,6 +434,12 @@ static KeyActionFadeOut  keyaction_KeyActionFadeOut ;
 static KeyActionLoopToggle keyaction_KeyActionLoopToggle;
 static KeyActionTestLoop keyaction_KeyActionTestLoop;
 static KeyActionNextTab keyaction_KeyActionNextTab;
+static KeyActionSwitchToMusicTab keyaction_KeyActionSwitchToMusicTab;
+static KeyActionSwitchToTimersTab keyaction_KeyActionSwitchToTimersTab;
+static KeyActionSwitchToLyricsTab keyaction_KeyActionSwitchToLyricsTab;
+static KeyActionSwitchToSDTab keyaction_KeyActionSwitchToSDTab;
+static KeyActionSwitchToDanceProgramsTab keyaction_KeyActionSwitchToDanceProgramsTab;
+static KeyActionSwitchToReferenceTab keyaction_KeyActionSwitchToReferenceTab;
 
 
 KeyAction::KeyAction() : mw(NULL)
@@ -384,6 +483,12 @@ QVector<KeyAction*> KeyAction::availableActions()
 
     actions.append(&keyaction_KeyActionNextTab);
 
+    actions.append(&keyaction_KeyActionSwitchToMusicTab);
+    actions.append(&keyaction_KeyActionSwitchToTimersTab);
+    actions.append(&keyaction_KeyActionSwitchToLyricsTab);
+    actions.append(&keyaction_KeyActionSwitchToSDTab);
+    actions.append(&keyaction_KeyActionSwitchToDanceProgramsTab);
+    actions.append(&keyaction_KeyActionSwitchToReferenceTab);
     return actions;
 }
 
