@@ -782,10 +782,12 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34);
         ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
+        ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
 #elif defined(Q_OS_LINUX)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,40);
         ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 24);
         ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100);
+        ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200);
 #endif
         ui->tableWidgetCallList->verticalHeader()->setVisible(false);  // turn off row numbers (we already have the Teach order, which is #'s)
 
@@ -795,7 +797,8 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setSectionResizeMode(kCallListCheckedCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListNameCol, QHeaderView::Stretch);
         headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
-        headerView->setStretchLastSection(false);
+        headerView->setSectionResizeMode(kCallListTimingCol, QHeaderView::Stretch);
+        headerView->setStretchLastSection(true);
         QString lastDanceProgram(settings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
     }
@@ -1016,8 +1019,9 @@ void MainWindow::setCurrentSessionIdReloadSongAgesCheckMenu(int id)
 }
 
 static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
-                              const QString &number, const QString &name,
-                              const QString &taughtOn)
+                                            const QString &number, const QString &name,
+                                            const QString &taughtOn,
+                                            const QString &timing)
 {
     int initialRowCount = tableWidget->rowCount();
     tableWidget->setRowCount(initialRowCount + 1);
@@ -1026,12 +1030,15 @@ static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
     QTableWidgetItem *numberItem = new QTableWidgetItem(number);
     numberItem->setTextAlignment(Qt::AlignCenter);  // center the #'s in the Teach column
     QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+    QTableWidgetItem *timingItem = new QTableWidgetItem(timing);
 
     numberItem->setFlags(numberItem->flags() & ~Qt::ItemIsEditable);
     nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
+    timingItem->setFlags(timingItem->flags() & ~Qt::ItemIsEditable);
 
     tableWidget->setItem(row, kCallListOrderCol, numberItem);
     tableWidget->setItem(row, kCallListNameCol, nameItem);
+    tableWidget->setItem(row, kCallListTimingCol, timingItem);
 
     QTableWidgetItem *dateItem = new QTableWidgetItem(taughtOn);
     dateItem->setFlags(dateItem->flags() | Qt::ItemIsEditable);
@@ -1050,6 +1057,46 @@ static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
     tableWidget->setCellWidget(row, kCallListCheckedCol, widget );;
     checkbox->setRow(row);
     return checkbox;
+}
+
+static QString findTimingForCall(QString danceProgram, const QString &call)
+{
+    int score = 0;
+    QString timing;
+    if (0 == danceProgram.compare("basic1", Qt::CaseInsensitive))
+        danceProgram = "b1";
+    if (0 == danceProgram.compare("basic2", Qt::CaseInsensitive))
+        danceProgram = "b2";
+    if (0 == danceProgram.compare("mainstream", Qt::CaseInsensitive))
+        danceProgram = "ms";
+        
+    for (int i = 0; danceprogram_callinfo[i].name; ++i)
+    {
+        if ((0 == danceProgram.compare(danceprogram_callinfo[i].program, Qt::CaseInsensitive))
+            && (0 == call.compare(danceprogram_callinfo[i].name, Qt::CaseInsensitive)))
+        {
+            if (danceprogram_callinfo[i].timing)
+            {
+                timing = danceprogram_callinfo[i].timing;
+                break;
+            }
+        }
+        if (call.startsWith(danceprogram_callinfo[i].name, Qt::CaseInsensitive))
+        {
+            int thisScore = 100 - abs(call.length() - QString(danceprogram_callinfo[i].name).length());
+            if (0 == call.compare(danceprogram_callinfo[i].name, Qt::CaseInsensitive))
+                thisScore += 100;
+            if (thisScore > score)
+            {
+                if (danceprogram_callinfo[i].timing)
+                {
+                    timing = danceprogram_callinfo[i].timing;
+                    score = thisScore;
+                }
+            }
+        }
+    } /* end of iterating through call info */
+    return timing;
 }
 
 void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
@@ -1083,7 +1130,7 @@ void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWid
                 name = match.captured(4);
             }
             QString taughtOn = songSettings.getCallTaughtOn(danceProgram, name);
-            CallListCheckBox *checkbox = AddItemToCallList(tableWidget, number, name, taughtOn);
+            CallListCheckBox *checkbox = AddItemToCallList(tableWidget, number, name, taughtOn, findTimingForCall(danceProgram, name));
             checkbox->setMainWindow(this);
 
         }
@@ -8355,6 +8402,7 @@ void MainWindow::adjustFontSizes()
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67*(currentMacPointSize/13.0));
     ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, 34*(currentMacPointSize/13.0));
     ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, 100*(currentMacPointSize/13.0));
+    ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, 200*(currentMacPointSize/13.0));
 
     // these are special -- don't want them to get too big, even if user requests huge fonts
     currentFont.setPointSize(currentFontPointSize > maxEQsize ? maxEQsize : currentFontPointSize);  // no bigger than 20pt

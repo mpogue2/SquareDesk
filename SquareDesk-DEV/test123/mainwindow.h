@@ -835,6 +835,7 @@ public:
 #define kCallListCheckedCol     1
 #define kCallListNameCol        2
 #define kCallListWhenCheckedCol 3
+#define kCallListTimingCol      4
 
 
 // ---------------------------------------------

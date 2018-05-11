@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1766,6 +1766,11 @@
             <column>
              <property name="text">
               <string>Completed</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Timing</string>
              </property>
             </column>
            </widget>

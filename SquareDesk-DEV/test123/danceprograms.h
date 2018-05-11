@@ -33,5 +33,11 @@ extern const char *danceprogram_plus[];
 extern const char *danceprogram_a1[];
 extern const char *danceprogram_a2[];
 
+struct DanceProgramCallInfo {
+    const char * program;
+    const char * name;
+    const char * timing;
+};
+extern const struct DanceProgramCallInfo danceprogram_callinfo[];
 #endif // ifndef DANCEPROGRAMS_H_INCLUDED
 
