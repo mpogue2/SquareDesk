@@ -34,7 +34,17 @@
 #include <QClipboard>
 #include <QtSvg/QSvgGenerator>
 #include "common.h"
+#include "danceprograms.h"
 #include "../sdlib/database.h"
+
+
+#define NO_TIMING_INFO 1
+
+static const int kColCurrentSequenceCall = 0;
+static const int kColCurrentSequenceFormation = 1;
+#ifndef NO_TIMING_INFO
+static const int kColCurrentSequenceTiming = 2;
+#endif
 
 static const double dancerGridSize = 16;
 static const double backgroundSquareCount = 8;
@@ -422,7 +432,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
         int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
 
         render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
-        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row, kColCurrentSequenceCall);
         item->setData(Qt::UserRole, QVariant(formation));
         /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
@@ -637,9 +647,37 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
+
+#ifdef NO_TIMING_INFO
                 QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
-                ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, 0, moveItem);
+                ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
+#else
+                QString lastCall = match.captured(2).toHtmlEscaped();
+                int longestMatchLength = 0;
+                QString callTiming;
+                
+                for (int i = 0 ; danceprogram_callinfo[i].name; ++i)
+                {
+                    if (danceprogram_callinfo[i].timing)
+                    {
+                        QString thisCallName(danceprogram_callinfo[i].name);
+                        if (lastCall.contains(thisCallName, Qt::CaseInsensitive)
+                            && thisCallName.length() > longestMatchLength)
+                        {
+                            longestMatchLength = thisCallName.length();
+                            callTiming = danceprogram_callinfo[i].timing;
+                        }
+                    }
+                }
+                if (!callTiming.isEmpty())
+                {
+                    lastCall += "\n<small>" + callTiming + "</small>";
+                }
+                QLabel *moveLabel(new QLabel(lastCall));
+                moveLabel->setTextFormat(Qt::RichText);
+                ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveLabel);
+#endif
             }
         }
 
@@ -717,9 +755,11 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     item->setData(Qt::DecorationRole,image);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
-    ui->tableWidgetCurrentSequence->setItem(row, 1, item);
-    QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,0);
+    ui->tableWidgetCurrentSequence->setItem(row, kColCurrentSequenceFormation, item);
+#ifdef NO_TIMING_INFO
+    QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
     textItem->setData(Qt::UserRole, QVariant(formation));
+#endif
 }
 
 void MainWindow::set_current_sequence_icons_visible(bool visible)
@@ -734,7 +774,7 @@ void MainWindow::set_current_sequence_icons_visible(bool visible)
         QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
         verticalHeader->setDefaultSectionSize(initialTableWidgetCurrentSequenceDefaultSectionSize);
     }
-    ui->tableWidgetCurrentSequence->setColumnHidden(1,!visible);
+    ui->tableWidgetCurrentSequence->setColumnHidden(kColCurrentSequenceFormation,!visible);
 }
 
 void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
@@ -1344,9 +1384,9 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
         }
         if (selected)
         {
-            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
             selection += "<li><b>" + item->text().toHtmlEscaped() + "</b>";
-            QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,1);
+            QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation);
             if (1 || imageItem->isSelected())
             {
                 QVariant v = imageItem->data(Qt::UserRole);
