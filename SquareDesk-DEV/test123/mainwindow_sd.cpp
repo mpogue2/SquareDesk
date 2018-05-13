@@ -44,6 +44,7 @@ static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
 #ifndef NO_TIMING_INFO
 static const int kColCurrentSequenceTiming = 2;
+#include "sdsequencecalllabel.h"
 #endif
 
 static const double dancerGridSize = 16;
@@ -389,24 +390,6 @@ void MainWindow::initialize_internal_sd_tab()
 }
 
 
-void MainWindow::sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */)
-{
-    QItemSelectionModel *selectionModel = ui->listWidgetSDOutput->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
-        QTableWidgetItem *textItem(ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation));
-        on_tableWidgetCurrentSequence_itemDoubleClicked(textItem);
-    }
-    else {
-        // more than 1 row or no rows at all selected (BAD)
-    }
-    
-}
-
 void MainWindow::on_threadSD_errorString(QString /* str */)
 {
 }
@@ -449,8 +432,10 @@ void MainWindow::on_sd_update_status_bar(QString str)
         int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
 
         render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
+#ifdef NO_TIMING_INFO
         QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row, kColCurrentSequenceCall);
         item->setData(Qt::UserRole, QVariant(formation));
+#endif /* ifdef NO_TIMING_INFO */
         /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
     sdformation.clear();
@@ -667,12 +652,14 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
 
+                qDebug() << "Possibly adding line with " << str;
+                qDebug() << "  " << sdLastLine << " / " << match.captured(2) << " / " << move;
 #ifdef NO_TIMING_INFO
                 QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
 #else
-                QString lastCall = match.captured(2).toHtmlEscaped();
+                QString lastCall("&nbsp;" + match.captured(2).toHtmlEscaped());
                 int longestMatchLength = 0;
                 QString callTiming;
                 
@@ -691,10 +678,12 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
                 if (!callTiming.isEmpty())
                 {
-                    lastCall += "\n<small>" + callTiming + "</small>";
+//                    lastCall += "\n<br><small>&nbsp;&nbsp;" + callTiming + "</small>";
                 }
-                QLabel *moveLabel(new QLabel(lastCall));
-                moveLabel->setTextFormat(Qt::RichText);
+                QLabel *moveLabel(new SDSequenceCallLabel(this));
+//                moveLabel->setTextFormat(Qt::RichText);
+                qDebug() << "Setting move label to " << lastCall;
+                moveLabel->setText(lastCall);
                 ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveLabel);
 #endif
             }
@@ -809,6 +798,25 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
     qDebug() << "Highlighting replacebales";
     highlight_sd_replaceables();
 }
+
+void MainWindow::sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */)
+{
+    QItemSelectionModel *selectionModel = ui->listWidgetSDOutput->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+        QTableWidgetItem *textItem(ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation));
+        on_tableWidgetCurrentSequence_itemDoubleClicked(textItem);
+    }
+    else {
+        // more than 1 row or no rows at all selected (BAD)
+    }
+    
+}
+
 
 void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 {
