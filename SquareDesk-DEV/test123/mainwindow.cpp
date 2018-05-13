@@ -2803,7 +2803,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 //                     << "sectionName[section]: " << sectionName[section];
         }
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
         // FLASH CALL FEATURE ======================================
         int flashCallEverySeconds = prefsManager.Getflashcalltiming().toInt();
         if (currentPos_i % flashCallEverySeconds == 0 && currentPos_i != 0) {
@@ -2841,7 +2840,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                 flashCallsVisible = false;
             }
         }
-#endif
     }
     else {
         SetSeekBarNoSongLoaded(ui->seekBar);
@@ -9181,16 +9179,31 @@ void MainWindow::readFlashCallsList() {
     QString appPath = QApplication::applicationFilePath();
     QString allcallsPath = appPath + "/Contents/Resources/allcalls.csv";
     allcallsPath.replace("Contents/MacOS/SquareDesk/","");
-#endif
-
-#if defined(Q_OS_WIN32)
+#elif defined(Q_OS_WIN32)
     // TODO: There has to be a better way to do this.
     QString appPath = QApplication::applicationFilePath();
     QString allcallsPath = appPath + "/allcalls.csv";
     allcallsPath.replace("SquareDesk.exe/","");
+#else
+    QString allcallsPath = "allcalls.csv";
+    // Linux
+    QStringList paths;
+    paths.append(QApplication::applicationFilePath());
+    paths.append("/usr/share/SquareDesk");
+    paths.append(".");
+
+    for (auto path : paths)
+    {
+        QString filename(path + "/allcalls.csv");
+        QFileInfo check_file(filename);
+        if (check_file.exists() && check_file.isFile())
+        {
+            allcallsPath = filename;
+            break;
+        }
+    }
 #endif
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open 'allcalls.csv' file.";
@@ -9218,7 +9231,7 @@ void MainWindow::readFlashCallsList() {
             flashCalls.append(call);
         }
     }
-
+    qDebug() << "Flash calls" << flashCalls;
     qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
     if (flashCalls.length() == 0) {
         randCallIndex = 0;
@@ -9228,8 +9241,6 @@ void MainWindow::readFlashCallsList() {
 
 //    qDebug() << "flashCalls: " << flashCalls;
 //    qDebug() << "randCallIndex: " << randCallIndex;
-
-#endif
 }
 
 // -------------------------------------
