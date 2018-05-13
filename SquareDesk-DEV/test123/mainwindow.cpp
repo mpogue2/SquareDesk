@@ -327,8 +327,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->titleSearch->setClearButtonEnabled(enableClearButtons);
 
     // ------------
-    // NOTE: MAC OS X ONLY
-#if defined(Q_OS_MAC)
+    // NOTE: MAC OS X & Linux ONLY
+#if !defined(Q_OS_WIN)
     QAction *aboutAct = new QAction(QIcon(), tr("&About SquareDesk..."), this);
     aboutAct->setStatusTip(tr("SquareDesk Information"));
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(aboutBox()));
