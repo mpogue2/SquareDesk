@@ -453,7 +453,10 @@ void MainWindow::sd_end_available_call_list_output()
         QString call_text(available_call.call_name);
         if (sdLevelEnumsToStrings.end() != sdLevelEnumsToStrings.find(available_call.dance_program))
         {
-            call_text += " - " + sdLevelEnumsToStrings[available_call.dance_program];
+            if (available_call.dance_program != l_nonexistent_concept)
+            {
+                call_text += " - " + sdLevelEnumsToStrings[available_call.dance_program];
+            }
         }
         else
         {
@@ -831,7 +834,8 @@ void MainWindow::do_sd_tab_completion()
         {
             prefix = prefix + " ";
         }
-        QString new_line(prefix + longestMatch);
+        QString new_line(longestMatch.startsWith(prefix) ? longestMatch : (prefix + longestMatch));
+
         if (new_line.contains('<'))
         {
             new_line = new_line.left(new_line.indexOf('<'));
