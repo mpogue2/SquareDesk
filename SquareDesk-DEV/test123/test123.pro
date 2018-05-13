@@ -60,6 +60,7 @@ SOURCES += main.cpp\
     sdinterface.cpp \
     mainwindow_sd.cpp \
     songtitlelabel.cpp \
+    sdsequencecalllabel.cpp \
     perftimer.cpp \
     mydatetimeedit.cpp
 
@@ -104,6 +105,7 @@ HEADERS  += mainwindow.h \
     downloadmanager.h \
     sdinterface.h \
     songtitlelabel.h \
+    sdsequencecalllabel.h \
     perftimer.h \
     mydatetimeedit.h
 

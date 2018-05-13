@@ -474,6 +474,7 @@ public:
     void highlight_sd_replaceables();
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
+    void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
 private:
 
     bool flashCallsVisible;

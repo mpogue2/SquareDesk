@@ -389,6 +389,23 @@ void MainWindow::initialize_internal_sd_tab()
 }
 
 
+void MainWindow::sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */)
+{
+    QItemSelectionModel *selectionModel = ui->listWidgetSDOutput->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+        QTableWidgetItem *textItem(ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation));
+        on_tableWidgetCurrentSequence_itemDoubleClicked(textItem);
+    }
+    else {
+        // more than 1 row or no rows at all selected (BAD)
+    }
+    
+}
 
 void MainWindow::on_threadSD_errorString(QString /* str */)
 {
@@ -494,6 +511,7 @@ void MainWindow::highlight_sd_replaceables()
 
     if (!(call.contains("<") && call.contains(">")))
     {
+        qDebug() << "No <>, return pressed";
         on_lineEditSDInput_returnPressed();
         ui->lineEditSDInput->setFocus();
     }
@@ -544,7 +562,8 @@ void MainWindow::highlight_sd_replaceables()
             on_lineEditSDInput_returnPressed();
         }
         if (selectedText == "<ANYTHING>")
-        { 
+        {
+            ui->lineEditSDInput->insert("");
             on_lineEditSDInput_returnPressed();
         }
         if (selectedText == "<ANYONE>")
@@ -785,7 +804,9 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
     {
         call = calls[0];
     }
+    qDebug() << "Double click " << call;
     ui->lineEditSDInput->setText(call);
+    qDebug() << "Highlighting replacebales";
     highlight_sd_replaceables();
 }
 
