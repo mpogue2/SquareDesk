@@ -857,9 +857,9 @@ static QString get_longest_match_from_list_widget(QListWidget *listWidget,
     for (int i = 0; i < listWidget->count(); ++i)
     {
         if ((listWidget->item(i)->text().startsWith(callSearch,
-                                                                 Qt::CaseInsensitive)
+                                                    Qt::CaseInsensitive)
              || listWidget->item(i)->text().startsWith(originalText,
-                                                                    Qt::CaseInsensitive))
+                                                       Qt::CaseInsensitive))
             && !listWidget->isRowHidden(i))
         {
             if (longestMatch.isEmpty())
@@ -903,7 +903,7 @@ void MainWindow::do_sd_tab_completion()
         {
             prefix = prefix + " ";
         }
-        QString new_line(longestMatch.startsWith(prefix) ? longestMatch : (prefix + longestMatch));
+        QString new_line((longestMatch.startsWith(prefix)) ? longestMatch : (prefix + longestMatch));
 
         if (new_line.contains('<'))
         {
