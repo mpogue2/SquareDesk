@@ -4778,7 +4778,7 @@ bool filterContains(QString str, const QStringList &list, bool enableExtendedFil
         if (index > title_end)
             index = title_end;
         int i = str.indexOf(filterWord,
-                            tagsOnly ? title_end : index,
+                            tagsOnly ? title_end : (exclude ? 0 : index),
                             Qt::CaseInsensitive);
         if (i < 0)
         {
