@@ -164,7 +164,7 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     }
 
     ui->tableWidgetKeyBindings->resizeColumnToContents(0);
-    ui->tableWidgetKeyBindings->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->tableWidgetKeyBindings->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
@@ -417,26 +417,26 @@ void PreferencesDialog::setHotkeys(QHash<QString, KeyAction *> keyActions)
     {
         QString actionName(ui->tableWidgetKeyBindings->item(row, 0)->text());
         auto keyAction = keysByActionName.find(actionName);
+        QStringList keys;
         if (keyAction != keysByActionName.end())
-        {
-            QStringList keys(keyAction.value());
-            std::sort(keys.begin(), keys.end(), LongStringsFirstThenAlpha);
-            for (int col = 1;
-                 col < ui->tableWidgetKeyBindings->columnCount();
-                 ++col)
-                 {
-                     QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit *>(ui->tableWidgetKeyBindings->cellWidget(row, col));
+            keys = keyAction.value();
+        std::sort(keys.begin(), keys.end(), LongStringsFirstThenAlpha);
 
-                     if (col <= keys.length())
-                     {
-                         QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
-                         keySequenceEdit->setKeySequence(sequence);
-                     }
-                     else
-                     {
-                         keySequenceEdit->setKeySequence(QKeySequence());
-                     }
-                 }
+        for (int col = 1;
+             col < ui->tableWidgetKeyBindings->columnCount();
+             ++col)
+        {
+            QKeySequenceEdit *keySequenceEdit = dynamic_cast<QKeySequenceEdit *>(ui->tableWidgetKeyBindings->cellWidget(row, col));
+
+            if (col <= keys.length())
+            {
+                QKeySequence sequence(QKeySequence::fromString(keys[col - 1]));
+                keySequenceEdit->setKeySequence(sequence);
+            }
+            else
+            {
+                keySequenceEdit->setKeySequence(QKeySequence());
+            }
         }
     }
 }
