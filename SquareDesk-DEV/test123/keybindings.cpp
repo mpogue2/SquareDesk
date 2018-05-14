@@ -29,24 +29,31 @@
 
 
 
-static const char * keyActionName_UnassignedNoAction = "<unassigned>";
-static const char * keyActionName_StopSong = "Stop Song";
-static const char * keyActionName_RestartSong = "Restart Song";
-static const char * keyActionName_Forward15Seconds = "Forward 15 Seconds";
-static const char * keyActionName_Backward15Seconds = "Backward 15 Seconds";
-static const char * keyActionName_VolumeMinus = "Volume -";
-static const char * keyActionName_VolumePlus = "Volume +";
-static const char * keyActionName_TempoPlus = "Tempo +";
-static const char * keyActionName_TempoMinus = "Tempo -";
-static const char * keyActionName_PlayNext = "Load Next Song";
-static const char * keyActionName_Mute = "Mute";
-static const char * keyActionName_PitchPlus = "Pitch +";
-static const char * keyActionName_PitchMinus = "Pitch -";
-static const char * keyActionName_FadeOut  = "Fade Out";
-static const char * keyActionName_LoopToggle = "Loop Toggle";
-static const char * keyActionName_TestLoop = "Test Loop";
-static const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
-static const char * keyActionName_PlaySong = "Play/Pause Song";
+const char * keyActionName_UnassignedNoAction = "<unassigned>";
+const char * keyActionName_StopSong = "Stop Song";
+const char * keyActionName_RestartSong = "Restart Song";
+const char * keyActionName_Forward15Seconds = "Forward 15 Seconds";
+const char * keyActionName_Backward15Seconds = "Backward 15 Seconds";
+const char * keyActionName_VolumeMinus = "Volume -";
+const char * keyActionName_VolumePlus = "Volume +";
+const char * keyActionName_TempoPlus = "Tempo +";
+const char * keyActionName_TempoMinus = "Tempo -";
+const char * keyActionName_PlayNext = "Load Next Song";
+const char * keyActionName_Mute = "Mute";
+const char * keyActionName_PitchPlus = "Pitch +";
+const char * keyActionName_PitchMinus = "Pitch -";
+const char * keyActionName_FadeOut  = "Fade Out";
+const char * keyActionName_LoopToggle = "Loop Toggle";
+const char * keyActionName_TestLoop = "Test Loop";
+const char * keyActionName_NextTab = "Toggle Music/Lyrics Tab ";
+const char * keyActionName_PlaySong = "Play/Pause Song";
+
+const char * keyActionName_SwitchToMusicTab = "Switch to Music Tab";
+const char * keyActionName_SwitchToTimersTab = "Switch to Timers Tab";
+const char * keyActionName_SwitchToLyricsTab = "Switch to Lyrics/Patter Tab";
+const char * keyActionName_SwitchToSDTab = "Switch to SD Tab";
+const char * keyActionName_SwitchToDanceProgramsTab = "Switch to Dance Programs Tab";
+const char * keyActionName_SwitchToReferenceTab = "Switch to Reference Tab";
 
 // ----------------------------------------------------------------------
 
@@ -321,6 +328,92 @@ void KeyActionNextTab::doAction(MainWindow *mw) {
 };
 
 
+class KeyActionSwitchToMusicTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToMusicTab::name() {
+    return keyActionName_SwitchToMusicTab;
+};
+void KeyActionSwitchToMusicTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Music");
+};
+
+
+class KeyActionSwitchToTimersTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToTimersTab::name() {
+    return keyActionName_SwitchToTimersTab;
+};
+void KeyActionSwitchToTimersTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Timers");
+};
+
+
+class KeyActionSwitchToLyricsTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToLyricsTab::name() {
+    return keyActionName_SwitchToLyricsTab;
+};
+void KeyActionSwitchToLyricsTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Lyrics");
+    mw->actionSwitchToTab("Patter");
+};
+
+
+class KeyActionSwitchToSDTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToSDTab::name() {
+    return keyActionName_SwitchToSDTab;
+};
+void KeyActionSwitchToSDTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("SD");
+};
+
+
+class KeyActionSwitchToDanceProgramsTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToDanceProgramsTab::name() {
+    return keyActionName_SwitchToDanceProgramsTab;
+};
+void KeyActionSwitchToDanceProgramsTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Dance Programs");
+};
+
+
+class KeyActionSwitchToReferenceTab : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionSwitchToReferenceTab::name() {
+    return keyActionName_SwitchToReferenceTab;
+};
+void KeyActionSwitchToReferenceTab::doAction(MainWindow *mw) {
+    mw->actionSwitchToTab("Reference");
+};
+
+
+
 
 // --------------------------------------------------------------------
 static KeyActionUnassignedNoAction keyaction_KeyActionUnassignedNoAction;
@@ -341,10 +434,27 @@ static KeyActionFadeOut  keyaction_KeyActionFadeOut ;
 static KeyActionLoopToggle keyaction_KeyActionLoopToggle;
 static KeyActionTestLoop keyaction_KeyActionTestLoop;
 static KeyActionNextTab keyaction_KeyActionNextTab;
+static KeyActionSwitchToMusicTab keyaction_KeyActionSwitchToMusicTab;
+static KeyActionSwitchToTimersTab keyaction_KeyActionSwitchToTimersTab;
+static KeyActionSwitchToLyricsTab keyaction_KeyActionSwitchToLyricsTab;
+static KeyActionSwitchToSDTab keyaction_KeyActionSwitchToSDTab;
+static KeyActionSwitchToDanceProgramsTab keyaction_KeyActionSwitchToDanceProgramsTab;
+static KeyActionSwitchToReferenceTab keyaction_KeyActionSwitchToReferenceTab;
 
 
-KeyAction::KeyAction()
+KeyAction::KeyAction() : mw(NULL)
 {
+}
+
+KeyAction::~KeyAction()
+{
+}
+
+
+void KeyAction::do_activated()
+{
+    if (mw)
+        doAction(mw);
 }
 
 QVector<KeyAction*> KeyAction::availableActions()
@@ -373,90 +483,73 @@ QVector<KeyAction*> KeyAction::availableActions()
 
     actions.append(&keyaction_KeyActionNextTab);
 
+    actions.append(&keyaction_KeyActionSwitchToMusicTab);
+    actions.append(&keyaction_KeyActionSwitchToTimersTab);
+    actions.append(&keyaction_KeyActionSwitchToLyricsTab);
+    actions.append(&keyaction_KeyActionSwitchToSDTab);
+    actions.append(&keyaction_KeyActionSwitchToDanceProgramsTab);
+    actions.append(&keyaction_KeyActionSwitchToReferenceTab);
     return actions;
 }
 
-QVector<Qt::Key> KeyAction::mappableKeys()
-{
-    QVector<Qt::Key> keys;
-    keys.append( Qt::Key_End );
-    keys.append( Qt::Key_Space );
-    keys.append( Qt::Key_Home );
-    keys.append( Qt::Key_Period );
-    keys.append( Qt::Key_Right );
-    keys.append( Qt::Key_Left );
-    keys.append( Qt::Key_Down );
-    keys.append( Qt::Key_Up );
-    keys.append( Qt::Key_Plus );
-    keys.append( Qt::Key_Minus );
-    keys.append( Qt::Key_A );
-    keys.append( Qt::Key_B );
-    keys.append( Qt::Key_C );
-    keys.append( Qt::Key_D );
-    keys.append( Qt::Key_E );
-    keys.append( Qt::Key_F );
-    keys.append( Qt::Key_G );
-    keys.append( Qt::Key_H );
-    keys.append( Qt::Key_I );
-    keys.append( Qt::Key_J );
-    keys.append( Qt::Key_K );
-    keys.append( Qt::Key_L );
-    keys.append( Qt::Key_M );
-    keys.append( Qt::Key_N );
-    keys.append( Qt::Key_O );
-    keys.append( Qt::Key_P );
-    keys.append( Qt::Key_Q );
-    keys.append( Qt::Key_R );
-    keys.append( Qt::Key_S );
-    keys.append( Qt::Key_T );
-    keys.append( Qt::Key_U );
-    keys.append( Qt::Key_V );
-    keys.append( Qt::Key_Y );
-    keys.append( Qt::Key_W );
-    keys.append( Qt::Key_X );
-    keys.append( Qt::Key_Y );
-    keys.append( Qt::Key_Z );
+static QHash<QString, KeyAction*> actionNameToActionMap;
 
-    return keys;
-}
 
 QHash<QString, KeyAction*> KeyAction::actionNameToActionMappings()
 {
-    QHash<QString, KeyAction*> actionMappings;
-    QVector<KeyAction*> actions(availableActions());
-
-    for (auto action = actions.begin(); action != actions.end(); ++action)
+    if (actionNameToActionMap.empty())
     {
-        actionMappings[(*action)->name()] = *action;
+        QVector<KeyAction*> actions(availableActions());
+
+        for (auto action = actions.begin(); action != actions.end(); ++action)
+        {
+            actionNameToActionMap[(*action)->name()] = *action;
+        }
     }
-    return actionMappings;
+    return actionNameToActionMap;
+}
+
+KeyAction * KeyAction::actionByName(const QString &name)
+{
+    if (actionNameToActionMap.empty())
+    {
+        actionNameToActionMappings();
+    }
+    return actionNameToActionMap[name];
 }
 
 
-QHash<Qt::Key, KeyAction *> KeyAction::defaultKeyToActionMappings()
-{
-    QHash<Qt::Key, KeyAction *> keyMappings;
+QHash<QString, KeyAction *>menuKeyMappings;
 
-    keyMappings[Qt::Key_End] = &keyaction_KeyActionStopSong;
-    keyMappings[Qt::Key_Space] = &keyaction_KeyActionPlaySong;
-    keyMappings[Qt::Key_Home] = &keyaction_KeyActionRestartSong;
-    keyMappings[Qt::Key_Period] = &keyaction_KeyActionRestartSong;
-    keyMappings[Qt::Key_Right] = &keyaction_KeyActionForward15Seconds;
-    keyMappings[Qt::Key_Left] = &keyaction_KeyActionBackward15Seconds;
-    keyMappings[Qt::Key_Down] = &keyaction_KeyActionVolumeMinus;
-    keyMappings[Qt::Key_Up] = &keyaction_KeyActionVolumePlus;
-    keyMappings[Qt::Key_Plus] = &keyaction_KeyActionTempoPlus;
-    keyMappings[Qt::Key_Minus] = &keyaction_KeyActionTempoMinus;
-    keyMappings[Qt::Key_D] = &keyaction_KeyActionPitchMinus;
-    keyMappings[Qt::Key_K] = &keyaction_KeyActionPlayNext;
-    keyMappings[Qt::Key_L] = &keyaction_KeyActionLoopToggle;
-    keyMappings[Qt::Key_M] = &keyaction_KeyActionMute;
-    keyMappings[Qt::Key_P] = &keyaction_KeyActionPlaySong;
-    keyMappings[Qt::Key_Q] = &keyaction_KeyActionTestLoop;
-    keyMappings[Qt::Key_S] = &keyaction_KeyActionStopSong;
-    keyMappings[Qt::Key_T] = &keyaction_KeyActionNextTab;
-    keyMappings[Qt::Key_U] = &keyaction_KeyActionPitchPlus;
-    keyMappings[Qt::Key_Y] = &keyaction_KeyActionFadeOut;
+void KeyAction::setKeybindingsFromMenuObjects(const QHash<QString, KeyAction *> &keyMappings)
+{
+    menuKeyMappings = keyMappings;
+}
+
+QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
+{
+    QHash<QString, KeyAction *> keyMappings(menuKeyMappings);
+
+    keyMappings[QKeySequence(Qt::Key_End).toString()] = &keyaction_KeyActionStopSong;
+    keyMappings[QKeySequence(Qt::Key_Space).toString()] = &keyaction_KeyActionPlaySong;
+    keyMappings[QKeySequence(Qt::Key_Home).toString()] = &keyaction_KeyActionRestartSong;
+    keyMappings[QKeySequence(Qt::Key_Period).toString()] = &keyaction_KeyActionRestartSong;
+    keyMappings[QKeySequence(Qt::Key_Right).toString()] = &keyaction_KeyActionForward15Seconds;
+    keyMappings[QKeySequence(Qt::Key_Left).toString()] = &keyaction_KeyActionBackward15Seconds;
+    keyMappings[QKeySequence(Qt::Key_Down).toString()] = &keyaction_KeyActionVolumeMinus;
+    keyMappings[QKeySequence(Qt::Key_Up).toString()] = &keyaction_KeyActionVolumePlus;
+    keyMappings[QKeySequence(Qt::Key_Plus).toString()] = &keyaction_KeyActionTempoPlus;
+    keyMappings[QKeySequence(Qt::Key_Minus).toString()] = &keyaction_KeyActionTempoMinus;
+    keyMappings[QKeySequence(Qt::Key_D).toString()] = &keyaction_KeyActionPitchMinus;
+    keyMappings[QKeySequence(Qt::Key_K).toString()] = &keyaction_KeyActionPlayNext;
+    keyMappings[QKeySequence(Qt::Key_L).toString()] = &keyaction_KeyActionLoopToggle;
+    keyMappings[QKeySequence(Qt::Key_M).toString()] = &keyaction_KeyActionMute;
+    keyMappings[QKeySequence(Qt::Key_P).toString()] = &keyaction_KeyActionPlaySong;
+    keyMappings[QKeySequence(Qt::Key_Q).toString()] = &keyaction_KeyActionTestLoop;
+    keyMappings[QKeySequence(Qt::Key_S).toString()] = &keyaction_KeyActionStopSong;
+    keyMappings[QKeySequence(Qt::Key_T).toString()] = &keyaction_KeyActionNextTab;
+    keyMappings[QKeySequence(Qt::Key_U).toString()] = &keyaction_KeyActionPitchPlus;
+    keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
     return keyMappings;
 }
 

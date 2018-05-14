@@ -38,46 +38,67 @@ PreferencesManager::PreferencesManager() : MySettings()
 
 static const char * hotkeyPrefix = "hotkey_";
 
-QHash<Qt::Key, KeyAction *> PreferencesManager::GetHotkeyMappings()
+QHash<QString, KeyAction *> PreferencesManager::GetHotkeyMappings()
 {
-    QHash<Qt::Key, KeyAction *> mappings;
     QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
-    QHash<Qt::Key, KeyAction*> defaultKeyToActionMappings(KeyAction::defaultKeyToActionMappings());
-    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
+    QHash<QString, KeyAction*> mappings;
+    bool foundAnySettings = false;
+
+    QStringList all_keys(MySettings.allKeys());
     
-    for (auto key : mappableKeys)
+    for (auto key : all_keys)
     {
-        QString value = MySettings.value(hotkeyPrefix + QKeySequence(key).toString()).toString();
-        if (!value.isNull())
+        if (key.startsWith(hotkeyPrefix))
         {
-            auto action = actions.find(value);
-            if (action != actions.end())
+            QString value = MySettings.value(key).toString();
+            
+            if (!value.isNull())
             {
-                mappings[key] = action.value();
+                auto action = actions.find(value);
+                if (action != actions.end())
+                {
+                    QString justKey(key);
+                    justKey.replace(hotkeyPrefix,"");
+                    if (justKey.length() > 0)
+                    {
+                        mappings[justKey] = action.value();
+                        foundAnySettings = true;
+                    }
+                }
             }
-            else
-            {
-                mappings[key] = defaultKeyToActionMappings[key];
-            }
-        } // end of if we found the hotkey
-    } // end of all of the mappable keys
+        } // end of all of the mappable keys
+    }
+    if (!foundAnySettings)
+    {
+        mappings = KeyAction::defaultKeyToActionMappings();
+    }
+
     return mappings;
 }
 
-void PreferencesManager::SetHotkeyMappings(QHash<Qt::Key, KeyAction *> mapping)
+void PreferencesManager::SetHotkeyMappings(QHash<QString, KeyAction *> mapping)
 {
-    QVector<Qt::Key> mappableKeys(KeyAction::mappableKeys());
-    for (auto key : mappableKeys)
+    QStringList all_keys(MySettings.allKeys());
+    
+    for (auto key : all_keys)
     {
-        auto keymap = mapping.find(key);
-        if (keymap == mapping.end())
+        if (key.startsWith(hotkeyPrefix))
         {
-            MySettings.remove(hotkeyPrefix + QKeySequence(key).toString());
+            QString justKey(key);
+            justKey.replace(hotkeyPrefix,"");
+                
+            auto keymap = mapping.find(justKey);
+            if (keymap == mapping.end())
+            {
+                MySettings.remove(key);
+            }
         }
-        else
-        {
-            MySettings.setValue(hotkeyPrefix + QKeySequence(key).toString(), keymap.value()->name());
-        }
+    }
+
+    for (auto map = mapping.cbegin(); map != mapping.cend(); ++map)
+    {
+        QString hotkeyName(hotkeyPrefix + QKeySequence(map.key()).toString());
+        MySettings.setValue(hotkeyName, map.value()->name());
     }
 }
 

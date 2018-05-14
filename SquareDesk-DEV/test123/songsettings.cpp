@@ -555,7 +555,7 @@ QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(bool loadCache)
         colors["Latin"] = QPair<QString,QString>("#099f9d","#bebf23");
         colors["HOT"] = QPair<QString,QString>("#ff0000","#000000");
         colors["Swing"] = QPair<QString,QString>("#ffdd00","#0000ff");
-        colors["Bollywood"] = QPair<QString,QString>("#a87633","#8b0915");
+        colors["Bollywood"] = QPair<QString,QString>("#ff8b00","#000000");
         colors["halloween"] = QPair<QString,QString>("#ff8b00","#00ff00");
         colors["DUET"] = QPair<QString,QString>("#ae8eff","#781e19");
 

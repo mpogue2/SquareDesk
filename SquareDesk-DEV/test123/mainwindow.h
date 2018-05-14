@@ -52,6 +52,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#include <QShortcut>
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include <QtWebEngineWidgets>
 #else
@@ -744,7 +745,10 @@ private:
     bool progressCancelled; // true if user said STOP
 
 private:
-    QHash<Qt::Key, KeyAction *> hotkeyMappings;
+    QHash<QString, QVector<QShortcut *> > hotkeyShortcuts;
+    void SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMappings, QHash<QString, QVector<QShortcut* > > hotkeyShortcuts);
+    void AddHotkeyMappingsFromMenus(QHash<QString, KeyAction *> &hotkeyMappings);
+    void AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hotkeyMappings);
 public:
 
 
@@ -766,15 +770,24 @@ public:
     friend class KeyActionLoopToggle;
     friend class KeyActionTestLoop;
     friend class KeyActionNextTab;
+    friend class KeyActionSwitchToMusicTab;
+    friend class KeyActionSwitchToTimersTab;
+    friend class KeyActionSwitchToLyricsTab;
+    friend class KeyActionSwitchToSDTab;
+    friend class KeyActionSwitchToDanceProgramsTab;
+    friend class KeyActionSwitchToReferenceTab;
 
     // actions which aren't mapped to keys above:
     void actionTempoPlus();
     void actionTempoMinus();
     void actionFadeOutAndPause();
     void actionNextTab();
-
+    void actionSwitchToTab(const char *tabname);
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
+
+private:
+    QHash<QString, QAction *> keybindingActionToMenuAction;
 
 private: // SD
     SDThread *sdthread;

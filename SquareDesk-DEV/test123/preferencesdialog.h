@@ -63,8 +63,8 @@ public:
 
     bool songTableReloadNeeded;
 
-    QHash<Qt::Key, KeyAction *> getHotkeys();
-    void setHotkeys(QHash<Qt::Key, KeyAction *>);
+    QHash<QString, KeyAction *> getHotkeys();
+    void setHotkeys(QHash<QString, KeyAction *>);
     void setTagColors( const QHash<QString,QPair<QString,QString>> &);
     QHash<QString,QPair<QString,QString>> getTagColors();
 
@@ -159,5 +159,7 @@ public:
 private slots:
     void selectColor();
 };
+
+extern bool LongStringsFirstThenAlpha(const QString &a, const QString &b);
 
 #endif // PREFERENCESDIALOG_H
