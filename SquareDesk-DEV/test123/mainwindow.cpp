@@ -702,7 +702,6 @@ MainWindow::MainWindow(QWidget *parent) :
         showTimersTab = false;
     }
 
-    enableExtendedFiltering = prefsManager.GetenableExtendedFiltering();
     // ----------
     bool lyricsEnabled = true;
     showLyricsTab = true;
@@ -4770,7 +4769,7 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 }
 
 
-bool filterContains(QString str, const QStringList &list, bool enableExtendedFiltering = false)
+bool filterContains(QString str, const QStringList &list)
 {
     if (list.isEmpty())
         return true;
@@ -4786,19 +4785,17 @@ bool filterContains(QString str, const QStringList &list, bool enableExtendedFil
         QString filterWord(t);
         bool tagsOnly(false);
         bool exclude(false);
-        if (enableExtendedFiltering)
+
+        while (filterWord.length() > 0 &&
+               ('#' == filterWord[0] ||
+                '-' == filterWord[0]))
         {
-            while (filterWord.length() > 0 &&
-                   ('#' == filterWord[0] ||
-                    '-' == filterWord[0]))
-            {
-                tagsOnly = ('#' == filterWord[0]);
-                exclude = ('-' == filterWord[0]);
-                filterWord.remove(0,1);
-            }
-            if (filterWord.length() == 0)
-                continue;
+            tagsOnly = ('#' == filterWord[0]);
+            exclude = ('-' == filterWord[0]);
+            filterWord.remove(0,1);
         }
+        if (filterWord.length() == 0)
+            continue;
 
         // Keywords can get matched in any order
         if (index > title_end)
@@ -4845,9 +4842,9 @@ void MainWindow::filterMusic()
 
         bool show = true;
 
-        if (!filterContains(songLabel,label, enableExtendedFiltering)
-            || !filterContains(songType, type, enableExtendedFiltering)
-            || !filterContains(songTitle, title, enableExtendedFiltering))
+        if (!filterContains(songLabel,label)
+            || !filterContains(songType, type)
+            || !filterContains(songTitle, title))
         {
             show = false;
         }
@@ -5737,7 +5734,6 @@ void MainWindow::on_actionPreferences_triggered()
             showTimersTab = false;
         }
 
-        enableExtendedFiltering = prefsManager.GetenableExtendedFiltering();
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
         lyricsTabNumber = (showTimersTab ? 2 : 1);

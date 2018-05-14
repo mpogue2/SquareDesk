@@ -96,7 +96,6 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableautoscrolllyrics, false);
 
 CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode, false)
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
-CONFIG_ATTRIBUTE_BOOLEAN(checkBoxExtendedFiltering, enableExtendedFiltering, false)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showAgeColumn, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showPitchColumn, true);

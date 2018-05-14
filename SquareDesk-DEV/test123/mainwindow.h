@@ -535,7 +535,6 @@ private:
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF
     bool clockColoringHidden;   // EXPERIMENTAL CLOCK COLORING STUFF
-    bool enableExtendedFiltering;
 
     QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
 
