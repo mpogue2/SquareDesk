@@ -27,11 +27,15 @@
 #include "mainwindow.h"
 #include "sdlineedit.h"
 
-void SDLineEdit::redo()
+bool SDLineEdit::event(QEvent *event)
 {
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *ke = static_cast<QKeyEvent *>(event);
+        if (ke->matches(QKeySequence::Undo)) {
+            mainWindow->undo_last_sd_action();
+            return true;
+        }
+    }
+    return QLineEdit::event(event);
 }
 
-void SDLineEdit::undo()
-{
-    mainWindow->undo_last_sd_action();
-}

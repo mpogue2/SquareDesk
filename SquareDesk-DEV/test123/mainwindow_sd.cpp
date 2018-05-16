@@ -318,7 +318,7 @@ void MainWindow::initialize_internal_sd_tab()
     shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
     connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
     shortcutSDTabUndo->setKey(QKeySequence::Undo);
-    // ui->lineEditSDInput->setMainWindow(this);
+    ui->lineEditSDInput->setMainWindow(this);
 
     sdLastLineWasResolve = false;
     static QAction *danceProgramActionsStatic[] = {

@@ -49,10 +49,9 @@ SDLineEdit() : mainWindow(NULL)
   {
       this->mainWindow = mw;
   }
-	
-  public slots:
-      void redo();
-      void undo();
+
+public:
+  bool event(QEvent *) override;
 };
 #endif
 
