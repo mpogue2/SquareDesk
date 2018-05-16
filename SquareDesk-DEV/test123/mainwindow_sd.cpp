@@ -313,6 +313,13 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
 
 void MainWindow::initialize_internal_sd_tab()
 {
+    if (NULL != shortcutSDTabUndo)
+        delete shortcutSDTabUndo;
+    shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
+    connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
+    shortcutSDTabUndo->setKey(QKeySequence::Undo);
+    // ui->lineEditSDInput->setMainWindow(this);
+
     sdLastLineWasResolve = false;
     static QAction *danceProgramActionsStatic[] = {
         ui->actionSDDanceProgramMainstream,

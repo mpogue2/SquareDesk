@@ -56,6 +56,7 @@ SOURCES += main.cpp\
     startupwizard.cpp \
     keybindings.cpp \
     calllistcheckbox.cpp \
+    sdlineedit.cpp \
     downloadmanager.cpp \
     sdinterface.cpp \
     mainwindow_sd.cpp \
@@ -102,6 +103,7 @@ HEADERS  += mainwindow.h \
     platform.h \
     keybindings.h \
     calllistcheckbox.h \
+    sdlineedit.h \
     downloadmanager.h \
     sdinterface.h \
     songtitlelabel.h \

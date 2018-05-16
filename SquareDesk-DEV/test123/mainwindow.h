@@ -776,6 +776,7 @@ public:
     friend class KeyActionSwitchToDanceProgramsTab;
     friend class KeyActionSwitchToReferenceTab;
 
+    friend class SDLineEdit;
     // actions which aren't mapped to keys above:
     void actionTempoPlus();
     void actionTempoMinus();
@@ -807,6 +808,7 @@ private: // SD
     void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
     void set_current_sequence_icons_visible(bool visible);
     QString sdLastFormationName;
+    QShortcut *shortcutSDTabUndo;
 
     void set_sd_last_formation_name(const QString&);    
 public:

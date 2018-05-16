@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1621,7 +1621,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEditSDInput"/>
+           <widget class="SDLineEdit" name="lineEditSDInput"/>
           </item>
          </layout>
         </item>
@@ -3200,6 +3200,11 @@
    <class>myDateTimeEdit</class>
    <extends>QDateTimeEdit</extends>
    <header location="global">mydatetimeedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SDLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">sdlineedit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

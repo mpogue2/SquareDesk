@@ -286,7 +286,8 @@ MainWindow::MainWindow(QWidget *parent) :
     sdLastLineWasResolve(false),
     sdOutputtingAvailableCalls(false),
     sdAvailableCalls(),
-    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1)
+    sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
+    shortcutSDTabUndo(NULL)
 {
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
