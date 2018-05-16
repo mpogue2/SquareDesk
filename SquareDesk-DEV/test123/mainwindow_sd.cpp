@@ -1332,6 +1332,7 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 void MainWindow::undo_last_sd_action()
 {
     sdthread->do_user_input("undo last call");
+    ui->lineEditSDInput->setFocus();
 }
 
 void MainWindow::undo_sd_to_row()
