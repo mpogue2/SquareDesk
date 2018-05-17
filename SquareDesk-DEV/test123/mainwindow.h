@@ -46,7 +46,7 @@
 #include <QProcess>
 #include <QProgressDialog>
 #include <QProxyStyle>
-#include <QSettings>
+#include "prefsmanager.h"
 #include <QSlider>
 #include <QStack>
 #include <QTableWidgetItem>
@@ -406,6 +406,11 @@ private slots:
     void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
     void copy_selection_from_tableWidgetCurrentSequence();
     void copy_selection_from_tableWidgetCurrentSequence_html();
+    void set_sd_copy_options_entire_sequence();
+    void set_sd_copy_options_selected_rows();
+    void set_sd_copy_options_selected_cells();
+    void toggle_sd_copy_html_includes_headers();
+    void toggle_sd_copy_html_formations_as_svg();
 
     void undo_sd_to_row();
     void undo_last_sd_action();
@@ -700,7 +705,7 @@ private:
     bool voiceInputEnabled;
 
     SongSettings songSettings;
-
+    PreferencesManager prefsManager;
 
     bool firstTimeSongIsPlayed;
     bool loadingSong; // guard to prevent text setting stuff from munging settings
@@ -811,6 +816,7 @@ private: // SD
     QString sdLastFormationName;
     QShortcut *shortcutSDTabUndo;
     QShortcut *shortcutSDCurrentSequenceSelectAll;
+    QShortcut *shortcutSDCurrentSequenceCopy;
 
     void set_sd_last_formation_name(const QString&);    
 public:

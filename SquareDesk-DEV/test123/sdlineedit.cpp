@@ -35,6 +35,14 @@ bool SDLineEdit::event(QEvent *event)
             mainWindow->undo_last_sd_action();
             return true;
         }
+        if (ke->matches(QKeySequence::SelectAll)) {
+            mainWindow->select_all_sd_current_sequence();
+            return true;
+        }
+        if (ke->matches(QKeySequence::Copy)) {
+            mainWindow->copy_selection_from_tableWidgetCurrentSequence();
+            return true;
+        }
     }
     return QLineEdit::event(event);
 }

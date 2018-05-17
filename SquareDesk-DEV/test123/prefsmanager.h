@@ -44,6 +44,7 @@ public:
 
     QHash<QString, KeyAction *> GetHotkeyMappings();
     void SetHotkeyMappings(QHash<QString, KeyAction *>);
+
 private:
     QHash<QString,QPair<QString,QString>> tagColors;
 public:

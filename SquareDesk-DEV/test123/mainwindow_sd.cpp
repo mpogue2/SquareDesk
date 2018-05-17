@@ -324,7 +324,13 @@ void MainWindow::initialize_internal_sd_tab()
     shortcutSDCurrentSequenceSelectAll = new QShortcut(ui->tableWidgetCurrentSequence);
     connect(shortcutSDCurrentSequenceSelectAll, SIGNAL(activated()), this, SLOT(select_all_sd_current_sequence()));
     shortcutSDCurrentSequenceSelectAll->setKey(QKeySequence::SelectAll);
- 
+
+   if (NULL != shortcutSDCurrentSequenceCopy)
+        delete shortcutSDCurrentSequenceCopy;
+    shortcutSDCurrentSequenceCopy = new QShortcut(ui->tableWidgetCurrentSequence);
+    connect(shortcutSDCurrentSequenceCopy, SIGNAL(activated()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
+    shortcutSDCurrentSequenceCopy->setKey(QKeySequence::Copy);
+    
 
     ui->lineEditSDInput->setMainWindow(this);
 
@@ -1372,16 +1378,38 @@ void MainWindow::undo_sd_to_row()
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
+    bool copyAllRows(prefsManager.GetSDCallListCopyOptions() == 1);
+    bool copyOnlySelectedCells(prefsManager.GetSDCallListCopyOptions() == 3);
     QString selection;
     for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
     {
-        bool selected(false);
+        bool selected(copyAllRows);
         for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
             if (item->isSelected())
             {
-                selected = true;
+                if (copyOnlySelectedCells)
+                {
+                    if (col == kColCurrentSequenceCall)
+                    {
+                        selection += item->text() + "\n";
+                    }
+                    else if (row == kColCurrentSequenceFormation)
+                    {
+                        QVariant v = item->data(Qt::UserRole);
+                        QString formation(v.toString());
+                        QStringList formationList = formation.split("\n");
+                        for (auto s : formationList)
+                        {
+                            selection += "    " + s + "\n";
+                        }
+                    }
+                }
+                else
+                {
+                    selected = true;
+                }
             }
         }
         if (selected)
@@ -1390,7 +1418,7 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
             selection += item->text() + "\n";
         }
     }
-
+    
     QApplication::clipboard()->setText(selection);
 }
 
@@ -1411,11 +1439,58 @@ void MainWindow::copy_selection_from_listWidgetSDOutput()
     QApplication::clipboard()->setText(selection);
 }
 
+static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text)
+{
+    QString selection;
+    QVariant v = imageItem->data(Qt::UserRole);
+    
+    if (!v.isNull())
+    {
+        QString formation(v.toString());
+        
+        QStringList formationList = formation.split("\n");
+        if (formationList.size() > 0)
+        {
+            QString formationName = formationList[0];
+            formationList.removeFirst();
+            
+            if (graphics_as_text)
+            {
+                selection += ": " + formationName.toHtmlEscaped();
+                formationList.removeFirst();
+                selection += "<pre>" + formationList.join("\n").toHtmlEscaped() + "</pre>";
+            }
+            else
+            {
+                draw_scene(formationList, people);
+                QBuffer svgText;
+                svgText.open(QBuffer::ReadWrite);
+                QSvgGenerator svgGen;
+                svgGen.setOutputDevice(&svgText);
+                svgGen.setSize(QSize(halfBackgroundSize * 2,
+                                     halfBackgroundSize * 2));
+                svgGen.setTitle(formationName);
+                svgGen.setDescription(formation.toHtmlEscaped());
+                {
+                    QPainter painter( &svgGen );
+                    scene.render( &painter );
+                    painter.end();
+                }
+                svgText.seek(0);
+                QString s(svgText.readAll());
+                selection += "<br>" + s;
+            }
+        }
+    }
+    return selection;
+}
+
 QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphics_as_text)
 {
     QGraphicsScene scene;
     QList<SDDancer> people;
     QGraphicsTextItem *graphicsTextItemStatusBar;
+    bool copyOnlySelectedCells(prefsManager.GetSDCallListCopyOptions() == 3);
 
     initialize_scene(scene,people, graphicsTextItemStatusBar);
     
@@ -1426,8 +1501,11 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
                       "    <title>Square Dance Sequence</title>\n"
                       "  </head>\n"
                       "  <body>\n"
-                      "    <h1>Square Dance Sequence</h1>\n"
-                      "    <ol>\n");
+                      "    <h1>Square Dance Sequence</h1>\n");
+    if (!prefsManager.GetSDCallListCopyHTMLIncludeHeaders())
+        selection.clear();
+
+    selection += "    <ol>\n";
     for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
     {
         bool selected(all_fields);
@@ -1436,7 +1514,25 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
             if (item->isSelected())
             {
-                selected = true;
+                if (copyOnlySelectedCells)
+                {
+                    selected += "<li>";
+                    if (col == 0)
+                    {
+                        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
+                        selection += "<b>" + item->text().toHtmlEscaped() + "</b>";
+                    }
+                    else if (col == 1)
+                    {
+                        QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation);
+                        selection += render_image_item_as_html(imageItem, scene, people, graphics_as_text);
+                    }
+                    selection += "</li>";
+                }
+                else
+                {
+                    selected = true;
+                }
             }
         }
         if (selected)
@@ -1446,63 +1542,56 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
             QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation);
             if (1 || imageItem->isSelected())
             {
-                QVariant v = imageItem->data(Qt::UserRole);
-                if (!v.isNull())
-                {
-                    QString formation(v.toString());
-
-                    QStringList formationList = formation.split("\n");
-                    if (formationList.size() > 0)
-                    {
-                        QString formationName = formationList[0];
-                        formationList.removeFirst();
-                        
-                        if (graphics_as_text)
-                        {
-                            selection += ": " + formationName.toHtmlEscaped();
-                            formationList.removeFirst();
-                            selection += "<pre>" + formationList.join("\n").toHtmlEscaped() + "</pre>";
-                        }
-                        else
-                        {
-                            draw_scene(formationList, people);
-                            QBuffer svgText;
-                            svgText.open(QBuffer::ReadWrite);
-                            QSvgGenerator svgGen;
-                            svgGen.setOutputDevice(&svgText);
-                            svgGen.setSize(QSize(halfBackgroundSize * 2,
-                                                 halfBackgroundSize * 2));
-                            svgGen.setTitle(formationName);
-                            svgGen.setDescription(formation.toHtmlEscaped());
-                            {
-                                QPainter painter( &svgGen );
-                                scene.render( &painter );
-                                painter.end();
-                            }
-                            svgText.seek(0);
-                            QString s(svgText.readAll());
-                            selection += "<br>" + s;
-                        }
-                    }
-                }
+                selection += render_image_item_as_html(imageItem, scene, people, graphics_as_text);
             }
 
             selection +=  + "</li>\n";
         }
     }
 
-    selection += "    </ol>\n"
-        "  </body>\n"
-        "</html>\n";
+    if (prefsManager.GetSDCallListCopyHTMLIncludeHeaders())
+    {
+        selection += "    </ol>\n"
+            "  </body>\n"
+            "</html>\n";
+    }
     return selection;
 }
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html()
 {
-    QString selection(get_current_sd_sequence_as_html(false, false));
+    QString selection(get_current_sd_sequence_as_html(prefsManager.GetSDCallListCopyOptions() == 1,
+                                                      !prefsManager.GetSDCallListCopyHTMLFormationsAsSVG()));
     QApplication::clipboard()->setText(selection);
     
 }
+
+void MainWindow::set_sd_copy_options_entire_sequence()
+{
+    prefsManager.SetSDCallListCopyOptions(1);
+}
+
+void MainWindow::set_sd_copy_options_selected_rows()
+{
+    prefsManager.SetSDCallListCopyOptions(2);
+}
+
+void MainWindow::set_sd_copy_options_selected_cells()
+{
+    prefsManager.SetSDCallListCopyOptions(3);
+}
+
+void MainWindow::toggle_sd_copy_html_includes_headers()
+{
+    prefsManager.SetSDCallListCopyHTMLIncludeHeaders(!prefsManager.GetSDCallListCopyHTMLIncludeHeaders());
+}
+
+void MainWindow::toggle_sd_copy_html_formations_as_svg()
+{
+    prefsManager.SetSDCallListCopyHTMLFormationsAsSVG(!prefsManager.GetSDCallListCopyHTMLFormationsAsSVG());
+}
+
+
 
 void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos)
 {
@@ -1510,24 +1599,79 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 
     QAction action1("Copy", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
+    action1.setShortcut(QKeySequence::Copy);
     contextMenu.addAction(&action1);
+   
     QAction action2("Undo", this);
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
+    action2.setShortcut(QKeySequence::Undo);
     contextMenu.addAction(&action2);
-
-    QAction action5("Select All", this);
-    connect(&action5, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
-    contextMenu.addAction(&action5);
+    
+    QAction action3("Select All", this);
+    connect(&action3, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
+    action3.setShortcut(QKeySequence::SelectAll);
+    contextMenu.addAction(&action3);
 
     sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
     QAction action4("Go Back To Here", this);
     connect(&action4, SIGNAL(triggered()), this, SLOT(undo_sd_to_row()));
     contextMenu.addAction(&action4);
 
-    QAction action3("Copy as HTML", this);
-    connect(&action3, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
-    contextMenu.addAction(&action3);
+    QAction action5("Copy as HTML", this);
+    connect(&action5, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
+    contextMenu.addAction(&action5);
 
+    QMenu menuCopySettings("Copy Options");
+    QActionGroup actionGroupCopyOptions(this);
+
+    QAction action1_1("Entire Sequence", this);
+    action1_1.setCheckable(true);
+    connect(&action1_1, SIGNAL(triggered()), this, SLOT(set_sd_copy_options_entire_sequence()));
+    actionGroupCopyOptions.addAction(&action1_1);
+    menuCopySettings.addAction(&action1_1);
+
+    QAction action1_2("Selected Rows", this);
+    action1_2.setCheckable(true);
+    connect(&action1_2, SIGNAL(triggered()), this, SLOT(set_sd_copy_options_selected_rows()));
+    actionGroupCopyOptions.addAction(&action1_2);
+    menuCopySettings.addAction(&action1_2);
+
+    QAction action1_3("Selected Cells", this);
+    action1_3.setCheckable(true);
+    connect(&action1_3, SIGNAL(triggered()), this, SLOT(set_sd_copy_options_selected_cells()));
+    actionGroupCopyOptions.addAction(&action1_3);
+    menuCopySettings.addAction(&action1_3);
+
+    switch (prefsManager.GetSDCallListCopyOptions())
+    {
+    default:
+    case 1:
+        action1_1.setChecked(true);
+        break;
+    case 2:
+        action1_2.setChecked(true);
+        break;
+    case 3:
+        action1_3.setChecked(true);
+        break;
+    }
+    
+    menuCopySettings.addSeparator();
+    QAction action1_4("HTML Includes Headers", this);
+    action1_4.setCheckable(true);
+    action1_4.setChecked(prefsManager.GetSDCallListCopyHTMLIncludeHeaders());
+    connect(&action1_4, SIGNAL(triggered()), this, SLOT(toggle_sd_copy_html_includes_headers()));
+    menuCopySettings.addAction(&action1_4);
+    contextMenu.addMenu(&menuCopySettings);
+
+    QAction action1_5("HTML Formations As SVG", this);
+    action1_5.setCheckable(true);
+    action1_5.setChecked(prefsManager.GetSDCallListCopyHTMLFormationsAsSVG());
+    connect(&action1_5, SIGNAL(triggered()), this, SLOT(toggle_sd_copy_html_formations_as_svg()));
+    menuCopySettings.addAction(&action1_5);
+    contextMenu.addMenu(&menuCopySettings);
+
+    
     contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
 }
 

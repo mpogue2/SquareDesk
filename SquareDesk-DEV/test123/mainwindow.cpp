@@ -58,7 +58,6 @@
 #include "utility.h"
 #include "perftimer.h"
 #include "tablenumberitem.h"
-#include "prefsmanager.h"
 #include "importdialog.h"
 #include "exportdialog.h"
 #include "calllistcheckbox.h"
@@ -287,7 +286,9 @@ MainWindow::MainWindow(QWidget *parent) :
     sdOutputtingAvailableCalls(false),
     sdAvailableCalls(),
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
-    shortcutSDTabUndo(NULL)
+    shortcutSDTabUndo(NULL),
+    shortcutSDCurrentSequenceSelectAll(NULL),
+    shortcutSDCurrentSequenceCopy(NULL)    
 {
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
@@ -308,7 +309,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     maybeInstallSoundFX();
 
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
 //    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
@@ -861,8 +861,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
 
-    QSettings settings;
-
     {
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
@@ -885,7 +883,7 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Fixed);
         headerView->setSectionResizeMode(kCallListTimingCol, QHeaderView::Stretch);
         headerView->setStretchLastSection(true);
-        QString lastDanceProgram(settings.value("lastCallListDanceProgram").toString());
+        QString lastDanceProgram(prefsManager.MySettings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
     }
 
@@ -893,7 +891,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->songTable->verticalScrollBar()->setSingleStep(10);
 #endif
 
-    lastCuesheetSavePath = settings.value("lastCuesheetSavePath").toString();
+    lastCuesheetSavePath = prefsManager.MySettings.value("lastCuesheetSavePath").toString();
 
     initialize_internal_sd_tab();
 
@@ -1922,7 +1920,6 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
     // also copies cuesheet2.css to /lyrics, if not already present
 
     // read the CSS file (if any)
-    PreferencesManager prefsManager;
     QString musicDirPath = prefsManager.GetmusicPath();
     QString lyricsDir = musicDirPath + "/lyrics";
 
@@ -2072,8 +2069,7 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
         breakDanceProgramIntoParts(programFilename, name, program);
 
         loadCallList(songSettings, ui->tableWidgetCallList, program, programFilename);
-        QSettings settings;
-        settings.setValue("lastCallListDanceProgram",program);
+        prefsManager.MySettings.setValue("lastCallListDanceProgram",program);
     }
     ui->tableWidgetCallList->setSortingEnabled(true);
 }
@@ -2213,8 +2209,6 @@ MainWindow::~MainWindow()
     QString PlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
     saveCurrentPlaylistToFile(PlaylistFileName);
 
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(0);
     colorDlg.setOption(QColorDialog::NoButtons);
@@ -2250,8 +2244,6 @@ MainWindow::~MainWindow()
 // ----------------------------------------------------------------------
 void MainWindow::updateSongTableColumnView()
 {
-    PreferencesManager prefsManager;
-
     ui->songTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
     ui->songTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
     ui->songTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
@@ -2311,7 +2303,6 @@ void MainWindow::on_monoButton_toggled(bool checked)
     }
 
     // the Force Mono (Aahz Mode) setting is persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setforcemono(ui->actionForce_Mono_Aahz_mode->isChecked());
 }
 
@@ -2838,7 +2829,6 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             return;
         }
 
-        PreferencesManager prefsManager; // Will be using application information for correct location of your settings
         if (prefsManager.GetuseTimeRemaining()) {
             // time remaining in song
             ui->currentLocLabel->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
@@ -3281,10 +3271,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         saveCurrentSongSettings();
 
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
-        QSettings settings;
-        settings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
-        settings.setValue("geometry", saveGeometry());
-        settings.setValue("windowState", saveState());
+        prefsManager.MySettings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
+        prefsManager.MySettings.setValue("geometry", saveGeometry());
+        prefsManager.MySettings.setValue("windowState", saveState());
         QMainWindow::closeEvent(event);
     }
     else {
@@ -4396,7 +4385,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
 
-        PreferencesManager prefsManager;
         bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
         int initialBPM = prefsManager.GetinitialBPM();
         if (tryToSetInitialBPM) {
@@ -4539,8 +4527,6 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
     saveCurrentSongSettings();
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-
     QString startingDirectory = prefsManager.Getdefault_dir();
 
     QString MP3FileName =
@@ -4621,8 +4607,6 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
 
 void MainWindow::checkLockFile() {
 //    qDebug() << "checkLockFile()";
-
-    PreferencesManager prefsManager;
     QString musicRootPath = prefsManager.GetmusicPath();
 
     QString databaseDir(musicRootPath + "/.squaredesk");
@@ -4669,8 +4653,6 @@ void MainWindow::checkLockFile() {
 
 void MainWindow::clearLockFile() {
 //    qDebug() << "clearLockFile()";
-
-    PreferencesManager prefsManager;
     QString musicRootPath = prefsManager.GetmusicPath();
 
     QString databaseDir(musicRootPath + "/.squaredesk");
@@ -5550,19 +5532,16 @@ void MainWindow::on_actionPitch_Down_triggered()
 void MainWindow::on_actionAutostart_playback_triggered()
 {
     // the Autostart on Playback mode setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.Setautostartplayback(ui->actionAutostart_playback->isChecked());
 }
 
 void MainWindow::on_checkBoxPlayOnEnd_clicked()
 {
-    PreferencesManager prefsManager;
     prefsManager.Setstartplaybackoncountdowntimer(ui->checkBoxPlayOnEnd->isChecked());
 }
 
 void MainWindow::on_checkBoxStartOnPlay_clicked()
 {
-    PreferencesManager prefsManager;
     prefsManager.Setstartcountuptimeronplay(ui->checkBoxStartOnPlay->isChecked());
 }
 
@@ -5669,7 +5648,6 @@ void MainWindow::on_actionPreferences_triggered()
     RecursionGuard dialog_guard(inPreferencesDialog);
     trapKeypresses = false;
 //    on_stopButton_clicked();  // stop music, if it was playing...
-    PreferencesManager prefsManager;
     QHash<QString, KeyAction *> hotkeyMappings;
 
     AddHotkeyMappingsFromShortcuts(hotkeyMappings);
@@ -6059,7 +6037,6 @@ void MainWindow::on_actionLoad_Playlist_triggered()
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
-    PreferencesManager prefsManager;
     QString musicRootPath = prefsManager.GetmusicPath();
     QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
 
@@ -6181,9 +6158,8 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
-    QSettings MySettings; // Will be using application informations for correct location of your settings
 
-    QString startingPlaylistDirectory = MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
+    QString startingPlaylistDirectory = prefsManager.MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
     if (startingPlaylistDirectory.isNull()) {
         // first time through, start at HOME
         startingPlaylistDirectory = QDir::homePath();
@@ -6204,7 +6180,6 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
     QFileInfo fInfo(PlaylistFileName);
-    PreferencesManager prefsManager;
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
     saveCurrentPlaylistToFile(PlaylistFileName);  // SAVE IT
@@ -7768,7 +7743,6 @@ void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
     microphoneStatusUpdate();
 
     // the Enable Voice Input setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
 }
 
@@ -7784,7 +7758,6 @@ void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
     }
 
     // the Enable Auto-scroll during playback setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.Setenableautoscrolllyrics(ui->actionAuto_scroll_during_playback->isChecked());
 }
 
@@ -7820,8 +7793,6 @@ void MainWindow::on_actionStartup_Wizard_triggered()
 
     if(dialogCode == QDialog::Accepted) {
         // must setup internal variables, from updated Preferences..
-        PreferencesManager prefsManager; // Will be using application information for correct location of your settings
-
         musicRootPath = prefsManager.GetmusicPath();
 
         QString value;
@@ -7936,10 +7907,9 @@ void MainWindow::playSFX(QString which) {
 
 void MainWindow::on_actionClear_Recent_List_triggered()
 {
-    QSettings settings;
     QStringList recentFilePaths;  // empty list
 
-    settings.setValue("recentFiles", recentFilePaths);  // remember the new list
+    prefsManager.MySettings.setValue("recentFiles", recentFilePaths);  // remember the new list
     updateRecentPlaylistMenu();
 }
 
@@ -7947,8 +7917,7 @@ void MainWindow::loadRecentPlaylist(int i) {
 
     on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
 
-    QSettings settings;
-    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+    QStringList recentFilePaths = prefsManager.MySettings.value("recentFiles").toStringList();
 
     if (i < recentFilePaths.size()) {
         // then we can do it
@@ -7960,8 +7929,7 @@ void MainWindow::loadRecentPlaylist(int i) {
 }
 
 void MainWindow::updateRecentPlaylistMenu() {
-    QSettings settings;
-    QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+    QStringList recentFilePaths = prefsManager.MySettings.value("recentFiles").toStringList();
 
     int numRecentPlaylists = recentFilePaths.length();
     ui->actionRecent1->setVisible(numRecentPlaylists >=1);
@@ -7984,8 +7952,7 @@ void MainWindow::updateRecentPlaylistMenu() {
 
 void MainWindow::addFilenameToRecentPlaylist(QString filename) {
     if (!filename.endsWith(".squaredesk/current.m3u")) {  // do not remember the initial persistent playlist
-        QSettings settings;
-        QStringList recentFilePaths = settings.value("recentFiles").toStringList();
+        QStringList recentFilePaths = prefsManager.MySettings.value("recentFiles").toStringList();
 
         recentFilePaths.removeAll(filename);  // remove if it exists already
         recentFilePaths.prepend(filename);    // push it onto the front
@@ -7993,7 +7960,7 @@ void MainWindow::addFilenameToRecentPlaylist(QString filename) {
             recentFilePaths.removeLast();
         }
 
-        settings.setValue("recentFiles", recentFilePaths);  // remember the new list
+        prefsManager.MySettings.setValue("recentFiles", recentFilePaths);  // remember the new list
         updateRecentPlaylistMenu();
     }
 }
@@ -8097,7 +8064,6 @@ void MainWindow::maybeInstallSoundFX() {
 #endif
 
     // Let's make a "soundfx" directory in the Music Directory, if it doesn't exist already
-    PreferencesManager prefsManager;
     QString musicDirPath = prefsManager.GetmusicPath();
     QString soundfxDir = musicDirPath + "/soundfx";
 
@@ -8500,8 +8466,6 @@ void MainWindow::adjustFontSizes()
 
 
 void MainWindow::usePersistentFontSize() {
-    PreferencesManager prefsManager;
-
     int newPointSize = prefsManager.GetsongTableFontSize(); // gets the persisted value
     if (newPointSize == 0) {
         newPointSize = 13;  // default backstop, if not set properly
@@ -8527,8 +8491,6 @@ void MainWindow::usePersistentFontSize() {
 
 
 void MainWindow::persistNewFontSize(int currentMacPointSize) {
-    PreferencesManager prefsManager;
-
 //    qDebug() << "NOT PERSISTING: " << currentMacPointSize;
 //    return;
     prefsManager.SetsongTableFontSize(currentMacPointSize);  // persist this
@@ -8604,7 +8566,6 @@ void MainWindow::on_actionReset_triggered()
 
 void MainWindow::on_actionViewTags_toggled(bool /* checked */)
 {
-    PreferencesManager prefsManager;
     prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
     loadMusicList();
 }
@@ -8615,7 +8576,6 @@ void MainWindow::on_actionRecent_toggled(bool checked)
     ui->actionRecent->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
 
     // the showRecentColumn setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.SetshowRecentColumn(checked);
 
     updateSongTableColumnView();
@@ -8626,7 +8586,6 @@ void MainWindow::on_actionAge_toggled(bool checked)
     ui->actionAge->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
 
     // the showAgeColumn setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.SetshowAgeColumn(checked);
 
     updateSongTableColumnView();
@@ -8637,7 +8596,6 @@ void MainWindow::on_actionPitch_toggled(bool checked)
     ui->actionPitch->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
 
     // the showAgeColumn setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.SetshowPitchColumn(checked);
 
     updateSongTableColumnView();
@@ -8648,7 +8606,6 @@ void MainWindow::on_actionTempo_toggled(bool checked)
     ui->actionTempo->setChecked(checked);  // when this function is called at constructor time, preferences sets the checkmark
 
     // the showAgeColumn setting is persistent across restarts of the application
-    PreferencesManager prefsManager;
     prefsManager.SetshowTempoColumn(checked);
 
     updateSongTableColumnView();
@@ -8692,7 +8649,6 @@ void MainWindow::on_actionDownload_Cuesheets_triggered()
 
 //#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 
-//    PreferencesManager prefsManager;
 //    QString musicDirPath = prefsManager.GetmusicPath();
 //    QString lyricsDirPath = musicDirPath + "/lyrics";
 
@@ -8776,7 +8732,6 @@ void MainWindow::lyricsDownloadEnd() {
 ////    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
 
 ////    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
-//    PreferencesManager prefsManager;
 //    QString musicDirPath = prefsManager.GetmusicPath();
 //    QString lyricsDirPath = musicDirPath + "/lyrics";
 //    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
@@ -9100,7 +9055,6 @@ void MainWindow::on_flashcallbasic_toggled(bool checked)
     ui->actionFlashCallBasic->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallbasic(ui->actionFlashCallBasic->isChecked());
 }
 
@@ -9115,7 +9069,6 @@ void MainWindow::on_flashcallmainstream_toggled(bool checked)
     ui->actionFlashCallMainstream->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallmainstream(ui->actionFlashCallMainstream->isChecked());
 }
 
@@ -9130,7 +9083,6 @@ void MainWindow::on_flashcallplus_toggled(bool checked)
     ui->actionFlashCallPlus->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallplus(ui->actionFlashCallPlus->isChecked());
 }
 
@@ -9145,7 +9097,6 @@ void MainWindow::on_flashcalla1_toggled(bool checked)
     ui->actionFlashCallA1->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcalla1(ui->actionFlashCallA1->isChecked());
 }
 
@@ -9160,7 +9111,6 @@ void MainWindow::on_flashcalla2_toggled(bool checked)
     ui->actionFlashCallA2->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcalla2(ui->actionFlashCallA2->isChecked());
 }
 
@@ -9175,7 +9125,6 @@ void MainWindow::on_flashcallc1_toggled(bool checked)
     ui->actionFlashCallC1->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallc1(ui->actionFlashCallC1->isChecked());
 }
 
@@ -9190,7 +9139,6 @@ void MainWindow::on_flashcallc2_toggled(bool checked)
     ui->actionFlashCallC2->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallc2(ui->actionFlashCallC2->isChecked());
 }
 
@@ -9205,7 +9153,6 @@ void MainWindow::on_flashcallc3a_toggled(bool checked)
     ui->actionFlashCallC3a->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallc3a(ui->actionFlashCallC3a->isChecked());
 }
 
@@ -9220,7 +9167,6 @@ void MainWindow::on_flashcallc3b_toggled(bool checked)
     ui->actionFlashCallC3b->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    PreferencesManager prefsManager; // Will be using application information for correct location of your settings
     prefsManager.Setflashcallc3b(ui->actionFlashCallC3b->isChecked());
 }
 
@@ -9536,7 +9482,6 @@ void MainWindow::downloadCuesheetFileIfNeeded(QString cuesheetFilename) {
 //    qDebug() << "Maybe fetching: " << cuesheetFilename;
 //    cout << ".";
 
-    PreferencesManager prefsManager;
     QString musicDirPath = prefsManager.GetmusicPath();
     //    QString tempDirPath = "/Users/mpogue/clean4";
     QString destinationFolder = musicDirPath + "/lyrics/downloaded/";
@@ -9754,7 +9699,6 @@ void MainWindow::on_actionClear_Recent_triggered()
     QString nowISO8601 = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // add days is for later
 //    qDebug() << "Setting fence to: " << nowISO8601;
 
-    PreferencesManager prefsManager;
     prefsManager.SetrecentFenceDateTime(nowISO8601);  // e.g. "2018-01-01T01:23:45Z"
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
@@ -9818,24 +9762,20 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
 // ----------------------------------------------------------------------
 void MainWindow::on_action5_seconds_triggered()
 {
-    PreferencesManager prefsManager;
     prefsManager.Setflashcalltiming("5");
 }
 
 void MainWindow::on_action10_seconds_triggered()
 {
-    PreferencesManager prefsManager;
     prefsManager.Setflashcalltiming("10");
 }
 
 void MainWindow::on_action15_seconds_triggered()
 {
-    PreferencesManager prefsManager;
     prefsManager.Setflashcalltiming("15");
 }
 
 void MainWindow::on_action20_seconds_triggered()
 {
-    PreferencesManager prefsManager;
     prefsManager.Setflashcalltiming("20");
 }
