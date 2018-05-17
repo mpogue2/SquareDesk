@@ -146,7 +146,7 @@ int PreferencesManager::Get##name()                      \
     QString value = MySettings.value(#name).toString();  \
     if (value.isNull())                                  \
     {                                                    \
-        value = default;                                 \
+        value = QString("%1").arg(default);              \
         Set##name(default);                              \
     }                                                    \
     return value.toInt();                                \
@@ -276,6 +276,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 {
     prefDialog->setHotkeys(GetHotkeyMappings());
     prefDialog->setTagColors(getTagColors());
+    prefDialog->setActiveTab(GetprefsDialogLastActiveTab());
     
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)
@@ -308,6 +309,7 @@ void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *p
 {
     SetHotkeyMappings(prefDialog->getHotkeys());
     setTagColors(prefDialog->getTagColors());
+    SetprefsDialogLastActiveTab(prefDialog->getActiveTab());
     
 #define CONFIG_ATTRIBUTE_STRING_NO_PREFS(name, default)
 #define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(name, default)

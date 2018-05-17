@@ -879,3 +879,13 @@ void PreferencesDialog::finishPopulation()
 {
     SetLabelTagAppearanceColors();
 }
+
+int PreferencesDialog::getActiveTab()
+{
+    return ui->tabWidget->currentIndex();
+}
+
+void PreferencesDialog::setActiveTab(int tabnum)
+{
+    ui->tabWidget->setCurrentIndex(tabnum);
+}

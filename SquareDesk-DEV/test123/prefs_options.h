@@ -121,3 +121,7 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(recentFenceDateTime, "2018-01-01T00:00:00Z"); /
 
 CONFIG_ATTRIBUTE_COLOR(pushButtonTagsBackgroundColor,  tagsBackgroundColorString,  DEFAULTTAGSBACKGROUNDCOLOR)
 CONFIG_ATTRIBUTE_COLOR(pushButtonTagsForegroundColor,  tagsForegroundColorString,  DEFAULTTAGSFOREGROUNDCOLOR)
+
+
+
+CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastActiveTab, 0)

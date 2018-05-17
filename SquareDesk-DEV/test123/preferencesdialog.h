@@ -72,6 +72,8 @@ public:
     QList<SessionInfo> getSessionInfoList();
     void setTagColor(const QString &tagName, const QString &color, bool foreground);
 
+    int getActiveTab();
+    void setActiveTab(int);
 
 //    void setColorSwatches(QString patter, QString singing, QString called, QString extras);
 //    QColor patterColor;
