@@ -318,6 +318,14 @@ void MainWindow::initialize_internal_sd_tab()
     shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
     connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
     shortcutSDTabUndo->setKey(QKeySequence::Undo);
+
+   if (NULL != shortcutSDCurrentSequenceSelectAll)
+        delete shortcutSDCurrentSequenceSelectAll;
+    shortcutSDCurrentSequenceSelectAll = new QShortcut(ui->tableWidgetCurrentSequence);
+    connect(shortcutSDCurrentSequenceSelectAll, SIGNAL(activated()), this, SLOT(select_all_sd_current_sequence()));
+    shortcutSDCurrentSequenceSelectAll->setKey(QKeySequence::SelectAll);
+ 
+
     ui->lineEditSDInput->setMainWindow(this);
 
     sdLastLineWasResolve = false;
@@ -1336,6 +1344,18 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 }
 
 
+void MainWindow::select_all_sd_current_sequence()
+{
+    for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
+    {
+        for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
+        {
+            QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
+            item->setSelected(true);
+        }
+    }    
+}
+
 void MainWindow::undo_last_sd_action()
 {
     sdthread->do_user_input("undo last call");
@@ -1494,6 +1514,10 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     QAction action2("Undo", this);
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
     contextMenu.addAction(&action2);
+
+    QAction action5("Select All", this);
+    connect(&action5, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
+    contextMenu.addAction(&action5);
 
     sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
     QAction action4("Go Back To Here", this);

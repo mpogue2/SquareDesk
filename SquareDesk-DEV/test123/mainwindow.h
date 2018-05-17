@@ -409,6 +409,7 @@ private slots:
 
     void undo_sd_to_row();
     void undo_last_sd_action();
+    void select_all_sd_current_sequence();
     void on_listWidgetSDOutput_customContextMenuRequested(const QPoint&);
     void copy_selection_from_listWidgetSDOutput();
     void on_actionSDDanceProgramMainstream_triggered();
@@ -809,6 +810,7 @@ private: // SD
     void set_current_sequence_icons_visible(bool visible);
     QString sdLastFormationName;
     QShortcut *shortcutSDTabUndo;
+    QShortcut *shortcutSDCurrentSequenceSelectAll;
 
     void set_sd_last_formation_name(const QString&);    
 public:
