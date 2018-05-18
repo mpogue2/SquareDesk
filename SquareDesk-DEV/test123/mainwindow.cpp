@@ -63,7 +63,7 @@
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
 #include "songtitlelabel.h"
-
+#include "tablewidgettimingitem.h"
 #include "danceprograms.h"
 #include "startupwizard.h"
 #include "downloadmanager.h"
@@ -1114,11 +1114,12 @@ static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
     QTableWidgetItem *numberItem = new QTableWidgetItem(number);
     numberItem->setTextAlignment(Qt::AlignCenter);  // center the #'s in the Teach column
     QTableWidgetItem *nameItem = new QTableWidgetItem(name);
-    QTableWidgetItem *timingItem = new QTableWidgetItem(timing);
+    QTableWidgetItem *timingItem = new TableWidgetTimingItem(timing);
 
     numberItem->setFlags(numberItem->flags() & ~Qt::ItemIsEditable);
     nameItem->setFlags(nameItem->flags() & ~Qt::ItemIsEditable);
     timingItem->setFlags(timingItem->flags() & ~Qt::ItemIsEditable);
+    timingItem->setTextAlignment(Qt::AlignCenter);  // center the dates
 
     tableWidget->setItem(row, kCallListOrderCol, numberItem);
     tableWidget->setItem(row, kCallListNameCol, nameItem);

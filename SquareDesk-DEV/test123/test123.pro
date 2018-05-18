@@ -63,6 +63,7 @@ SOURCES += main.cpp\
     songtitlelabel.cpp \
     sdsequencecalllabel.cpp \
     perftimer.cpp \
+    tablewidgettimingitem.cpp \
     mydatetimeedit.cpp
 
 macx {
@@ -109,6 +110,7 @@ HEADERS  += mainwindow.h \
     songtitlelabel.h \
     sdsequencecalllabel.h \
     perftimer.h \
+    tablewidgettimingitem.h \
     mydatetimeedit.h
 
 macx {
