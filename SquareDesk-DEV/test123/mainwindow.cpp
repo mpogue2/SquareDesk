@@ -3327,6 +3327,16 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
+        // Bluetooth remote handling...assumes remapping handled by Karabiner (on Mac OS X)
+        switch (KeyEvent->key()) {
+            case Qt::Key_F18:  // Media Previous Track = F18
+            case Qt::Key_F19:  // Media Next Track     = F19
+            case Qt::Key_F20:  // Media Play/Pause     = F20
+                return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
+            default:
+                break;
+        }
+
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
         // UNLESS it's one of the search/timer edit fields and the ESC key is pressed (we must still allow
@@ -3610,13 +3620,31 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
+    // Bluetooth Remote keys (mapped by Karabiner on Mac OS X to F18/19/20) -----------
+    //    https://superuser.com/questions/554489/how-can-i-remap-a-play-button-keypress-from-a-bluetooth-headset-on-os-x
+    //    https://pqrs.org/osx/karabiner/
+
+    case Qt::Key_F18: // BT Media Previous Track
+//        qDebug() << "BT Remote Key: PREV TRACK";
+        on_actionPrevious_Playlist_Item_triggered();
+        break;
+    case Qt::Key_F19: // BT Media Next Track
+//        qDebug() << "BT Remote Key: NEXT TRACK";
+        on_actionNext_Playlist_Item_triggered();
+        break;
+    case 16: // BT Media Play/Pause  // I don't know why Key_F20 doesn't work here...the mapping is correct
+//        qDebug() << "BT Remote Key: PLAY/PAUSE";
+        on_playButton_clicked();
+        break;
+
+    default:
 //        default:
 //            auto keyMapping = hotkeyMappings.find((Qt::Key)(key));
 //            if (keyMapping != hotkeyMappings.end())
 //            {
 //                keyMapping.value()->doAction(this);
 //            }
-//            qDebug() << "unhandled key:" << key;
+            qDebug() << "unhandled key:" << key;
             break;
     }
 
