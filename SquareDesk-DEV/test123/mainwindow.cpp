@@ -412,6 +412,7 @@ MainWindow::MainWindow(QWidget *parent) :
     keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
     keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
     keybindingActionToMenuAction[keyActionName_TempoMinus] = ui->actionSlow_Down;
+    keybindingActionToMenuAction[keyActionName_PlayPrevious] = ui->actionPrevious_Playlist_Item;
     keybindingActionToMenuAction[keyActionName_PlayNext] = ui->actionNext_Playlist_Item;
     keybindingActionToMenuAction[keyActionName_Mute] = ui->actionMute;
     keybindingActionToMenuAction[keyActionName_PitchPlus] = ui->actionPitch_Up;
@@ -3324,18 +3325,21 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>(((QApplication *)Object)->activeWindow());
         if (maybeMainWindow == 0) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
+            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
         }
 
+        qDebug() << "eventFilter(" << KeyEvent->key() << ")";
         // Bluetooth remote handling...assumes remapping handled by Karabiner (on Mac OS X)
-        switch (KeyEvent->key()) {
-            case Qt::Key_F18:  // Media Previous Track = F18
-            case Qt::Key_F19:  // Media Next Track     = F19
-            case Qt::Key_F20:  // Media Play/Pause     = F20
-                return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
-            default:
-                break;
-        }
+        //  These are all pressable keys on a regular Mac keyboard, so Preferences can change or reset.
+//        switch (KeyEvent->key()) {
+//            case Qt::Key_F17:  // Media Previous Track = F17
+//            case Qt::Key_F18:  // Media Next Track     = F18
+//            case Qt::Key_F19:  // Media Play/Pause     = F19
+//                return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
+//            default:
+//                break;
+//        }
 
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
@@ -3454,9 +3458,11 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
+    qDebug() << "handleKeypress(" << key << ")";
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
+    qDebug() << "YES: handleKeypress(" << key << ")";
 
     switch (key) {
 
@@ -3624,18 +3630,18 @@ bool MainWindow::handleKeypress(int key, QString text)
     //    https://superuser.com/questions/554489/how-can-i-remap-a-play-button-keypress-from-a-bluetooth-headset-on-os-x
     //    https://pqrs.org/osx/karabiner/
 
-    case Qt::Key_F18: // BT Media Previous Track
+//    case Qt::Key_F17: // BT Media Previous Track
 //        qDebug() << "BT Remote Key: PREV TRACK";
-        on_actionPrevious_Playlist_Item_triggered();
-        break;
-    case Qt::Key_F19: // BT Media Next Track
+//        on_actionPrevious_Playlist_Item_triggered();
+//        break;
+//    case Qt::Key_F18: // BT Media Next Track
 //        qDebug() << "BT Remote Key: NEXT TRACK";
-        on_actionNext_Playlist_Item_triggered();
-        break;
-    case 16: // BT Media Play/Pause  // I don't know why Key_F20 doesn't work here...the mapping is correct
+//        on_actionNext_Playlist_Item_triggered();
+//        break;
+//    case Qt::Key_F19: // BT Media Play/Pause  // I don't know why Key_F20 doesn't work here...the mapping is correct
 //        qDebug() << "BT Remote Key: PLAY/PAUSE";
-        on_playButton_clicked();
-        break;
+//        on_playButton_clicked();
+//        break;
 
     default:
 //        default:
