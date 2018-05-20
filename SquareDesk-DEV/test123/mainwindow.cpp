@@ -412,6 +412,7 @@ MainWindow::MainWindow(QWidget *parent) :
     keybindingActionToMenuAction[keyActionName_VolumeMinus] = ui->actionVolume_Down;
     keybindingActionToMenuAction[keyActionName_TempoPlus] = ui->actionSpeed_Up;
     keybindingActionToMenuAction[keyActionName_TempoMinus] = ui->actionSlow_Down;
+    keybindingActionToMenuAction[keyActionName_PlayPrevious] = ui->actionPrevious_Playlist_Item;
     keybindingActionToMenuAction[keyActionName_PlayNext] = ui->actionNext_Playlist_Item;
     keybindingActionToMenuAction[keyActionName_Mute] = ui->actionMute;
     keybindingActionToMenuAction[keyActionName_PitchPlus] = ui->actionPitch_Up;
@@ -440,6 +441,8 @@ MainWindow::MainWindow(QWidget *parent) :
             QShortcut *shortcut(new QShortcut(this));
             shortcut->setEnabled(false);
             shortcut->setWhatsThis(what.arg(action->name()).arg(keypress));
+//            qDebug() << "availableAction:" << action->name() << "," << keypress;
+//            qDebug() << "shortcut: " << shortcut;
             hotkeyShortcuts[action->name()].append(shortcut);
             connect(shortcut, SIGNAL(activated()), action, SLOT(do_activated()));
             connect(shortcut, SIGNAL(activatedAmbiguously()), action, SLOT(do_activated()));
@@ -3324,6 +3327,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>(((QApplication *)Object)->activeWindow());
         if (maybeMainWindow == 0) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
+//            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
         }
 
@@ -3444,9 +3448,11 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
+//    qDebug() << "handleKeypress(" << key << ")";
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
         return false;
     }
+//    qDebug() << "YES: handleKeypress(" << key << ")";
 
     switch (key) {
 
@@ -3610,6 +3616,11 @@ bool MainWindow::handleKeypress(int key, QString text)
             }
             break;
 
+    // Bluetooth Remote keys (mapped by Karabiner on Mac OS X to F18/19/20) -----------
+    //    https://superuser.com/questions/554489/how-can-i-remap-a-play-button-keypress-from-a-bluetooth-headset-on-os-x
+    //    https://pqrs.org/osx/karabiner/
+
+    default:
 //        default:
 //            auto keyMapping = hotkeyMappings.find((Qt::Key)(key));
 //            if (keyMapping != hotkeyMappings.end())
@@ -6269,8 +6280,15 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
 
 void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 {
+    cBass.StreamGetPosition();  // get ready to look at the playhead position
+    if (cBass.Current_Position != 0.0) {
+        on_stopButton_clicked();  // if the playhead was not at the beginning, just stop current playback and go to START
+        return;                   //   and return early... (don't save the current song settings)
+    }
+    // else, stop and move to the previous song...
+
+    on_stopButton_clicked();  // if we were playing, just stop current playback
     // This code is similar to the row double clicked code...
-    on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
     saveCurrentSongSettings();
 
     QItemSelectionModel *selectionModel = ui->songTable->selectionModel();

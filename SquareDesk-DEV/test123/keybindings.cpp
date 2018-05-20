@@ -38,6 +38,7 @@ const char * keyActionName_VolumeMinus = "Volume -";
 const char * keyActionName_VolumePlus = "Volume +";
 const char * keyActionName_TempoPlus = "Tempo +";
 const char * keyActionName_TempoMinus = "Tempo -";
+const char * keyActionName_PlayPrevious = "Load Previous Song";
 const char * keyActionName_PlayNext = "Load Next Song";
 const char * keyActionName_Mute = "Mute";
 const char * keyActionName_PitchPlus = "Pitch +";
@@ -209,6 +210,20 @@ void KeyActionTempoMinus::doAction(MainWindow *mw) {
     mw->actionTempoMinus();
 };
 
+
+
+class KeyActionPlayPrevious : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionPlayPrevious::name() {
+    return keyActionName_PlayPrevious;
+};
+void KeyActionPlayPrevious::doAction(MainWindow *mw) {
+    mw->on_actionPrevious_Playlist_Item_triggered();
+};
 
 
 class KeyActionPlayNext : public KeyAction {
@@ -426,6 +441,7 @@ static KeyActionVolumePlus keyaction_KeyActionVolumePlus;
 static KeyActionVolumeMinus keyaction_KeyActionVolumeMinus;
 static KeyActionTempoPlus keyaction_KeyActionTempoPlus;
 static KeyActionTempoMinus keyaction_KeyActionTempoMinus;
+static KeyActionPlayPrevious keyaction_KeyActionPlayPrevious;
 static KeyActionPlayNext keyaction_KeyActionPlayNext;
 static KeyActionMute keyaction_KeyActionMute;
 static KeyActionPitchPlus keyaction_KeyActionPitchPlus;
@@ -467,6 +483,7 @@ QVector<KeyAction*> KeyAction::availableActions()
     actions.append(&keyaction_KeyActionRestartSong);
     actions.append(&keyaction_KeyActionForward15Seconds);
     actions.append(&keyaction_KeyActionBackward15Seconds);
+    actions.append(&keyaction_KeyActionPlayPrevious);
     actions.append(&keyaction_KeyActionPlayNext);
     actions.append(&keyaction_KeyActionLoopToggle);
     actions.append(&keyaction_KeyActionTestLoop);
@@ -541,9 +558,13 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
     keyMappings[QKeySequence(Qt::Key_Plus).toString()] = &keyaction_KeyActionTempoPlus;
     keyMappings[QKeySequence(Qt::Key_Minus).toString()] = &keyaction_KeyActionTempoMinus;
     keyMappings[QKeySequence(Qt::Key_D).toString()] = &keyaction_KeyActionPitchMinus;
+    keyMappings[QKeySequence(Qt::Key_F17).toString()] = &keyaction_KeyActionPlayPrevious;
+    keyMappings[QKeySequence(Qt::Key_J).toString()] = &keyaction_KeyActionPlayPrevious;
+    keyMappings[QKeySequence(Qt::Key_F18).toString()] = &keyaction_KeyActionPlayNext;
     keyMappings[QKeySequence(Qt::Key_K).toString()] = &keyaction_KeyActionPlayNext;
     keyMappings[QKeySequence(Qt::Key_L).toString()] = &keyaction_KeyActionLoopToggle;
     keyMappings[QKeySequence(Qt::Key_M).toString()] = &keyaction_KeyActionMute;
+    keyMappings[QKeySequence(Qt::Key_F16).toString()] = &keyaction_KeyActionPlaySong;
     keyMappings[QKeySequence(Qt::Key_P).toString()] = &keyaction_KeyActionPlaySong;
     keyMappings[QKeySequence(Qt::Key_Q).toString()] = &keyaction_KeyActionTestLoop;
     keyMappings[QKeySequence(Qt::Key_S).toString()] = &keyaction_KeyActionStopSong;

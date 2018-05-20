@@ -397,6 +397,12 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float
 }
 
 // ------------------------------------------------------------------
+bool bass_audio::isPaused(void)
+{
+    return(bPaused);
+}
+
+// ------------------------------------------------------------------
 void bass_audio::StreamSetPosition(double Position_sec)
 {
     BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, (double)Position_sec), BASS_POS_BYTE);
