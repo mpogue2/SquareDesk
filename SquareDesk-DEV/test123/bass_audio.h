@@ -79,6 +79,8 @@ public:
     void StreamSetPosition(double Position);
     void StreamGetPosition(void);
 
+    bool isPaused(void); // returns true if paused, false if playing
+
     //Controls
     void Play(void);  // forces stream to play
     void Stop(void);  // forces stream to stop playback, and rewinds to 0

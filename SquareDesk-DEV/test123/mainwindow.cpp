@@ -6280,8 +6280,15 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
 
 void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 {
+    cBass.StreamGetPosition();  // get ready to look at the playhead position
+    if (cBass.Current_Position != 0.0) {
+        on_stopButton_clicked();  // if the playhead was not at the beginning, just stop current playback and go to START
+        return;                   //   and return early... (don't save the current song settings)
+    }
+    // else, stop and move to the previous song...
+
+    on_stopButton_clicked();  // if we were playing, just stop current playback
     // This code is similar to the row double clicked code...
-    on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
     saveCurrentSongSettings();
 
     QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
