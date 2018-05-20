@@ -564,7 +564,7 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
     keyMappings[QKeySequence(Qt::Key_K).toString()] = &keyaction_KeyActionPlayNext;
     keyMappings[QKeySequence(Qt::Key_L).toString()] = &keyaction_KeyActionLoopToggle;
     keyMappings[QKeySequence(Qt::Key_M).toString()] = &keyaction_KeyActionMute;
-    keyMappings[QKeySequence(Qt::Key_F19).toString()] = &keyaction_KeyActionPlaySong;
+    keyMappings[QKeySequence(Qt::Key_F16).toString()] = &keyaction_KeyActionPlaySong;
     keyMappings[QKeySequence(Qt::Key_P).toString()] = &keyaction_KeyActionPlaySong;
     keyMappings[QKeySequence(Qt::Key_Q).toString()] = &keyaction_KeyActionTestLoop;
     keyMappings[QKeySequence(Qt::Key_S).toString()] = &keyaction_KeyActionStopSong;
