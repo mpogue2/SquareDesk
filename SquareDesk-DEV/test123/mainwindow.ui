@@ -1813,6 +1813,7 @@
     <addaction name="separator"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
+    <addaction name="actionExport_Play_Data"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
@@ -3176,6 +3177,11 @@
    </property>
    <property name="text">
     <string>20 seconds</string>
+   </property>
+  </action>
+  <action name="actionExport_Play_Data">
+   <property name="text">
+    <string>Export Play Data...</string>
    </property>
   </action>
  </widget>

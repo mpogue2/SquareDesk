@@ -31,6 +31,12 @@
 
 class SessionInfo;
 
+class SongPlayEvent {
+public:
+    virtual void operator() (const QString &name, const QString &playedOn) = 0;
+    virtual ~SongPlayEvent(){}
+};
+
 class SongSetting
 {
 private:
@@ -181,7 +187,14 @@ public:
     QPair<QString,QString> getColorForTag(const QString &tag);
     void addTags(const QString &str);
     void removeTags(const QString &str);
-    void setDefaultTagColors( const QString &background, const QString & foreground);    
+    void setDefaultTagColors( const QString &background, const QString & foreground);
+
+    void getSongPlayHistory(SongPlayEvent &event,
+                            int session_id,
+                            bool omitStartDate,
+                            QString startDate,
+                            bool omitEndDate,
+                            QString endDate);
     
 private:
     bool debugErrors(const char *where, QSqlQuery &q);

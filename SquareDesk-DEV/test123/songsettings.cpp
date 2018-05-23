@@ -702,6 +702,54 @@ void SongSettings::clearTaughtCalls(const QString &program)
     exec("clearTaughtCalls", q);
 }
 
+
+void SongSettings::getSongPlayHistory(SongPlayEvent &event,
+                            int session_id,
+                            bool omitStartDate,
+                            QString startDate,
+                            bool omitEndDate,
+                            QString endDate)
+{
+    QString sql("SELECT songname, datetime(played_on,'localtime') FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    QStringList whereClause;
+    
+    if (session_id)
+    {
+        whereClause.append("session_id=:session_rowid");
+    }
+    if (!omitStartDate)
+    {
+        whereClause.append("played_on > :start_date");
+    }
+    if (!omitEndDate)
+    {
+        whereClause.append("played_on > :start_date");
+    }
+    if (!whereClause.empty())
+    {
+        sql += " WHERE " + whereClause.join(" AND ");
+    }
+    QSqlQuery q(m_db);
+    q.prepare(sql);
+    if (session_id)
+    {
+        q.bindValue(":session_rowid", session_id);
+    }
+    if (!omitStartDate)
+    {
+        q.bindValue(":start_date", startDate);
+    }
+    if (!omitEndDate)
+    {
+        q.bindValue(":start_date", endDate);
+    }
+    exec("songplayhistory", q);
+    while (q.next())
+    {
+        event(q.value(0).toString(), q.value(1).toString());
+    }
+}
+
 void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessions)
 {
     QString sql("SELECT filename, julianday('now') - julianday(max(played_on)) FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");

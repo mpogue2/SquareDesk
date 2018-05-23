@@ -60,6 +60,7 @@
 #include "tablenumberitem.h"
 #include "importdialog.h"
 #include "exportdialog.h"
+#include "filehistoryexportdialog.h"
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
 #include "songtitlelabel.h"
@@ -5550,7 +5551,7 @@ void MainWindow::on_checkBoxStartOnPlay_clicked()
 void MainWindow::on_actionImport_triggered()
 {
     RecursionGuard dialog_guard(inPreferencesDialog);
-
+ 
     ImportDialog *importDialog = new ImportDialog();
     int dialogCode = importDialog->exec();
     RecursionGuard keypress_guard(trapKeypresses);
@@ -5561,6 +5562,22 @@ void MainWindow::on_actionImport_triggered()
     }
     delete importDialog;
     importDialog = NULL;
+}
+
+void MainWindow::on_actionExport_Play_Data_triggered()
+{
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    FileHistoryExportDialog *dialog = new FileHistoryExportDialog();
+    dialog->populateOptions(songSettings);
+    int dialogCode = dialog->exec();
+    RecursionGuard keypress_guard(trapKeypresses);
+    if (dialogCode == QDialog::Accepted)
+    {
+        dialog->exportSongPlayData(songSettings);
+    }
+    delete dialog;
+    dialog = NULL;
 }
 
 void MainWindow::on_actionExport_triggered()
