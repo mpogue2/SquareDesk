@@ -768,6 +768,7 @@ public:
     friend class KeyActionVolumePlus;
     friend class KeyActionTempoPlus;
     friend class KeyActionTempoMinus;
+    friend class KeyActionPlayPrevious;
     friend class KeyActionPlayNext;
     friend class KeyActionMute;
     friend class KeyActionPitchPlus;

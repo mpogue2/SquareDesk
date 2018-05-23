@@ -72,6 +72,7 @@ extern const char * keyActionName_VolumeMinus;
 extern const char * keyActionName_VolumePlus;
 extern const char * keyActionName_TempoPlus;
 extern const char * keyActionName_TempoMinus;
+extern const char * keyActionName_PlayPrevious;
 extern const char * keyActionName_PlayNext;
 extern const char * keyActionName_Mute;
 extern const char * keyActionName_PitchPlus;
