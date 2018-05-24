@@ -91,13 +91,64 @@
 class SDDancer
 {
 public:
+//    double start_x;
+//    double start_y;
+//    double start_rotation;
+
+    
     QGraphicsItemGroup *graphics;
     QGraphicsItem *mainItem;
     QGraphicsRectItem *directionRectItem;
     QGraphicsTextItem *label;
-    double x;
-    double y;
-    double direction;
+
+    // See note on setDestinationScalingFactors below
+    
+    void setDestination(int x, int y, int direction)
+    {
+        source_x = dest_x;
+        source_y = dest_y;
+        source_direction = dest_direction;
+        
+        dest_x = x;
+        dest_y = y;
+        dest_direction = direction;
+    }
+
+    
+    // This is really gross: We stash stuff in the destination, then
+    // when we have finished calculating the common factors, we adjust
+    // the destination values. It sucks and is awful and technical
+    // debt.
+    
+    void setDestinationScalingFactors(double left_x, double max_x, double max_y, double lowest_factor)
+    {
+        double dancer_start_x = dest_x - left_x;
+        dest_x = (dancer_start_x / lowest_factor - max_x / 2.0);
+        dest_y = dest_y - max_y / 2.0;
+    }
+    
+    double getX(double t)
+    {
+        return (source_x * (1 - t) + dest_x * t);
+    }
+    double getY(double t)
+    {
+        return (source_y * (1 - t) + dest_y * t);
+    }
+    double getDirection(double t)
+    {
+        return (source_direction * (1 - t) + dest_direction * t);
+    }
+
+private:
+    double source_x;
+    double source_y;
+    double source_direction;
+    double dest_x;
+    double dest_y;
+    double dest_direction;
+    double destination_divisor;
+public:
     double labelTranslateX;
     double labelTranslateY;
 
@@ -412,6 +463,7 @@ private slots:
     void set_sd_copy_options_selected_cells();
     void toggle_sd_copy_html_includes_headers();
     void toggle_sd_copy_html_formations_as_svg();
+    void update_sd_animations();
 
     void undo_sd_to_row();
     void undo_last_sd_action();
@@ -820,6 +872,10 @@ private: // SD
     QShortcut *shortcutSDCurrentSequenceSelectAll;
     QShortcut *shortcutSDCurrentSequenceCopy;
 
+    double sd_animation_t_value;
+    double sd_animation_delta_t;
+    double sd_animation_msecs_per_frame;
+    void clamp_sd_animation_values();
     void set_sd_last_formation_name(const QString&);    
 public:
     void do_sd_tab_completion();

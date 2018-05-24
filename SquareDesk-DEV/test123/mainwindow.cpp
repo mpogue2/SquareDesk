@@ -586,6 +586,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
+    sd_animation_delta_t = prefsManager.GetSDAnimationDeltaT().toFloat();
+    sd_animation_msecs_per_frame = prefsManager.GetSDAnimationMSecsPerFrame().toFloat();
+    clamp_sd_animation_values();
+    
     // define type names (before reading in the music filenames!) ------------------
     QString value;
     value = prefsManager.GetMusicTypeSinging();
@@ -5787,6 +5791,10 @@ void MainWindow::on_actionPreferences_triggered()
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
 
+        sd_animation_delta_t = prefsManager.GetSDAnimationDeltaT().toFloat();
+        sd_animation_msecs_per_frame = prefsManager.GetSDAnimationMSecsPerFrame().toFloat();
+        clamp_sd_animation_values();
+        
         {
             QString value;
             value = prefsManager.GetMusicTypeSinging();

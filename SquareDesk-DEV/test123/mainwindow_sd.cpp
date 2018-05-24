@@ -107,6 +107,28 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     return group;
 }
 
+void move_dancers(QList<SDDancer> &sdpeople, double t)
+{
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
+    {
+        QTransform transform;
+        double dancer_x = sdpeople[dancerNum].getX(t);
+        double dancer_y = sdpeople[dancerNum].getY(t);
+        transform.translate( dancer_x * dancerGridSize,
+                             dancer_y * dancerGridSize);
+        transform.rotate(sdpeople[dancerNum].getDirection(t));
+        sdpeople[dancerNum].graphics->setTransform(transform);
+
+        // Gyrations to make sure that the text labels are always upright
+        QTransform textTransform;
+        textTransform.translate( -sdpeople[dancerNum].labelTranslateX,
+                                 -sdpeople[dancerNum].labelTranslateY );
+        textTransform.rotate( -sdpeople[dancerNum].getDirection(t));
+        textTransform.translate( sdpeople[dancerNum].labelTranslateX,
+                                 sdpeople[dancerNum].labelTranslateY );
+        sdpeople[dancerNum].label->setTransform(textTransform); // Rotation(-sdpeople[dancerNum].direction);
+    }
+}
 
 static void draw_scene(const QStringList &sdformation,
                        QList<SDDancer> &sdpeople)
@@ -115,6 +137,7 @@ static void draw_scene(const QStringList &sdformation,
     int girl = 0;
     double max_y = (double)(sdformation.length());
 
+    // Assign each dancer a location based on the picture
     for (int y = 0; y < sdformation.length(); ++y)
     {
         int dancer_start_x = -1;
@@ -177,9 +200,7 @@ static void draw_scene(const QStringList &sdformation,
                     }
                     else
                     {
-                        sdpeople[dancerNum].x = dancer_start_x;
-                        sdpeople[dancerNum].y = y;
-                        sdpeople[dancerNum].direction = direction;
+                        sdpeople[dancerNum].setDestination(dancer_start_x, y, direction);
                     }
                 }
                 draw = false;
@@ -190,23 +211,28 @@ static void draw_scene(const QStringList &sdformation,
         } /* end of for x */
     } /* end of for y */
 
+
+    // Now calculate the lowest common divisor for the X position and the scene bounds
+    
     bool factors[4];
     double left_x = -1;
 
+    // left_x = min(dancers.x)
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        int dancer_start_x = sdpeople[dancerNum].x;
+        int dancer_start_x = sdpeople[dancerNum].getX(1.0);
         if (left_x < 0 || dancer_start_x < left_x)
             left_x = dancer_start_x;
     }
 
+    // calculate a lowest common divisor for X scaling
     for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
         factors[i] = true;
     int max_x = -1;
 
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        int dancer_start_x = sdpeople[dancerNum].x - left_x;
+        int dancer_start_x = sdpeople[dancerNum].getX(1) - left_x;
         if (dancer_start_x > max_x)
             max_x = dancer_start_x;
 
@@ -218,6 +244,7 @@ static void draw_scene(const QStringList &sdformation,
             }
         }
     }
+    
     double lowest_factor = 2; // just default to something that won't suck too badly
     for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
     {
@@ -229,28 +256,23 @@ static void draw_scene(const QStringList &sdformation,
     }
 
     max_x /= lowest_factor;
-
+    
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        QTransform transform;
-        double dancer_start_x = sdpeople[dancerNum].x - left_x;
-        double dancer_x = (dancer_start_x / lowest_factor - max_x / 2.0);
-        double dancer_y = (sdpeople[dancerNum].y - max_y / 2.0);
-        transform.translate( dancer_x * dancerGridSize,
-                             dancer_y * dancerGridSize);
-        transform.rotate(sdpeople[dancerNum].direction);
-        sdpeople[dancerNum].graphics->setTransform(transform);
-
-        // Gyrations to make sure that the text labels are always upright
-        QTransform textTransform;
-        textTransform.translate( -sdpeople[dancerNum].labelTranslateX,
-                                 -sdpeople[dancerNum].labelTranslateY );
-        textTransform.rotate( -sdpeople[dancerNum].direction);
-        textTransform.translate( sdpeople[dancerNum].labelTranslateX,
-                                 sdpeople[dancerNum].labelTranslateY );
-        sdpeople[dancerNum].label->setTransform(textTransform); // Rotation(-sdpeople[dancerNum].direction);
+        sdpeople[dancerNum].setDestinationScalingFactors(left_x, max_x, max_y, lowest_factor);
     }
+}
 
+void MainWindow::update_sd_animations()
+{
+    if (sd_animation_t_value < 1.0)
+    {
+        sd_animation_t_value += sd_animation_delta_t;
+        if (sd_animation_t_value > 1.0)
+            sd_animation_t_value = 1.0;
+        move_dancers(sdpeople, sd_animation_t_value);
+        QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
+    }
 }
 
 
@@ -395,6 +417,10 @@ void MainWindow::initialize_internal_sd_tab()
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    1B^   1G^    .");
     draw_scene(initialDancerLocations, sdpeople);
+    // Easiest way to make sure dest and source are the same
+    draw_scene(initialDancerLocations, sdpeople);
+    move_dancers(sdpeople, 1.0);
+    sd_animation_t_value = 1.0;
 
     QStringList tableHeader;
     tableHeader << "call" << "result";
@@ -425,6 +451,19 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
     graphicsTextItemSDStatusBarText->setPlainText(sdLastFormationName.compare("(any setup)") == 0 ? "" : sdLastFormationName);
 }
 
+void MainWindow::clamp_sd_animation_values()
+{
+    if (sd_animation_msecs_per_frame <= 0)
+        sd_animation_msecs_per_frame = 1;
+    if (sd_animation_msecs_per_frame >= 1000)
+        sd_animation_msecs_per_frame = 1;
+    if (sd_animation_delta_t < .01)
+        sd_animation_delta_t = .01;
+    if (sd_animation_delta_t > 1)
+        sd_animation_delta_t = 1;
+            
+}
+
 void MainWindow::on_sd_update_status_bar(QString str)
 {
     if (!str.compare("<startup>"))
@@ -437,6 +476,10 @@ void MainWindow::on_sd_update_status_bar(QString str)
     if (!sdformation.empty())
     {
         draw_scene(sdformation, sdpeople);
+        sd_animation_t_value = sd_animation_delta_t;
+        move_dancers(sdpeople, sd_animation_t_value); 
+        QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
+        
         QPixmap image(sdListIconSize,sdListIconSize);
         image.fill();
         QPainter painter(&image);
@@ -766,6 +809,7 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetIte
             set_sd_last_formation_name(formationList[0]);            
             formationList.removeFirst();
             draw_scene(formationList, sdpeople);
+            move_dancers(sdpeople, 1); 
         }
 
     }
@@ -857,6 +901,7 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
                 set_sd_last_formation_name(formationList[0]);            
                 formationList.removeFirst();
                 draw_scene(formationList, sdpeople);
+                move_dancers(sdpeople, 1); 
             }
         }
 
@@ -1463,6 +1508,7 @@ static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsS
             else
             {
                 draw_scene(formationList, people);
+                move_dancers(people, 1); 
                 QBuffer svgText;
                 svgText.open(QBuffer::ReadWrite);
                 QSvgGenerator svgGen;
@@ -1623,6 +1669,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 
     QMenu menuCopySettings("Copy Options");
     QActionGroup actionGroupCopyOptions(this);
+    actionGroupCopyOptions.setExclusive(true);
 
     QAction action1_1("Entire Sequence", this);
     action1_1.setCheckable(true);
