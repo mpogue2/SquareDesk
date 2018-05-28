@@ -467,6 +467,7 @@ private slots:
 
     void undo_sd_to_row();
     void undo_last_sd_action();
+    void redo_last_sd_action();
     void select_all_sd_current_sequence();
     void on_listWidgetSDOutput_customContextMenuRequested(const QPoint&);
     void copy_selection_from_listWidgetSDOutput();
@@ -852,7 +853,10 @@ private:
 private: // SD
     SDThread *sdthread;
     QStringList sdformation;
-    QGraphicsScene sdscene;
+    QGraphicsScene sd_animation_scene;
+    QGraphicsScene sd_fixed_scene;
+    QList<SDDancer> sd_animation_people;
+    QList<SDDancer> sd_fixed_people;
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;
@@ -860,7 +864,6 @@ private: // SD
     bool sdOutputtingAvailableCalls;
     QList<SDAvailableCall> sdAvailableCalls;
     int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;
-    QList<SDDancer> sdpeople;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText;
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);

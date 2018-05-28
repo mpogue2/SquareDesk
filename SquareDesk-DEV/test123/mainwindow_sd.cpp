@@ -39,6 +39,7 @@
 
 
 #define NO_TIMING_INFO 1
+// #define REDO
 
 static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
@@ -68,6 +69,11 @@ static const char *str_square_your_sets = "square your sets";
 
 static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
+
+
+static QStringList sd_redo_commands;
+static QList<QStringList> sd_redo_stack;
+
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
@@ -130,7 +136,7 @@ void move_dancers(QList<SDDancer> &sdpeople, double t)
     }
 }
 
-static void draw_scene(const QStringList &sdformation,
+static void decode_formation_into_dancer_destinations(const QStringList &sdformation,
                        QList<SDDancer> &sdpeople)
 {
     int coupleNumber = -1;
@@ -270,7 +276,7 @@ void MainWindow::update_sd_animations()
         sd_animation_t_value += sd_animation_delta_t;
         if (sd_animation_t_value > 1.0)
             sd_animation_t_value = 1.0;
-        move_dancers(sdpeople, sd_animation_t_value);
+        move_dancers(sd_animation_people, sd_animation_t_value);
         QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
     }
 }
@@ -404,9 +410,10 @@ void MainWindow::initialize_internal_sd_tab()
     
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
 
-    initialize_scene(sdscene, sdpeople, graphicsTextItemSDStatusBarText);
+    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText);
+    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText);
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-    ui->graphicsViewSDFormation->setScene(&sdscene);
+    ui->graphicsViewSDFormation->setScene(&sd_animation_scene);
 
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    3GV   3BV    .");
@@ -416,10 +423,13 @@ void MainWindow::initialize_internal_sd_tab()
     initialDancerLocations.append(" 4G>    .     .    2B<");
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    1B^   1G^    .");
-    draw_scene(initialDancerLocations, sdpeople);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people); 
     // Easiest way to make sure dest and source are the same
-    draw_scene(initialDancerLocations, sdpeople);
-    move_dancers(sdpeople, 1.0);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people); 
+    move_dancers(sd_animation_people, 1.0);
+    move_dancers(sd_fixed_people, 1.0);
     sd_animation_t_value = 1.0;
 
     QStringList tableHeader;
@@ -475,26 +485,29 @@ void MainWindow::on_sd_update_status_bar(QString str)
                       "\n" + sdformation.join("\n"));
     if (!sdformation.empty())
     {
-        draw_scene(sdformation, sdpeople);
+        decode_formation_into_dancer_destinations(sdformation, sd_animation_people);
+        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people);
         sd_animation_t_value = sd_animation_delta_t;
-        move_dancers(sdpeople, sd_animation_t_value); 
-        QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
-        
+
+        move_dancers(sd_fixed_people, 1);
         QPixmap image(sdListIconSize,sdListIconSize);
         image.fill();
         QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
-        sdscene.render(&painter);
+        sd_fixed_scene.render(&painter);
 
         QListWidgetItem *item = new QListWidgetItem();
         item->setData(Qt::UserRole, formation);
         item->setIcon(QIcon(image));
-        ui->listWidgetSDOutput->addItem(item);
-    }
+        ui->listWidgetSDOutput->addItem(item); 
+
+        update_sd_animations();
+   }
     if (!sdformation.empty() && sdLastLine >= 1)
     {
         int row = sdLastLine >= 2 ? (sdLastLine - 2) : 0;
 
+        move_dancers(sd_fixed_people, 1);
         render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
 #ifdef NO_TIMING_INFO
         QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row, kColCurrentSequenceCall);
@@ -687,7 +700,9 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     if (str.startsWith("Output file is \""))
     {
         sdLastLine = 0;
-        ui->tableWidgetCurrentSequence->setRowCount(0);
+        qDebug() << "Throwing away redo stack: " << sd_redo_commands;
+        sd_redo_stack.clear();
+        sd_redo_commands.clear();
     }
 
     while (str.length() > 1 && str[str.length() - 1] == '\n')
@@ -714,10 +729,21 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             if (sdLastLine > 0 && !move.isEmpty())
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
-                    ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
+                {
+                    qDebug() << "Adding a row, redo stack is " << sd_redo_commands;
 
-                qDebug() << "Possibly adding line with " << str;
-                qDebug() << "  " << sdLastLine << " / " << match.captured(2) << " / " << move;
+                    while (sd_redo_stack.count() < sdLastLine - 1)
+                    {
+                        sd_redo_stack.append(QStringList());
+                    }
+                    sd_redo_stack.append(sd_redo_commands);
+                    if (sdLastLine > 1)
+                    {
+                        sd_redo_commands.clear();
+                    }
+                    ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
+                }
+
 #ifdef NO_TIMING_INFO
                 QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
@@ -761,7 +787,10 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 void MainWindow::on_sd_awaiting_input()
 {
     ui->listWidgetSDOutput->scrollToBottom();
-    ui->tableWidgetCurrentSequence->setRowCount(sdLastLine > 1 ? sdLastLine - 1 : sdLastLine);
+    int rowCount = sdLastLine > 1 ? sdLastLine - 1 : sdLastLine;
+    qDebug() << "on_sd_awaiting_input setting row count to " << rowCount << " vs " << ui->tableWidgetCurrentSequence->rowCount();\
+    qDebug() << "   redo stack is " << sd_redo_commands;
+    ui->tableWidgetCurrentSequence->setRowCount(rowCount);
     ui->tableWidgetCurrentSequence->scrollToBottom();
     on_lineEditSDInput_textChanged();
 }
@@ -808,8 +837,8 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetIte
         {
             set_sd_last_formation_name(formationList[0]);            
             formationList.removeFirst();
-            draw_scene(formationList, sdpeople);
-            move_dancers(sdpeople, 1); 
+            decode_formation_into_dancer_destinations(formationList, sd_animation_people);
+            move_dancers(sd_animation_people, 1); 
         }
 
     }
@@ -821,7 +850,7 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     image.fill();
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
-    sdscene.render(&painter);
+    sd_fixed_scene.render(&painter);
 
     QTableWidgetItem *item = new QTableWidgetItem();
     item->setData(Qt::UserRole, formation);
@@ -900,8 +929,8 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
             {
                 set_sd_last_formation_name(formationList[0]);            
                 formationList.removeFirst();
-                draw_scene(formationList, sdpeople);
-                move_dancers(sdpeople, 1); 
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people);
+                move_dancers(sd_animation_people, 1); 
             }
         }
 
@@ -1139,6 +1168,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     }
     else
     {
+        sd_redo_commands.append(cmd);
         sdthread->do_user_input(cmd);
     }
 }
@@ -1355,7 +1385,7 @@ void SDDancer::setColor(const QColor &color)
 }
 
 
-void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
+static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &colorScheme)
 {
     bool showDancerLabels = (colorScheme == "Normal");
     for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
@@ -1395,6 +1425,13 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 }
 
 
+void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
+{
+    setPeopleColoringScheme(sd_animation_people, colorScheme);
+    setPeopleColoringScheme(sd_fixed_people, colorScheme);
+}
+
+
 void MainWindow::select_all_sd_current_sequence()
 {
     for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
@@ -1410,6 +1447,21 @@ void MainWindow::select_all_sd_current_sequence()
 void MainWindow::undo_last_sd_action()
 {
     sdthread->do_user_input("undo last call");
+    ui->lineEditSDInput->setFocus();
+}
+
+void MainWindow::redo_last_sd_action()
+{
+    int redoRow = ui->tableWidgetCurrentSequence->rowCount();
+    if (redoRow < sd_redo_stack.count())
+    {
+        QStringList redoCommands(sd_redo_stack[redoRow]);
+        for (auto redoCommand : redoCommands)
+        {
+            qDebug() << "Redoing " << redoCommand << " for row " << redoRow;
+            sdthread->do_user_input(redoCommand);
+        }
+    }
     ui->lineEditSDInput->setFocus();
 }
 
@@ -1507,7 +1559,7 @@ static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsS
             }
             else
             {
-                draw_scene(formationList, people);
+                decode_formation_into_dancer_destinations(formationList, people);
                 move_dancers(people, 1); 
                 QBuffer svgText;
                 svgText.open(QBuffer::ReadWrite);
@@ -1652,6 +1704,13 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
     action2.setShortcut(QKeySequence::Undo);
     contextMenu.addAction(&action2);
+
+#ifdef REDO
+    QAction action25("Redo", this);
+    connect(&action25, SIGNAL(triggered()), this, SLOT(redo_last_sd_action()));
+    action25.setShortcut(QKeySequence::Redo);
+    contextMenu.addAction(&action25);
+#endif
     
     QAction action3("Select All", this);
     connect(&action3, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
@@ -1732,6 +1791,12 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
     contextMenu.addAction(&action1);
     QAction action2("Undo", this);
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
+#ifdef REDO    
     contextMenu.addAction(&action2);
+    QAction action3("Redo", this);
+    connect(&action3, SIGNAL(triggered()), this, SLOT(redo_last_sd_action()));
+    contextMenu.addAction(&action3);
+#endif
+
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }
