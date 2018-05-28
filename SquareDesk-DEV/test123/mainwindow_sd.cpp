@@ -39,7 +39,7 @@
 
 
 #define NO_TIMING_INFO 1
-// #define REDO
+#define REDO 1
 
 static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
@@ -731,13 +731,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
                     qDebug() << "Adding a row, redo stack is " << sd_redo_commands;
-
-                    while (sd_redo_stack.count() < sdLastLine - 1)
-                    {
-                        sd_redo_stack.append(QStringList());
-                    }
                     sd_redo_stack.append(sd_redo_commands);
-                    if (sdLastLine > 1)
+                    if (sdLastLine > 0)
                     {
                         sd_redo_commands.clear();
                     }
@@ -1168,8 +1163,8 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     }
     else
     {
-        sd_redo_commands.append(cmd);
-        sdthread->do_user_input(cmd);
+        if (sdthread->do_user_input(cmd))
+            sd_redo_commands.append(cmd);
     }
 }
 

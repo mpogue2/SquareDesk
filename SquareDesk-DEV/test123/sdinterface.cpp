@@ -170,12 +170,14 @@ SDThread::CurrentInputState SDThread::currentInputState()
     return iofull->currentInputState;
 }
 
-void SDThread::do_user_input(QString str)
+bool SDThread::do_user_input(QString str)
 {
     if (on_user_input(str))
     {
         waitCondAckToMainThread.wait(&mutexAckToMainThread);
+        return true;
     }
+    return false;
 }
 
 bool SDThread::on_user_input(QString str)

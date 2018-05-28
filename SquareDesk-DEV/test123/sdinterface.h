@@ -71,7 +71,8 @@ public:
     CurrentInputState currentInputState();
     void set_dance_program(dance_level dance_program);
     dance_level find_dance_program(QString call);
-    void do_user_input(QString str);
+    // returns true if the input was matched
+    bool do_user_input(QString str);
     void add_selectors_to_list_widget(QListWidget *);
     void add_directions_to_list_widget(QListWidget *listWidget);
 
