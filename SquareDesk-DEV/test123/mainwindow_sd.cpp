@@ -1448,6 +1448,7 @@ void MainWindow::undo_last_sd_action()
 void MainWindow::redo_last_sd_action()
 {
     int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
+    if (redoRow < 0) redoRow = 0;
     if (redoRow < sd_redo_stack.count())
     {
         QStringList redoCommands(sd_redo_stack[redoRow]);
