@@ -137,6 +137,8 @@ public:
     }
     double getDirection(double t)
     {
+        if (dest_direction < source_direction && t < 1.0)
+            return (source_direction * (1 - t) + (dest_direction + 360.0) * t);
         return (source_direction * (1 - t) + dest_direction * t);
     }
 
