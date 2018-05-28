@@ -857,6 +857,7 @@ private: // SD
     QGraphicsScene sd_fixed_scene;
     QList<SDDancer> sd_animation_people;
     QList<SDDancer> sd_fixed_people;
+    QList<QStringList> sd_redo_stack;
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;

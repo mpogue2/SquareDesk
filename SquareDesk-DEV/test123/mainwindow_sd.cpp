@@ -39,7 +39,6 @@
 
 
 #define NO_TIMING_INFO 1
-#define REDO 1
 
 static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
@@ -71,9 +70,7 @@ static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
 
 
-static QStringList sd_redo_commands;
-static QList<QStringList> sd_redo_stack;
-
+static QList<QStringList> sd_undo_stack;
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
@@ -341,6 +338,9 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
 
 void MainWindow::initialize_internal_sd_tab()
 {
+    sd_redo_stack.clear();
+    sd_redo_stack.append(QStringList());
+    
     if (NULL != shortcutSDTabUndo)
         delete shortcutSDTabUndo;
     shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
@@ -700,9 +700,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     if (str.startsWith("Output file is \""))
     {
         sdLastLine = 0;
-        qDebug() << "Throwing away redo stack: " << sd_redo_commands;
         sd_redo_stack.clear();
-        sd_redo_commands.clear();
+        sd_redo_stack.append(QStringList());
     }
 
     while (str.length() > 1 && str[str.length() - 1] == '\n')
@@ -730,12 +729,9 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
-                    qDebug() << "Adding a row, redo stack is " << sd_redo_commands;
-                    sd_redo_stack.append(sd_redo_commands);
-                    if (sdLastLine > 0)
-                    {
-                        sd_redo_commands.clear();
-                    }
+                    while (sd_redo_stack.length() < sdLastLine)
+                        sd_redo_stack.append(QStringList());
+                    qDebug() << "Catching redo stack up to last line " << sdLastLine << " "  << sd_redo_stack.length();
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 }
 
@@ -784,7 +780,6 @@ void MainWindow::on_sd_awaiting_input()
     ui->listWidgetSDOutput->scrollToBottom();
     int rowCount = sdLastLine > 1 ? sdLastLine - 1 : sdLastLine;
     qDebug() << "on_sd_awaiting_input setting row count to " << rowCount << " vs " << ui->tableWidgetCurrentSequence->rowCount();\
-    qDebug() << "   redo stack is " << sd_redo_commands;
     ui->tableWidgetCurrentSequence->setRowCount(rowCount);
     ui->tableWidgetCurrentSequence->scrollToBottom();
     on_lineEditSDInput_textChanged();
@@ -1164,7 +1159,12 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     else
     {
         if (sdthread->do_user_input(cmd))
-            sd_redo_commands.append(cmd);
+        {
+            int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
+            if (row < 0) row = 0;
+            qDebug() << "Appending " << cmd << " to redo row " << row;
+            sd_redo_stack[row].append(cmd);
+        }
     }
 }
 
@@ -1447,7 +1447,7 @@ void MainWindow::undo_last_sd_action()
 
 void MainWindow::redo_last_sd_action()
 {
-    int redoRow = ui->tableWidgetCurrentSequence->rowCount();
+    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
     if (redoRow < sd_redo_stack.count())
     {
         QStringList redoCommands(sd_redo_stack[redoRow]);
