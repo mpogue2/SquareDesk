@@ -4986,7 +4986,7 @@ void MainWindow::loadMusicList()
 
         ui->songTable->setRowCount(ui->songTable->rowCount()+1);  // make one more row for this line
 
-        QString cType = type;  // type for Color purposes
+        QString cType = type.toLower();  // type for Color purposes
         if (cType.right(1)=="*") {
             cType.chop(1);  // remove the "*" for the purposes of coloring
         }
