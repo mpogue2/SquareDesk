@@ -932,28 +932,78 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
     do_sd_double_click_call_completion(item);
 }
 
+// WARNING: making these statically allocated makes this not thread safe, because we use the matchedLength() property!
+
+static QRegExp regexEnteredNth("(\\d+(st|nd|rd|th)?)");
+static QRegExp regexCallNth("<Nth>");
+static QRegExp regexEnteredN("(\\d+)");
+static QRegExp regexCallN("<N>");
+
+static int compareEnteredCallToCall(const QString &enteredCall, const QString &call, QString * maxCall = NULL)
+{
+    
+    int enteredCallPos = 0;
+    int callPos = 0;
+
+    while (enteredCallPos < enteredCall.length() && callPos < call.length())
+    {
+        if (enteredCall.at(enteredCallPos).toUpper() == call.at(callPos).toUpper())
+        {
+            enteredCallPos ++;
+            callPos ++;
+        }
+        else if (enteredCallPos == enteredCall.indexOf(regexEnteredNth, enteredCallPos)
+                 && callPos == call.indexOf(regexCallNth, callPos))
+        {
+            enteredCallPos += regexEnteredNth.matchedLength();
+            callPos += regexCallNth.matchedLength();
+        }
+        else if (enteredCallPos == enteredCall.indexOf(regexEnteredN, enteredCallPos)
+                 && callPos == call.indexOf(regexCallN, callPos))
+        {
+            enteredCallPos += regexEnteredN.matchedLength();
+            callPos += regexCallN.matchedLength();
+        }
+        else
+        {
+            break;
+        }
+    }
+    
+    if (NULL != maxCall)
+    {
+        *maxCall = enteredCall.left(enteredCallPos) + call.right(call.length() - callPos);
+    }
+    return enteredCallPos;
+}
 
 static QString get_longest_match_from_list_widget(QListWidget *listWidget,
                                                   QString originalText,
                                                   QString callSearch,
                                                   QString longestMatch = QString())
 {
+    QString substitutedLongestMatchCallSearch;
+    QString substitutedLongestMatchOriginalText;
     
     for (int i = 0; i < listWidget->count(); ++i)
     {
-        if ((listWidget->item(i)->text().startsWith(callSearch,
-                                                    Qt::CaseInsensitive)
-             || listWidget->item(i)->text().startsWith(originalText,
-                                                       Qt::CaseInsensitive))
-            && !listWidget->isRowHidden(i))
+        int callSearchMatchLength = compareEnteredCallToCall(callSearch, listWidget->item(i)->text(), &substitutedLongestMatchCallSearch);
+        int enteredCallMatchLength = compareEnteredCallToCall(originalText, listWidget->item(i)->text(), &substitutedLongestMatchOriginalText);
+                                                         
+        if ((!listWidget->isRowHidden(i))
+            &&
+            (callSearch.length() == callSearchMatchLength
+             || originalText.length() == enteredCallMatchLength)
+            )
         {
             if (longestMatch.isEmpty())
             {
-                longestMatch = listWidget->item(i)->text();
+                longestMatch = (callSearch.length() == callSearchMatchLength) ? substitutedLongestMatchCallSearch : substitutedLongestMatchOriginalText;
             }
             else
             {
-                QString thisItem = listWidget->item(i)->text();
+                QString thisItem = (callSearch.length() == callSearchMatchLength) ? substitutedLongestMatchCallSearch : substitutedLongestMatchOriginalText;
+
                 int substringMatch = 0;
                 while (substringMatch < longestMatch.length() && substringMatch < thisItem.length() &&
                        thisItem[substringMatch].toLower() == longestMatch[substringMatch].toLower())
@@ -966,6 +1016,7 @@ static QString get_longest_match_from_list_widget(QListWidget *listWidget,
     }
     return longestMatch;
 }
+    
 
 void MainWindow::do_sd_tab_completion()
 {
@@ -981,6 +1032,7 @@ void MainWindow::do_sd_tab_completion()
                                                       originalText,
                                                       originalText,
                                                       longestMatch);
+    qDebug() << "longest match is " << longestMatch;
     
     if (longestMatch.length() > callSearch.length())
     {
@@ -996,7 +1048,6 @@ void MainWindow::do_sd_tab_completion()
         }
         ui->lineEditSDInput->setText(new_line);
     }
-
 }
 
 void MainWindow::on_lineEditSDInput_returnPressed()
@@ -1249,8 +1300,8 @@ void MainWindow::on_lineEditSDInput_textChanged()
     
     for (int i = 0; i < ui->listWidgetSDOptions->count(); ++i)
     {
-        bool show = ui->listWidgetSDOptions->item(i)->text().startsWith(currentText, Qt::CaseInsensitive) ||
-            ui->listWidgetSDOptions->item(i)->text().startsWith(strippedText, Qt::CaseInsensitive);
+        bool show = (currentText.length() == compareEnteredCallToCall(currentText, ui->listWidgetSDOptions->item(i)->text())
+                     || strippedText.length() == compareEnteredCallToCall(strippedText, ui->listWidgetSDOptions->item(i)->text()));
 
         if (show)
         {
