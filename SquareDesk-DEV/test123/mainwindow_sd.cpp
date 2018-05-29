@@ -275,6 +275,11 @@ void MainWindow::update_sd_animations()
             sd_animation_t_value = 1.0;
         move_dancers(sd_animation_people, sd_animation_t_value);
         QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
+        sd_animation_running = true;
+    }
+    else
+    {
+        sd_animation_running = false;
     }
 }
 
@@ -775,11 +780,37 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     }
 }
 
+
+void MainWindow::render_sd_item_data(QTableWidgetItem *item)
+{
+        QVariant v = item->data(Qt::UserRole);
+        if (!v.isNull())
+        {
+            QString formation(v.toString());
+            QStringList formationList = formation.split("\n");
+            if (formationList.size() > 0)
+            {
+                set_sd_last_formation_name(formationList[0]);            
+                formationList.removeFirst();
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people);
+                move_dancers(sd_animation_people, 1); 
+            }
+        }
+}
+
 void MainWindow::on_sd_awaiting_input()
 {
     ui->listWidgetSDOutput->scrollToBottom();
     int rowCount = sdLastLine > 1 ? sdLastLine - 1 : sdLastLine;
-    qDebug() << "on_sd_awaiting_input setting row count to " << rowCount << " vs " << ui->tableWidgetCurrentSequence->rowCount();\
+    qDebug() << "on_sd_awaiting_input setting row count to " << rowCount << " vs " << ui->tableWidgetCurrentSequence->rowCount();
+
+    // In failed subsidiary call cases we don't get a formation output, so we need to manually reset the formation display.
+    if (ui->tableWidgetCurrentSequence->rowCount() > rowCount
+        && rowCount > 0 && !sd_animation_running)
+    {
+        QTableWidgetItem *item(ui->tableWidgetCurrentSequence->item(rowCount - 1, kColCurrentSequenceFormation));
+        render_sd_item_data(item);
+    }
     ui->tableWidgetCurrentSequence->setRowCount(rowCount);
     ui->tableWidgetCurrentSequence->scrollToBottom();
     on_lineEditSDInput_textChanged();
@@ -818,20 +849,7 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
 
 void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item)
 {
-    QVariant v = item->data(Qt::UserRole);
-    if (!v.isNull())
-    {
-        QString formation(v.toString());
-        QStringList formationList = formation.split("\n");
-        if (formationList.size() > 0)
-        {
-            set_sd_last_formation_name(formationList[0]);            
-            formationList.removeFirst();
-            decode_formation_into_dancer_destinations(formationList, sd_animation_people);
-            move_dancers(sd_animation_people, 1); 
-        }
-
-    }
+    render_sd_item_data(item);
 }
 
 void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation)
@@ -847,7 +865,7 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     item->setData(Qt::DecorationRole,image);
     item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 
-    ui->tableWidgetCurrentSequence->setItem(row, kColCurrentSequenceFormation, item);
+    ui->tableWidgetCurrentSequence->setItem (row, kColCurrentSequenceFormation, item);
 #ifdef NO_TIMING_INFO
     QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
     textItem->setData(Qt::UserRole, QVariant(formation));

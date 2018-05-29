@@ -857,6 +857,7 @@ private: // SD
     QStringList sdformation;
     QGraphicsScene sd_animation_scene;
     QGraphicsScene sd_fixed_scene;
+    bool sd_animation_running;
     QList<SDDancer> sd_animation_people;
     QList<SDDancer> sd_fixed_people;
     QList<QStringList> sd_redo_stack;
@@ -881,6 +882,7 @@ private: // SD
     double sd_animation_t_value;
     double sd_animation_delta_t;
     double sd_animation_msecs_per_frame;
+    void render_sd_item_data(QTableWidgetItem *item);
     void clamp_sd_animation_values();
     void set_sd_last_formation_name(const QString&);    
 public:

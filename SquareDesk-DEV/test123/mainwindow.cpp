@@ -281,6 +281,7 @@ MainWindow::MainWindow(QWidget *parent) :
     cuesheetEditorReactingToCursorMovement(false),
     totalZoom(0),
     hotkeyShortcuts(),
+    sd_animation_running(false),
     sdLastLine(-1),
     sdWasNotDrawingPicture(true),
     sdLastLineWasResolve(false),
@@ -289,7 +290,7 @@ MainWindow::MainWindow(QWidget *parent) :
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
     shortcutSDTabUndo(NULL),
     shortcutSDCurrentSequenceSelectAll(NULL),
-    shortcutSDCurrentSequenceCopy(NULL)    
+    shortcutSDCurrentSequenceCopy(NULL)
 {
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
