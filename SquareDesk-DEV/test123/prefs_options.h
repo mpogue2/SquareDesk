@@ -123,8 +123,9 @@ CONFIG_ATTRIBUTE_COLOR(pushButtonTagsBackgroundColor,  tagsBackgroundColorString
 CONFIG_ATTRIBUTE_COLOR(pushButtonTagsForegroundColor,  tagsForegroundColorString,  DEFAULTTAGSFOREGROUNDCOLOR)
 
 // SD Animation
-CONFIG_ATTRIBUTE_STRING(lineEditSDAnimationDeltaT, SDAnimationDeltaT, "1.0");
-CONFIG_ATTRIBUTE_STRING(lineEditSDAnimationMSecsPerFrame, SDAnimationMSecsPerFrame, "50");
+CONFIG_ATTRIBUTE_STRING(lineEditSDAnimationDeltaT, SDAnimationDeltaT, "1.0")
+CONFIG_ATTRIBUTE_STRING(lineEditSDAnimationMSecsPerFrame, SDAnimationMSecsPerFrame, "50")
+CONFIG_ATTRIBUTE_BOOLEAN(checkBoxAutomaticEnterOnAnythingTabCompletion, AutomaticEnterOnAnythingTabCompletion, false)
 
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastActiveTab, 0)

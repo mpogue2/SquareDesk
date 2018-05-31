@@ -65,6 +65,8 @@ static QHash<dance_level, QString> sdLevelEnumsToStrings;
 static const char *str_exit_from_the_program = "exit from the program";
 static const char *str_abort_this_sequence = "abort this sequence";
 static const char *str_square_your_sets = "square your sets";
+static const char *strBracketsSubsidiaryCall = "[SUBSIDIARY CALL]";
+static const char *strLTAnythingGT = "<ANYTHING>";
 
 static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
@@ -1060,11 +1062,32 @@ void MainWindow::do_sd_tab_completion()
         }
         QString new_line((longestMatch.startsWith(prefix)) ? longestMatch : (prefix + longestMatch));
 
+        bool forceAnEnter(false);
+        
         if (new_line.contains('<'))
         {
-            new_line = new_line.left(new_line.indexOf('<'));
+            int indexOfLessThan = new_line.indexOf('<');
+            int indexOfAnything = new_line.indexOf(strLTAnythingGT);
+            forceAnEnter = new_line.endsWith(strLTAnythingGT)
+                && indexOfLessThan == indexOfAnything;
+            
+            new_line = new_line.left(indexOfLessThan);
+            if (forceAnEnter && !prefsManager.GetAutomaticEnterOnAnythingTabCompletion())
+                new_line += strBracketsSubsidiaryCall;
         }
         ui->lineEditSDInput->setText(new_line);
+        if (forceAnEnter)
+        {
+            if (prefsManager.GetAutomaticEnterOnAnythingTabCompletion())
+                on_lineEditSDInput_returnPressed();
+            else if (new_line.contains(strBracketsSubsidiaryCall))
+            {
+                int indexStart = new_line.indexOf(strBracketsSubsidiaryCall) + 1;
+                qDebug() << "Settng subsidiary call at " << indexStart;
+                ui->lineEditSDInput->setSelection(indexStart, strlen(strBracketsSubsidiaryCall) - 2);
+                ui->lineEditSDInput->setFocus();
+            }
+        }
     }
 }
 
