@@ -190,6 +190,9 @@
             <italic>false</italic>
            </font>
           </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="placeholderText">
            <string>Label</string>
           </property>
@@ -211,6 +214,9 @@
             <width>91</width>
             <height>27</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="placeholderText">
            <string>Type</string>
@@ -955,6 +961,9 @@
             <width>16777215</width>
             <height>27</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them, &amp;quot;#&amp;quot; to search only tags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="placeholderText">
            <string>Title (type to search)</string>
