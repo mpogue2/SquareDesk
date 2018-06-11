@@ -270,12 +270,12 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 
 void MainWindow::update_sd_animations()
 {
+    sd_animation_t_value += sd_animation_delta_t;
+    if (sd_animation_t_value > 1.0)
+        sd_animation_t_value = 1.0;
+    move_dancers(sd_animation_people, sd_animation_t_value);
     if (sd_animation_t_value < 1.0)
     {
-        sd_animation_t_value += sd_animation_delta_t;
-        if (sd_animation_t_value > 1.0)
-            sd_animation_t_value = 1.0;
-        move_dancers(sd_animation_people, sd_animation_t_value);
         QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
         sd_animation_running = true;
     }
