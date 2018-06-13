@@ -4764,8 +4764,10 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 {
     QString title = getTitleColText(songTable, row);
     int where = title.indexOf(title_tags_remover);
-    if (where >= 0)
+    if (where >= 0) {
         title.truncate(where);
+    }
+    title.replace("&quot;","\"");  // if filename contains a double quote
     return title;
 }
 
