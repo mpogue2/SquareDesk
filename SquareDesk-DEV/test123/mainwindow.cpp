@@ -9289,7 +9289,7 @@ void MainWindow::readFlashCallsList() {
             flashCalls.append(call);
         }
     }
-    qDebug() << "Flash calls" << flashCalls;
+//    qDebug() << "Flash calls" << flashCalls;
     qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
     if (flashCalls.length() == 0) {
         randCallIndex = 0;
