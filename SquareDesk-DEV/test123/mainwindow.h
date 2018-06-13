@@ -770,6 +770,8 @@ private:
     void setCurrentSessionIdReloadSongAges(int id);
     void setCurrentSessionIdReloadSongAgesCheckMenu(int id);
 
+    void setNowPlayingLabelWithColor(QString s, bool flashcall = false);
+
     QString ageToRecent(QString age);
     QString ageToIntString(QString ageString);
 
