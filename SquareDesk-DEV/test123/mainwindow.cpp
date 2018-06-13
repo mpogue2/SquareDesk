@@ -2331,7 +2331,7 @@ void MainWindow::on_stopButton_clicked()
 
     cBass.Stop();  // Stop playback, rewind to the beginning
 
-    ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+    setNowPlayingLabelWithColor(currentSongTitle);
 
 #ifdef REMOVESILENCE
     // last thing we do is move the stream position to 1 sec before start of music
@@ -2426,7 +2426,7 @@ void MainWindow::on_playButton_clicked()
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
-        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+        setNowPlayingLabelWithColor(currentSongTitle);
     }
 
     if (ui->checkBoxStartOnPlay->isChecked()) {
@@ -2905,15 +2905,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
-                 ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
-                 ui->nowPlayingLabel->setText(flashCalls[randCallIndex]);
+                 setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
+
                  flashCallsVisible = true;
              } else {
                  // flash calls on the list, but not playing, or not patter
                  if (flashCallsVisible) {
                      // if they were visible, they're not now
-                     ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                     ui->nowPlayingLabel->setText(currentSongTitle);
+                     setNowPlayingLabelWithColor(currentSongTitle);
+
                      flashCallsVisible = false;
                  }
              }
@@ -2921,8 +2921,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // no flash calls on the list
             if (flashCallsVisible) {
                 // if they were visible, they're not now
-                ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                ui->nowPlayingLabel->setText(currentSongTitle);
+                setNowPlayingLabelWithColor(currentSongTitle);
+
                 flashCallsVisible = false;
             }
         }
@@ -3198,7 +3198,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
-        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+        setNowPlayingLabelWithColor(currentSongTitle);
     }
 
 #ifndef DEBUGCLOCK
@@ -4316,10 +4316,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 
     if (songTitle != "") {
-        ui->nowPlayingLabel->setText(songTitle);
+        setNowPlayingLabelWithColor(songTitle);
     }
     else {
-        ui->nowPlayingLabel->setText(currentMP3filename);  // FIX?  convert to short version?
+        setNowPlayingLabelWithColor(currentMP3filename);
     }
     currentSongTitle = ui->nowPlayingLabel->text();  // save, in case we are Flash Calling
 
@@ -9825,4 +9825,16 @@ void MainWindow::on_action15_seconds_triggered()
 void MainWindow::on_action20_seconds_triggered()
 {
     prefsManager.Setflashcalltiming("20");
+}
+
+// sets the NowPlaying label, and color (based on whether it's a flashcall or not)
+//   this is done many times, so factoring it out to here.
+// flashcall defaults to false
+void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
+    if (flashcall) {
+        ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+    } else {
+        ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+    }
+    ui->nowPlayingLabel->setText(s);
 }
