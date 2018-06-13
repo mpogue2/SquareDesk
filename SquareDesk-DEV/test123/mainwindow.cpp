@@ -8296,11 +8296,13 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float numberBase = 2.0;
     float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float numberFactor = 0.5;
     float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
@@ -8330,11 +8332,13 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
+    float numberBase = 1.5f;
     float recentBase = 7.5f;
     float ageBase = 5.5f;
     float pitchBase = 6.0f;
     float tempoBase = 7.5f;
 
+    float numberFactor = 0.0f;
     float recentFactor = 0.0f;
     float ageFactor = 0.0f;
     float pitchFactor = 0.0f;
@@ -8363,11 +8367,13 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float numberBase = 2.0;
     float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float numberFactor = 0.5;
     float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
@@ -8394,7 +8400,9 @@ void MainWindow::adjustFontSizes()
     float buttonSizeV = 1.125;
 #endif
 
+    // a little extra space when a column is sorted
     // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kNumberCol, (numberBase + (sortedSection==kNumberCol?numberFactor:0.0)) *currentFontPointSize);
     ui->songTable->setColumnWidth(kRecentCol, (recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kAgeCol, (ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kPitchCol, (pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize);
