@@ -161,7 +161,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.2alpha6"
+#define VERSIONSTRING "0.9.2alpha7"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -521,6 +521,8 @@ private slots:
 
     void on_action20_seconds_triggered();
 
+    void on_actionMake_Flash_Drive_Wizard_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -635,6 +637,8 @@ private:
     void randomizeFlashCall();
 
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+
+    int getRsyncFileCount(QString sourceDir, QString destDir);
 
     float getID3BPM(QString MP3FileName);
 

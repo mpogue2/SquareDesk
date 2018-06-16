@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     sdsequencecalllabel.cpp \
     perftimer.cpp \
     tablewidgettimingitem.cpp \
-    mydatetimeedit.cpp
+    mydatetimeedit.cpp \
+    makeflashdrivewizard.cpp
 
 macx {
 SOURCES += ../qpdfjs/src/communicator.cpp
@@ -113,7 +114,8 @@ HEADERS  += mainwindow.h \
     sdsequencecalllabel.h \
     perftimer.h \
     tablewidgettimingitem.h \
-    mydatetimeedit.h
+    mydatetimeedit.h \
+    makeflashdrivewizard.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h

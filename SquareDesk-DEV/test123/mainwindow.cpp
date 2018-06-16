@@ -67,6 +67,7 @@
 #include "tablewidgettimingitem.h"
 #include "danceprograms.h"
 #include "startupwizard.h"
+#include "makeflashdrivewizard.h"
 #include "downloadmanager.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
@@ -453,6 +454,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
     
+
+#if !defined(Q_OS_MAC)
+    // disable this menu item for WIN and LINUX, until
+    //   the rsync stuff is ported to those platforms
+    ui->actionMake_Flash_Drive_Wizard->setVisible(false);
+#endif
 
 //    currentState = kStopped;
     currentPitch = 0;
@@ -9845,4 +9852,167 @@ void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
         ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
     }
     ui->nowPlayingLabel->setText(s);
+}
+
+int MainWindow::getRsyncFileCount(QString sourceDir, QString destDir) {
+#if defined(Q_OS_MAC)
+    QString rsyncCommand = "/usr/bin/rsync";
+//    qDebug() << "sourceDir" << sourceDir;
+//    qDebug() << "destDir" << destDir;
+
+    QStringList parmsDryRun;
+    parmsDryRun << "-avn" << "--no-times" << "--no-perms" << "--size-only" << sourceDir << destDir;
+    // parms1DryRun << "-avn" << "--modify-window=2" << sourceDir << destDir;
+
+    QProcess rsync;
+    rsync.start(rsyncCommand, parmsDryRun);
+    rsync.waitForFinished();
+    QString outputString(rsync.readAllStandardOutput());
+    QStringList pieces = outputString.split( "\n" );
+
+//    qDebug() << outputString << pieces << pieces4.length()-5;
+//    qDebug() << pieces.length() << pieces;
+
+    return(pieces.length());
+#else
+    Q_UNUSED(sourceDir)
+    Q_UNUSED(destDir)
+#endif
+}
+
+void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
+{
+#if defined(Q_OS_MAC)
+    MakeFlashDriveWizard wizard(this);
+    int dialogCode = wizard.exec();
+
+    if (dialogCode == QDialog::Accepted) {
+        QString destVol = wizard.field("destinationVolume").toString();
+//        qDebug() << "MAKE FLASH DRIVE WIZARD ACCEPTED." << destVol;
+
+        // make the directory, if it doesn't already exist
+        QDir dir(QString("/Volumes/%1/SquareDesk").arg(destVol));
+        if (!dir.exists()) {
+//            qDebug() << "Making it...";
+            dir.mkpath(".");
+        }
+
+        // --------------------
+        // DRY RUN for the app ----
+        QString sourceDir1 = QCoreApplication::applicationDirPath();  // e.g.
+        sourceDir1 += "/../..";
+        QString destDir1 = QString("/Volumes/%1/SquareDesk/SquareDesk.app").arg(destVol); // e.g. /Volumes/PATRIOT/squareDesk
+
+        int AppDryRunCount = getRsyncFileCount(sourceDir1, destDir1);
+//        qDebug() << "AppDryRunCount: " << AppDryRunCount;
+
+        // DRY RUN for the music files ----
+        PreferencesManager prefs;
+        QDir musicDir(prefs.GetmusicPath());
+        QString sourceDir = musicDir.canonicalPath();  // e.g. /Users/mpogue/squareDanceMusic  (NOTE: no trailing '/')
+        QString destDir = QString("/Volumes/%1/SquareDesk").arg(destVol); // e.g. /Volumes/PATRIOT/SquareDesk/ (NOTE: no trailing '/')
+
+        int MusicDryRunCount = getRsyncFileCount(sourceDir, destDir);
+//        qDebug() << "Music count:" << MusicDryRunCount;
+
+        int filesToBeCopied = AppDryRunCount + MusicDryRunCount; // total files to be copied
+        float p = 0;
+
+        QProgressDialog progress("Copying SquareDesk...", "Abort Copy", 0, 10, this);
+        progress.setRange(0,filesToBeCopied);
+        progress.setValue((int)p);
+        progress.setWindowModality(Qt::WindowModal);
+
+        // COPY THE APP -----------
+        QString rsyncCommand = "/usr/bin/rsync";
+//        qDebug() << "Copying the SquareDesk.app files ....\n----------";
+
+        QStringList appParms;
+        appParms << "-av" << "--no-times" << "--no-perms" << "--size-only" << sourceDir1 << destDir1;
+
+        QProcess rsync;
+        rsync.start(rsyncCommand, appParms);
+
+        if (!rsync.waitForStarted()) {
+            return;
+        }
+
+        while(1) {
+            if (rsync.waitForFinished(1000)) { // 1 sec at a time
+                // rsync completed
+                progress.setValue(AppDryRunCount); // finished copying just the app so far
+                break;
+            }
+
+            while(rsync.canReadLine()) {
+                QString line4 = QString::fromLocal8Bit(rsync.readLine());
+                int count4 = line4.count("\n");
+                p += count4;
+//                qDebug() << count4 << line4;
+                progress.setValue((int)p);
+            }
+
+            QCoreApplication::processEvents();
+            if (progress.wasCanceled()) {
+                // user manually cancelled the dialog
+                return;  // get outta here, if the user cancelled the copy (no finish dialog)
+            }
+        }
+
+        // COPY THE MUSIC FILES ==========
+//        qDebug() << "Copying music files....\n----------";
+        progress.setLabelText(QString("Copying Music..."));
+
+        QStringList musicParms;
+
+        musicParms << "-av" << "--no-times" << "--no-perms" << "--size-only"
+                   << "--exclude" << "lock.txt"   // note: do NOT copy the 'lock.txt' file, because flash copy is never locked
+                   << "--exclude" << "debug.log"  // note: do NOT copy the 'debug.log' file, because flash copy does not need it
+                   << sourceDir << destDir;
+
+        // ------- HERE IS THE REAL FILE COPY (takes a long time, maybe)
+        QProcess rsync3;
+        rsync3.start(rsyncCommand, musicParms);
+        rsync3.setReadChannel(QProcess::StandardOutput);
+
+        if (!rsync3.waitForStarted()) {
+            return;
+        }
+
+        while(1) {
+            if (rsync3.waitForFinished(1000)) { // 1 sec at a time
+                // rsync completed
+                progress.setValue(filesToBeCopied);  // all done!
+//                qDebug() << "rsync of music finished.";
+                break;
+            }
+
+            while(rsync3.canReadLine()) {
+                QString line = QString::fromLocal8Bit(rsync3.readLine());
+                int count = line.count("\n");
+                p += count;
+//                qDebug() << count << line;
+                progress.setValue((int)p);
+            }
+
+            QCoreApplication::processEvents();
+            if (progress.wasCanceled()) {
+                // user manually cancelled the dialog
+                return;  // get outta here, and don't show the final dialog
+            }
+        }
+
+//        qDebug() << "Done with copy.\n----------";
+
+        // FINAL DIALOG: copy is done, remember to Eject!
+        //    TODO: provide a button to eject it!
+        QMessageBox msgBox;
+        msgBox.setText(QString("The SquareDesk application and your Music Directory have been copied to '%1'.").arg(destVol));
+        msgBox.setInformativeText("NOTE: Be sure to use Finder to eject the flash drive before unplugging it.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+    } // if accepted
+#endif
 }
