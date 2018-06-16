@@ -18,7 +18,7 @@ void PerfTimer::stop()
     if (!stopped)
     {
         qint64 elapsed = timer.elapsed();
-        qDebug() << "Timer " << name << " took " << elapsed;
+//        qDebug() << "Timer " << name << " took " << elapsed;  // uncomment when in use
     }
 }
 

@@ -2331,7 +2331,7 @@ void MainWindow::on_stopButton_clicked()
 
     cBass.Stop();  // Stop playback, rewind to the beginning
 
-    ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+    setNowPlayingLabelWithColor(currentSongTitle);
 
 #ifdef REMOVESILENCE
     // last thing we do is move the stream position to 1 sec before start of music
@@ -2426,7 +2426,7 @@ void MainWindow::on_playButton_clicked()
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
-        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+        setNowPlayingLabelWithColor(currentSongTitle);
     }
 
     if (ui->checkBoxStartOnPlay->isChecked()) {
@@ -2905,15 +2905,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
-                 ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
-                 ui->nowPlayingLabel->setText(flashCalls[randCallIndex]);
+                 setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
+
                  flashCallsVisible = true;
              } else {
                  // flash calls on the list, but not playing, or not patter
                  if (flashCallsVisible) {
                      // if they were visible, they're not now
-                     ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                     ui->nowPlayingLabel->setText(currentSongTitle);
+                     setNowPlayingLabelWithColor(currentSongTitle);
+
                      flashCallsVisible = false;
                  }
              }
@@ -2921,8 +2921,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // no flash calls on the list
             if (flashCallsVisible) {
                 // if they were visible, they're not now
-                ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                ui->nowPlayingLabel->setText(currentSongTitle);
+                setNowPlayingLabelWithColor(currentSongTitle);
+
                 flashCallsVisible = false;
             }
         }
@@ -3198,7 +3198,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
-        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+        setNowPlayingLabelWithColor(currentSongTitle);
     }
 
 #ifndef DEBUGCLOCK
@@ -4316,10 +4316,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 
     if (songTitle != "") {
-        ui->nowPlayingLabel->setText(songTitle);
+        setNowPlayingLabelWithColor(songTitle);
     }
     else {
-        ui->nowPlayingLabel->setText(currentMP3filename);  // FIX?  convert to short version?
+        setNowPlayingLabelWithColor(currentMP3filename);
     }
     currentSongTitle = ui->nowPlayingLabel->text();  // save, in case we are Flash Calling
 
@@ -4764,8 +4764,10 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 {
     QString title = getTitleColText(songTable, row);
     int where = title.indexOf(title_tags_remover);
-    if (where >= 0)
+    if (where >= 0) {
         title.truncate(where);
+    }
+    title.replace("&quot;","\"");  // if filename contains a double quote
     return title;
 }
 
@@ -8294,11 +8296,13 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float numberBase = 2.0;
     float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float numberFactor = 0.5;
     float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
@@ -8328,11 +8332,13 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
+    float numberBase = 1.5f;
     float recentBase = 7.5f;
     float ageBase = 5.5f;
     float pitchBase = 6.0f;
     float tempoBase = 7.5f;
 
+    float numberFactor = 0.0f;
     float recentFactor = 0.0f;
     float ageFactor = 0.0f;
     float pitchFactor = 0.0f;
@@ -8361,11 +8367,13 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float numberBase = 2.0;
     float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float numberFactor = 0.5;
     float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
@@ -8392,7 +8400,9 @@ void MainWindow::adjustFontSizes()
     float buttonSizeV = 1.125;
 #endif
 
+    // a little extra space when a column is sorted
     // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kNumberCol, (numberBase + (sortedSection==kNumberCol?numberFactor:0.0)) *currentFontPointSize);
     ui->songTable->setColumnWidth(kRecentCol, (recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kAgeCol, (ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kPitchCol, (pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize);
@@ -9279,7 +9289,7 @@ void MainWindow::readFlashCallsList() {
             flashCalls.append(call);
         }
     }
-    qDebug() << "Flash calls" << flashCalls;
+//    qDebug() << "Flash calls" << flashCalls;
     qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
     if (flashCalls.length() == 0) {
         randCallIndex = 0;
@@ -9823,4 +9833,16 @@ void MainWindow::on_action15_seconds_triggered()
 void MainWindow::on_action20_seconds_triggered()
 {
     prefsManager.Setflashcalltiming("20");
+}
+
+// sets the NowPlaying label, and color (based on whether it's a flashcall or not)
+//   this is done many times, so factoring it out to here.
+// flashcall defaults to false
+void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
+    if (flashcall) {
+        ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+    } else {
+        ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+    }
+    ui->nowPlayingLabel->setText(s);
 }
