@@ -2255,7 +2255,8 @@ MainWindow::~MainWindow()
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
 
-    clearLockFile(); // release the lock that we took (other locks were thrown away)
+    QString currentMusicRootPath = prefsManager.GetmusicPath();
+    clearLockFile(currentMusicRootPath); // release the lock that we took (other locks were thrown away)
 }
 
 // ----------------------------------------------------------------------
@@ -4676,9 +4677,9 @@ void MainWindow::checkLockFile() {
     file2.close();
 }
 
-void MainWindow::clearLockFile() {
+void MainWindow::clearLockFile(QString musicRootPath) {
 //    qDebug() << "clearLockFile()";
-    QString musicRootPath = prefsManager.GetmusicPath();
+//    QString musicRootPath = prefsManager.GetmusicPath();
 
     QString databaseDir(musicRootPath + "/.squaredesk");
     QFileInfo checkFile(databaseDir + "/lock.txt");
@@ -5710,6 +5711,8 @@ void MainWindow::on_actionPreferences_triggered()
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
 
+    QString oldMusicRootPath = prefsManager.GetmusicPath();
+
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
         // OK clicked
@@ -5719,6 +5722,23 @@ void MainWindow::on_actionPreferences_triggered()
         QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
         SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
         songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
+
+        QString newMusicRootPath = prefsManager.GetmusicPath();
+
+        if (oldMusicRootPath != newMusicRootPath) {
+//            qDebug() << "MUSIC ROOT PATH CHANGED!";
+            // before we actually make the change to the music root path,
+
+            // 1) release the lock on the old music directory (if it exists), before we change the music root path
+            clearLockFile(oldMusicRootPath);
+
+            // 2) take a lock on the new music directory
+            checkLockFile();
+
+            // 3) TODO: clear out the lyrics
+            // 4) TODO: clear out the reference tab
+            // 5) TODO: load the reference material from the new musicDirectory
+        }
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();

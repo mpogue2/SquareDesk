@@ -200,7 +200,7 @@ public:
     QActionGroup *flashCallTimingActionGroup;
 
     void checkLockFile();
-    void clearLockFile();
+    void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
