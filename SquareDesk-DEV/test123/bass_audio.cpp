@@ -282,6 +282,8 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
 // ------------------------------------------------------------------
 void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float *pSongEnd_sec, double intro1_frac, double outro1_frac)
 {
+    Q_UNUSED(intro1_frac)
+    Q_UNUSED(outro1_frac)
     BASS_StreamFree(Stream);
 
     // OPEN THE STREAM FOR PLAYBACK ------------------------

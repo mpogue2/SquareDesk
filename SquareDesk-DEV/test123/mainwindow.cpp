@@ -9901,6 +9901,7 @@ int MainWindow::getRsyncFileCount(QString sourceDir, QString destDir) {
 #else
     Q_UNUSED(sourceDir)
     Q_UNUSED(destDir)
+    return(0);
 #endif
 }
 
