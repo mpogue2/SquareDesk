@@ -32,6 +32,7 @@
 #include <QTimeEdit>
 #include "sessioninfo.h"
 #include <algorithm>
+#include "mainwindow.h"
 
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;
@@ -96,6 +97,8 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
+    mw = (MainWindow *)parent;
+
     songTableReloadNeeded = false;
 
     ui->setupUi(this);
@@ -888,4 +891,22 @@ int PreferencesDialog::getActiveTab()
 void PreferencesDialog::setActiveTab(int tabnum)
 {
     ui->tabWidget->setCurrentIndex(tabnum);
+}
+
+void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
+{
+    if (index == 0) {
+        mw->playSFX("long_tip");
+    } else if (index <= 6) {
+        mw->playSFX(QString::number(index));
+    }
+}
+
+void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
+{
+    if (index == 0) {
+        mw->playSFX("break_over");
+    } else if (index <= 6) {
+        mw->playSFX(QString::number(index));
+    }
 }

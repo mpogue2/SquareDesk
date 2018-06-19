@@ -5700,7 +5700,7 @@ void MainWindow::on_actionPreferences_triggered()
     AddHotkeyMappingsFromShortcuts(hotkeyMappings);
     AddHotkeyMappingsFromMenus(hotkeyMappings);
 
-    prefDialog = new PreferencesDialog(soundFXname);
+    prefDialog = new PreferencesDialog(soundFXname, this);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.setTagColors(songSettings.getTagColors());
     prefsManager.populatePreferencesDialog(prefDialog);

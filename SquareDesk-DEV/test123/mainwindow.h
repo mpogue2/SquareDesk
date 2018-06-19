@@ -186,6 +186,8 @@ public:
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
 
+    void playSFX(QString which);
+
     // ERROR LOGGING...
     static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static QString logFilePath;
@@ -412,8 +414,6 @@ private slots:
     void on_action_1_triggered();
     void on_action_2_triggered();
     void on_action_3_triggered();
-
-    void playSFX(QString which);
 
     void on_actionRecent1_triggered();
     void on_actionRecent2_triggered();
