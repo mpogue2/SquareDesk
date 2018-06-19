@@ -4612,7 +4612,10 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QString path1 = resolvedFilePath;
                 QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
                 QStringList sections = baseName.split(".");
-                if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2].compare("mp3",Qt::CaseInsensitive)==0) {
+                if (sections.length() == 3 &&
+                    sections[0].toInt() >= 1 &&
+                    sections[0].toInt() <= 6 &&
+                    sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
 //                    if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
                     soundFXname[sections[0].toInt()-1] = sections[1];  // save for populating Preferences dropdown later
                     switch (sections[0].toInt()) {
@@ -8186,12 +8189,15 @@ void MainWindow::maybeInstallSoundFX() {
     while(it.hasNext()) {
         QString s1 = it.next();
 
-        QString baseName = s1.replace(soundfxDir,"");
+        QString baseName = s1.replace(soundfxDir + "/","");
         QStringList sections = baseName.split(".");
 
-        if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2].compare("mp3",Qt::CaseInsensitive)==0) {
-//            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+        if (sections.length() == 3 &&
+            sections[0].toInt() >= 1 &&
+            sections[0].toInt() <= 6 &&   // don't allow accesses to go out-of-bounds (e.g. "7.foo.mp3")
+            sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
             foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
+//            qDebug() << "Found soundfx[" << sections[0].toInt() << "]";
         }
     } // while
 
