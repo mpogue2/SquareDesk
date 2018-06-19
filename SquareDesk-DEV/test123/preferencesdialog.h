@@ -56,6 +56,9 @@ public:
     ~PreferencesDialog();
     void finishPopulation();
 
+//    int soundFXswallowed;  // number of playbacks to swallow
+    bool swallowSoundFX;   // avoid spurious playback events, when we're setting up the dialog
+
     QString musicPath;
     void setFontSizes();
 

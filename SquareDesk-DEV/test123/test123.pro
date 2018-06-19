@@ -325,11 +325,13 @@ macx {
     copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
     copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
     copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11f2.commands = $(COPY_DIR) $$PWD/soundfx/7.short_bell.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+    copydata11f3.commands = $(COPY_DIR) $$PWD/soundfx/8.ding_ding.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
     copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
     copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
     copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
 
-    first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+    first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     export(first.depends)
     export(copydata10.commands)
@@ -339,11 +341,13 @@ macx {
     export(copydata11d.commands)
     export(copydata11e.commands)
     export(copydata11f.commands)
+    export(copydata11f2.commands)
+    export(copydata11f3.commands)
     export(copydata11g.commands)
     export(copydata11h.commands)
     export(copydata12h.commands)
 
-    QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+    QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # For the PDF viewer -----------------
     copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
@@ -409,11 +413,13 @@ win32:CONFIG(debug, debug|release): {
     copydata11d.commands = xcopy /q /y $$shell_path($$PWD/soundfx/4.applause.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
     copydata11e.commands = xcopy /q /y $$shell_path($$PWD/soundfx/5.fanfare.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
     copydata11f.commands = xcopy /q /y $$shell_path($$PWD/soundfx/6.fade.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11f2.commands = xcopy /q /y $$shell_path($$PWD/soundfx/7.short_bell.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
+    copydata11f3.commands = xcopy /q /y $$shell_path($$PWD/soundfx/8.ding_ding.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
     copydata11g.commands = xcopy /q /y $$shell_path($$PWD/soundfx/break_over.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
     copydata11h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/long_tip.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
     copydata12h.commands = xcopy /q /y $$shell_path($$PWD/soundfx/thirty_second_warning.mp3) $$shell_path($$OUT_PWD/debug/soundfx)
 
-    first.depends += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+    first.depends += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     export(first.depends)
     export(copydata10b.commands)
@@ -423,11 +429,13 @@ win32:CONFIG(debug, debug|release): {
     export(copydata11d.commands)
     export(copydata11e.commands)
     export(copydata11f.commands)
+    export(copydata11f2.commands)
+    export(copydata11f3.commands)
     export(copydata11g.commands)
     export(copydata11h.commands)
     export(copydata12h.commands)
 
-    QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
+    QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # For the PDF viewer -----------------
     copydata1p.commands = if not exist $$shell_path($$OUT_PWD/debug/minified) $(MKDIR) $$shell_path($$OUT_PWD/debug/minified)

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>753</width>
+    <width>838</width>
     <height>561</height>
    </rect>
   </property>
@@ -1041,6 +1041,16 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
            <item>
             <property name="text">
+             <string>play 7</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>play 8</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>visual indicator only</string>
             </property>
            </item>
@@ -1109,6 +1119,16 @@ Click on a color square to change the color associated with that Music Type.  Se
            <item>
             <property name="text">
              <string> play 6</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 7</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string> play 8</string>
             </property>
            </item>
            <item>

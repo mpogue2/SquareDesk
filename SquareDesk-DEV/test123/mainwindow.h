@@ -168,6 +168,8 @@ public:
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
 #define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
 
+#define NUMBEREDSOUNDFXFILES 8
+
 namespace Ui
 {
 class MainWindow;
@@ -186,6 +188,7 @@ public:
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
 
+    void stopSFX();
     void playSFX(QString which);
 
     // ERROR LOGGING...
@@ -795,8 +798,8 @@ private:
 //    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
 
     // sound fx
-    QString soundFXarray[6];
-    QString soundFXname[6];
+    QString soundFXarray[NUMBEREDSOUNDFXFILES];
+    QString soundFXname[NUMBEREDSOUNDFXFILES];
     void maybeInstallSoundFX();
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom

@@ -306,7 +306,7 @@ MainWindow::MainWindow(QWidget *parent) :
     loadedCuesheetNameWithPath = "";
     justWentActive = false;
 
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<6; i++) {  // max of 6 that are bound to keys
         soundFXarray[i] = "";
     }
 
@@ -3229,10 +3229,15 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
     if ((newTimerState & LONGTIPTIMEREXPIRED) && !(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
+        //  1 => long_tip
+        //  2 => play "1.*.mp3"
+        //  ...
+        //  9 => play "8.*.mp3"
+        //  10 => visual indicator only
         switch (tipLengthAlarmAction) {
         case 1: playSFX("long_tip"); break;
         default:
-            if (tipLengthAlarmAction < 8) {  // unsigned, so always >= 0; 8 = visual indicator only
+            if (tipLengthAlarmAction <= NUMBEREDSOUNDFXFILES + 1) {  // unsigned, so always >= 0; 8 = visual indicator only
                 playSFX(QString::number(tipLengthAlarmAction-1));
             }
             break;
@@ -3241,10 +3246,15 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
     if ((newTimerState & BREAKTIMEREXPIRED) && !(oldTimerState & BREAKTIMEREXPIRED)) {
         // one-shot transitioned to End of Break
+        //  1 => break_over
+        //  2 => play "1.*.mp3"
+        //  ...
+        //  9 => play "8.*.mp3"
+        //  10 => visual indicator only
         switch (breakLengthAlarmAction) {
         case 1: playSFX("break_over"); break;
         default:
-            if (breakLengthAlarmAction < 8) {  // unsigned, so always >= 0;  8 = visual indicator only
+            if (breakLengthAlarmAction <= NUMBEREDSOUNDFXFILES + 1) {  // unsigned, so always >= 0;  8 = visual indicator only
                 playSFX(QString::number(breakLengthAlarmAction-1));
             }
             break;
@@ -4578,7 +4588,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6], QString soundFXname[6])
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[NUMBEREDSOUNDFXFILES], QString soundFXname[NUMBEREDSOUNDFXFILES])
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
@@ -4614,9 +4624,9 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QStringList sections = baseName.split(".");
                 if (sections.length() == 3 &&
                     sections[0].toInt() >= 1 &&
-                    sections[0].toInt() <= 6 &&
+                    sections[0].toInt() <= NUMBEREDSOUNDFXFILES &&  // NOTE: only 6 keyboard-based shortcuts, but all sfx must be captured here
                     sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
-//                    if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+
                     soundFXname[sections[0].toInt()-1] = sections[1];  // save for populating Preferences dropdown later
                     switch (sections[0].toInt()) {
                         case 1: ui->action_1->setText(sections[1]); break;
@@ -4625,9 +4635,11 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                         case 4: ui->action_4->setText(sections[1]); break;
                         case 5: ui->action_5->setText(sections[1]); break;
                         case 6: ui->action_6->setText(sections[1]); break;
-                        default: break;
-                    }
-                soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
+                        default:
+                            // ignore all but the first 6 soundfx
+                            break;
+                    } // switch
+                    soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
                 } // if
             } // if
         } // else
@@ -5705,6 +5717,9 @@ void MainWindow::on_actionPreferences_triggered()
     prefsManager.setTagColors(songSettings.getTagColors());
     prefsManager.populatePreferencesDialog(prefDialog);
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
+
+    prefDialog->swallowSoundFX = false;  // OK to play soundFX now
+
     SessionDefaultType previousSessionDefaultType =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
 
@@ -7965,6 +7980,10 @@ void MainWindow::on_action_6_triggered()
     playSFX("6");
 }
 
+void MainWindow::stopSFX() {
+    cBass.StopAllSoundEffects();
+}
+
 void MainWindow::playSFX(QString which) {
     QString soundEffectFile;
 
@@ -8180,8 +8199,8 @@ void MainWindow::maybeInstallSoundFX() {
     // which is checked when the App starts, and when the Startup Wizard finishes setup.  In which case, we
     //   only want to copy files into the soundfx directory if there aren't already files there.
     //   It might seem like overkill right now (and it is, right now).
-    bool foundSoundFXfile[6];
-    for (int i=0; i<6; i++) {
+    bool foundSoundFXfile[NUMBEREDSOUNDFXFILES];
+    for (int i=0; i<NUMBEREDSOUNDFXFILES; i++) {
         foundSoundFXfile[i] = false;
     }
 
@@ -8194,22 +8213,24 @@ void MainWindow::maybeInstallSoundFX() {
 
         if (sections.length() == 3 &&
             sections[0].toInt() >= 1 &&
-            sections[0].toInt() <= 6 &&   // don't allow accesses to go out-of-bounds (e.g. "7.foo.mp3")
+            sections[0].toInt() <= NUMBEREDSOUNDFXFILES &&   // don't allow accesses to go out-of-bounds (e.g. "9.foo.mp3")
             sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
             foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
 //            qDebug() << "Found soundfx[" << sections[0].toInt() << "]";
         }
     } // while
 
-    QString starterSet[6] = {
+    QString starterSet[] = {
         "1.whistle.mp3",
         "2.clown_honk.mp3",
         "3.submarine.mp3",
         "4.applause.mp3",
         "5.fanfare.mp3",
-        "6.fade.mp3"
+        "6.fade.mp3",
+        "7.short_bell.mp3",
+        "8.ding_ding.mp3"
     };
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<NUMBEREDSOUNDFXFILES; i++) {
         if (!foundSoundFXfile[i]) {
             QString destination = soundfxDir + "/" + starterSet[i];
             QFile dest(destination);
