@@ -581,7 +581,7 @@ void MainWindow::highlight_sd_replaceables()
     if (!(call.contains("<") && call.contains(">")))
     {
         qDebug() << "No <>, return pressed";
-        on_lineEditSDInput_returnPressed();
+        submit_lineEditSDInput_contents_to_sd();
         ui->lineEditSDInput->setFocus();
     }
     else
@@ -624,16 +624,16 @@ void MainWindow::highlight_sd_replaceables()
         }
         if (selectedText == "<ATC>")
         {
-            on_lineEditSDInput_returnPressed();
+            submit_lineEditSDInput_contents_to_sd();
         }
         if (selectedText == "<ANYCIRC>")
         {
-            on_lineEditSDInput_returnPressed();
+            submit_lineEditSDInput_contents_to_sd();
         }
         if (selectedText == "<ANYTHING>")
         {
             ui->lineEditSDInput->insert("");
-            on_lineEditSDInput_returnPressed();
+            submit_lineEditSDInput_contents_to_sd();
         }
         if (selectedText == "<ANYONE>")
         {
@@ -743,7 +743,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
 
 #ifdef NO_TIMING_INFO
-                QTableWidgetItem *moveItem = new QTableWidgetItem(match.captured(2));
+                QTableWidgetItem *moveItem(new QTableWidgetItem(match.captured(2)));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
 #else
@@ -774,6 +774,14 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 moveLabel->setText(lastCall);
                 ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveLabel);
 #endif
+            }
+            else if (str[0] == '[')
+            {
+                QTableWidgetItem *moveItem(ui->tableWidgetCurrentSequence->item(sdLastLine - 1, kColCurrentSequenceCall));
+                QString lastCall(moveItem->text());
+                lastCall += " " + str;
+                qDebug() << "Appending additional call info " << lastCall;
+                moveItem->setText(lastCall);
             }
         }
 
@@ -1091,7 +1099,18 @@ void MainWindow::do_sd_tab_completion()
     }
 }
 
+
+
 void MainWindow::on_lineEditSDInput_returnPressed()
+{
+//    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
+//    if (redoRow >= 0 && redoRow < sd_redo_stack.length())
+//        sd_redo_stack.erase(sd_redo_stack.begin() + redoRow, sd_redo_stack.end());
+    
+    submit_lineEditSDInput_contents_to_sd();
+}
+
+void MainWindow::submit_lineEditSDInput_contents_to_sd()
 {
     QString cmd(ui->lineEditSDInput->text().trimmed());
     ui->lineEditSDInput->clear();
@@ -1324,7 +1343,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
         (currentText[currentTextLastChar] == '!' ||
          currentText[currentTextLastChar] == '?'))
     {
-        on_lineEditSDInput_returnPressed();
+        submit_lineEditSDInput_contents_to_sd();
         ui->lineEditSDInput->setText(currentText.left(currentTextLastChar));
         sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = currentTextLastChar;
         return;

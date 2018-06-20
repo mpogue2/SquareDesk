@@ -538,6 +538,7 @@ public:
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
+    void submit_lineEditSDInput_contents_to_sd();
 private:
 
     bool flashCallsVisible;
