@@ -1826,6 +1826,7 @@
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
     <addaction name="actionStartup_Wizard"/>
+    <addaction name="actionMake_Flash_Drive_Wizard"/>
     <addaction name="actionDownload_Cuesheets"/>
     <addaction name="separator"/>
     <addaction name="actionCheck_for_Updates"/>
@@ -3191,6 +3192,11 @@
   <action name="actionExport_Play_Data">
    <property name="text">
     <string>Export Play Data...</string>
+   </property>
+  </action>
+  <action name="actionMake_Flash_Drive_Wizard">
+   <property name="text">
+    <string>Backup to Flash Drive...</string>
    </property>
   </action>
  </widget>

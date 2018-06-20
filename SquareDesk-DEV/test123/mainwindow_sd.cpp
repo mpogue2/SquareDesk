@@ -812,7 +812,7 @@ void MainWindow::on_sd_awaiting_input()
 {
     ui->listWidgetSDOutput->scrollToBottom();
     int rowCount = sdLastLine > 1 ? sdLastLine - 1 : sdLastLine;
-    qDebug() << "on_sd_awaiting_input setting row count to " << rowCount << " vs " << ui->tableWidgetCurrentSequence->rowCount();
+//    qDebug() << "on_sd_awaiting_input setting row count to " << rowCount << " vs " << ui->tableWidgetCurrentSequence->rowCount();
 
     // In failed subsidiary call cases we don't get a formation output, so we need to manually reset the formation display.
     if (ui->tableWidgetCurrentSequence->rowCount() > rowCount

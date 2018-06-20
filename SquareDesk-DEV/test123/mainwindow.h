@@ -161,12 +161,14 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.2alpha6"
+#define VERSIONSTRING "0.9.2alpha7"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
 #define CURRENTSQVIEWLYRICSNAME "SqViewCueSheets_2017.03.14"
 #define CURRENTSQVIEWCUESHEETSDIR "https://squaredesk.net/cuesheets/SqViewCueSheets_2017.10.13/"
+
+#define NUMBEREDSOUNDFXFILES 8
 
 namespace Ui
 {
@@ -186,6 +188,9 @@ public:
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
 
+    void stopSFX();
+    void playSFX(QString which);
+
     // ERROR LOGGING...
     static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static QString logFilePath;
@@ -200,7 +205,7 @@ public:
     QActionGroup *flashCallTimingActionGroup;
 
     void checkLockFile();
-    void clearLockFile();
+    void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
@@ -413,8 +418,6 @@ private slots:
     void on_action_2_triggered();
     void on_action_3_triggered();
 
-    void playSFX(QString which);
-
     void on_actionRecent1_triggered();
     void on_actionRecent2_triggered();
     void on_actionRecent3_triggered();
@@ -520,6 +523,8 @@ private slots:
     void on_action15_seconds_triggered();
 
     void on_action20_seconds_triggered();
+
+    void on_actionMake_Flash_Drive_Wizard_triggered();
 
 public:
     void on_threadSD_errorString(QString str);
@@ -636,6 +641,8 @@ private:
     void randomizeFlashCall();
 
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
+
+    int getRsyncFileCount(QString sourceDir, QString destDir);
 
     float getID3BPM(QString MP3FileName);
 
@@ -771,6 +778,8 @@ private:
     void setCurrentSessionIdReloadSongAges(int id);
     void setCurrentSessionIdReloadSongAgesCheckMenu(int id);
 
+    void setNowPlayingLabelWithColor(QString s, bool flashcall = false);
+
     QString ageToRecent(QString age);
     QString ageToIntString(QString ageString);
 
@@ -790,8 +799,8 @@ private:
 //    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
 
     // sound fx
-    QString soundFXarray[6];
-    QString soundFXname[6];
+    QString soundFXarray[NUMBEREDSOUNDFXFILES];
+    QString soundFXname[NUMBEREDSOUNDFXFILES];
     void maybeInstallSoundFX();
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom

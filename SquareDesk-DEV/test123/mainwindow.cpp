@@ -67,6 +67,7 @@
 #include "tablewidgettimingitem.h"
 #include "danceprograms.h"
 #include "startupwizard.h"
+#include "makeflashdrivewizard.h"
 #include "downloadmanager.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
@@ -305,7 +306,7 @@ MainWindow::MainWindow(QWidget *parent) :
     loadedCuesheetNameWithPath = "";
     justWentActive = false;
 
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<6; i++) {  // max of 6 that are bound to keys
         soundFXarray[i] = "";
     }
 
@@ -453,6 +454,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
     
+
+#if !defined(Q_OS_MAC)
+    // disable this menu item for WIN and LINUX, until
+    //   the rsync stuff is ported to those platforms
+    ui->actionMake_Flash_Drive_Wizard->setVisible(false);
+#endif
 
 //    currentState = kStopped;
     currentPitch = 0;
@@ -2248,7 +2255,8 @@ MainWindow::~MainWindow()
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
 
-    clearLockFile(); // release the lock that we took (other locks were thrown away)
+    QString currentMusicRootPath = prefsManager.GetmusicPath();
+    clearLockFile(currentMusicRootPath); // release the lock that we took (other locks were thrown away)
 }
 
 // ----------------------------------------------------------------------
@@ -2331,7 +2339,7 @@ void MainWindow::on_stopButton_clicked()
 
     cBass.Stop();  // Stop playback, rewind to the beginning
 
-    ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+    setNowPlayingLabelWithColor(currentSongTitle);
 
 #ifdef REMOVESILENCE
     // last thing we do is move the stream position to 1 sec before start of music
@@ -2426,7 +2434,7 @@ void MainWindow::on_playButton_clicked()
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
-        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+        setNowPlayingLabelWithColor(currentSongTitle);
     }
 
     if (ui->checkBoxStartOnPlay->isChecked()) {
@@ -2905,15 +2913,15 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
-                 ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
-                 ui->nowPlayingLabel->setText(flashCalls[randCallIndex]);
+                 setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
+
                  flashCallsVisible = true;
              } else {
                  // flash calls on the list, but not playing, or not patter
                  if (flashCallsVisible) {
                      // if they were visible, they're not now
-                     ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                     ui->nowPlayingLabel->setText(currentSongTitle);
+                     setNowPlayingLabelWithColor(currentSongTitle);
+
                      flashCallsVisible = false;
                  }
              }
@@ -2921,8 +2929,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // no flash calls on the list
             if (flashCallsVisible) {
                 // if they were visible, they're not now
-                ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
-                ui->nowPlayingLabel->setText(currentSongTitle);
+                setNowPlayingLabelWithColor(currentSongTitle);
+
                 flashCallsVisible = false;
             }
         }
@@ -3198,7 +3206,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
-        ui->nowPlayingLabel->setText(currentSongTitle);  // restore the song title, if we were Flash Call mucking with it
+        setNowPlayingLabelWithColor(currentSongTitle);
     }
 
 #ifndef DEBUGCLOCK
@@ -3221,10 +3229,15 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
     if ((newTimerState & LONGTIPTIMEREXPIRED) && !(oldTimerState & LONGTIPTIMEREXPIRED)) {
         // one-shot transitioned to Long Tip
+        //  1 => long_tip
+        //  2 => play "1.*.mp3"
+        //  ...
+        //  9 => play "8.*.mp3"
+        //  10 => visual indicator only
         switch (tipLengthAlarmAction) {
         case 1: playSFX("long_tip"); break;
         default:
-            if (tipLengthAlarmAction < 8) {  // unsigned, so always >= 0; 8 = visual indicator only
+            if (tipLengthAlarmAction <= NUMBEREDSOUNDFXFILES + 1) {  // unsigned, so always >= 0; 8 = visual indicator only
                 playSFX(QString::number(tipLengthAlarmAction-1));
             }
             break;
@@ -3233,10 +3246,15 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
     if ((newTimerState & BREAKTIMEREXPIRED) && !(oldTimerState & BREAKTIMEREXPIRED)) {
         // one-shot transitioned to End of Break
+        //  1 => break_over
+        //  2 => play "1.*.mp3"
+        //  ...
+        //  9 => play "8.*.mp3"
+        //  10 => visual indicator only
         switch (breakLengthAlarmAction) {
         case 1: playSFX("break_over"); break;
         default:
-            if (breakLengthAlarmAction < 8) {  // unsigned, so always >= 0;  8 = visual indicator only
+            if (breakLengthAlarmAction <= NUMBEREDSOUNDFXFILES + 1) {  // unsigned, so always >= 0;  8 = visual indicator only
                 playSFX(QString::number(breakLengthAlarmAction-1));
             }
             break;
@@ -4316,10 +4334,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 
     if (songTitle != "") {
-        ui->nowPlayingLabel->setText(songTitle);
+        setNowPlayingLabelWithColor(songTitle);
     }
     else {
-        ui->nowPlayingLabel->setText(currentMP3filename);  // FIX?  convert to short version?
+        setNowPlayingLabelWithColor(currentMP3filename);
     }
     currentSongTitle = ui->nowPlayingLabel->text();  // save, in case we are Flash Calling
 
@@ -4570,7 +4588,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[6], QString soundFXname[6])
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[NUMBEREDSOUNDFXFILES], QString soundFXname[NUMBEREDSOUNDFXFILES])
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
@@ -4604,8 +4622,11 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QString path1 = resolvedFilePath;
                 QString baseName = resolvedFilePath.replace(rootDir.absolutePath(),"").replace("/soundfx/","");
                 QStringList sections = baseName.split(".");
-                if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2].compare("mp3",Qt::CaseInsensitive)==0) {
-//                    if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+                if (sections.length() == 3 &&
+                    sections[0].toInt() >= 1 &&
+                    sections[0].toInt() <= NUMBEREDSOUNDFXFILES &&  // NOTE: only 6 keyboard-based shortcuts, but all sfx must be captured here
+                    sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
+
                     soundFXname[sections[0].toInt()-1] = sections[1];  // save for populating Preferences dropdown later
                     switch (sections[0].toInt()) {
                         case 1: ui->action_1->setText(sections[1]); break;
@@ -4614,9 +4635,11 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                         case 4: ui->action_4->setText(sections[1]); break;
                         case 5: ui->action_5->setText(sections[1]); break;
                         case 6: ui->action_6->setText(sections[1]); break;
-                        default: break;
-                    }
-                soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
+                        default:
+                            // ignore all but the first 6 soundfx
+                            break;
+                    } // switch
+                    soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
                 } // if
             } // if
         } // else
@@ -4669,9 +4692,9 @@ void MainWindow::checkLockFile() {
     file2.close();
 }
 
-void MainWindow::clearLockFile() {
+void MainWindow::clearLockFile(QString musicRootPath) {
 //    qDebug() << "clearLockFile()";
-    QString musicRootPath = prefsManager.GetmusicPath();
+//    QString musicRootPath = prefsManager.GetmusicPath();
 
     QString databaseDir(musicRootPath + "/.squaredesk");
     QFileInfo checkFile(databaseDir + "/lock.txt");
@@ -4764,8 +4787,10 @@ static QString getTitleColTitle(MyTableWidget *songTable,int row)
 {
     QString title = getTitleColText(songTable, row);
     int where = title.indexOf(title_tags_remover);
-    if (where >= 0)
+    if (where >= 0) {
         title.truncate(where);
+    }
+    title.replace("&quot;","\"");  // if filename contains a double quote
     return title;
 }
 
@@ -5687,11 +5712,14 @@ void MainWindow::on_actionPreferences_triggered()
     AddHotkeyMappingsFromShortcuts(hotkeyMappings);
     AddHotkeyMappingsFromMenus(hotkeyMappings);
 
-    prefDialog = new PreferencesDialog(soundFXname);
+    prefDialog = new PreferencesDialog(soundFXname, this);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.setTagColors(songSettings.getTagColors());
     prefsManager.populatePreferencesDialog(prefDialog);
     prefDialog->songTableReloadNeeded = false;  // nothing has changed...yet.
+
+    prefDialog->swallowSoundFX = false;  // OK to play soundFX now
+
     SessionDefaultType previousSessionDefaultType =
         static_cast<SessionDefaultType>(prefsManager.GetSessionDefault());
 
@@ -5700,6 +5728,8 @@ void MainWindow::on_actionPreferences_triggered()
     // modal dialog
     int dialogCode = prefDialog->exec();
     trapKeypresses = true;
+
+    QString oldMusicRootPath = prefsManager.GetmusicPath();
 
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
@@ -5710,6 +5740,23 @@ void MainWindow::on_actionPreferences_triggered()
         QHash<QString, KeyAction *> hotkeyMappings = prefsManager.GetHotkeyMappings();
         SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
         songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
+
+        QString newMusicRootPath = prefsManager.GetmusicPath();
+
+        if (oldMusicRootPath != newMusicRootPath) {
+//            qDebug() << "MUSIC ROOT PATH CHANGED!";
+            // before we actually make the change to the music root path,
+
+            // 1) release the lock on the old music directory (if it exists), before we change the music root path
+            clearLockFile(oldMusicRootPath);
+
+            // 2) take a lock on the new music directory
+            checkLockFile();
+
+            // 3) TODO: clear out the lyrics
+            // 4) TODO: clear out the reference tab
+            // 5) TODO: load the reference material from the new musicDirectory
+        }
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
         musicRootPath = prefsManager.GetmusicPath();
@@ -7933,6 +7980,10 @@ void MainWindow::on_action_6_triggered()
     playSFX("6");
 }
 
+void MainWindow::stopSFX() {
+    cBass.StopAllSoundEffects();
+}
+
 void MainWindow::playSFX(QString which) {
     QString soundEffectFile;
 
@@ -8148,8 +8199,8 @@ void MainWindow::maybeInstallSoundFX() {
     // which is checked when the App starts, and when the Startup Wizard finishes setup.  In which case, we
     //   only want to copy files into the soundfx directory if there aren't already files there.
     //   It might seem like overkill right now (and it is, right now).
-    bool foundSoundFXfile[6];
-    for (int i=0; i<6; i++) {
+    bool foundSoundFXfile[NUMBEREDSOUNDFXFILES];
+    for (int i=0; i<NUMBEREDSOUNDFXFILES; i++) {
         foundSoundFXfile[i] = false;
     }
 
@@ -8157,24 +8208,29 @@ void MainWindow::maybeInstallSoundFX() {
     while(it.hasNext()) {
         QString s1 = it.next();
 
-        QString baseName = s1.replace(soundfxDir,"");
+        QString baseName = s1.replace(soundfxDir + "/","");
         QStringList sections = baseName.split(".");
 
-        if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2].compare("mp3",Qt::CaseInsensitive)==0) {
-//            if (sections.length() == 3 && sections[0].toInt() != 0 && sections[2] == "mp3") {
+        if (sections.length() == 3 &&
+            sections[0].toInt() >= 1 &&
+            sections[0].toInt() <= NUMBEREDSOUNDFXFILES &&   // don't allow accesses to go out-of-bounds (e.g. "9.foo.mp3")
+            sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
             foundSoundFXfile[sections[0].toInt() - 1] = true;  // found file of the form <N>.<something>.mp3
+//            qDebug() << "Found soundfx[" << sections[0].toInt() << "]";
         }
     } // while
 
-    QString starterSet[6] = {
+    QString starterSet[] = {
         "1.whistle.mp3",
         "2.clown_honk.mp3",
         "3.submarine.mp3",
         "4.applause.mp3",
         "5.fanfare.mp3",
-        "6.fade.mp3"
+        "6.fade.mp3",
+        "7.short_bell.mp3",
+        "8.ding_ding.mp3"
     };
-    for (int i=0; i<6; i++) {
+    for (int i=0; i<NUMBEREDSOUNDFXFILES; i++) {
         if (!foundSoundFXfile[i]) {
             QString destination = soundfxDir + "/" + starterSet[i];
             QFile dest(destination);
@@ -8294,11 +8350,13 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float numberBase = 2.0;
     float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float numberFactor = 0.5;
     float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
@@ -8328,11 +8386,13 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
+    float numberBase = 1.5f;
     float recentBase = 7.5f;
     float ageBase = 5.5f;
     float pitchBase = 6.0f;
     float tempoBase = 7.5f;
 
+    float numberFactor = 0.0f;
     float recentFactor = 0.0f;
     float ageFactor = 0.0f;
     float pitchFactor = 0.0f;
@@ -8361,11 +8421,13 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
+    float numberBase = 2.0;
     float recentBase = 4.5;
     float ageBase = 3.5;
     float pitchBase = 4.0;
     float tempoBase = 4.5;
 
+    float numberFactor = 0.5;
     float recentFactor = 0.9;
     float ageFactor = 0.5;
     float pitchFactor = 0.5;
@@ -8392,7 +8454,9 @@ void MainWindow::adjustFontSizes()
     float buttonSizeV = 1.125;
 #endif
 
+    // a little extra space when a column is sorted
     // also a little extra space for the smallest zoom size
+    ui->songTable->setColumnWidth(kNumberCol, (numberBase + (sortedSection==kNumberCol?numberFactor:0.0)) *currentFontPointSize);
     ui->songTable->setColumnWidth(kRecentCol, (recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kAgeCol, (ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize);
     ui->songTable->setColumnWidth(kPitchCol, (pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize);
@@ -8408,6 +8472,7 @@ void MainWindow::adjustFontSizes()
 #if defined(Q_OS_MAC)
     // the Mac combobox is not height resizeable.  This styled one is, and it looks fine.
     ui->comboBoxCuesheetSelector->setStyle(QStyleFactory::create("Windows"));
+    ui->comboBoxCallListProgram->setStyle(QStyleFactory::create("Windows"));
 #endif
 
     // set all the related fonts to the same size
@@ -8453,6 +8518,9 @@ void MainWindow::adjustFontSizes()
 
     ui->pushButtonCueSheetEditBold->setFont(currentFont);
     ui->pushButtonCueSheetEditItalic->setFont(currentFont);
+
+    ui->pushButtonClearTaughtCalls->setFont(currentFont);
+    ui->pushButtonClearTaughtCalls->setFixedWidth(TitleButtonWidth[index] * 1.5);
 
     ui->pushButtonCueSheetEditTitle->setFixedWidth(TitleButtonWidth[index]);
     ui->pushButtonCueSheetEditLabel->setFixedWidth(TitleButtonWidth[index]);
@@ -9279,7 +9347,7 @@ void MainWindow::readFlashCallsList() {
             flashCalls.append(call);
         }
     }
-    qDebug() << "Flash calls" << flashCalls;
+//    qDebug() << "Flash calls" << flashCalls;
     qsrand(QTime::currentTime().msec());  // different random sequence of calls each time, please.
     if (flashCalls.length() == 0) {
         randCallIndex = 0;
@@ -9823,4 +9891,180 @@ void MainWindow::on_action15_seconds_triggered()
 void MainWindow::on_action20_seconds_triggered()
 {
     prefsManager.Setflashcalltiming("20");
+}
+
+// sets the NowPlaying label, and color (based on whether it's a flashcall or not)
+//   this is done many times, so factoring it out to here.
+// flashcall defaults to false
+void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
+    if (flashcall) {
+        ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+    } else {
+        ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+    }
+    ui->nowPlayingLabel->setText(s);
+}
+
+int MainWindow::getRsyncFileCount(QString sourceDir, QString destDir) {
+#if defined(Q_OS_MAC)
+    QString rsyncCommand = "/usr/bin/rsync";
+//    qDebug() << "sourceDir" << sourceDir;
+//    qDebug() << "destDir" << destDir;
+
+    QStringList parmsDryRun;
+    parmsDryRun << "-avn" << "--no-times" << "--no-perms" << "--size-only" << sourceDir << destDir;
+    // parms1DryRun << "-avn" << "--modify-window=2" << sourceDir << destDir;
+
+    QProcess rsync;
+    rsync.start(rsyncCommand, parmsDryRun);
+    rsync.waitForFinished();
+    QString outputString(rsync.readAllStandardOutput());
+    QStringList pieces = outputString.split( "\n" );
+
+//    qDebug() << outputString << pieces << pieces4.length()-5;
+//    qDebug() << pieces.length() << pieces;
+
+    return(pieces.length());
+#else
+    Q_UNUSED(sourceDir)
+    Q_UNUSED(destDir)
+    return(0);
+#endif
+}
+
+void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
+{
+#if defined(Q_OS_MAC)
+    MakeFlashDriveWizard wizard(this);
+    int dialogCode = wizard.exec();
+
+    if (dialogCode == QDialog::Accepted) {
+        QString destVol = wizard.field("destinationVolume").toString();
+//        qDebug() << "MAKE FLASH DRIVE WIZARD ACCEPTED." << destVol;
+
+        // make the directory, if it doesn't already exist
+        QDir dir(QString("/Volumes/%1/SquareDesk").arg(destVol));
+        if (!dir.exists()) {
+//            qDebug() << "Making it...";
+            dir.mkpath(".");
+        }
+
+        // --------------------
+        // DRY RUN for the app ----
+        QString sourceDir1 = QCoreApplication::applicationDirPath();  // e.g.
+        sourceDir1 += "/../..";
+        QString destDir1 = QString("/Volumes/%1/SquareDesk/SquareDesk.app").arg(destVol); // e.g. /Volumes/PATRIOT/squareDesk
+
+        int AppDryRunCount = getRsyncFileCount(sourceDir1, destDir1);
+//        qDebug() << "AppDryRunCount: " << AppDryRunCount;
+
+        // DRY RUN for the music files ----
+        PreferencesManager prefs;
+        QDir musicDir(prefs.GetmusicPath());
+        QString sourceDir = musicDir.canonicalPath();  // e.g. /Users/mpogue/squareDanceMusic  (NOTE: no trailing '/')
+        QString destDir = QString("/Volumes/%1/SquareDesk").arg(destVol); // e.g. /Volumes/PATRIOT/SquareDesk/ (NOTE: no trailing '/')
+
+        int MusicDryRunCount = getRsyncFileCount(sourceDir, destDir);
+//        qDebug() << "Music count:" << MusicDryRunCount;
+
+        int filesToBeCopied = AppDryRunCount + MusicDryRunCount; // total files to be copied
+        float p = 0;
+
+        QProgressDialog progress("Copying SquareDesk...", "Abort Copy", 0, 10, this);
+        progress.setRange(0,filesToBeCopied);
+        progress.setValue((int)p);
+        progress.setWindowModality(Qt::WindowModal);
+
+        // COPY THE APP -----------
+        QString rsyncCommand = "/usr/bin/rsync";
+//        qDebug() << "Copying the SquareDesk.app files ....\n----------";
+
+        QStringList appParms;
+        appParms << "-av" << "--no-times" << "--no-perms" << "--size-only" << sourceDir1 << destDir1;
+
+        QProcess rsync;
+        rsync.start(rsyncCommand, appParms);
+
+        if (!rsync.waitForStarted()) {
+            return;
+        }
+
+        while(1) {
+            if (rsync.waitForFinished(1000)) { // 1 sec at a time
+                // rsync completed
+                progress.setValue(AppDryRunCount); // finished copying just the app so far
+                break;
+            }
+
+            while(rsync.canReadLine()) {
+                QString line4 = QString::fromLocal8Bit(rsync.readLine());
+                int count4 = line4.count("\n");
+                p += count4;
+//                qDebug() << count4 << line4;
+                progress.setValue((int)p);
+            }
+
+            QCoreApplication::processEvents();
+            if (progress.wasCanceled()) {
+                // user manually cancelled the dialog
+                return;  // get outta here, if the user cancelled the copy (no finish dialog)
+            }
+        }
+
+        // COPY THE MUSIC FILES ==========
+//        qDebug() << "Copying music files....\n----------";
+        progress.setLabelText(QString("Copying Music..."));
+
+        QStringList musicParms;
+
+        musicParms << "-av" << "--no-times" << "--no-perms" << "--size-only"
+                   << "--exclude" << "lock.txt"   // note: do NOT copy the 'lock.txt' file, because flash copy is never locked
+                   << "--exclude" << "debug.log"  // note: do NOT copy the 'debug.log' file, because flash copy does not need it
+                   << sourceDir << destDir;
+
+        // ------- HERE IS THE REAL FILE COPY (takes a long time, maybe)
+        QProcess rsync3;
+        rsync3.start(rsyncCommand, musicParms);
+        rsync3.setReadChannel(QProcess::StandardOutput);
+
+        if (!rsync3.waitForStarted()) {
+            return;
+        }
+
+        while(1) {
+            if (rsync3.waitForFinished(1000)) { // 1 sec at a time
+                // rsync completed
+                progress.setValue(filesToBeCopied);  // all done!
+//                qDebug() << "rsync of music finished.";
+                break;
+            }
+
+            while(rsync3.canReadLine()) {
+                QString line = QString::fromLocal8Bit(rsync3.readLine());
+                int count = line.count("\n");
+                p += count;
+//                qDebug() << count << line;
+                progress.setValue((int)p);
+            }
+
+            QCoreApplication::processEvents();
+            if (progress.wasCanceled()) {
+                // user manually cancelled the dialog
+                return;  // get outta here, and don't show the final dialog
+            }
+        }
+
+//        qDebug() << "Done with copy.\n----------";
+
+        // FINAL DIALOG: copy is done, remember to Eject!
+        //    TODO: provide a button to eject it!
+        QMessageBox msgBox;
+        msgBox.setText(QString("The SquareDesk application and your Music Directory have been copied to '%1'.").arg(destVol));
+        msgBox.setInformativeText("NOTE: Be sure to use Finder to eject the flash drive before unplugging it.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+    } // if accepted
+#endif
 }

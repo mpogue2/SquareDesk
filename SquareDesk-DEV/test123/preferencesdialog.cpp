@@ -32,6 +32,7 @@
 #include <QTimeEdit>
 #include "sessioninfo.h"
 #include <algorithm>
+#include "mainwindow.h"
 
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;
@@ -92,10 +93,12 @@ static void RemoveAllOtherHotkeysFromTable(QTableWidget *tableWidgetKeyBindings,
 
 
 // -------------------------------------------------------------------
-PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
+PreferencesDialog::PreferencesDialog(QString soundFXname[NUMBEREDSOUNDFXFILES], QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
+    mw = (MainWindow *)parent;
+    swallowSoundFX = true;
     songTableReloadNeeded = false;
 
     ui->setupUi(this);
@@ -127,8 +130,8 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[6], QWidget *parent) :
     ui->afterLongTipAction->setItemText(0,"play long tip reminder tone");
     ui->afterBreakAction->setItemText(0,"play break over reminder tone");
 
-    for (int i = 0; i < 6; i++) {
-        if (soundFXname != QString("")) {
+    for (int i = 0; i < NUMBEREDSOUNDFXFILES; i++) {
+        if (soundFXname[i] != QString("")) {
             ui->afterLongTipAction->setItemText(i+1,"play " + soundFXname[i] + " sound");
             ui->afterBreakAction->setItemText(i+1,"play " + soundFXname[i] + " sound");
         } else {
@@ -888,4 +891,32 @@ int PreferencesDialog::getActiveTab()
 void PreferencesDialog::setActiveTab(int tabnum)
 {
     ui->tabWidget->setCurrentIndex(tabnum);
+}
+
+void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
+{
+    if (swallowSoundFX) {
+        return;
+    }
+    if (index == 0) {
+        mw->playSFX("long_tip");
+    } else if (index <= NUMBEREDSOUNDFXFILES) {
+        mw->playSFX(QString::number(index));
+    } else {
+        mw->stopSFX();  // visual indicator only
+    }
+}
+
+void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
+{
+    if (swallowSoundFX) {
+        return;
+    }
+    if (index == 0) {
+        mw->playSFX("break_over");
+    } else if (index <= NUMBEREDSOUNDFXFILES) {
+        mw->playSFX(QString::number(index));
+    } else {
+        mw->stopSFX();  // visual indicator only
+    }
 }

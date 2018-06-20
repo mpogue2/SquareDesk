@@ -56,6 +56,9 @@ public:
     ~PreferencesDialog();
     void finishPopulation();
 
+//    int soundFXswallowed;  // number of playbacks to swallow
+    bool swallowSoundFX;   // avoid spurious playback events, when we're setting up the dialog
+
     QString musicPath;
     void setFontSizes();
 
@@ -140,9 +143,14 @@ private slots:
     void on_pushButtonTagAdd_clicked();
     void on_pushButtonTagRemove_clicked();
     void on_tabWidget_currentChanged(int /* tab */);
+    void on_afterLongTipAction_currentIndexChanged(int index);
+
+    void on_afterBreakAction_currentIndexChanged(int index);
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;
+    MainWindow *mw;  // so we can play soundFX from within the dialog
 };
 
 class PushButtonColorTag : public QPushButton {
