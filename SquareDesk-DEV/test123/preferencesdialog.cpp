@@ -60,11 +60,11 @@ static void  SetTimerPulldownValuesToFirstDigit(QComboBox *comboBox)
         comboBox->setItemData(i, QVariant(length));
     }
 }
-static void SetPulldownValuesToItemNumberPlusOne(QComboBox *comboBox)
+static void SetPulldownValuesToItemNumberPlusN(QComboBox *comboBox, int N)
 {
     for (int i = 0; i < comboBox->count(); ++i)
     {
-        comboBox->setItemData(i, QVariant(i + 1));
+        comboBox->setItemData(i, QVariant(i + N));
     }
 }
 
@@ -93,7 +93,7 @@ static void RemoveAllOtherHotkeysFromTable(QTableWidget *tableWidgetKeyBindings,
 
 
 // -------------------------------------------------------------------
-PreferencesDialog::PreferencesDialog(QString soundFXname[NUMBEREDSOUNDFXFILES], QWidget *parent) :
+PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PreferencesDialog)
 {
@@ -124,26 +124,38 @@ PreferencesDialog::PreferencesDialog(QString soundFXname[NUMBEREDSOUNDFXFILES], 
     // settings for experimental break/tip timers are:
     SetTimerPulldownValuesToFirstDigit(ui->breakLength);
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
-    SetPulldownValuesToItemNumberPlusOne(ui->comboBoxMusicFormat);
-    SetPulldownValuesToItemNumberPlusOne(ui->comboBoxSessionDefault);
 
-    ui->afterLongTipAction->setItemText(0,"play long tip reminder tone");
-    ui->afterBreakAction->setItemText(0,"play break over reminder tone");
+    SetPulldownValuesToItemNumberPlusN(ui->comboBoxMusicFormat,1);
+    SetPulldownValuesToItemNumberPlusN(ui->comboBoxSessionDefault,1);
 
-    for (int i = 0; i < NUMBEREDSOUNDFXFILES; i++) {
-        if (soundFXname[i] != QString("")) {
-            ui->afterLongTipAction->setItemText(i+1,"play " + soundFXname[i] + " sound");
-            ui->afterBreakAction->setItemText(i+1,"play " + soundFXname[i] + " sound");
+    // puldown menus for break and long tip sounds
+    ui->afterLongTipAction->clear();
+    ui->afterLongTipAction->addItem("visual indicator only");
+    ui->afterLongTipAction->addItem("play long tip reminder tone");
+
+    ui->afterBreakAction->clear();
+    ui->afterBreakAction->addItem("visual indicator only");
+    ui->afterBreakAction->addItem("play break over reminder tone");
+
+    QMapIterator<int, QString> i(*soundFXname);
+    while (i.hasNext()) {
+        i.next();
+//        qDebug() << i.key() << ": " << i.value();
+        QString thisName = i.value();
+        if (thisName != QString("")) {
+            ui->afterLongTipAction->addItem("play " + thisName + " sound");
+            ui->afterBreakAction->addItem("play " + thisName + " sound");
         } else {
-            ui->afterLongTipAction->setItemText(i+1,"--disabled--");
-            ui->afterBreakAction->setItemText(i+1,"--disabled--");
+            ui->afterLongTipAction->addItem("--disabled--");
+            ui->afterBreakAction->addItem("--disabled--");
         }
     }
 
-    SetPulldownValuesToItemNumberPlusOne(ui->afterLongTipAction);
-    SetPulldownValuesToItemNumberPlusOne(ui->afterBreakAction);
 
+    SetPulldownValuesToItemNumberPlusN(ui->afterLongTipAction, 2); // 0 = visual only, 1 = long tip tone
+    SetPulldownValuesToItemNumberPlusN(ui->afterBreakAction, 2);   // 0 = visual only, 1 = break over tone
 
+    // ---------------------
     QVector<KeyAction*> availableActions(KeyAction::availableActions());
 
     QTableWidget *tableWidgetKeyBindings = ui->tableWidgetKeyBindings;
@@ -898,12 +910,14 @@ void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(int index)
     if (swallowSoundFX) {
         return;
     }
+
     if (index == 0) {
-        mw->playSFX("long_tip");
-    } else if (index <= NUMBEREDSOUNDFXFILES) {
-        mw->playSFX(QString::number(index));
-    } else {
         mw->stopSFX();  // visual indicator only
+    } else if (index == 1) {
+        mw->playSFX("long_tip");
+    } else {
+//        qDebug() << "index: " << index;
+        mw->playSFX(QString::number(index-1));
     }
 }
 
@@ -912,11 +926,14 @@ void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
     if (swallowSoundFX) {
         return;
     }
+
     if (index == 0) {
-        mw->playSFX("break_over");
-    } else if (index <= NUMBEREDSOUNDFXFILES) {
-        mw->playSFX(QString::number(index));
-    } else {
         mw->stopSFX();  // visual indicator only
+    } else if (index == 1) {
+        mw->playSFX("break_over");
+    } else {
+//        qDebug() << "index: " << index;
+        mw->playSFX(QString::number(index-1));
     }
+
 }
