@@ -871,7 +871,7 @@ private: // SD
     bool sd_animation_running;
     QList<SDDancer> sd_animation_people;
     QList<SDDancer> sd_fixed_people;
-    SDRedoStack sd_redo_stack;
+    SDRedoStack *sd_redo_stack;
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;

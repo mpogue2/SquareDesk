@@ -29,6 +29,7 @@
 class SDRedoStack {
     QList<QStringList> sd_redo_stack;
     bool doing_user_input;
+    bool did_an_undo;
 public:
     SDRedoStack();
 
@@ -38,6 +39,7 @@ public:
     QStringList get_redo_commands(int row);
     void set_doing_user_input();
     void clear_doing_user_input();
+    void set_did_an_undo();
 };
 
 #endif /* ifndef SD_REDO_STACK_INCLUDED */

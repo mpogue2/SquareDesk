@@ -291,7 +291,8 @@ MainWindow::MainWindow(QWidget *parent) :
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
     shortcutSDTabUndo(NULL),
     shortcutSDCurrentSequenceSelectAll(NULL),
-    shortcutSDCurrentSequenceCopy(NULL)
+    shortcutSDCurrentSequenceCopy(NULL),
+    sd_redo_stack(new SDRedoStack())
 {
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
@@ -2231,6 +2232,7 @@ MainWindow::~MainWindow()
     colorDlg.setCurrentColor(Qt::white);
 
     delete ui;
+    delete sd_redo_stack;
 
 //    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
 //#if defined(Q_OS_MAC)
