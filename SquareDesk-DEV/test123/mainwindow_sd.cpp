@@ -1272,7 +1272,6 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
             if (row < 0) row = 0;
-            qDebug() << "Just did input " << cmd;
             if (!cmd.compare(str_undo_last_call, Qt::CaseInsensitive))
             {
                 sd_redo_stack->set_did_an_undo();
@@ -1571,7 +1570,6 @@ void MainWindow::redo_last_sd_action()
     QStringList redoCommands(sd_redo_stack->get_redo_commands(redoRow));
     for (auto redoCommand : redoCommands)
     {
-        qDebug() << "Redoing " << redoCommand << " for row " << redoRow;
         sdthread->do_user_input(redoCommand);
     }
 
