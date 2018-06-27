@@ -1822,6 +1822,7 @@
     <addaction name="separator"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
+    <addaction name="separator"/>
     <addaction name="actionExport_Play_Data"/>
     <addaction name="actionPreferences"/>
     <addaction name="separator"/>
