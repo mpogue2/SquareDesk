@@ -345,8 +345,7 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
 
 void MainWindow::initialize_internal_sd_tab()
 {
-    sd_redo_stack.clear();
-    sd_redo_stack.append(QStringList());
+    sd_redo_stack.initialize();
     
     if (NULL != shortcutSDTabUndo)
         delete shortcutSDTabUndo;
@@ -707,8 +706,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     if (str.startsWith("Output file is \""))
     {
         sdLastLine = 0;
-        sd_redo_stack.clear();
-        sd_redo_stack.append(QStringList());
+        sd_redo_stack.initialize();
     }
 
     while (str.length() > 1 && str[str.length() - 1] == '\n')
@@ -736,9 +734,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
-                    while (sd_redo_stack.length() < sdLastLine)
-                        sd_redo_stack.append(QStringList());
-                    qDebug() << "Catching redo stack up to last line " << sdLastLine << " "  << sd_redo_stack.length();
+                    sd_redo_stack.add_lines_to_row(sdLastLine);
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 }
 
@@ -1104,10 +1100,12 @@ void MainWindow::do_sd_tab_completion()
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
 //    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
-//    if (redoRow >= 0 && redoRow < sd_redo_stack.length())
-//        sd_redo_stack.erase(sd_redo_stack.begin() + redoRow, sd_redo_stack.end());
-    
+//    while (redoRow >= 0 && redoRow < sd_redo_stack.length())
+//        sd_redo_stack.erase(sd_redo_stack.begin() + redoRow);
+
+    sd_redo_stack.set_doing_user_input();
     submit_lineEditSDInput_contents_to_sd();
+    sd_redo_stack.clear_doing_user_input();
 }
 
 void MainWindow::submit_lineEditSDInput_contents_to_sd()
@@ -1273,8 +1271,12 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
             if (row < 0) row = 0;
-            qDebug() << "Appending " << cmd << " to redo row " << row;
-            sd_redo_stack[row].append(cmd);
+//            qDebug() << "Appending " << cmd << " to redo row " << row;
+//            while (sd_redo_stack.length() < row)
+//            {
+//                sd_redo_stack.append(QStringList());
+//            }
+            sd_redo_stack.add_command(row, cmd);
         }
     }
 }
@@ -1560,15 +1562,13 @@ void MainWindow::redo_last_sd_action()
 {
     int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
     if (redoRow < 0) redoRow = 0;
-    if (redoRow < sd_redo_stack.count())
+    QStringList redoCommands(sd_redo_stack.get_redo_commands(redoRow));
+    for (auto redoCommand : redoCommands)
     {
-        QStringList redoCommands(sd_redo_stack[redoRow]);
-        for (auto redoCommand : redoCommands)
-        {
-            qDebug() << "Redoing " << redoCommand << " for row " << redoRow;
-            sdthread->do_user_input(redoCommand);
-        }
+        qDebug() << "Redoing " << redoCommand << " for row " << redoRow;
+        sdthread->do_user_input(redoCommand);
     }
+
     ui->lineEditSDInput->setFocus();
 }
 

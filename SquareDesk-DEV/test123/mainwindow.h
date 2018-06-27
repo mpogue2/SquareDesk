@@ -67,6 +67,7 @@
 
 #include "common_enums.h"
 #include "sdhighlighter.h"
+#include "sdredostack.h"
 
 #include "math.h"
 #include "bass_audio.h"
@@ -870,7 +871,7 @@ private: // SD
     bool sd_animation_running;
     QList<SDDancer> sd_animation_people;
     QList<SDDancer> sd_fixed_people;
-    QList<QStringList> sd_redo_stack;
+    SDRedoStack sd_redo_stack;
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;

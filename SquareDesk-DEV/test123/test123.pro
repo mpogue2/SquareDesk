@@ -66,6 +66,7 @@ SOURCES += main.cpp\
     perftimer.cpp \
     tablewidgettimingitem.cpp \
     mydatetimeedit.cpp \
+    sdredostack.cpp \
     makeflashdrivewizard.cpp
 
 macx {
@@ -115,6 +116,7 @@ HEADERS  += mainwindow.h \
     perftimer.h \
     tablewidgettimingitem.h \
     mydatetimeedit.h \
+    sdredostack.h \
     makeflashdrivewizard.h
 
 macx {
