@@ -800,8 +800,8 @@ private:
 //    void unmuteInputVolume();      //   and this one (generally avoid calling setInputVolume() directly)
 
     // sound fx
-    QString soundFXarray[NUMBEREDSOUNDFXFILES];
-    QString soundFXname[NUMBEREDSOUNDFXFILES];
+    QMap<int, QString> soundFXfilenames;    // e.g. "9.foo.mp3" --> [9,"9.foo.mp3"]
+    QMap<int, QString> soundFXname;         // e.g. "9.foo.mp3" --> [9,"foo"]
     void maybeInstallSoundFX();
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom

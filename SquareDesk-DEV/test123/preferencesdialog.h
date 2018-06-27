@@ -52,11 +52,10 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    PreferencesDialog(QString *soundFXname, QWidget *parent = 0);
+    PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent = 0);
     ~PreferencesDialog();
     void finishPopulation();
 
-//    int soundFXswallowed;  // number of playbacks to swallow
     bool swallowSoundFX;   // avoid spurious playback events, when we're setting up the dialog
 
     QString musicPath;

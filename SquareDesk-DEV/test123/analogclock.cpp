@@ -77,10 +77,10 @@ void AnalogClock::redrawTimerExpired()
     // BREAK timer is a count-down timer to 00:00 (end of break)
     //   but it keeps on counting
 
-    // DEBUG: change to 5 seconds per minute of patter, just for debugging
+// DEBUG: change to 1 seconds per minute of patter, just for debugging
 //#define DEBUGCLOCK
 #ifdef DEBUGCLOCK
-#define SECSPERMIN  5
+#define SECSPERMIN  1
 #else
 #define SECSPERMIN  60
 #endif

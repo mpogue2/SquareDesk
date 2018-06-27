@@ -306,9 +306,8 @@ MainWindow::MainWindow(QWidget *parent) :
     loadedCuesheetNameWithPath = "";
     justWentActive = false;
 
-    for (int i=0; i<6; i++) {  // max of 6 that are bound to keys
-        soundFXarray[i] = "";
-    }
+    soundFXfilenames.clear();
+    soundFXname.clear();
 
     maybeInstallSoundFX();
 
@@ -2337,7 +2336,8 @@ void MainWindow::on_stopButton_clicked()
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
 //    currentState = kStopped;
 
-    cBass.Stop();  // Stop playback, rewind to the beginning
+    cBass.Stop();                 // Stop playback, rewind to the beginning
+    cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
 
     setNowPlayingLabelWithColor(currentSongTitle);
 
@@ -3228,36 +3228,42 @@ void MainWindow::on_UIUpdateTimerTick(void)
     }
 
     if ((newTimerState & LONGTIPTIMEREXPIRED) && !(oldTimerState & LONGTIPTIMEREXPIRED)) {
-        // one-shot transitioned to Long Tip
-        //  1 => long_tip
-        //  2 => play "1.*.mp3"
+        // one-shot transition to Long Tip
+        //  2 => visual indicator only
+        //  3 => long_tip sound
+        //  4 => play "1.*.mp3", the first item in the user-provided soundfx list
         //  ...
-        //  9 => play "8.*.mp3"
-        //  10 => visual indicator only
+        //  11 => play "8.*.mp3", the 8th item in the user-provided soundfx list
+//        qDebug() << "tipLengthAlarmAction:" << tipLengthAlarmAction;
         switch (tipLengthAlarmAction) {
-        case 1: playSFX("long_tip"); break;
-        default:
-            if (tipLengthAlarmAction <= NUMBEREDSOUNDFXFILES + 1) {  // unsigned, so always >= 0; 8 = visual indicator only
-                playSFX(QString::number(tipLengthAlarmAction-1));
-            }
-            break;
+            case 2:
+                break;  // visual indicator only
+            case 3:
+                playSFX("long_tip");
+                break;
+            default:
+                playSFX(QString::number(tipLengthAlarmAction-3));
+                break;
         }
     }
 
     if ((newTimerState & BREAKTIMEREXPIRED) && !(oldTimerState & BREAKTIMEREXPIRED)) {
-        // one-shot transitioned to End of Break
-        //  1 => break_over
-        //  2 => play "1.*.mp3"
+        // one-shot transition to End of Break
+        //  2 => visual indicator only
+        //  3 => break_over sound
+        //  4 => play "1.*.mp3", the first item in the user-provided soundfx list
         //  ...
-        //  9 => play "8.*.mp3"
-        //  10 => visual indicator only
+        //  11 => play "8.*.mp3", the 8th item in the user-provided soundfx list
+//        qDebug() << "breakLengthAlarmAction:" << tipLengthAlarmAction;
         switch (breakLengthAlarmAction) {
-        case 1: playSFX("break_over"); break;
-        default:
-            if (breakLengthAlarmAction <= NUMBEREDSOUNDFXFILES + 1) {  // unsigned, so always >= 0;  8 = visual indicator only
-                playSFX(QString::number(breakLengthAlarmAction-1));
-            }
-            break;
+            case 2:
+                break;
+            case 3:
+                playSFX("break_over");
+                break;
+            default:
+                playSFX(QString::number(breakLengthAlarmAction-3));
+                break;
         }
     }
     oldTimerState = newTimerState;
@@ -4588,7 +4594,7 @@ void MainWindow::on_actionOpen_MP3_file_triggered()
 
 
 // this function stores the absolute paths of each file in a QVector
-void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QString soundFXarray[NUMBEREDSOUNDFXFILES], QString soundFXname[NUMBEREDSOUNDFXFILES])
+void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffix, Ui::MainWindow *ui, QMap<int, QString> *soundFXarray, QMap<int, QString> *soundFXname)
 {
     QDirIterator it(rootDir, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while(it.hasNext()) {
@@ -4624,10 +4630,10 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                 QStringList sections = baseName.split(".");
                 if (sections.length() == 3 &&
                     sections[0].toInt() >= 1 &&
-                    sections[0].toInt() <= NUMBEREDSOUNDFXFILES &&  // NOTE: only 6 keyboard-based shortcuts, but all sfx must be captured here
                     sections[2].compare("mp3",Qt::CaseInsensitive) == 0) {
 
-                    soundFXname[sections[0].toInt()-1] = sections[1];  // save for populating Preferences dropdown later
+                    soundFXname->insert(sections[0].toInt()-1, sections[1]);  // save for populating Preferences dropdown later
+
                     switch (sections[0].toInt()) {
                         case 1: ui->action_1->setText(sections[1]); break;
                         case 2: ui->action_2->setText(sections[1]); break;
@@ -4639,7 +4645,8 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
                             // ignore all but the first 6 soundfx
                             break;
                     } // switch
-                    soundFXarray[sections[0].toInt()-1] = path1;  // remember the path for playing it later
+
+                    soundFXarray->insert(sections[0].toInt()-1, path1);  // remember the path for playing it later
                 } // if
             } // if
         } // else
@@ -4743,7 +4750,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
 
         rootDir1.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir1, pathStack, "", ui, soundFXarray, soundFXname);  // appends to the pathstack
+        findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
     }
 
     if (guestRootDir != "" && (mode == "guest" || mode == "both")) {
@@ -4757,7 +4764,7 @@ void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mo
         qsl.append("*.wav");                //          or WAV files
         rootDir2.setNameFilters(qsl);
 
-        findFilesRecursively(rootDir2, pathStack, "*", ui, soundFXarray, soundFXname);  // appends to the pathstack, "*" for "Guest"
+        findFilesRecursively(rootDir2, pathStack, "*", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack, "*" for "Guest"
     }
 }
 
@@ -5712,7 +5719,7 @@ void MainWindow::on_actionPreferences_triggered()
     AddHotkeyMappingsFromShortcuts(hotkeyMappings);
     AddHotkeyMappingsFromMenus(hotkeyMappings);
 
-    prefDialog = new PreferencesDialog(soundFXname, this);
+    prefDialog = new PreferencesDialog(&soundFXname, this);
     prefsManager.SetHotkeyMappings(hotkeyMappings);
     prefsManager.setTagColors(songSettings.getTagColors());
     prefsManager.populatePreferencesDialog(prefDialog);
@@ -5821,10 +5828,12 @@ void MainWindow::on_actionPreferences_triggered()
         tipLength30secEnabled = prefsManager.GettipLength30secEnabled();
         tipLengthTimerLength = prefsManager.GettipLengthTimerLength();
         tipLengthAlarmAction = prefsManager.GettipLengthAlarmAction();
+//        qDebug() << "Saving tipLengthAlarmAction:" << tipLengthAlarmAction;
 
         breakLengthTimerEnabled = prefsManager.GetbreakLengthTimerEnabled();
         breakLengthTimerLength = prefsManager.GetbreakLengthTimerLength();
         breakLengthAlarmAction = prefsManager.GetbreakLengthAlarmAction();
+//        qDebug() << "Saving breakLengthAlarmAction:" << breakLengthAlarmAction;
 
         // and tell the clock, too.
         analogClock->tipLengthTimerEnabled = tipLengthTimerEnabled;
@@ -7988,7 +7997,7 @@ void MainWindow::playSFX(QString which) {
     QString soundEffectFile;
 
     if (which.toInt() > 0) {
-        soundEffectFile = soundFXarray[which.toInt()-1];
+        soundEffectFile = soundFXfilenames[which.toInt()-1];
     } else {
         // conversion failed, this is break_end or long_tip.mp3
         soundEffectFile = musicRootPath + "/soundfx/" + which + ".mp3";
