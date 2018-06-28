@@ -3192,7 +3192,7 @@
   </action>
   <action name="actionExport_Play_Data">
    <property name="text">
-    <string>Export Play Data...</string>
+    <string>Export Song Play History...</string>
    </property>
   </action>
   <action name="actionMake_Flash_Drive_Wizard">
