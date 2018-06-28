@@ -710,7 +710,7 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
                             bool omitEndDate,
                             QString endDate)
 {
-    QString sql("SELECT songname, datetime(played_on,'localtime') FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    QString sql("SELECT name, played_on, datetime(played_on,'localtime') FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
     QStringList whereClause;
     
     if (session_id)
@@ -723,7 +723,7 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     }
     if (!omitEndDate)
     {
-        whereClause.append("played_on > :start_date");
+        whereClause.append("played_on < :end_date");
     }
     if (!whereClause.empty())
     {
@@ -741,12 +741,12 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     }
     if (!omitEndDate)
     {
-        q.bindValue(":start_date", endDate);
+        q.bindValue(":end_date", endDate);
     }
     exec("songplayhistory", q);
     while (q.next())
     {
-        event(q.value(0).toString(), q.value(1).toString());
+        event(q.value(0).toString(), q.value(1).toString(), q.value(2).toString());
     }
 }
 

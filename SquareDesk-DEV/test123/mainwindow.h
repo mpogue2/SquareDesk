@@ -871,7 +871,7 @@ private: // SD
     bool sd_animation_running;
     QList<SDDancer> sd_animation_people;
     QList<SDDancer> sd_fixed_people;
-    SDRedoStack *sd_redo_stack;
+
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;
@@ -889,6 +889,7 @@ private: // SD
     QShortcut *shortcutSDTabUndo;
     QShortcut *shortcutSDCurrentSequenceSelectAll;
     QShortcut *shortcutSDCurrentSequenceCopy;
+    SDRedoStack *sd_redo_stack;
 
     double sd_animation_t_value;
     double sd_animation_delta_t;

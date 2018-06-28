@@ -23,8 +23,8 @@
 **
 ****************************************************************************/
 
-#ifndef FILEHISTORYEXPORTDIALOG_H
-#define FILEHISTORYEXPORTDIALOG_H
+#ifndef SONGHISTORYEXPORTDIALOG_H
+#define SONGHISTORYEXPORTDIALOG_H
 
 #include <QDialog>
 #include <QFileDialog>
@@ -37,19 +37,19 @@
 
 namespace Ui
 {
-class FileHistoryExportDialog;
+class SongHistoryExportDialog;
 }
 
 
 class SongSettings;
 
-class FileHistoryExportDialog : public QDialog
+class SongHistoryExportDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit FileHistoryExportDialog(QWidget *parent = 0);
-    ~FileHistoryExportDialog();
+    explicit SongHistoryExportDialog(QWidget *parent = 0);
+    ~SongHistoryExportDialog();
     void exportSongPlayData(SongSettings &settings);
     void populateOptions(SongSettings &settings);
 
@@ -58,7 +58,7 @@ private slots:
      
 
 private:
-    Ui::FileHistoryExportDialog *ui;
+    Ui::SongHistoryExportDialog *ui;
 };
 
 void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> *musicFilenames,
@@ -67,4 +67,4 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
                     bool includeHeaderNames,
                     bool relativePathNames);
 
-#endif // FILEHISTORYEXPORTDIALOG_H
+#endif // SONGHISTORYEXPORTDIALOG_H

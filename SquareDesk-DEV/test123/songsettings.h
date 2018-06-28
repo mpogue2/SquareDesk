@@ -33,7 +33,7 @@ class SessionInfo;
 
 class SongPlayEvent {
 public:
-    virtual void operator() (const QString &name, const QString &playedOn) = 0;
+    virtual void operator() (const QString &name, const QString &playedOnUTC, const QString &playedOnLocal) = 0;
     virtual ~SongPlayEvent(){}
 };
 

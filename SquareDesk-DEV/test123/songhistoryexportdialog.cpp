@@ -23,38 +23,29 @@
 **
 ****************************************************************************/
 
-#include "filehistoryexportdialog.h"
-#include "ui_filehistoryexportdialog.h"
+#include "songhistoryexportdialog.h"
+#include "ui_songhistoryexportdialog.h"
 #include "QFileDialog"
 #include "songsettings.h"
 #include "sessioninfo.h"
 #include "utility.h"
 
-FileHistoryExportDialog::FileHistoryExportDialog(QWidget *parent) :
+SongHistoryExportDialog::SongHistoryExportDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::FileHistoryExportDialog)
+    ui(new Ui::SongHistoryExportDialog)
 {
     ui->setupUi(this);
 }
 
 
 // ----------------------------------------------------------------
-FileHistoryExportDialog::~FileHistoryExportDialog()
+SongHistoryExportDialog::~SongHistoryExportDialog()
 {
     delete ui;
 }
 
-void FileHistoryExportDialog::on_pushButtonChooseFile_clicked()
+void SongHistoryExportDialog::on_pushButtonChooseFile_clicked()
 {
-    QString filename =
-        QFileDialog::getSaveFileName(this, tr("Select Export File"),
-                                     QDir::homePath());
-
-    if (filename.isNull()) {
-        return; 
-    }
-
-    ui->labelFileName->setText(filename);
 }
 
 static void outputString(QTextStream &stream, const QString &str, bool quote)
@@ -67,17 +58,17 @@ static void outputString(QTextStream &stream, const QString &str, bool quote)
     {
         QString quotedString(str);
         quotedString.replace("\"", "\\\"");
-        stream << "\"" << str << "\"";
+        stream << "\"" << quotedString << "\"";
     }
 }
 
-void FileHistoryExportDialog::populateOptions(SongSettings &songSettings)
+void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
 {
     QDateTime now = QDateTime::currentDateTime();
     QDateTime yesterday = now.addDays(-1);
     
-    ui->dateTimeEditStart->setDateTime(now);
-    ui->dateTimeEditEnd->setDateTime(yesterday);
+    ui->dateTimeEditEnd->setDateTime(now);
+    ui->dateTimeEditStart->setDateTime(yesterday);
     
     QList<SessionInfo> sessions(songSettings.getSessionInfo());
     ui->comboBoxSession->clear();
@@ -94,20 +85,29 @@ class FileExportSongPlayEvent : public SongPlayEvent {
     QTextStream &stream;
 public:
     FileExportSongPlayEvent(QTextStream &stream) : stream(stream) {}
-    virtual void operator() (const QString &name, const QString &playedOn)
+    virtual void operator() (const QString &name, const QString &playedOnUTC, const QString &playedOnLocal)
     {
         outputString(stream, name, true);
         stream << ",";
-        outputString(stream, playedOn, true);
+        outputString(stream, playedOnLocal, true);
+        stream << ",";
+        outputString(stream, playedOnUTC, true);
         stream << "\n";
     }
     virtual ~FileExportSongPlayEvent() {}
 };
 
 
-void FileHistoryExportDialog::exportSongPlayData(SongSettings &settings)
+void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
 {
-    QString filename(ui->labelFileName->text());
+    QString filename =
+        QFileDialog::getSaveFileName(this, tr("Select Export File"),
+                                     QDir::homePath());
+
+    if (filename.isNull()) {
+        return; 
+    }
+
     QFile file( filename );
     if ( file.open(QIODevice::WriteOnly) )
     {
@@ -123,7 +123,7 @@ void FileHistoryExportDialog::exportSongPlayData(SongSettings &settings)
         bool omitEndDate = ui->checkBoxOmitEnd->isChecked();
         int session_id = ui->comboBoxSession->currentIndex();
 
-        stream << "\"Song\",\"when played\"\n";
+        stream << "\"Song\",\"when played (local)\",\"when played (UTC)\"\n";
         settings.getSongPlayHistory(fespe, session_id,
                                     omitStartDate,
                                     startDate,

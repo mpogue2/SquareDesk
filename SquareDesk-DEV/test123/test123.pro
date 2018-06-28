@@ -39,7 +39,7 @@ SOURCES += main.cpp\
     preferencesdialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
-    filehistoryexportdialog.cpp \
+    songhistoryexportdialog.cpp \
     mytablewidget.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
@@ -84,7 +84,7 @@ HEADERS  += mainwindow.h \
     bassmix.h \
     importdialog.h \
     exportdialog.h \
-    filehistoryexportdialog.h \
+    songhistoryexportdialog.h \
     preferencesdialog.h \
     utility.h \
     mytablewidget.h \
@@ -133,7 +133,7 @@ INCLUDEPATH += $$PWD/../qpdfjs
 FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
-    filehistoryexportdialog.ui \
+    songhistoryexportdialog.ui \
     preferencesdialog.ui
 
 macx {

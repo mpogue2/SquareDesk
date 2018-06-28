@@ -60,7 +60,7 @@
 #include "tablenumberitem.h"
 #include "importdialog.h"
 #include "exportdialog.h"
-#include "filehistoryexportdialog.h"
+#include "songhistoryexportdialog.h"
 #include "calllistcheckbox.h"
 #include "sessioninfo.h"
 #include "songtitlelabel.h"
@@ -4336,9 +4336,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
-    QStringList pieces2 = filebase.split(".");
-
-    currentMP3filename = pieces2.value(pieces2.length()-2);
+    currentMP3filename = filebase;
+    int lastDot = currentMP3filename.lastIndexOf('.');
+    if (lastDot > 1)
+    {
+        currentMP3filename = currentMP3filename.right(lastDot - 1);
+    }
 
 
     if (songTitle != "") {
@@ -5618,7 +5621,7 @@ void MainWindow::on_actionExport_Play_Data_triggered()
 {
     RecursionGuard dialog_guard(inPreferencesDialog);
 
-    FileHistoryExportDialog *dialog = new FileHistoryExportDialog();
+    SongHistoryExportDialog *dialog = new SongHistoryExportDialog();
     dialog->populateOptions(songSettings);
     int dialogCode = dialog->exec();
     RecursionGuard keypress_guard(trapKeypresses);
