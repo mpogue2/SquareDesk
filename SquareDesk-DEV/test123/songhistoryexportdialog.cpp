@@ -44,10 +44,6 @@ SongHistoryExportDialog::~SongHistoryExportDialog()
     delete ui;
 }
 
-void SongHistoryExportDialog::on_pushButtonChooseFile_clicked()
-{
-}
-
 static void outputString(QTextStream &stream, const QString &str, bool quote)
 {
     if (!quote)

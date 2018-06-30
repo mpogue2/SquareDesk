@@ -53,10 +53,6 @@ public:
     void exportSongPlayData(SongSettings &settings);
     void populateOptions(SongSettings &settings);
 
-private slots:
-    void on_pushButtonChooseFile_clicked();
-     
-
 private:
     Ui::SongHistoryExportDialog *ui;
 };

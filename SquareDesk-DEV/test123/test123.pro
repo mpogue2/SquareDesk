@@ -65,7 +65,6 @@ SOURCES += main.cpp\
     sdsequencecalllabel.cpp \
     perftimer.cpp \
     tablewidgettimingitem.cpp \
-    mydatetimeedit.cpp \
     sdredostack.cpp \
     makeflashdrivewizard.cpp \
     songlistmodel.cpp \
@@ -117,7 +116,6 @@ HEADERS  += mainwindow.h \
     sdsequencecalllabel.h \
     perftimer.h \
     tablewidgettimingitem.h \
-    mydatetimeedit.h \
     sdredostack.h \
     makeflashdrivewizard.h \
     songlistmodel.h \
