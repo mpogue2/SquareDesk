@@ -57,7 +57,7 @@ static void outputString(QTextStream &stream, const QString &str, bool quote)
     else
     {
         QString quotedString(str);
-        quotedString.replace("\"", "\\\"");
+        quotedString.replace("\"", "\"\"");
         stream << "\"" << quotedString << "\"";
     }
 }

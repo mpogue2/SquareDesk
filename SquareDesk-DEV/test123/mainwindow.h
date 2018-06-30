@@ -908,19 +908,6 @@ public:
 #define kPlaying 1
 #define kPaused  2
 
-// columns in songTable
-#define kNumberCol 0
-#define kTypeCol 1
-#define kPathCol 1
-// path is stored in the userData portion of the Type column...
-#define kLabelCol 2
-#define kTitleCol 3
-
-// POSSIBLY hidden columns:
-#define kRecentCol 4
-#define kAgeCol   5
-#define kPitchCol 6
-#define kTempoCol 7
 
 // font sizes
 #define SMALLESTZOOM (11)
@@ -930,6 +917,9 @@ public:
 //#define SMALLESTZOOM (0)
 //#define RESETZOOM (1)
 //#define BIGGESTZOOM (6)
+
+// song table column info moved over to songlistmodel.h in preparation
+// for switching to a model/view treatment of the song table.
 
 // columns in tableViewCallList
 #define kCallListOrderCol       0

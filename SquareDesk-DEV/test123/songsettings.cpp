@@ -818,42 +818,11 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
 
 SongSetting::SongSetting()
     :
-    m_filename(),
-    set_filename(false),
-    m_filenameWithPath(),
-    set_filenameWithPath(false),
-    m_songname(),
-    set_songname(false),
-    m_volume(),
-    set_volume(false),
-    m_pitch(),
-    set_pitch(false),
-    m_tempo(),
-    set_tempo(false),
-    m_tempoIsPercent(),
-    set_tempoIsPercent(false),
-    m_introPos(),
-    set_introPos(false),
-    m_outroPos(),
-    set_outroPos(false),
-    m_cuesheetName(),
-    set_cuesheetName(false),
-    m_introOutroIsTimeBased(false),     // init to false, because this is a new column and if not present, it's not time-based
-    set_introOutroIsTimeBased(false),   // all of the set_* should be false here, I think.
-    m_songLength(0.0),                  // init to zero, and this will blow up if used for division
-    set_songLength(false),               // all of the set_* should be false here, I think.
-    m_treble(0),
-    set_treble(false),
-    m_bass(0),
-    set_bass(false),
-    m_midrange(0),
-    set_midrange(false),
-    m_mix(0),
-    set_mix(false),
-    m_loop(0),
-    set_loop(false),
-    m_tags(),
-    set_tags(false)
+#define SONGSETTING_ELEMENT(type,name) m_##name(), set_##name(false),
+#include "songsetting_attributes.h"
+#undef SONGSETTING_ELEMENT
+    // handle the trailing comma problem.
+    dummy(false)
 {
 }
 
@@ -861,25 +830,9 @@ QDebug operator<<(QDebug dbg, const SongSetting &setting)
 {
     QDebugStateSaver stateSaver(dbg);
     dbg.nospace() << "SongSetting(" <<
-                     "\n    filename: " << setting.m_filename << "," << setting.set_filename << ";" <<
-                     "\n    filenameWithPath: " << setting.m_filenameWithPath << "," << setting.set_filenameWithPath << ";" <<
-                     "\n    songname: " << setting.m_songname << "," << setting.set_songname << ";" <<
-                     "\n    volume: " << setting.m_volume << "," << setting.set_volume << ";" <<
-                     "\n    pitch: " << setting.m_pitch << "," << setting.set_pitch << ";" <<
-                     "\n    tempo: " << setting.m_tempo << "," << setting.set_tempo << ";" <<
-                     "\n    tempoIsPercent: " << setting.m_tempoIsPercent << "," << setting.set_tempoIsPercent << ";" <<
-                     "\n    introPos: " << setting.m_introPos << "," << setting.set_introPos << ";" <<
-                     "\n    outroPos: " << setting.m_outroPos << "," << setting.set_outroPos << ";" <<
-                     "\n    cuesheetName: " << setting.m_cuesheetName << "," << setting.set_cuesheetName <<
-                     "\n    introOutroIsTimeBased: " << setting.m_introOutroIsTimeBased << "," << setting.set_introOutroIsTimeBased <<
-                     "\n    songLength: " << setting.m_songLength << "," << setting.set_songLength <<
-
-                     "\n    treble: " << setting.m_treble << "," << setting.set_treble << ";" <<
-                     "\n    bass: " << setting.m_bass << "," << setting.set_bass << ";" <<
-                     "\n    midrange: " << setting.m_midrange << "," << setting.set_midrange << ";" <<
-                     "\n    mix: " << setting.m_mix << "," << setting.set_mix << ";" <<
-                     "\n    loop: " << setting.m_loop << "," << setting.set_loop << ";" <<
-                     "\n    tags: " << setting.m_tags << "," << setting.set_tags << ";" <<
+#define SONGSETTING_ELEMENT(type, name) "\n    " #name ": " << setting.m_##name << "," << setting.set_##name << ";" <<
+#include "songsetting_attributes.h"
+#undef SONGSETTING_ELEMENT
                      ")";
     return dbg;
 }

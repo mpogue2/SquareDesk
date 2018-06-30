@@ -69,6 +69,7 @@
 #include "startupwizard.h"
 #include "makeflashdrivewizard.h"
 #include "downloadmanager.h"
+#include "songlistmodel.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "src/communicator.h"
@@ -1077,6 +1078,7 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
     return(recentString);
 }
 
+// SONGTABLEREFACTOR
 void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
     PerfTimer t("reloadSongAges");
@@ -2395,6 +2397,8 @@ void MainWindow::on_playButton_clicked()
             QModelIndexList selected = selectionModel->selectedRows();
 
             ui->songTable->setSortingEnabled(false);
+
+// SONGTABLEREFACTOR
             int row = getSelectionRowForFilename(currentMP3filenameWithPath);
             if (row != -1)
             {
@@ -2569,6 +2573,7 @@ void MainWindow::timerCountDown_update()
     }
 }
 
+// SONGTABLEREFACTOR
 int MainWindow::getSelectionRowForFilename(const QString &filePath)
 {
     for (int i=0; i < ui->songTable->rowCount(); i++) {
@@ -2599,6 +2604,7 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
     ui->currentPitchLabel->setText(sign + QString::number(currentPitch) +" semitone" + plural);
 
     saveCurrentSongSettings();
+// SONGTABLEREFACTOR
     // update the hidden pitch column
     ui->songTable->setSortingEnabled(false);
     int row = getSelectionRowForFilename(currentMP3filenameWithPath);
@@ -2683,6 +2689,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
     }
 
     saveCurrentSongSettings();
+// SONGTABLEREFACTOR
     // update the hidden tempo column
     ui->songTable->setSortingEnabled(false);
     int row = getSelectionRowForFilename(currentMP3filenameWithPath);
@@ -3591,6 +3598,7 @@ bool MainWindow::handleKeypress(int key, QString text)
                         return true;
                     }
 
+// SONGTABLEREFACTOR
                     // which is the next VISIBLE row?
                     int lastVisibleRow = row;
                     row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
@@ -3610,6 +3618,7 @@ bool MainWindow::handleKeypress(int key, QString text)
                     ui->songTable->selectRow(row); // select new row!
 
                 } else {
+// SONGTABLEREFACTOR
                     // TODO: this same code appears FOUR times.  FACTOR IT
                     // on_actionNext_Playlist_Item_triggered();
                     // figure out which row is currently selected
@@ -4870,6 +4879,7 @@ void MainWindow::filterMusic()
 
     ui->songTable->setSortingEnabled(false);
 
+// SONGTABLEREFACTOR
     int initialRowCount = ui->songTable->rowCount();
     int rowsVisible = initialRowCount;
     int firstVisibleRow = -1;
@@ -4943,6 +4953,7 @@ void MainWindow::loadMusicList()
     // left = path, right = number string
     QMap<QString, QString> path2playlistNum;
 
+// SONGTABLEREFACTOR
     // Iterate over the songTable, saving the mapping in "path2playlistNum"
     // TODO: optimization: save this once, rather than recreating each time.
     for (int i=0; i<ui->songTable->rowCount(); i++) {
