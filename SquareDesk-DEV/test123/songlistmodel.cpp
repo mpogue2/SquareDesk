@@ -37,26 +37,31 @@ SongListModel::SongListModel()
 
 QModelIndex SongListModel::index(int row, int column, const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return createIndex(row, column, Q_NULLPTR);
 }
 
 QModelIndex SongListModel::parent(const QModelIndex &index) const
 {
-    
+    Q_UNUSED(index)
+    return(QModelIndex());  // to remove warning
 }
 
 int SongListModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return songRows.length();
 }
 
 int SongListModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent)
     return 0;
 }
 
 QVariant SongListModel::data(const QModelIndex &index, int role) const
 {
+    Q_UNUSED(role)
     auto & songRow(songRows[index.row()]);
 #if 0
     switch (index.column())
@@ -107,6 +112,8 @@ Qt::ItemFlags SongListModel::flags(const QModelIndex &index) const
 
 bool SongListModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    Q_UNUSED(role)
+    Q_UNUSED(value)
     bool set = false;
     switch (index.column())
     {
