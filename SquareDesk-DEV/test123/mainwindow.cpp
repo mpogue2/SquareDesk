@@ -94,7 +94,8 @@ InvisibleTableWidgetItem::~InvisibleTableWidgetItem() {}
 bool InvisibleTableWidgetItem::operator< (const QTableWidgetItem &other) const
 {
     const InvisibleTableWidgetItem *otherItem = dynamic_cast<const InvisibleTableWidgetItem*>(&other);
-    return this->text < otherItem->text;
+//    return this->text < otherItem->text;
+    return (QString::compare(text, otherItem->text, Qt::CaseInsensitive ) < 0 );
 }
 
 // experimental removal of silence at the beginning of the song
