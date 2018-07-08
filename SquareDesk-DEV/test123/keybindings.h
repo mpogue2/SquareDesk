@@ -57,31 +57,16 @@ public:
         mw = mainWindow;
     }
     virtual ~KeyAction();
-private:
+
+protected:
     MainWindow *mw;
 public slots:
     void do_activated();
 };
 
-extern const char * keyActionName_UnassignedNoAction;
-extern const char * keyActionName_StopSong;
-extern const char * keyActionName_RestartSong;
-extern const char * keyActionName_Forward15Seconds;
-extern const char * keyActionName_Backward15Seconds;
-extern const char * keyActionName_VolumeMinus;
-extern const char * keyActionName_VolumePlus;
-extern const char * keyActionName_TempoPlus;
-extern const char * keyActionName_TempoMinus;
-extern const char * keyActionName_PlayPrevious;
-extern const char * keyActionName_PlayNext;
-extern const char * keyActionName_Mute;
-extern const char * keyActionName_PitchPlus;
-extern const char * keyActionName_PitchMinus;
-extern const char * keyActionName_FadeOut ;
-extern const char * keyActionName_LoopToggle;
-extern const char * keyActionName_TestLoop;
-extern const char * keyActionName_NextTab;
-extern const char * keyActionName_PlaySong;
+#define KEYACTION(NAME, STRNAME, ACTION) extern const char *keyActionName_##NAME;
+#include "keyactions.h"
+#undef KEYACTION
 
 
 #endif /* ifndef KEYBINDINGS_H_INCLUDED */

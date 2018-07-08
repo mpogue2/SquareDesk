@@ -825,33 +825,11 @@ public:
 
 
     // Key actions:
-    friend class KeyActionStopSong;
-    friend class KeyActionPlaySong;
-    friend class KeyActionRestartSong;
-    friend class KeyActionForward15Seconds;
-    friend class KeyActionBackward15Seconds;
-    friend class KeyActionVolumeMinus;
-    friend class KeyActionVolumePlus;
-    friend class KeyActionTempoPlus;
-    friend class KeyActionTempoMinus;
-    friend class KeyActionPlayPrevious;
-    friend class KeyActionPlayNext;
-    friend class KeyActionMute;
-    friend class KeyActionPitchPlus;
-    friend class KeyActionPitchMinus;
-    friend class KeyActionFadeOut ;
-    friend class KeyActionLoopToggle;
-    friend class KeyActionTestLoop;
-    friend class KeyActionNextTab;
-    friend class KeyActionSwitchToMusicTab;
-    friend class KeyActionSwitchToTimersTab;
-    friend class KeyActionSwitchToLyricsTab;
-    friend class KeyActionSwitchToSDTab;
-    friend class KeyActionSwitchToDanceProgramsTab;
-    friend class KeyActionSwitchToReferenceTab;
-    friend class KeyActionFilterPatter;
-    friend class KeyActionFilterSingers;
+#define KEYACTION(NAME, STRNAME, ACTION) friend class KeyAction##NAME;
+#include "keyactions.h"
+#undef KEYACTION
     friend class SDLineEdit;
+
     // actions which aren't mapped to keys above:
     void actionTempoPlus();
     void actionTempoMinus();
