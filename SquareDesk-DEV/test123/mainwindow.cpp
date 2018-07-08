@@ -2393,21 +2393,24 @@ void MainWindow::on_playButton_clicked()
 
             firstTimeSongIsPlayed = false;
             saveCurrentSongSettings();
-            songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
-            QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-            QModelIndexList selected = selectionModel->selectedRows();
+            if (!ui->actionDon_t_Save_Plays->isChecked())
+            {
+                songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
+                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+                QModelIndexList selected = selectionModel->selectedRows();
 
-            ui->songTable->setSortingEnabled(false);
+                ui->songTable->setSortingEnabled(false);
 
 // SONGTABLEREFACTOR
-            int row = getSelectionRowForFilename(currentMP3filenameWithPath);
-            if (row != -1)
-            {
-                ui->songTable->item(row, kAgeCol)->setText("0");
-                ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+                int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+                if (row != -1)
+                {
+                    ui->songTable->item(row, kAgeCol)->setText("0");
+                    ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-                ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
-                ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                    ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                    ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                }
             }
 
             if (switchToLyricsOnPlay &&

@@ -2005,6 +2005,7 @@
     <addaction name="actionShow_All_Ages"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Recent"/>
+    <addaction name="actionDon_t_Save_Plays"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -3198,6 +3199,14 @@
   <action name="actionMake_Flash_Drive_Wizard">
    <property name="text">
     <string>Backup to Flash Drive...</string>
+   </property>
+  </action>
+  <action name="actionDon_t_Save_Plays">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Don't Save Plays</string>
    </property>
   </action>
  </widget>
