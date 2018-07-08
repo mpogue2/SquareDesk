@@ -3482,6 +3482,19 @@ void MainWindow::actionSwitchToTab(const char *tabname)
 }
 
 
+void MainWindow::actionFilterSongsToPatter()
+{
+    if (songTypeNamesForPatter.length() > 0)
+        ui->typeSearch->setText(songTypeNamesForPatter[0]);
+}
+
+void MainWindow::actionFilterSongsToSingers()
+{
+    if (songTypeNamesForSinging.length() > 0)
+        ui->typeSearch->setText(songTypeNamesForSinging[0]);
+}
+
+
 // ----------------------------------------------------------------------
 bool MainWindow::handleKeypress(int key, QString text)
 {

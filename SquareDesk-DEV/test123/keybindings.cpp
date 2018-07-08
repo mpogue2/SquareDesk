@@ -56,6 +56,9 @@ const char * keyActionName_SwitchToSDTab = "Switch to SD Tab";
 const char * keyActionName_SwitchToDanceProgramsTab = "Switch to Dance Programs Tab";
 const char * keyActionName_SwitchToReferenceTab = "Switch to Reference Tab";
 
+const char * keyActionName_FilterPatter = "Filter Songs to Patter";
+const char * keyActionName_FilterSingers = "Filter Songs to Singers";
+
 // ----------------------------------------------------------------------
 
 class KeyActionUnassignedNoAction : public KeyAction {
@@ -429,6 +432,37 @@ void KeyActionSwitchToReferenceTab::doAction(MainWindow *mw) {
 
 
 
+class KeyActionFilterPatter : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionFilterPatter::name() {
+    return keyActionName_FilterPatter;
+};
+void KeyActionFilterPatter::doAction(MainWindow *mw) {
+    mw->actionFilterSongsToPatter();
+};
+
+
+class KeyActionFilterSingers : public KeyAction {
+public:
+    const char *name() override;
+    void doAction(MainWindow *) override;
+};
+
+const char *KeyActionFilterSingers::name() {
+    return keyActionName_FilterSingers;
+};
+void KeyActionFilterSingers::doAction(MainWindow *mw) {
+    mw->actionFilterSongsToSingers();
+};
+
+
+
+
+
 
 // --------------------------------------------------------------------
 static KeyActionUnassignedNoAction keyaction_KeyActionUnassignedNoAction;
@@ -456,7 +490,8 @@ static KeyActionSwitchToLyricsTab keyaction_KeyActionSwitchToLyricsTab;
 static KeyActionSwitchToSDTab keyaction_KeyActionSwitchToSDTab;
 static KeyActionSwitchToDanceProgramsTab keyaction_KeyActionSwitchToDanceProgramsTab;
 static KeyActionSwitchToReferenceTab keyaction_KeyActionSwitchToReferenceTab;
-
+static KeyActionFilterPatter keyaction_KeyActionFilterPatter;
+static KeyActionFilterSingers keyaction_KeyActionFilterSingers;
 
 KeyAction::KeyAction() : mw(NULL)
 {
@@ -506,6 +541,8 @@ QVector<KeyAction*> KeyAction::availableActions()
     actions.append(&keyaction_KeyActionSwitchToSDTab);
     actions.append(&keyaction_KeyActionSwitchToDanceProgramsTab);
     actions.append(&keyaction_KeyActionSwitchToReferenceTab);
+    actions.append(&keyaction_KeyActionFilterPatter);
+    actions.append(&keyaction_KeyActionFilterSingers);
     return actions;
 }
 

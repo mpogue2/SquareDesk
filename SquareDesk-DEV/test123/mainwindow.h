@@ -849,7 +849,8 @@ public:
     friend class KeyActionSwitchToSDTab;
     friend class KeyActionSwitchToDanceProgramsTab;
     friend class KeyActionSwitchToReferenceTab;
-
+    friend class KeyActionFilterPatter;
+    friend class KeyActionFilterSingers;
     friend class SDLineEdit;
     // actions which aren't mapped to keys above:
     void actionTempoPlus();
@@ -857,6 +858,8 @@ public:
     void actionFadeOutAndPause();
     void actionNextTab();
     void actionSwitchToTab(const char *tabname);
+    void actionFilterSongsToPatter();
+    void actionFilterSongsToSingers();
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
 
