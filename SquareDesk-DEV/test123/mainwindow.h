@@ -838,6 +838,7 @@ public:
     void actionSwitchToTab(const char *tabname);
     void actionFilterSongsToPatter();
     void actionFilterSongsToSingers();
+    void actionFilterSongsPatterSingersToggle();
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
 

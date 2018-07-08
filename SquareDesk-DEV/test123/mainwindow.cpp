@@ -3482,6 +3482,22 @@ void MainWindow::actionSwitchToTab(const char *tabname)
 }
 
 
+void MainWindow::actionFilterSongsPatterSingersToggle()
+{
+    QString currentFilter(ui->typeSearch->text());
+    
+    for (QString s : songTypeNamesForPatter)
+    {
+        if (0 == s.compare(currentFilter, Qt::CaseInsensitive))
+        {
+            actionFilterSongsToSingers();
+            return;
+        }
+    }
+    actionFilterSongsToPatter();
+}
+
+
 void MainWindow::actionFilterSongsToPatter()
 {
     if (songTypeNamesForPatter.length() > 0)
