@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>4</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -492,7 +492,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="15" column="2">
+         <item row="17" column="2">
           <spacer name="verticalSpacer_2">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -508,7 +508,7 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </spacer>
          </item>
-         <item row="13" column="0">
+         <item row="15" column="0">
           <widget class="QLabel" name="label_4">
            <property name="font">
             <font>
@@ -525,10 +525,36 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="13" column="2" colspan="3">
+         <item row="15" column="2" colspan="3">
           <widget class="QCheckBox" name="checkBoxSwitchToLyricsOnPlay">
            <property name="text">
             <string>Switch to Lyrics tab on first play (when lyrics are available)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="13" column="2" colspan="4">
+          <widget class="QLineEdit" name="lineEditToggleSequence"/>
+         </item>
+         <item row="13" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Toggle Sequence:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="14" column="2" colspan="4">
+          <widget class="QLabel" name="label_10">
+           <property name="text">
+            <string>a ';' separated list, default is toggling between the first Patter entry and the first Singing entry.</string>
            </property>
           </widget>
          </item>

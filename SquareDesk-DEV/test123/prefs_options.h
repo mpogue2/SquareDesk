@@ -73,6 +73,8 @@ CONFIG_ATTRIBUTE_STRING(lineEditMusicTypePatter, MusicTypePatter, "patter;hoedow
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeExtras, MusicTypeExtras, "extras;xtras")
 CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeCalled, MusicTypeCalled, "vocal;vocals;called")
 
+CONFIG_ATTRIBUTE_STRING(lineEditToggleSequence, ToggleSingingPatterSequence, "")
+
 CONFIG_ATTRIBUTE_BOOLEAN(EnableTimersTabCheckbox, experimentalTimersEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnableClockColoring,experimentalClockColoringEnabled, false)
 
@@ -132,3 +134,4 @@ CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastActiveTab, 0)
 CONFIG_ATTRIBUTE_INT_NO_PREFS(SDCallListCopyOptions, 1)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLIncludeHeaders, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);
+

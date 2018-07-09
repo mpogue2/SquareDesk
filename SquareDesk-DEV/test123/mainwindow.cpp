@@ -614,6 +614,10 @@ MainWindow::MainWindow(QWidget *parent) :
     value = prefsManager.GetMusicTypeCalled();
     songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
+    value = prefsManager.GetToggleSingingPatterSequence();
+    songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+
+
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
@@ -3488,13 +3492,33 @@ void MainWindow::actionSwitchToTab(const char *tabname)
 void MainWindow::actionFilterSongsPatterSingersToggle()
 {
     QString currentFilter(ui->typeSearch->text());
-    
-    for (QString s : songTypeNamesForPatter)
+
+    if (songTypeToggleList.length() > 1)
     {
-        if (0 == s.compare(currentFilter, Qt::CaseInsensitive))
+        int nextToggle = 0;
+
+        for (int i = 0; i < songTypeToggleList.length(); ++i)
         {
-            actionFilterSongsToSingers();
-            return;
+            QString s = songTypeToggleList[i];
+            if (0 == s.compare(currentFilter, Qt::CaseInsensitive))
+            {
+                nextToggle = i + 1;
+            }
+        }
+        if (nextToggle >= songTypeToggleList.length())
+            nextToggle = 0;
+        ui->typeSearch->setText(songTypeToggleList[nextToggle]);
+        return;
+    }
+    else
+    {
+        for (QString s : songTypeNamesForPatter)
+        {
+            if (0 == s.compare(currentFilter, Qt::CaseInsensitive))
+            {
+                actionFilterSongsToSingers();
+                return;
+            }
         }
     }
     actionFilterSongsToPatter();
@@ -5914,6 +5938,9 @@ void MainWindow::on_actionPreferences_triggered()
 
             value = prefsManager.GetMusicTypeCalled();
             songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
+
+            value = prefsManager.GetToggleSingingPatterSequence();
+            songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
@@ -7958,6 +7985,9 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         value = prefsManager.GetMusicTypeCalled();
         songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
 
+        value = prefsManager.GetToggleSingingPatterSequence();
+        songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+        
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable

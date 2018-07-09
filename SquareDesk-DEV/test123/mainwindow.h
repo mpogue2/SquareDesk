@@ -726,6 +726,7 @@ private:
     QStringList songTypeNamesForCalled;
     QStringList songTypeNamesForExtras;
 
+    QStringList songTypeToggleList;
     // VU Meter support
     QTimer *UIUpdateTimer;
     QTimer *vuMeterTimer;
