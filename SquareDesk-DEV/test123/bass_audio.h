@@ -73,6 +73,7 @@ public:
 
     //Stream
     void songStartDetector(const char *filepath, float *pSongStart, float *pSongEnd);
+    bool loadSongEnergyWaveform(const char *filepath, int &sampleCount, int *samples);
     void StreamCreate(const char *filepath, float *pSongStart, float *pSongEnd, double i1, double o1);  // returns start of non-silence (seconds)
 
     void StreamGetLength(void);

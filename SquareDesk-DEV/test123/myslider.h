@@ -48,6 +48,7 @@ public:
 
     bool eventFilter(QObject *obj, QEvent *event);
 
+    bool setWaveformBackground(int sampleCount = -1, int *samples = NULL);
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *event);
@@ -58,6 +59,8 @@ private:
     float introPosition;
     float outroPosition;
     int origin;  // reset to this point when double-clicked
+    int *waveformBackground;
+    int waveformBackgroundWidth;
 
 };
 

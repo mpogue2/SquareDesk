@@ -4348,6 +4348,21 @@ void MainWindow::reloadCurrentMP3File() {
     }
 }
 
+void MainWindow::loadWaveformIntoSeekBarBackground( QString filename )
+{
+    int waveformSampleCount = ui->seekBar->width();
+    int *waveform = new int[waveformSampleCount];
+    if (cBass.loadSongEnergyWaveform(qPrintable(filename), waveformSampleCount, waveform))
+    {
+        ui->seekBar->setWaveformBackground(waveformSampleCount, waveform);
+    }
+    else
+    {
+        delete[] waveform;
+    }
+    
+}
+
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
     songLoaded = false;  // seekBar updates are disabled, while we are loading
@@ -4357,6 +4372,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     firstTimeSongIsPlayed = true;
 
     currentMP3filenameWithPath = MP3FileName;
+    loadWaveformIntoSeekBarBackground( currentMP3filenameWithPath );
 
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
     QFileInfo fi(MP3FileName);

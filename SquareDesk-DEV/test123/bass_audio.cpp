@@ -205,6 +205,47 @@ void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *us
     }
 }
 
+bool bass_audio::loadSongEnergyWaveform(const char *filepath, int &sampleCount, int *samples)
+{
+    bool success(false);
+    
+    BASS_Init(0 /* "NO SOUND" device */, 44100, 0, 0, NULL);
+    HSTREAM chan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
+    if ( chan )
+    {
+        BASS_CHANNELINFO channelInfo;
+        if (BASS_ChannelGetInfo(chan, &channelInfo))
+        {
+            qDebug() << "Frequency " << channelInfo.freq;
+
+            auto length = BASS_ChannelGetLength(chan, BASS_POS_BYTE);
+            double songLengthInSeconds = BASS_ChannelBytes2Seconds(chan, length);
+            double blockSizeInSeconds = songLengthInSeconds / (double)(sampleCount);
+            QWORD len = BASS_ChannelSeconds2Bytes(chan, blockSizeInSeconds);
+            char *data = new char[len];
+
+            int sampleNum = 0;
+            DWORD level;
+            
+            while (sampleNum < sampleCount && (-1 != (int)(level = BASS_ChannelGetLevel(chan))))
+            {
+                auto left=LOWORD(level); // the left level
+                auto right=HIWORD(level); // the right level
+                int avg = (left+right)/2;
+                samples[sampleNum++] = avg;
+                BASS_ChannelGetData(chan, data, len); // get data away from the channel
+            }
+            qDebug() << "LOaded" << sampleNum << "samples out o f" << sampleCount;
+            sampleCount = sampleNum;
+            delete[] data;
+            success = true;
+        }
+        BASS_StreamFree(chan);
+    }
+    BASS_Free();
+    return success;
+ }
+
 void bass_audio::songStartDetector(const char *filepath, float *pSongStart, float *pSongEnd) {
     // returns start of non-silence in seconds, max 20 seconds
 
@@ -248,6 +289,7 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
             BASS_ChannelGetData(chan, data, len); // get data away from the channel
         }
         BASS_StreamFree( chan );
+        delete[] data;
     }
 
     BASS_Free();

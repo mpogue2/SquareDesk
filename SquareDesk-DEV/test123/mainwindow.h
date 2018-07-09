@@ -648,6 +648,7 @@ private:
     float getID3BPM(QString MP3FileName);
 
     void reloadCurrentMP3File();
+    void loadWaveformIntoSeekBarBackground( QString filename );
     void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel);
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);

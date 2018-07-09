@@ -28,7 +28,9 @@
 #include <QEvent>
 
 // ==========================================================================================
-MySlider::MySlider(QWidget *parent) : QSlider(parent)
+MySlider::MySlider(QWidget *parent) : QSlider(parent),
+                                      waveformBackground(NULL),
+                                      waveformBackgroundWidth(-1)
 {
     drawLoopPoints = false;
     singingCall = false;
@@ -148,17 +150,73 @@ void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't w
     valueChanged(origin);
 }
 
+
+bool MySlider::setWaveformBackground(int sampleCount, int *samples)
+{
+    if (waveformBackground)
+        delete[] waveformBackground;
+    waveformBackground = NULL;
+    
+    if (sampleCount > 0)
+    {
+        waveformBackgroundWidth = sampleCount;
+        waveformBackground = samples;
+        return true;
+    }
+    return false;
+}
+
 // http://stackoverflow.com/questions/3894737/qt4-how-to-draw-inside-a-widget
 void MySlider::paintEvent(QPaintEvent *e)
 {
-#ifdef Q_OS_LINUX
-    QSlider::paintEvent(e);         // parent draws
-#endif // ifdef Q_OS_LINUX
-    QPainter painter(this);
     int offset = 8;  // for the handles
     int height = this->height();
     int width = this->width() - 2 * offset;
 
+    if (waveformBackground)
+    {
+        QPainter painter(this);
+        int imin = INT_MAX;
+        int imax = INT_MIN;
+        for (int i = 0; i < waveformBackgroundWidth; ++i)
+        {
+            if (waveformBackground[i] < imin)
+                imin = waveformBackground[i];
+            if (waveformBackground[i] > imax)
+                imax = waveformBackground[i];
+        }
+
+        double min = (double)(imin);
+        double max = (double)(imax);
+
+        QPen pen;
+        pen.setColor(QColor(205,231,232));
+        painter.setPen(pen);
+        
+        for (int i = 1; i < width; ++i)
+        {
+            double di = (double)(i) / (double)(width);
+            int idi = (int)(di * waveformBackgroundWidth);
+            if (idi < 1) idi = 1;
+            if (idi >= waveformBackgroundWidth - 1) idi = waveformBackgroundWidth - 1;
+            
+            double samplePos1 = (double)(waveformBackground[idi - 1]);
+            int y1 = (int)((double)(height / 2) * ((samplePos1 - min) / (max - min)));
+            double samplePos2 = (double)(waveformBackground[idi]);
+            int y2 = (int)((double)(height / 2) * ((samplePos2 - min) / (max - min)));
+            
+            QLineF line1(i - 1, height / 2 - y1, i, height / 2 - y2);
+            QLineF line2(i - 1, height / 2 + y1, i, height / 2 + y2);
+            painter.drawLine(line1);
+            painter.drawLine(line2);
+        }
+    }
+
+#ifdef Q_OS_LINUX
+    QSlider::paintEvent(e);         // parent draws
+#endif // ifdef Q_OS_LINUX
+
+    QPainter painter(this);
     if (drawLoopPoints) {
         QPen pen;  //   = (QApplication::palette().dark().color());
         pen.setColor(Qt::blue);
