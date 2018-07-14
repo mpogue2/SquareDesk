@@ -747,6 +747,7 @@ private:
 #endif
 
     QFileSystemWatcher *fileWatcher;
+    bool filewatcherShouldIgnoreOneFileSave;
     QStringList getCurrentVolumes();
     QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
     QStringList newVolumeList;    // list of volume pathnames, one per volume
