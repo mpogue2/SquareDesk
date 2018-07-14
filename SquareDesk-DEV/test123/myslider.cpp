@@ -190,10 +190,14 @@ void MySlider::paintEvent(QPaintEvent *e)
         double max = (double)(imax);
 
         QPen pen;
+#if defined(Q_OS_MACOS)
+        pen.setColor(QColor(0,0,0));
+#else
         pen.setColor(QColor(205,231,232));
+#endif
         painter.setPen(pen);
         
-        for (int i = 1; i < width; ++i)
+        for (int i = 1+offset; i < width+offset; ++i)
         {
             double di = (double)(i) / (double)(width);
             int idi = (int)(di * waveformBackgroundWidth);
