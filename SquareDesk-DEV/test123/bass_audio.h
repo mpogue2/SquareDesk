@@ -79,6 +79,8 @@ public:
     void StreamSetPosition(double Position);
     void StreamGetPosition(void);
 
+    float StreamGetSplicePointNearCurrentPosition(const char *filepath, float position);  // peak finder
+
     bool isPaused(void); // returns true if paused, false if playing
 
     //Controls

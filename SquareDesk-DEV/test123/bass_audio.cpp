@@ -601,3 +601,102 @@ void bass_audio::StopAllSoundEffects() {
         currentSoundEffectID = 0;    // nothing playing now
     }
 }
+
+// peak finder, returns position of peak in seconds within +/- 1 beat of current position
+float bass_audio::StreamGetSplicePointNearCurrentPosition(const char *filepath, float position_sec) {
+
+    float windowSize_sec = 0.45;  // 60/125 = 0.48
+    float fetchStart_sec = fmax(0.0, position_sec - windowSize_sec/2.0);
+    float fetchLength_sec = windowSize_sec;
+
+    // fetchStart_sec = 1.0;  // DEBUG DEBUG DEBUG ****************
+
+    BASS_Init(0,      // "NO SOUND" device
+              44100, // output sample rate
+              0,     // flags
+              0,     // win (0 = console)
+              NULL);
+
+    HSTREAM chan = BASS_StreamCreateFile(FALSE,         // mem
+                                         filepath,      // file name
+                                         0,  // offset
+                                         0,  // length = whole file
+                                         BASS_STREAM_DECODE | BASS_STREAM_PRESCAN);  // prescan for sample-accurate positioning
+    qDebug() << "fetchStart_sec: " << fetchStart_sec;
+    qDebug() << "fetchStart_sn: " << (int)(44100.0*fetchStart_sec);
+
+    int peak = 0;
+    int peakAt_sn = 0;
+    int negZC = 0;
+
+    if ( chan ) {
+        BASS_CHANNELINFO channelInfo;
+        if (BASS_ChannelGetInfo(chan, &channelInfo)) {
+//            qDebug() << "Frequency: " << channelInfo.freq;
+
+            int chans = channelInfo.chans;
+//            qDebug() << "Channels: " << chans;
+
+            auto length = BASS_ChannelGetLength(chan, BASS_POS_BYTE);
+//            qDebug() << "Channel Length: " << length;
+
+            double songLengthInSeconds = BASS_ChannelBytes2Seconds(chan, length);
+//            qDebug() << "Song Length: " << songLengthInSeconds;
+
+            double dataToGet_sec = fetchLength_sec;
+//            qDebug() << "Length to get (sec): " << dataToGet_sec;
+
+            QWORD len = BASS_ChannelSeconds2Bytes(chan, dataToGet_sec);
+//            qDebug() << "len: " << len;
+
+            char *data = new char[len];
+
+            QWORD start1 = BASS_ChannelSeconds2Bytes(chan, fetchStart_sec);
+//            qDebug() << "start1: " << start1;
+
+            BASS_ChannelSetPosition(chan, (QWORD)(start1), BASS_POS_BYTE);  // fetchStart_sec seconds in
+
+            BASS_ChannelGetData(chan, data, len); // get data
+
+            int samplesInBuffer = len/(sizeof(int16_t)); // samples alternate L/R, but we're ignoring that
+//            qDebug() << "samplesInBuffer: " << samplesInBuffer;
+            int16_t *p = (int16_t*)data;
+            for (int i = 0; i < samplesInBuffer; i+=chans) {  // assumes stereo (FIX!), only look for peaks in L channel!!  (FIX)
+//                qDebug() << i << p[i] << p[i+1];
+                if (i < 5000) {
+//                    qDebug() << i << p[i];
+                }
+                if (p[i] > peak) {
+                    peak = p[i];
+                    peakAt_sn = i;  // remember: alternating L/R, so sample number is 1/2 of i (later)
+                }
+            }
+
+            // find the first negative going sample in ch1 after the peak in ch1 inside the 0.45s window (assumes 125BPM)
+            for (negZC = peakAt_sn; negZC < samplesInBuffer; negZC+=2) {  // assumes stereo (FIX!)
+//                qDebug() << negZC << p[negZC] << p[negZC+2];
+                if (p[negZC] > 0 && p[negZC+2] <= 0) {
+                    break;
+                }
+            }
+
+//            qDebug() << "peakAt_sn: " << peakAt_sn << ", audacity_peakAt_sn: " << peakAt_sn + (2256-1630+21) << ", peakAt_sec: " << (float)peakAt_sn/44100.0; // mono
+//            qDebug() << "peakAt_sn:" << peakAt_sn <<  "peakAt_sn/2: " << peakAt_sn/2 << ", negZC_sn: " << negZC/2;
+
+            delete[] data;
+
+            BASS_StreamFree(chan);
+        }
+
+        BASS_Free();  // This needs to be done, or it will mess up subsequent songs...ask me how I know this?
+    }
+
+//    qDebug() << "window_sec: " << fetchStart_sec << "," << fetchStart_sec + fetchLength_sec;
+    float result_sec = fetchStart_sec + ((float)(negZC/2))/44100.0;  // STEREO
+    int result_sn = fetchStart_sec * 44100 + negZC/2;
+//    qDebug() << "result_sec: " << result_sec << ", result_sn: " << result_sn;
+
+// TODO: look at how high the peak is.  If it's above threshold, then return the splice point.  Else, return the original position (use user splice point)
+
+    return result_sec;
+}

@@ -3092,6 +3092,13 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     double position, length;
     getCurrentPointInStream(&position, &length);
 
+    // ******************
+    // DEBUG: Experimental splice point at first neg going zero crossing after the peak in the 0.45s window
+    double splicePosition_sec = cBass.StreamGetSplicePointNearCurrentPosition(qPrintable(currentMP3filenameWithPath), position);
+    qDebug() << "INTRO splicePosition_sec: " << splicePosition_sec;
+    position = splicePosition_sec;  // override user, and pick neg ZC just past highest peak in 0.45s window  DEBUG DEBUG DEBUG ***************
+    // ******************
+
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
     position = fmax(0.0, fmin(position, (int)currentOutroTimeSec-6) );
@@ -3112,6 +3119,13 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 {
     double position, length;
     getCurrentPointInStream(&position, &length);
+
+    // ******************
+    // DEBUG: Experimental splice point at first neg going zero crossing after the peak in the 0.45s window
+    double splicePosition_sec = cBass.StreamGetSplicePointNearCurrentPosition(qPrintable(currentMP3filenameWithPath), position);
+    qDebug() << "OUTRO splicePosition_sec: " << splicePosition_sec;
+    position = splicePosition_sec;  // override user, and pick neg ZC just past highest peak in 0.45s window  DEBUG DEBUG DEBUG ***************
+    // ******************
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
