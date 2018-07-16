@@ -162,7 +162,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.2alpha7"
+#define VERSIONSTRING "0.9.2alpha7b"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -747,6 +747,7 @@ private:
 #endif
 
     QFileSystemWatcher *fileWatcher;
+    bool filewatcherShouldIgnoreOneFileSave;
     QStringList getCurrentVolumes();
     QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
     QStringList newVolumeList;    // list of volume pathnames, one per volume

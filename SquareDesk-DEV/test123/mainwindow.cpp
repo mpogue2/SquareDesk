@@ -296,6 +296,7 @@ MainWindow::MainWindow(QWidget *parent) :
     shortcutSDCurrentSequenceCopy(NULL),
     sd_redo_stack(new SDRedoStack())
 {
+    filewatcherShouldIgnoreOneFileSave = false;
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
@@ -9119,7 +9120,8 @@ void MainWindow::saveLyrics()
     QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
     if (!cuesheetFilename.isNull())
     {
-        writeCuesheet(cuesheetFilename);
+        filewatcherShouldIgnoreOneFileSave = true;  // set flag
+        writeCuesheet(cuesheetFilename);            // this will trigger Filewatcher, which will clear the flag
         loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
         saveCurrentSongSettings();
     }
@@ -9804,7 +9806,11 @@ void MainWindow::maybeLyricsChanged() {
 
     // AND, just in case the list of matching cuesheets for the current song has been
     //   changed by the recent addition of cuesheets...
-    reloadCurrentMP3File();
+    if (!filewatcherShouldIgnoreOneFileSave) {
+        // reload only if this isn't a SAVE LYRICS FILE
+        reloadCurrentMP3File();
+    }
+    filewatcherShouldIgnoreOneFileSave = false;
 }
 
 void MainWindow::on_actionTest_Loop_triggered()
