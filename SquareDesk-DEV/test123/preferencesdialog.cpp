@@ -214,7 +214,7 @@ void PreferencesDialog::setFontSizes()
     ui->musicTypesHelpLabel->setFont(font);
     ui->musicFormatHelpLabel->setFont(font);
 //    ui->saveSongPrefsHelpLabel->setFont(font);
-
+    ui->labelToggleSequenceHelpTextLabel->setFont(font);
 }
 
 static int getLastSelectedRow(QTableWidget *tableWidget)

@@ -140,6 +140,8 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
     keyMappings[QKeySequence(Qt::Key_T).toString()] = &keyaction_KeyActionNextTab;
     keyMappings[QKeySequence(Qt::Key_U).toString()] = &keyaction_KeyActionPitchPlus;
     keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
+    keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
+    keyMappings[QKeySequence(Qt::Key_T | Qt::ControlModifier).toString()] = &keyaction_KeyActionFilterToggle;
     return keyMappings;
 }
 
