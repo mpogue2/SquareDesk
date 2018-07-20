@@ -41,7 +41,7 @@ static const char * hotkeyPrefix = "hotkey_";
 QHash<QString, KeyAction *> PreferencesManager::GetHotkeyMappings()
 {
     QHash<QString, KeyAction*> actions(KeyAction::actionNameToActionMappings());
-    QHash<QString, KeyAction*> mappings;
+    QHash<QString, KeyAction*> mappings(KeyAction::defaultKeyToActionMappings(GetLastVersionOfKeyMappingDefaultsUsed()));
     bool foundAnySettings = false;
 
     QStringList all_keys(MySettings.allKeys());
@@ -100,6 +100,7 @@ void PreferencesManager::SetHotkeyMappings(QHash<QString, KeyAction *> mapping)
         QString hotkeyName(hotkeyPrefix + QKeySequence(map.key()).toString());
         MySettings.setValue(hotkeyName, map.value()->name());
     }
+    SetLastVersionOfKeyMappingDefaultsUsed(CURRENT_VERSION_OF_KEY_DEFAULTS + 1);
 }
 
 

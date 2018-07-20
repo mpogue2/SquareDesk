@@ -37,6 +37,7 @@ class MainWindow;
 
 class MainWindow;
 
+#define CURRENT_VERSION_OF_KEY_DEFAULTS 1
 #define MAX_KEYPRESSES_PER_ACTION 5
 
 class KeyAction : public QObject
@@ -47,7 +48,7 @@ public:
     virtual const char *name() = 0;
     virtual void doAction(MainWindow *) = 0;
     static QVector<KeyAction*> availableActions();
-    static QHash<QString, KeyAction *> defaultKeyToActionMappings();
+    static QHash<QString, KeyAction *> defaultKeyToActionMappings(int version = 0);
     static QHash<QString, KeyAction*> actionNameToActionMappings();
     static KeyAction *actionByName(const QString &name);
     static void setKeybindingsFromMenuObjects(const QHash<QString, KeyAction *> &keyMappings);

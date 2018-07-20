@@ -112,10 +112,21 @@ void KeyAction::setKeybindingsFromMenuObjects(const QHash<QString, KeyAction *> 
     menuKeyMappings = keyMappings;
 }
 
-QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
+QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNumber)
 {
     QHash<QString, KeyAction *> keyMappings(menuKeyMappings);
 
+    // When you add a new set of defaults, put them above this section
+    // prefixed with a break like this + 1. Then increment the constant
+    // CURRENT_VERSION_OF_KEY_DEFAULTS in keybindings.h
+    if (revisionNumber > 1)
+        return keyMappings;
+    
+    keyMappings[QKeySequence(Qt::Key_T | Qt::ControlModifier).toString()] = &keyaction_KeyActionFilterToggle;
+
+    if (revisionNumber > 0)
+        return keyMappings;
+    
     keyMappings[QKeySequence(Qt::Key_End).toString()] = &keyaction_KeyActionStopSong;
     keyMappings[QKeySequence(Qt::Key_Space).toString()] = &keyaction_KeyActionPlaySong;
     keyMappings[QKeySequence(Qt::Key_Home).toString()] = &keyaction_KeyActionRestartSong;
@@ -141,7 +152,6 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings()
     keyMappings[QKeySequence(Qt::Key_U).toString()] = &keyaction_KeyActionPitchPlus;
     keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
     keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
-    keyMappings[QKeySequence(Qt::Key_T | Qt::ControlModifier).toString()] = &keyaction_KeyActionFilterToggle;
     return keyMappings;
 }
 

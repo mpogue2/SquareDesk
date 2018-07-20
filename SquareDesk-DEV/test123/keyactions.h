@@ -42,4 +42,4 @@ KEYACTION(SwitchToDanceProgramsTab, "Switch to Dance Programs Tab", mw->actionSw
 KEYACTION(SwitchToReferenceTab, "Switch to Reference Tab", mw->actionSwitchToTab("Reference"))
 KEYACTION(FilterPatter, "Filter Songs to Patter", mw->actionFilterSongsToPatter())
 KEYACTION(FilterSingers, "Filter Songs to Singing", mw->actionFilterSongsToSingers())
-KEYACTION(FilterToggle, "Filter Songs Toggle Patter/Singing", mw->actionFilterSongsPatterSingersToggle())
+KEYACTION(FilterToggle, "Toggle Songs Filter", mw->actionFilterSongsPatterSingersToggle())
