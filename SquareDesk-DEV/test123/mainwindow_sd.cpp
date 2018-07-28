@@ -1816,12 +1816,12 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     action2.setShortcut(QKeySequence::Undo);
     contextMenu.addAction(&action2);
 
-#ifdef REDO
     QAction action25("Redo", this);
     connect(&action25, SIGNAL(triggered()), this, SLOT(redo_last_sd_action()));
     action25.setShortcut(QKeySequence::Redo);
+    action25.setEnabled(sd_redo_stack->can_redo());
     contextMenu.addAction(&action25);
-#endif
+
     
     QAction action3("Select All", this);
     connect(&action3, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
@@ -1902,12 +1902,14 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
     contextMenu.addAction(&action1);
     QAction action2("Undo", this);
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
-#ifdef REDO    
+    action2.setShortcut(QKeySequence::Undo);
     contextMenu.addAction(&action2);
+
     QAction action3("Redo", this);
     connect(&action3, SIGNAL(triggered()), this, SLOT(redo_last_sd_action()));
+    action3.setShortcut(QKeySequence::Redo);
+    action3.setEnabled(sd_redo_stack->can_redo());
     contextMenu.addAction(&action3);
-#endif
 
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }

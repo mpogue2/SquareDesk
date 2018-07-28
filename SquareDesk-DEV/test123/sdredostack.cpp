@@ -30,6 +30,11 @@ void SDRedoStack::initialize()
     sd_redo_stack.append(QStringList());
 }
 
+bool SDRedoStack::can_redo()
+{
+    return !sd_redo_stack.empty();
+}
+
 
 void SDRedoStack::add_lines_to_row(int row)
 {

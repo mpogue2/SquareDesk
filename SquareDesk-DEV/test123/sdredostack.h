@@ -40,6 +40,7 @@ public:
     void set_doing_user_input();
     void clear_doing_user_input();
     void set_did_an_undo();
+    bool can_redo();
 };
 
 #endif /* ifndef SD_REDO_STACK_INCLUDED */
