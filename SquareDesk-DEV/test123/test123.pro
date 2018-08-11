@@ -119,7 +119,8 @@ HEADERS  += mainwindow.h \
     sdredostack.h \
     makeflashdrivewizard.h \
     songlistmodel.h \
-    mydatetimeedit.h
+    mydatetimeedit.h \
+    keyactions.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h
