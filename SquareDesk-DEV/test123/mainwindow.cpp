@@ -1008,6 +1008,8 @@ MainWindow::MainWindow(QWidget *parent) :
     } else {
         ui->action20_seconds->setChecked(true);
     }
+
+    lastSongTableRowSelected = -1;  // meaning "no selection"
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -4850,7 +4852,7 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
         newTableItem = new QTableWidgetItem( str.trimmed() );
     }
     newTableItem->setFlags(newTableItem->flags() & ~Qt::ItemIsEditable);      // not editable
-    newTableItem->setTextColor(textCol);
+    newTableItem->setForeground(textCol);
     if (column == kRecentCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
         newTableItem->setTextAlignment(Qt::AlignCenter);
     }
@@ -5142,6 +5144,8 @@ void MainWindow::loadMusicList()
         titleLabel->setStyleSheet(songNameStyleSheet.arg(textCol.name()));
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
+        titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
+
         ui->songTable->setCellWidget(ui->songTable->rowCount()-1, kTitleCol, titleLabel);
         
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath,
@@ -6539,6 +6543,25 @@ void MainWindow::on_songTable_itemSelectionChanged()
 
     // ----------------
     int selectedRow = selectedSongRow();  // get current row or -1
+
+//    qDebug() << "Row " << selectedRow << " is selected now.";
+
+    if (selectedRow != -1) {
+        // we've clicked on a real row, which now needs its Title text to be highlighted
+
+        // first: let's un-highlight the previous SongTitleLabel back to its original color
+        if (lastSongTableRowSelected != -1) {
+            QString origColor = dynamic_cast<const SongTitleLabel*>(ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol))->textColor;
+            QString origColorStyleSheet("QLabel { color : %1; }");
+            ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol)->setStyleSheet(origColorStyleSheet.arg(origColor));
+        }
+
+        // second: let's highlight the current selected row's Title
+        QString songNameStyleSheet("QLabel { color : white; }");  // TODO: does this need to be fished out of some platform-specific QPalette somewhere?
+        ui->songTable->cellWidget(selectedRow, kTitleCol)->setStyleSheet(songNameStyleSheet);
+
+        lastSongTableRowSelected = selectedRow;  // remember that THIS row is now highlighted
+    }
 
     // turn them all OFF
     ui->actionAt_TOP->setEnabled(false);
