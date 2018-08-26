@@ -3437,6 +3437,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                   || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
                   // OR, IF THE TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
                   || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
+                  || (ui->dateTimeEditIntroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
+                  || (ui->dateTimeEditOutroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
 //            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
@@ -3608,6 +3612,16 @@ bool MainWindow::handleKeypress(int key, QString text)
             if (tabTitle.endsWith("*Lyrics") || tabTitle.endsWith("*Patter")) {
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() - 200);
             }
+            break;
+
+        case Qt::Key_Space:
+            // SPECIAL CASE: do the "Play/Pause Song" (SPACE) action defined in keyactions.h
+            KeyAction::actionByName("Play/Pause Song")->doAction(this);
+            break;
+
+        case Qt::Key_Period:
+            // SPECIAL CASE: do the "Restart Song" (PERIOD) action defined in keyactions.h
+            KeyAction::actionByName("Restart Song")->doAction(this);
             break;
 
         case Qt::Key_Return:
