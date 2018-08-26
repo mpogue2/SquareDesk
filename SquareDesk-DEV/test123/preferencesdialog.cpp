@@ -183,6 +183,8 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
+
+    ui->fontComboBox->setCurrentFont(QApplication::font());  // default to current system font
 }
 
 
@@ -936,4 +938,9 @@ void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
         mw->playSFX(QString::number(index-1));
     }
 
+}
+
+void PreferencesDialog::on_fontComboBox_currentFontChanged(const QFont &f)
+{
+    mw->refreshFonts(f);
 }

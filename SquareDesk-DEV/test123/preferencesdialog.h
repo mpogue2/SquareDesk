@@ -146,6 +146,8 @@ private slots:
 
     void on_afterBreakAction_currentIndexChanged(int index);
 
+    void on_fontComboBox_currentFontChanged(const QFont &f);
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;

@@ -532,7 +532,7 @@ public:
     void on_sd_set_window_title(QString str);
     void on_sd_add_new_line(QString, int drawing_picture);
     void on_sd_set_pick_string(QString);
-    void on_sd_dispose_of_abbreviation(QString);;
+    void on_sd_dispose_of_abbreviation(QString);
     void on_sd_set_matcher_options(QStringList options, QStringList levels);
     void on_sd_update_status_bar(QString str);
     void on_sd_awaiting_input();
@@ -545,8 +545,9 @@ public:
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
     void submit_lineEditSDInput_contents_to_sd();
-private:
+    void refreshFonts(const QFont &f);
 
+private:
     bool flashCallsVisible;
 
     int lastSongTableRowSelected;

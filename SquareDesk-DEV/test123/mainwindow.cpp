@@ -267,7 +267,15 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
         }
     }
     
-
+void MainWindow::refreshFonts(const QFont &f)
+{
+    qDebug() << "***** refresh fonts!" << f;
+    QApplication::setFont(f);  // temporary change for now, not persistent
+    // YES, I know that the docs say not to mix this call with Stylesheets.  And in fact,
+    //   this call doesn't change the fonts of all widgets.
+    // And, it doesn't make the size right either, because I guess the font f has a size in it, too.
+    //   So, let's just call this experimental...
+}
 
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
@@ -304,7 +312,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     for (size_t i = 0; i < sizeof(webview) / sizeof(*webview); ++i)
         webview[i] = 0;
-    
+
     linesInCurrentPlaylist = 0;
 
     loadedCuesheetNameWithPath = "";
