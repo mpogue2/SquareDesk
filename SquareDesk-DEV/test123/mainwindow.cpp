@@ -86,7 +86,7 @@ private:
 public:
     InvisibleTableWidgetItem(const QString &t);
     bool operator< (const QTableWidgetItem &other) const override;
-    virtual ~InvisibleTableWidgetItem();
+    virtual ~InvisibleTableWidgetItem() override;
 };
 
 InvisibleTableWidgetItem::InvisibleTableWidgetItem(const QString &t) : QTableWidgetItem(), text(t) {}
@@ -215,7 +215,7 @@ class MySliderClickToMoveStyle : public QProxyStyle
 public:
 //    using QProxyStyle::QProxyStyle;
 
-    int styleHint(QStyle::StyleHint hint, const QStyleOption* option = 0, const QWidget* widget = 0, QStyleHintReturn* returnData = 0) const
+    int styleHint(QStyle::StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const
     {
         if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
             return (Qt::LeftButton | Qt::MidButton | Qt::RightButton);
@@ -273,10 +273,10 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    oldFocusWidget(NULL),
+    oldFocusWidget(nullptr),
     lastCuesheetSavePath(),
-    timerCountUp(NULL),
-    timerCountDown(NULL),
+    timerCountUp(nullptr),
+    timerCountDown(nullptr),
     trapKeypresses(true),
     ps(nullptr),
     firstTimeSongIsPlayed(false),
@@ -291,9 +291,9 @@ MainWindow::MainWindow(QWidget *parent) :
     sdOutputtingAvailableCalls(false),
     sdAvailableCalls(),
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
-    shortcutSDTabUndo(NULL),
-    shortcutSDCurrentSequenceSelectAll(NULL),
-    shortcutSDCurrentSequenceCopy(NULL),
+    shortcutSDTabUndo(nullptr),
+    shortcutSDCurrentSequenceSelectAll(nullptr),
+    shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
     filewatcherShouldIgnoreOneFileSave = false;
@@ -303,7 +303,7 @@ MainWindow::MainWindow(QWidget *parent) :
     flashCallsVisible = false;
 
     for (size_t i = 0; i < sizeof(webview) / sizeof(*webview); ++i)
-        webview[i] = 0;
+        webview[i] = nullptr;
     
     linesInCurrentPlaylist = 0;
 
@@ -336,7 +336,7 @@ MainWindow::MainWindow(QWidget *parent) :
     macUtils.disableWindowTabbing();
 #endif
 
-    prefDialog = NULL;      // no preferences dialog created yet
+    prefDialog = nullptr;      // no preferences dialog created yet
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
     ui->setupUi(this);
@@ -1038,11 +1038,11 @@ void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
 {
     // all this mess, just to restore NO FOCUS, after ApplicationActivate, if there was NO FOCUS
     //   when going into Inactive state
-    if (!justWentActive && new1 == 0) {
+    if (!justWentActive && new1 == nullptr) {
         oldFocusWidget = old1;  // GOING INACTIVE, RESTORE THIS ONE
     } else if (justWentActive) {
-        if (oldFocusWidget == 0) {
-            if (QApplication::focusWidget() != 0) {
+        if (oldFocusWidget == nullptr) {
+            if (QApplication::focusWidget() != nullptr) {
                 QApplication::focusWidget()->clearFocus();  // BOGUS
             }
         } else {
@@ -1065,7 +1065,7 @@ QString MainWindow::ageToIntString(QString ageString) {
     if (ageString == "") {
         return(QString(""));
     }
-    int ageAsInt = (int)(ageString.toFloat());
+    int ageAsInt = static_cast<int>(ageString.toFloat());
     QString ageAsIntString(QString("%1").arg(ageAsInt, 3).trimmed());
 //    qDebug() << "ageString: " << ageString << ", ageAsInt: " << ageAsInt << ", ageAsIntString: " << ageAsIntString;
     return(ageAsIntString);
@@ -1076,7 +1076,7 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
 
     QString recentString = "";
     if (ageInDaysFloatString != "") {
-        qint64 ageInSecs = (qint64)(60.0*60.0*24.0*ageInDaysFloatString.toFloat());
+        qint64 ageInSecs = static_cast<qint64>(60.0*60.0*24.0*ageInDaysFloatString.toFloat());
         bool newerThanFence = now.addSecs(-ageInSecs) > recentFenceDateTime;
         if (newerThanFence) {
 //            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
@@ -1497,7 +1497,7 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 MainWindow::charsType MainWindow::FG_BG_to_type(QColor fg, QColor bg) {
     Q_UNUSED(bg)
 //    qDebug() << "fg: " << fg.blue() << ", bg: " << bg.blue();
-    return((charsType)fg.blue());  // the blue channel encodes the type
+    return(static_cast<charsType>(fg.blue()));  // the blue channel encodes the type
 }
 
 void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextCharFormat & f)
@@ -2237,7 +2237,7 @@ MainWindow::~MainWindow()
     saveCurrentPlaylistToFile(PlaylistFileName);
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
-    QColorDialog colorDlg(0);
+    QColorDialog colorDlg(nullptr);
     colorDlg.setOption(QColorDialog::NoButtons);
     colorDlg.setCurrentColor(Qt::white);
 
@@ -2306,8 +2306,8 @@ void MainWindow::on_loopButton_toggled(bool checked)
 //        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
 
 //        cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
-        cBass.SetLoop(songLength * ui->seekBar->GetOutro(),
-                      songLength * ui->seekBar->GetIntro());
+        cBass.SetLoop(songLength * static_cast<double>(ui->seekBar->GetOutro()),
+                      songLength * static_cast<double>(ui->seekBar->GetIntro()));
     }
     else {
         ui->actionLoop->setChecked(false);
@@ -2436,7 +2436,7 @@ void MainWindow::on_playButton_clicked()
             ui->songTable->setSortingEnabled(true);
         }
         // If we just started playing, clear focus from all widgets
-        if (QApplication::focusWidget() != NULL) {
+        if (QApplication::focusWidget() != nullptr) {
             QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
                                                         //  or it will eat our keyboard shortcuts
         }
@@ -2466,14 +2466,14 @@ bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
         button->setText("Start");
         timer->stop();
         delete timer;
-        timer = NULL;
+        timer = nullptr;
     }
     else {
         button->setText("Stop");
         timer = new QTimer(this);
         timer->start(1000);
     }
-    return NULL != timer;
+    return nullptr != timer;
 }
 
 // ----------------------------------------------------------------------
@@ -2481,7 +2481,7 @@ int MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
 {
     QDateTime now(QDateTime::currentDateTime());
     qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
-    int signedSeconds = (int)((timeNowEpochMs - timeZeroEpochMs) / 1000);
+    int signedSeconds = static_cast<int>((timeNowEpochMs - timeZeroEpochMs) / 1000);
     int seconds = signedSeconds;
     char sign = ' ';
 
@@ -2544,7 +2544,7 @@ void MainWindow::on_pushButtonCountDownTimerReset_clicked()
         }
     }
     timeCountDownZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
-    timeCountDownZeroMs += (qint64)(minutes * 60 + seconds) * (qint64)(1000) + timerJitter;
+    timeCountDownZeroMs += static_cast<qint64>(minutes * 60 + seconds) * static_cast<qint64>(1000) + timerJitter;
     updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer);
 }
 
@@ -2656,7 +2656,7 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
         voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
     }
     cBass.SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
-    currentVolume = value;                  // this will be saved with the song (0-100)
+    currentVolume = static_cast<unsigned short>(value);    // this will be saved with the song (0-100)
 
     Info_Volume();  // update the slider text
 
@@ -2686,15 +2686,15 @@ void MainWindow::on_actionMute_triggered()
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
     if (tempoIsBPM) {
-        float desiredBPM = (float)value;            // desired BPM
-        int newBASStempo = (int)(round(100.0*desiredBPM/baseBPM));
+        float desiredBPM = static_cast<float>(value);            // desired BPM
+        int newBASStempo = static_cast<int>(round(100.0*desiredBPM/baseBPM));
         cBass.SetTempo(newBASStempo);
         ui->currentTempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
     }
     else {
         float basePercent = 100.0;                      // original detected percent
-        float desiredPercent = (float)value;            // desired percent
-        int newBASStempo = (int)(round(100.0*desiredPercent/basePercent));
+        float desiredPercent = static_cast<float>(value);            // desired percent
+        int newBASStempo = static_cast<int>(round(100.0*desiredPercent/basePercent));
         cBass.SetTempo(newBASStempo);
         ui->currentTempoLabel->setText(QString::number(value) + "%");
     }
@@ -2739,7 +2739,7 @@ void MainWindow::on_mixSlider_valueChanged(int value)
     QString s = QString::number(Lpercent) + "%L/" + QString::number(Rpercent) + "%R ";
 
     ui->currentMixLabel->setText(s);
-    cBass.SetPan(value/100.0);
+    cBass.SetPan(static_cast<float>(value/100.0));
 }
 
 // ----------------------------------------------------------------------
@@ -2772,7 +2772,7 @@ QString MainWindow::position2String(int position, bool pad = false)
 void InitializeSeekBar(MySlider *seekBar)
 {
     seekBar->setMinimum(0);
-    seekBar->setMaximum((int)cBass.FileLength-1); // NOTE: TRICKY, counts on == below
+    seekBar->setMaximum(static_cast<int>(cBass.FileLength)-1); // NOTE: TRICKY, counts on == below
     seekBar->setTickInterval(10);  // 10 seconds per tick
 }
 
@@ -2808,7 +2808,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             cBass.SetPitch(ui->pitchSlider->value());
         }
 
-        int currentPos_i = (int)cBass.Current_Position;
+        int currentPos_i = static_cast<int>(cBass.Current_Position);
         if (forceSlider) {
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
@@ -2816,7 +2816,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
             int maxScroll = ui->textBrowserCueSheet->verticalScrollBar()->maximum();
             int maxSeekbar = ui->seekBar->maximum();  // NOTE: minSeekbar is always 0
-            float fracSeekbar = (float)currentPos_i/(float)maxSeekbar;
+            float fracSeekbar = static_cast<float>(currentPos_i)/static_cast<float>(maxSeekbar);
             float targetScroll = 1.08 * fracSeekbar * (maxScroll - minScroll) + minScroll;  // FIX: this is heuristic and not right yet
 
             // NOTE: only auto-scroll when the lyrics are LOCKED (if not locked, you're probably editing).
@@ -2826,10 +2826,10 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 //                    currentState == kPlaying) {
                     cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
                 // lyrics scrolling at the same time as the InfoBar
-                ui->textBrowserCueSheet->verticalScrollBar()->setValue((int)targetScroll);
+                ui->textBrowserCueSheet->verticalScrollBar()->setValue(static_cast<int>(targetScroll));
             }
         }
-        int fileLen_i = (int)cBass.FileLength;
+        int fileLen_i = static_cast<int>(cBass.FileLength);
 
         // songs must be longer than 5 seconds for this to work (belt and suspenders)
         if ((currentPos_i == fileLen_i) && (currentPos_i > 5) && (fileLen_i > 5)) {  // NOTE: TRICKY, counts on -1 above in InitializeSeekBar()
@@ -2878,8 +2878,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         // singing call sections
         if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
-            double introLength = ui->seekBar->GetIntro() * cBass.FileLength; // seconds
-            double outroTime = ui->seekBar->GetOutro() * cBass.FileLength; // seconds
+            double introLength = static_cast<double>(ui->seekBar->GetIntro()) * cBass.FileLength; // seconds
+            double outroTime = static_cast<double>(ui->seekBar->GetOutro()) * cBass.FileLength; // seconds
 //            qDebug() << "InfoSeekbar()::introLength: " << introLength << ", " << outroTime;
             double outroLength = fileLen_i-outroTime;
 
@@ -2889,7 +2889,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             } else if (currentPos_i > outroTime) {
                 section = 8;  // tag
             } else {
-                section = 1.0 + 7.0*((currentPos_i - introLength)/(fileLen_i-(introLength+outroLength)));
+                section = static_cast<int>(1.0 + 7.0*((currentPos_i - introLength)/(fileLen_i-(introLength+outroLength))));
                 if (section > 8 || section < 0) {
                     section = 0; // needed for the time before fields are fully initialized
                 }
@@ -2966,7 +2966,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 // blame https://stackoverflow.com/questions/4065378/qt-get-children-from-layout
 bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
 {
-   if (layout == NULL || widget == NULL)
+   if (layout == nullptr || widget == nullptr)
       return false;
 
    if (layout->indexOf(widget) >= 0)
@@ -2974,7 +2974,7 @@ bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
 
    foreach(QObject *o, layout->children())
    {
-      if (isChildWidgetOfAnyLayout((QLayout*)o,widget))
+      if (isChildWidgetOfAnyLayout(dynamic_cast<QLayout*>(o),widget))
          return true;
    }
 
@@ -2983,11 +2983,11 @@ bool isChildWidgetOfAnyLayout(QLayout *layout, QWidget *widget)
 
 void setVisibleWidgetsInLayout(QLayout *layout, bool visible)
 {
-   if (layout == NULL)
+   if (layout == nullptr)
       return;
 
    QWidget *pw = layout->parentWidget();
-   if (pw == NULL)
+   if (pw == nullptr)
       return;
 
    foreach(QWidget *w, pw->findChildren<QWidget*>())
@@ -2999,11 +2999,11 @@ void setVisibleWidgetsInLayout(QLayout *layout, bool visible)
 
 bool isVisibleWidgetsInLayout(QLayout *layout)
 {
-   if (layout == NULL)
+   if (layout == nullptr)
       return false;
 
    QWidget *pw = layout->parentWidget();
-   if (pw == NULL)
+   if (pw == nullptr)
       return false;
 
    foreach(QWidget *w, pw->findChildren<QWidget*>())
@@ -3079,7 +3079,7 @@ void MainWindow::getCurrentPointInStream(double *pos, double *len) {
 
     } else {
         // if we're NOT playing, this is accurate to the second.  (This should be fixed!)
-        position = (double)(ui->seekBarCuesheet->value());
+        position = static_cast<double>(ui->seekBarCuesheet->value());
         length = ui->seekBarCuesheet->maximum();
     }
 
@@ -3096,13 +3096,13 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
-    position = fmax(0.0, fmin(position, (int)currentOutroTimeSec-6) );
+    position = fmax(0.0, fmin(position, static_cast<int>(currentOutroTimeSec)-6) );
 
     // set in ms
-    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
 
     // set in fractional form
-    float frac = position/length;
+    float frac = static_cast<float>(position/length);
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
     ui->seekBar->SetIntro(frac);
 
@@ -3117,13 +3117,13 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
-    position = fmin(length, fmax(position, (int)currentIntroTimeSec+6) );
+    position = fmin(length, fmax(position, static_cast<int>(currentIntroTimeSec)+6) );
 
     // set in ms
-    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position+0.5))); // milliseconds
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
 
     // set in fractional form
-    float frac = position/length;
+    float frac = static_cast<float>(position/length);
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
     ui->seekBar->SetOutro(frac);
 
@@ -3305,7 +3305,7 @@ void MainWindow::on_vuMeterTimerTick(void)
 {
     float currentVolumeSlider = ui->volumeSlider->value();
     int level = cBass.StreamGetVuMeter();
-    float levelF = (currentVolumeSlider/100.0)*((float)level)/32768.0;
+    float levelF = (currentVolumeSlider/100.0)*(static_cast<float>(level))/32768.0;
     // TODO: iff music is playing.
     vuMeter->levelChanged(levelF/2.0,levelF,256);  // 10X/sec, update the vuMeter
 }
@@ -3372,10 +3372,10 @@ bool MainWindow::someWebViewHasFocus() {
 bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
     if (Event->type() == QEvent::KeyPress) {
-        QKeyEvent *KeyEvent = (QKeyEvent *)Event;
+        QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
 
-        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>(((QApplication *)Object)->activeWindow());
-        if (maybeMainWindow == 0) {
+        MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
+        if (maybeMainWindow == nullptr) {
             // if the PreferencesDialog is open, for example, do not dereference the NULL pointer (duh!).
 //            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
@@ -3552,7 +3552,7 @@ bool MainWindow::handleKeypress(int key, QString text)
     QString tabTitle;
 
 //    qDebug() << "handleKeypress(" << key << ")";
-    if (inPreferencesDialog || !trapKeypresses || (prefDialog != NULL)) {
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
         return false;
     }
 //    qDebug() << "YES: handleKeypress(" << key << ")";
@@ -3567,11 +3567,11 @@ bool MainWindow::handleKeypress(int key, QString text)
             // ESC is special:  it always gets you out of editing a search field or timer field, and it can
             //   also STOP the music (second press, worst case)
 
-            oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore
-            if (QApplication::focusWidget() != NULL) {
+            oldFocusWidget = nullptr;  // indicates that we want NO FOCUS on restore
+            if (QApplication::focusWidget() != nullptr) {
                 QApplication::focusWidget()->clearFocus();  // clears the focus from ALL widgets
             }
-            oldFocusWidget = 0;  // indicates that we want NO FOCUS on restore, yes both of these are needed.
+            oldFocusWidget = nullptr;  // indicates that we want NO FOCUS on restore, yes both of these are needed.
 
             // FIX: should we also stop editing of the songTable on ESC?
 
@@ -3768,7 +3768,7 @@ void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
 {
     cBass.StreamGetPosition();  // update the position
     // set the position to one second before the end, so that RIGHT ARROW works as expected
-    cBass.StreamSetPosition((int)fmin(cBass.Current_Position + 10.0, cBass.FileLength-1.0));
+    cBass.StreamSetPosition(static_cast<int>(fmin(cBass.Current_Position + 10.0, cBass.FileLength-1.0)));
     Info_Seekbar(true);
 }
 
@@ -3776,7 +3776,7 @@ void MainWindow::on_actionSkip_Back_15_sec_triggered()
 {
     Info_Seekbar(true);
     cBass.StreamGetPosition();  // update the position
-    cBass.StreamSetPosition((int)fmax(cBass.Current_Position - 10.0, 0.0));
+    cBass.StreamSetPosition(static_cast<int>(fmax(cBass.Current_Position - 10.0, 0.0)));
 }
 
 // ------------------------------------------------------------------------
@@ -3811,17 +3811,17 @@ void MainWindow::on_actionForce_Mono_Aahz_mode_triggered()
 // ------------------------------------------------------------------------
 void MainWindow::on_bassSlider_valueChanged(int value)
 {
-    cBass.SetEq(0, (float)value);
+    cBass.SetEq(0, static_cast<float>(value));
 }
 
 void MainWindow::on_midrangeSlider_valueChanged(int value)
 {
-    cBass.SetEq(1, (float)value);
+    cBass.SetEq(1, static_cast<float>(value));
 }
 
 void MainWindow::on_trebleSlider_valueChanged(int value)
 {
-    cBass.SetEq(2, (float)value);
+    cBass.SetEq(2, static_cast<float>(value));
 }
 
 
@@ -3868,7 +3868,7 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
     };
 
     switch (songFilenameFormat) {
-        default:
+        default:  // WARNING: THIS IS ALMOST CERTAINLY WRONG
         case SongFilenameLabelDashName :
             return label_first_matches;
         case SongFilenameNameDashLabel :
@@ -5701,7 +5701,7 @@ void MainWindow::on_actionImport_triggered()
         loadMusicList();
     }
     delete importDialog;
-    importDialog = NULL;
+    importDialog = nullptr;
 }
 
 void MainWindow::on_actionExport_Play_Data_triggered()
@@ -5717,7 +5717,7 @@ void MainWindow::on_actionExport_Play_Data_triggered()
         dialog->exportSongPlayData(songSettings);
     }
     delete dialog;
-    dialog = NULL;
+    dialog = nullptr;
 }
 
 void MainWindow::on_actionExport_triggered()
@@ -5767,7 +5767,7 @@ void MainWindow::on_actionExport_triggered()
             exportDialog->exportSongs(songSettings, pathStack);
         }
         delete exportDialog;
-        exportDialog = NULL;
+        exportDialog = nullptr;
     }
 }
 
@@ -5977,7 +5977,7 @@ void MainWindow::on_actionPreferences_triggered()
     }
 
     delete prefDialog;
-    prefDialog = NULL;
+    prefDialog = nullptr;
 }
 
 QString MainWindow::removePrefix(QString prefix, QString s)
@@ -7318,8 +7318,8 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 //        qDebug() << "loadSettingsForSong: " << outro;
         ui->seekBarCuesheet->SetOutro(outro);
 
-        QTime iTime = QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length+0.5));
-        QTime oTime = QTime(0,0,0,0).addMSecs((int)(1000.0*outro*length+0.5));
+        QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
+        QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
 //        qDebug() << "loadSettingsForSong: " << iTime << ", " << oTime;
         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
         ui->dateTimeEditOutroTime->setTime(oTime);
@@ -7414,7 +7414,7 @@ QString MainWindow::loadLyrics(QString MP3FileName)
         {
 //            qDebug() << "LOAD LYRICS -- found a USLT frame!";
 
-            ID3v2::UnsynchronizedLyricsFrame* usltFrame = (ID3v2::UnsynchronizedLyricsFrame*)(*it);
+            ID3v2::UnsynchronizedLyricsFrame* usltFrame = dynamic_cast<ID3v2::UnsynchronizedLyricsFrame*>(*it);
             USLTlyrics = usltFrame->text().toCString();
         }
     }
@@ -7688,7 +7688,7 @@ void MainWindow::microphoneStatusUpdate() {
     {
         ps->kill();
         delete ps;
-        ps = NULL;
+        ps = nullptr;
     }
 }
 
@@ -7937,7 +7937,7 @@ void MainWindow::initSDtab() {
     if (!startedStatus)
     {
         delete ps;
-        ps = NULL;
+        ps = nullptr;
     }
 
     // SD -------------------------------------------
@@ -8163,9 +8163,13 @@ void MainWindow::updateRecentPlaylistMenu() {
 
     switch(numRecentPlaylists) {
         case 4: ui->actionRecent4->setText(QString(recentFilePaths.at(3)).replace(playlistsPath,""));  // intentional fall-thru
+        OS_FALLTHROUGH;
         case 3: ui->actionRecent3->setText(QString(recentFilePaths.at(2)).replace(playlistsPath,""));  // intentional fall-thru
+        OS_FALLTHROUGH;
         case 2: ui->actionRecent2->setText(QString(recentFilePaths.at(1)).replace(playlistsPath,""));  // intentional fall-thru
+        OS_FALLTHROUGH;
         case 1: ui->actionRecent1->setText(QString(recentFilePaths.at(0)).replace(playlistsPath,""));  // intentional fall-thru
+        OS_FALLTHROUGH;
         default: break;
     }
 
@@ -8376,7 +8380,7 @@ void MainWindow::on_actionStop_Sound_FX_triggered()
 }
 
 // FONT SIZE STUFF ========================================
-unsigned int MainWindow::pointSizeToIndex(unsigned int pointSize) {
+int MainWindow::pointSizeToIndex(unsigned int pointSize) {
     // converts our old-style range: 11,13,15,17,19,21,23,25
     //   to an index:                 0, 1, 2, 3, 4, 5, 6, 7
     // returns -1 if not in range, or if even number
@@ -8386,7 +8390,7 @@ unsigned int MainWindow::pointSizeToIndex(unsigned int pointSize) {
     return((pointSize-11)/2);
 }
 
-unsigned int MainWindow::indexToPointSize(unsigned int index) {
+unsigned int MainWindow::indexToPointSize(int index) {
 #if defined(Q_OS_MAC)
     return (2*index + 11);
 #elif defined(Q_OS_WIN)
@@ -8467,37 +8471,37 @@ void MainWindow::adjustFontSizes()
     QFont currentFont = ui->songTable->font();
     int currentFontPointSize = currentFont.pointSize();  // platform-specific point size
 
-    unsigned int index = pointSizeToIndex(currentMacPointSize);  // current index
+    int index = pointSizeToIndex(currentMacPointSize);  // current index
 
     // give a little extra space when sorted...
     int sortedSection = ui->songTable->horizontalHeader()->sortIndicatorSection();
 
     // pixel perfection for each platform
 #if defined(Q_OS_MAC)
-    float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
+    float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
-    float numberBase = 2.0;
-    float recentBase = 4.5;
-    float ageBase = 3.5;
-    float pitchBase = 4.0;
-    float tempoBase = 4.5;
+    float numberBase = 2.0f;
+    float recentBase = 4.5f;
+    float ageBase = 3.5f;
+    float pitchBase = 4.0f;
+    float tempoBase = 4.5f;
 
-    float numberFactor = 0.5;
-    float recentFactor = 0.9;
-    float ageFactor = 0.5;
-    float pitchFactor = 0.5;
-    float tempoFactor = 0.9;
+    float numberFactor = 0.5f;
+    float recentFactor = 0.9f;
+    float ageFactor = 0.5f;
+    float pitchFactor = 0.5f;
+    float tempoFactor = 0.9f;
 
     unsigned int searchBoxesHeight[8] = {20, 21, 22, 24,  26, 28, 30, 32};
-    float scaleWidth1 = 7.75;
-    float scaleWidth2 = 3.25;
-    float scaleWidth3 = 8.5;
+    float scaleWidth1 = 7.75f;
+    float scaleWidth2 = 3.25f;
+    float scaleWidth3 = 8.5f;
 
     // lyrics buttons
     unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
 
-    float maxEQsize = 16;
-    float scaleIcons = 24.0/13.0;
+    float maxEQsize = 16.0f;
+    float scaleIcons = 24.0f/13.0f;
 
     unsigned int warningLabelSize[8] = {16,20,23,26, 29,32,35,38};  // basically 20/13 * pointSize
 //    unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
@@ -8505,10 +8509,10 @@ void MainWindow::adjustFontSizes()
 
     unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
 
-    float nowPlayingHeightFactor = 1.5;
+    float nowPlayingHeightFactor = 1.5f;
 
-    float buttonSizeH = 1.875;
-    float buttonSizeV = 1.125;
+    float buttonSizeH = 1.875f;
+    float buttonSizeV = 1.125f;
 #elif defined(Q_OS_WIN32)
     float extraColWidth[8] = {0.25f, 0.0f, 0.0f, 0.0f,  0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -8532,7 +8536,7 @@ void MainWindow::adjustFontSizes()
     // lyrics buttons
     unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
 
-    float maxEQsize = 16;
+    float maxEQsize = 16.0f;
     float scaleIcons = (float)(1.5*24.0/13.0);
     unsigned int warningLabelSize[8] = {9,12,14,16, 18,20,22,24};  // basically 20/13 * pointSize
     unsigned int warningLabelWidth[8] = {84,100,115,130, 146, 161, 176, 192};  // basically 20/13 * pointSize * 5
@@ -8547,37 +8551,37 @@ void MainWindow::adjustFontSizes()
 #elif defined(Q_OS_LINUX)
     float extraColWidth[8] = {0.25, 0.0, 0.0, 0.0,  0.0, 0.0, 0.0, 0.0};
 
-    float numberBase = 2.0;
-    float recentBase = 4.5;
-    float ageBase = 3.5;
-    float pitchBase = 4.0;
-    float tempoBase = 4.5;
+    float numberBase = 2.0f;
+    float recentBase = 4.5f;
+    float ageBase = 3.5f;
+    float pitchBase = 4.0f;
+    float tempoBase = 4.5f;
 
-    float numberFactor = 0.5;
-    float recentFactor = 0.9;
-    float ageFactor = 0.5;
-    float pitchFactor = 0.5;
-    float tempoFactor = 0.9;
+    float numberFactor = 0.5f;
+    float recentFactor = 0.9f;
+    float ageFactor = 0.5f;
+    float pitchFactor = 0.5f;
+    float tempoFactor = 0.9f;
 
     unsigned int searchBoxesHeight[8] = {22, 26, 30, 34,  38, 42, 46, 50};
-    float scaleWidth1 = 7.75;
-    float scaleWidth2 = 3.25;
-    float scaleWidth3 = 8.5;
+    float scaleWidth1 = 7.75f;
+    float scaleWidth2 = 3.25f;
+    float scaleWidth3 = 8.5f;
 
     // lyrics buttons
     unsigned int TitleButtonWidth[8] = {55,60,65,70, 80,90,95,105};
 
-    float maxEQsize = 16;
-    float scaleIcons = 24.0/13.0;
+    float maxEQsize = 16.0f;
+    float scaleIcons = 24.0f/13.0f;
     unsigned int warningLabelSize[8] = {16,20,23,26, 29,32,35,38};  // basically 20/13 * pointSize
     unsigned int warningLabelWidth[8] = {93,110,126,143, 160,177,194,211};  // basically 20/13 * pointSize * 5.5
 
     unsigned int nowPlayingSize[8] = {22,27,31,35, 39,43,47,51};  // basically 27/13 * pointSize
 
-    float nowPlayingHeightFactor = 1.5;
+    float nowPlayingHeightFactor = 1.5f;
 
-    float buttonSizeH = 1.875;
-    float buttonSizeV = 1.125;
+    float buttonSizeH = 1.875f;
+    float buttonSizeV = 1.125f;
 #endif
 
     // a little extra space when a column is sorted
@@ -8616,7 +8620,7 @@ void MainWindow::adjustFontSizes()
     ui->currentVolumeLabel->setFont(currentFont);
     ui->currentMixLabel->setFont(currentFont);
 
-    int newCurrentWidth = scaleWidth1 * currentFontPointSize;
+    int newCurrentWidth = static_cast<int>(scaleWidth1 * currentFontPointSize);
     ui->currentTempoLabel->setFixedWidth(newCurrentWidth);
     ui->currentPitchLabel->setFixedWidth(newCurrentWidth);
     ui->currentVolumeLabel->setFixedWidth(newCurrentWidth);
@@ -8672,7 +8676,7 @@ void MainWindow::adjustFontSizes()
     ui->EQgroup->setFont(currentFont);
 
     // resize the icons for the buttons
-    int newIconDimension = (int)((float)currentFontPointSize * scaleIcons);
+    int newIconDimension = static_cast<int>(static_cast<float>(currentFontPointSize) * scaleIcons);
     QSize newIconSize(newIconDimension, newIconDimension);
     ui->stopButton->setIconSize(newIconSize);
     ui->playButton->setIconSize(newIconSize);
@@ -8718,7 +8722,7 @@ void MainWindow::usePersistentFontSize() {
 
     QFont currentFont = ui->songTable->font();  // set the font size in the songTable
 //    qDebug() << "index: " << pointSizeToIndex(newPointSize);
-    unsigned int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
+    int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
 //    qDebug() << "platformPS: " << platformPS;
     currentFont.setPointSize(platformPS);
     ui->songTable->setFont(currentFont);
@@ -8951,7 +8955,7 @@ void MainWindow::makeProgress() {
 
 //    qDebug() << "making progress..." << progressOffset << "," << progressTotal;
 
-    progressDialog->setValue((unsigned int)(progressOffset + 33.0*(progressTotal/100.0)));
+    progressDialog->setValue(static_cast<unsigned int>(progressOffset + 33.0*(progressTotal/100.0)));
 #endif
 }
 
@@ -9648,13 +9652,13 @@ void MainWindow::cuesheetListDownloadEnd() {
     for (j = cuesheetsInCloud.begin(); j != cuesheetsInCloud.end(); ++j) {
         // should we download this Cloud cuesheet file?
 
-        if ( (unsigned int)(numChecked) % 50 == 0 ) {
+        if ( static_cast<unsigned int>(numChecked) % 50 == 0 ) {
             progressDialog->setLabelText("Found matching cuesheets: " +
-                                         QString::number((unsigned int)maybeFilesToDownload.length()) +
-                                         " out of " + QString::number((unsigned int)numChecked) +
+                                         QString::number(static_cast<unsigned int>(maybeFilesToDownload.length())) +
+                                         " out of " + QString::number(static_cast<unsigned int>(numChecked)) +
                                          "\n" + (maybeFilesToDownload.length() > 0 ? maybeFilesToDownload.last() : "")
                                          );
-            progressDialog->setValue((unsigned int)(33 + 33.0*(numChecked/numCuesheets)));
+            progressDialog->setValue(static_cast<unsigned int>(33 + 33.0*(numChecked/numCuesheets)));
             qApp->processEvents();  // allow the progress bar to move every 100 checks
             if (progressDialog->wasCanceled()) {
                 return;
@@ -9685,13 +9689,13 @@ void MainWindow::cuesheetListDownloadEnd() {
     QList<QString>::iterator k;
     for (k = maybeFilesToDownload.begin(); k != maybeFilesToDownload.end(); ++k) {
         progressDialog->setLabelText("Downloading matching cuesheets (if needed): " +
-                                     QString::number((unsigned int)numDownloaded++) +
+                                     QString::number(static_cast<unsigned int>(numDownloaded++)) +
                                      " out of " +
-                                     QString::number((unsigned int)numDownloads) +
+                                     QString::number(static_cast<unsigned int>(numDownloads)) +
                                      "\n" +
                                      *k
                                      );
-        progressDialog->setValue((unsigned int)(66 + 33.0*(numDownloaded/numDownloads)));
+        progressDialog->setValue(static_cast<unsigned int>((66 + 33.0*(numDownloaded/numDownloads))));
         qApp->processEvents();  // allow the progress bar to move constantly
         if (progressDialog->wasCanceled()) {
             break;
@@ -9889,14 +9893,14 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
-    position_sec = fmax(0.0, fmin(position_sec, (int)currentOutroTimeSec-6) );
+    position_sec = fmax(0.0, fmin(position_sec, static_cast<int>(currentOutroTimeSec)-6) );
 
     // set in ms
 //    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
-    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
-    float frac = position_sec/length;
+    float frac = static_cast<float>(position_sec/length);
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
     ui->seekBar->SetIntro(frac);
 
@@ -9919,14 +9923,14 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
-    position_sec = fmin(length, fmax(position_sec, (int)currentIntroTimeSec+6) );
+    position_sec = fmin(length, fmax(position_sec, static_cast<int>(currentIntroTimeSec)+6) );
 
     // set in ms
 //    qDebug() << "dateTimeEditOutro changed: " << currentIntroTimeSec << "," << position_sec;
-    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*position_sec+0.5))); // milliseconds
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
-    float frac = position_sec/length;
+    float frac = static_cast<float>(position_sec/length);
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
     ui->seekBar->SetOutro(frac);
 
@@ -10132,7 +10136,7 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
                 int count4 = line4.count("\n");
                 p += count4;
 //                qDebug() << count4 << line4;
-                progress.setValue((int)p);
+                progress.setValue(static_cast<int>(p));
             }
 
             QCoreApplication::processEvents();
@@ -10175,7 +10179,7 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
                 int count = line.count("\n");
                 p += count;
 //                qDebug() << count << line;
-                progress.setValue((int)p);
+                progress.setValue(static_cast<int>(p));
             }
 
             QCoreApplication::processEvents();

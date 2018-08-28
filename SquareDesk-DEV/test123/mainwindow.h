@@ -667,8 +667,8 @@ private:
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
 
-    unsigned int pointSizeToIndex(unsigned int pointSize);
-    unsigned int indexToPointSize(unsigned int index);
+    int pointSizeToIndex(unsigned int pointSize);
+    unsigned int indexToPointSize(int index);
 
     unsigned int currentMacPointSize;
 
