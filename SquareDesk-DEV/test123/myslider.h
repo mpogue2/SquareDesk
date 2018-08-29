@@ -35,16 +35,16 @@ class MySlider : public QSlider
 {
 
 public:
-    MySlider(QWidget *parent = 0);
+    MySlider(QWidget *parent = nullptr);
     void SetLoop(bool b);           // turn on loop points
     void SetSingingCall(bool b);    // turn on singing call coloring
     void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
-    void SetIntro(float intro);
-    void SetOutro(float outro);
-    float GetIntro() const;
-    float GetOutro() const;
-    void SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM,
-                                       float songStart_sec, float songEnd_sec, float songLength_sec);
+    void SetIntro(double intro);
+    void SetOutro(double outro);
+    double GetIntro() const;
+    double GetOutro() const;
+    void SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
+                                       double songStart_sec, double songEnd_sec, double songLength_sec);
 
     bool eventFilter(QObject *obj, QEvent *event);
 
@@ -55,8 +55,8 @@ protected:
 private:
     bool drawLoopPoints;
     bool singingCall;
-    float introPosition;
-    float outroPosition;
+    double introPosition;
+    double outroPosition;
     int origin;  // reset to this point when double-clicked
 
 };

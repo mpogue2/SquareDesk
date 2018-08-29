@@ -52,25 +52,25 @@ bool MySlider::eventFilter(QObject *obj, QEvent *event)
     return false;  // don't stop anything else
 }
 
-void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, float estimatedBPM,
-                                             float songStart_sec, float songEnd_sec, float songLength_sec)
+void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
+                                             double songStart_sec, double songEnd_sec, double songLength_sec)
 {
     if (!tempoIsBPM) {
-        float defaultSingerLengthInBeats = (64 * 7 + 24);  // 16 beat intro + 8 beat tag = 24
-        introPosition = (float)(16 / defaultSingerLengthInBeats);           // 0.0 - 1.0
-        outroPosition = (float)(1.0 - 8 / defaultSingerLengthInBeats );     // 0.0 - 1.0
+        double defaultSingerLengthInBeats = (64 * 7 + 24);  // 16 beat intro + 8 beat tag = 24
+        introPosition = (16 / defaultSingerLengthInBeats);           // 0.0 - 1.0
+        outroPosition = (1.0 - 8 / defaultSingerLengthInBeats );     // 0.0 - 1.0
     } else {
         // we are using BPM (not %)
-//        float songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
-        float phraseLength_beats = 32.0;  // everything is 32-beat phrases
-        float phraseLength_sec = 60.0 * phraseLength_beats/estimatedBPM;
-//        float songLength_phrases = songLength_beats/phraseLength_beats;
-        float loopStart_sec = songStart_sec + 0.05 * (songEnd_sec - songStart_sec);
-        float loopStart_frac = loopStart_sec/songLength_sec;   // 0.0 - 1.0
+//        double songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
+        double phraseLength_beats = 32.0;  // everything is 32-beat phrases
+        double phraseLength_sec = 60.0 * phraseLength_beats/estimatedBPM;
+//        double songLength_phrases = songLength_beats/phraseLength_beats;
+        double loopStart_sec = songStart_sec + 0.05 * (songEnd_sec - songStart_sec);
+        double loopStart_frac = loopStart_sec/songLength_sec;   // 0.0 - 1.0
 
-        int numPhrasesThatFit = (int)((songEnd_sec - loopStart_sec)/phraseLength_sec);
-        float loopEnd_sec = loopStart_sec + phraseLength_sec * numPhrasesThatFit;
-        float loopEnd_frac = loopEnd_sec/songLength_sec;  // 0.0 - 1.0
+        int numPhrasesThatFit = static_cast<int>((songEnd_sec - loopStart_sec)/phraseLength_sec);
+        double loopEnd_sec = loopStart_sec + phraseLength_sec * numPhrasesThatFit;
+        double loopEnd_frac = loopEnd_sec/songLength_sec;  // 0.0 - 1.0
 
         if (songLength_sec - loopEnd_sec < 7) {
             // if too close to the end of the song (because an integer number of phrases just happens to fit)
@@ -108,23 +108,23 @@ void MySlider::SetLoop(bool b)
     update();
 }
 
-void MySlider::SetIntro(float intro)
+void MySlider::SetIntro(double intro)
 {
 //    qDebug() << "SetIntro: " << intro;
     introPosition = intro;
 }
 
-void MySlider::SetOutro(float outro)
+void MySlider::SetOutro(double outro)
 {
 //    qDebug() << "SetOutro: " << outro;
     outroPosition = outro;
 }
 
-float MySlider::GetIntro() const
+double MySlider::GetIntro() const
 {
     return introPosition;
 }
-float MySlider::GetOutro() const
+double MySlider::GetOutro() const
 {
     return outroPosition;
 }
@@ -164,8 +164,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         pen.setColor(Qt::blue);
         painter.setPen(pen);
 
-        // float to = 0.1f;
-        float to = introPosition;
+        // double to = 0.1f;
+        double to = introPosition;
         QLineF line4(to * width + offset, 3,          to * width + offset, height-4);
         QLineF line5(to * width + offset, 3,          to * width + offset + 5, 3);
         QLineF line6(to * width + offset, height-4,   to * width + offset + 5, height-4);
@@ -173,8 +173,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.drawLine(line5);
         painter.drawLine(line6);
 
-        // float from = 0.9f;
-        float from = outroPosition;
+        // double from = 0.9f;
+        double from = outroPosition;
 //        qDebug() << "repaint: " << from;
         QLineF line1(from * width + offset, 3,          from * width + offset, height-4);
         QLineF line2(from * width + offset, 3,          from * width + offset - 5, 3);
@@ -201,8 +201,8 @@ void MySlider::paintEvent(QPaintEvent *e)
 //        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
         QColor colors[3] = { Qt::red, Qt::cyan, Qt::blue };
 
-        float left = 1;
-        float right = width + offset + 5;
+        double left = 1;
+        double right = width + offset + 5;
 #if defined(Q_OS_MAC)
         left += 1;   // pixel perfection on Mac OS X Sierra
 #endif
@@ -214,11 +214,11 @@ void MySlider::paintEvent(QPaintEvent *e)
         left += 5;
 #endif // ifdef Q_OS_LINUX
 
-        float width = (right - left);
-        float endIntro = left + introPosition * width;
-        float startEnding = left  + outroPosition * width;
+        double width = (right - left);
+        double endIntro = left + introPosition * width;
+        double startEnding = left  + outroPosition * width;
         int segments = 7;
-        float lengthSection = (startEnding - endIntro)/(float)segments;
+        double lengthSection = (startEnding - endIntro)/segments;
 
         // section 1: Opener
         pen.setColor(colorEnds);
@@ -247,11 +247,11 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.setPen(pen);
         painter.setBrush(Qt::white);
 
-        float position = value();
-        float min = minimum();
-        float max = maximum();
-        float pixel_position = left + width * position / (max - min);
-        float handle_size = 13;
+        double position = value();
+        double min = minimum();
+        double max = maximum();
+        double pixel_position = left + width * position / (max - min);
+        double handle_size = 13;
         QRectF rectangle(pixel_position - handle_size / 2,
                          middle - handle_size / 2,
                          handle_size,

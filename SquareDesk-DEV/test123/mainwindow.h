@@ -182,8 +182,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
@@ -532,7 +532,7 @@ public:
     void on_sd_set_window_title(QString str);
     void on_sd_add_new_line(QString, int drawing_picture);
     void on_sd_set_pick_string(QString);
-    void on_sd_dispose_of_abbreviation(QString);;
+    void on_sd_dispose_of_abbreviation(QString);
     void on_sd_set_matcher_options(QStringList options, QStringList levels);
     void on_sd_update_status_bar(QString str);
     void on_sd_awaiting_input();
@@ -610,15 +610,15 @@ private:
     QMap<int,QPair<QWidget *,QString> > tabmap; // keep track of experimental tabs
 
 //    unsigned char currentState;
-    short int currentPitch;
+    int currentPitch;
     unsigned short currentVolume;
     int previousVolume;
 
-    float startOfSong_sec;  // beginning of the song that is loaded
-    float endOfSong_sec;    // end of the song that is loaded
+    double startOfSong_sec;  // beginning of the song that is loaded
+    double endOfSong_sec;    // end of the song that is loaded
 
     bool tempoIsBPM;
-    float baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
+    double baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
     bool switchToLyricsOnPlay;
 
     void Info_Volume(void);
@@ -647,7 +647,7 @@ private:
 
     int getRsyncFileCount(QString sourceDir, QString destDir);
 
-    float getID3BPM(QString MP3FileName);
+    double getID3BPM(QString MP3FileName);
 
     void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel);
@@ -667,10 +667,10 @@ private:
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
 
-    int pointSizeToIndex(unsigned int pointSize);
-    unsigned int indexToPointSize(int index);
+    int pointSizeToIndex(int pointSize);
+    int indexToPointSize(int index);
 
-    unsigned int currentMacPointSize;
+    int currentMacPointSize;
 
     void setFontSizes();
     void adjustFontSizes();
@@ -741,8 +741,8 @@ private:
 
     // experimental break and patter timers
     bool tipLengthTimerEnabled, breakLengthTimerEnabled, tipLength30secEnabled;
-    unsigned int tipLengthTimerLength, breakLengthTimerLength;
-    unsigned int tipLengthAlarmAction, breakLengthAlarmAction;
+    int tipLengthTimerLength, breakLengthTimerLength;
+    int tipLengthAlarmAction, breakLengthAlarmAction;
 
 #ifdef Q_OS_MAC
     MacUtils macUtils;  // singleton
@@ -816,8 +816,8 @@ private:
 
     QProgressDialog *progressDialog;
     QTimer *progressTimer;
-    float progressTotal;    // 0 - 100 for each stage, resets to zero at start of each stage...
-    float progressOffset;   // 0, 33, 66 for each of the 3 stages of downloading/matching...
+    double progressTotal;    // 0 - 100 for each stage, resets to zero at start of each stage...
+    double progressOffset;   // 0, 33, 66 for each of the 3 stages of downloading/matching...
     bool progressCancelled; // true if user said STOP
 
 private:

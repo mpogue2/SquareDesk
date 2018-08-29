@@ -32,7 +32,7 @@
 #include <QTimer>
 
 // GLOBALS =========
-float gStream_Pan = 0.0;
+float  gStream_Pan = 0.0;
 bool gStream_Mono = false;
 HDSP gMono_dsp = 0;  // DSP handle (u32)
 
@@ -49,14 +49,14 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
 
     // NOTE: uses globals: gStream_Mono (true|false) and gStream_Pan (-1.0 = all L, 1.0 = all R)
 
-    float *d = (float *)buffer;
+    float *d = static_cast<float *>(buffer);
     DWORD a;
     float outL, outR;
     float inL,inR;
     float mono;
 
-    const float PI_OVER_2 = (float)3.14159265/2.0;
-    float theta = PI_OVER_2 * (gStream_Pan + 1.0)/2.0;  // convert to 0-PI/2
+    const float PI_OVER_2 = 3.14159265f/2.0f;
+    float theta = PI_OVER_2 * (gStream_Pan + 1.0f)/2.0f;  // convert to 0-PI/2
     float KL = cos(theta);
     float KR = sin(theta);
 
@@ -68,7 +68,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             inR = d[a+1];
             outL = KL * inL;
             outR = KR * inR;             // constant power pan
-            mono = (outL + outR)/2.0;  // mix down to mono for BOTH output channels
+            mono = (outL + outR)/2.0f;  // mix down to mono for BOTH output channels
             d[a] = d[a+1] = mono;
         }
 
@@ -154,7 +154,7 @@ void bass_audio::SetTempo(int newTempo)
 {
 //    qDebug() << "Setting new tempo: " << newTempo;
     Stream_Tempo = newTempo;
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)(newTempo-100.0f)); // pass -10 to go 10% slower
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, static_cast<float>(newTempo-100.0f)); // pass -10 to go 10% slower
 }
 
 // ------------------------------------------------------------------
@@ -162,19 +162,19 @@ void bass_audio::SetPitch(int newPitch)
 {
 //    qDebug() << "Setting new pitch: " << newPitch;
     Stream_Pitch = newPitch;
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO_PITCH, (float)newPitch);
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO_PITCH, static_cast<float>(newPitch));
 }
 
 // ------------------------------------------------------------------
-void bass_audio::SetPan(float newPan)
+void bass_audio::SetPan(double newPan)
 {
-    gStream_Pan = newPan;
+    gStream_Pan = static_cast<float>(newPan);
 //    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_PAN, newPan);  // Panning/Mixing now done in MONO routine
 }
 
 // ------------------------------------------------------------------
-// SetEq (band = 0,1,2), value = -15..15 (float)
-void bass_audio::SetEq(int band, float val)
+// SetEq (band = 0,1,2), value = -15..15 (double)
+void bass_audio::SetEq(int band, double val)
 {
     Stream_Eq[band] = val;
 
@@ -182,7 +182,7 @@ void bass_audio::SetEq(int band, float val)
     eq.lBand = band;    // get all values of the selected band
     BASS_FXGetParameters(fxEQ, &eq);
 
-    eq.fGain = val;     // modify just the level of the selected band, and set all
+    eq.fGain = static_cast<float>(val);     // modify just the level of the selected band, and set all
     BASS_FXSetParameters(fxEQ, &eq);
 }
 
@@ -200,12 +200,12 @@ void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *us
         // if active, PAUSE the stream
         BASS_ChannelPause(channel);
 
-        ((bass_audio*)user)->StreamGetPosition();
-        ((bass_audio*)user)->bPaused = true;
+        static_cast<bass_audio*>(user)->StreamGetPosition();
+        static_cast<bass_audio*>(user)->bPaused = true;
     }
 }
 
-void bass_audio::songStartDetector(const char *filepath, float *pSongStart, float *pSongEnd) {
+void bass_audio::songStartDetector(const char *filepath, double  *pSongStart, double  *pSongEnd) {
     // returns start of non-silence in seconds, max 20 seconds
 
     int peak = 0;
@@ -217,7 +217,7 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
     HSTREAM chan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
     if ( chan )
     {
-        float block = 20;  // take a 20ms level sample every 20ms
+        double  block = 20;  // take a 20ms level sample every 20ms
 
         // BASS_ChannelGetLevel takes 20ms from the channel
         QWORD len = BASS_ChannelSeconds2Bytes(chan, block/1000.0 - 0.02);  // always takes a 0.02s level sample
@@ -259,7 +259,7 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
             break;  // we've found where the silence ends
         }
     }
-    float startOfSong_sec = (float)k/10.0;
+    double startOfSong_sec = k/10.0;
 //    printf("Song start (sec): %f\n", startOfSong_sec);
 
     // find END of song
@@ -268,7 +268,7 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
             break;  // we've found where the silence starts at the end of the song
         }
     }
-    float endOfSong_sec = (float)k/10.0;
+    double endOfSong_sec = k/10.0;
 //    printf("Song end (sec): %f\n", endOfSong_sec);
     fflush(stdout);
 
@@ -280,7 +280,7 @@ void bass_audio::songStartDetector(const char *filepath, float *pSongStart, floa
 }
 
 // ------------------------------------------------------------------
-void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float *pSongEnd_sec, double intro1_frac, double outro1_frac)
+void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, double  *pSongEnd_sec, double intro1_frac, double outro1_frac)
 {
     Q_UNUSED(intro1_frac)
     Q_UNUSED(outro1_frac)
@@ -289,8 +289,8 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     Stream = BASS_StreamCreateFile(false, filepath, 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)100.0/100.0f);
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, (float)0);
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 100.0f/100.0f);
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, 0.0f);
     StreamGetLength(); // sets FileLength
 
     // finds song start and end points ------------
@@ -345,7 +345,7 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float
     ClearLoop();
 
     // OPEN THE STREAM FOR BPM DETECTION -------------------------------------------
-    float startSec1, endSec1;
+    double startSec1, endSec1;
 
     // look at a segment from T=10 to T=30sec
     if (FileLength > 30.0) {
@@ -363,7 +363,7 @@ void bass_audio::StreamCreate(const char *filepath, float *pSongStart_sec, float
 
     HSTREAM bpmChan;
 
-    float bpmValue1 = 0;
+    double bpmValue1 = 0;
     bpmChan = BASS_StreamCreateFile(FALSE, filepath, 0, 0, BASS_STREAM_DECODE);
     // detect bpm in background and return progress in GetBPM_ProgressCallback function
     if (bpmChan) {
@@ -407,7 +407,7 @@ bool bass_audio::isPaused(void)
 // ------------------------------------------------------------------
 void bass_audio::StreamSetPosition(double Position_sec)
 {
-    BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, (double)Position_sec), BASS_POS_BYTE);
+    BASS_ChannelSetPosition(Stream, BASS_ChannelSeconds2Bytes(Stream, Position_sec), BASS_POS_BYTE);
 //    Current_Position = Position_sec; // ??
 }
 
@@ -415,21 +415,21 @@ void bass_audio::StreamSetPosition(double Position_sec)
 void bass_audio::StreamGetLength(void)
 {
     QWORD Length = BASS_ChannelGetLength(Stream, BASS_POS_BYTE);
-    FileLength = (double)BASS_ChannelBytes2Seconds(Stream, Length);
+    FileLength = BASS_ChannelBytes2Seconds(Stream, Length);
 }
 
 // ------------------------------------------------------------------
 void bass_audio::StreamGetPosition(void)
 {
     QWORD Position = BASS_ChannelGetPosition(Stream, BASS_POS_BYTE);
-    Current_Position = (double)BASS_ChannelBytes2Seconds(Stream, Position);
+    Current_Position = BASS_ChannelBytes2Seconds(Stream, Position);
 }
 
 // always asks the engine what the state is (NOT CACHED), then returns one of:
 //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
 uint32_t bass_audio::currentStreamState() {
     DWORD Stream_State = BASS_ChannelIsActive(Stream);
-    return((uint32_t)Stream_State);
+    return(static_cast<uint32_t>(Stream_State));
 }
 
 // ------------------------------------------------------------------
@@ -462,7 +462,7 @@ void CALLBACK MySyncProc(HSYNC handle, DWORD channel, DWORD data, void *user)
 {
     Q_UNUSED(data)
     Q_UNUSED(handle)
-    QWORD endPoint_bytes = *((QWORD *)user);
+    QWORD endPoint_bytes = *(static_cast<QWORD *>(user));
     if (endPoint_bytes > 0) {
         BASS_ChannelSetPosition(channel, endPoint_bytes, BASS_POS_BYTE);
     }
@@ -477,12 +477,12 @@ void bass_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
     loopFromPoint_sec = fromPoint_sec;
     loopToPoint_sec = toPoint_sec;
 
-    startPoint_bytes = (QWORD)(BASS_ChannelSeconds2Bytes(Stream, fromPoint_sec));
-    endPoint_bytes = (QWORD)(BASS_ChannelSeconds2Bytes(Stream, toPoint_sec));
+    startPoint_bytes = BASS_ChannelSeconds2Bytes(Stream, fromPoint_sec);
+    endPoint_bytes = BASS_ChannelSeconds2Bytes(Stream, toPoint_sec);
     // TEST
-    DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_POS, startPoint_bytes, MySyncProc, &endPoint_bytes);
+    HSYNC handle = BASS_ChannelSetSync(Stream, BASS_SYNC_POS, startPoint_bytes, MySyncProc, &endPoint_bytes);
     // Q_UNUSED(handle)
-    syncHandle = (HSYNC)handle;  // save the handle
+    syncHandle = handle;  // save the handle
 }
 
 void bass_audio::ClearLoop()
@@ -541,10 +541,10 @@ void bass_audio::FadeOutAndPause(void) {
     }
 }
 
-void bass_audio::StartVolumeDucking(int duckToPercent, float forSeconds) {
+void bass_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
 //    qDebug() << "Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
 
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, (float)duckToPercent/100.0); // drop Stream (main music stream) to a % of current volume
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(duckToPercent)/100.0f); // drop Stream (main music stream) to a % of current volume
 
     QTimer::singleShot(forSeconds*1000.0, [=] {
         StopVolumeDucking();
@@ -579,10 +579,10 @@ void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volu
         BASS_StreamFree(FXStream);                                                  // clean up the old stream
     }
     FXStream = BASS_StreamCreateFile(false, filename, 0, 0, 0);
-    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, (float)volume/100.0f);  // volume relative to 100% of Music
+    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, static_cast<float>(volume)/100.0f);  // volume relative to 100% of Music
 
     QWORD Length = BASS_ChannelGetLength(FXStream, BASS_POS_BYTE);
-    double FXLength_seconds = (double)BASS_ChannelBytes2Seconds(FXStream, Length);
+    double FXLength_seconds = BASS_ChannelBytes2Seconds(FXStream, Length);
 
     StartVolumeDucking(20, FXLength_seconds);
 
