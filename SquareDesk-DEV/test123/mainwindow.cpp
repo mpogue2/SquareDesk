@@ -333,6 +333,9 @@ MainWindow::MainWindow(QWidget *parent) :
 //    // TODO
 //#endif
 
+#if defined(Q_OS_LINUX)
+#define OS_FALLTHROUGH [[fallthrough]]
+#endif
     // Disable extra (Native Mac) tab bar
 #if defined(Q_OS_MAC)
     macUtils.disableWindowTabbing();
@@ -4905,6 +4908,8 @@ bool filterContains(QString str, const QStringList &list)
 {
     if (list.isEmpty())
         return true;
+    // Make "it's" and "its" equivalent.
+    str.replace("'","");
 
     int title_end = str.indexOf(title_tags_remover);
     str.replace(title_tags_remover, " ");
@@ -4954,7 +4959,7 @@ bool filterContains(QString str, const QStringList &list)
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
-    QRegExp rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t'
+    QRegExp rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
 
     QStringList label = ui->labelSearch->text().split(rx);
     QStringList type = ui->typeSearch->text().split(rx);
