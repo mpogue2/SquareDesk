@@ -68,7 +68,8 @@ SOURCES += main.cpp\
     sdredostack.cpp \
     makeflashdrivewizard.cpp \
     songlistmodel.cpp \
-    mydatetimeedit.cpp
+    mydatetimeedit.cpp \
+    abbrev.cpp
 
 macx {
 SOURCES += ../qpdfjs/src/communicator.cpp
@@ -120,7 +121,8 @@ HEADERS  += mainwindow.h \
     makeflashdrivewizard.h \
     songlistmodel.h \
     mydatetimeedit.h \
-    keyactions.h
+    keyactions.h \
+    abbrev.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h
@@ -544,7 +546,9 @@ DISTFILES += \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
     cuesheet2.css \
-    lyrics.template.html
+    lyrics.template.html \
+    designators.csv \
+    calls.csv
 
 CONFIG += c++11
 

@@ -52,6 +52,7 @@
 #include <QPrinter>
 #include <QPrintDialog>
 
+#include "abbrev.h"
 #include "analogclock.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -298,6 +299,8 @@ MainWindow::MainWindow(QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    testAbbrev();
+
     filewatcherShouldIgnoreOneFileSave = false;
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open

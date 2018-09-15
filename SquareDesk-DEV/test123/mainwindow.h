@@ -208,7 +208,7 @@ public:
     void checkLockFile();
     void clearLockFile(QString path);
 
-    QStringList parseCSV(const QString &string);
+    static QStringList parseCSV(const QString &string);
     QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
