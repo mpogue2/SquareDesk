@@ -265,7 +265,12 @@ macx {
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
-    QMAKE_MAC_SDK = macosx10.13
+    # NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
+    #   stale .qmake.stash file in the BUILD directory.  This file is supposed to be regenerated when the kit changes,
+    #   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
+    #   You must delete that file manually right now, when the MAC SDK version changes.
+    #   See: https://bugreports.qt.io/browse/QTBUG-43015
+    QMAKE_MAC_SDK = macosx10.14
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
