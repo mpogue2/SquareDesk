@@ -86,6 +86,7 @@ void RenderArea::setFormation(QString s)
 }
 
 void RenderArea::setCoupleColoringScheme(QString colorScheme) {
+    Q_UNUSED(colorScheme)
 //    coupleColoringScheme = colorScheme;  // save as QString
 //    if (colorScheme == "Normal" || colorScheme == "Color only") {
 //        coupleColor[COUPLE1] = COUPLE1COLOR;
@@ -115,7 +116,7 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 {
 //    qDebug() << "paintEvent" << bad++;
 
-    QRect rect(10, 20, 80, 60);
+//    QRect rect(10, 20, 80, 60);
 
     QPainter painter(this);
 

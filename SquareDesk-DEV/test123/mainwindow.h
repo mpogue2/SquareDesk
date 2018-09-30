@@ -150,7 +150,7 @@ private:
     double dest_x;
     double dest_y;
     double dest_direction;
-    double destination_divisor;
+//    double destination_divisor;
 public:
     double labelTranslateX;
     double labelTranslateY;

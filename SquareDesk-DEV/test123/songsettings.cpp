@@ -824,6 +824,7 @@ SongSetting::SongSetting()
     // handle the trailing comma problem.
     dummy(false)
 {
+    dummy = false;  // remove Mac OS X compiler warning (it doesn't realize that the initializer above DOES use dummy)
 }
 
 QDebug operator<<(QDebug dbg, const SongSetting &setting)
