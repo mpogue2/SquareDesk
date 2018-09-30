@@ -6193,7 +6193,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 //        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
         if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
             // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
-            ui->actionSave->setEnabled(false);  // save playlist (TODO: doesn't remember current playlist name)
+            ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
             ui->actionSave_As->setEnabled(true);  // save playlist as...
         }
     }
@@ -6360,9 +6360,33 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     }
 }
 
+void MainWindow::savePlaylistAgain() // saves without asking for a filename
+{
+    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+
+    if (lastSavedPlaylist == "") {
+        // nothing saved yet!
+//        qDebug() << "NOTHING SAVED YET.";
+        return;  // so just return without saving anything
+    }
+
+//    qDebug() << "OK, SAVED TO: " << lastSavedPlaylist;
+
+    // else use lastSavedPlaylist
+    saveCurrentPlaylistToFile(lastSavedPlaylist);  // SAVE IT
+
+    // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
+    //   no playlist was loaded), Save Playlist... should be greyed out.
+    QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+//    qDebug() << "Basefilename: " << basefilename;
+    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
+    // no need to remember it here, it's already the one we remembered.
+
+//    ui->actionSave->setEnabled(false);  // once saved, this is not reenabled, until you change it.
+}
 
 // TODO: strip off the root directory before saving...
-void MainWindow::on_actionSave_Playlist_triggered()
+void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really misnamed, it's Save As.
 {
     on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
 
@@ -6403,10 +6427,13 @@ void MainWindow::on_actionSave_Playlist_triggered()
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
     QString basefilename = PlaylistFileName.section("/",-1,-1);
-    qDebug() << "Basefilename: " << basefilename;
+//    qDebug() << "Basefilename: " << basefilename;
     ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
 
     lastSavedPlaylist = PlaylistFileName; // remember it, for the next SAVE operation (defaults to last saved in this session)
+
+    ui->actionSave->setEnabled(true);  // now that we have Save As'd something, we can now Save that thing
+    ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
 }
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
@@ -6616,8 +6643,10 @@ void MainWindow::on_songTable_itemSelectionChanged()
         // figure out whether save/save as are enabled here
         linesInCurrentPlaylist = playlistItemCount;
 //        qDebug() << "songTableItemSelectionChanged:" << playlistItemCount;
-        if (playlistItemCount > 0) {
+        if ((playlistItemCount > 0) && (lastSavedPlaylist != "")) {
             ui->actionSave->setEnabled(true);
+            QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
             ui->actionSave_As->setEnabled(true);
         }
 
@@ -7649,8 +7678,13 @@ void MainWindow::on_tabWidget_currentChanged(int index)
             ui->actionFilePrint->setText("Print Patter...");
         }
     } else if (ui->tabWidget->tabText(index) == "Music Player") {
-        ui->actionSave->setEnabled(linesInCurrentPlaylist != 0);      // playlist can be saved if there are >0 lines
-        ui->actionSave->setText("Save Playlist"); // but greyed out, until there is a playlist
+        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != ""));      // playlist can be saved if there are >0 lines and it was not current.m3u
+        if (lastSavedPlaylist != "") {
+            QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
+        } else {
+            ui->actionSave->setText(QString("Save Playlist")); // it doesn't have a name yet
+        }
         ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
         ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
 
@@ -9278,7 +9312,7 @@ void MainWindow::on_actionSave_triggered()
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
-        on_actionSave_Playlist_triggered(); // really "Save As..."
+        savePlaylistAgain(); // Now a true SAVE (if one was already saved)
     } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
         // lyrics/patter
         saveLyrics();

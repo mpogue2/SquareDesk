@@ -683,6 +683,7 @@ private:
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
     // Playlist stuff ----------
+    void savePlaylistAgain();  // saves with the same name we used last time (if there was a last time)
     QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
     void finishLoadingPlaylist(QString PlaylistFileName);
 
