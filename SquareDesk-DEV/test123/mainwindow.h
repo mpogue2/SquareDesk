@@ -579,6 +579,7 @@ private:
     void downloadCuesheetFileIfNeeded(QString cuesheetFilename);
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
+    QString lastSavedPlaylist;       // "" if no playlist was saved in this session
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;

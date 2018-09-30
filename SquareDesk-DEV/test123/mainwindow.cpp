@@ -298,6 +298,8 @@ MainWindow::MainWindow(QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    lastSavedPlaylist = "";  // no playlists saved yet in this session
+
     filewatcherShouldIgnoreOneFileSave = false;
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
@@ -6375,10 +6377,16 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     QString preferred("CSV files (*.csv)");
     trapKeypresses = false;
+
+    QString startHere = startingPlaylistDirectory + "/playlist.csv";  // if we haven't saved yet
+    if (lastSavedPlaylist != "") {
+        startHere = lastSavedPlaylist;  // if we HAVE saved already, default to same file
+    }
+
     QString PlaylistFileName =
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
-                                     startingPlaylistDirectory + "/playlist.csv",
+                                     startHere,
                                      tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
                                      &preferred);  // preferred is CSV
     trapKeypresses = true;
@@ -6394,16 +6402,11 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
+    QString basefilename = PlaylistFileName.section("/",-1,-1);
+    qDebug() << "Basefilename: " << basefilename;
+    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
 
-    if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
-        ui->statusBar->showMessage(QString("Playlist items saved as CSV file."));
-    }
-    else if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
-        ui->statusBar->showMessage(QString("Playlist items saved as M3U file."));
-    }
-    else {
-        ui->statusBar->showMessage(QString("ERROR: Can't save to that format."));
-    }
+    lastSavedPlaylist = PlaylistFileName; // remember it, for the next SAVE operation (defaults to last saved in this session)
 }
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
