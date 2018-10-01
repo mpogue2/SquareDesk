@@ -789,6 +789,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
 
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(13));  // TODO: factor out colors
+
     // read list of calls (in application bundle on Mac OS X)
     // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
     //   file on those platforms.  It's convenient to stick it in the bundle on Mac OS X.  Maybe parallel with
@@ -8784,6 +8786,8 @@ void MainWindow::usePersistentFontSize() {
     ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
 
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();  // use that font size to scale everything else (relative)
 }
@@ -8814,6 +8818,9 @@ void MainWindow::on_actionZoom_In_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
+
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
@@ -8838,6 +8845,9 @@ void MainWindow::on_actionZoom_Out_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
+
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 
