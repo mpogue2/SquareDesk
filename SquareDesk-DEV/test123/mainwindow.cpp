@@ -3881,13 +3881,13 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
     };
 
     switch (songFilenameFormat) {
-        default:  // WARNING: THIS IS ALMOST CERTAINLY WRONG
-        case SongFilenameLabelDashName :
-            return label_first_matches;
         case SongFilenameNameDashLabel :
             return filename_first_matches;
         case SongFilenameBestGuess :
             return best_guess_matches;
+        case SongFilenameLabelDashName :
+        default:  // ignore the warning here, this default label does NOT cover all enum values
+            return label_first_matches;
     }
 }
 
