@@ -337,7 +337,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
+#elif defined(Q_OS_WIN)
+#define OS_FALLTHROUGH
+#else
+    // already defined on Mac OS X
 #endif
+
     // Disable extra (Native Mac) tab bar
 #if defined(Q_OS_MAC)
     macUtils.disableWindowTabbing();
@@ -6364,7 +6369,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
 
 void MainWindow::savePlaylistAgain() // saves without asking for a filename
 {
-    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+//    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
 
     if (lastSavedPlaylist == "") {
         // nothing saved yet!
@@ -6390,7 +6395,7 @@ void MainWindow::savePlaylistAgain() // saves without asking for a filename
 // TODO: strip off the root directory before saving...
 void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really misnamed, it's Save As.
 {
-    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+//    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
