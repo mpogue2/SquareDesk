@@ -1111,7 +1111,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 
 void MainWindow::submit_lineEditSDInput_contents_to_sd()
 {
-    QString cmd(ui->lineEditSDInput->text().trimmed());
+    QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
     ui->lineEditSDInput->clear();
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
@@ -1195,9 +1195,13 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     // handle the <anything> and roll case
     //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
     if (!cmd.contains("[")) {
-        QRegExp andRollCall("(.*) and roll.*");
-        if (cmd.indexOf(andRollCall) != -1) {
-            cmd = "[" + andRollCall.cap(1) + "] and roll";
+
+        // TODO: might want to make this A-level specific?
+        if (!cmd.contains("pass and roll")) {  // at A-level, "Pass and Roll" must not be turned into "[Pass] and Roll"
+            QRegExp andRollCall("(.*) and roll.*");
+            if (cmd.indexOf(andRollCall) != -1) {
+                cmd = "[" + andRollCall.cap(1) + "] and roll";
+            }
         }
 
         // explode must be handled *after* roll, because explode binds tightly with the call
