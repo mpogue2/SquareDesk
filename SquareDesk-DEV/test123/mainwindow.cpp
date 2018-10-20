@@ -6224,6 +6224,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 
+    // simplify path, for the error message case
+    firstBadSongLine = firstBadSongLine.split(",")[0].replace("\"", "").replace(musicRootPath, "");
+
     sortByDefaultSortOrder();
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
 
@@ -6239,7 +6242,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
     if (firstBadSongLine != "") {
         // if there was a non-matching path, tell the user what the first one of those was
-        msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
+        msg1 = QString("ERROR: could not find '...") + firstBadSongLine + QString("'");
         ui->songTable->clearSelection(); // select nothing, if error
     }
     ui->statusBar->showMessage(msg1);
