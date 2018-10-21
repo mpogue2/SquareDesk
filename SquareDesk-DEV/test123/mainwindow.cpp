@@ -318,6 +318,7 @@ MainWindow::MainWindow(QWidget *parent) :
     soundFXname.clear();
 
     maybeInstallSoundFX();
+    maybeInstallReferencefiles();
 
 //    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
@@ -8341,6 +8342,62 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     }
 
     msgBox.exec();
+}
+
+void MainWindow::maybeInstallReferencefiles() {
+
+    #if defined(Q_OS_MAC)
+        QString pathFromAppDirPathToResources = "/../Resources";
+
+        // Let's make a "reference" directory in the Music Directory, if it doesn't exist already
+        QString musicDirPath = prefsManager.GetmusicPath();
+        QString referenceDir = musicDirPath + "/reference";
+
+        // if the reference directory doesn't exist, create it (always, automatically)
+        QDir dir(referenceDir);
+        if (!dir.exists()) {
+            dir.mkpath(".");  // make it
+        }
+
+        // ---------------
+        // and populate it with the SD doc, if it didn't exist (somewhere) already
+        bool hasSDpdf = false;
+        QDirIterator it(referenceDir);
+        while(it.hasNext()) {
+            QString s2 = it.next();
+            QString s1 = it.fileName();
+            // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 200.SD.pdf
+            if (s1.contains(QRegExp("^[0-9]+\\.SD.pdf")) || s1.contains(QRegExp("^SD.pdf"))) {
+               hasSDpdf = true;
+            }
+        }
+
+        if (!hasSDpdf) {
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/sd_doc.pdf";
+            QString destination = referenceDir + "/199.SD.pdf";
+            QFile::copy(source, destination);
+        }
+
+        // ---------------
+        // and populate it with the SquareDesk doc, if it didn't exist (somewhere) already
+        bool hasSDESKpdf = false;
+        QDirIterator it2(referenceDir);
+        while(it2.hasNext()) {
+            QString s2 = it2.next();
+            QString s1 = it2.fileName();
+            // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 198.SDESK.pdf
+            if (s1.contains(QRegExp("^[0-9]+\\.SDESK.pdf")) || s1.contains(QRegExp("^SDESK.pdf"))) {
+               hasSDESKpdf = true;
+            }
+        }
+
+        if (!hasSDESKpdf) {
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/squaredesk.pdf";
+            QString destination = referenceDir + "/198.SDESK.pdf";
+            QFile::copy(source, destination);
+        }
+    #endif
+
 }
 
 void MainWindow::maybeInstallSoundFX() {

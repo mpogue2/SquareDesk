@@ -809,6 +809,7 @@ private:
     QMap<int, QString> soundFXfilenames;    // e.g. "9.foo.mp3" --> [9,"9.foo.mp3"]
     QMap<int, QString> soundFXname;         // e.g. "9.foo.mp3" --> [9,"foo"]
     void maybeInstallSoundFX();
+    void maybeInstallReferencefiles();
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 
