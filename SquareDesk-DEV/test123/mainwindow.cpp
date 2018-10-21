@@ -8366,7 +8366,7 @@ void MainWindow::maybeInstallReferencefiles() {
         while(it.hasNext()) {
             QString s2 = it.next();
             QString s1 = it.fileName();
-            // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 200.SD.pdf
+            // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
             if (s1.contains(QRegExp("^[0-9]+\\.SD.pdf")) || s1.contains(QRegExp("^SD.pdf"))) {
                hasSDpdf = true;
             }
@@ -8374,7 +8374,7 @@ void MainWindow::maybeInstallReferencefiles() {
 
         if (!hasSDpdf) {
             QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/sd_doc.pdf";
-            QString destination = referenceDir + "/199.SD.pdf";
+            QString destination = referenceDir + "/195.SD.pdf";
             QFile::copy(source, destination);
         }
 
@@ -8385,7 +8385,7 @@ void MainWindow::maybeInstallReferencefiles() {
         while(it2.hasNext()) {
             QString s2 = it2.next();
             QString s1 = it2.fileName();
-            // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 198.SDESK.pdf
+            // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
             if (s1.contains(QRegExp("^[0-9]+\\.SDESK.pdf")) || s1.contains(QRegExp("^SDESK.pdf"))) {
                hasSDESKpdf = true;
             }
@@ -8393,7 +8393,7 @@ void MainWindow::maybeInstallReferencefiles() {
 
         if (!hasSDESKpdf) {
             QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/squaredesk.pdf";
-            QString destination = referenceDir + "/198.SDESK.pdf";
+            QString destination = referenceDir + "/190.SDESK.pdf";
             QFile::copy(source, destination);
         }
     #endif
