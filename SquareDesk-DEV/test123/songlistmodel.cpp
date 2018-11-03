@@ -62,7 +62,8 @@ int SongListModel::columnCount(const QModelIndex &parent) const
 QVariant SongListModel::data(const QModelIndex &index, int role) const
 {
     Q_UNUSED(role)
-    auto & songRow(songRows[index.row()]);
+    Q_UNUSED(index)
+//    auto & songRow(songRows[index.row()]);
 #if 0
     switch (index.column())
     {
@@ -104,6 +105,7 @@ Qt::ItemFlags SongListModel::flags(const QModelIndex &index) const
     {
     case kNumberCol :
         flag |= Qt::ItemIsEditable;
+        break;
     default :
         break;
     }

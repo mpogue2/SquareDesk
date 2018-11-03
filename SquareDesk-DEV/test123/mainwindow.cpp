@@ -298,6 +298,8 @@ MainWindow::MainWindow(QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    lastSavedPlaylist = "";  // no playlists saved yet in this session
+
     filewatcherShouldIgnoreOneFileSave = false;
     PerfTimer t("MainWindow::MainWindow");
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
@@ -316,6 +318,7 @@ MainWindow::MainWindow(QWidget *parent) :
     soundFXname.clear();
 
     maybeInstallSoundFX();
+    maybeInstallReferencefiles();
 
 //    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
@@ -335,7 +338,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
+#elif defined(Q_OS_WIN)
+#define OS_FALLTHROUGH
+#else
+    // already defined on Mac OS X
 #endif
+
     // Disable extra (Native Mac) tab bar
 #if defined(Q_OS_MAC)
     macUtils.disableWindowTabbing();
@@ -786,6 +794,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButtonTestLoop->setEnabled(false);
 
     analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
+
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(13));  // TODO: factor out colors
 
     // read list of calls (in application bundle on Mac OS X)
     // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
@@ -3896,13 +3906,13 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
     };
 
     switch (songFilenameFormat) {
-        default:  // WARNING: THIS IS ALMOST CERTAINLY WRONG
-        case SongFilenameLabelDashName :
-            return label_first_matches;
         case SongFilenameNameDashLabel :
             return filename_first_matches;
         case SongFilenameBestGuess :
             return best_guess_matches;
+        case SongFilenameLabelDashName :
+        default:  // ignore the warning here, this default label does NOT cover all enum values
+            return label_first_matches;
     }
 }
 
@@ -6208,7 +6218,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 //        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
         if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
             // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
-            ui->actionSave->setEnabled(false);  // save playlist (TODO: doesn't remember current playlist name)
+            ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
             ui->actionSave_As->setEnabled(true);  // save playlist as...
         }
     }
@@ -6232,6 +6242,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 
+    // simplify path, for the error message case
+    firstBadSongLine = firstBadSongLine.split(",")[0].replace("\"", "").replace(musicRootPath, "");
+
     sortByDefaultSortOrder();
     ui->songTable->sortItems(kNumberCol);  // sort by playlist # as primary (must be LAST)
 
@@ -6247,7 +6260,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
     if (firstBadSongLine != "") {
         // if there was a non-matching path, tell the user what the first one of those was
-        msg1 = QString("ERROR: could not find '") + firstBadSongLine + QString("'");
+        msg1 = QString("ERROR: could not find '...") + firstBadSongLine + QString("'");
         ui->songTable->clearSelection(); // select nothing, if error
     }
     ui->statusBar->showMessage(msg1);
@@ -6375,11 +6388,35 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     }
 }
 
+void MainWindow::savePlaylistAgain() // saves without asking for a filename
+{
+//    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+
+    if (lastSavedPlaylist == "") {
+        // nothing saved yet!
+//        qDebug() << "NOTHING SAVED YET.";
+        return;  // so just return without saving anything
+    }
+
+//    qDebug() << "OK, SAVED TO: " << lastSavedPlaylist;
+
+    // else use lastSavedPlaylist
+    saveCurrentPlaylistToFile(lastSavedPlaylist);  // SAVE IT
+
+    // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
+    //   no playlist was loaded), Save Playlist... should be greyed out.
+    QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+//    qDebug() << "Basefilename: " << basefilename;
+    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
+    // no need to remember it here, it's already the one we remembered.
+
+//    ui->actionSave->setEnabled(false);  // once saved, this is not reenabled, until you change it.
+}
 
 // TODO: strip off the root directory before saving...
-void MainWindow::on_actionSave_Playlist_triggered()
+void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really misnamed, it's Save As.
 {
-    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
+//    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
@@ -6392,10 +6429,16 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     QString preferred("CSV files (*.csv)");
     trapKeypresses = false;
+
+    QString startHere = startingPlaylistDirectory + "/playlist.csv";  // if we haven't saved yet
+    if (lastSavedPlaylist != "") {
+        startHere = lastSavedPlaylist;  // if we HAVE saved already, default to same file
+    }
+
     QString PlaylistFileName =
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
-                                     startingPlaylistDirectory + "/playlist.csv",
+                                     startHere,
                                      tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
                                      &preferred);  // preferred is CSV
     trapKeypresses = true;
@@ -6411,16 +6454,14 @@ void MainWindow::on_actionSave_Playlist_triggered()
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
+    QString basefilename = PlaylistFileName.section("/",-1,-1);
+//    qDebug() << "Basefilename: " << basefilename;
+    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
 
-    if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
-        ui->statusBar->showMessage(QString("Playlist items saved as CSV file."));
-    }
-    else if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
-        ui->statusBar->showMessage(QString("Playlist items saved as M3U file."));
-    }
-    else {
-        ui->statusBar->showMessage(QString("ERROR: Can't save to that format."));
-    }
+    lastSavedPlaylist = PlaylistFileName; // remember it, for the next SAVE operation (defaults to last saved in this session)
+
+    ui->actionSave->setEnabled(true);  // now that we have Save As'd something, we can now Save that thing
+    ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
 }
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
@@ -6630,8 +6671,10 @@ void MainWindow::on_songTable_itemSelectionChanged()
         // figure out whether save/save as are enabled here
         linesInCurrentPlaylist = playlistItemCount;
 //        qDebug() << "songTableItemSelectionChanged:" << playlistItemCount;
-        if (playlistItemCount > 0) {
+        if ((playlistItemCount > 0) && (lastSavedPlaylist != "")) {
             ui->actionSave->setEnabled(true);
+            QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
             ui->actionSave_As->setEnabled(true);
         }
 
@@ -7663,8 +7706,13 @@ void MainWindow::on_tabWidget_currentChanged(int index)
             ui->actionFilePrint->setText("Print Patter...");
         }
     } else if (ui->tabWidget->tabText(index) == "Music Player") {
-        ui->actionSave->setEnabled(linesInCurrentPlaylist != 0);      // playlist can be saved if there are >0 lines
-        ui->actionSave->setText("Save Playlist"); // but greyed out, until there is a playlist
+        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != ""));      // playlist can be saved if there are >0 lines and it was not current.m3u
+        if (lastSavedPlaylist != "") {
+            QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
+        } else {
+            ui->actionSave->setText(QString("Save Playlist")); // it doesn't have a name yet
+        }
         ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
         ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
 
@@ -8313,6 +8361,62 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     msgBox.exec();
 }
 
+void MainWindow::maybeInstallReferencefiles() {
+
+    #if defined(Q_OS_MAC)
+        QString pathFromAppDirPathToResources = "/../Resources";
+
+        // Let's make a "reference" directory in the Music Directory, if it doesn't exist already
+        QString musicDirPath = prefsManager.GetmusicPath();
+        QString referenceDir = musicDirPath + "/reference";
+
+        // if the reference directory doesn't exist, create it (always, automatically)
+        QDir dir(referenceDir);
+        if (!dir.exists()) {
+            dir.mkpath(".");  // make it
+        }
+
+        // ---------------
+        // and populate it with the SD doc, if it didn't exist (somewhere) already
+        bool hasSDpdf = false;
+        QDirIterator it(referenceDir);
+        while(it.hasNext()) {
+            QString s2 = it.next();
+            QString s1 = it.fileName();
+            // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
+            if (s1.contains(QRegExp("^[0-9]+\\.SD.pdf")) || s1.contains(QRegExp("^SD.pdf"))) {
+               hasSDpdf = true;
+            }
+        }
+
+        if (!hasSDpdf) {
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/sd_doc.pdf";
+            QString destination = referenceDir + "/195.SD.pdf";
+            QFile::copy(source, destination);
+        }
+
+        // ---------------
+        // and populate it with the SquareDesk doc, if it didn't exist (somewhere) already
+        bool hasSDESKpdf = false;
+        QDirIterator it2(referenceDir);
+        while(it2.hasNext()) {
+            QString s2 = it2.next();
+            QString s1 = it2.fileName();
+            // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
+            if (s1.contains(QRegExp("^[0-9]+\\.SDESK.pdf")) || s1.contains(QRegExp("^SDESK.pdf"))) {
+               hasSDESKpdf = true;
+            }
+        }
+
+        if (!hasSDESKpdf) {
+            QString source = QCoreApplication::applicationDirPath() + pathFromAppDirPathToResources + "/squaredesk.pdf";
+            QString destination = referenceDir + "/190.SDESK.pdf";
+            QFile::copy(source, destination);
+        }
+    #endif
+
+}
+
 void MainWindow::maybeInstallSoundFX() {
 
 #if defined(Q_OS_MAC)
@@ -8764,6 +8868,8 @@ void MainWindow::usePersistentFontSize() {
     ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
 
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();  // use that font size to scale everything else (relative)
 }
@@ -8794,6 +8900,9 @@ void MainWindow::on_actionZoom_In_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
+
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
@@ -8818,6 +8927,9 @@ void MainWindow::on_actionZoom_Out_triggered()
     currentMacPointSize = newPointSize;
 
     persistNewFontSize(currentMacPointSize);
+
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
+
     setSongTableFont(ui->songTable, currentFont);
     adjustFontSizes();
 
@@ -9292,7 +9404,7 @@ void MainWindow::on_actionSave_triggered()
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
-        on_actionSave_Playlist_triggered(); // really "Save As..."
+        savePlaylistAgain(); // Now a true SAVE (if one was already saved)
     } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
         // lyrics/patter
         saveLyrics();

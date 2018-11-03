@@ -4,7 +4,7 @@
 
 class PerfTimer {
 private:
-    const char *name;
+//    const char *name;
     QElapsedTimer timer;
     bool stopped;
 public:

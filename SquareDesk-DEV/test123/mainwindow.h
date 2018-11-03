@@ -150,7 +150,7 @@ private:
     double dest_x;
     double dest_y;
     double dest_direction;
-    double destination_divisor;
+//    double destination_divisor;
 public:
     double labelTranslateX;
     double labelTranslateY;
@@ -162,7 +162,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 //  Also remember to change the "latest" file on GitHub!
 
-#define VERSIONSTRING "0.9.2alpha7b"
+#define VERSIONSTRING "0.9.2alpha8b"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -579,6 +579,7 @@ private:
     void downloadCuesheetFileIfNeeded(QString cuesheetFilename);
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
+    QString lastSavedPlaylist;       // "" if no playlist was saved in this session
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;
@@ -682,6 +683,7 @@ private:
     void sortByDefaultSortOrder();  // sort songTable by default order (not including # column)
 
     // Playlist stuff ----------
+    void savePlaylistAgain();  // saves with the same name we used last time (if there was a last time)
     QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
     void finishLoadingPlaylist(QString PlaylistFileName);
 
@@ -807,6 +809,7 @@ private:
     QMap<int, QString> soundFXfilenames;    // e.g. "9.foo.mp3" --> [9,"9.foo.mp3"]
     QMap<int, QString> soundFXname;         // e.g. "9.foo.mp3" --> [9,"foo"]
     void maybeInstallSoundFX();
+    void maybeInstallReferencefiles();
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 

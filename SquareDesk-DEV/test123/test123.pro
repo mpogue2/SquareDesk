@@ -265,7 +265,12 @@ macx {
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
-    QMAKE_MAC_SDK = macosx10.13
+    # NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
+    #   stale .qmake.stash file in the BUILD directory.  This file is supposed to be regenerated when the kit changes,
+    #   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
+    #   You must delete that file manually right now, when the MAC SDK version changes.
+    #   See: https://bugreports.qt.io/browse/QTBUG-43015
+    QMAKE_MAC_SDK = macosx10.14
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
@@ -276,12 +281,14 @@ macx {
     # SD --------------------------------------------
     # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
     #  (inside the SquareDesk.app bundle)
+    # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
     # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
-#    copydata1.commands = $(COPY_DIR) $$PWD/../sd/sd_calls.dat $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata2.commands = $(COPY_DIR) $$PWD/../sd/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
+    copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
-    #copydata2.commands = $(COPY_DIR) $$OUT_PWD/../sd/sd $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv $$OUT_PWD/SquareDesk.app/Contents/Resources
+    # SquareDesk Manual (PDF)
+    copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
 
     # PS --------------------------------------------
     # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
@@ -303,8 +310,7 @@ macx {
     copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
     copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
-    #first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     #export(first.depends)
     export(copydata0a.commands)
@@ -312,6 +318,7 @@ macx {
     export(copydata0c.commands)
     export(copydata1.commands)
     export(copydata2.commands)
+    export(copydata2b.commands)
     export(copydata3.commands)
     export(copydata4.commands)
     export(copydata5.commands)
@@ -320,7 +327,7 @@ macx {
     export(copydata7.commands)
     export(copydata8.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
     # SOUNDFX STARTER SET --------------------------------------------
     copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
