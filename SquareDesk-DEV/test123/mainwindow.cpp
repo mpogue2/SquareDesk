@@ -1142,6 +1142,7 @@ static CallListCheckBox * AddItemToCallList(QTableWidget *tableWidget,
     tableWidget->setRowCount(initialRowCount + 1);
     int row = initialRowCount;
 
+
     QTableWidgetItem *numberItem = new QTableWidgetItem(number);
     numberItem->setTextAlignment(Qt::AlignCenter);  // center the #'s in the Teach column
     QTableWidgetItem *nameItem = new QTableWidgetItem(name);
@@ -1220,6 +1221,7 @@ void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWid
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
 
     tableWidget->setRowCount(0);
+    callListOriginalOrder.clear();
 
     QFile inputFile(filename);
     if (inputFile.open(QIODevice::ReadOnly))
@@ -1247,6 +1249,7 @@ void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWid
             }
             QString taughtOn = songSettings.getCallTaughtOn(danceProgram, name);
             CallListCheckBox *checkbox = AddItemToCallList(tableWidget, number, name, taughtOn, findTimingForCall(danceProgram, name));
+            callListOriginalOrder.append(name);
             checkbox->setMainWindow(this);
 
         }
@@ -2065,7 +2068,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 // =============================================================================
 // =============================================================================
 
-void MainWindow::tableWidgetCallList_checkboxStateChanged(int row, int state)
+void MainWindow::tableWidgetCallList_checkboxStateChanged(int clickRow, int state)
 {
     int currentIndex = ui->comboBoxCallListProgram->currentIndex();
     QString programFilename(ui->comboBoxCallListProgram->itemData(currentIndex).toString());
@@ -2073,8 +2076,22 @@ void MainWindow::tableWidgetCallList_checkboxStateChanged(int row, int state)
     QString danceProgram;
     breakDanceProgramIntoParts(programFilename, displayName, danceProgram);
 
-    QString callName = ui->tableWidgetCallList->item(row,kCallListNameCol)->text();
+    QString callName = callListOriginalOrder[clickRow];
+    int row = -1;
 
+    for (row = 0; row < ui->tableWidgetCallList->rowCount(); ++row)
+    {
+        QTableWidgetItem *theItem = ui->tableWidgetCallList->item(row, kCallListNameCol);
+        QString thisCallName = theItem->text();
+        if (thisCallName == callName)
+            break;
+    }
+    if (row < 0 || row >= ui->tableWidgetCallList->rowCount())
+    {
+        qDebug() << "call list row original call name not found, clickRow " << clickRow << " name " << callName << " row " << row;
+        return;
+    }
+    
     if (state == Qt::Checked)
     {
         songSettings.setCallTaught(danceProgram, callName);

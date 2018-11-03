@@ -843,6 +843,8 @@ public:
     void actionFilterSongsToPatter();
     void actionFilterSongsToSingers();
     void actionFilterSongsPatterSingersToggle();
+
+    QStringList callListOriginalOrder;
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);
 
