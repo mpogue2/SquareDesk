@@ -301,7 +301,9 @@ MainWindow::MainWindow(QWidget *parent) :
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
     filewatcherShouldIgnoreOneFileSave = false;
-    PerfTimer t("MainWindow::MainWindow");
+
+    PerfTimer t("MainWindow::MainWindow", __LINE__);
+
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
     flashCallsVisible = false;
@@ -320,11 +322,14 @@ MainWindow::MainWindow(QWidget *parent) :
     maybeInstallSoundFX();
     maybeInstallReferencefiles();
 
+    t.elapsed(__LINE__);
+
 //    qDebug() << "preferences recentFenceDateTime: " << prefsManager.GetrecentFenceDateTime();
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
     recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
 
+    t.elapsed(__LINE__);
 
     // Disable ScreenSaver while SquareDesk is running
 //#if defined(Q_OS_MAC)
@@ -349,16 +354,50 @@ MainWindow::MainWindow(QWidget *parent) :
     macUtils.disableWindowTabbing();
 #endif
 
+    t.elapsed(__LINE__);
+
     prefDialog = nullptr;      // no preferences dialog created yet
     songLoaded = false;     // no song is loaded, so don't update the currentLocLabel
 
+    t.elapsed(__LINE__);
     ui->setupUi(this);
+
+    t.elapsed(__LINE__);
     ui->statusBar->showMessage("");
 
+    t.elapsed(__LINE__);
     micStatusLabel = new QLabel("MICS OFF");
     ui->statusBar->addPermanentWidget(micStatusLabel);
 
-    setFontSizes();
+    // NEW INIT ORDER *******
+    t.elapsed(__LINE__);
+//    setFontSizes();
+
+    t.elapsed(__LINE__);
+    usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
+
+    //on_actionReset_triggered();  // set initial layout
+
+    t.elapsed(__LINE__);
+
+    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(13));  // TODO: factor out colors
+
+    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+    ui->songTable->setColumnWidth(kTypeCol,96);
+    ui->songTable->setColumnWidth(kLabelCol,80);
+//  kTitleCol is always expandable, so don't set width here
+    ui->songTable->setColumnWidth(kRecentCol, 70);
+    ui->songTable->setColumnWidth(kAgeCol, 36);
+    ui->songTable->setColumnWidth(kPitchCol,60);
+    ui->songTable->setColumnWidth(kTempoCol,60);
+
+    zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
+
+    t.elapsed(__LINE__);
+
+    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
+
+    t.elapsed(__LINE__);
 
     this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
 
@@ -374,6 +413,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->nextSongButton->setEnabled(false);
     ui->previousSongButton->setEnabled(false);
 
+    t.elapsed(__LINE__);
+
     // ============
     ui->menuFile->addSeparator();
 
@@ -385,6 +426,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->typeSearch->setClearButtonEnabled(enableClearButtons);
     ui->labelSearch->setClearButtonEnabled(enableClearButtons);
     ui->titleSearch->setClearButtonEnabled(enableClearButtons);
+
+    t.elapsed(__LINE__);
 
     // ------------
     // NOTE: MAC OS X & Linux ONLY
@@ -469,7 +512,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     SetKeyMappings(hotkeyMappings, hotkeyShortcuts);
-    
+
+    t.elapsed(__LINE__);
 
 #if !defined(Q_OS_MAC)
     // disable this menu item for WIN and LINUX, until
@@ -516,6 +560,8 @@ MainWindow::MainWindow(QWidget *parent) :
     vuMeter->setEnabled(true);
     vuMeter->setVisible(true);
 
+    t.elapsed(__LINE__);
+
     // analog clock -----
     analogClock = new AnalogClock(this);
     ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
@@ -539,6 +585,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updateRecentPlaylistMenu();
 
+    t.elapsed(__LINE__);
+
+#define DISABLEFILEWATCHER 1
+
+#ifndef DISABLEFILEWATCHER
+    PerfTimer t2("filewatcher init", __LINE__);
+
     // ---------------------------------------
     // let's watch for changes in the musicDir
     QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
@@ -547,8 +600,12 @@ MainWindow::MainWindow(QWidget *parent) :
         QString aPath = it.next();
         if (ignoreTheseDirs.indexIn(aPath) == -1) {
             musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
+//            qDebug() << "adding to musicRootWatcher: " << aPath;
         }
+        t.elapsed(__LINE__);
     }
+
+    t.elapsed(__LINE__);
 
     musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
     QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
@@ -556,10 +613,14 @@ MainWindow::MainWindow(QWidget *parent) :
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
 
+    t.elapsed(__LINE__);
+
     QDir dir(musicRootPath + "/lyrics/downloaded");
     if (!dir.exists()) {
         dir.mkpath(".");
     }
+
+    t.elapsed(__LINE__);
 
     // do the same for lyrics (included the "downloaded" subdirectory) -------
     QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
@@ -567,11 +628,19 @@ MainWindow::MainWindow(QWidget *parent) :
         QString aPath = it2.next();
         lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
 //        qDebug() << "adding lyrics path: " << aPath;
+        t.elapsed(__LINE__);
     }
+
+    t.elapsed(__LINE__);
 
     lyricsWatcher.addPath(musicRootPath + "/lyrics");  // add the root lyrics directory itself
     QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
     // ---------------------------------------
+
+    t.elapsed(__LINE__);
+
+    t2.elapsed(__LINE__);
+#endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     // initial Guest Mode stuff works on Mac OS and WIN32 only
@@ -631,13 +700,26 @@ MainWindow::MainWindow(QWidget *parent) :
     value = prefsManager.GetToggleSingingPatterSequence();
     songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
 
-
+    t.elapsed(__LINE__);
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
+    t.elapsed(__LINE__);
+
     // used to store the file paths
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+
+    t.elapsed(__LINE__);
+
     loadMusicList(); // and filter them into the songTable
+
+    connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
+            this, &MainWindow::columnHeaderResized);
+
+    ui->songTable->resizeColumnToContents(kTypeCol);  // and force resizing of column widths to match songs
+    ui->songTable->resizeColumnToContents(kLabelCol);
+
+    t.elapsed(__LINE__);
 
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     ui->listWidgetChoreographySequences->setStyleSheet(
@@ -645,10 +727,14 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     loadChoreographyList();
 
+    t.elapsed(__LINE__);
+
     ui->toolButtonEditLyrics->setStyleSheet("QToolButton { border: 1px solid #575757; border-radius: 4px; background-color: palette(base); }");  // turn off border
 
     // ----------
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
+
+    t.elapsed(__LINE__);
 
     // ----------
     clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
@@ -674,6 +760,8 @@ MainWindow::MainWindow(QWidget *parent) :
 // voice input is only available on MAC OS X and Win32 right now...
     on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
     voiceInputEnabled = prefsManager.Getenablevoiceinput();
+
+    t.elapsed(__LINE__);
 
     on_actionAuto_scroll_during_playback_toggled(prefsManager.Getenableautoscrolllyrics());
     autoScrollLyricsEnabled = prefsManager.Getenableautoscrolllyrics();
@@ -718,6 +806,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->seekBarCuesheet->setStyle(new MySliderClickToMoveStyle());
 #endif /* ifndef Q_OS_MAC */
 
+    t.elapsed(__LINE__);
+
     // in the Designer, these have values, making it easy to visualize there
     //   must clear those out, because a song is not loaded yet.
     ui->currentLocLabel->setText("");
@@ -739,6 +829,8 @@ MainWindow::MainWindow(QWidget *parent) :
         showTimersTab = false;
     }
 
+    t.elapsed(__LINE__);
+
     // ----------
     bool lyricsEnabled = true;
     showLyricsTab = true;
@@ -754,8 +846,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 
     // ----------
-    connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
-            this, &MainWindow::columnHeaderResized);
+//    connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
+//            this, &MainWindow::columnHeaderResized);
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sortIndicatorChanged,
             this, &MainWindow::columnHeaderSorted);
 
@@ -784,18 +876,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->warningLabelCuesheet->setText("");
     ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
 
+    t.elapsed(__LINE__);
+
     // LYRICS TAB ------------
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
     ui->dateTimeEditIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->dateTimeEditOutroTime->setEnabled(false);
 
+    t.elapsed(__LINE__);
     ui->pushButtonTestLoop->setHidden(true);
     ui->pushButtonTestLoop->setEnabled(false);
 
+    t.elapsed(__LINE__);
     analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
 
-    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(13));  // TODO: factor out colors
+    t.elapsed(__LINE__);
 
     // read list of calls (in application bundle on Mac OS X)
     // TODO: make this work on other platforms, but first we have to figure out where to put the allcalls.csv
@@ -813,7 +909,11 @@ MainWindow::MainWindow(QWidget *parent) :
     on_flashcallc3a_toggled(prefsManager.Getflashcallc3a());
     on_flashcallc3b_toggled(prefsManager.Getflashcallc3b());
 
+    t.elapsed(__LINE__);
+
     readFlashCallsList();
+
+    t.elapsed(__LINE__);
 
     currentSongType = "";
     currentSongTitle = "";
@@ -824,6 +924,8 @@ MainWindow::MainWindow(QWidget *parent) :
     sessionActionGroup->setExclusive(true);
 
     // -----------------------
+
+    t.elapsed(__LINE__);
 
     sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
@@ -841,6 +943,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
     connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
+
+    t.elapsed(__LINE__);
 
     // let's look through the items in the SD menu
     QStringList ag1, ag2;
@@ -923,50 +1027,59 @@ MainWindow::MainWindow(QWidget *parent) :
         headerView->setStretchLastSection(true);
         QString lastDanceProgram(prefsManager.MySettings.value("lastCallListDanceProgram").toString());
         loadDanceProgramList(lastDanceProgram);
+
+        ui->tableWidgetCallList->resizeColumnToContents(kCallListWhenCheckedCol);  // and force resizing of column width to match date
+        ui->tableWidgetCallList->resizeColumnToContents(kCallListNameCol);  // and force resizing of column width to match names
     }
+
+    t.elapsed(__LINE__);
 
 #if defined(Q_OS_MAC) || defined(Q_OS_WIN)
     ui->songTable->verticalScrollBar()->setSingleStep(10);
 #endif
 
+    t.elapsed(__LINE__);
+
     lastCuesheetSavePath = prefsManager.MySettings.value("lastCuesheetSavePath").toString();
 
+    t.elapsed(__LINE__);
+
     initialize_internal_sd_tab();
+
+    t.elapsed(__LINE__);
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(true);
     }
+
+    t.elapsed(__LINE__);
 
     connect(QApplication::instance(), SIGNAL(applicationStateChanged(Qt::ApplicationState)),
             this, SLOT(changeApplicationState(Qt::ApplicationState)));
     connect(QApplication::instance(), SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(focusChanged(QWidget*,QWidget*)));
 
+    t.elapsed(__LINE__);
+
     int songCount = 0;
     QString firstBadSongLine;
     QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
     firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
 
-    ui->songTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
-    ui->songTable->setColumnWidth(kTypeCol,96);
-    ui->songTable->setColumnWidth(kLabelCol,80);
-//  kTitleCol is always expandable, so don't set width here
-    ui->songTable->setColumnWidth(kRecentCol, 70);
-    ui->songTable->setColumnWidth(kAgeCol, 36);
-    ui->songTable->setColumnWidth(kPitchCol,60);
-    ui->songTable->setColumnWidth(kTempoCol,60);
+    t.elapsed(__LINE__);
 
-    usePersistentFontSize(); // sets the font of the songTable, which is used by adjustFontSizes to scale other font sizes
-    //on_actionReset_triggered();  // set initial layout
-    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 
     QPalette* palette1 = new QPalette();
     palette1->setColor(QPalette::ButtonText, Qt::red);
     ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
 
+    t.elapsed(__LINE__);
+
     QPalette* palette2 = new QPalette();
     palette2->setColor(QPalette::ButtonText, QColor("#0000FF"));
     ui->pushButtonCueSheetEditArtist->setPalette(*palette2);
+
+    t.elapsed(__LINE__);
 
     QPalette* palette3 = new QPalette();
     palette3->setColor(QPalette::ButtonText, QColor("#60C060"));
@@ -984,20 +1097,33 @@ MainWindow::MainWindow(QWidget *parent) :
                 "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
                 );
 
+    t.elapsed(__LINE__);
+
     maybeLoadCSSfileIntoTextBrowser();
 
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
 
+    t.elapsed(__LINE__);
+
     initReftab();
+
+    t.elapsed(__LINE__);
+
     currentSDVUILevel      = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
     currentSDKeyboardLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+
+    t.elapsed(__LINE__);
 
     // Initializers for these should probably be up in the constructor
     sdthread = new SDThread(this);
     sdthread->start();
     sdthread->unlock();
 
+    t.elapsed(__LINE__);
+
     ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // lyrics editor can't get focus until unlocked
+
+    t.elapsed(__LINE__);
 
     songSettings.setDefaultTagColors( prefsManager.GettagsBackgroundColorString(), prefsManager.GettagsForegroundColorString());
     setCurrentSessionIdReloadSongAgesCheckMenu(
@@ -1012,6 +1138,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->action15_seconds->setActionGroup(flashCallTimingActionGroup);
     ui->action20_seconds->setActionGroup(flashCallTimingActionGroup);
     ui->action15_seconds->setChecked(true);
+
+    t.elapsed(__LINE__);
 
     QString flashCallTimingSecs = prefsManager.Getflashcalltiming();
     if (flashCallTimingSecs == "5") {
@@ -1104,7 +1232,7 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
 // SONGTABLEREFACTOR
 void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
-    PerfTimer t("reloadSongAges");
+    PerfTimer t("reloadSongAges", __LINE__);
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
 
@@ -2413,7 +2541,7 @@ void MainWindow::randomizeFlashCall() {
 // ----------------------------------------------------------------------
 void MainWindow::on_playButton_clicked()
 {
-    PerfTimer t("MainWindow::on_playButtonClicked");
+    PerfTimer t("MainWindow::on_playButtonClicked", __LINE__);
     if (!songLoaded) {
         return;  // if there is no song loaded, no point in toggling anything.
     }
@@ -2428,7 +2556,7 @@ void MainWindow::on_playButton_clicked()
 
         if (firstTimeSongIsPlayed)
         {
-            PerfTimer t("MainWindow::on_playButtonClicked firstTimeSongIsPlayed");
+            PerfTimer t("MainWindow::on_playButtonClicked firstTimeSongIsPlayed", __LINE__);
 
             firstTimeSongIsPlayed = false;
             saveCurrentSongSettings();
@@ -4097,9 +4225,12 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
-    PerfTimer t("findPossibleCuesheets");
+    PerfTimer t("findPossibleCuesheets", __LINE__);
+
     QString fileType = filepath2SongType(MP3Filename);
     bool fileTypeIsPatter = (fileType == "patter");
+
+    t.elapsed(__LINE__);
 
     QFileInfo mp3FileInfo(MP3Filename);
     QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
@@ -4110,6 +4241,9 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     QString mp3Labelnum_extra = "";
     QString mp3Title = "";
     QString mp3ShortTitle = "";
+
+    t.elapsed(__LINE__);
+
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
     QList<CuesheetWithRanking *> possibleRankings;
 
@@ -4120,8 +4254,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         mp3Labelnum_short.remove(0,1);
     }
 
-//    qDebug() << "load 2.1.1.0A: " << t2.elapsed() << "ms";
-
 //    QList<QString> extensions;
 //    QString dot(".");
 //    for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
@@ -4129,12 +4261,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //        extensions.append(dot + cuesheet_file_extensions[i]);
 //    }
 
+    t.elapsed(__LINE__);
+
     QListIterator<QString> iter(*pathStack);
     while (iter.hasNext()) {
 
         QString s = iter.next();
-//        qDebug() << "load 2.1.1.0A.1: " << t2.nsecsElapsed() << "ms, s:" << s;
-//        int extensionIndex = 0;
 
 //        // Is this a file extension we recognize as a cuesheet file?
 //        QListIterator<QString> extensionIterator(extensions);
@@ -4166,8 +4298,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             continue;
         }
 
-//        qDebug() << "load 2.1.1.0A.2: " << t2.nsecsElapsed() << "ms";
-
         QStringList sl1 = s.split("#!#");
         QString type = sl1[0];  // the type (of original pathname, before following aliases)
         QString filename = sl1[1];  // everything else
@@ -4191,8 +4321,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 //            type = "";
 //        }
 
-//        qDebug() << "load 2.1.1.0A.3: " << t2.nsecsElapsed() << "ms";
-
         QString label = "";
         QString labelnum = "";
         QString title = "";
@@ -4201,18 +4329,14 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
 
         QString completeBaseName = fi.completeBaseName(); // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
-//        qDebug() << "   load 2.1.1.0A.3a: " << t2.nsecsElapsed() << "ms";
         breakFilenameIntoParts(completeBaseName, label, labelnum, labelnum_extra, title, shortTitle);
-//        qDebug() << "   load 2.1.1.0A.3b: " << t2.nsecsElapsed() << "ms";
         QStringList words = splitIntoWords(completeBaseName);
-//        qDebug() << "   load 2.1.1.0A.3c: " << t2.nsecsElapsed() << "ms, words:" << words;
+
         QString labelnum_short = labelnum;
         while (labelnum_short.length() > 0 && labelnum_short[0] == '0')
         {
             labelnum_short.remove(0,1);
         }
-
-//        qDebug() << "load 2.1.1.0A.4: " << t2.nsecsElapsed() << "ms";
 
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
 //        qDebug() << "           " << title << " to " << mp3Title;
@@ -4251,7 +4375,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             cswr->name = completeBaseName;
             cswr->score = score;
             possibleRankings.append(cswr);
-//            qDebug() << "load 2.1.1.0A.5a: " << t2.elapsed() << "ms";
         } /* end of if we minimally included this cuesheet */
         else if ((score = compareSortedWordListsForRelevance(mp3Words, words)) > 0)
         {
@@ -4260,11 +4383,10 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
             cswr->name = completeBaseName;
             cswr->score = score;
             possibleRankings.append(cswr);
-//            qDebug() << "load 2.1.1.0A.5b: " << t2.elapsed() << "ms";
         }
     } /* end of looping through all files we know about */
 
-//    qDebug() << "load 2.1.1.0B: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
 //    qDebug() << "findPossibleCuesheets():";
     QString mp3Lyrics = loadLyrics(MP3Filename);
@@ -4273,8 +4395,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
     {
         possibleCuesheets.append(MP3Filename);
     }
-
-//    qDebug() << "load 2.1.1.0C: " << t2.elapsed() << "ms";
 
     qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
     QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
@@ -4285,7 +4405,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         delete cswr;
     }
 
-//    qDebug() << "load 2.1.1.0D: " << t2.elapsed() << "ms";
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
@@ -4295,10 +4414,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     QString HTML;
 
     QStringList possibleCuesheets;
-//    qDebug() << "load 2.1.1.0: " << t2.elapsed() << "ms";
-
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
-
 
 //    qDebug() << "possibleCuesheets:" << possibleCuesheets;
 
@@ -4324,8 +4440,6 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
         ui->comboBoxCuesheetSelector->addItem(displayName,
                                               cuesheet);
     }
-
-//    qDebug() << "load 2.1.2: " << t2.elapsed() << "ms";
 
     if (ui->comboBoxCuesheetSelector->count() > 0)
     {
@@ -4395,7 +4509,6 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
         } // else (lyrics could not be found)
     } // isPatter
 
-//    qDebug() << "load 2.1.3: " << t2.elapsed() << "ms";
 }
 
 
@@ -4432,6 +4545,7 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
+    PerfTimer t("loadMP3File", __LINE__);
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
 //    qDebug() << "songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
@@ -4447,16 +4561,14 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         MP3FileName = resolvedFilePath;
     }
 
+    t.elapsed(__LINE__);
+
     currentSongType = songType;  // save it for session coloring on the analog clock later...
     currentSongLabel = songLabel;   // remember it, in case we need it later
 
     ui->toolButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
 
-//    qDebug() << "load 2.1: " << t2.elapsed() << "ms";
-
     loadCuesheets(MP3FileName);
-
-//    qDebug() << "load 2.2: " << t2.elapsed() << "ms";
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
@@ -4466,7 +4578,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     {
         currentMP3filename = currentMP3filename.right(lastDot - 1);
     }
-
 
     if (songTitle != "") {
         setNowPlayingLabelWithColor(songTitle);
@@ -4479,7 +4590,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QDir md(MP3FileName);
     QString canonicalFN = md.canonicalPath();
 
-//    qDebug() << "load 2.3.1: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     // let's do a quick preview (takes <1ms), to see if the intro/outro are already set.
     SongSetting settings1;
@@ -4496,9 +4607,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         }
     }
 
-//    qDebug() << "load 2.3.1.2: " << t2.elapsed() << "ms";
-
     cBass.StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec, intro1, outro1);  // load song, and figure out where the song actually starts and ends
+
+    t.elapsed(__LINE__);
 
     // OK, by this time we always have an introOutro
     //   if DB had one, we didn't scan, and just used that one
@@ -4509,8 +4620,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 #ifdef REMOVESILENCE
         startOfSong_sec = (startOfSong_sec > 1.0 ? startOfSong_sec - 1.0 : 0.0);  // start 1 sec before non-silence
 #endif
-
-//    qDebug() << "load 2.3.2: " << t2.elapsed() << "ms";
 
     QStringList ss = MP3FileName.split('/');
     QString fn = ss.at(ss.size()-1);
@@ -4542,7 +4651,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
 
-//    qDebug() << "load 2.4: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     // Intentionally compare against a narrower range here than BPM detection, because BPM detection
     //   returns a number at the limits, when it's actually out of range.
@@ -4552,43 +4661,60 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     if ((songBPM>=125-15) && (songBPM<=125+15) && songType != "xtras") {
         tempoIsBPM = true;
         ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
+        t.elapsed(__LINE__);
 
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
 
+        t.elapsed(__LINE__);
         bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
         int initialBPM = prefsManager.GetinitialBPM();
+        t.elapsed(__LINE__);
         if (tryToSetInitialBPM) {
             // if the user wants us to try to hit a particular BPM target, use that value
             ui->tempoSlider->setValue(initialBPM);
             ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+            t.elapsed(__LINE__);
         } else {
             // otherwise, if the user wants us to start with the slider at the regular detected BPM
             //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
             //     all saved tempo preferences will always win.
             ui->tempoSlider->setValue(songBPM);
             ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+            t.elapsed(__LINE__);
         }
 
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
-        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-                                 ", base tempo: " + QString::number(songBPM) + " BPM");
+        t.elapsed(__LINE__);
+//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
+//                                 ", base tempo: " + QString::number(songBPM) + " BPM");
+        t.elapsed(__LINE__);
     }
     else {
         tempoIsBPM = false;
         // if we can't figure out a BPM, then use percent as a fallback (centered: 100%, range: +/-20%)
+        t.elapsed(__LINE__);
         ui->currentTempoLabel->setText("100%");
+        t.elapsed(__LINE__);
         ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
+        t.elapsed(__LINE__);
         ui->tempoSlider->setMaximum(100+20);
+        t.elapsed(__LINE__);
         ui->tempoSlider->setValue(100);
+        t.elapsed(__LINE__);
         ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
+        t.elapsed(__LINE__);
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
+        t.elapsed(__LINE__);
         ui->tempoSlider->setEnabled(true);
-        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-                                 ", base tempo: 100%");
+        t.elapsed(__LINE__);
+//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
+//                                 ", base tempo: 100%");
+        t.elapsed(__LINE__);
     }
-//    qDebug() << "load 2.5: " << t2.elapsed() << "ms";
+
+    t.elapsed(__LINE__);
 
     fileModified = false;
 
@@ -4627,7 +4753,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     cBass.Stop();
 
-//    qDebug() << "load 2.6: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
@@ -4635,7 +4761,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     Info_Seekbar(true);  // update the slider and all the text
 
-//    qDebug() << "load 2.7: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
@@ -4662,7 +4788,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     previousVolume = 100;
     Info_Volume();
 
-//    qDebug() << "load 2.8: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     if (!isSingingCall) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
@@ -4680,10 +4806,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->pushButtonTestLoop->setHidden(true);
     }
 
-//    qDebug() << "load 2.9.1: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
+
     loadSettingsForSong(songTitle);
 
-//    qDebug() << "load 2.9.2: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
@@ -4843,7 +4970,7 @@ void MainWindow::clearLockFile(QString musicRootPath) {
 
 void MainWindow::findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase)
 {
-    PerfTimer t("findMusic");
+    PerfTimer t("findMusic", __LINE__);
     QString databaseDir(mainRootDir + "/.squaredesk");
 
     if (refreshDatabase)
@@ -5063,7 +5190,7 @@ void setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
-    PerfTimer t("loadMusicList");
+    PerfTimer t("loadMusicList", __LINE__);
     startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
 
     // Need to remember the PL# mapping here, and reapply it after the filter
@@ -5103,8 +5230,6 @@ void MainWindow::loadMusicList()
     }
     bool show_all_ages = ui->actionShow_All_Ages->isChecked();
 
-//    QElapsedTimer t;
-//    t.start();
     while (iter.hasNext()) {
         QString s = iter.next();
 
@@ -5256,8 +5381,6 @@ void MainWindow::loadMusicList()
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
     ui->statusBar->showMessage(msg1);
-
-//    qDebug() << "Time to loadMusicList:" << t.elapsed() << "ms";
 }
 
 QString processSequence(QString sequence,
@@ -5649,13 +5772,12 @@ void MainWindow::titleLabelDoubleClicked(QMouseEvent * /* event */)
 
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
-//    qDebug() << "Timer starting...";
-//    t2.start(); // DEBUG
+    PerfTimer t("on_songTable_itemDoubleClicked", __LINE__);
 
     on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();
 
-//    qDebug() << "load 1: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     int row = item->row();
     QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
@@ -5670,11 +5792,11 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     QString pitch = ui->songTable->item(row,kPitchCol)->text();
     QString tempo = ui->songTable->item(row,kTempoCol)->text();
 
-//    qDebug() << "load 2: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
-//    qDebug() << "load 3: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
@@ -5696,7 +5818,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
         on_playButton_clicked();
     }
 
-//    qDebug() << "load 4: " << t2.elapsed() << "ms";
+    t.elapsed(__LINE__);
 }
 
 void MainWindow::on_actionClear_Search_triggered()
@@ -8802,6 +8924,7 @@ void MainWindow::adjustFontSizes()
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFont(currentFont);
+//    qDebug() << "setting font to: " << currentFont;
 
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(67*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, static_cast<int>(34*(currentMacPointSize/13.0)));
@@ -8849,16 +8972,21 @@ void MainWindow::adjustFontSizes()
 
 
 void MainWindow::usePersistentFontSize() {
+    PerfTimer t("usePersistentFontSize", __LINE__);
     int newPointSize = prefsManager.GetsongTableFontSize(); // gets the persisted value
     if (newPointSize == 0) {
         newPointSize = 13;  // default backstop, if not set properly
     }
+
+    t.elapsed(__LINE__);
 
     // ensure it is a reasonable size...
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
 
     //qDebug() << "usePersistentFontSize: " << newPointSize;
+
+    t.elapsed(__LINE__);
 
     QFont currentFont = ui->songTable->font();  // set the font size in the songTable
 //    qDebug() << "index: " << pointSizeToIndex(newPointSize);
@@ -8868,10 +8996,17 @@ void MainWindow::usePersistentFontSize() {
     ui->songTable->setFont(currentFont);
     currentMacPointSize = newPointSize;
 
+    t.elapsed(__LINE__);
+
     ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
 
+    t.elapsed(__LINE__);
+
     setSongTableFont(ui->songTable, currentFont);
+    t.elapsed(__LINE__);
+
     adjustFontSizes();  // use that font size to scale everything else (relative)
+    t.elapsed(__LINE__);
 }
 
 
@@ -8882,10 +9017,10 @@ void MainWindow::persistNewFontSize(int currentMacPointSize) {
 //    qDebug() << "persisting new Mac font size: " << currentMacPointSize;
 }
 
-void MainWindow::on_actionZoom_In_triggered()
-{
+void MainWindow::zoomInOut(int increment) {
     QFont currentFont = ui->songTable->font();
-    int newPointSize = currentMacPointSize + ZOOMINCREMENT;
+    int newPointSize = currentMacPointSize + increment;
+
     newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
     newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
 
@@ -8908,32 +9043,14 @@ void MainWindow::on_actionZoom_In_triggered()
 //    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
 }
 
+void MainWindow::on_actionZoom_In_triggered()
+{
+    zoomInOut(ZOOMINCREMENT);
+}
+
 void MainWindow::on_actionZoom_Out_triggered()
 {
-    QFont currentFont = ui->songTable->font();
-    int newPointSize = currentMacPointSize - ZOOMINCREMENT;
-    newPointSize = (newPointSize > BIGGESTZOOM ? BIGGESTZOOM : newPointSize);
-    newPointSize = (newPointSize < SMALLESTZOOM ? SMALLESTZOOM : newPointSize);
-
-    if (newPointSize < currentMacPointSize) {
-        ui->textBrowserCueSheet->zoomOut(2*ZOOMINCREMENT);
-        totalZoom -= 2*ZOOMINCREMENT;
-    }
-
-    int platformPS = indexToPointSize(pointSizeToIndex(newPointSize));  // convert to PLATFORM pointsize
-//    qDebug() << "newIndex: " << pointSizeToIndex(newPointSize);
-    currentFont.setPointSize(platformPS);
-    ui->songTable->setFont(currentFont);
-    currentMacPointSize = newPointSize;
-
-    persistNewFontSize(currentMacPointSize);
-
-    ui->songTable->setStyleSheet(QString("QTableWidget::item:selected{ color: #FFFFFF; background-color: #4C82FC } QHeaderView::section { font-size: %1pt; }").arg(platformPS));
-
-    setSongTableFont(ui->songTable, currentFont);
-    adjustFontSizes();
-
-//    qDebug() << "currentMacPointSize:" << newPointSize << ", totalZoom:" << totalZoom;
+    zoomInOut(-ZOOMINCREMENT);
 }
 
 void MainWindow::on_actionReset_triggered()
@@ -9017,8 +9134,6 @@ void MainWindow::on_actionFade_Out_triggered()
 //
 void MainWindow::startLongSongTableOperation(QString s) {
     Q_UNUSED(s)
-//    t1.start();  // DEBUG
-
     ui->songTable->hide();
     ui->songTable->setSortingEnabled(false);
 }
@@ -9028,8 +9143,6 @@ void MainWindow::stopLongSongTableOperation(QString s) {
 
     ui->songTable->setSortingEnabled(true);
     ui->songTable->show();
-
-//    qDebug() << s << ": " << t1.elapsed() << "ms.";  // DEBUG
 }
 
 

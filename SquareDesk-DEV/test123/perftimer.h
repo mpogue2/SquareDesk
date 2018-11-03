@@ -4,13 +4,16 @@
 
 class PerfTimer {
 private:
-//    const char *name;
+    const char *name;
     QElapsedTimer timer;
     bool stopped;
+    qint64 lastElapsedTime_ms;
+    static int indentLevel;
 public:
-    PerfTimer(const char *name);
+    PerfTimer(const char *name, int lineNumber);
     virtual ~PerfTimer();
-    void start();
+    void start(int lineNumber);
+    void elapsed(int lineNumber);
     void stop();
 };
 

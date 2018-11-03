@@ -677,6 +677,7 @@ private:
     void adjustFontSizes();
     void usePersistentFontSize();
     void persistNewFontSize(int points);
+    void zoomInOut(int increment);
 
     int col0_width;  // work around a Qt bug, wherein it does not track the width of the # column
 
@@ -813,7 +814,7 @@ private:
 
     int totalZoom;  // total zoom for Lyrics pane, so it can be undone with a Reset Zoom
 
-    QElapsedTimer t1; //, t2;  // used for simple timing operations
+//    QElapsedTimer t1; //, t2;  // used for simple timing operations
     void startLongSongTableOperation(QString s);
     void stopLongSongTableOperation(QString s);  // use the same string each time
 
