@@ -2,7 +2,7 @@
 #include <QDebug>
 
 // comment this out, if you don't want timing info
-#define ENABLEPERFTIMER 1
+//#define ENABLEPERFTIMER 1
 
 int PerfTimer::indentLevel = 0;  // static
 
