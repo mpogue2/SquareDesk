@@ -729,7 +729,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    ui->toolButtonEditLyrics->setStyleSheet("QToolButton { border: 1px solid #575757; border-radius: 4px; background-color: palette(base); }");  // turn off border
+    ui->pushButtonEditLyrics->setStyleSheet("QToolButton { border: 1px solid #575757; border-radius: 4px; background-color: palette(base); }");  // turn off border
 
     // ----------
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view
@@ -1153,6 +1153,13 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
+
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
+    ui->actionSave->setEnabled(false);  // save is disabled to start out
+    ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -1493,9 +1500,9 @@ void MainWindow::showHTML(QString fromWhere) {
     qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
-void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
+void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 {
-//    qDebug() << "on_toolButtonEditLyrics_toggled" << checkState;
+//    qDebug() << "on_pushButtonEditLyrics_toggled" << checkState;
     bool checked = (checkState != Qt::Unchecked);
 
     ui->pushButtonCueSheetEditTitle->setEnabled(checked);
@@ -1517,6 +1524,12 @@ void MainWindow::on_toolButtonEditLyrics_toggled(bool checkState)
 //        qDebug() << "setting up button state using lastKnownTextCharFormat...";
         on_textBrowserCueSheet_currentCharFormatChanged(lastKnownTextCharFormat);
         ui->textBrowserCueSheet->setFocusPolicy(Qt::ClickFocus);  // now it can get focus
+        ui->pushButtonCueSheetEditSave->show();   // the two save buttons are now visible
+        ui->pushButtonCueSheetEditSaveAs->show();
+        ui->pushButtonEditLyrics->hide();  // and this button goes away!
+        ui->actionSave->setEnabled(true);  // save is enabled now
+        ui->actionSave_As->setEnabled(true);  // save as... is enabled now
+
     } else {
         ui->textBrowserCueSheet->clearFocus();  // if the user locks the editor, remove focus
         ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // and don't allow it to get focus
@@ -1555,7 +1568,7 @@ int MainWindow::currentSelectionContains() {
 
 void MainWindow::on_textBrowserCueSheet_selectionChanged()
 {
-    if (ui->toolButtonEditLyrics->isChecked()) {
+    if (ui->pushButtonEditLyrics->isChecked()) {
         // if editing is enabled:
         if (ui->textBrowserCueSheet->textCursor().hasSelection()) {
             // if it has a non-empty selection, then set the buttons based on what the selection contains
@@ -1876,15 +1889,29 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
 //    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
+
         saveLyrics();
+
 //        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
 //    }
+
+        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+        ui->pushButtonCueSheetEditSaveAs->hide();
+        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
+        ui->actionSave->setEnabled(false);  // save is disabled now
+        ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
 }
 
 void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 {
 //    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
     saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
+
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
+    ui->actionSave->setEnabled(false);  // save is disabled now
+    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
 }
 
 
@@ -2115,6 +2142,14 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
+    // THIS IS NOT QUITE RIGHT YET.  NORMAL SAVE TRIGGERS IT.  But, I'm leaving it here as
+    //   a partial implementation for later.
+//    if ( ui->pushButtonEditLyrics->isChecked()
+//            // && ui->textBrowserCueSheet->document()->isModified()  // TODO: Hmmm...seems like it's always modified...
+//       ) {
+//        qDebug() << "YOU HAVE A CUESHEET OPEN FOR EDITING. ARE YOU SURE YOU WANT TO SWITCH TO A DIFFERENT CUESHEET (changes will be lost)?";
+//    }
+
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
@@ -2198,7 +2233,13 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 
     cursor.movePosition(QTextCursor::Start);  // move cursor back to the start of the document
 
-    ui->toolButtonEditLyrics->setChecked(false);  // locked for editing, in case this is just a change in the dropdown
+    ui->pushButtonEditLyrics->setChecked(false);  // locked for editing, in case this is just a change in the dropdown
+
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
+    ui->actionSave->setEnabled(false);  // save is disabled to start out
+    ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 }
 
 // END LYRICS EDITOR STUFF
@@ -2982,7 +3023,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // NOTE: only auto-scroll when the lyrics are LOCKED (if not locked, you're probably editing).
             //   AND you must be playing.  If you're not playing, we're not going to override the InfoBar position.
             if (autoScrollLyricsEnabled &&
-                    !ui->toolButtonEditLyrics->isChecked() &&
+                    !ui->pushButtonEditLyrics->isChecked() &&
 //                    currentState == kPlaying) {
                     cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
                 // lyrics scrolling at the same time as the InfoBar
@@ -3562,7 +3603,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
-               (ui->textBrowserCueSheet->hasFocus() && ui->toolButtonEditLyrics->isChecked()) ||
+               (ui->textBrowserCueSheet->hasFocus() && ui->pushButtonEditLyrics->isChecked()) ||
                ui->dateTimeEditIntroTime->hasFocus() ||
                ui->dateTimeEditOutroTime->hasFocus() ||
                ui->lineEditSDInput->hasFocus() ||
@@ -4566,7 +4607,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     currentSongType = songType;  // save it for session coloring on the analog clock later...
     currentSongLabel = songLabel;   // remember it, in case we need it later
 
-    ui->toolButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
+    ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
 
     loadCuesheets(MP3FileName);
 
@@ -7813,8 +7854,10 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 //        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
         ui->actionFilePrint->setDisabled(false);
 
-        ui->actionSave->setEnabled(hasLyrics);      // lyrics/patter can be saved when there are lyrics to save
-        ui->actionSave_As->setEnabled(hasLyrics);   // lyrics/patter can be saved as when there are lyrics to save
+        // THIS IS WRONG: enabled iff hasLyrics and editing is enabled
+        bool okToSave = hasLyrics && ui->pushButtonEditLyrics->isChecked();
+        ui->actionSave->setEnabled(okToSave);      // lyrics/patter can be saved when there are lyrics to save
+        ui->actionSave_As->setEnabled(okToSave);   // lyrics/patter can be saved as when there are lyrics to save
 
         if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
             ui->actionSave->setText("Save Lyrics"); // but greyed out, until modified
@@ -8908,6 +8951,10 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditHeader->setFont(currentFont);
     ui->pushButtonCueSheetEditLyrics->setFont(currentFont);
 
+    ui->pushButtonEditLyrics->setFont(currentFont);
+    ui->pushButtonCueSheetEditSave->setFont(currentFont);
+    ui->pushButtonCueSheetEditSaveAs->setFont(currentFont);
+
     ui->pushButtonCueSheetEditBold->setFont(currentFont);
     ui->pushButtonCueSheetEditItalic->setFont(currentFont);
 
@@ -8946,7 +8993,7 @@ void MainWindow::adjustFontSizes()
     ui->previousSongButton->setIconSize(newIconSize);
     ui->nextSongButton->setIconSize(newIconSize);
 
-    ui->toolButtonEditLyrics->setIconSize(newIconSize);
+    //ui->pushButtonEditLyrics->setIconSize(newIconSize);
 
     // these are special MEDIUM
     int warningLabelFontSize = warningLabelSize[index]; // keep ratio constant
@@ -9422,6 +9469,13 @@ void MainWindow::saveLyrics()
     QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
     if (!cuesheetFilename.isNull())
     {
+        // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
+        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+        ui->pushButtonCueSheetEditSaveAs->hide();
+        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
+        ui->actionSave->setEnabled(false);  // save is disabled to start out
+        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
         writeCuesheet(cuesheetFilename);            // this will trigger Filewatcher, which will clear the flag
         loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
@@ -9469,6 +9523,13 @@ void MainWindow::saveLyricsAs()
                                                     tr("HTML (*.html *.htm)"));
     if (!filename.isNull())
     {
+        // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
+        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+        ui->pushButtonCueSheetEditSaveAs->hide();
+        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
+        ui->actionSave->setEnabled(false);  // save is disabled to start out
+        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+
         writeCuesheet(filename);
         loadCuesheets(currentMP3filenameWithPath, filename);
         saveCurrentSongSettings();
@@ -10225,7 +10286,7 @@ void MainWindow::on_actionClear_Recent_triggered()
 void MainWindow::on_actionBold_triggered()
 {
     bool isBoldNow = ui->pushButtonCueSheetEditBold->isChecked();
-    bool isEditable = ui->toolButtonEditLyrics->isChecked();
+    bool isEditable = ui->pushButtonEditLyrics->isChecked();
     if (isEditable) {
         ui->textBrowserCueSheet->setFontWeight(isBoldNow ? QFont::Normal : QFont::Bold);
     }
@@ -10234,7 +10295,7 @@ void MainWindow::on_actionBold_triggered()
 void MainWindow::on_actionItalic_triggered()
 {
     bool isItalicsNow = ui->pushButtonCueSheetEditItalic->isChecked();
-    bool isEditable = ui->toolButtonEditLyrics->isChecked();
+    bool isEditable = ui->pushButtonEditLyrics->isChecked();
     if (isEditable) {
         ui->textBrowserCueSheet->setFontItalic(!isItalicsNow);
     }

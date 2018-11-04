@@ -447,7 +447,7 @@ private slots:
     void on_actionDownload_Cuesheets_triggered();
 
     void on_pushButtonCueSheetClearFormatting_clicked();
-    void on_toolButtonEditLyrics_toggled(bool checked);
+    void on_pushButtonEditLyrics_toggled(bool checked);
 
     void on_actionFilePrint_triggered();
     void on_actionSave_triggered();
