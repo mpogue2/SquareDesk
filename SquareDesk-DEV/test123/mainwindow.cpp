@@ -2115,11 +2115,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 }
 
 void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
-//    qDebug() << "maybeLoadCSSfileIntoTextBrowser";
     // makes the /lyrics directory, if it doesn't exist already
-    // also copies cuesheet2.css to /lyrics, if not already present
-
-    // read the CSS file (if any)
     QString musicDirPath = prefsManager.GetmusicPath();
     QString lyricsDir = musicDirPath + "/lyrics";
 
@@ -2130,26 +2126,14 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
     }
 
     // ------------------------------------------------------------------
-    // get internal cuesheet2.css file, if it exists
-    QString cuesheet2 = getResourceFile("cuesheet2.css");
-//    qDebug() << "cuesheet2: " << cuesheet2;
-    if (cuesheet2.isEmpty()) {
-        qDebug() << "SOMETHING WENT WRONG with fetching the internal cuesheet2.css";
-    } else {
-        // I'm going to make this change later, to have a fixed CSS file.
-        //   This is somewhat simpler than fetching cuesheet2.css, and it will avoid that getting
-        //   edited or otherwise messed up.
-//        QString foo = "/* For correct operation of the Lyrics editor, the colors must be distinct from each other */\n"
-//                      "body, p, font { font-size: large;   font-weight: Normal; color: #000000; line-height: 100%; background: #FFFFE0; }\n\n"
-//                      ".title        { font-family: Arial Black; font-size: x-large; font-weight: Normal; color: #010101;}\n"
-//                      ".label        { font-size: medium;  font-weight: Normal; color: #60C060;}\n"
-//                      ".artist       { font-size: medium;  font-weight: Normal; color: #0000FF;}\n"
-//                      ".hdr          { font-size: x-large; font-weight: Normal; color: #FF0002;}\n"
-//                      ".lyrics       { font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n";
-//        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(foo);
-
-        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cuesheet2);
-    }
+    QString css = "/* For correct operation of the Lyrics editor, the colors must be distinct from each other */\n"
+                  "body, p, font { font-size: large;   font-weight: Normal; color: #000000; line-height: 100%; background: #FFFFE0; }\n\n"
+                  ".title        { font-family: Arial Black; font-size: x-large; font-weight: Normal; color: #010101;}\n"
+                  ".label        { font-size: medium;  font-weight: Normal; color: #60C060;}\n"
+                  ".artist       { font-size: medium;  font-weight: Normal; color: #0000FF;}\n"
+                  ".hdr          { font-size: x-large; font-weight: Normal; color: #FF0002;}\n"
+                  ".lyrics       { font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n";
+    ui->textBrowserCueSheet->document()->setDefaultStyleSheet(css);
 }
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
