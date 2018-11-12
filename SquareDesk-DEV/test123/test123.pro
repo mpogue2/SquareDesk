@@ -386,6 +386,15 @@ macx {
     export(copydata2q.commands)
     export(copydata3q.commands)
     QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
+
+    # For the Mac OS X DMG installer build, we need exactly 2 files stuck into the results directory ---------
+    installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command
+    installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
+    first.depends += installer1 installer2
+    export(first.depends)
+    export(installer1.commands)
+    export(installer2.commands)
+    QMAKE_EXTRA_TARGETS += installer1 installer2
 }
 
 win32:CONFIG(debug, debug|release): {
@@ -551,7 +560,8 @@ DISTFILES += \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
     cuesheet2.css \
-    lyrics.template.html
+    lyrics.template.html \
+    PackageIt.command
 
 CONFIG += c++11
 

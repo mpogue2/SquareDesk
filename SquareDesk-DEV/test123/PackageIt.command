@@ -12,7 +12,7 @@ fi
 echo $dir
 
 # the macdeployqt step!
-# cd build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug/ 
+# cd build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug/
 
 # if errors about can't find libs, try:
 # cd to the app/Contents/MacOS
@@ -28,8 +28,19 @@ echo $dir
 #WHICH=Debug
 WHICH=Release
 
+# set up your app name, version number, and background image file name
+APP_NAME="SquareDesk"
+VERSION="0.9.2alpha9"
+DMG_BACKGROUND_IMG="installer3.png"
+
+QTVERSION="5.9.7"
+QT_VERSION="5_9_7"   # same thing, but with underscores (yes, change both of them at the same time!)
+
+#MANUAL="SquareDeskManual.pdf"
+
+# ------------------------------------------------------------------------
 echo Now running otool to fixup libraries...
-pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_9_3_clang_64bit-${WHICH}/test123/SquareDesk.app/Contents/MacOS
+pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_VERSION}_clang_64bit-${WHICH}/test123/SquareDesk.app/Contents/MacOS
 otool -L SquareDesk | egrep "qua|tidy"
 install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
 install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
@@ -37,16 +48,11 @@ echo Those two lines should now start with executable_path...
 otool -L SquareDesk | egrep "qua|tidy"
 popd
 
+# ---------------------------------------------------
 echo Now running Mac Deploy Qt step...
- ~/Qt/5.9.3/clang_64/bin/macdeployqt SquareDesk.app 
+ ~/Qt/${QTVERSION}/clang_64/bin/macdeployqt SquareDesk.app
 echo Mac Deploy Qt step done.
 echo
-
-# set up your app name, version number, and background image file name
-APP_NAME="SquareDesk"
-VERSION="0.9.2alpha7b"
-DMG_BACKGROUND_IMG="installer3.png"
-#MANUAL="SquareDeskManual.pdf"
 
 echo "--------------------------------------"
 echo Building version $VERSION of $APP_NAME
@@ -68,11 +74,11 @@ _BACKGROUND_IMAGE_DPI_W=`sips -g dpiWidth ${DMG_BACKGROUND_IMG} | grep -Eo '[0-9
 if [ $(echo " $_BACKGROUND_IMAGE_DPI_H != 72.0 " | bc) -eq 1 -o $(echo " $_BACKGROUND_IMAGE_DPI_W != 72.0 " | bc) -eq 1 ]; then
    echo "WARNING: The background image's DPI is not 72.  This will result in distorted backgrounds on Mac OS X 10.7+."
    echo "         I will convert it to 72 DPI for you."
-   
+
    _DMG_BACKGROUND_TMP="${DMG_BACKGROUND_IMG%.*}"_dpifix."${DMG_BACKGROUND_IMG##*.}"
 
    sips -s dpiWidth 72 -s dpiHeight 72 ${DMG_BACKGROUND_IMG} --out ${_DMG_BACKGROUND_TMP}
-   
+
    DMG_BACKGROUND_IMG="${_DMG_BACKGROUND_TMP}"
 fi
 
@@ -109,7 +115,7 @@ popd
 
 # figure out how big our DMG needs to be
 #  assumes our contents are at least 1M!
-SIZE=`du -sh "${STAGING_DIR}" | sed 's/\([0-9\.]*\)M\(.*\)/\1/'` 
+SIZE=`du -sh "${STAGING_DIR}" | sed 's/\([0-9\.]*\)M\(.*\)/\1/'`
 SIZE=`echo "${SIZE} + 5.0" | bc | awk '{print int($1+0.5)}'`
 
 if [ $? -ne 0 ]; then
