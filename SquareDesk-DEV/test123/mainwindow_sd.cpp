@@ -588,7 +588,7 @@ void MainWindow::highlight_sd_replaceables()
 
     if (!(call.contains("<") && call.contains(">")))
     {
-        qDebug() << "No <>, return pressed";
+//        qDebug() << "No <>, return pressed";
         submit_lineEditSDInput_contents_to_sd();
         ui->lineEditSDInput->setFocus();
     }
@@ -775,7 +775,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
                 QLabel *moveLabel(new SDSequenceCallLabel(this));
 //                moveLabel->setTextFormat(Qt::RichText);
-                qDebug() << "Setting move label to " << lastCall;
+//                qDebug() << "Setting move label to " << lastCall;
                 moveLabel->setText(lastCall);
                 ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveLabel);
 #endif
@@ -785,7 +785,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 QTableWidgetItem *moveItem(ui->tableWidgetCurrentSequence->item(sdLastLine - 1, kColCurrentSequenceCall));
                 QString lastCall(moveItem->text());
                 lastCall += " " + str;
-                qDebug() << "Appending additional call info " << lastCall;
+//                qDebug() << "Appending additional call info " << lastCall;
                 moveItem->setText(lastCall);
             }
         }
@@ -833,12 +833,14 @@ void MainWindow::on_sd_awaiting_input()
 
 void MainWindow::on_sd_set_pick_string(QString str)
 {
-    qDebug() << "on_sd_set_pick_string: " <<  str;
+    Q_UNUSED(str)
+//    qDebug() << "on_sd_set_pick_string: " <<  str;
 }
 
 void MainWindow::on_sd_dispose_of_abbreviation(QString str)
 {
-    qDebug() << "on_sd_dispose_of_abbreviation: " <<  str;
+    Q_UNUSED(str)
+//    qDebug() << "on_sd_dispose_of_abbreviation: " <<  str;
 }
 
 
@@ -910,9 +912,9 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
     {
         call = calls[0];
     }
-    qDebug() << "Double click " << call;
+//    qDebug() << "Double click " << call;
     ui->lineEditSDInput->setText(call);
-    qDebug() << "Highlighting replacebales";
+//    qDebug() << "Highlighting replaceables";
     highlight_sd_replaceables();
 }
 
@@ -1065,7 +1067,7 @@ void MainWindow::do_sd_tab_completion()
                                                       originalText,
                                                       originalText,
                                                       longestMatch);
-    qDebug() << "longest match is " << longestMatch;
+//    qDebug() << "longest match is " << longestMatch;
     
     if (longestMatch.length() > callSearch.length())
     {
@@ -1096,7 +1098,7 @@ void MainWindow::do_sd_tab_completion()
             else if (new_line.contains(strBracketsSubsidiaryCall))
             {
                 int indexStart = new_line.indexOf(strBracketsSubsidiaryCall) + 1;
-                qDebug() << "Settng subsidiary call at " << indexStart;
+//                qDebug() << "Setting subsidiary call at " << indexStart;
                 ui->lineEditSDInput->setSelection(indexStart, strlen(strBracketsSubsidiaryCall) - 2);
                 ui->lineEditSDInput->setFocus();
             }
