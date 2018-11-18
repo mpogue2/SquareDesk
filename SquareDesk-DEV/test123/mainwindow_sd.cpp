@@ -25,7 +25,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "renderarea.h"
+//#include "renderarea.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -417,8 +417,8 @@ void MainWindow::initialize_internal_sd_tab()
     
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
 
-    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText);
-    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText);
+    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText_animated);
+    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText_fixed);
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sd_animation_scene);
 
@@ -465,7 +465,15 @@ void MainWindow::on_sd_set_window_title(QString /* str */)
 void MainWindow::set_sd_last_formation_name(const QString &str)
 {
     sdLastFormationName = str;
-    graphicsTextItemSDStatusBarText->setPlainText(sdLastFormationName.compare("(any setup)") == 0 ? "" : sdLastFormationName);
+
+    if ( sdLastFormationName == "<startup>" ||
+         sdLastFormationName == "(any setup)" ) {
+        graphicsTextItemSDStatusBarText_fixed->setPlainText("");
+        graphicsTextItemSDStatusBarText_animated->setPlainText("");
+    } else {
+        graphicsTextItemSDStatusBarText_fixed->setPlainText(sdLastFormationName);
+        graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName);
+    }
 }
 
 void MainWindow::clamp_sd_animation_values()

@@ -76,7 +76,7 @@
 #include "levelmeter.h"
 #include "analogclock.h"
 #include "console.h"
-#include "renderarea.h"
+//#include "renderarea.h"
 #include "songsettings.h"
 
 #if defined(Q_OS_MAC)
@@ -768,7 +768,7 @@ private:
 
     QProcess *ps;  // pocketsphinx process
     Highlighter *highlighter;
-    RenderArea *renderArea;
+//    RenderArea *renderArea;
     QString uneditedData;
     QString editedData;
     QString copyrightText;  // sd copyright string (shown once at start)
@@ -871,7 +871,8 @@ private: // SD
     bool sdOutputtingAvailableCalls;
     QList<SDAvailableCall> sdAvailableCalls;
     int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;
-    QGraphicsTextItem *graphicsTextItemSDStatusBarText;
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText_fixed;
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText_animated;
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);

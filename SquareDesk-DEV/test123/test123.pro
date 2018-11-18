@@ -50,7 +50,7 @@ SOURCES += main.cpp\
     songsettings.cpp \
     typetracker.cpp \
     console.cpp \
-    renderarea.cpp \
+#    renderarea.cpp \
     sdhighlighter.cpp \
     utility.cpp \
     danceprograms.cpp \
@@ -100,7 +100,7 @@ HEADERS  += mainwindow.h \
     clickablelabel.h \
     typetracker.h \
     console.h \
-    renderarea.h \
+#    renderarea.h \
     common.h \
     sdhighlighter.h \
     danceprograms.h \

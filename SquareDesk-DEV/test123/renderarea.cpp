@@ -22,6 +22,7 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+#ifdef OLDRENDERAREA
 
 #include "renderarea.h"
 
@@ -397,3 +398,4 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 // TODO: search messes us up, because it shows the final formation, which gets drawn. :-(
 // TODO: Show a static square to start, before heads start.  (just initialize the layout strings properly!)
 
+#endif
