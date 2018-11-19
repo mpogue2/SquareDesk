@@ -79,13 +79,13 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
 {
     static QPen pen(Qt::black, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
 
-    static float rectSize = 16;
+    static double rectSize = 16;
     static QRectF rect(-rectSize/2, -rectSize/2, rectSize, rectSize);
     static QRectF directionRect(-2,-rectSize / 2 - 4,4,4);
 
     QGraphicsItem *mainItem = boy ?
-        (QGraphicsItem*)(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
-        :   (QGraphicsItem*)(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
+                dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
+        :   dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
 
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
 
@@ -141,14 +141,14 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 {
     int coupleNumber = -1;
     int girl = 0;
-    double max_y = (double)(sdformation.length());
+    double max_y = static_cast<double>(sdformation.length());
 
     // Assign each dancer a location based on the picture
     for (int y = 0; y < sdformation.length(); ++y)
     {
         int dancer_start_x = -1;
         bool draw = false;
-        float direction = -1;
+        double direction = -1.0;
 
         for (int x = 0; x < sdformation[y].length(); ++x)
         {
@@ -193,7 +193,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
             }
             if (draw)
             {
-                if (direction == -1 || coupleNumber == -1)
+                if (direction == -1.0 || coupleNumber == -1)
                 {
                     qDebug() << "Drawing state error";
                 }
@@ -206,7 +206,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
                     }
                     else
                     {
-                        sdpeople[dancerNum].setDestination(dancer_start_x, y, direction);
+                        sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
                     }
                 }
                 draw = false;
@@ -226,7 +226,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
     // left_x = min(dancers.x)
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        int dancer_start_x = sdpeople[dancerNum].getX(1.0);
+        int dancer_start_x = static_cast<int>(sdpeople[dancerNum].getX(1.0));
         if (left_x < 0 || dancer_start_x < left_x)
             left_x = dancer_start_x;
     }
@@ -238,13 +238,13 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        int dancer_start_x = sdpeople[dancerNum].getX(1) - left_x;
+        int dancer_start_x = static_cast<int>(sdpeople[dancerNum].getX(1) - left_x);
         if (dancer_start_x > max_x)
             max_x = dancer_start_x;
 
         for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
         {
-            if (0 != (dancer_start_x % (i + 3)))
+            if (0 != (static_cast<unsigned long>(dancer_start_x) % (i + 3)))
             {
                 factors[i] = false;
             }
@@ -277,7 +277,7 @@ void MainWindow::update_sd_animations()
     move_dancers(sd_animation_people, sd_animation_t_value);
     if (sd_animation_t_value < 1.0)
     {
-        QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
+        QTimer::singleShot(static_cast<int>(sd_animation_msecs_per_frame), this, SLOT(update_sd_animations()));
         sd_animation_running = true;
     }
     else
@@ -313,10 +313,10 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
     statusBarTransform.scale(2,2);
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
 
-    for (double x =  -halfBackgroundSize + gridSize;
+    for (double x = -halfBackgroundSize + gridSize;
          x < halfBackgroundSize; x += gridSize)
     {
-        QPen &pen(x == 0 ? axisPen : gridPen);
+        QPen &pen(x == 0.0 ? axisPen : gridPen);
         sdscene.addLine(x, -halfBackgroundSize, x, halfBackgroundSize, pen);
         sdscene.addLine(-halfBackgroundSize, x, halfBackgroundSize, x, pen);
     }
@@ -348,19 +348,19 @@ void MainWindow::initialize_internal_sd_tab()
 {
     sd_redo_stack->initialize();
     
-    if (NULL != shortcutSDTabUndo)
+    if (nullptr != shortcutSDTabUndo)
         delete shortcutSDTabUndo;
     shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
     connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
     shortcutSDTabUndo->setKey(QKeySequence::Undo);
 
-   if (NULL != shortcutSDCurrentSequenceSelectAll)
+   if (nullptr != shortcutSDCurrentSequenceSelectAll)
         delete shortcutSDCurrentSequenceSelectAll;
     shortcutSDCurrentSequenceSelectAll = new QShortcut(ui->tableWidgetCurrentSequence);
     connect(shortcutSDCurrentSequenceSelectAll, SIGNAL(activated()), this, SLOT(select_all_sd_current_sequence()));
     shortcutSDCurrentSequenceSelectAll->setKey(QKeySequence::SelectAll);
 
-   if (NULL != shortcutSDCurrentSequenceCopy)
+   if (nullptr != shortcutSDCurrentSequenceCopy)
         delete shortcutSDCurrentSequenceCopy;
     shortcutSDCurrentSequenceCopy = new QShortcut(ui->tableWidgetCurrentSequence);
     connect(shortcutSDCurrentSequenceCopy, SIGNAL(activated()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
@@ -382,7 +382,7 @@ void MainWindow::initialize_internal_sd_tab()
         ui->actionSDDanceProgramC3x,
         ui->actionSDDanceProgramC4,
         ui->actionSDDanceProgramC4x,
-        NULL
+        nullptr
     };
  
     danceProgramActions = new QAction *[sizeof(danceProgramActionsStatic) / sizeof(*danceProgramActionsStatic)];
@@ -445,12 +445,12 @@ void MainWindow::initialize_internal_sd_tab()
     ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(false);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->tableWidgetCurrentSequence->setColumnWidth(1, currentSequenceIconSize + 8);
+    ui->tableWidgetCurrentSequence->setColumnWidth(1, static_cast<int>(currentSequenceIconSize) + 8);
     QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
     initialTableWidgetCurrentSequenceDefaultSectionSize =
         verticalHeader->defaultSectionSize();
-    verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
+    verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
 }
 
 
@@ -505,7 +505,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
         sd_animation_t_value = sd_animation_delta_t;
 
         move_dancers(sd_fixed_people, 1);
-        QPixmap image(sdListIconSize,sdListIconSize);
+        QPixmap image(static_cast<int>(sdListIconSize), static_cast<int>(sdListIconSize));
         image.fill();
         QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
@@ -871,7 +871,7 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetIte
 
 void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation)
 {
-    QPixmap image(currentSequenceIconSize,currentSequenceIconSize);
+    QPixmap image(static_cast<int>(currentSequenceIconSize), static_cast<int>(currentSequenceIconSize));
     image.fill();
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -894,7 +894,7 @@ void MainWindow::set_current_sequence_icons_visible(bool visible)
     if (visible)
     {
         QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
-        verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
+        verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
     }
     else
     {
@@ -974,7 +974,7 @@ static QRegExp regexCallNth("<Nth>");
 static QRegExp regexEnteredN("(\\d+)");
 static QRegExp regexCallN("<N>");
 
-static int compareEnteredCallToCall(const QString &enteredCall, const QString &call, QString * maxCall = NULL)
+static int compareEnteredCallToCall(const QString &enteredCall, const QString &call, QString *maxCall = nullptr)
 {
     
     int enteredCallPos = 0;
@@ -1005,7 +1005,7 @@ static int compareEnteredCallToCall(const QString &enteredCall, const QString &c
         }
     }
     
-    if (NULL != maxCall)
+    if (nullptr != maxCall)
     {
         *maxCall = enteredCall.left(enteredCallPos) + call.right(call.length() - callPos);
     }
@@ -1099,7 +1099,7 @@ void MainWindow::do_sd_tab_completion()
             {
                 int indexStart = new_line.indexOf(strBracketsSubsidiaryCall) + 1;
 //                qDebug() << "Setting subsidiary call at " << indexStart;
-                ui->lineEditSDInput->setSelection(indexStart, strlen(strBracketsSubsidiaryCall) - 2);
+                ui->lineEditSDInput->setSelection(indexStart, static_cast<int>(strlen(strBracketsSubsidiaryCall) - 2));
                 ui->lineEditSDInput->setFocus();
             }
         }
@@ -1300,7 +1300,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
 
 dance_level MainWindow::get_current_sd_dance_program()
 {
-    dance_level current_dance_program = (dance_level)(INT_MAX);
+    dance_level current_dance_program = static_cast<dance_level>(INT_MAX);
 
     if (ui->actionSDDanceProgramMainstream->isChecked())
     {
@@ -1690,8 +1690,8 @@ static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsS
                 svgText.open(QBuffer::ReadWrite);
                 QSvgGenerator svgGen;
                 svgGen.setOutputDevice(&svgText);
-                svgGen.setSize(QSize(halfBackgroundSize * 2,
-                                     halfBackgroundSize * 2));
+                svgGen.setSize(QSize(static_cast<int>(halfBackgroundSize) * 2,
+                                     static_cast<int>(halfBackgroundSize) * 2));
                 svgGen.setTitle(formationName);
                 svgGen.setDescription(formation.toHtmlEscaped());
                 {
@@ -1763,7 +1763,7 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
             selection += "<li><b>" + item->text().toHtmlEscaped() + "</b>";
             QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation);
-            if (1 || imageItem->isSelected())
+            if ( (1) || imageItem->isSelected() )
             {
                 selection += render_image_item_as_html(imageItem, scene, people, graphics_as_text);
             }
