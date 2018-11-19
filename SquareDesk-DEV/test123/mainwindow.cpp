@@ -550,7 +550,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // VU Meter -----
     vuMeterTimer = new QTimer(this);
     connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
-    vuMeterTimer->start(50);           // adjust from GUI with timer->setInterval(newValue)
+    vuMeterTimer->start(100);           // adjust from GUI with timer->setInterval(newValue)
 
     vuMeter = new LevelMeter(this);
     ui->gridLayout_2->addWidget(vuMeter, 1,5);  // add it to the layout in the right spot

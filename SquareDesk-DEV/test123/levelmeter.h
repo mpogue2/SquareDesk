@@ -109,6 +109,7 @@ private:
      * This is calculated by decaying m_peakLevel depending on the
      * elapsed time since m_peakLevelChanged, and the value of m_decayRate.
      */
+    qreal m_oldDecayedPeakLevel;
     qreal m_decayedPeakLevel;
 
     /**
