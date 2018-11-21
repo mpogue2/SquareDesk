@@ -477,7 +477,7 @@ win32:CONFIG(debug, debug|release): {
     # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
     #   rename is so that there is only one .exe in the directory for windeployqt.exe
     fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
-    fixbug2.commands = C:\Qt\5.9.7\msvc2015\bin\windeployqt.exe $$shell_path($$OUT_PWD/debug)
+    fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
     fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
 
     first.depends += fixbug1 fixbug2 fixbug3
@@ -565,7 +565,7 @@ win32:CONFIG(release, debug|release): {
     # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
     #   rename is so that there is only one .exe in the directory for windeployqt.exe
     fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
-    fixbug2.commands = C:\Qt\5.9.7\msvc2015\bin\windeployqt.exe $$shell_path($$OUT_PWD/release)
+    fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
     fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
 
     first.depends += fixbug1 fixbug2 fixbug3
