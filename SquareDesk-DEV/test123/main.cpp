@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
 {
     // From: https://stackoverflow.com/questions/4954140/how-to-redirect-qdebug-qwarning-qcritical-etc-output
 
+//    QCoreApplication::addLibraryPath(".");  // for windows
+
     QApplication a(argc, argv);
     a.setApplicationName("SquareDesk");
     a.setOrganizationName("Zenstar Software");

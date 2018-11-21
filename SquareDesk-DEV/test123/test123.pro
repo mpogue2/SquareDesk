@@ -472,6 +472,21 @@ win32:CONFIG(debug, debug|release): {
     #export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
 
+    # BUG WORKAROUND --------------------------------------
+    # To get around the "app failed to start because...platform plugin "windows" in "" problem
+    # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
+    #   rename is so that there is only one .exe in the directory for windeployqt.exe
+    fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+    fixbug2.commands = C:\Qt\5.9.7\msvc2015\bin\windeployqt.exe $$shell_path($$OUT_PWD/debug)
+    fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+
+    first.depends += fixbug1 fixbug2 fixbug3
+    export(first.depends)
+    export(fixbug1.commands)
+    export(fixbug2.commands)
+    export(fixbug3.commands)
+    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+
 }
 
 win32:CONFIG(release, debug|release): {
@@ -532,7 +547,6 @@ win32:CONFIG(release, debug|release): {
     QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 
     # For the PDF viewer -----------------
-    # For the PDF viewer -----------------
     copydata1p.commands = if not exist $$shell_path($$OUT_PWD/release/minified) $(MKDIR) $$shell_path($$OUT_PWD/release/minified)
     copydata2p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/web)   $$shell_path($$OUT_PWD/release/minified/web)
     copydata3p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/build) $$shell_path($$OUT_PWD/release/minified/build)
@@ -545,6 +559,22 @@ win32:CONFIG(release, debug|release): {
     export(copydata3p.commands)
     #export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
+
+    # BUG WORKAROUND --------------------------------------
+    # To get around the "app failed to start because...platform plugin "windows" in "" problem
+    # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
+    #   rename is so that there is only one .exe in the directory for windeployqt.exe
+    fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+    fixbug2.commands = C:\Qt\5.9.7\msvc2015\bin\windeployqt.exe $$shell_path($$OUT_PWD/release)
+    fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+
+    first.depends += fixbug1 fixbug2 fixbug3
+    export(first.depends)
+    export(fixbug1.commands)
+    export(fixbug2.commands)
+    export(fixbug3.commands)
+    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+
 }
 
 RESOURCES += resources.qrc
