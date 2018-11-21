@@ -8967,6 +8967,7 @@ void MainWindow::adjustFontSizes()
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFont(currentFont);
+    ui->songTable->horizontalHeader()->setFixedHeight(searchBoxesHeight[index]);
 //    qDebug() << "setting font to: " << currentFont;
 
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(67*(currentMacPointSize/13.0)));
