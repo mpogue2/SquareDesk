@@ -574,7 +574,38 @@ win32:CONFIG(release, debug|release): {
     export(fixbug2.commands)
     export(fixbug3.commands)
     QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+}
 
+win32:CONFIG(debug, debug|release): {
+    # MISC FILES --------------------------------------
+    ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/debug)
+    quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/debug)
+    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/debug)
+    manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/debug/SquareDeskManual.pdf)
+
+    first.depends += ico quaz pstest manual
+    export(first.depends)
+    export(ico.commands)
+    export(quaz.commands)
+    export(pstest.commands)
+    export(manual.commands)
+    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+}
+
+win32:CONFIG(release, debug|release): {
+    # MISC FILES --------------------------------------
+    ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/release)
+    quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/release)
+    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/release)
+    manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/release/SquareDeskManual.pdf)
+
+    first.depends += ico quaz pstest manual
+    export(first.depends)
+    export(ico.commands)
+    export(quaz.commands)
+    export(pstest.commands)
+    export(manual.commands)
+    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
 }
 
 RESOURCES += resources.qrc
