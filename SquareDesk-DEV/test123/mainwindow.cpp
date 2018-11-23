@@ -587,14 +587,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-#define DISABLEFILEWATCHER 1
+//#define DISABLEFILEWATCHER 1
 
 #ifndef DISABLEFILEWATCHER
     PerfTimer t2("filewatcher init", __LINE__);
 
     // ---------------------------------------
-    // let's watch for changes in the musicDir
-    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+//    // let's watch for changes in the musicDir
+//    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
     QRegExp ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
     while (it.hasNext()) {
         QString aPath = it.next();
@@ -623,23 +624,29 @@ MainWindow::MainWindow(QWidget *parent) :
     t.elapsed(__LINE__);
 
     // do the same for lyrics (included the "downloaded" subdirectory) -------
-    QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-    while (it2.hasNext()) {
-        QString aPath = it2.next();
-        lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
-//        qDebug() << "adding lyrics path: " << aPath;
-        t.elapsed(__LINE__);
-    }
+//    QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+//    while (it2.hasNext()) {
+//        QString aPath = it2.next();
+//        lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
+////        qDebug() << "adding lyrics path: " << aPath;
+//        t.elapsed(__LINE__);
+//    }
 
     t.elapsed(__LINE__);
 
-    lyricsWatcher.addPath(musicRootPath + "/lyrics");  // add the root lyrics directory itself
+    lyricsWatcher.addPath(musicRootPath + "/lyrics");      // add the root lyrics directory itself
+    lyricsWatcher.addPath(musicRootPath + "/lyrics/downloaded");
+
     QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
     // ---------------------------------------
 
     t.elapsed(__LINE__);
 
     t2.elapsed(__LINE__);
+
+//    qDebug() << "Dirs 1:" << musicRootWatcher.directories();
+//    qDebug() << "Dirs 2:" << lyricsWatcher.directories();
+
 #endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
@@ -715,6 +722,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
+
+    t.elapsed(__LINE__);
 
     ui->songTable->resizeColumnToContents(kTypeCol);  // and force resizing of column widths to match songs
     ui->songTable->resizeColumnToContents(kLabelCol);
