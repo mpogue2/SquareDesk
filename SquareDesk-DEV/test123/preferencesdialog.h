@@ -98,6 +98,7 @@ public:
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) int Get##name() const; void Set##name(int value);
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) QString Get##name() const; void Set##name(QString value);
 #define CONFIG_ATTRIBUTE_INT(control, name, default) int Get##name() const; void Set##name(int value);
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default) int Get##name() const; void Set##name(int value);
 
     #include "prefs_options.h"
 
@@ -110,6 +111,7 @@ public:
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_INT
+#undef CONFIG_ATTRIBUTE_SLIDER
 
 private slots:
     void on_chooseMusicPathButton_clicked();
@@ -145,6 +147,18 @@ private slots:
     void on_afterLongTipAction_currentIndexChanged(int index);
 
     void on_afterBreakAction_currentIndexChanged(int index);
+
+    void on_thresholdDial_valueChanged(int value);
+
+    void on_ratioDial_valueChanged(int value);
+
+    void on_gainDial_valueChanged(int value);
+
+    void on_attackDial_valueChanged(int value);
+
+    void on_releaseDial_valueChanged(int value);
+
+    void on_compressorEnabledCheckbox_toggled(bool checked);
 
 private:
     void SetLabelTagAppearanceColors();

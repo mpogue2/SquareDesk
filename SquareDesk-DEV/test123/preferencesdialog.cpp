@@ -34,6 +34,8 @@
 #include <algorithm>
 #include "mainwindow.h"
 
+extern bass_audio cBass;  // global in MainWindow.cpp
+
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;
 static const int kSessionsColTime = 2;
@@ -183,6 +185,9 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
+
+//    ui->compressorBypassed->setVisible(!ui->compressorEnabledCheckbox->isChecked());
+    on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
 }
 
 
@@ -796,6 +801,11 @@ void PreferencesDialog::on_singingColorButton_clicked()
     int PreferencesDialog::Get##name() const { return ui->control->text().toInt(); } \
     void PreferencesDialog::Set##name(int value) { ui->control->setText(QString::number(value)); }
 
+// Sliders are done via value() and setValue(), rather than text() and setText()
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default)                 \
+    int PreferencesDialog::Get##name() const { return ui->control->value(); } \
+    void PreferencesDialog::Set##name(int value) { ui->control->setValue(value); }
+
 #include "prefs_options.h"
 
 #undef CONFIG_ATTRIBUTE_STRING
@@ -803,6 +813,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_INT
+#undef CONFIG_ATTRIBUTE_SLIDER
 
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
@@ -936,4 +947,66 @@ void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
         mw->playSFX(QString::number(index-1));
     }
 
+}
+
+void PreferencesDialog::on_thresholdDial_valueChanged(int value)
+{
+    cBass.SetCompression(0, value);
+    ui->threshold_dB->setText(QStringLiteral("%1dB").arg(value));
+}
+
+void PreferencesDialog::on_ratioDial_valueChanged(int value)
+{
+    cBass.SetCompression(1, value);
+    ui->ratio->setText(QStringLiteral("%1:1").arg(value));
+}
+
+void PreferencesDialog::on_gainDial_valueChanged(int value)
+{
+    cBass.SetCompression(2, value);
+    ui->makeupGain_dB->setText(QStringLiteral("%1dB").arg(value));
+}
+
+void PreferencesDialog::on_attackDial_valueChanged(int value)
+{
+    cBass.SetCompression(3, value);
+    ui->attack_ms->setText(QStringLiteral("%1ms").arg(value));
+}
+
+void PreferencesDialog::on_releaseDial_valueChanged(int value)
+{
+    cBass.SetCompression(4, value);
+    ui->release_ms->setText(QStringLiteral("%1ms").arg(value));
+}
+
+void PreferencesDialog::on_compressorEnabledCheckbox_toggled(bool checked)
+{
+    ui->thresholdDial->setEnabled(checked);
+    ui->ratioDial->setEnabled(checked);
+    ui->gainDial->setEnabled(checked);
+    ui->attackDial->setEnabled(checked);
+    ui->releaseDial->setEnabled(checked);
+
+    ui->thresholdCaption->setEnabled(checked);
+    ui->ratioCaption->setEnabled(checked);
+    ui->gainCaption->setEnabled(checked);
+    ui->attackCaption->setEnabled(checked);
+    ui->releaseCaption->setEnabled(checked);
+
+    ui->threshold_dB->setEnabled(checked);
+    ui->ratio->setEnabled(checked);
+    ui->makeupGain_dB->setEnabled(checked);
+    ui->attack_ms->setEnabled(checked);
+    ui->release_ms->setEnabled(checked);
+
+    cBass.SetCompressionEnabled(checked);
+
+    ui->compressorBypassed->setVisible(!checked);
+
+    if (checked) {
+        int delta = 60;
+        ui->topLine->setGeometry(330 - delta, 30, 121 + delta, 20);
+    } else {
+        ui->topLine->setGeometry(330, 30, 121, 20);
+    }
 }

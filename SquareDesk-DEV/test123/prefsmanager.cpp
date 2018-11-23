@@ -233,6 +233,25 @@ void PreferencesManager::Set##name(int value)        \
     MySettings.setValue(#name, value);               \
 }
 
+// sliders are initialized like text widgets
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default) \
+    int PreferencesManager::Get##name()              \
+{                                                    \
+    QString value = MySettings.value(#name).toString();      \
+    if (value.isNull())                              \
+    {                                                \
+        value = QString::number(default);                             \
+        Set##name(default);                          \
+    }                                                \
+    return value.toInt();                                    \
+}                                                    \
+                                                     \
+void PreferencesManager::Set##name(int value)        \
+{                                                    \
+    MySettings.setValue(#name, value);               \
+}
+
+
 // ------------------------------------------------------------------------
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) \
 int  PreferencesManager::Get##name()                   \
@@ -258,6 +277,7 @@ void PreferencesManager::Set##name(int value)          \
 #undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
+#undef CONFIG_ATTRIBUTE_SLIDER
 
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
@@ -288,6 +308,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 #define CONFIG_ATTRIBUTE_INT(control, name, default) prefDialog->Set##name(Get##name());
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) prefDialog->Set##name(Get##name());
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) prefDialog->Set##name(Get##name());
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default) prefDialog->Set##name(Get##name());
 
     #include "prefs_options.h"
 
@@ -300,6 +321,7 @@ void PreferencesManager::populatePreferencesDialog(PreferencesDialog *prefDialog
 #undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
+#undef CONFIG_ATTRIBUTE_SLIDER
 
     MySettings.sync();
     prefDialog->finishPopulation();
@@ -321,6 +343,7 @@ void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *p
 #define CONFIG_ATTRIBUTE_INT(control, name, default) Set##name(prefDialog->Get##name());
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) Set##name(prefDialog->Get##name());
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) Set##name(prefDialog->Get##name());
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default) Set##name(prefDialog->Get##name());
 
     #include "prefs_options.h"
 
@@ -333,5 +356,6 @@ void PreferencesManager::extractValuesFromPreferencesDialog(PreferencesDialog *p
 #undef CONFIG_ATTRIBUTE_INT
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
+#undef CONFIG_ATTRIBUTE_SLIDER
     MySettings.sync();
 }

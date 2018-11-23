@@ -203,7 +203,7 @@ using namespace TagLib;
 // Toggle between Music/Lyrics  T
 
 // GLOBALS:
-static bass_audio cBass;
+bass_audio cBass;
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
@@ -1160,6 +1160,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionSave->setEnabled(false);  // save is disabled to start out
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
+    // should the compressor be enabled?  Even if it's not actually instantiated here and now,
+    //   this will set compressorShouldBeEnabled, so that when a song is loaded, the compressor will
+    //   be instantiated, too.
+    cBass.SetCompressionEnabled(prefsManager.GetcompressorIsEnabled());
+    cBass.SetCompression(0, prefsManager.Getthreshold_dB()); // yes, we have to initialize these manually
+    cBass.SetCompression(1, prefsManager.Getratio_toOne());
+    cBass.SetCompression(2, prefsManager.Getgain_dB());
+    cBass.SetCompression(3, prefsManager.Getattack_ms());
+    cBass.SetCompression(4, prefsManager.Getrelease_ms());
 }
 
 void MainWindow::musicRootModified(QString s)

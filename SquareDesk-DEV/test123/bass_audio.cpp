@@ -105,6 +105,22 @@ bass_audio::bass_audio(void)
     Stream_Eq[1] = 50.0;
     Stream_Eq[2] = 50.0;
 
+    // compressor initial settings (defaults to OFF)
+//    Stream_Compressor[0] = 0.0f;       // threshold (OFF)
+//    Stream_Compressor[1] = 4.0f;       // ratio
+//    Stream_Compressor[2] = 0.0f;       // gain
+//    Stream_Compressor[3] = 10.0f;      // attack
+//    Stream_Compressor[4] = 200.0f;     // release
+
+    compressor.fThreshold = 0.0f;
+    compressor.fRatio = 4.0f;
+    compressor.fGain = 0.0f;
+    compressor.fAttack = 10.0f;
+    compressor.fRelease = 200.0f;
+    compressor.lChannel = BASS_BFX_CHANALL;  // compress all channels
+
+    compressorShouldBeEnabled = false;
+
     FileLength = 0.0;
     Current_Position = 0.0;
     bPaused = false;
@@ -184,6 +200,59 @@ void bass_audio::SetEq(int band, double val)
 
     eq.fGain = static_cast<float>(val);     // modify just the level of the selected band, and set all
     BASS_FXSetParameters(fxEQ, &eq);
+}
+
+// ------------------------------------------------------------------
+//
+void bass_audio::SetCompression(unsigned int which, float val)
+{
+//    qDebug() << "SetCompression: " << which << "to: " << val;
+
+    switch (which) {
+        case 0: compressor.fThreshold = val; break;
+        case 1: compressor.fRatio     = val; break;
+        case 2: compressor.fGain      = val; break;
+        case 3: compressor.fAttack    = val; break;
+        case 4: compressor.fRelease   = val; break;
+        default: break;
+    }
+
+    if (fxCompressor != (HFX)NULL) {
+        // compressor exists, so go ahead and modify it!
+        BASS_FXSetParameters(fxCompressor, &compressor);
+//        qDebug() << "   Actual: " << compressor.fThreshold << compressor.fRatio << compressor.fGain << compressor.fAttack << compressor.fRelease;
+    }
+
+}
+
+void bass_audio::SetCompressionEnabled(bool enable) {
+    if (enable) {
+        // enabled
+//        qDebug() << "compressor should be enabled...";
+
+        if ((Stream != (HSTREAM)NULL) && (fxCompressor == (HFX)NULL)) {
+            // compressor doesn't exist yet, so create one and initialize it
+            // instantiate and init the compressor -----------------
+            fxCompressor = BASS_ChannelSetFX(Stream, BASS_FX_BFX_COMPRESSOR2, 0);  // 0 = after EQ
+            if (fxCompressor != (HFX)0) {
+//                qDebug() << "   compressor is up and running";
+                BASS_FXSetParameters(fxCompressor, &compressor);  // set parameters on compressor
+            } else {
+//                qDebug() << "error in turning on the compressor: " << BASS_ErrorGetCode();
+            }
+        }
+        compressorShouldBeEnabled = true;
+    } else {
+        // disabled
+//        qDebug() << "disabling compressor...";
+
+        if ((Stream != (HSTREAM)NULL) && (fxCompressor != (HFX)NULL)) {
+//            qDebug() << "   compressor is gone now...";
+            BASS_ChannelRemoveFX(Stream, fxCompressor);
+            fxCompressor = (HFX)NULL;  // compressor is gone now
+        }
+        compressorShouldBeEnabled = false;
+    }
 }
 
 // *******************
@@ -284,7 +353,21 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
 {
     Q_UNUSED(intro1_frac)
     Q_UNUSED(outro1_frac)
-    BASS_StreamFree(Stream);
+
+    if (Stream != (HSTREAM)NULL) {
+        // if there is a valid stream,
+        if (fxEQ != (HFX)NULL) {
+            // and there's a valid EQ processor
+            BASS_ChannelRemoveFX(Stream, fxEQ);  // remove the EQ
+            fxEQ = (HFX)NULL;
+        }
+        if (fxCompressor != (HFX)NULL) {
+            // and there's a valid compressor
+            BASS_ChannelRemoveFX(Stream, fxCompressor);  // remove the compressor
+            fxCompressor = (HFX)NULL;  // other code looks at this to determine whether a compressor exists
+        }
+    }
+    BASS_StreamFree(Stream);  // free the old stream
 
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     Stream = BASS_StreamCreateFile(false, filepath, 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
@@ -310,8 +393,8 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
 
     BASS_BFX_PEAKEQ eq;
 
-    // set peaking equalizer effect with no bands
-    fxEQ = BASS_ChannelSetFX(Stream, BASS_FX_BFX_PEAKEQ, 0);
+    // set peaking equalizer effect with no bands -----------------
+    fxEQ = BASS_ChannelSetFX(Stream, BASS_FX_BFX_PEAKEQ, 1);
 
     float fGain = 0.0f;
     float fBandwidth = 2.5f;
@@ -340,6 +423,10 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     eq.fCenter=fCenter_Treble;
     BASS_FXSetParameters(fxEQ, &eq);
 
+    // instantiate and init the compressor, if it's not already -----------------
+    SetCompressionEnabled(compressorShouldBeEnabled);
+
+    // -------------------------------------------------------------
     bPaused = true;
 
     ClearLoop();

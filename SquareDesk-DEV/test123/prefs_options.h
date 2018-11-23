@@ -137,3 +137,11 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);
 
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
+
+// Global FX tab
+CONFIG_ATTRIBUTE_BOOLEAN(compressorEnabledCheckbox, compressorIsEnabled, false)
+CONFIG_ATTRIBUTE_SLIDER(thresholdDial, threshold_dB, -15)  // sliders are integers controlled by value()/setValue()
+CONFIG_ATTRIBUTE_SLIDER(ratioDial, ratio_toOne, 4)
+CONFIG_ATTRIBUTE_SLIDER(gainDial, gain_dB, 0)
+CONFIG_ATTRIBUTE_SLIDER(attackDial, attack_ms, 10)
+CONFIG_ATTRIBUTE_SLIDER(releaseDial, release_ms, 200)
