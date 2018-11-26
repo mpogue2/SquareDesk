@@ -25,6 +25,7 @@
 
 #include "mainwindow.h"
 #include <QApplication>
+#include <QSplashScreen>
 
 #include "startupwizard.h"
 
@@ -35,11 +36,19 @@ int main(int argc, char *argv[])
 //    QCoreApplication::addLibraryPath(".");  // for windows
 
     QApplication a(argc, argv);
+
+    QPixmap pixmap(":/graphics/SplashScreen1.png");
+    QSplashScreen splash(pixmap);
+    splash.showMessage("Loading application....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+    splash.show();
+
     a.setApplicationName("SquareDesk");
     a.setOrganizationName("Zenstar Software");
     a.setOrganizationDomain("zenstarstudio.com");
 
     MainWindow w;
+
+    splash.showMessage("Loading songs....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
 
     // put window back where it was last time (modulo the screen size, which
     //   is automatically taken care of.
@@ -64,6 +73,12 @@ int main(int argc, char *argv[])
         // if running as a standalone app, log to a file instead of the console
         qInstallMessageHandler(MainWindow::customMessageOutput); // custom message handler for debugging
     }
+
+    splash.finish(&w);
+
+    // this is needed, because when the splash screen happens, we don't get the usual appState change message
+    //  so, SD doesn't work until you click on another window and come back.
+    w.changeApplicationState(a.applicationState()); // make sure we get one event with current state
 
     return a.exec();
 }
