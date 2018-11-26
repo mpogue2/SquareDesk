@@ -223,6 +223,10 @@ public:
 #endif    
     QTabWidget *documentsTab;
 
+public slots:
+
+    void changeApplicationState(Qt::ApplicationState state);
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
@@ -401,7 +405,6 @@ private slots:
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 
 
-    void changeApplicationState(Qt::ApplicationState state);
     void focusChanged(QWidget *old, QWidget *now);
 
     void lyricsDownloadEnd();

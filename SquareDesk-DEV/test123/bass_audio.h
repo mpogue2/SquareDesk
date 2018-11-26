@@ -29,6 +29,9 @@
 
 #include <QTimer>
 
+// define this, if you want the compressor ---------------
+//#define WANTCOMPRESSOR 1
+
 class bass_audio
 {
     //-------------------------------------------------------------

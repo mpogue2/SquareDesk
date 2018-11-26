@@ -186,8 +186,13 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 
-//    ui->compressorBypassed->setVisible(!ui->compressorEnabledCheckbox->isChecked());
-    on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
+#ifdef WANTCOMPRESSOR
+    //    ui->compressorBypassed->setVisible(!ui->compressorEnabledCheckbox->isChecked());
+        on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
+#else
+    ui->tabWidget->removeTab(5);  // remove compressor tab, if not used
+#endif
+
 }
 
 

@@ -7926,8 +7926,9 @@ void MainWindow::microphoneStatusUpdate() {
         || ui->tabWidget->tabText(index) == "SD 2") {
         if (voiceInputEnabled &&
             currentApplicationState == Qt::ApplicationActive) {
-            if (!ps)
+            if (!ps) {
                 initSDtab();
+            }
         }
         if (voiceInputEnabled && ps &&
             currentApplicationState == Qt::ApplicationActive) {
