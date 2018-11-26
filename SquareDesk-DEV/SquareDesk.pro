@@ -1,6 +1,7 @@
 TEMPLATE = subdirs
 
-SUBDIRS = html-tidy taglib test123 sdlib
+SUBDIRS = html-tidy taglib test123 sdlib \
+    mp3gain
 
 mac {
 # quazip is Mac OS X only right now, for downloading and unpacking lyrics files...
