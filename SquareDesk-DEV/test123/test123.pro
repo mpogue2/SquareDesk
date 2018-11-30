@@ -395,6 +395,13 @@ macx {
     export(installer1.commands)
     export(installer2.commands)
     QMAKE_EXTRA_TARGETS += installer1 installer2
+
+    # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
+    mp3gain.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    first.depends += mp3gain
+    export(first.depends)
+    export(mp3gain.commands)
+    QMAKE_EXTRA_TARGETS += mp3gain
 }
 
 win32:CONFIG(debug, debug|release): {

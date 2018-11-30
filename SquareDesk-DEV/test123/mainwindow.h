@@ -365,8 +365,13 @@ private slots:
     void readPSStdErr();
     void pocketSphinx_errorOccurred(QProcess::ProcessError error);
     void pocketSphinx_started();
+
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
+
+    void readMP3GainData();
+    void MP3Gain_errorOccurred(QProcess::ProcessError error);
+    void MP3Gain_finished(int exitCode);
 
     void on_actionShow_All_Ages_triggered(bool checked);
 
@@ -769,7 +774,11 @@ private:
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
 
-    QProcess *ps;  // pocketsphinx process
+    QProcess *ps;       // pocketsphinx process
+    QProcess *mp3gain;  // mp3gain process
+    QString mp3gainResult_filepath;    // results of the mp3gain process
+    double  mp3gainResult_dB;   // results of the mp3gain process
+
     Highlighter *highlighter;
 //    RenderArea *renderArea;
     QString uneditedData;
@@ -892,7 +901,9 @@ private: // SD
     double sd_animation_msecs_per_frame;
     void render_sd_item_data(QTableWidgetItem *item);
     void clamp_sd_animation_values();
-    void set_sd_last_formation_name(const QString&);    
+    void set_sd_last_formation_name(const QString&);
+
+    bool replayGain_dB(QString filepath); // async call
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);

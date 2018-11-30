@@ -1178,6 +1178,14 @@ MainWindow::MainWindow(QWidget *parent) :
     cBass.SetCompression(2, prefsManager.Getgain_dB());
     cBass.SetCompression(3, prefsManager.Getattack_ms());
     cBass.SetCompression(4, prefsManager.Getrelease_ms());
+
+//#ifdef Q_OS_MAC
+//    QString testPath("/Users/mpogue/mp3gain-1_6_2-src/test1.mp3");
+//    if (!replayGain_dB(testPath)) {
+//        qDebug() << "ERROR: can't get ReplayGain for: " << testPath;
+//    }
+//#endif
+
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -4871,6 +4879,15 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
 
     songLoaded = true;  // now seekBar can be updated
+
+#ifdef Q_OS_MAC
+    if (!replayGain_dB(MP3FileName)) {
+        qDebug() << "ERROR: can't get ReplayGain for: " << MP3FileName;
+    } else {
+        qDebug() << "Processing ReplayGain for: " << MP3FileName;
+    }
+#endif
+
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -8006,6 +8023,7 @@ void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
 {
     Q_UNUSED(error);
 }
+
 void MainWindow::pocketSphinx_started()
 {
 }
@@ -10540,4 +10558,99 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
 
     } // if accepted
 #endif
+}
+
+// ----------------------------------------------------------------------
+bool MainWindow::replayGain_dB(QString filepath) {
+    QFile musicFile(filepath);
+    if (!musicFile.exists(filepath)) {
+        qDebug() << "REPLAYGAIN ERROR: " << filepath << "does not exist.";
+        return(false);  // error return
+    }
+
+    if (filepath.endsWith("m4a", Qt::CaseInsensitive)) {
+        qDebug() << "REPLAYGAIN ERROR: can't get ReplayGain for M4A files yet.";
+        return(false);  // error return
+    }
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
+    QString pathToMp3gain = appDir + "mp3gain";
+#if defined(Q_OS_WIN32)
+    pathToMp3gain += ".exe";   // executable has a different name on Win32
+#endif
+
+#else /* must be (Q_OS_LINUX) */
+    QString pathToMp3gain = "pocketsphinx_mp3gain";
+#endif
+
+    QStringList mp3gainArgs;
+    mp3gainArgs << "-s" << "s" << filepath;  // do not modify file, just analyze it
+
+    if (mp3gain != nullptr) {
+        qDebug() << "ERROR: an mp3gain process was running...killing the old one.";
+        mp3gain->kill();  // kill any running instance, before starting another one
+    }
+
+    mp3gain = new QProcess(Q_NULLPTR);
+
+//    qDebug() << "mp3gain starting: " << pathToMp3gain << mp3gainArgs;
+
+    mp3gain->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
+    mp3gain->setProcessChannelMode(QProcess::MergedChannels);  // stdout and stderr go to the same place
+
+    connect(mp3gain, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(MP3Gain_errorOccurred(QProcess::ProcessError)));
+    connect(mp3gain, SIGNAL(finished(int)), this, SLOT(MP3Gain_finished(int)));
+
+    mp3gainResult_filepath = filepath;  // results go here
+    mp3gainResult_dB = -1000.0;         //   -1000 = unknown correction
+
+    mp3gain->start(pathToMp3gain, mp3gainArgs); // start new process instance, with args
+
+    bool startedStatus = mp3gain->waitForStarted();
+    if (!startedStatus)
+    {
+        delete mp3gain;
+        mp3gain = nullptr;
+    }
+
+    return(true); // everything looks OK so far
+}
+
+void MainWindow::readMP3GainData() {
+}
+
+void MainWindow::MP3Gain_errorOccurred(QProcess::ProcessError error) {
+    Q_UNUSED(error);
+    qDebug() << "MP3Gain_errorOccurred";
+}
+
+void MainWindow::MP3Gain_finished(int exitCode) {
+    Q_UNUSED(exitCode)
+
+    QByteArray ba = mp3gain->readAllStandardOutput(); // get all stdout/stderr output from mp3gain
+    QString resultStr = QString::fromUtf8(ba.data());
+
+    // extract the value we want, that looks like this:
+    //   Recommended "Track" dB change: -3.780000
+    QRegExp rx("(\\r|\\n)"); // RegEx for '\r' or '\n'
+    QStringList query = resultStr.split(QRegExp("\\r|\\n")).filter("Recommended \"Track\" dB change:");
+
+    if (query.length() > 0) {
+        // if there's a line that looks like the one we want
+//        qDebug() << "mp3gain: " << query[0];
+
+        // extract the numeric result
+        QRegExp number_input("([-+]?[0-9]*\\.?[0-9]+)");
+        if(number_input.indexIn(query[0]) != -1) {
+            mp3gainResult_dB = number_input.cap(1).toDouble();
+        }
+    } else {
+        mp3gainResult_dB = 0.0;  // no result, so no ReplayGain correction
+    }
+    qDebug() << "     mp3gain result:" << mp3gainResult_dB << "dB\n";
+
+    mp3gain = nullptr; // process is gone now
+
+    // TODO: do more here, to actually apply the ReplayGain correction to the current song
 }
