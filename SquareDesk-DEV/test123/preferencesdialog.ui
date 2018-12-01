@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>5</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -1800,9 +1800,9 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>70</x>
-           <y>29</y>
+           <y>22</y>
            <width>211</width>
-           <height>20</height>
+           <height>31</height>
           </rect>
          </property>
          <property name="font">
@@ -1865,6 +1865,40 @@ Click on a color square to change the color associated with that Music Type.  Se
          </property>
          <property name="scaledContents">
           <bool>true</bool>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="replayGainCheckbox">
+         <property name="geometry">
+          <rect>
+           <x>80</x>
+           <y>185</y>
+           <width>191</width>
+           <height>30</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Enable ReplayGain</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_11">
+         <property name="geometry">
+          <rect>
+           <x>100</x>
+           <y>220</y>
+           <width>601</width>
+           <height>50</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>ReplayGain provides automatic volume leveling for your songs.  When enabled, loud songs will be made quieter, and quiet songs will be made louder, so that they all play at roughly the same perceived volume. Currently only works with MP3 files.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

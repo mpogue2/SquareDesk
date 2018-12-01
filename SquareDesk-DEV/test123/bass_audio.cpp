@@ -35,6 +35,7 @@
 float  gStream_Pan = 0.0;
 bool gStream_Mono = false;
 HDSP gMono_dsp = 0;  // DSP handle (u32)
+float gStream_replayGain = 1.0f;    // replayGain
 
 // ========================================================================
 // Mix/Pan, then optionally mix down to mono
@@ -69,7 +70,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             outL = KL * inL;
             outR = KR * inR;             // constant power pan
             mono = (outL + outR)/2.0f;  // mix down to mono for BOTH output channels
-            d[a] = d[a+1] = mono;
+            d[a] = d[a+1] = mono * gStream_replayGain;
         }
 
     } else {
@@ -80,8 +81,8 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             inR = d[a+1];
             outL = KL * inL;
             outR = KR * inR;  // constant power pan
-            d[a] = outL;
-            d[a+1] = outR;
+            d[a] = outL * gStream_replayGain;
+            d[a+1] = outR * gStream_replayGain;
         }
     }
 }
@@ -164,7 +165,35 @@ void bass_audio::SetVolume(int inVolume)
 {
 //    qDebug() << "Setting new volume: " << inVolume;
     Stream_Volume = inVolume;
-    BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
+    BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);  // this uses the GLOBAL volume control
+}
+
+// uses the STREAM volume, rather than global volume
+void bass_audio::SetReplayGainVolume(double replayGain_dB) {
+    if (!BASS_ChannelIsSliding(Stream, BASS_ATTRIB_VOL) &&
+            (BASS_ChannelIsActive(FXStream) != BASS_ACTIVE_PLAYING) ) {
+        // if we are not fading AND we are not ducked because of a sound effect
+        //   (in both cases, when playback starts again, it will go to current volume w/ReplayGain)
+        double voltageRatio = pow(10.0, replayGain_dB/20.0); // 0 = silent, 1.0 = normal, above 1.0 = amplification
+        Stream_replayGain_dB = replayGain_dB;  // for later restore
+
+//        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
+        Stream_MaxVolume = voltageRatio;
+
+        qDebug() << "Setting ReplayGain to: " << replayGain_dB << "dB";
+        qDebug() << "     Voltage ratio (max volume): " << voltageRatio;
+
+        gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
+
+//        if (!BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(voltageRatio))) {
+//            qDebug() << "ERROR: ChannelSetAttribute to" << voltageRatio << "failed. ";
+//            qDebug() << "   error code: " << BASS_ErrorGetCode();
+//        }  // LOCAL volume control of just the music stream
+
+//        float val;
+//        BASS_ChannelGetAttribute(Stream, BASS_ATTRIB_VOL, &val);
+//        qDebug() << "Channel GetAttribute Volume: " << val;
+    }
 }
 
 // ------------------------------------------------------------------
@@ -385,7 +414,7 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     Stream = BASS_StreamCreateFile(false, filepath, 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 100.0f/100.0f);
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 100.0f/100.0f);  // now set by ReplayGain below...
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, 0.0f);
     StreamGetLength(); // sets FileLength
 
@@ -498,6 +527,8 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     // when the fade is done, call a SYNCPROC that pauses playback
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
     Q_UNUSED(handle)
+
+    SetReplayGainVolume(0.0);  // initialize the replayGain to "disabled", sets the LOCAL volume
 }
 
 // ------------------------------------------------------------------
@@ -610,7 +641,9 @@ void bass_audio::SetMono(bool on)
 void bass_audio::Play(void)
 {
     bPaused = false;
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+    qDebug() << "Play volume set to: " << Stream_MaxVolume;
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Stream_MaxVolume);  // ramp quickly to full volume (with ReplayGain applied)
     BASS_ChannelPlay(Stream, false);
     StreamGetPosition();  // tell the position bar in main window where we are
 }
@@ -645,8 +678,9 @@ void bass_audio::FadeOutAndPause(void) {
 
 void bass_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
 //    qDebug() << "Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
+    qDebug() << "StartVolumeDucking volume set to: " << static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f;
 
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(duckToPercent)/100.0f); // drop Stream (main music stream) to a % of current volume
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f); // drop Stream (main music stream) to a % of current max volume (w/ReplayGain)
 
     QTimer::singleShot(forSeconds*1000.0, [=] {
         StopVolumeDucking();
@@ -655,8 +689,9 @@ void bass_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
 }
 
 void bass_audio::StopVolumeDucking() {
-//    qDebug() << "End volume ducking...";
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0); // drop Stream (main music stream) to a % of current volume
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0); // drop Stream (main music stream) to a % of current volume
+    qDebug() << "End volume ducking, vol set to: " << Stream_MaxVolume;
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Stream_MaxVolume); // Stream (main music stream) to 100% of current volume (w/ReplayGain)
 }
 
 
@@ -681,7 +716,8 @@ void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volu
         BASS_StreamFree(FXStream);                                                  // clean up the old stream
     }
     FXStream = BASS_StreamCreateFile(false, filename, 0, 0, 0);
-    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, static_cast<float>(volume)/100.0f);  // volume relative to 100% of Music
+    qDebug() << "Sound FX stream vol set to: " << static_cast<float>(Stream_MaxVolume * volume)/100.0f;
+    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, static_cast<float>(Stream_MaxVolume * volume)/100.0f);  // volume relative to 100% of Music (w/ReplayGain)
 
     QWORD Length = BASS_ChannelGetLength(FXStream, BASS_POS_BYTE);
     double FXLength_seconds = BASS_ChannelBytes2Seconds(FXStream, Length);

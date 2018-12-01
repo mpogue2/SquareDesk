@@ -187,8 +187,10 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 
 #ifdef WANTCOMPRESSOR
+//#ifndef SUPPRESSGLOBALFXTAB
     //    ui->compressorBypassed->setVisible(!ui->compressorEnabledCheckbox->isChecked());
-        on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
+    on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
+    on_replayGainCheckbox_toggled(ui->replayGainCheckbox->isChecked());
 #else
     ui->tabWidget->removeTab(5);  // remove compressor tab, if not used
 #endif
@@ -1013,5 +1015,16 @@ void PreferencesDialog::on_compressorEnabledCheckbox_toggled(bool checked)
         ui->topLine->setGeometry(330 - delta, 30, 121 + delta, 20);
     } else {
         ui->topLine->setGeometry(330, 30, 121, 20);
+    }
+}
+
+void PreferencesDialog::on_replayGainCheckbox_toggled(bool checked)
+{
+    if (checked) {
+        qDebug() << "replayGainCheckbox checked";
+        cBass.SetReplayGainVolume(mw->songLoadedReplayGain_dB); // restore to last loaded song
+    } else {
+        qDebug() << "replayGainCheckbox NOT checked";
+        cBass.SetReplayGainVolume(0.0); // set to 0.0dB (replayGain disabled)
     }
 }

@@ -160,6 +160,8 @@ private slots:
 
     void on_compressorEnabledCheckbox_toggled(bool checked);
 
+    void on_replayGainCheckbox_toggled(bool checked);
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;

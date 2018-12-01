@@ -30,7 +30,9 @@
 #include <QTimer>
 
 // define this, if you want the compressor ---------------
-//#define WANTCOMPRESSOR 1
+#if defined(Q_OS_MAC)
+#define WANTCOMPRESSOR 1
+#endif
 
 class bass_audio
 {
@@ -40,8 +42,10 @@ public:
     double                  FileLength;
     double                  Current_Position;
     int                     Stream_Volume;
+    double                  Stream_MaxVolume;       // used for ReplayGain, which sets this to something other then 1.0
+    double                  Stream_replayGain_dB;   // used for ReplayGain, which sets this to something other then 0.0
     int                     Stream_Tempo;
-    double                    Stream_Eq[3];
+    double                  Stream_Eq[3];
     int                     Stream_Pitch;
 //    double                    Stream_Pan;
 //    bool                    Stream_Mono;
@@ -74,6 +78,7 @@ public:
 
     //Settings
     void SetVolume(int inVolume);
+    void SetReplayGainVolume(double replayGain_dB);
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
     void SetCompression(unsigned int which, float val); // Global compressor parameters

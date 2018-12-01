@@ -10652,5 +10652,11 @@ void MainWindow::MP3Gain_finished(int exitCode) {
 
     mp3gain = nullptr; // process is gone now
 
-    // TODO: do more here, to actually apply the ReplayGain correction to the current song
+    songLoadedReplayGain_dB = mp3gainResult_dB;      // save for dynamic checkbox in preferences
+
+    // Now we can apply the ReplayGain correction to the current song, if it is enabled
+    bool replayGainIsEnabled = prefsManager.GetreplayGainIsEnabled();
+    if (replayGainIsEnabled) {
+        cBass.SetReplayGainVolume(mp3gainResult_dB);  // Let's do this!
+    }
 }

@@ -185,6 +185,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+    double songLoadedReplayGain_dB;
+
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();

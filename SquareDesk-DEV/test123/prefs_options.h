@@ -145,3 +145,5 @@ CONFIG_ATTRIBUTE_SLIDER(ratioDial, ratio_toOne, 4)
 CONFIG_ATTRIBUTE_SLIDER(gainDial, gain_dB, 0)
 CONFIG_ATTRIBUTE_SLIDER(attackDial, attack_ms, 10)
 CONFIG_ATTRIBUTE_SLIDER(releaseDial, release_ms, 200)
+
+CONFIG_ATTRIBUTE_BOOLEAN(replayGainCheckbox, replayGainIsEnabled, false)
