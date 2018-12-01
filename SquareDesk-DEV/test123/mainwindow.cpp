@@ -10565,11 +10565,15 @@ bool MainWindow::replayGain_dB(QString filepath) {
     QFile musicFile(filepath);
     if (!musicFile.exists(filepath)) {
         qDebug() << "REPLAYGAIN ERROR: " << filepath << "does not exist.";
+        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
         return(false);  // error return
     }
 
     if (filepath.endsWith("m4a", Qt::CaseInsensitive)) {
         qDebug() << "REPLAYGAIN ERROR: can't get ReplayGain for M4A files yet.";
+        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
         return(false);  // error return
     }
 
@@ -10622,6 +10626,8 @@ void MainWindow::readMP3GainData() {
 
 void MainWindow::MP3Gain_errorOccurred(QProcess::ProcessError error) {
     Q_UNUSED(error);
+    songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+    cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
     qDebug() << "MP3Gain_errorOccurred";
 }
 
@@ -10652,7 +10658,7 @@ void MainWindow::MP3Gain_finished(int exitCode) {
 
     mp3gain = nullptr; // process is gone now
 
-    songLoadedReplayGain_dB = mp3gainResult_dB;      // save for dynamic checkbox in preferences
+    songLoadedReplayGain_dB = mp3gainResult_dB;      // save for dynamic checkbox in preferences FIX FIX is this still needed?
 
     // Now we can apply the ReplayGain correction to the current song, if it is enabled
     bool replayGainIsEnabled = prefsManager.GetreplayGainIsEnabled();
