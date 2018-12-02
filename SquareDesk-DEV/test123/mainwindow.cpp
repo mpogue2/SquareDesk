@@ -272,7 +272,7 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
 
 
 // ----------------------------------------------------------------------
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
@@ -714,7 +714,11 @@ MainWindow::MainWindow(QWidget *parent) :
     t.elapsed(__LINE__);
 
     // used to store the file paths
+    splash->showMessage("Locating songs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+
+    splash->showMessage("Loading song info...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
 
     t.elapsed(__LINE__);
 
@@ -1113,6 +1117,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
 
     t.elapsed(__LINE__);
+
+    splash->showMessage("Loading reference docs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
 
     initReftab();
 

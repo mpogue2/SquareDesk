@@ -48,6 +48,7 @@
 #include <QProxyStyle>
 #include "prefsmanager.h"
 #include <QSlider>
+#include <QSplashScreen>
 #include <QStack>
 #include <QTableWidgetItem>
 #include <QToolTip>
@@ -182,7 +183,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QSplashScreen *splash, QWidget *parent = nullptr);
     ~MainWindow() override;
 
     double songLoadedReplayGain_dB;

@@ -46,9 +46,9 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Zenstar Software");
     a.setOrganizationDomain("zenstarstudio.com");
 
-    MainWindow w;
+    MainWindow w(&splash);
 
-    splash.showMessage("Loading songs....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    splash.showMessage("Loading songs....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
 
     // put window back where it was last time (modulo the screen size, which
     //   is automatically taken care of.
