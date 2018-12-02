@@ -120,7 +120,8 @@ HEADERS  += mainwindow.h \
     makeflashdrivewizard.h \
     songlistmodel.h \
     mydatetimeedit.h \
-    keyactions.h
+    keyactions.h \
+    songsetting_attributes.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h

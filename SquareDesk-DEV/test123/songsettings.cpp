@@ -216,6 +216,7 @@ RowDefinition song_rows[] =
     RowDefinition("mix", "int"),
     RowDefinition("loop", "int"),   // 1 = yes, -1 = no, 0 = not set yet
     RowDefinition("tags", "text"),
+    RowDefinition("replayGain", "float"),  // NULL = not set yet, else replayGain in dB
 
     RowDefinition(NULL, NULL),
 };
@@ -862,6 +863,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetMix()) { fields.append("mix"); }
     if (settings.isSetMix()) { fields.append("loop"); }
     if (settings.isSetTags()) { fields.append("tags"); }
+    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
 
     QSqlQuery q(m_db);
     if (id == -1)
@@ -931,6 +933,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":mix", settings.getMix());
     q.bindValue(":loop", settings.getLoop());
     q.bindValue(":tags", settings.getTags());
+    q.bindValue(":replayGain", settings.getReplayGain());
 
     exec("saveSettings", q);
 }
@@ -954,12 +957,13 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
     if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
     if (!q.value(15).isNull()) { settings.setTags(q.value(15).toString()); }
+    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {

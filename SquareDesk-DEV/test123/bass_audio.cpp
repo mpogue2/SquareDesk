@@ -180,8 +180,7 @@ void bass_audio::SetReplayGainVolume(double replayGain_dB) {
 //        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
         Stream_MaxVolume = voltageRatio;
 
-        qDebug() << "Setting ReplayGain to: " << replayGain_dB << "dB";
-        qDebug() << "     Voltage ratio (max volume): " << voltageRatio;
+        qDebug() << "   setReplayGainVolume: " << replayGain_dB << "dB, Voltage ratio (max volume): " << voltageRatio;
 
         gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
 
@@ -642,7 +641,7 @@ void bass_audio::Play(void)
 {
     bPaused = false;
 //    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
-    qDebug() << "Play volume set to: " << Stream_MaxVolume;
+    qDebug() << "   Play: Play volume set to: " << Stream_MaxVolume;
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Stream_MaxVolume);  // ramp quickly to full volume (with ReplayGain applied)
     BASS_ChannelPlay(Stream, false);
     StreamGetPosition();  // tell the position bar in main window where we are
