@@ -127,3 +127,13 @@ void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
                                     endDate);
     } // end of successful open
 }
+
+void SongHistoryExportDialog::on_checkBoxOmitStart_stateChanged(int newState)
+{
+    ui->dateTimeEditStart->setEnabled(newState == Qt::Unchecked);
+}
+
+void SongHistoryExportDialog::on_checkBoxOmitEnd_stateChanged(int newState)
+{
+    ui->dateTimeEditEnd->setEnabled(newState == Qt::Unchecked);
+}
