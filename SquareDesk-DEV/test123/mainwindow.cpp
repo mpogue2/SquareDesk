@@ -2913,6 +2913,7 @@ void MainWindow::on_actionMute_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
+//    qDebug() << "on_tempoSlider_valueChanged:" << value;
     if (tempoIsBPM) {
         double desiredBPM = static_cast<double>(value);            // desired BPM
         int newBASStempo = static_cast<int>(round(100.0*desiredBPM/baseBPM));
@@ -4708,6 +4709,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         // This can always be overridden using TBPM in the ID3 tag inside a specific patter song, if needed.
         //        qDebug() << "Riverboat patter detected!";
         songBPM = 126;
+        tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
 
     // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
@@ -4715,6 +4717,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     if (songBPM_ID3 != 0.0) {
         songBPM = static_cast<int>(songBPM_ID3);
+        tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
 
     baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
@@ -4735,24 +4738,26 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMaximum(songBPM+15);
 
         t.elapsed(__LINE__);
-        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
-        int initialBPM = prefsManager.GetinitialBPM();
-        t.elapsed(__LINE__);
-        if (tryToSetInitialBPM) {
-            // if the user wants us to try to hit a particular BPM target, use that value
-            ui->tempoSlider->setValue(initialBPM);
-            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-            t.elapsed(__LINE__);
-        } else {
-            // otherwise, if the user wants us to start with the slider at the regular detected BPM
-            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
-            //     all saved tempo preferences will always win.
-            ui->tempoSlider->setValue(songBPM);
-            ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-            t.elapsed(__LINE__);
-        }
+//        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
+//        int initialBPM = prefsManager.GetinitialBPM();
+//        t.elapsed(__LINE__);
+//        qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
+//        if (tryToSetInitialBPM) {
+//            qDebug() << "tryToSetInitialBPM true: " << initialBPM;
+//            // if the user wants us to try to hit a particular BPM target, use that value
+//            ui->tempoSlider->setValue(initialBPM);
+//            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+//            t.elapsed(__LINE__);
+//        } else {
+//            // otherwise, if the user wants us to start with the slider at the regular detected BPM
+//            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
+//            //     all saved tempo preferences will always win.
+        ui->tempoSlider->setValue(songBPM);
+        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+//            t.elapsed(__LINE__);
+//        }
 
-        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here
+        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
         ui->tempoSlider->setEnabled(true);
         t.elapsed(__LINE__);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
@@ -4876,9 +4881,25 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     t.elapsed(__LINE__);
 
-    loadSettingsForSong(songTitle); // also loads replayGain, if song has one
+    loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo
 
     t.elapsed(__LINE__);
+
+    // NOTE: this needs to be down here, to override the tempo setting loaded by loadSettingsForSong()
+    bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
+    int initialBPM = prefsManager.GetinitialBPM();
+    t.elapsed(__LINE__);
+
+//    qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
+
+    if (tryToSetInitialBPM && tempoIsBPM) {
+//        qDebug() << "tryToSetInitialBPM overrides to: " << initialBPM;
+        // if the user wants us to try to hit a particular BPM target, use that value
+        //  iff the tempo is actually measured in BPM for this song
+        ui->tempoSlider->setValue(initialBPM);
+        ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        t.elapsed(__LINE__);
+    }
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
@@ -5894,15 +5915,16 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
                                            //   exactly the same as the previous value.  This will ensure that cBass.setPitch() gets called (right now) on the new stream.
 
-    if (tempo != "0" && tempo != "0%") {
-        // iff tempo is known, then update the table
-        QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
-        int tempoInt = tempo2.toInt();
-        if (tempoInt !=0)
-        {
-            ui->tempoSlider->setValue(tempoInt);
-        }
-    }
+// this code does not appear to do what the comment intended.
+//    if (tempo != "0" && tempo != "0%") {
+//        // iff tempo is known, then update the table
+//        QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
+//        int tempoInt = tempo2.toInt();
+//        if (tempoInt !=0)
+//        {
+//            ui->tempoSlider->setValue(tempoInt);
+//        }
+//    }
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -6815,11 +6837,12 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "0") {
-        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
-        int tempoInt = tempo.toInt();
-        ui->tempoSlider->setValue(tempoInt);
-    }
+// not sure this is needed anymore...test with next song, previous song to be sure
+//    if (tempo != "0") {
+//        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
+//        int tempoInt = tempo.toInt();
+//        ui->tempoSlider->setValue(tempoInt);
+//    }
 
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
