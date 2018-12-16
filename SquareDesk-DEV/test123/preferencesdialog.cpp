@@ -1021,10 +1021,10 @@ void PreferencesDialog::on_compressorEnabledCheckbox_toggled(bool checked)
 void PreferencesDialog::on_replayGainCheckbox_toggled(bool checked)
 {
     if (checked) {
-        qDebug() << "replayGainCheckbox checked";
+//        qDebug() << "replayGainCheckbox checked";
         cBass.SetReplayGainVolume(mw->songLoadedReplayGain_dB); // restore to last loaded song
     } else {
-        qDebug() << "replayGainCheckbox NOT checked";
+//        qDebug() << "replayGainCheckbox NOT checked";
         cBass.SetReplayGainVolume(0.0); // set to 0.0dB (replayGain disabled)
     }
 }
