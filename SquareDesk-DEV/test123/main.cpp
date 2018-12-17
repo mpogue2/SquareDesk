@@ -38,8 +38,14 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     QPixmap pixmap(":/graphics/SplashScreen1.png");
+
+    QPainter painter( &pixmap );
+    painter.setFont( QFont("Arial") );
+    painter.drawText( QPoint(225, 140), QString("V") + VERSIONSTRING );
+
     QSplashScreen splash(pixmap);
     splash.showMessage("Loading application....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+
     splash.show();
 
     a.setApplicationName("SquareDesk");
