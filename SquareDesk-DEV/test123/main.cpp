@@ -36,25 +36,24 @@ int main(int argc, char *argv[])
 //    QCoreApplication::addLibraryPath(".");  // for windows
 
     QApplication a(argc, argv);
+    a.setApplicationName("SquareDesk");
+    a.setOrganizationName("Zenstar Software");
+    a.setOrganizationDomain("zenstarstudio.com");
 
+    // splash screen ------
     QPixmap pixmap(":/graphics/SplashScreen1.png");
 
+    //  draw the version number into the splashscreen pixmap
     QPainter painter( &pixmap );
     painter.setFont( QFont("Arial") );
     painter.drawText( QPoint(225, 140), QString("V") + VERSIONSTRING );
 
     QSplashScreen splash(pixmap);
-    splash.showMessage("Loading application....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
-
     splash.show();
 
-    a.setApplicationName("SquareDesk");
-    a.setOrganizationName("Zenstar Software");
-    a.setOrganizationDomain("zenstarstudio.com");
+    MainWindow w(&splash);  // setMessage() will be called several times in here while loading...
 
-    MainWindow w(&splash);
-
-//    splash.showMessage("Loading songs....", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+    splash.finish(&w); // tell splash screen to go away when window is up
 
     // put window back where it was last time (modulo the screen size, which
     //   is automatically taken care of.
@@ -79,8 +78,6 @@ int main(int argc, char *argv[])
         // if running as a standalone app, log to a file instead of the console
         qInstallMessageHandler(MainWindow::customMessageOutput); // custom message handler for debugging
     }
-
-    splash.finish(&w);
 
     // this is needed, because when the splash screen happens, we don't get the usual appState change message
     //  so, SD doesn't work until you click on another window and come back.
