@@ -4933,11 +4933,17 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 #ifdef Q_OS_MAC
     // TODO: HOW TO FORCE RECALC OF REPLAYGAIN ON A FILE?
-    if (settings1.isSetReplayGain()) {
+    songLoadedReplayGain_dB = 0.0;
+    bool songHasReplayGain = settings1.isSetReplayGain();
+    if (songHasReplayGain) {
 //        qDebug() << "   loadMP3File: replayGain found in DB:" << settings1.getReplayGain();
         songLoadedReplayGain_dB = settings1.getReplayGain();
-    } else {
+    }
+    if (!songHasReplayGain || (songLoadedReplayGain_dB == 0.0) ){
         // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
+        //   and song does NOT have replayGain
+        //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
+        //     failed the last time)
         bool replayGainCheckboxIsChecked = prefsManager.GetreplayGainIsEnabled();
         if (replayGainCheckboxIsChecked) {
             if (!replayGain_dB(MP3FileName)) {
