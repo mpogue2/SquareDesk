@@ -635,6 +635,8 @@ private:
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);
+    double previousPosition;  // cBass's previous idea of where we are
+
     QString position2String(int position, bool pad);
 
     bool closeEventHappened;

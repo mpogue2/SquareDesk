@@ -2616,8 +2616,8 @@ void MainWindow::on_playButton_clicked()
 
 //    if (currentState == kStopped || currentState == kPaused) {
     uint32_t Stream_State = cBass.currentStreamState();
-    if (Stream_State == BASS_ACTIVE_STOPPED || Stream_State == BASS_ACTIVE_PAUSED) {
-        cBass.Play();  // currently stopped or paused, so start playing
+    if (Stream_State != BASS_ACTIVE_PLAYING) {
+        cBass.Play();  // currently stopped or paused or stalled, so try to start playing
 
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
         randomizeFlashCall();
@@ -3038,6 +3038,37 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
 
         int currentPos_i = static_cast<int>(cBass.Current_Position);
+
+// to help track down the failure-to-progress error...
+#define WATCHDOG460
+#ifdef WATCHDOG460
+        // watchdog for "failure to progress" error ------
+        if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
+            if (cBass.Current_Position <= previousPosition
+                    // || previousPosition > 10.0  // DEBUG
+               )
+            {
+                QDateTime dt = QDateTime::currentDateTime();
+                dt.setTimeSpec(Qt::UTC);  // or Qt::OffsetFromUTC for offset from UTC
+
+                qDebug() << dt.toString(Qt::ISODate) << "Failure or manual seek:" << previousPosition << cBass.Current_Position
+                         << "songloaded: " << songLoaded;
+                previousPosition = -1.0;  // uninitialized
+            } else {
+                QDateTime dt = QDateTime::currentDateTime();
+                dt.setTimeSpec(Qt::UTC);  // or Qt::OffsetFromUTC for offset from UTC
+
+                qDebug() << dt.toString(Qt::ISODate) << "Progress:" << previousPosition << cBass.Current_Position;
+                // this will always be executed on the first info_seekbar update when playing
+                previousPosition = cBass.Current_Position;  // remember previous position
+            }
+        } else {
+//            qDebug() << QTime::currentTime().toString() << "Paused:" << previousPosition << currentPos_i;
+            // when stopped, we'll set previous position to -1
+            previousPosition = -1.0;  // uninitialized
+        }
+#endif
+
         if (forceSlider) {
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
