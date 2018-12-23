@@ -398,11 +398,20 @@ macx {
     QMAKE_EXTRA_TARGETS += installer1 installer2
 
     # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
-    mp3gain.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    first.depends += mp3gain
+    #   then, copies over the dependency (libmpg123) from /usr/local/opt (assumed installed via BREW)
+    #   then, the library reference is changed in the mp3gain executable to point at the LOCAL version of libmpg123
+    #   finally, otool is used to double check that the library reference is correct
+    mp3gain1.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    mp3gain2.commands = $(COPY) /usr/local/opt/mpg123/lib/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    mp3gain3.commands = install_name_tool -change /usr/local/opt/mpg123/lib/libmpg123.0.dylib @executable_path/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+    mp3gain4.commands = otool -L $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+    first.depends += mp3gain1 mp3gain2 mp3gain3 mp3gain4
     export(first.depends)
-    export(mp3gain.commands)
-    QMAKE_EXTRA_TARGETS += mp3gain
+    export(mp3gain1.commands)
+    export(mp3gain2.commands)
+    export(mp3gain3.commands)
+    export(mp3gain4.commands)
+    QMAKE_EXTRA_TARGETS += mp3gain1 mp3gain2 mp3gain3 mp3gain4
 }
 
 win32:CONFIG(debug, debug|release): {
