@@ -4939,7 +4939,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 //        qDebug() << "   loadMP3File: replayGain found in DB:" << settings1.getReplayGain();
         songLoadedReplayGain_dB = settings1.getReplayGain();
     }
-    if (!songHasReplayGain || (songLoadedReplayGain_dB == 0.0) ){
+    if (!songHasReplayGain) // || (songLoadedReplayGain_dB == 0.0) )
+    {
         // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
         //   and song does NOT have replayGain
         //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
