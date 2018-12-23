@@ -4943,8 +4943,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     {
         // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
         //   and song does NOT have replayGain
-        //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
-        //     failed the last time)
+        // //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
+        // //     failed the last time)  <-- this part disabled intentionally
         bool replayGainCheckboxIsChecked = prefsManager.GetreplayGainIsEnabled();
         if (replayGainCheckboxIsChecked) {
             if (!replayGain_dB(MP3FileName)) {
