@@ -3048,22 +3048,16 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                     // || previousPosition > 10.0  // DEBUG
                )
             {
-                QDateTime dt = QDateTime::currentDateTime();
-                dt.setTimeSpec(Qt::UTC);  // or Qt::OffsetFromUTC for offset from UTC
-
-                qDebug() << dt.toString(Qt::ISODate) << "Failure or manual seek:" << previousPosition << cBass.Current_Position
+                qDebug() << "Failure/manual seek:" << previousPosition << cBass.Current_Position
                          << "songloaded: " << songLoaded;
                 previousPosition = -1.0;  // uninitialized
             } else {
-                QDateTime dt = QDateTime::currentDateTime();
-                dt.setTimeSpec(Qt::UTC);  // or Qt::OffsetFromUTC for offset from UTC
-
-                qDebug() << dt.toString(Qt::ISODate) << "Progress:" << previousPosition << cBass.Current_Position;
+                qDebug() << "Progress:" << previousPosition << cBass.Current_Position;
                 // this will always be executed on the first info_seekbar update when playing
                 previousPosition = cBass.Current_Position;  // remember previous position
             }
         } else {
-//            qDebug() << QTime::currentTime().toString() << "Paused:" << previousPosition << currentPos_i;
+//            qDebug() << "Paused:" << previousPosition << currentPos_i;
             // when stopped, we'll set previous position to -1
             previousPosition = -1.0;  // uninitialized
         }
@@ -10722,6 +10716,7 @@ bool MainWindow::replayGain_dB(QString filepath) {
     bool startedStatus = mp3gain->waitForStarted();
     if (!startedStatus)
     {
+        qDebug() << "startedStatus: " << startedStatus;
         delete mp3gain;
         mp3gain = nullptr;
     }
@@ -10752,7 +10747,7 @@ void MainWindow::MP3Gain_finished(int exitCode) {
 
     if (query.length() > 0) {
         // if there's a line that looks like the one we want
-//        qDebug() << "mp3gain: " << query[0];
+        qDebug() << "mp3gain: " << query[0];
 
         // extract the numeric result
         QRegExp number_input("([-+]?[0-9]*\\.?[0-9]+)");
@@ -10762,7 +10757,7 @@ void MainWindow::MP3Gain_finished(int exitCode) {
     } else {
         mp3gainResult_dB = 0.0;  // no result, so no ReplayGain correction
     }
-//    qDebug() << "     ----> mp3gain result:" << mp3gainResult_dB << "dB\n";
+    qDebug() << "     ----> mp3gain result:" << mp3gainResult_dB << "dB\n";
 
     mp3gain = nullptr; // process is gone now
 
