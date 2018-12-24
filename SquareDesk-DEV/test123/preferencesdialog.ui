@@ -1500,8 +1500,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QDial" name="thresholdDial">
          <property name="geometry">
           <rect>
-           <x>100</x>
-           <y>70</y>
+           <x>80</x>
+           <y>190</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -1522,8 +1522,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="thresholdCaption">
          <property name="geometry">
           <rect>
-           <x>90</x>
-           <y>130</y>
+           <x>70</x>
+           <y>250</y>
            <width>70</width>
            <height>16</height>
           </rect>
@@ -1538,8 +1538,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QDial" name="ratioDial">
          <property name="geometry">
           <rect>
-           <x>170</x>
-           <y>70</y>
+           <x>150</x>
+           <y>190</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -1560,8 +1560,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="ratioCaption">
          <property name="geometry">
           <rect>
-           <x>160</x>
-           <y>130</y>
+           <x>140</x>
+           <y>250</y>
            <width>70</width>
            <height>16</height>
           </rect>
@@ -1576,8 +1576,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QDial" name="gainDial">
          <property name="geometry">
           <rect>
-           <x>240</x>
-           <y>70</y>
+           <x>220</x>
+           <y>190</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -1598,8 +1598,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="gainCaption">
          <property name="geometry">
           <rect>
-           <x>230</x>
-           <y>130</y>
+           <x>210</x>
+           <y>250</y>
            <width>70</width>
            <height>31</height>
           </rect>
@@ -1617,8 +1617,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="threshold_dB">
          <property name="geometry">
           <rect>
-           <x>100</x>
-           <y>60</y>
+           <x>80</x>
+           <y>180</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1633,8 +1633,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="ratio">
          <property name="geometry">
           <rect>
-           <x>170</x>
-           <y>60</y>
+           <x>150</x>
+           <y>180</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1649,8 +1649,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="makeupGain_dB">
          <property name="geometry">
           <rect>
-           <x>240</x>
-           <y>60</y>
+           <x>220</x>
+           <y>180</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1665,8 +1665,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QDial" name="attackDial">
          <property name="geometry">
           <rect>
-           <x>310</x>
-           <y>70</y>
+           <x>290</x>
+           <y>190</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -1684,8 +1684,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="attackCaption">
          <property name="geometry">
           <rect>
-           <x>300</x>
-           <y>130</y>
+           <x>280</x>
+           <y>250</y>
            <width>70</width>
            <height>16</height>
           </rect>
@@ -1700,8 +1700,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="attack_ms">
          <property name="geometry">
           <rect>
-           <x>310</x>
-           <y>60</y>
+           <x>290</x>
+           <y>180</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1716,8 +1716,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QDial" name="releaseDial">
          <property name="geometry">
           <rect>
-           <x>380</x>
-           <y>70</y>
+           <x>360</x>
+           <y>190</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -1741,8 +1741,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="releaseCaption">
          <property name="geometry">
           <rect>
-           <x>370</x>
-           <y>130</y>
+           <x>350</x>
+           <y>250</y>
            <width>70</width>
            <height>16</height>
           </rect>
@@ -1757,8 +1757,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="release_ms">
          <property name="geometry">
           <rect>
-           <x>380</x>
-           <y>60</y>
+           <x>360</x>
+           <y>180</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1773,8 +1773,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="Line" name="line">
          <property name="geometry">
           <rect>
-           <x>80</x>
-           <y>160</y>
+           <x>60</x>
+           <y>280</y>
            <width>371</width>
            <height>16</height>
           </rect>
@@ -1786,8 +1786,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="Line" name="topLine">
          <property name="geometry">
           <rect>
-           <x>330</x>
-           <y>30</y>
+           <x>310</x>
+           <y>150</y>
            <width>121</width>
            <height>20</height>
           </rect>
@@ -1799,8 +1799,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QCheckBox" name="compressorEnabledCheckbox">
          <property name="geometry">
           <rect>
-           <x>70</x>
-           <y>22</y>
+           <x>50</x>
+           <y>142</y>
            <width>211</width>
            <height>31</height>
           </rect>
@@ -1820,8 +1820,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="compressorBypassed">
          <property name="geometry">
           <rect>
-           <x>260</x>
-           <y>30</y>
+           <x>240</x>
+           <y>150</y>
            <width>61</width>
            <height>20</height>
           </rect>
@@ -1851,8 +1851,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="label_10">
          <property name="geometry">
           <rect>
-           <x>470</x>
-           <y>40</y>
+           <x>450</x>
+           <y>160</y>
            <width>221</width>
            <height>121</height>
           </rect>
@@ -1873,8 +1873,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QCheckBox" name="replayGainCheckbox">
          <property name="geometry">
           <rect>
-           <x>80</x>
-           <y>185</y>
+           <x>50</x>
+           <y>20</y>
            <width>191</width>
            <height>30</height>
           </rect>
@@ -1891,8 +1891,8 @@ Click on a color square to change the color associated with that Music Type.  Se
         <widget class="QLabel" name="label_11">
          <property name="geometry">
           <rect>
-           <x>100</x>
-           <y>220</y>
+           <x>50</x>
+           <y>60</y>
            <width>601</width>
            <height>50</height>
           </rect>

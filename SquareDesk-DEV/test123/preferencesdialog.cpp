@@ -186,13 +186,40 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 
-#ifdef WANTCOMPRESSOR
-//#ifndef SUPPRESSGLOBALFXTAB
-    //    ui->compressorBypassed->setVisible(!ui->compressorEnabledCheckbox->isChecked());
-    on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
     on_replayGainCheckbox_toggled(ui->replayGainCheckbox->isChecked());
+
+#ifdef WANTCOMPRESSOR
+    on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
 #else
-    ui->tabWidget->removeTab(5);  // remove compressor tab, if not used
+//    ui->tabWidget->removeTab(5);  // remove compressor tab, if not used
+    ui->attackDial->setVisible(false);
+    ui->releaseDial->setVisible(false);
+    ui->gainDial->setVisible(false);
+    ui->thresholdDial->setVisible(false);
+    ui->ratioDial->setVisible(false);
+
+    ui->attackCaption->setVisible(false);
+    ui->releaseCaption->setVisible(false);
+    ui->gainCaption->setVisible(false);
+    ui->thresholdCaption->setVisible(false);
+    ui->ratioCaption->setVisible(false);
+
+    ui->attack_ms ->setVisible(false);
+    ui->release_ms->setVisible(false);
+    ui->makeupGain_dB->setVisible(false);
+    ui->threshold_dB->setVisible(false);
+    ui->ratio->setVisible(false);
+
+    ui->topLine->setVisible(false);
+    ui->line->setVisible(false);
+    ui->label_10->setVisible(false);
+    ui->compressorBypassed->setVisible(false);
+
+    ui->compressorBypassed->setVisible(false);
+    ui->compressorEnabledCheckbox->setVisible(false);
+
+
+
 #endif
 
 }
@@ -1008,8 +1035,9 @@ void PreferencesDialog::on_compressorEnabledCheckbox_toggled(bool checked)
 
     cBass.SetCompressionEnabled(checked);
 
+#if defined(WANTCOMPRESSOR)
     ui->compressorBypassed->setVisible(!checked);
-
+#endif
     if (checked) {
         int delta = 60;
         ui->topLine->setGeometry(330 - delta, 30, 121 + delta, 20);
