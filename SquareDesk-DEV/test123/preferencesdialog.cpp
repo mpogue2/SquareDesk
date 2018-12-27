@@ -188,6 +188,8 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     on_replayGainCheckbox_toggled(ui->replayGainCheckbox->isChecked());
 
+    on_intelBoostEnabledCheckbox_toggled(ui->intelBoostEnabledCheckbox->isChecked());
+
 #ifdef WANTCOMPRESSOR
     on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
 #else
@@ -213,12 +215,9 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
     ui->topLine->setVisible(false);
     ui->line->setVisible(false);
     ui->label_10->setVisible(false);
-    ui->compressorBypassed->setVisible(false);
 
     ui->compressorBypassed->setVisible(false);
     ui->compressorEnabledCheckbox->setVisible(false);
-
-
 
 #endif
 
@@ -1046,6 +1045,7 @@ void PreferencesDialog::on_compressorEnabledCheckbox_toggled(bool checked)
     }
 }
 
+// Replay Gain ---------------------------------
 void PreferencesDialog::on_replayGainCheckbox_toggled(bool checked)
 {
     if (checked) {
@@ -1055,4 +1055,69 @@ void PreferencesDialog::on_replayGainCheckbox_toggled(bool checked)
 //        qDebug() << "replayGainCheckbox NOT checked";
         cBass.SetReplayGainVolume(0.0); // set to 0.0dB (replayGain disabled)
     }
+}
+
+// Intelligibility Boost -----------------------------------------------------------------------
+void PreferencesDialog::on_intelCenterFreqDial_valueChanged(int value)
+{
+// value is in Hz/10
+    double centerFreq_KHz = static_cast<double>(value)/10.0; // only integer tenths of a KHz
+    ui->intelCenterFreq_KHz->setText(QStringLiteral("%1KHz").arg(centerFreq_KHz));
+    cBass.SetIntelBoost(0, centerFreq_KHz);
+}
+
+void PreferencesDialog::on_intelWidthDial_valueChanged(int value)
+{
+// value is in octaves * 10
+    double width_octaves = static_cast<double>(value)/10.0;  // only integer tenths of an octave
+    ui->intelWidth_oct->setText(QStringLiteral("%1").arg(width_octaves, 3, 'f', 1));
+    cBass.SetIntelBoost(1, width_octaves);
+}
+
+void PreferencesDialog::on_intelGainDial_valueChanged(int value)
+{
+// value is in gain dB * 10
+    double gain_dB = static_cast<double>(value)/10.0;  // only integer tenths of a dB
+    if (gain_dB == 0.0) {
+        ui->intelGain_dB->setText(QStringLiteral("%1dB").arg(gain_dB));
+    } else {
+        ui->intelGain_dB->setText(QStringLiteral("-%1dB").arg(gain_dB));
+    }
+    cBass.SetIntelBoost(2, gain_dB);
+}
+
+void PreferencesDialog::on_intelResetButton_clicked()
+{
+    ui->intelCenterFreqDial->setValue(16);   // 1.6KHz
+    ui->intelWidthDial->setValue(20);        // 2.0 octaves
+    ui->intelGainDial->setValue(30);         // -3.0dB
+}
+
+void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(bool checked)
+{
+    ui->intelCenterFreqDial->setEnabled(checked);
+    ui->intelWidthDial->setEnabled(checked);
+    ui->intelGainDial->setEnabled(checked);
+
+    ui->intelCenterFreqLabel->setEnabled(checked);
+    ui->intelWidthLabel->setEnabled(checked);
+    ui->intelGainLabel->setEnabled(checked);
+
+    ui->intelCenterFreq_KHz->setEnabled(checked);
+    ui->intelWidth_oct->setEnabled(checked);
+    ui->intelGain_dB->setEnabled(checked);
+
+    ui->intelResetButton->setEnabled(checked);
+
+    ui->intelBoostBypassed->setVisible(!checked);
+
+    int delta = 60;
+    int leftExtend = 20;
+    if (checked) {
+        ui->intelBoostLine->setGeometry(330 - leftExtend - delta, 134, 390 + leftExtend + delta, 20);
+    } else {
+        ui->intelBoostLine->setGeometry(330 - leftExtend, 134, 390 + leftExtend, 20);
+    }
+
+    cBass.SetIntelBoostEnabled(checked);
 }

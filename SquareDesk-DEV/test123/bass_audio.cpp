@@ -293,6 +293,16 @@ void bass_audio::SetCompressionEnabled(bool enable) {
 
 }
 
+void bass_audio::SetIntelBoost(unsigned int which, double val)
+{
+    qDebug() << "SetIntelBoost: " << which << "to: " << val;
+}
+
+void bass_audio::SetIntelBoostEnabled(bool enable)
+{
+    qDebug() << "SetIntelBoostEnabled: " << enable;
+}
+
 // *******************
 // http://bass.radio42.com/help/html/ee197eac-8482-1f9a-e0e1-8ec9e4feda9b.htm
 void CALLBACK MyFadeIsDoneProc(HSYNC handle, DWORD channel, DWORD data, void *user)

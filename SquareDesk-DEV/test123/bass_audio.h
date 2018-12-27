@@ -80,8 +80,11 @@ public:
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
 
-    void SetCompression(unsigned int which, float val); // Global compressor parameters
+    void SetCompression(unsigned int which, float val);  // Global compressor parameters
     void SetCompressionEnabled(bool enable);             // Global compressor parameters
+
+    void SetIntelBoost(unsigned int which, double val);   // Global intelligibility boost parameters
+    void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
 
     void SetPitch(int newPitch);  // in semitones, -5 .. 5
     void SetPan(double  newPan);  // -1.0 .. 0.0 .. 1.0

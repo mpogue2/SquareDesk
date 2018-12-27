@@ -162,6 +162,16 @@ private slots:
 
     void on_replayGainCheckbox_toggled(bool checked);
 
+    void on_intelCenterFreqDial_valueChanged(int value);
+
+    void on_intelWidthDial_valueChanged(int value);
+
+    void on_intelGainDial_valueChanged(int value);
+
+    void on_intelResetButton_clicked();
+
+    void on_intelBoostEnabledCheckbox_toggled(bool checked);
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;

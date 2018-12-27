@@ -1184,6 +1184,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     cBass.SetCompression(3, prefsManager.Getattack_ms());
     cBass.SetCompression(4, prefsManager.Getrelease_ms());
 
+    cBass.SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
+    cBass.SetIntelBoost(0, prefsManager.GetintelCenterFreq_KHz()/10.0); // yes, we have to initialize these manually
+    cBass.SetIntelBoost(1, prefsManager.GetintelWidth_oct()/10.0);
+    cBass.SetIntelBoost(2, prefsManager.GetintelGain_dB()/10.0);  // expressed as positive number
+
 //#ifdef Q_OS_MAC
 //    QString testPath("/Users/mpogue/mp3gain-1_6_2-src/test1.mp3");
 //    if (!replayGain_dB(testPath)) {
