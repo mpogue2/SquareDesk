@@ -34,6 +34,11 @@
 //#define WANTCOMPRESSOR 1
 //#endif
 
+// indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
+#define FREQ_KHZ 0
+#define BW_OCT  1
+#define GAIN_DB 2
+
 class bass_audio
 {
     //-------------------------------------------------------------
@@ -46,6 +51,10 @@ public:
     double                  Stream_replayGain_dB;   // used for ReplayGain, which sets this to something other then 0.0
     int                     Stream_Tempo;
     double                  Stream_Eq[3];
+
+    bool                    IntelBoostShouldBeEnabled;
+    float                   Global_IntelBoostEq[3]; // one band for Intelligibility Boost (FREQ_KHZ, BW_OCT, GAIN_DB)
+
     int                     Stream_Pitch;
 //    double                    Stream_Pan;
 //    bool                    Stream_Mono;
@@ -80,11 +89,16 @@ public:
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
 
-    void SetCompression(unsigned int which, float val); // Global compressor parameters
+    void SetCompression(unsigned int which, float val);  // Global compressor parameters
     void SetCompressionEnabled(bool enable);             // Global compressor parameters
+
+    void SetIntelBoost(unsigned int which, float val);   // Global intelligibility boost parameters
+    void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
 
     void SetPitch(int newPitch);  // in semitones, -5 .. 5
     void SetPan(double  newPan);  // -1.0 .. 0.0 .. 1.0
+
+    void SetGlobals(void);  // sets Global EQ, after song is loaded
 
     void SetLoop(double fromPoint_sec, double toPoint_sec);  // if fromPoint < 0, then disabled
     void ClearLoop();
@@ -131,8 +145,9 @@ private:
     HSTREAM                         FXStream;
 
     HFX fxEQ;           // dsp peaking eq handle
+#if defined(WANTCOMPRESSOR)
     HFX fxCompressor;   // global compressor
-
+#endif
     HSYNC  syncHandle;
 };
 

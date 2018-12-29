@@ -106,6 +106,12 @@ bass_audio::bass_audio(void)
     Stream_Eq[1] = 50.0;
     Stream_Eq[2] = 50.0;
 
+    Global_IntelBoostEq[FREQ_KHZ] = 1.6;  // current Global EQ (one band for Intelligibility Boost)
+    Global_IntelBoostEq[BW_OCT]  = 2.0;
+    Global_IntelBoostEq[GAIN_DB] = 0.0;
+
+    IntelBoostShouldBeEnabled = false;
+
     // compressor initial settings (defaults to OFF)
 //    Stream_Compressor[0] = 0.0f;       // threshold (OFF)
 //    Stream_Compressor[1] = 4.0f;       // ratio
@@ -226,10 +232,23 @@ void bass_audio::SetEq(int band, double val)
 
     BASS_BFX_PEAKEQ eq;
     eq.lBand = band;    // get all values of the selected band
-    BASS_FXGetParameters(fxEQ, &eq);
+    bool success = BASS_FXGetParameters(fxEQ, &eq);
+    if (!success) {
+        qDebug() << "SetEq: BASS_FXGetParameters failed" << BASS_ErrorGetCode();
+        return;
+    }
+//    qDebug() << "SetEq before: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
 
     eq.fGain = static_cast<float>(val);     // modify just the level of the selected band, and set all
-    BASS_FXSetParameters(fxEQ, &eq);
+    success = BASS_FXSetParameters(fxEQ, &eq);
+    if (!success) {
+        qDebug() << "SetEq: BASS_FXSetParameters failed" << BASS_ErrorGetCode();
+        qDebug() << "tried to set: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+        return;
+    }
+
+//    qDebug() << "SetEq after: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+//    qDebug() << "success: " << success;
 }
 
 // ------------------------------------------------------------------
@@ -254,6 +273,9 @@ void bass_audio::SetCompression(unsigned int which, float val)
         BASS_FXSetParameters(fxCompressor, &compressor);
 //        qDebug() << "   Actual: " << compressor.fThreshold << compressor.fRatio << compressor.fGain << compressor.fAttack << compressor.fRelease;
     }
+#else
+    Q_UNUSED(which)
+    Q_UNUSED(val)
 #endif
 
 }
@@ -288,9 +310,109 @@ void bass_audio::SetCompressionEnabled(bool enable) {
         }
         compressorShouldBeEnabled = false;
     }
-
+#else
+    Q_UNUSED(enable)
 #endif
 
+}
+
+// which = (FREQ_KHZ, BW_OCT, GAIN_DB)
+void bass_audio::SetIntelBoost(unsigned int which, float val)
+{
+    Global_IntelBoostEq[which] = val;
+
+    if (fxEQ == 0) {
+        return;  // if EQ is not set up yet, don't bother...
+    }
+
+//    if (which == GAIN_DB) {
+//        qDebug() << "SetIntelBoost: " << which << "to: " << -val << "dB";
+//    } else {
+//        qDebug() << "SetIntelBoost: " << which << "to: " << val;
+//    }
+
+    BASS_BFX_PEAKEQ eq;
+    eq.lBand = 3;    // get all values of the global intelligibility EQ band
+    bool success = BASS_FXGetParameters(fxEQ, &eq);
+
+    if (!success) {
+//        qDebug() << "SetIntelBoost: BASS_FXGetParameters failed" << BASS_ErrorGetCode();
+        return;
+    }
+
+//    qDebug() << "before: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+
+    switch (which) {
+        case FREQ_KHZ:  eq.fCenter    = val * 1000.0f;  // input val is KHz
+                        break;
+        case BW_OCT:    eq.fBandwidth = val;
+                        break;
+        case GAIN_DB:   eq.fGain      = (IntelBoostShouldBeEnabled ? -val : 0.0f);   // val is amount of suppression in dB, so use negative
+                        break;
+        default:
+//                    qDebug() << "SetIntelBoost: bad value" << which << ", val = " << val;
+                    return;  // don't set parameters, if bad
+    }
+
+//    if (!IntelBoostShouldBeEnabled && (which == GAIN_DB) && (val != 0.0f)) {
+//        qDebug() << "Warning: GAIN_DB overridden to 0.0f, because IntelBoost not enabled.";
+//    }
+
+    success = BASS_FXSetParameters(fxEQ, &eq);
+
+    if (!success) {
+//        qDebug() << "SetIntelBoost: BASS_FXSetParameters failed" << BASS_ErrorGetCode();
+//        qDebug() << "tried to set: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+        return;
+    }
+
+//    qDebug() << "success: " << success;
+}
+
+void bass_audio::SetIntelBoostEnabled(bool enable)
+{
+    IntelBoostShouldBeEnabled = enable;
+
+    if (fxEQ == 0) {
+//        qDebug() << "SetIntelBoostEnabled: fxEQ == 0";
+        return;  // if EQ is not enabled yet, don't bother...
+    }
+
+    BASS_BFX_PEAKEQ eq;
+    eq.lBand = 3;    // get all values of the global intelligibility EQ band
+    bool success = BASS_FXGetParameters(fxEQ, &eq);
+
+    if (!success) {
+//        qDebug() << "SetIntelBoostEnabled: BASS_FXGetParameters failed" << BASS_ErrorGetCode();
+        return;
+    }
+
+    if (enable) {
+        eq.fGain = -Global_IntelBoostEq[GAIN_DB]; // restore to previously-saved gain
+    } else {
+        eq.fGain = 0.0;  // set to zero (NOTE: do NOT remember this value)
+    }
+
+    success = BASS_FXSetParameters(fxEQ, &eq);
+    if (!success) {
+//        qDebug() << "SetIntelBoostEnabled: BASS_FXSetParameters failed" << BASS_ErrorGetCode();
+//        qDebug() << "tried to set: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+        return;
+    } else {
+//        qDebug() << "SetIntelBoostEnabled: " << enable << ", new gain = " << eq.fGain;
+    }
+}
+
+void bass_audio::SetGlobals()
+{
+    // global EQ, like Inteliigibility Boost, can only be set AFTER the song is loaded.
+    //   before that, there is no Stream to set EQ on.
+    // So, call this from loadMP3File() after song is loaded, so that global EQ is set, too,
+    //   from the Global_IntelBoostEq parameters.
+//    qDebug() << "***** cBass.SetGlobals:";
+    SetIntelBoost(FREQ_KHZ, Global_IntelBoostEq[FREQ_KHZ]);
+    SetIntelBoost(BW_OCT, Global_IntelBoostEq[BW_OCT]);
+    SetIntelBoost(GAIN_DB, Global_IntelBoostEq[GAIN_DB]);
 }
 
 // *******************
@@ -439,7 +561,7 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
 
     float fGain = 0.0f;
     float fBandwidth = 2.5f;
-    float fQ = 0.0f;
+    float fQ = 0.0f;  // unnecessary, because non-zero fBandwidth overrides fQ
     float fCenter_Bass = 125.0f;
     float fCenter_Mid = 1000.0f;
     float fCenter_Treble = 8000.0f;
@@ -460,8 +582,14 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     BASS_FXSetParameters(fxEQ, &eq);
 
     // create 3rd band for treble
-    eq.lBand=2;
-    eq.fCenter=fCenter_Treble;
+    eq.lBand = 2;
+    eq.fCenter = fCenter_Treble;
+    BASS_FXSetParameters(fxEQ, &eq);
+
+    // create 4th band for global Intelligibility Boost (initial gain = 0.0)
+    eq.lBand = 3;
+    eq.fCenter = 1600.0f;
+    eq.fBandwidth = 2.0f;
     BASS_FXSetParameters(fxEQ, &eq);
 
 #ifdef WANTCOMPRESSOR
