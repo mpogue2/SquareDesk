@@ -713,11 +713,13 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     t.elapsed(__LINE__);
 
     // used to store the file paths
-    splash->showMessage("Locating songs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    splash->showMessage("Locating songs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    QCoreApplication::instance()->processEvents();  // process events to date
 
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
 
-    splash->showMessage("Loading song info...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    splash->showMessage("Loading song info...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    QCoreApplication::instance()->processEvents();  // process events to date
 
     t.elapsed(__LINE__);
 
@@ -1117,7 +1119,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    splash->showMessage("Loading reference docs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    splash->showMessage("Loading reference docs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    QCoreApplication::instance()->processEvents();  // process events to date
 
     initReftab();
 

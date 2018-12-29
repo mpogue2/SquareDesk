@@ -50,8 +50,10 @@ int main(int argc, char *argv[])
 
     QSplashScreen splash(pixmap);
     splash.show();
+//    a.processEvents();
 
     MainWindow w(&splash);  // setMessage() will be called several times in here while loading...
+//    a.processEvents();  // force events to be processed, before closing the window
 
     splash.finish(&w); // tell splash screen to go away when window is up
 
