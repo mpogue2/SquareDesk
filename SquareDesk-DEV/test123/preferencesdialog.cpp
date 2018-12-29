@@ -1061,7 +1061,7 @@ void PreferencesDialog::on_replayGainCheckbox_toggled(bool checked)
 void PreferencesDialog::on_intelCenterFreqDial_valueChanged(int value)
 {
 // value is in Hz/10
-    double centerFreq_KHz = static_cast<double>(value)/10.0; // only integer tenths of a KHz
+    float centerFreq_KHz = static_cast<float>(value)/10.0f; // only integer tenths of a KHz
     ui->intelCenterFreq_KHz->setText(QStringLiteral("%1KHz").arg(centerFreq_KHz));
     cBass.SetIntelBoost(0, centerFreq_KHz);
 }
@@ -1069,7 +1069,7 @@ void PreferencesDialog::on_intelCenterFreqDial_valueChanged(int value)
 void PreferencesDialog::on_intelWidthDial_valueChanged(int value)
 {
 // value is in octaves * 10
-    double width_octaves = static_cast<double>(value)/10.0;  // only integer tenths of an octave
+    float width_octaves = static_cast<float>(value)/10.0f;  // only integer tenths of an octave
     ui->intelWidth_oct->setText(QStringLiteral("%1").arg(width_octaves, 3, 'f', 1));
     cBass.SetIntelBoost(1, width_octaves);
 }
@@ -1077,8 +1077,8 @@ void PreferencesDialog::on_intelWidthDial_valueChanged(int value)
 void PreferencesDialog::on_intelGainDial_valueChanged(int value)
 {
 // value is in gain dB * 10
-    double gain_dB = static_cast<double>(value)/10.0;  // only integer tenths of a dB
-    if (gain_dB == 0.0) {
+    float gain_dB = static_cast<float>(value)/10.0f;  // only integer tenths of a dB
+    if (gain_dB == 0.0f) {
         ui->intelGain_dB->setText(QStringLiteral("%1dB").arg(gain_dB));
     } else {
         ui->intelGain_dB->setText(QStringLiteral("-%1dB").arg(gain_dB));
@@ -1091,6 +1091,10 @@ void PreferencesDialog::on_intelResetButton_clicked()
     ui->intelCenterFreqDial->setValue(16);   // 1.6KHz
     ui->intelWidthDial->setValue(20);        // 2.0 octaves
     ui->intelGainDial->setValue(30);         // -3.0dB
+
+    on_intelCenterFreqDial_valueChanged(16); // force calls to cBass...
+    on_intelWidthDial_valueChanged(20);
+    on_intelGainDial_valueChanged(30);
 }
 
 void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(bool checked)

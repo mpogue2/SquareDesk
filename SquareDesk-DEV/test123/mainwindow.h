@@ -655,6 +655,9 @@ private:
     void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
+
+    void loadGlobalSettingsForSong(QString songTitle); // settings that must be set after song is loaded
+
     void randomizeFlashCall();
 
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
