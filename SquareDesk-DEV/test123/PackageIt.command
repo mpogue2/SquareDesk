@@ -30,7 +30,7 @@ WHICH=Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="0.9.2alpha12b"
+VERSION="0.9.2alpha13"
 DMG_BACKGROUND_IMG="installer3.png"
 
 QTVERSION="5.9.7"

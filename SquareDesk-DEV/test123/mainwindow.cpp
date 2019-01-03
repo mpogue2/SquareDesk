@@ -10692,17 +10692,17 @@ bool MainWindow::replayGain_dB(QString filepath) {
         return(false);  // error return
     }
 
-    if (filepath.endsWith("m4a", Qt::CaseInsensitive)) {
-        qDebug() << "REPLAYGAIN ERROR: can't get ReplayGain for M4A files yet.";
-        ui->statusBar->showMessage("ReplayGain not available for M4A file");
-        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
-        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
-        return(false);  // error return
-    }
-
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
     QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
     QString pathToMp3gain = appDir + "mp3gain";
+
+    QString pathToAACgain = appDir + "aacgain";
+    QFileInfo checkAACFile(pathToAACgain);
+    if (checkAACFile.exists(pathToAACgain)) {
+        pathToMp3gain = pathToAACgain;  // if aacgain exists in the same directory, use it instead (it's compatible with mp3gain)
+        qDebug() << "REPLAYGAIN: Found aacgain, so using it instead of mp3gain.";
+    }
+
 #if defined(Q_OS_WIN32)
     pathToMp3gain += ".exe";   // executable has a different name on Win32
 #endif
@@ -10710,6 +10710,14 @@ bool MainWindow::replayGain_dB(QString filepath) {
 #else /* must be (Q_OS_LINUX) */
     QString pathToMp3gain = "pocketsphinx_mp3gain";
 #endif
+
+    if (pathToMp3gain.endsWith("mp3gain") && filepath.endsWith("m4a", Qt::CaseInsensitive)) {
+        qDebug() << "REPLAYGAIN ERROR: can't get ReplayGain for M4A files yet.";
+        ui->statusBar->showMessage("ReplayGain not available for M4A file");
+        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
+        return(false);  // error return
+    }
 
     QStringList mp3gainArgs;
     mp3gainArgs << "-s" << "s" << filepath;  // do not modify file, just analyze it
