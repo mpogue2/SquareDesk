@@ -136,8 +136,85 @@ void move_dancers(QList<SDDancer> &sdpeople, double t)
     }
 }
 
+struct dancer { int coupleNum, gender, x, y, topside, leftside; };  // remember for groupness check later
+static struct dancer dancers[8];
+
+static int groupNum(struct dancer dancers[], bool top, int coupleNum, int gender) {
+//    qDebug() << "searching: " << top << coupleNum << gender;
+    for (int i = 0; i < 8; i++) {
+        if (dancers[i].coupleNum == coupleNum && dancers[i].gender == gender) {
+            if (top) {
+//                qDebug() << "found: " << dancers[i].topside;
+                return(dancers[i].topside);
+            } else {
+//                qDebug() << "found: " << dancers[i].leftside;
+                return(dancers[i].leftside);
+            }
+        }
+    }
+    return(-1);  // get rid of warning
+}
+
+static bool sameGroup(int group1, int group2) {
+//    qDebug() << "checking: " << group1 << group2;
+    return (group1 == group2 && group1 != -1 && group2 != -1);
+}
+
+static int whichGroup (struct dancer dancers[], bool top) {
+    double minx, maxx, miny, maxy;
+    minx = miny = 99;
+    maxx = maxy = -99;
+    for (int i = 0; i < 8; i++) {
+        minx = fmin(minx, dancers[i].x);
+        miny = fmin(miny, dancers[i].y);
+        maxx = fmax(maxx, dancers[i].x);
+        maxy = fmax(maxy, dancers[i].y);
+    }
+//    qDebug() << "min x/y = " << minx << miny << ", max x/y = " << maxx << maxy;
+    double dividerx = (minx + maxx)/2.0;  // find midpoint dividers of formation
+    double dividery = (miny + maxy)/2.0;
+    for (int i = 0; i < 8; i++) {
+        dancers[i].leftside = (dancers[i].x < dividerx ? 1 : (dancers[i].x > dividerx ? 0 : -1)); // 1 = left, 0 = right, -1 = i dunno
+        dancers[i].topside = (dancers[i].y < dividery ? 1 : (dancers[i].y > dividery ? 0 : -1)); // 1 = top, 0 = bottom, -1 = i dunno
+//        qDebug() << dancers[i].coupleNum + 1 << (dancers[i].gender == 1 ? "G" : "B") << dancers[i].x << dancers[i].y << dancers[i].topside << dancers[i].leftside;
+    }
+
+    int group = -1;
+    if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 0, 1)) &&
+         sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 1, 1)) )
+    {
+        // 1B and 1G in same top group, and 2B and 2G in same top group, so
+//        qDebug() << "PARTNER GROUP";
+        group = 0;
+
+    } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 1, 1)) &&
+                sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 2, 1)) )
+    {
+        // 1B and 2G in same top group, 2B and 3G in same top group, so
+//        qDebug() << "RIGHT HAND LADY GROUP";
+        group = 1;
+    } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 2, 1)) &&
+                sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 3, 1)) )
+    {
+        // 1B and 3G in same top group, 2B and 4G in same top group, so
+//        qDebug() << "OPPOSITE GROUP";
+        group = 2;
+    } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 3, 1)) &&
+                sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 0, 1)) )
+    {
+        // 1B and 4G in same top group, 2B and 1G in same top group, so
+//        qDebug() << "CORNER GROUP";
+        group = 3;
+    } else {
+//        qDebug() << "NO GROUP";
+    }
+
+//    qDebug() << "TOP GROUP = " << group;
+    return(group);
+}
+
 static void decode_formation_into_dancer_destinations(const QStringList &sdformation,
-                       QList<SDDancer> &sdpeople)
+                       QList<SDDancer> &sdpeople, int *lGroup, int *tGroup)
 {
     int coupleNumber = -1;
     int girl = 0;
@@ -207,6 +284,14 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
                     else
                     {
                         sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
+                        QString gend = (girl == 1 ? "G" : "B");
+//                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
+                        dancers[dancerNum].coupleNum = coupleNumber;
+                        dancers[dancerNum].gender = girl;
+                        dancers[dancerNum].x = dancer_start_x;
+                        dancers[dancerNum].y = y;
+                        dancers[dancerNum].leftside = 0;
+                        dancers[dancerNum].topside = 0;
                     }
                 }
                 draw = false;
@@ -217,6 +302,21 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
         } /* end of for x */
     } /* end of for y */
 
+//    qDebug() << "END";
+
+    // group-ness check ------------------------
+//    qDebug() << "CHECKING FOR LEFT GROUP ------";
+    *lGroup = whichGroup(dancers, false);
+
+//    qDebug() << "CHECKING FOR TOP GROUP ------";
+    *tGroup = whichGroup(dancers, true);
+
+//    qDebug() << "------------------------------";
+
+//    qDebug() << "Left Group: " << *lGroup;  // save for later display
+//    qDebug() << "Top Group: " << *tGroup;
+
+    // -----------------------------------------
 
     // Now calculate the lowest common divisor for the X position and the scene bounds
     
@@ -267,6 +367,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
     {
         sdpeople[dancerNum].setDestinationScalingFactors(left_x, max_x, max_y, lowest_factor);
     }
+
 }
 
 void MainWindow::update_sd_animations()
@@ -288,7 +389,9 @@ void MainWindow::update_sd_animations()
 
 
 static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
-                             QGraphicsTextItem *&graphicsTextItemSDStatusBarText)
+                             QGraphicsTextItem *&graphicsTextItemSDStatusBarText,
+                             QGraphicsTextItem *&graphicsTextItemSDLeftGroupText,
+                             QGraphicsTextItem *&graphicsTextItemSDTopGroupText)
 {
 #if defined(Q_OS_MAC)
     dancerLabelFont = QFont("Arial",11);
@@ -307,11 +410,25 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
                           halfBackgroundSize * 2,
                           halfBackgroundSize * 2);
     sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
+
     graphicsTextItemSDStatusBarText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform;
     statusBarTransform.translate(-halfBackgroundSize, -halfBackgroundSize);
     statusBarTransform.scale(2,2);
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
+
+    // groupness labels
+    graphicsTextItemSDLeftGroupText = sdscene.addText("Q", dancerLabelFont);
+    QTransform statusBarTransform2;
+    statusBarTransform2.translate(-halfBackgroundSize/8, halfBackgroundSize*7/8);
+//    statusBarTransform2.scale(2,2);
+    graphicsTextItemSDLeftGroupText->setTransform(statusBarTransform2);
+
+    graphicsTextItemSDTopGroupText = sdscene.addText("R", dancerLabelFont);
+    QTransform statusBarTransform3;
+    statusBarTransform3.translate(-halfBackgroundSize, -halfBackgroundSize/8);
+//    statusBarTransform3.scale(2,2);
+    graphicsTextItemSDTopGroupText->setTransform(statusBarTransform3);
 
     for (double x = -halfBackgroundSize + gridSize;
          x < halfBackgroundSize; x += gridSize)
@@ -417,8 +534,10 @@ void MainWindow::initialize_internal_sd_tab()
     
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
 
-    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText_animated);
-    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText_fixed);
+    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText_animated,
+                     graphicsTextItemSDLeftGroupText_animated, graphicsTextItemSDTopGroupText_animated);
+    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText_fixed,
+                     graphicsTextItemSDLeftGroupText_fixed, graphicsTextItemSDTopGroupText_fixed);
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sd_animation_scene);
 
@@ -430,11 +549,15 @@ void MainWindow::initialize_internal_sd_tab()
     initialDancerLocations.append(" 4G>    .     .    2B<");
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    1B^   1G^    .");
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people); 
+    int lGroup, tGroup;
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup);
     // Easiest way to make sure dest and source are the same
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people); 
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup);
+
+    set_sd_last_groupness(lGroup, tGroup); // update groupness strings
+
     move_dancers(sd_animation_people, 1.0);
     move_dancers(sd_fixed_people, 1.0);
     sd_animation_t_value = 1.0;
@@ -476,6 +599,63 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
     }
 }
 
+void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
+//    qDebug() << "updating SD groupness...";
+
+    topGroup = tGroup;
+    leftGroup = lGroup; // FIX: these two lines are unused?
+
+    QString leftGroupStr, topGroupStr;
+    switch (lGroup) {
+        case 0: leftGroupStr = "P"; break;
+        case 1: leftGroupStr = "R"; break;
+        case 2: leftGroupStr = "O"; break;
+        case 3: leftGroupStr = "C"; break;
+        default: leftGroupStr = "?"; break;
+    }
+    switch (tGroup) {
+        case 0: topGroupStr = "P"; break;
+        case 1: topGroupStr = "R"; break;
+        case 2: topGroupStr = "O"; break;
+        case 3: topGroupStr = "C"; break;
+        default: topGroupStr = "?"; break;
+    }
+
+//    qDebug() << "Groupness strings updated to L/T: " << leftGroupStr << topGroupStr;
+
+    if (graphicsTextItemSDLeftGroupText_fixed != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDLeftGroupText_fixed->setPlainText(leftGroupStr);
+        } else {
+            graphicsTextItemSDLeftGroupText_fixed->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDLeftGroupText_animated != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDLeftGroupText_animated->setPlainText(leftGroupStr);
+        } else {
+            graphicsTextItemSDLeftGroupText_animated->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDTopGroupText_fixed != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDTopGroupText_fixed->setPlainText(topGroupStr);
+        } else {
+            graphicsTextItemSDTopGroupText_fixed->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDTopGroupText_animated != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDTopGroupText_animated->setPlainText(topGroupStr);
+        } else {
+            graphicsTextItemSDTopGroupText_animated->setPlainText("");
+        }
+    }
+}
+
 void MainWindow::clamp_sd_animation_values()
 {
     if (sd_animation_msecs_per_frame <= 0)
@@ -491,6 +671,7 @@ void MainWindow::clamp_sd_animation_values()
 
 void MainWindow::on_sd_update_status_bar(QString str)
 {
+//    qDebug() << "updating SD status bar...";
     if (!str.compare("<startup>"))
     {
         sdformation = initialDancerLocations;
@@ -500,8 +681,10 @@ void MainWindow::on_sd_update_status_bar(QString str)
                       "\n" + sdformation.join("\n"));
     if (!sdformation.empty())
     {
-        decode_formation_into_dancer_destinations(sdformation, sd_animation_people);
-        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people);
+        int lGroup, tGroup;
+        decode_formation_into_dancer_destinations(sdformation, sd_animation_people, &lGroup, &tGroup);
+        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people, &lGroup, &tGroup);
+        set_sd_last_groupness(lGroup, tGroup); // update groupness strings
         sd_animation_t_value = sd_animation_delta_t;
 
         move_dancers(sd_fixed_people, 1);
@@ -530,7 +713,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
 #endif /* ifdef NO_TIMING_INFO */
         /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
-    sdformation.clear();
+//    sdformation.clear(); // not needed.  If here, it prevents updates when group menu item is toggled.
 }
 
 
@@ -807,8 +990,10 @@ void MainWindow::render_sd_item_data(QTableWidgetItem *item)
             {
                 set_sd_last_formation_name(formationList[0]);            
                 formationList.removeFirst();
-                decode_formation_into_dancer_destinations(formationList, sd_animation_people);
-                move_dancers(sd_animation_people, 1); 
+                int lGroup, tGroup;
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people, &lGroup, &tGroup);
+                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
+                move_dancers(sd_animation_people, 1);
             }
         }
 }
@@ -954,8 +1139,10 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
             {
                 set_sd_last_formation_name(formationList[0]);            
                 formationList.removeFirst();
-                decode_formation_into_dancer_destinations(formationList, sd_animation_people);
-                move_dancers(sd_animation_people, 1); 
+                int lGroup, tGroup;
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people, &lGroup, &tGroup);
+                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
+                move_dancers(sd_animation_people, 1);
             }
         }
 
@@ -1353,7 +1540,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
 {
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
-
     
     QString currentText = ui->lineEditSDInput->text().simplified();
     int currentTextLastChar = currentText.length() - 1;
@@ -1684,8 +1870,10 @@ static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsS
             }
             else
             {
-                decode_formation_into_dancer_destinations(formationList, people);
-                move_dancers(people, 1); 
+                int lGroup, tGroup;
+                decode_formation_into_dancer_destinations(formationList, people, &lGroup, &tGroup);
+//                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
+                move_dancers(people, 1);
                 QBuffer svgText;
                 svgText.open(QBuffer::ReadWrite);
                 QSvgGenerator svgGen;
@@ -1715,7 +1903,9 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
     QGraphicsTextItem *graphicsTextItemStatusBar;
     bool copyOnlySelectedCells(prefsManager.GetSDCallListCopyOptions() == 3);
 
-    initialize_scene(scene,people, graphicsTextItemStatusBar);
+    QGraphicsTextItem *graphicsTextItemLeftGroup;
+    QGraphicsTextItem *graphicsTextItemTopGroup;
+    initialize_scene(scene, people, graphicsTextItemStatusBar, graphicsTextItemLeftGroup, graphicsTextItemTopGroup);
     
     QString selection("<!DOCTYPE html>\n"
                       "<html lang=\"en\">\n"
