@@ -298,6 +298,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    Q_UNUSED(splash);
+
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
     filewatcherShouldIgnoreOneFileSave = false;
@@ -1198,6 +1200,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //        qDebug() << "ERROR: can't get ReplayGain for: " << testPath;
 //    }
 //#endif
+
+    on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
 
 }
 
@@ -10800,4 +10804,12 @@ void MainWindow::MP3Gain_finished(int exitCode) {
         ui->statusBar->showMessage(QString("ReplayGain calculated: %1dB").arg(mp3gainResult_dB));
         cBass.SetReplayGainVolume(mp3gainResult_dB);  // Let's do this!
     }
+}
+
+void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
+{
+    Q_UNUSED(showGroupStation)
+//    qDebug() << "TOGGLED: " << showGroupStation;
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+    prefsManager.Setenablegroupstation(showGroupStation);  // persistent menu item
 }

@@ -170,13 +170,13 @@ static int whichGroup (struct dancer dancers[], bool top) {
         maxx = fmax(maxx, dancers[i].x);
         maxy = fmax(maxy, dancers[i].y);
     }
-    qDebug() << "min x/y = " << minx << miny << ", max x/y = " << maxx << maxy;
+//    qDebug() << "min x/y = " << minx << miny << ", max x/y = " << maxx << maxy;
     double dividerx = (minx + maxx)/2.0;  // find midpoint dividers of formation
     double dividery = (miny + maxy)/2.0;
     for (int i = 0; i < 8; i++) {
         dancers[i].leftside = (dancers[i].x < dividerx ? 1 : (dancers[i].x > dividerx ? 0 : -1)); // 1 = left, 0 = right, -1 = i dunno
         dancers[i].topside = (dancers[i].y < dividery ? 1 : (dancers[i].y > dividery ? 0 : -1)); // 1 = top, 0 = bottom, -1 = i dunno
-        qDebug() << dancers[i].coupleNum + 1 << (dancers[i].gender == 1 ? "G" : "B") << dancers[i].x << dancers[i].y << dancers[i].topside << dancers[i].leftside;
+//        qDebug() << dancers[i].coupleNum + 1 << (dancers[i].gender == 1 ? "G" : "B") << dancers[i].x << dancers[i].y << dancers[i].topside << dancers[i].leftside;
     }
 
     int group = -1;
@@ -184,29 +184,29 @@ static int whichGroup (struct dancer dancers[], bool top) {
          sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 1, 1)) )
     {
         // 1B and 1G in same top group, and 2B and 2G in same top group, so
-        qDebug() << "PARTNER GROUP";
+//        qDebug() << "PARTNER GROUP";
         group = 0;
 
     } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 1, 1)) &&
                 sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 2, 1)) )
     {
         // 1B and 2G in same top group, 2B and 3G in same top group, so
-        qDebug() << "RIGHT HAND LADY GROUP";
+//        qDebug() << "RIGHT HAND LADY GROUP";
         group = 1;
     } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 2, 1)) &&
                 sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 3, 1)) )
     {
         // 1B and 3G in same top group, 2B and 4G in same top group, so
-        qDebug() << "OPPOSITE GROUP";
+//        qDebug() << "OPPOSITE GROUP";
         group = 2;
     } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 3, 1)) &&
                 sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 0, 1)) )
     {
         // 1B and 4G in same top group, 2B and 1G in same top group, so
-        qDebug() << "CORNER GROUP";
+//        qDebug() << "CORNER GROUP";
         group = 3;
     } else {
-        qDebug() << "NO GROUP";
+//        qDebug() << "NO GROUP";
     }
 
 //    qDebug() << "TOP GROUP = " << group;
@@ -285,7 +285,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
                     {
                         sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
                         QString gend = (girl == 1 ? "G" : "B");
-                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
+//                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
                         dancers[dancerNum].coupleNum = coupleNumber;
                         dancers[dancerNum].gender = girl;
                         dancers[dancerNum].x = dancer_start_x;
@@ -302,19 +302,19 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
         } /* end of for x */
     } /* end of for y */
 
-    qDebug() << "END";
+//    qDebug() << "END";
 
     // group-ness check ------------------------
-    qDebug() << "CHECKING FOR LEFT GROUP ------";
+//    qDebug() << "CHECKING FOR LEFT GROUP ------";
     *lGroup = whichGroup(dancers, false);
 
-    qDebug() << "CHECKING FOR TOP GROUP ------";
+//    qDebug() << "CHECKING FOR TOP GROUP ------";
     *tGroup = whichGroup(dancers, true);
 
-    qDebug() << "------------------------------";
+//    qDebug() << "------------------------------";
 
-    qDebug() << "Left Group: " << *lGroup;  // save for later display
-    qDebug() << "Top Group: " << *tGroup;
+//    qDebug() << "Left Group: " << *lGroup;  // save for later display
+//    qDebug() << "Top Group: " << *tGroup;
 
     // -----------------------------------------
 
@@ -420,14 +420,14 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
     // groupness labels
     graphicsTextItemSDLeftGroupText = sdscene.addText("Q", dancerLabelFont);
     QTransform statusBarTransform2;
-    statusBarTransform2.translate(-halfBackgroundSize/4, -halfBackgroundSize/4);
-    statusBarTransform2.scale(2,2);
+    statusBarTransform2.translate(-halfBackgroundSize/8, halfBackgroundSize*7/8);
+//    statusBarTransform2.scale(2,2);
     graphicsTextItemSDLeftGroupText->setTransform(statusBarTransform2);
 
     graphicsTextItemSDTopGroupText = sdscene.addText("R", dancerLabelFont);
     QTransform statusBarTransform3;
-    statusBarTransform3.translate(-halfBackgroundSize/4, +halfBackgroundSize/4);
-    statusBarTransform3.scale(2,2);
+    statusBarTransform3.translate(-halfBackgroundSize, -halfBackgroundSize/8);
+//    statusBarTransform3.scale(2,2);
     graphicsTextItemSDTopGroupText->setTransform(statusBarTransform3);
 
     for (double x = -halfBackgroundSize + gridSize;
@@ -600,9 +600,10 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
 }
 
 void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
+//    qDebug() << "updating SD groupness...";
 
     topGroup = tGroup;
-    leftGroup = lGroup; // FIX: unused?
+    leftGroup = lGroup; // FIX: these two lines are unused?
 
     QString leftGroupStr, topGroupStr;
     switch (lGroup) {
@@ -620,19 +621,40 @@ void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
         default: topGroupStr = "?"; break;
     }
 
-    qDebug() << "Groupness strings updated to L/T: " << leftGroupStr << topGroupStr;
+//    qDebug() << "Groupness strings updated to L/T: " << leftGroupStr << topGroupStr;
 
-    // FIX: CHECK FOR NULL BEFORE SETTING?
-    if (graphicsTextItemSDLeftGroupText_fixed != NULL) {
-        graphicsTextItemSDLeftGroupText_fixed->setPlainText(leftGroupStr);
+    if (graphicsTextItemSDLeftGroupText_fixed != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDLeftGroupText_fixed->setPlainText(leftGroupStr);
+        } else {
+            graphicsTextItemSDLeftGroupText_fixed->setPlainText("");
+        }
     }
-//    graphicsTextItemSDLeftGroupText_fixed->setPlainText(leftGroupStr);
-//    graphicsTextItemSDLeftGroupText_animated->setPlainText(leftGroupStr);
 
-//    graphicsTextItemSDTopGroupText_fixed->setPlainText(topGroupStr);
-//    graphicsTextItemSDTopGroupText_animated->setPlainText(topGroupStr);
+    if (graphicsTextItemSDLeftGroupText_animated != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDLeftGroupText_animated->setPlainText(leftGroupStr);
+        } else {
+            graphicsTextItemSDLeftGroupText_animated->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDTopGroupText_fixed != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDTopGroupText_fixed->setPlainText(topGroupStr);
+        } else {
+            graphicsTextItemSDTopGroupText_fixed->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDTopGroupText_animated != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDTopGroupText_animated->setPlainText(topGroupStr);
+        } else {
+            graphicsTextItemSDTopGroupText_animated->setPlainText("");
+        }
+    }
 }
-
 
 void MainWindow::clamp_sd_animation_values()
 {
@@ -649,6 +671,7 @@ void MainWindow::clamp_sd_animation_values()
 
 void MainWindow::on_sd_update_status_bar(QString str)
 {
+//    qDebug() << "updating SD status bar...";
     if (!str.compare("<startup>"))
     {
         sdformation = initialDancerLocations;
@@ -690,7 +713,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
 #endif /* ifdef NO_TIMING_INFO */
         /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
-    sdformation.clear();
+//    sdformation.clear(); // not needed.  If here, it prevents updates when group menu item is toggled.
 }
 
 
@@ -1517,7 +1540,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
 {
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
-
     
     QString currentText = ui->lineEditSDInput->text().simplified();
     int currentTextLastChar = currentText.length() - 1;

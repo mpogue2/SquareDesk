@@ -538,6 +538,8 @@ private slots:
 
     void on_actionMake_Flash_Drive_Wizard_triggered();
 
+    void on_actionShow_group_station_toggled(bool arg1);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

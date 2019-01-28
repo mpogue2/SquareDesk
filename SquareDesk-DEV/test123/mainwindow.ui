@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>923</width>
+    <width>1008</width>
     <height>582</height>
    </rect>
   </property>
@@ -1802,7 +1802,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>923</width>
+     <width>1008</width>
      <height>22</height>
     </rect>
    </property>
@@ -1973,6 +1973,8 @@
     <addaction name="actionSight"/>
     <addaction name="separator"/>
     <addaction name="actionFormation_Thumbnails"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_group_station"/>
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
@@ -3202,6 +3204,17 @@
    </property>
    <property name="text">
     <string>Don't Save Plays</string>
+   </property>
+  </action>
+  <action name="actionShow_group_station">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show group/station</string>
    </property>
   </action>
  </widget>
