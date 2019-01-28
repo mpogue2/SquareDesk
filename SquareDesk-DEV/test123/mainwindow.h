@@ -893,6 +893,14 @@ private: // SD
     int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText_fixed;
     QGraphicsTextItem *graphicsTextItemSDStatusBarText_animated;
+
+    QGraphicsTextItem *graphicsTextItemSDLeftGroupText_fixed;  // for display of group-ness
+    QGraphicsTextItem *graphicsTextItemSDLeftGroupText_animated;
+    QGraphicsTextItem *graphicsTextItemSDTopGroupText_fixed;
+    QGraphicsTextItem *graphicsTextItemSDTopGroupText_animated;
+
+    int leftGroup, topGroup;  // groupness numbers, 0 = P, 1 = RH, 2 = O, 3 = C
+
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
@@ -910,6 +918,7 @@ private: // SD
     void render_sd_item_data(QTableWidgetItem *item);
     void clamp_sd_animation_values();
     void set_sd_last_formation_name(const QString&);
+    void set_sd_last_groupness(int l, int t); // update groupness strings
 
     bool replayGain_dB(QString filepath); // async call
 public:
