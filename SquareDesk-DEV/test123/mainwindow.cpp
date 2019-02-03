@@ -1190,9 +1190,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     cBass.SetCompression(4, prefsManager.Getrelease_ms());
 
     cBass.SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
-    cBass.SetIntelBoost(FREQ_KHZ, prefsManager.GetintelCenterFreq_KHz()/10.0); // yes, we have to initialize these manually
-    cBass.SetIntelBoost(BW_OCT,  prefsManager.GetintelWidth_oct()/10.0);
-    cBass.SetIntelBoost(GAIN_DB, prefsManager.GetintelGain_dB()/10.0);  // expressed as positive number
+    cBass.SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
+    cBass.SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
+    cBass.SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
 
 //#ifdef Q_OS_MAC
 //    QString testPath("/Users/mpogue/mp3gain-1_6_2-src/test1.mp3");
@@ -3064,7 +3064,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                          << "songloaded: " << songLoaded;
                 previousPosition = -1.0;  // uninitialized
             } else {
-                qDebug() << "Progress:" << previousPosition << cBass.Current_Position;
+//                qDebug() << "Progress:" << previousPosition << cBass.Current_Position;
                 // this will always be executed on the first info_seekbar update when playing
                 previousPosition = cBass.Current_Position;  // remember previous position
             }
