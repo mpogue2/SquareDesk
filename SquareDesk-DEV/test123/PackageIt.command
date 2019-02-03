@@ -33,14 +33,15 @@ APP_NAME="SquareDesk"
 VERSION="0.9.2alpha13"
 DMG_BACKGROUND_IMG="installer3.png"
 
-QTVERSION="5.9.7"
-QT_VERSION="5_9_7"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="5.9.3"
+QT_VERSION="5_9_3"   # same thing, but with underscores (yes, change both of them at the same time!)
 
 #MANUAL="SquareDeskManual.pdf"
 
 # ------------------------------------------------------------------------
 echo Now running otool to fixup libraries...
-pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_VERSION}_clang_64bit-${WHICH}/test123/SquareDesk.app/Contents/MacOS
+# Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
+pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_VERSION}_clang_64bit5-${WHICH}/test123/SquareDesk.app/Contents/MacOS
 otool -L SquareDesk | egrep "qua|tidy"
 install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
 install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
