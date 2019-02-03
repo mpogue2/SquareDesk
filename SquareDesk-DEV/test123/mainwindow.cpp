@@ -3612,7 +3612,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("(Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
