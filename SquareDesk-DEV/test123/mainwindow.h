@@ -482,6 +482,7 @@ private slots:
     void toggle_sd_copy_html_formations_as_svg();
     void update_sd_animations();
 
+    void square_your_sets();
     void undo_sd_to_row();
     void undo_last_sd_action();
     void redo_last_sd_action();
