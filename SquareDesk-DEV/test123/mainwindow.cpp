@@ -687,9 +687,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-    sd_animation_delta_t = prefsManager.GetSDAnimationDeltaT().toDouble();
-    sd_animation_msecs_per_frame = prefsManager.GetSDAnimationMSecsPerFrame().toDouble();
-    clamp_sd_animation_values();
+    SetAnimationSpeed((AnimationSpeed)(prefsManager.GetAnimationSpeed()));
     
     // define type names (before reading in the music filenames!) ------------------
     QString value;
@@ -6272,9 +6270,7 @@ void MainWindow::on_actionPreferences_triggered()
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
 
-        sd_animation_delta_t = prefsManager.GetSDAnimationDeltaT().toDouble();
-        sd_animation_msecs_per_frame = prefsManager.GetSDAnimationMSecsPerFrame().toDouble();
-        clamp_sd_animation_values();
+        SetAnimationSpeed((AnimationSpeed)(prefsManager.GetAnimationSpeed()));
         
         {
             QString value;

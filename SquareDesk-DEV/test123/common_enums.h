@@ -57,5 +57,12 @@ enum CheckerColorScheme
     CheckerColorSchemeSight
 };
 
+enum AnimationSpeed
+{
+    AnimationSpeedOff = 0,
+    AnimationSpeedSlow,
+    AnimationSpeedMedium,
+    AnimationSpeedFast,
+};
 
 #endif // ifndef COMMON_ENUMS_H

@@ -128,6 +128,7 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
 
     SetPulldownValuesToItemNumberPlusN(ui->comboBoxMusicFormat,1);
+    SetPulldownValuesToItemNumberPlusN(ui->comboBoxAnimationSettings,0);
     SetPulldownValuesToItemNumberPlusN(ui->comboBoxSessionDefault,1);
 
     // puldown menus for break and long tip sounds

@@ -918,7 +918,7 @@ private: // SD
     double sd_animation_delta_t;
     double sd_animation_msecs_per_frame;
     void render_sd_item_data(QTableWidgetItem *item);
-    void clamp_sd_animation_values();
+    void SetAnimationSpeed(AnimationSpeed speed);
     void set_sd_last_formation_name(const QString&);
     void set_sd_last_groupness(int l, int t); // update groupness strings
 

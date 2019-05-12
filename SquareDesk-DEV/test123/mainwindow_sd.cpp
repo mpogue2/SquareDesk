@@ -656,8 +656,29 @@ void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
     }
 }
 
-void MainWindow::clamp_sd_animation_values()
+void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
 {
+    switch (speed)
+    {
+    case AnimationSpeedSlow :
+        sd_animation_delta_t = .05;
+        sd_animation_msecs_per_frame = 50;
+        break;
+    case AnimationSpeedMedium:
+        sd_animation_delta_t = .1;
+        sd_animation_msecs_per_frame = 50;
+        break;
+    case AnimationSpeedFast:
+        sd_animation_delta_t = .2;
+        sd_animation_msecs_per_frame = 50;
+        break;
+        
+    case AnimationSpeedOff:
+    default:
+        sd_animation_delta_t = 1;
+        sd_animation_msecs_per_frame = 0;
+    }
+
     if (sd_animation_msecs_per_frame <= 0)
         sd_animation_msecs_per_frame = 1;
     if (sd_animation_msecs_per_frame >= 1000)
@@ -667,6 +688,7 @@ void MainWindow::clamp_sd_animation_values()
     if (sd_animation_delta_t > 1)
         sd_animation_delta_t = 1;
             
+    qDebug() << "Animation speed: " << speed << " :" << sd_animation_delta_t << "/" << sd_animation_msecs_per_frame;
 }
 
 void MainWindow::on_sd_update_status_bar(QString str)
