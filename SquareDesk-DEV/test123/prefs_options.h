@@ -139,6 +139,8 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
 
+CONFIG_ATTRIBUTE_BOOLEAN(checkBoxInOutEditOnlyWhenLyricsUnlocked, InOutEditingOnlyWhenLyricsUnlocked, false);
+
 // Global FX tab
 CONFIG_ATTRIBUTE_BOOLEAN(compressorEnabledCheckbox, compressorIsEnabled, false)
 CONFIG_ATTRIBUTE_SLIDER(thresholdDial, threshold_dB, -15)  // sliders are integers controlled by value()/setValue()
@@ -153,3 +155,4 @@ CONFIG_ATTRIBUTE_BOOLEAN(intelBoostEnabledCheckbox, intelBoostIsEnabled, false)
 CONFIG_ATTRIBUTE_SLIDER(intelCenterFreqDial, intelCenterFreq_KHz, 16)  // sliders are integers controlled by value()/setValue()
 CONFIG_ATTRIBUTE_SLIDER(intelWidthDial, intelWidth_oct, 20)
 CONFIG_ATTRIBUTE_SLIDER(intelGainDial, intelGain_dB, 30) // expressed as a positive number
+

@@ -332,7 +332,7 @@ private slots:
 
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
-
+    void setInOutButtonState();
     // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
     void timerCountUp_update();
     void timerCountDown_update();

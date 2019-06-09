@@ -1176,8 +1176,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
     ui->actionSave->setEnabled(false);  // save is disabled to start out
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    ui->pushButtonSetIntroTime->setEnabled(false);
+    ui->pushButtonSetOutroTime->setEnabled(false);
+    ui->dateTimeEditIntroTime->setEnabled(false);
+    ui->dateTimeEditOutroTime->setEnabled(false);
 
-    // should the compressor be enabled?  Even if it's not actually instantiated here and now,
+    // should the compressor be enabled?  Even if it's not actually instantiated here and now,p
     //   this will set compressorShouldBeEnabled, so that when a song is loaded, the compressor will
     //   be instantiated, too.
     cBass.SetCompressionEnabled(prefsManager.GetcompressorIsEnabled());
@@ -1541,6 +1545,17 @@ void MainWindow::showHTML(QString fromWhere) {
     qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
+void MainWindow::setInOutButtonState() {
+    bool checked = ui->pushButtonEditLyrics->isChecked();
+    if (!prefsManager.GetInOutEditingOnlyWhenLyricsUnlocked())
+        checked = true;
+
+    ui->pushButtonSetIntroTime->setEnabled(checked);
+    ui->pushButtonSetOutroTime->setEnabled(checked);
+    ui->dateTimeEditIntroTime->setEnabled(checked);
+    ui->dateTimeEditOutroTime->setEnabled(checked);
+}
+
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 {
 //    qDebug() << "on_pushButtonEditLyrics_toggled" << checkState;
@@ -1575,6 +1590,8 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
         ui->textBrowserCueSheet->clearFocus();  // if the user locks the editor, remove focus
         ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // and don't allow it to get focus
     }
+
+    setInOutButtonState();
 }
 
 int MainWindow::currentSelectionContains() {
@@ -1650,6 +1667,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
         ui->pushButtonCueSheetEditHeader->setChecked(false);
         ui->pushButtonCueSheetEditLyrics->setChecked(false);
     }
+    setInOutButtonState();
 }
 
 // TODO: can't make a doc from scratch yet.
@@ -1941,6 +1959,7 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
         ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
         ui->actionSave->setEnabled(false);  // save is disabled now
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    setInOutButtonState();
 }
 
 void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
@@ -1953,6 +1972,7 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
     ui->actionSave->setEnabled(false);  // save is disabled now
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    setInOutButtonState();
 }
 
 
@@ -2277,6 +2297,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
     ui->actionSave->setEnabled(false);  // save is disabled to start out
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    setInOutButtonState();
 }
 
 // END LYRICS EDITOR STUFF
@@ -4970,6 +4991,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
 #endif
 
+    setInOutButtonState();
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -6303,6 +6325,7 @@ void MainWindow::on_actionPreferences_triggered()
             airplaneMode(false);
         }
     }
+    setInOutButtonState();
 
     delete prefDialog;
     prefDialog = nullptr;
@@ -9636,6 +9659,7 @@ void MainWindow::saveLyrics()
         loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
         saveCurrentSongSettings();
     }
+    setInOutButtonState();
 
 }
 
