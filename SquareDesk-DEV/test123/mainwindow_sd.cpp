@@ -2054,10 +2054,18 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     action3.setShortcut(QKeySequence::SelectAll);
     contextMenu.addAction(&action3);
 
+    contextMenu.addSeparator(); // ---------------
+
     sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
     QAction action4("Go Back To Here", this);
     connect(&action4, SIGNAL(triggered()), this, SLOT(undo_sd_to_row()));
     contextMenu.addAction(&action4);
+
+    QAction action4a("Square Your Sets", this);
+    connect(&action4a, SIGNAL(triggered()), this, SLOT(square_your_sets()));
+    contextMenu.addAction(&action4a);
+
+    contextMenu.addSeparator(); // ---------------
 
     QAction action5("Copy as HTML", this);
     connect(&action5, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
@@ -2139,3 +2147,12 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
 
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }
+
+void MainWindow::square_your_sets()
+{
+    sdthread->do_user_input(str_abort_this_sequence);
+    sdthread->do_user_input("y");
+
+    ui->lineEditSDInput->setFocus();
+}
+

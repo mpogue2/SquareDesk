@@ -163,7 +163,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 // ALSO REMEMBER TO CHANGE THE VERSION IN PackageIt.command !
 // Also remember to change the "latest" file on GitHub (for Beta releases)!
-#define VERSIONSTRING "0.9.2alpha13"
+#define VERSIONSTRING "0.9.2alpha13b"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -482,6 +482,7 @@ private slots:
     void toggle_sd_copy_html_formations_as_svg();
     void update_sd_animations();
 
+    void square_your_sets();
     void undo_sd_to_row();
     void undo_last_sd_action();
     void redo_last_sd_action();
