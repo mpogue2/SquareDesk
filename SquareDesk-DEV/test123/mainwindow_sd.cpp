@@ -225,7 +225,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
     {
         int dancer_start_x = -1;
         bool draw = false;
-        double direction = -1.0;
+        int direction = -1.0;
 
         for (int x = 0; x < sdformation[y].length(); ++x)
         {
