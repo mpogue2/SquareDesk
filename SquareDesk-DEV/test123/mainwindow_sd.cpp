@@ -688,7 +688,7 @@ void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
     if (sd_animation_delta_t > 1)
         sd_animation_delta_t = 1;
             
-    qDebug() << "Animation speed: " << speed << " :" << sd_animation_delta_t << "/" << sd_animation_msecs_per_frame;
+//    qDebug() << "Animation speed: " << speed << " :" << sd_animation_delta_t << "/" << sd_animation_msecs_per_frame;
 }
 
 void MainWindow::on_sd_update_status_bar(QString str)
