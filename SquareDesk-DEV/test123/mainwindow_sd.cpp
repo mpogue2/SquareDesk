@@ -270,7 +270,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
             }
             if (draw)
             {
-                if (direction == -1.0 || coupleNumber == -1)
+                if (direction == -1 || coupleNumber == -1)
                 {
                     qDebug() << "Drawing state error";
                 }
