@@ -1,5 +1,5 @@
 /****************************************************************************
-**
+`**
 ** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
@@ -119,6 +119,15 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     // When you add a new set of defaults, put them above this section
     // prefixed with a break like this + 1. Then increment the constant
     // CURRENT_VERSION_OF_KEY_DEFAULTS in keybindings.h
+
+    if (revisionNumber > 2)
+        return keyMappings;
+    
+    keyMappings[QKeySequence(Qt::Key_A|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDSquareYourSets;
+    keyMappings[QKeySequence(Qt::Key_S|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsStart;
+    keyMappings[QKeySequence(Qt::Key_P|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
+    keyMappings[QKeySequence(Qt::Key_L|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeads1p2p;
+    
     if (revisionNumber > 1)
         return keyMappings;
     
@@ -153,10 +162,6 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
     keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
 
-    keyMappings[QKeySequence(Qt::Key_A|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDSquareYourSets;
-    keyMappings[QKeySequence(Qt::Key_S|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsStart;
-    keyMappings[QKeySequence(Qt::Key_P|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
-    keyMappings[QKeySequence(Qt::Key_L|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeads1p2p;
     return keyMappings;
 }
 

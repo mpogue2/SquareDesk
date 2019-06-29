@@ -37,7 +37,7 @@ class MainWindow;
 
 class MainWindow;
 
-#define CURRENT_VERSION_OF_KEY_DEFAULTS 1
+#define CURRENT_VERSION_OF_KEY_DEFAULTS 2
 #define MAX_KEYPRESSES_PER_ACTION 5
 
 class KeyAction : public QObject
