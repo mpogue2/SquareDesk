@@ -1023,8 +1023,7 @@ SDThread::SDThread(MainWindow *mw)
 
 }
 
-void SDThread::finishAndShutdownSD()
-{
+void SDThread::resetSDState() {
     iofull->answerYesToEverything = true;
     abort = true;
 //    mutexSDAwaitingInput.lock();
@@ -1035,6 +1034,29 @@ void SDThread::finishAndShutdownSD()
 //        mutexSDAwaitingInput.lock();
     }
 //    mutexSDAwaitingInput.unlock();
+
+}
+
+void SDThread::resetAndExecute(QStringList &commands)
+{
+    resetSDState();
+    iofull->answerYesToEverything = false;
+    abort = false;
+    if (iofull->seenAFormation)
+    {
+        do_user_input("abort this sequence");
+        do_user_input("yes");
+    }
+    
+    for (QString &cmd : commands)
+    {
+        do_user_input(cmd);
+    }
+}
+
+void SDThread::finishAndShutdownSD()
+{
+    resetSDState();
 
     if (!iofull->seenAFormation)
     {

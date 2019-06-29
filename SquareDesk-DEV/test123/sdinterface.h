@@ -76,6 +76,9 @@ public:
     void add_selectors_to_list_widget(QListWidget *);
     void add_directions_to_list_widget(QListWidget *listWidget);
 
+    void resetAndExecute(QStringList &commands);
+    void resetSDState();
+ 
 private:
     bool on_user_input(QString str);
 

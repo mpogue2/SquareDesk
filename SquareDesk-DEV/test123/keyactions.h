@@ -43,3 +43,9 @@ KEYACTION(SwitchToReferenceTab, "Switch to Reference Tab", mw->actionSwitchToTab
 KEYACTION(FilterPatter, "Filter Songs to Patter", mw->actionFilterSongsToPatter())
 KEYACTION(FilterSingers, "Filter Songs to Singing", mw->actionFilterSongsToSingers())
 KEYACTION(FilterToggle, "Toggle Songs Filter", mw->actionFilterSongsPatterSingersToggle())
+
+KEYACTION(SDSquareYourSets, "SD Square Your Sets", mw->actionSDSquareYourSets())
+KEYACTION(SDHeadsStart, "SD Heads Start", mw->actionSDHeadsStart())
+KEYACTION(SDHeadsSquareThru, "SD Heads Square Thru", mw->actionSDHeadsSquareThru())
+KEYACTION(SDHeads1p2p, "SD Heads 1P2P", mw->actionSDHeads1p2p())
+    

@@ -2148,11 +2148,28 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }
 
-void MainWindow::square_your_sets()
-{
+
+void MainWindow::actionSDSquareYourSets() {
+    ui->lineEditSDInput->clear();
     sdthread->do_user_input(str_abort_this_sequence);
     sdthread->do_user_input("y");
-
-    ui->lineEditSDInput->setFocus();
 }
 
+void MainWindow::actionSDHeadsStart() {
+    actionSDSquareYourSets();
+    QStringList list(QString("heads start"));
+    sdthread->resetAndExecute(list);
+}
+
+void MainWindow::actionSDHeadsSquareThru() {
+    actionSDHeadsStart();
+    QStringList list(QString("heads start"));
+    sdthread->resetAndExecute(list);
+    sdthread->do_user_input("square thru 4");
+}
+
+void MainWindow::actionSDHeads1p2p() {
+    actionSDSquareYourSets();
+    QStringList list(QString("heads 1p2p"));
+    sdthread->resetAndExecute(list);
+}

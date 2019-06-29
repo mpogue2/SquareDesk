@@ -8254,6 +8254,22 @@ void MainWindow::initReftab() {
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
+        } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
+                tabname = filename.split("/").last().remove(QRegExp(".[Mm][Dd]$"));
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+                webview[numWebviews] = new QWebEngineView();
+#else
+                webview[numWebviews] = new QWebView();
+#endif
+
+                QFile f1(filename);
+                f1.open(QIODevice::ReadOnly | QIODevice::Text);
+                QTextStream in(&f1);
+                QString html = txtToHTMLlyrics(in.readAll(), filename);
+                webview[numWebviews]->setHtml(html);
+                webview[numWebviews]->setZoomFactor(1);
+                documentsTab->addTab(webview[numWebviews], tabname);
+                numWebviews++;
         } else if (filename.endsWith(".pdf")) {
 //                qDebug() << "PDF FILE DETECTED:" << filename;
 
