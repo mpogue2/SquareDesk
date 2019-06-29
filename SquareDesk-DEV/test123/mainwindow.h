@@ -262,6 +262,12 @@ private slots:
     void on_clearSearchButton_clicked();
     void on_actionLoop_triggered();
 
+    void on_actionSDSquareYourSets_triggered();
+    void on_actionSDHeadsStart_triggered();
+    void on_actionSDHeadsSquareThru_triggered();
+    void on_actionSDHeads1p2p_triggered();
+    
+    
     void on_UIUpdateTimerTick(void);
     void on_vuMeterTimerTick(void);
 
@@ -870,11 +876,6 @@ public:
     void actionFilterSongsToSingers();
     void actionFilterSongsPatterSingersToggle();
 
-    void actionSDSquareYourSets();
-    void actionSDHeadsStart();
-    void actionSDHeadsSquareThru();
-    void actionSDHeads1p2p();
-    
     QStringList callListOriginalOrder;
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);

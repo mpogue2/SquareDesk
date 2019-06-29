@@ -44,8 +44,8 @@ KEYACTION(FilterPatter, "Filter Songs to Patter", mw->actionFilterSongsToPatter(
 KEYACTION(FilterSingers, "Filter Songs to Singing", mw->actionFilterSongsToSingers())
 KEYACTION(FilterToggle, "Toggle Songs Filter", mw->actionFilterSongsPatterSingersToggle())
 
-KEYACTION(SDSquareYourSets, "SD Square Your Sets", mw->actionSDSquareYourSets())
-KEYACTION(SDHeadsStart, "SD Heads Start", mw->actionSDHeadsStart())
-KEYACTION(SDHeadsSquareThru, "SD Heads Square Thru", mw->actionSDHeadsSquareThru())
-KEYACTION(SDHeads1p2p, "SD Heads 1P2P", mw->actionSDHeads1p2p())
+KEYACTION(SDSquareYourSets, "SD Square Your Sets", mw->on_actionSDSquareYourSets_triggered())
+KEYACTION(SDHeadsStart, "SD Heads Start", mw->on_actionSDHeadsStart_triggered())
+KEYACTION(SDHeadsSquareThru, "SD Heads Square Thru", mw->on_actionSDHeadsSquareThru_triggered())
+KEYACTION(SDHeads1p2p, "SD Heads 1P2P", mw->on_actionSDHeads1p2p_triggered())
     

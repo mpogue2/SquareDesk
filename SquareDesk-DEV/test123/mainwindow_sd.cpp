@@ -2149,27 +2149,31 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
 }
 
 
-void MainWindow::actionSDSquareYourSets() {
+void MainWindow::on_actionSDSquareYourSets_triggered() {
+    qDebug() << "Square your sets";
     ui->lineEditSDInput->clear();
     sdthread->do_user_input(str_abort_this_sequence);
     sdthread->do_user_input("y");
 }
 
-void MainWindow::actionSDHeadsStart() {
-    actionSDSquareYourSets();
+void MainWindow::on_actionSDHeadsStart_triggered() {
+    qDebug() << "Heads start";
+    on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads start"));
     sdthread->resetAndExecute(list);
 }
 
-void MainWindow::actionSDHeadsSquareThru() {
-    actionSDHeadsStart();
+void MainWindow::on_actionSDHeadsSquareThru_triggered() {
+    qDebug() << "Heads square thru";
+    on_actionSDHeadsStart_triggered();
     QStringList list(QString("heads start"));
     sdthread->resetAndExecute(list);
     sdthread->do_user_input("square thru 4");
 }
 
-void MainWindow::actionSDHeads1p2p() {
-    actionSDSquareYourSets();
+void MainWindow::on_actionSDHeads1p2p_triggered() {
+    qDebug() << "Heads 1p2p";
+    on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads 1p2p"));
     sdthread->resetAndExecute(list);
 }

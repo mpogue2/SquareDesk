@@ -487,6 +487,13 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    keybindingActionToMenuAction[keyActionName_NextTab] = ;
     keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
 
+//    keybindingActionToMenuAction[keyActionName_SDSquareYourSets] = ui->actionSDSquareYourSets;
+//    keybindingActionToMenuAction[keyActionName_SDHeadsStart] = ui->actionSDHeadsStart;
+//    keybindingActionToMenuAction[keyActionName_SDHeadsSquareThru] = ui->actionSDHeadsSquareThru;
+//    keybindingActionToMenuAction[keyActionName_SDHeads1p2p] = ui->actionSDHeads1p2p;
+//        
+    keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
+
     // This lets us set default hotkeys in the menus so that the default button in the dialog box works.
     QHash<QString, KeyAction*> menuHotkeyMappings;
     AddHotkeyMappingsFromMenus(menuHotkeyMappings);
