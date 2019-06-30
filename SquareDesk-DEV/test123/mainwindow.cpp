@@ -4925,7 +4925,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     t.elapsed(__LINE__);
 
-    if (!isSingingCall) {
+    if (isPatter) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
         ui->pushButtonSetIntroTime->setText("Start Loop");
@@ -4933,6 +4933,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->pushButtonTestLoop->setHidden(false);
         analogClock->setSingingCallSection("");
     } else {
+        // NOTE: if unknown type, it will be treated as a singing call, so as to NOT set looping
         // singing call or vocals or xtras, so Loop mode defaults to OFF
         on_loopButton_toggled(false); // default is to loop, if type is patter
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
