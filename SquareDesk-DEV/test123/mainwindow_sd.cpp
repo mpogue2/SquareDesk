@@ -2168,7 +2168,7 @@ void MainWindow::on_actionSDHeadsSquareThru_triggered() {
     on_actionSDHeadsStart_triggered();
     QStringList list(QString("heads start"));
     sdthread->resetAndExecute(list);
-    sdthread->do_user_input("square thru 4");
+    sdthread->do_user_input("heads square thru 4");
 }
 
 void MainWindow::on_actionSDHeads1p2p_triggered() {
