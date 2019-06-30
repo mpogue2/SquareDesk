@@ -1960,15 +1960,6 @@
      <addaction name="actionSDDanceProgramC4"/>
      <addaction name="actionSDDanceProgramC4x"/>
     </widget>
-    <widget class="QMenu" name="menuShortcuts">
-     <property name="title">
-      <string>Shortcuts</string>
-     </property>
-     <addaction name="actionSDSquareYourSets"/>
-     <addaction name="actionSDHeadsStart"/>
-     <addaction name="actionSDHeadsSquareThru"/>
-     <addaction name="actionSDHeads1p2p"/>
-    </widget>
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
@@ -1984,7 +1975,11 @@
     <addaction name="actionFormation_Thumbnails"/>
     <addaction name="separator"/>
     <addaction name="actionShow_group_station"/>
-    <addaction name="menuShortcuts"/>
+    <addaction name="separator"/>
+    <addaction name="actionSDSquareYourSets"/>
+    <addaction name="actionSDHeadsStart"/>
+    <addaction name="actionSDHeadsSquareThru"/>
+    <addaction name="actionSDHeads1p2p"/>
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
