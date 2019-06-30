@@ -1952,6 +1952,7 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
+    QTextCursor tc = ui->textBrowserCueSheet->textCursor();  // save text cursor
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
 //    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
 
@@ -1960,17 +1961,21 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 //        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
 //    }
 
-        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-        ui->pushButtonCueSheetEditSaveAs->hide();
-        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
-        ui->actionSave->setEnabled(false);  // save is disabled now
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
+    ui->actionSave->setEnabled(false);  // save is disabled now
+    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
     setInOutButtonState();
+
+    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
 }
 
 void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 {
-//    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
+    QTextCursor tc = ui->textBrowserCueSheet->textCursor();  // save text cursor
+
+    //    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
     saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
 
     ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
@@ -1979,6 +1984,8 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
     ui->actionSave->setEnabled(false);  // save is disabled now
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
     setInOutButtonState();
+
+    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
 }
 
 
