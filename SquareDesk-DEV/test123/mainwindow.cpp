@@ -484,14 +484,13 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     keybindingActionToMenuAction[keyActionName_FadeOut ] = ui->actionFade_Out;
     keybindingActionToMenuAction[keyActionName_LoopToggle] = ui->actionLoop;
     keybindingActionToMenuAction[keyActionName_TestLoop] = ui->actionTest_Loop;
-//    keybindingActionToMenuAction[keyActionName_NextTab] = ;
     keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
 
-//    keybindingActionToMenuAction[keyActionName_SDSquareYourSets] = ui->actionSDSquareYourSets;
-//    keybindingActionToMenuAction[keyActionName_SDHeadsStart] = ui->actionSDHeadsStart;
-//    keybindingActionToMenuAction[keyActionName_SDHeadsSquareThru] = ui->actionSDHeadsSquareThru;
-//    keybindingActionToMenuAction[keyActionName_SDHeads1p2p] = ui->actionSDHeads1p2p;
-//        
+    keybindingActionToMenuAction[keyActionName_SDSquareYourSets] = ui->actionSDSquareYourSets;
+    keybindingActionToMenuAction[keyActionName_SDHeadsStart] = ui->actionSDHeadsStart;
+    keybindingActionToMenuAction[keyActionName_SDHeadsSquareThru] = ui->actionSDHeadsSquareThru;
+    keybindingActionToMenuAction[keyActionName_SDHeads1p2p] = ui->actionSDHeads1p2p;
+        
     keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
 
     // This lets us set default hotkeys in the menus so that the default button in the dialog box works.
@@ -8274,7 +8273,7 @@ void MainWindow::initReftab() {
                 QTextStream in(&f1);
                 QString html = txtToHTMLlyrics(in.readAll(), filename);
                 webview[numWebviews]->setHtml(html);
-                webview[numWebviews]->setZoomFactor(1);
+                webview[numWebviews]->setZoomFactor(1.5);
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         } else if (filename.endsWith(".pdf")) {
@@ -8298,7 +8297,7 @@ void MainWindow::initReftab() {
                 webview[numWebviews]->page()->setWebChannel(channel);
 
                 webview[numWebviews]->load(url);
-#else
+#elsex
                 webview[numWebviews] = new QWebView();
                 webview[numWebviews]->setUrl(url);
 #endif
