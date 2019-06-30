@@ -1044,12 +1044,14 @@ void SDThread::resetAndExecute(QStringList &commands)
     abort = false;
     if (iofull->seenAFormation)
     {
+//        qDebug() << "resetAndExecute: aborting";
         do_user_input("abort this sequence");
         do_user_input("yes");
     }
     
     for (QString &cmd : commands)
     {
+//        qDebug() << "resetAndExecute: executing " << cmd;
         do_user_input(cmd);
     }
 }

@@ -8297,7 +8297,7 @@ void MainWindow::initReftab() {
                 webview[numWebviews]->page()->setWebChannel(channel);
 
                 webview[numWebviews]->load(url);
-#elsex
+#else
                 webview[numWebviews] = new QWebView();
                 webview[numWebviews]->setUrl(url);
 #endif

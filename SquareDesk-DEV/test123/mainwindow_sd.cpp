@@ -2148,32 +2148,40 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
 }
 
-
 void MainWindow::on_actionSDSquareYourSets_triggered() {
-    qDebug() << "Square your sets";
+//    qDebug() << "Square your sets";
     ui->lineEditSDInput->clear();
     sdthread->do_user_input(str_abort_this_sequence);
     sdthread->do_user_input("y");
+
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
 
 void MainWindow::on_actionSDHeadsStart_triggered() {
-    qDebug() << "Heads start";
+//    qDebug() << "(square your sets and) Heads start";
     on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads start"));
     sdthread->resetAndExecute(list);
+
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
 
 void MainWindow::on_actionSDHeadsSquareThru_triggered() {
-    qDebug() << "Heads square thru";
-    on_actionSDHeadsStart_triggered();
+//    qDebug() << "(square your sets and) Heads square thru = corner box";
+    ui->lineEditSDInput->clear();
+
     QStringList list(QString("heads start"));
+    list << QString("square thru 4");
     sdthread->resetAndExecute(list);
-    sdthread->do_user_input("heads square thru 4");
+
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
 
 void MainWindow::on_actionSDHeads1p2p_triggered() {
-    qDebug() << "Heads 1p2p";
+    qDebug() << "(square your sets and ) Heads 1p2p";
     on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads 1p2p"));
     sdthread->resetAndExecute(list);
+
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
