@@ -4526,14 +4526,6 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
     t.elapsed(__LINE__);
 
-//    qDebug() << "findPossibleCuesheets():";
-    QString mp3Lyrics = loadLyrics(MP3Filename);
-//    qDebug() << "mp3Lyrics:" << mp3Lyrics;
-    if (mp3Lyrics.length())
-    {
-        possibleCuesheets.append(MP3Filename);
-    }
-
     qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
     QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
     while (iterRanked.hasNext())
@@ -4543,6 +4535,17 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         delete cswr;
     }
 
+    // append the MP3 filename itself, IF it contains lyrics, but do this at the end,
+    //  after all the other (scored/ranked) cuesheets are added to the list of possibleCuesheets,
+    //  so that the default for a new song will be a real cuesheet, rather than the lyrics inside the MP3 file.
+
+    //    qDebug() << "findPossibleCuesheets():";
+        QString mp3Lyrics = loadLyrics(MP3Filename);
+    //    qDebug() << "mp3Lyrics:" << mp3Lyrics;
+        if (mp3Lyrics.length())
+        {
+            possibleCuesheets.append(MP3Filename);
+        }
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
