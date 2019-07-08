@@ -929,6 +929,11 @@ private: // SD
     void set_sd_last_groupness(int l, int t); // update groupness strings
 
     bool replayGain_dB(QString filepath); // async call
+
+private:
+    void reset_sd_dancer_locations();
+    void startSDThread();
+    void restartSDThread();
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);

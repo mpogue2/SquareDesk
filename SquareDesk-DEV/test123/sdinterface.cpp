@@ -30,7 +30,9 @@
 #include "sdinterface.h"
 #include "mainwindow.h"
 
-static QStringList selectors;
+#include <stdio.h>
+
+int numberOfSDThreadsActive = 0;
 
 class SquareDesk_iofull : public iobase {
 public:
@@ -1078,10 +1080,12 @@ SDThread::~SDThread()
         qWarning() << "Thread unable to stop, calling terminate";
         terminate();
     }
+    numberOfSDThreadsActive--;
 }
 
 void SDThread::run()
 {
+    numberOfSDThreadsActive++;    
     QMutexLocker locker(&mutexThreadRunning);
     mutexSDAwaitingInput.lock();
     SquareDesk_iofull ggg(this, mw, &waitCondSDAwaitingInput, &mutexSDAwaitingInput,
@@ -1124,7 +1128,7 @@ void SDThread::unlock()
 }
 
 
-QString sd_strip_leading_selectors(QString originalText)
+QString SDThread::sd_strip_leading_selectors(QString originalText)
 {
 
 

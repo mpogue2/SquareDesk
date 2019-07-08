@@ -461,6 +461,20 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
     }
 }
 
+void MainWindow::reset_sd_dancer_locations() {
+    int lGroup, tGroup;
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup);
+    // Easiest way to make sure dest and source are the same
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup);
+
+    set_sd_last_groupness(lGroup, tGroup); // update groupness strings
+
+    move_dancers(sd_animation_people, 1.0);
+    move_dancers(sd_fixed_people, 1.0);
+}
+
 void MainWindow::initialize_internal_sd_tab()
 {
     sd_redo_stack->initialize();
@@ -549,17 +563,7 @@ void MainWindow::initialize_internal_sd_tab()
     initialDancerLocations.append(" 4G>    .     .    2B<");
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    1B^   1G^    .");
-    int lGroup, tGroup;
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup);
-    // Easiest way to make sure dest and source are the same
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup);
-
-    set_sd_last_groupness(lGroup, tGroup); // update groupness strings
-
-    move_dancers(sd_animation_people, 1.0);
-    move_dancers(sd_fixed_people, 1.0);
+    reset_sd_dancer_locations();
     sd_animation_t_value = 1.0;
 
     QStringList tableHeader;
@@ -1265,7 +1269,7 @@ static QString get_longest_match_from_list_widget(QListWidget *listWidget,
 void MainWindow::do_sd_tab_completion()
 {
     QString originalText(ui->lineEditSDInput->text().simplified());
-    QString callSearch = sd_strip_leading_selectors(originalText);
+    QString callSearch = sdthread->sd_strip_leading_selectors(originalText);
     QString prefix = originalText.left(originalText.length() - callSearch.length());
 
     
@@ -1581,7 +1585,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
             sdAvailableCalls.clear();
     }
     
-    QString strippedText = sd_strip_leading_selectors(currentText);
+    QString strippedText = sdthread->sd_strip_leading_selectors(currentText);
 
     dance_level current_dance_program = get_current_sd_dance_program();
     
@@ -1637,8 +1641,31 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 }
 
+void MainWindow::startSDThread() {
+    // Initializers for these should probably be up in the constructor
+    sdthread = new SDThread(this);
+    sdthread->start();
+    sdthread->unlock();
+}
+
+void MainWindow::restartSDThread()
+{
+    if (sdthread)
+    {
+        sdthread->finishAndShutdownSD();
+        sdthread->wait(250);
+        
+        sdthread = NULL;
+    }
+    startSDThread();
+    reset_sd_dancer_locations();
+    
+}
+
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
+    restartSDThread();
+    
     sdthread->set_dance_program(dance_program);
 //    for (int i = 0; actions[i]; ++i)
 //    {
@@ -2149,11 +2176,15 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
 }
 
 void MainWindow::on_actionSDSquareYourSets_triggered() {
-//    qDebug() << "Square your sets";
     ui->lineEditSDInput->clear();
-    sdthread->do_user_input(str_abort_this_sequence);
-    sdthread->do_user_input("y");
+    restartSDThread();
 
+    if (NULL == sdthread)
+    {
+        qDebug() << "Something has gone wrong, sdthread is null!";
+        restartSDThread();
+    }
+    qDebug() << "Square your sets";
     ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
 
@@ -2167,6 +2198,7 @@ void MainWindow::on_actionSDHeadsStart_triggered() {
 }
 
 void MainWindow::on_actionSDHeadsSquareThru_triggered() {
+<<<<<<< HEAD
 //    qDebug() << "(square your sets and) Heads square thru = corner box";
     ui->lineEditSDInput->clear();
 
@@ -2175,6 +2207,13 @@ void MainWindow::on_actionSDHeadsSquareThru_triggered() {
     sdthread->resetAndExecute(list);
 
     ui->lineEditSDInput->setFocus();  // set focus to the input line
+=======
+    qDebug() << "Heads square thru";
+    on_actionSDSquareYourSets_triggered();
+    QStringList list(QString("heads start"));
+    list.append(QString("heads square thru 4"));
+    sdthread->resetAndExecute(list);
+>>>>>>> Restarting SD thread on program/level changes, should make initial formation hotkeys even more bombproof.
 }
 
 void MainWindow::on_actionSDHeads1p2p_triggered() {

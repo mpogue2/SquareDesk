@@ -1137,10 +1137,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // Initializers for these should probably be up in the constructor
-    sdthread = new SDThread(this);
-    sdthread->start();
-    sdthread->unlock();
+    startSDThread();
 
     t.elapsed(__LINE__);
 

@@ -78,6 +78,7 @@ public:
 
     void resetAndExecute(QStringList &commands);
     void resetSDState();
+    QString sd_strip_leading_selectors(QString originalTe);
  
 private:
     bool on_user_input(QString str);
@@ -102,6 +103,8 @@ private:
 
     QWaitCondition waitCondAckToMainThread;
     QMutex mutexAckToMainThread;
+    QStringList selectors;
+
 
     QMutex mutexThreadRunning;
     bool abort;
