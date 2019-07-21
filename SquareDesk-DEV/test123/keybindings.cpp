@@ -125,7 +125,7 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     
     keyMappings[QKeySequence(Qt::Key_A|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDSquareYourSets;
     keyMappings[QKeySequence(Qt::Key_S|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsStart;
-    keyMappings[QKeySequence(Qt::Key_P|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
+    keyMappings[QKeySequence(Qt::Key_B|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
     keyMappings[QKeySequence(Qt::Key_L|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeads1p2p;
     
     if (revisionNumber > 1)

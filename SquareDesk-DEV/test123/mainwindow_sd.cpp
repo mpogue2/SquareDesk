@@ -1672,6 +1672,26 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 //        bool checked = (i == (int)(dance_program));
 //        actions[i]->setChecked(checked);
 //    }
+
+    // set string for keyboard level in UI
+    currentSDKeyboardLevel = "UNK";
+    switch (dance_program) {
+        case l_mainstream: currentSDKeyboardLevel = "Mainstream"; break;
+        case l_plus: currentSDKeyboardLevel = "Plus"; break;
+        case l_a1:   currentSDKeyboardLevel = "A1"; break;
+        case l_a2:   currentSDKeyboardLevel = "A2"; break;
+        case l_c1:   currentSDKeyboardLevel = "C1"; break;
+        case l_c2:   currentSDKeyboardLevel = "C2"; break;
+        case l_c3a:  currentSDKeyboardLevel = "C3a"; break;
+        case l_c3:   currentSDKeyboardLevel = "C3"; break;
+        case l_c3x:  currentSDKeyboardLevel = "C3x"; break;
+        case l_c4a:  currentSDKeyboardLevel = "C4a"; break;
+        case l_c4:   currentSDKeyboardLevel = "C4"; break;
+        case l_c4x:  currentSDKeyboardLevel = "C4x"; break;
+        default: break;
+    }
+    microphoneStatusUpdate(); // update the level designator
+
     on_lineEditSDInput_textChanged();
 }
 

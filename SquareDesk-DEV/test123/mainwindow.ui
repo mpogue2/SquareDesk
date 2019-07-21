@@ -1923,27 +1923,6 @@
     <property name="title">
      <string>SD</string>
     </property>
-    <widget class="QMenu" name="menuEnable_keyboard_input">
-     <property name="title">
-      <string>Enable keyboard input</string>
-     </property>
-     <addaction name="actionMainstream"/>
-     <addaction name="actionPlus"/>
-     <addaction name="separator"/>
-     <addaction name="actionA1"/>
-     <addaction name="actionA2"/>
-     <addaction name="separator"/>
-     <addaction name="actionC1"/>
-     <addaction name="actionC2"/>
-     <addaction name="separator"/>
-     <addaction name="actionC3a"/>
-     <addaction name="actionC3"/>
-     <addaction name="actionC3x"/>
-     <addaction name="separator"/>
-     <addaction name="actionC4a"/>
-     <addaction name="actionC4"/>
-     <addaction name="actionC4x"/>
-    </widget>
     <widget class="QMenu" name="menuDance_Program">
      <property name="title">
       <string>Dance Program</string>
@@ -1965,7 +1944,6 @@
     <addaction name="actionShow_Commands"/>
     <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
-    <addaction name="menuEnable_keyboard_input"/>
     <addaction name="separator"/>
     <addaction name="actionNormal"/>
     <addaction name="actionColor_only"/>
@@ -2932,6 +2910,9 @@
   </action>
   <action name="actionSDDanceProgramPlus">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">

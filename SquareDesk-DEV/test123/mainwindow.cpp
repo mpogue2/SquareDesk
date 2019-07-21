@@ -950,8 +950,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
 
-    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
-    sdActionGroup2->setExclusive(true);
+//    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
+//    sdActionGroup2->setExclusive(true);
 
 //    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
 //    //   Is there a better way to do this?
@@ -962,37 +962,37 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    sdActionGroup1->addAction(actions[NORMALNUM+3]);    // Sight
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
-    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
+//    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
 
     t.elapsed(__LINE__);
 
     // let's look through the items in the SD menu
-    QStringList ag1, ag2;
+    QStringList ag1; // , ag2;
     ag1 << "Normal" << "Color only" << "Mental image" << "Sight";
-    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
+//    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
 
     foreach (QAction *action, ui->menuSequence->actions()) {
         if (action->isSeparator()) {
 //            qDebug() << "separator";
         } else if (action->menu()) {
-//            qDebug() << "item with submenu: " << action->text();
-            // iterating just one level down
-            foreach (QAction *action2, action->menu()->actions()) {
-                if (action2->isSeparator()) {
-//                    qDebug() << "     separator";
-                } else if (action2->menu()) {
-//                    qDebug() << "     item with submenu: " << action2->text();
-                } else {
-//                    qDebug() << "     item: " << action2->text();
-                    if (ag2.contains(action2->text()) ) {
-                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
-                        action2->setCheckable(true); // all these items are checkable
-                        if (action2->text() == "Plus") {
-                            action2->setChecked(true);   // initially only PLUS is checked
-                        }
-                    }
-                }
-            }
+////            qDebug() << "item with submenu: " << action->text();
+//            // iterating just one level down
+//            foreach (QAction *action2, action->menu()->actions()) {
+//                if (action2->isSeparator()) {
+////                    qDebug() << "     separator";
+//                } else if (action2->menu()) {
+////                    qDebug() << "     item with submenu: " << action2->text();
+//                } else {
+////                    qDebug() << "     item: " << action2->text();
+//                    if (ag2.contains(action2->text()) ) {
+//                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
+//                        action2->setCheckable(true); // all these items are checkable
+//                        if (action2->text() == "Plus") {
+//                            action2->setChecked(true);   // initially only PLUS is checked
+//                        }
+//                    }
+//                }
+//            }
         } else {
 //            qDebug() << "item: " << action->text();
             if (ag1.contains(action->text()) ) {
@@ -1132,8 +1132,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    currentSDVUILevel      = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-    currentSDKeyboardLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDKeyboardLevel = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
     t.elapsed(__LINE__);
 
@@ -8095,8 +8095,8 @@ void MainWindow::microphoneStatusUpdate() {
 
     int index = ui->tabWidget->currentIndex();
 
-    QString micsON("MICS ON (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
-    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
+    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
+    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
