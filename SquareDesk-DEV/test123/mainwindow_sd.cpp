@@ -2184,7 +2184,7 @@ void MainWindow::on_actionSDSquareYourSets_triggered() {
         qDebug() << "Something has gone wrong, sdthread is null!";
         restartSDThread();
     }
-    qDebug() << "Square your sets";
+//    qDebug() << "Square your sets";
     ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
 
@@ -2198,26 +2198,26 @@ void MainWindow::on_actionSDHeadsStart_triggered() {
 }
 
 void MainWindow::on_actionSDHeadsSquareThru_triggered() {
-<<<<<<< HEAD
+//<<<<<<< HEAD
 //    qDebug() << "(square your sets and) Heads square thru = corner box";
-    ui->lineEditSDInput->clear();
+//    ui->lineEditSDInput->clear();
 
-    QStringList list(QString("heads start"));
-    list << QString("square thru 4");
-    sdthread->resetAndExecute(list);
+//    QStringList list(QString("heads start"));
+//    list << QString("square thru 4");
+//    sdthread->resetAndExecute(list);
 
-    ui->lineEditSDInput->setFocus();  // set focus to the input line
-=======
-    qDebug() << "Heads square thru";
+//    ui->lineEditSDInput->setFocus();  // set focus to the input line
+//=======
+//    qDebug() << "Heads square thru";
     on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads start"));
-    list.append(QString("heads square thru 4"));
+    list.append(QString("square thru 4"));  // don't need to repeat "heads" here
     sdthread->resetAndExecute(list);
->>>>>>> Restarting SD thread on program/level changes, should make initial formation hotkeys even more bombproof.
+//>>>>>>> Restarting SD thread on program/level changes, should make initial formation hotkeys even more bombproof.
 }
 
 void MainWindow::on_actionSDHeads1p2p_triggered() {
-    qDebug() << "(square your sets and ) Heads 1p2p";
+//    qDebug() << "(square your sets and ) Heads 1p2p";
     on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads 1p2p"));
     sdthread->resetAndExecute(list);
