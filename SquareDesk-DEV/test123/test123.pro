@@ -50,6 +50,7 @@ SOURCES += main.cpp\
     songsettings.cpp \
     typetracker.cpp \
     console.cpp \
+    squaredancerscene.cpp \
 #    renderarea.cpp \
     sdhighlighter.cpp \
     utility.cpp \
@@ -100,6 +101,7 @@ HEADERS  += mainwindow.h \
     clickablelabel.h \
     typetracker.h \
     console.h \
+    squaredancerscene.h \
 #    renderarea.h \
     common.h \
     sdhighlighter.h \
