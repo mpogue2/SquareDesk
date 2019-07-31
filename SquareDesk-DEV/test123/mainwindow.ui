@@ -1570,7 +1570,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
-           <widget class="QSplitter" name="splitter_3">
+           <widget class="QSplitter" name="splitterSDTabHorizontal">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -1636,7 +1636,7 @@
               </item>
              </layout>
             </widget>
-            <widget class="QSplitter" name="splitter">
+            <widget class="QSplitter" name="splitterSDTabVertical">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>

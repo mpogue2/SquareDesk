@@ -1207,7 +1207,24 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //#endif
 
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
-
+    {
+        QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
+        QList<int> sizes;
+        for (QString sizeStr : sizesStr.split(","))
+        {
+            sizes.append(sizeStr.toInt());
+        }
+        ui->splitterSDTabVertical->setSizes(sizes);
+    }
+    {
+        QString sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
+        QList<int> sizes;
+        for (QString sizeStr : sizesStr.split(","))
+        {
+            sizes.append(sizeStr.toInt());
+        }
+        ui->splitterSDTabHorizontal->setSizes(sizes);
+    }
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -3624,6 +3641,37 @@ void MainWindow::closeEvent(QCloseEvent *event)
         on_actionAutostart_playback_triggered();  // write AUTOPLAY setting back
         event->accept();  // OK to close, if user said "OK" or "SAVE"
         saveCurrentSongSettings();
+
+        {
+            QList<int> sizes = ui->splitterSDTabVertical->sizes();
+            QString sizeStr("");
+            for (int s : sizes)
+            {
+                if (sizeStr.length())
+                {
+                    sizeStr += ",";
+                }
+                QString sstr(QString("%1").arg(s));
+                sizeStr += sstr;
+            }
+            prefsManager.SetSDTabVerticalSplitterPosition(sizeStr);
+        }
+        
+
+        {
+            QList<int> sizes = ui->splitterSDTabHorizontal->sizes();
+            QString sizeStr("");
+            for (int s : sizes)
+            {
+                if (sizeStr.length())
+                {
+                    sizeStr += ",";
+                }
+                QString sstr(QString("%1").arg(s));
+                sizeStr += sstr;
+            }
+            prefsManager.SetSDTabHorizontalSplitterPosition(sizeStr);
+        }
 
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
         prefsManager.MySettings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
