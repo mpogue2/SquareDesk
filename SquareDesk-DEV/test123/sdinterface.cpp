@@ -136,7 +136,6 @@ private:
 void SDThread::set_dance_program(dance_level dance_program)
 {
     calling_level = dance_program;
-    qDebug() << "Set dance program/calling level to " << calling_level;
 }
 
 dance_level SDThread::find_dance_program(QString call)
@@ -281,7 +280,6 @@ void SquareDesk_iofull::UpdateStatusBar(const char *s)
 
 void SquareDesk_iofull::wait_for_input()
 {
-    qDebug() << "Awaiting input program/calling level to " << calling_level;
     emit sdthread->on_sd_awaiting_input();
     waitCondSDAwaitingInput->wait(mutexSDAwaitingInput);
 
