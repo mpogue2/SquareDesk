@@ -1117,9 +1117,6 @@ void SDThread::run()
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
 
-    printf("p: '%s'\n", p);
-    fflush(stdout); //
-
     char *argv[] = {const_cast<char *>("SquareDesk"),
                     const_cast<char *>("-db"), //
                     const_cast<char *>(p),
@@ -1127,12 +1124,6 @@ void SDThread::run()
                     const_cast<char *>("-bend_line_home_getouts"),
                     const_cast<char *>(dance_program_name.toStdString().c_str()),
                     NULL};
-
-    qDebug() << "Running SD With:";
-    for (int i = 0; argv[i]; ++i)
-    {
-        qDebug() << i << " : " << argv[i];
-    }
 
     sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
 }
