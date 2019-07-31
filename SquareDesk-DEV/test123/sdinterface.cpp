@@ -136,6 +136,7 @@ private:
 void SDThread::set_dance_program(dance_level dance_program)
 {
     calling_level = dance_program;
+    qDebug() << "Set dance program/calling level to " << calling_level;
 }
 
 dance_level SDThread::find_dance_program(QString call)
@@ -194,7 +195,6 @@ bool SquareDesk_iofull::add_string_input(const char *s)
     bool woke(false);
     // So this code should only execute when we're in the condition
     // variable wait, because that's when the mutex is unlocked.
-
     QMutexLocker locker(mutexSDAwaitingInput);
 
     switch (currentInputState)
@@ -281,6 +281,7 @@ void SquareDesk_iofull::UpdateStatusBar(const char *s)
 
 void SquareDesk_iofull::wait_for_input()
 {
+    qDebug() << "Awaiting input program/calling level to " << calling_level;
     emit sdthread->on_sd_awaiting_input();
     waitCondSDAwaitingInput->wait(mutexSDAwaitingInput);
 
@@ -944,14 +945,25 @@ void SDThread::add_directions_to_list_widget(QListWidget *listWidget)
     }
 }
 
-SDThread::SDThread(MainWindow *mw)
+SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_program_name)
     : QThread(mw),
       mw(mw),
       waitCondSDAwaitingInput(),
       mutexSDAwaitingInput(),
       mutexThreadRunning(),
-      abort(false)
+      abort(false),
+      dance_program_name(dance_program_name)
 {
+    // return SD to its original glory
+    last_direction_kind = direction_ENUM_EXTENT;
+    direction_names[direction_zigzag].name =  "zig-zag";
+    direction_names[direction_zigzag].name_uc = "ZIG-ZAG";
+    direction_names[direction_the_music].name = "the music";
+    direction_names[direction_the_music].name_uc = "THE MUSIC";
+
+
+    
+    set_dance_program(dance_program);
     // We should expand these elsewhere for autocomplete stuff
 
     // Build our leading selector list, static to this file:
@@ -1105,15 +1117,22 @@ void SDThread::run()
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
 
-//    printf("p: '%s'\n", p);
-//    fflush(stdout); //
+    printf("p: '%s'\n", p);
+    fflush(stdout); //
 
     char *argv[] = {const_cast<char *>("SquareDesk"),
                     const_cast<char *>("-db"), //
                     const_cast<char *>(p),
                     const_cast<char *>("-minigrand_getouts"),
                     const_cast<char *>("-bend_line_home_getouts"),
+                    const_cast<char *>(dance_program_name.toStdString().c_str()),
                     NULL};
+
+    qDebug() << "Running SD With:";
+    for (int i = 0; argv[i]; ++i)
+    {
+        qDebug() << i << " : " << argv[i];
+    }
 
     sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
 }

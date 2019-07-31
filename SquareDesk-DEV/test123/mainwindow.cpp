@@ -1137,7 +1137,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    startSDThread();
+    startSDThread(get_current_sd_dance_program());
 
     t.elapsed(__LINE__);
 

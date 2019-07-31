@@ -932,8 +932,8 @@ private: // SD
 
 private:
     void reset_sd_dancer_locations();
-    void startSDThread();
-    void restartSDThread();
+    void startSDThread(dance_level dance_program);
+    void restartSDThread(dance_level dance_program);
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);

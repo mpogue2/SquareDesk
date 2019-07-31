@@ -54,7 +54,7 @@ class SDThread : public QThread {
     Q_OBJECT
     
 public :
-    SDThread(MainWindow *mw);
+    SDThread(MainWindow *mw, dance_level dance_program, QString dance_program_name);
     ~SDThread();
     
 public:
@@ -82,7 +82,7 @@ public:
  
 private:
     bool on_user_input(QString str);
-
+    QString dance_program_name;
 signals:
     void on_sd_update_status_bar(QString s);
     void on_sd_awaiting_input();

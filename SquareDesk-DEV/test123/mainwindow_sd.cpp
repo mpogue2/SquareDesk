@@ -475,6 +475,7 @@ void MainWindow::reset_sd_dancer_locations() {
     move_dancers(sd_fixed_people, 1.0);
 }
 
+
 void MainWindow::initialize_internal_sd_tab()
 {
     sd_redo_stack->initialize();
@@ -1641,14 +1642,14 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 }
 
-void MainWindow::startSDThread() {
+void MainWindow::startSDThread(dance_level dance_program) {
     // Initializers for these should probably be up in the constructor
-    sdthread = new SDThread(this);
+    sdthread = new SDThread(this, dance_program, sdLevelEnumsToStrings[dance_program]);
     sdthread->start();
     sdthread->unlock();
 }
 
-void MainWindow::restartSDThread()
+void MainWindow::restartSDThread(dance_level dance_program)
 {
     if (sdthread)
     {
@@ -1657,16 +1658,14 @@ void MainWindow::restartSDThread()
         
         sdthread = NULL;
     }
-    startSDThread();
+    startSDThread(dance_program);
     reset_sd_dancer_locations();
     
 }
 
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
-    restartSDThread();
-    
-    sdthread->set_dance_program(dance_program);
+    restartSDThread(dance_program);
 //    for (int i = 0; actions[i]; ++i)
 //    {
 //        bool checked = (i == (int)(dance_program));
@@ -1694,6 +1693,8 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 
     on_lineEditSDInput_textChanged();
 }
+
+
 
 void MainWindow::on_actionSDDanceProgramMainstream_triggered()
 {
@@ -2197,12 +2198,12 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
 
 void MainWindow::on_actionSDSquareYourSets_triggered() {
     ui->lineEditSDInput->clear();
-    restartSDThread();
+    restartSDThread(get_current_sd_dance_program());
 
     if (NULL == sdthread)
     {
         qDebug() << "Something has gone wrong, sdthread is null!";
-        restartSDThread();
+        restartSDThread(get_current_sd_dance_program());
     }
 //    qDebug() << "Square your sets";
     ui->lineEditSDInput->setFocus();  // set focus to the input line
@@ -2218,22 +2219,10 @@ void MainWindow::on_actionSDHeadsStart_triggered() {
 }
 
 void MainWindow::on_actionSDHeadsSquareThru_triggered() {
-//<<<<<<< HEAD
-//    qDebug() << "(square your sets and) Heads square thru = corner box";
-//    ui->lineEditSDInput->clear();
-
-//    QStringList list(QString("heads start"));
-//    list << QString("square thru 4");
-//    sdthread->resetAndExecute(list);
-
-//    ui->lineEditSDInput->setFocus();  // set focus to the input line
-//=======
-//    qDebug() << "Heads square thru";
     on_actionSDSquareYourSets_triggered();
     QStringList list(QString("heads start"));
     list.append(QString("square thru 4"));  // don't need to repeat "heads" here
     sdthread->resetAndExecute(list);
-//>>>>>>> Restarting SD thread on program/level changes, should make initial formation hotkeys even more bombproof.
 }
 
 void MainWindow::on_actionSDHeads1p2p_triggered() {
