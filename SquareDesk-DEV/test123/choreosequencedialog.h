@@ -51,7 +51,7 @@ class ChoreoSequenceDialog : public QDialog
     Q_OBJECT
 
 public:
-    ChoreoSequenceDialog(QString *sequenceIdentifier, QWidget *parent = 0);
+    ChoreoSequenceDialog(QString sequenceIdentifier, QWidget *parent = 0);
     ~ChoreoSequenceDialog();
 private slots:
 //    void on_chooseMusicPathButton_clicked();
