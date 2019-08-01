@@ -1072,7 +1072,7 @@ void SDThread::finishAndShutdownSD()
 {
     resetSDState();
 
-    if (!iofull->seenAFormation)
+//    if (!iofull->seenAFormation)
     {
         do_user_input("heads start");
         do_user_input("square thru 4");
