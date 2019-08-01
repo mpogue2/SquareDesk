@@ -37,6 +37,7 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     bass_audio.cpp \
     preferencesdialog.cpp \
+    choreosequencedialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
     songhistoryexportdialog.cpp \
@@ -88,6 +89,7 @@ HEADERS  += mainwindow.h \
     exportdialog.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
+    choreosequencedialog.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \
@@ -140,6 +142,7 @@ FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
     songhistoryexportdialog.ui \
+    choreosequencedialog.ui \
     preferencesdialog.ui
 
 macx {
