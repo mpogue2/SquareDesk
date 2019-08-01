@@ -1225,6 +1225,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         }
         ui->splitterSDTabHorizontal->setSizes(sizes);
     }
+    if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides())
+    {
+        sdSliderSidesAreSwapped = true;
+        ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
+    }
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -6307,6 +6312,13 @@ void MainWindow::on_actionPreferences_triggered()
             }
             showTimersTab = false;
         }
+
+        if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides() != sdSliderSidesAreSwapped)
+        {
+            sdSliderSidesAreSwapped = prefsManager.GetSwapSDTabInputAndAvailableCallsSides();
+            ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
+        }
+        
 
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now

@@ -949,116 +949,10 @@ Click on a color square to change the color associated with that Music Type.  Se
          <string>Experimental</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="6" column="2">
-          <widget class="QComboBox" name="longTipLength">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="currentIndex">
-            <number>2</number>
-           </property>
-           <item>
-            <property name="text">
-             <string>3 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>4 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>5 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>6 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>7 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>8 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>9 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>10 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>11 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>12 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>13 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>14 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>15 minutes</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item row="8" column="2">
-          <widget class="QLineEdit" name="initialBPMLineEdit">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>65</width>
-             <height>16777215</height>
-            </size>
-           </property>
+         <item row="16" column="1" colspan="4">
+          <widget class="QCheckBox" name="checkBoxInOutEditOnlyWhenLyricsUnlocked">
            <property name="text">
-            <string>125</string>
-           </property>
-           <property name="maxLength">
-            <number>3</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="3">
-          <widget class="QLabel" name="inactivityLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>of inactivity, </string>
+            <string>Allow in/out and loop editing only when lyrics editing is unlocked</string>
            </property>
           </widget>
          </item>
@@ -1137,6 +1031,47 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
           </widget>
          </item>
+         <item row="6" column="1">
+          <widget class="QCheckBox" name="longTipCheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Patter timer: After</string>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="2">
+          <widget class="QLineEdit" name="initialBPMLineEdit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>65</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>125</string>
+           </property>
+           <property name="maxLength">
+            <number>3</number>
+           </property>
+          </widget>
+         </item>
          <item row="2" column="1" colspan="4">
           <widget class="QCheckBox" name="EnableClockColoring">
            <property name="text">
@@ -1144,10 +1079,116 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="15" column="1" colspan="4">
-          <widget class="QCheckBox" name="checkBoxAutomaticEnterOnAnythingTabCompletion">
+         <item row="5" column="2">
+          <widget class="QComboBox" name="breakLength">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="currentIndex">
+            <number>1</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>4 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>5 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>6 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>7 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>8 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>9 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>10 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>15 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>20 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>25 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>30 minutes</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="5" column="3">
+          <widget class="QLabel" name="inactivityLabel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Automatic enter to force &quot;SUBSIDIARY CALL&quot; on &quot;&lt;ANYTHING&gt;&quot; tab completion</string>
+            <string>of inactivity, </string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="3">
+          <widget class="QLabel" name="label_2">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>of patter,</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QCheckBox" name="breakTimerCheckbox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Break timer: After </string>
            </property>
           </widget>
          </item>
@@ -1223,29 +1264,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
           </widget>
          </item>
-         <item row="0" column="1" colspan="5">
-          <widget class="QCheckBox" name="EnableTimersTabCheckbox">
-           <property name="text">
-            <string>Enable Timers tab</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="ExpFeaturesLabel">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Experimental:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
          <item row="7" column="1" colspan="2">
           <widget class="QCheckBox" name="thirtySecWarningCheckbox">
            <property name="text">
@@ -1253,15 +1271,22 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="1" column="1" colspan="5">
-          <widget class="QLabel" name="timersHelpLabel">
+         <item row="11" column="1" colspan="4">
+          <widget class="QCheckBox" name="enableAutoAirplaneModeCheckbox">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Provides a count-up and a count-down timer on a new &amp;quot;Timers&amp;quot; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>Turn on Airplane Mode (radios OFF) when application is in use (Mac OS X only)</string>
            </property>
           </widget>
          </item>
-         <item row="5" column="2">
-          <widget class="QComboBox" name="breakLength">
+         <item row="15" column="1" colspan="4">
+          <widget class="QCheckBox" name="checkBoxAutomaticEnterOnAnythingTabCompletion">
+           <property name="text">
+            <string>Automatic enter to force &quot;SUBSIDIARY CALL&quot; on &quot;&lt;ANYTHING&gt;&quot; tab completion</string>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="QComboBox" name="longTipLength">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -1269,8 +1294,13 @@ Click on a color square to change the color associated with that Music Type.  Se
             </sizepolicy>
            </property>
            <property name="currentIndex">
-            <number>1</number>
+            <number>2</number>
            </property>
+           <item>
+            <property name="text">
+             <string>3 minutes</string>
+            </property>
+           </item>
            <item>
             <property name="text">
              <string>4 minutes</string>
@@ -1308,49 +1338,51 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
            <item>
             <property name="text">
+             <string>11 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>12 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>13 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>14 minutes</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>15 minutes</string>
             </property>
            </item>
-           <item>
-            <property name="text">
-             <string>20 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>25 minutes</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>30 minutes</string>
-            </property>
-           </item>
           </widget>
          </item>
-         <item row="12" column="1">
-          <widget class="QLabel" name="label_8">
+         <item row="0" column="0">
+          <widget class="QLabel" name="ExpFeaturesLabel">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
            <property name="text">
-            <string>Animation:</string>
+            <string>Experimental:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="5" column="1">
-          <widget class="QCheckBox" name="breakTimerCheckbox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
+         <item row="9" column="1" colspan="3">
+          <widget class="QCheckBox" name="useTimeRemainingCheckbox">
            <property name="text">
-            <string>Break timer: After </string>
+            <string>Show time remaining instead of current position in song</string>
            </property>
           </widget>
          </item>
@@ -1378,39 +1410,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </item>
           </widget>
          </item>
-         <item row="6" column="1">
-          <widget class="QCheckBox" name="longTipCheckbox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Patter timer: After</string>
-           </property>
-          </widget>
-         </item>
-         <item row="9" column="1" colspan="3">
-          <widget class="QCheckBox" name="useTimeRemainingCheckbox">
-           <property name="text">
-            <string>Show time remaining instead of current position in song</string>
-           </property>
-          </widget>
-         </item>
-         <item row="11" column="1" colspan="4">
-          <widget class="QCheckBox" name="enableAutoAirplaneModeCheckbox">
-           <property name="text">
-            <string>Turn on Airplane Mode (radios OFF) when application is in use (Mac OS X only)</string>
-           </property>
-          </widget>
-         </item>
          <item row="8" column="1">
           <widget class="QCheckBox" name="initialBPMcheckbox">
            <property name="sizePolicy">
@@ -1421,32 +1420,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
            <property name="text">
             <string>Set song's initial BPM to</string>
-           </property>
-          </widget>
-         </item>
-         <item row="17" column="1">
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>2</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="6" column="3">
-          <widget class="QLabel" name="label_2">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>of patter,</string>
            </property>
           </widget>
          </item>
@@ -1463,10 +1436,44 @@ Click on a color square to change the color associated with that Music Type.  Se
            </property>
           </widget>
          </item>
-         <item row="16" column="1" colspan="4">
-          <widget class="QCheckBox" name="checkBoxInOutEditOnlyWhenLyricsUnlocked">
+         <item row="18" column="1">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>2</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="12" column="1">
+          <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>Allow in/out and loop editing only when lyrics editing is unlocked</string>
+            <string>Animation:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="5">
+          <widget class="QCheckBox" name="EnableTimersTabCheckbox">
+           <property name="text">
+            <string>Enable Timers tab</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1" colspan="5">
+          <widget class="QLabel" name="timersHelpLabel">
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot;&quot;&gt;Provides a count-up and a count-down timer on a new &amp;quot;Timers&amp;quot; tab.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="17" column="1" colspan="3">
+          <widget class="QCheckBox" name="checkBoxSwapSDTabInputAndAvailableCallsSides">
+           <property name="text">
+            <string>Swap Input and Available Calls sides in SD tab</string>
            </property>
           </widget>
          </item>
