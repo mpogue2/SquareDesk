@@ -65,4 +65,18 @@ enum AnimationSpeed
     AnimationSpeedFast,
 };
 
+enum Gender
+{
+    Boys = 0,
+    Girls,
+    UnknownGender
+};
+
+enum Order
+{
+    InOrder = 0,
+    OutOfOrder,
+    UnknownOrder
+};
+
 #endif // ifndef COMMON_ENUMS_H
