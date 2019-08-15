@@ -930,6 +930,7 @@ private: // SD
     void SetAnimationSpeed(AnimationSpeed speed);
     void set_sd_last_formation_name(const QString&);
     void set_sd_last_groupness(int l, int t); // update groupness strings
+    void set_sd_last_order(Order bOrder, Order gOrder);  // update order strings
 
     bool replayGain_dB(QString filepath); // async call
 
