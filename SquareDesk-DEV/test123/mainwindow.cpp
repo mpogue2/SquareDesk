@@ -1208,6 +1208,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //#endif
 
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
+    on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
     {
         QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
         if (!sizesStr.isEmpty())
@@ -10928,6 +10929,14 @@ void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
 {
     Q_UNUSED(showGroupStation)
 //    qDebug() << "TOGGLED: " << showGroupStation;
-    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
     prefsManager.Setenablegroupstation(showGroupStation);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+void MainWindow::on_actionShow_order_sequence_toggled(bool showOrderSequence)
+{
+    Q_UNUSED(showOrderSequence)
+//    qDebug() << "TOGGLED ORDER SEQUENCE: " << showOrderSequence;
+    prefsManager.Setenableordersequence(showOrderSequence);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
 }
