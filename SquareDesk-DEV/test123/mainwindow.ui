@@ -1961,6 +1961,7 @@
     <addaction name="actionFormation_Thumbnails"/>
     <addaction name="separator"/>
     <addaction name="actionShow_group_station"/>
+    <addaction name="actionShow_order_sequence"/>
     <addaction name="separator"/>
     <addaction name="actionSDSquareYourSets"/>
     <addaction name="actionSDHeadsStart"/>
@@ -3229,6 +3230,17 @@
   <action name="actionSDHeads1p2p">
    <property name="text">
     <string>Partner Line</string>
+   </property>
+  </action>
+  <action name="actionShow_order_sequence">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show order/sequence</string>
    </property>
   </action>
  </widget>

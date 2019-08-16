@@ -546,6 +546,8 @@ private slots:
 
     void on_actionShow_group_station_toggled(bool arg1);
 
+    void on_actionShow_order_sequence_toggled(bool arg1);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -910,6 +912,7 @@ private: // SD
     QGraphicsTextItem *graphicsTextItemSDTopGroupText_animated;
 
     int leftGroup, topGroup;  // groupness numbers, 0 = P, 1 = RH, 2 = O, 3 = C
+    Order boyOrder, girlOrder;     // order: 0 = in order, 1 = out of order, 2 = unknown order
 
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
