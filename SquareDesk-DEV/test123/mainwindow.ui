@@ -1641,6 +1641,9 @@
               <enum>Qt::Vertical</enum>
              </property>
              <widget class="SquareDancerScene" name="graphicsViewSDFormation">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                 <horstretch>0</horstretch>
@@ -1658,6 +1661,18 @@
               </property>
               <property name="horizontalScrollBarPolicy">
                <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="backgroundBrush">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </property>
+              <property name="interactive">
+               <bool>true</bool>
               </property>
              </widget>
              <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
