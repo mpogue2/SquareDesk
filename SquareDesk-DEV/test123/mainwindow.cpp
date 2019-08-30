@@ -1209,21 +1209,27 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
     {
         QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
-        QList<int> sizes;
-        for (QString sizeStr : sizesStr.split(","))
+        if (!sizesStr.isEmpty())
         {
-            sizes.append(sizeStr.toInt());
+            QList<int> sizes;
+            for (QString sizeStr : sizesStr.split(","))
+            {
+                sizes.append(sizeStr.toInt());
+            }
+            ui->splitterSDTabVertical->setSizes(sizes);
         }
-        ui->splitterSDTabVertical->setSizes(sizes);
     }
     {
         QString sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
-        QList<int> sizes;
-        for (QString sizeStr : sizesStr.split(","))
+        if (!sizesStr.isEmpty())
         {
-            sizes.append(sizeStr.toInt());
+            QList<int> sizes;
+            for (QString sizeStr : sizesStr.split(","))
+            {
+                sizes.append(sizeStr.toInt());
+            }
+            ui->splitterSDTabHorizontal->setSizes(sizes);
         }
-        ui->splitterSDTabHorizontal->setSizes(sizes);
     }
     if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides())
     {
