@@ -1828,6 +1828,7 @@ void MainWindow::select_all_sd_current_sequence()
 void MainWindow::undo_last_sd_action()
 {
     sdthread->do_user_input(str_undo_last_call);
+    sdthread->do_user_input("refresh");
     sd_redo_stack->set_did_an_undo();
     
     ui->lineEditSDInput->setFocus();
