@@ -294,6 +294,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sdAvailableCalls(),
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
     shortcutSDTabUndo(nullptr),
+    shortcutSDTabRedo(nullptr),
     shortcutSDCurrentSequenceSelectAll(nullptr),
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())

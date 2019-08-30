@@ -918,6 +918,7 @@ private: // SD
     void set_current_sequence_icons_visible(bool visible);
     QString sdLastFormationName;
     QShortcut *shortcutSDTabUndo;
+    QShortcut *shortcutSDTabRedo;
     QShortcut *shortcutSDCurrentSequenceSelectAll;
     QShortcut *shortcutSDCurrentSequenceCopy;
     SDRedoStack *sd_redo_stack;

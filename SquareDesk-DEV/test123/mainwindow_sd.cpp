@@ -486,6 +486,12 @@ void MainWindow::initialize_internal_sd_tab()
     connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
     shortcutSDTabUndo->setKey(QKeySequence::Undo);
 
+    if (nullptr != shortcutSDTabRedo)
+        delete shortcutSDTabRedo;
+    shortcutSDTabRedo = new QShortcut(ui->tabSDIntegration);
+    connect(shortcutSDTabRedo, SIGNAL(activated()), this, SLOT(redo_last_sd_action()));
+    shortcutSDTabRedo->setKey(QKeySequence::Redo);
+
    if (nullptr != shortcutSDCurrentSequenceSelectAll)
         delete shortcutSDCurrentSequenceSelectAll;
     shortcutSDCurrentSequenceSelectAll = new QShortcut(ui->tableWidgetCurrentSequence);
