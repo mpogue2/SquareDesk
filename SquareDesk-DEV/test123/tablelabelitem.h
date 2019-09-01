@@ -23,43 +23,24 @@
 **
 ****************************************************************************/
 
-#include "tablenumberitem.h"
+#ifndef TABLELABELITEM_H
+#define TABLELABELITEM_H
 
-TableNumberItem::TableNumberItem(const QString txt)
-        :QTableWidgetItem(txt)
+#include <QObject>
+#include <QString>
+#include <QTableWidgetItem>
+#include <QDebug>
+
+// Label strings need special sorting.  They typically look like this:
+//  LABEL 12345a
+// We need to first sort by LABEL, then by 12345, and finally by a
+
+// http://stackoverflow.com/questions/7848683/how-to-sort-datas-in-qtablewidget
+class TableLabelItem : public QTableWidgetItem
 {
-}
+public:
+    TableLabelItem(const QString txt = QString("*"));
+    bool operator <(const QTableWidgetItem &other) const;
+};
 
-bool TableNumberItem::operator <(const QTableWidgetItem &other) const
-{
-    QString str1 = text();
-    QString str2 = other.text();
-
-    // tempos can have percent signs.  For comparisons, just remove them, and prepend a big number.
-    //   sort order is then 0, 100, 123, ... 137, 0%, 80%, 100%.
-    if (str1.contains('%')) {
-        str1.replace("%","");
-        str1 = "100" + str1;
-    }
-    if (str2.contains('%')) {
-        str2.replace("%","");
-        str2 = "100" + str2;
-    }
-
-    if (str1 == " " || str1 == "") {
-        str1 = "9999999.9";
-    }
-
-    if (str2 == " " || str2 == "") {
-        str2 = "9999999.9";
-    }
-
-    bool ok1 = false;
-    double f1 = str1.toDouble(&ok1);
-
-    bool ok2 = false;
-    double f2 = str2.toDouble(&ok2);
-
-    return f1 < f2;
-}
-
+#endif // TABLELABELITEM_H

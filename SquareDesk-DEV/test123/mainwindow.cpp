@@ -58,6 +58,7 @@
 #include "utility.h"
 #include "perftimer.h"
 #include "tablenumberitem.h"
+#include "tablelabelitem.h"
 #include "importdialog.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
@@ -5286,6 +5287,8 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     QTableWidgetItem *newTableItem;
     if (column == kNumberCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
         newTableItem = new TableNumberItem( str.trimmed() );  // does sorting correctly for numbers
+    } else if (column == kLabelCol) {
+        newTableItem = new TableLabelItem( str.trimmed() );  // does sorting correctly for labels
     } else {
         newTableItem = new QTableWidgetItem( str.trimmed() );
     }
