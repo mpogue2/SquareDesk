@@ -1943,6 +1943,10 @@ void MainWindow::writeCuesheet(QString filename)
 #ifdef WRITETHEMODIFIEDLYRICSFILE
     if ( file.open(QIODevice::WriteOnly) )
     {
+        filewatcherShouldIgnoreOneFileSave = true;  // when we save it will trigger filewatcher, which
+        //  will reorder the songTable.  We are adding the file to the pathStack manually, so there
+        //  really is no need to trigger the filewatcher.
+
         // Make sure the destructor gets called before we try to load this file...
         {
             QTextStream stream( &file );
@@ -9754,7 +9758,8 @@ void MainWindow::saveLyrics()
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
-        writeCuesheet(cuesheetFilename);            // this will trigger Filewatcher, which will clear the flag
+        writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)
+
         loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
         saveCurrentSongSettings();
     }
@@ -9808,7 +9813,9 @@ void MainWindow::saveLyricsAs()
         ui->actionSave->setEnabled(false);  // save is disabled to start out
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
-        writeCuesheet(filename);
+        filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
+        writeCuesheet(filename);            // this will NOT trigger FileWatcher
+
         loadCuesheets(currentMP3filenameWithPath, filename);
         saveCurrentSongSettings();
     }
@@ -10441,13 +10448,14 @@ QList<QString> MainWindow::getListOfCuesheets() {
 }
 
 void MainWindow::maybeLyricsChanged() {
-    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
-    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-    loadMusicList(); // and filter them into the songTable
-
     // AND, just in case the list of matching cuesheets for the current song has been
     //   changed by the recent addition of cuesheets...
     if (!filewatcherShouldIgnoreOneFileSave) {
+        // don't rescan, if this is a SAVE or SAVE AS Lyrics (those get added manually to the pathStack)
+        // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
+        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+        loadMusicList(); // and filter them into the songTable
+
         // reload only if this isn't a SAVE LYRICS FILE
         reloadCurrentMP3File();
     }
