@@ -716,6 +716,10 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
 {
     sdLastFormationName = str;
 
+    // get rid of "resolve: N out of M" --> "Resolve" (so text field doesn't grow without bound)
+    QRegularExpression re("resolve: \\d+ out of \\d+", QRegularExpression::CaseInsensitiveOption);
+    sdLastFormationName.replace(re, "Resolve");
+
     QString boyOrderString = QString(orderToString(boyOrder, true).c_str());
     QString girlOrderString = QString(orderToString(girlOrder, true).c_str());
     QString orderString = "[B:" + boyOrderString + " G:" + girlOrderString + "]";
