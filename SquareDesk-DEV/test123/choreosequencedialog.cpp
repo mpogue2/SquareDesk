@@ -37,7 +37,8 @@ ChoreoSequenceDialog::ChoreoSequenceDialog(QString sequenceIdentifier, QWidget *
     QDialog(parent),
     ui(new Ui::ChoreoSequenceDialog)
 {
-    mw = (MainWindow *)parent;
+    Q_UNUSED(sequenceIdentifier)
+    mw = reinterpret_cast<MainWindow *>(parent);
 }
 
 

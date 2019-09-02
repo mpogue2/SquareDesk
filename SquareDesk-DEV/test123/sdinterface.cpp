@@ -32,7 +32,7 @@
 
 #include <stdio.h>
 
-int numberOfSDThreadsActive = 0;
+static int numberOfSDThreadsActive = 0;
 
 class SquareDesk_iofull : public iobase {
 public:
@@ -50,6 +50,11 @@ public:
           currentInputYesNo(false)
 
     {
+    }
+
+    virtual ~SquareDesk_iofull()
+    {
+        // base class has virtual members, so this class should have a virtual destructor
     }
 
     int do_abort_popup();
@@ -71,7 +76,7 @@ public:
     bool help_faq();
     popup_return get_popup_string(Cstring prompt1, Cstring prompt2, Cstring final_inline_prompt,
                                   Cstring seed, char *dest);
-    void fatal_error_exit(int code, Cstring s1=0, Cstring s2=0);
+    void fatal_error_exit(int code, Cstring s1 = nullptr, Cstring s2 = nullptr);
     void serious_error_print(Cstring s1);
     void create_menu(call_list_kind cl);
     selector_kind do_selector_popup(matcher_class &matcher);
@@ -209,8 +214,8 @@ bool SquareDesk_iofull::add_string_input(const char *s)
         waitCondSDAwaitingInput->wakeAll();
         woke = true;
         break;
-    default:
-        qWarning() << "Unknown input state: " << currentInputState;
+//    default:  // all the possible cases are explicity here, so default: is not needed
+//        qWarning() << "Unknown input state: " << currentInputState;
     case SDThread::InputStateNormal:
         int len = strlen(s);
              matcher_class &matcher = *gg77->matcher_p;
@@ -312,7 +317,7 @@ int SquareDesk_iofull::do_abort_popup()
         return POPUP_ACCEPT;
     yesnoconfirm("Confirmation",
                  "The current sequence will be aborted. Do you really want to abort it? (Y/N):",
-                 NULL,
+                 nullptr, // NULL,
                  false, false);
 
     if (currentInputYesNo)
@@ -489,10 +494,10 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
                 dance_levels.append(QString("%1").arg(0 + kSDCallTypeCommands));
             }
             options.append("abort this sequence");
-            dance_levels.append(0);
+            dance_levels.append(nullptr); // 0);
 
             options.append("square your sets");
-            dance_levels.append(0);
+            dance_levels.append(nullptr); // 0);
         }
         emit sdthread->on_sd_set_matcher_options(options, dance_levels);
    }
@@ -743,7 +748,7 @@ uint32 SquareDesk_iofull::get_one_number(matcher_class &/* matcher */)
     }
 
 
-    return true;
+//    return true;  // will never be executed
 }
 
 uims_reply_thing SquareDesk_iofull::get_call_command()
@@ -783,7 +788,8 @@ startover:
         call_conc_option_state save_stuff = matcher.m_final_result.match.call_conc_options;
         there_is_a_call = false;
         uims_reply_kind my_reply = matcher.m_final_result.match.kind;
-        bool retval = deposit_call_tree(&matcher.m_final_result.match, (parse_block *) 0, 2);
+//        bool retval = deposit_call_tree(&matcher.m_final_result.match, (parse_block *) 0, 2);
+        bool retval = deposit_call_tree(&matcher.m_final_result.match, static_cast<parse_block *>(nullptr), 2);
         matcher.m_final_result.match.call_conc_options = save_stuff;
         if (there_is_a_call) {
             parse_state.topcallflags1 = the_topcallflags;
@@ -865,9 +871,9 @@ bool SquareDesk_iofull::init_step(init_callback_state s, int /* n */)
         // qWarning() << "do_accelerator: " << s << " " << n;
         break;
 
-    default:
-        // qWarning() << "init step " << s << " " << n;
-        break;
+//    default:  // all the cases are explicitly covered, so default is not needed
+//        // qWarning() << "init step " << s << " " << n;
+//        break;
     }
     // qWarning() << "SquareDesk_iofull::init_step(init_callback_state s, int n);";
     return false;
@@ -945,12 +951,12 @@ void SDThread::add_directions_to_list_widget(QListWidget *listWidget)
 
 SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_program_name)
     : QThread(mw),
+      dance_program_name(dance_program_name),
       mw(mw),
       waitCondSDAwaitingInput(),
       mutexSDAwaitingInput(),
       mutexThreadRunning(),
-      abort(false),
-      dance_program_name(dance_program_name)
+      abort(false)
 {
     // return SD to its original glory
     last_direction_kind = direction_ENUM_EXTENT;
@@ -1121,7 +1127,8 @@ void SDThread::run()
                     const_cast<char *>("-minigrand_getouts"),
                     const_cast<char *>("-bend_line_home_getouts"),
                     const_cast<char *>(dance_program_name.toStdString().c_str()),
-                    NULL};
+                    nullptr};
+//                    NULL};
 
     sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
 }

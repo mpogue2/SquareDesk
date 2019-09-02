@@ -80,7 +80,8 @@ const char *danceprogram_basic1[] = {
     "28, Square Thru (1, 2, 3, 4) / Left Square Thru (1, 2, 3, 4)",
     "29, Circle to a Line",
     "30, Dive Thru",
-    NULL
+    nullptr
+//    NULL
 };
 
 const char *danceprogram_basic2[] = {
@@ -113,7 +114,8 @@ const char *danceprogram_basic2[] = {
     "49, Trade By",
     "50, Touch 1/4",
     "51, Ferris Wheel",
-    NULL
+    nullptr
+//    NULL
 };
 
 const char *danceprogram_mainstream[] = {
@@ -134,7 +136,8 @@ const char *danceprogram_mainstream[] = {
     "66, Half Tag",
     "67, Scoot Back",
     "68, Recycle (From a Wave Only)",
-    NULL,
+    nullptr
+//    NULL,
 };
 
 const char *danceprogram_plus[] = {
@@ -167,7 +170,8 @@ const char *danceprogram_plus[] = {
     "27, Dixie Grand",
     "28, 3/4 Tag the Line",
     "29, Spin Chain and Exchange the Gears    ",
-    NULL
+    nullptr
+//    NULL
 };
 const char *danceprogram_a1[] = {
     " 1, Belles and Beaus (couples facing same direction only)",
@@ -220,7 +224,8 @@ const char *danceprogram_a1[] = {
     "48, Any Hand Concept",
     "49, Preface Items",
     "50, Split Square Chain Thru",
-    NULL
+    nullptr
+//    NULL
 };
 const char *danceprogram_a2[] = {
     " 1, Single Wheel",
@@ -270,7 +275,8 @@ const char *danceprogram_a2[] = {
     "36.c, All 8 Walk and Dodge",
     "36.d, All 8 Mix",
     "37, Preface Items",
-    NULL
+    nullptr
+//    NULL
 };
 
 static const char *b1 = "b1";
@@ -285,10 +291,10 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { b1, "forward and back", "Lines close together: 4; All others: 8" },
     { b1, "Dosado / Dosado to a Wave", "SS with corner, 6 steps; with partner, 6; from a Box formation, 6; SS across the set, 8" },
     { b1, "swing", "Variable, at least 4" },
-    { b1, "Promenade Family", NULL },
+    { b1, "Promenade Family", nullptr }, // NULL },
     { b1, "Couples (Full, 1/2, 3/4)", "1/4: 4, 1/2: 8, 3/4: 12, Full: 16" },
-    { b1, "Single File Promenade ", NULL },
-    { b1, "Wrong Way Promenade ", NULL },
+    { b1, "Single File Promenade ", nullptr }, // NULL },
+    { b1, "Wrong Way Promenade ", nullptr }, // NULL },
     { b1, "Star Promenade", "1/2: 6, 3/4: 9, Full: 12, Full plus a back out at home: 16" },
     { b1, "allemande left", "1/2 arm turn: 4-6; 3/4 arm turn: 6-8; Full arm turn: 8" },
     { b1, "Arm Turns", "1/2: 4, 3/4: 4 to 6, Full: 6 to 8" },
@@ -307,7 +313,7 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { b1, "backtrack", "2" },
     { b1, "separate", "2, or determined by the distance traveled around the outside" },
     { b1, "around 1 or 2 to a line ", "Heads Pass Thru; Separate Around 1 To A Line: 8, Heads Pass Thru; Separate Around 2 To A Line: 10" },
-    { b1, "Around 1 or 2 and Come Into the Middle", NULL },
+    { b1, "Around 1 or 2 and Come Into the Middle", nullptr }, // NULL },
     { b1, "split two", "2" },
     { b1, "courtesy turn", "4" },
     { b1, "ladies chain family", "Facing Couples 6; Squared Set: 8" },
@@ -344,7 +350,7 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { b1, "circle to a line", "8" },
     { b1, "dive thru", "Couple diving under: 2, couple making the arch: 6" },
     { b2, "wheel around ", "4" },
-    { b2, "thar family", NULL },
+    { b2, "thar family", nullptr }, // NULL },
     { b2, "allemande thar", "2 (for the Left Arm Turn 1/2)" },
     { b2, "allemande left to an allemande thar", "12" },
     { b2, "wrong way thar", "2 (for the Right Arm Turn 1/2)" },
@@ -354,11 +360,11 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { b2, "shoot the star", "4" },
     { b2, "shoot the star full around", "6" },
     { b2, "box the gnat", "4" },
-    { b2, "trade family", NULL },
+    { b2, "trade family", nullptr }, // NULL },
     { b2, "(Named Dancers) Trade ", "3, with additional beats for non-adjacent dancers" },
     { b2, "couples trade", "4" },
     { b2, "partner trade", "3" },
-    { b2, "ocean wave family", NULL },
+    { b2, "ocean wave family", nullptr }, // NULL },
     { b2, "step to a wave", "2" },
     { b2, "balance", "4" },
     { b2, "alamo style", "4" },
@@ -438,7 +444,7 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { plus, "dixie grand", "6" },
     { plus, "3/4 tag the line", "5" },
     { plus, "spin chain and exchange the gears", "26" },
-    { a1, "belles and beaus (couples facing same direction only)", NULL },
+    { a1, "belles and beaus (couples facing same direction only)", nullptr }, // NULL },
     { a1, "brace thru", "6, SS 8" },
     { a1, "cross trail thru", "6, SS 6" },
     { a1, "triple trade", "4" },
@@ -468,7 +474,7 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { a1, "cross over circulate (ocean waves & other lines)", "6" },
     { a1, "swap around", "4" },
     { a1, "explode the line", "6" },
-    { a1, "as couples concept", NULL },
+    { a1, "as couples concept", nullptr }, // NULL },
     { a1, "ends bend", "2" },
     { a1, "square chain thru", "14" },
     { a1, "scoot and dodge", "8" },
@@ -485,7 +491,7 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { a1, "pair off", "2, SS 4" },
     { a1, "reverse swap around", "4" },
     { a1, "cross clover and (anything)", "greater of 10 or the call" },
-    { a1, "any hand concept", NULL },
+    { a1, "any hand concept", nullptr }, // NULL },
     { a1, "split square chain thru", "12" },
     { a2, "single wheel", "4" },
     { a2, "in roll circulate", "4" },
@@ -522,7 +528,7 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { a2, "mini-busy", "6" },
     { a2, "slither", "3" },
     { a2, "trail off", "6" },
-    { a2, "remake family", NULL },
+    { a2, "remake family", nullptr }, // NULL },
     { a2, "remake", "Alamo 12, others 10" },
     { a2, "grand remake", "10" },
     { a2, "remake the thar", "10" },
@@ -534,14 +540,15 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { a2, "peel & trail (from completed dpt)", "4" },
     { a2, "peel & trail (columns)", "6" },
     { a2, "transfer and (anything)", "8 (any starts on 5)" },
-    { a2, "all 4 couples concept (such as)", NULL },
+    { a2, "all 4 couples concept (such as)", nullptr }, // NULL },
     { a2, "All 4 Couples Star Thru", "6" },
     { a2, "All 4 Right and Left Thru", "10" },
     { a2, "All 4 Chase Right", "10" },
-    { a2, "All 8 Concept (such as)", NULL },
+    { a2, "All 8 Concept (such as)", nullptr }, // NULL },
     { a2, "All 8 Swing Thru", "8" },
-    { a2, "All 8 Switch the Wave", NULL },
+    { a2, "All 8 Switch the Wave", nullptr }, // NULL },
     { a2, "All 8 Walk and Dodge", "6" },
-    { a2, "All 8 Mix", NULL },
-    { NULL, NULL, NULL }
+    { a2, "All 8 Mix", nullptr }, // NULL },
+    { nullptr, nullptr, nullptr }
+//    { NULL, NULL, NULL }
 };

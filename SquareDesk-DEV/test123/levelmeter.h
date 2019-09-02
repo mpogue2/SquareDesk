@@ -79,7 +79,7 @@ class LevelMeter : public QWidget
     Q_OBJECT
 
 public:
-    explicit LevelMeter(QWidget *parent = 0);
+    explicit LevelMeter(QWidget *parent = nullptr); // 0);
     ~LevelMeter();
 
     void paintEvent(QPaintEvent *event);

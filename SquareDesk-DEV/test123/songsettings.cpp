@@ -218,7 +218,7 @@ RowDefinition song_rows[] =
     RowDefinition("tags", "text"),
     RowDefinition("replayGain", "float"),  // NULL = not set yet, else replayGain in dB
 
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 
 TableDefinition song_table("songs", song_rows);
@@ -230,7 +230,7 @@ RowDefinition session_rows[] =
     RowDefinition("deleted", "INTEGER DEFAULT 0"),
     RowDefinition("day_of_week", "INTEGER DEFAULT -1"),
     RowDefinition("start_minutes", "INTEGER DEFAULT 0"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition session_table("sessions", session_rows);
 
@@ -239,7 +239,7 @@ RowDefinition song_play_rows[] =
     RowDefinition("song_rowid", "int references songs(rowid)"),
     RowDefinition("session_rowid", "int references session(rowid)"),
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
 
@@ -250,7 +250,7 @@ RowDefinition call_taught_on_rows[] =
     RowDefinition("call_name", "TEXT"),
     RowDefinition("session_rowid", "INT REFERENCES session(rowid)"),
     RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 
@@ -259,7 +259,7 @@ RowDefinition tag_colors_rows[] =
     RowDefinition("tag", "TEXT PRIMARY KEY"),
     RowDefinition("background", "TEXT"),
     RowDefinition("foreground", "TEXT"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 
 TableDefinition tag_colors_table("tag_colors", tag_colors_rows);
@@ -330,7 +330,8 @@ static const char *default_session_names[] =
     "Friday",
     "Saturday",
     "Sunday",
-    NULL
+    nullptr
+//    NULL
 };
 
 static const char database_type_name[] = "QSQLITE";

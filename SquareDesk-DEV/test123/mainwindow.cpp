@@ -204,7 +204,9 @@ using namespace TagLib;
 // Toggle between Music/Lyrics  T
 
 // GLOBALS:
+extern bass_audio cBass;  // make this accessible to PreferencesDialog
 bass_audio cBass;
+
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
@@ -695,7 +697,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-    SetAnimationSpeed((AnimationSpeed)(prefsManager.GetAnimationSpeed()));
+    SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
     
     // define type names (before reading in the music filenames!) ------------------
     QString value;
@@ -4241,7 +4243,7 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         case SongFilenameBestGuess :
             return best_guess_matches;
         case SongFilenameLabelDashName :
-        default:  // ignore the warning here, this default label does NOT cover all enum values
+//        default:  // all the cases are covered already (default is not needed here)
             return label_first_matches;
     }
 }
@@ -6382,7 +6384,7 @@ void MainWindow::on_actionPreferences_triggered()
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
 
-        SetAnimationSpeed((AnimationSpeed)(prefsManager.GetAnimationSpeed()));
+        SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
         
         {
             QString value;

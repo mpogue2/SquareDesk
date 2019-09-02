@@ -94,7 +94,7 @@ bool TableLabelItem::operator <(const QTableWidgetItem &other) const
         return (label1 < label2);
     }
 
-    return(false);  // should never get here.
+    // return(false);  // should never get here.
 //    return str1 < str2;  // FIX FIX FIX
 }
 

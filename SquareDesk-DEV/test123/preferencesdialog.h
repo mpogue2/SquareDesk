@@ -52,7 +52,7 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent = 0);
+    PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent = nullptr); // 0);
     ~PreferencesDialog();
     void finishPopulation();
 
@@ -179,7 +179,7 @@ private:
 };
 
 class PushButtonColorTag : public QPushButton {
-    Q_OBJECT;
+    Q_OBJECT
 private:
     PreferencesDialog *prefsDialog;
     QString tagName;
