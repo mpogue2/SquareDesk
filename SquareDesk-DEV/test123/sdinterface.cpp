@@ -1074,6 +1074,7 @@ void SDThread::finishAndShutdownSD()
 
 //    if (!iofull->seenAFormation)
     {
+        do_user_input("abort the search");
         do_user_input("heads start");
         do_user_input("square thru 4");
     }
