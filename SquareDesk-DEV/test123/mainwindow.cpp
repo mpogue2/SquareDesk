@@ -213,6 +213,30 @@ static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color
 static QString title_tags_suffix(" </span>");
 static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 
+
+class SelectionRetainer {
+    QTextEdit *textEdit;
+    QTextCursor cursor;
+    int anchorPosition;
+    int cursorPosition;
+    // No inadvertent copies
+private:
+    SelectionRetainer() {};
+    SelectionRetainer(const SelectionRetainer &) {};
+public:
+    SelectionRetainer(QTextEdit *textEdit) : textEdit(textEdit), cursor(textEdit->textCursor())
+    {
+        anchorPosition = cursor.anchor();
+        cursorPosition = cursor.position();
+    }
+    ~SelectionRetainer() {
+        cursor.setPosition(anchorPosition);
+        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
+        textEdit->setTextCursor(cursor);
+    }
+};
+
+
 #include <QProxyStyle>
 
 class MySliderClickToMoveStyle : public QProxyStyle
@@ -1711,10 +1735,9 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 {
 //    qDebug() << "on_pushButtonCueSheetClearFormatting_clicked";
+        SelectionRetainer retainer(ui->textBrowserCueSheet);
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
-        int anchorPosition = cursor.anchor();
-        int cursorPosition = cursor.position();
         // now look at it as HTML
         QString selected = cursor.selection().toHtml();
 //        qDebug() << "\n***** initial selection (HTML): " << selected;
@@ -1743,22 +1766,6 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 //        cursor.insertText(selected);  // ...and put back in the stripped-down text
         cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
         cursor.endEditBlock(); // end of grouping for UNDO purposes
-
-        qDebug() << "REturning position to " << anchorPosition << " and " << cursorPosition;
-        cursor.setPosition(anchorPosition);
-        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
-        ui->textBrowserCueSheet->setTextCursor(cursor);
-//        cursor.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor, 0);
-//        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, anchorPosition);
-//        if (anchorPosition < cursorPosition)
-//        {
-//            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, cursorPosition - anchorPosition);
-//        }
-//        else
-//        {
-//            cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor, anchorPosition - cursorPosition);
-//        }
-        
 }
 
 // Knowing what the FG and BG colors are (from internal cuesheet2.css) allows us to determine the character type
@@ -1816,6 +1823,7 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 {
 //    qDebug() << "setSelectedTextToClass: " << blockClass;
+    SelectionRetainer retainer(editor);
     QTextCursor cursor = editor->textCursor();
 
     if (!cursor.hasComplexSelection())
@@ -4264,6 +4272,8 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
 //        default:  // all the cases are covered already (default is not needed here)
             return label_first_matches;
     }
+    // Shut up the warnings, all the returns happen in the switch above
+    return label_first_matches;
 }
 
 
