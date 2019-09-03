@@ -1713,6 +1713,8 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 //    qDebug() << "on_pushButtonCueSheetClearFormatting_clicked";
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
+        int anchorPosition = cursor.anchor();
+        int cursorPosition = cursor.position();
         // now look at it as HTML
         QString selected = cursor.selection().toHtml();
 //        qDebug() << "\n***** initial selection (HTML): " << selected;
@@ -1741,6 +1743,22 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 //        cursor.insertText(selected);  // ...and put back in the stripped-down text
         cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
         cursor.endEditBlock(); // end of grouping for UNDO purposes
+
+        qDebug() << "REturning position to " << anchorPosition << " and " << cursorPosition;
+        cursor.setPosition(anchorPosition);
+        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
+        ui->textBrowserCueSheet->setTextCursor(cursor);
+//        cursor.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor, 0);
+//        cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::MoveAnchor, anchorPosition);
+//        if (anchorPosition < cursorPosition)
+//        {
+//            cursor.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor, cursorPosition - anchorPosition);
+//        }
+//        else
+//        {
+//            cursor.movePosition(QTextCursor::PreviousCharacter, QTextCursor::KeepAnchor, anchorPosition - cursorPosition);
+//        }
+        
 }
 
 // Knowing what the FG and BG colors are (from internal cuesheet2.css) allows us to determine the character type
