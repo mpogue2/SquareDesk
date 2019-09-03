@@ -70,7 +70,8 @@ SOURCES += main.cpp\
     sdredostack.cpp \
     makeflashdrivewizard.cpp \
     songlistmodel.cpp \
-    mydatetimeedit.cpp
+    mydatetimeedit.cpp \
+    tablelabelitem.cpp
 
 macx {
 SOURCES += ../qpdfjs/src/communicator.cpp
@@ -125,7 +126,8 @@ HEADERS  += mainwindow.h \
     songlistmodel.h \
     mydatetimeedit.h \
     keyactions.h \
-    songsetting_attributes.h
+    songsetting_attributes.h \
+    tablelabelitem.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h

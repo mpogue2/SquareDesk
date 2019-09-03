@@ -58,6 +58,7 @@
 #include "utility.h"
 #include "perftimer.h"
 #include "tablenumberitem.h"
+#include "tablelabelitem.h"
 #include "importdialog.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
@@ -203,7 +204,9 @@ using namespace TagLib;
 // Toggle between Music/Lyrics  T
 
 // GLOBALS:
+extern bass_audio cBass;  // make this accessible to PreferencesDialog
 bass_audio cBass;
+
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
@@ -694,7 +697,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-    SetAnimationSpeed((AnimationSpeed)(prefsManager.GetAnimationSpeed()));
+    SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
     
     // define type names (before reading in the music filenames!) ------------------
     QString value;
@@ -1943,6 +1946,10 @@ void MainWindow::writeCuesheet(QString filename)
 #ifdef WRITETHEMODIFIEDLYRICSFILE
     if ( file.open(QIODevice::WriteOnly) )
     {
+        filewatcherShouldIgnoreOneFileSave = true;  // when we save it will trigger filewatcher, which
+        //  will reorder the songTable.  We are adding the file to the pathStack manually, so there
+        //  really is no need to trigger the filewatcher.
+
         // Make sure the destructor gets called before we try to load this file...
         {
             QTextStream stream( &file );
@@ -4236,7 +4243,7 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         case SongFilenameBestGuess :
             return best_guess_matches;
         case SongFilenameLabelDashName :
-        default:  // ignore the warning here, this default label does NOT cover all enum values
+//        default:  // all the cases are covered already (default is not needed here)
             return label_first_matches;
     }
 }
@@ -5282,6 +5289,8 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     QTableWidgetItem *newTableItem;
     if (column == kNumberCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
         newTableItem = new TableNumberItem( str.trimmed() );  // does sorting correctly for numbers
+    } else if (column == kLabelCol) {
+        newTableItem = new TableLabelItem( str.trimmed() );  // does sorting correctly for labels
     } else {
         newTableItem = new QTableWidgetItem( str.trimmed() );
     }
@@ -6375,7 +6384,7 @@ void MainWindow::on_actionPreferences_triggered()
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
 
-        SetAnimationSpeed((AnimationSpeed)(prefsManager.GetAnimationSpeed()));
+        SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
         
         {
             QString value;
@@ -9754,7 +9763,8 @@ void MainWindow::saveLyrics()
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
-        writeCuesheet(cuesheetFilename);            // this will trigger Filewatcher, which will clear the flag
+        writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)
+
         loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
         saveCurrentSongSettings();
     }
@@ -9808,7 +9818,9 @@ void MainWindow::saveLyricsAs()
         ui->actionSave->setEnabled(false);  // save is disabled to start out
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
-        writeCuesheet(filename);
+        filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
+        writeCuesheet(filename);            // this will NOT trigger FileWatcher
+
         loadCuesheets(currentMP3filenameWithPath, filename);
         saveCurrentSongSettings();
     }
@@ -10441,13 +10453,14 @@ QList<QString> MainWindow::getListOfCuesheets() {
 }
 
 void MainWindow::maybeLyricsChanged() {
-    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
-    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-    loadMusicList(); // and filter them into the songTable
-
     // AND, just in case the list of matching cuesheets for the current song has been
     //   changed by the recent addition of cuesheets...
     if (!filewatcherShouldIgnoreOneFileSave) {
+        // don't rescan, if this is a SAVE or SAVE AS Lyrics (those get added manually to the pathStack)
+        // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
+        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+        loadMusicList(); // and filter them into the songTable
+
         // reload only if this isn't a SAVE LYRICS FILE
         reloadCurrentMP3File();
     }

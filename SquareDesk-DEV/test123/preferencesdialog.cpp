@@ -558,7 +558,7 @@ QList<SessionInfo> PreferencesDialog::getSessionInfoList()
         QTime t(timeEdit->time());
         session.start_minutes = t.hour() * 60 + t.minute();
         session.id = -1;
-        if (ui->tableWidgetSessionsList->item(row, kSessionsColID) != NULL)
+        if (ui->tableWidgetSessionsList->item(row, kSessionsColID) != nullptr) // NULL)
         {
             QString session_id(ui->tableWidgetSessionsList->item(row, kSessionsColID)->text());
             session.id = session_id.toInt();

@@ -716,6 +716,10 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
 {
     sdLastFormationName = str;
 
+    // get rid of "resolve: N out of M" --> "Resolve" (so text field doesn't grow without bound)
+    QRegularExpression re("resolve: \\d+ out of \\d+", QRegularExpression::CaseInsensitiveOption);
+    sdLastFormationName.replace(re, "Resolve");
+
     QString boyOrderString = QString(orderToString(boyOrder, true).c_str());
     QString girlOrderString = QString(orderToString(girlOrder, true).c_str());
     QString orderString = "[B:" + boyOrderString + " G:" + girlOrderString + "]";
@@ -823,7 +827,7 @@ void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
         break;
         
     case AnimationSpeedOff:
-    default:
+//    default:  // all enums are explicit, no need for default
         sd_animation_delta_t = 1;
         sd_animation_msecs_per_frame = 0;
     }
@@ -1812,7 +1816,7 @@ void MainWindow::restartSDThread(dance_level dance_program)
         sdthread->finishAndShutdownSD();
         sdthread->wait(250);
         
-        sdthread = NULL;
+        sdthread = nullptr; // NULL;
     }
     startSDThread(dance_program);
     reset_sd_dancer_locations();
@@ -2358,7 +2362,7 @@ void MainWindow::on_actionSDSquareYourSets_triggered() {
     ui->lineEditSDInput->clear();
     restartSDThread(get_current_sd_dance_program());
 
-    if (NULL == sdthread)
+    if (nullptr == sdthread) // NULL == sdthread)
     {
         qDebug() << "Something has gone wrong, sdthread is null!";
         restartSDThread(get_current_sd_dance_program());
