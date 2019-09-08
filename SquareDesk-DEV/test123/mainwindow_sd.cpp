@@ -22,7 +22,6 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 //#include "renderarea.h"
@@ -38,14 +37,16 @@
 #include "../sdlib/database.h"
 
 
-#define NO_TIMING_INFO 1
+//#define NO_TIMING_INFO 1
 
 static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
+#define NO_TIMING_INFO 1
 #ifndef NO_TIMING_INFO
 static const int kColCurrentSequenceTiming = 2;
 #include "sdsequencecalllabel.h"
 #endif
+
 
 static const double dancerGridSize = 16;
 static const double backgroundSquareCount = 8;
@@ -72,8 +73,6 @@ static const char *str_undo_last_call = "undo last call";
 static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
 
-
-static QList<QStringList> sd_undo_stack;
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
@@ -856,6 +855,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
                       "\n" + sdformation.join("\n"));
     if (!sdformation.empty())
     {
+        sd_redo_stack->checkpoint_formation(sdLastLine, formation);
         int lGroup, tGroup;
         Order bOrder, gOrder;
         decode_formation_into_dancer_destinations(sdformation, sd_animation_people, &lGroup, &tGroup, &bOrder, &gOrder);
@@ -877,7 +877,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
         item->setData(Qt::UserRole, formation);
         item->setIcon(QIcon(image));
         ui->listWidgetSDOutput->addItem(item); 
-
+        
         update_sd_animations();
    }
     if (!sdformation.empty() && sdLastLine >= 1)
@@ -1105,7 +1105,6 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
-                    sd_redo_stack->add_lines_to_row(sdLastLine);
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 }
 
@@ -1114,7 +1113,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
 #else
-                QString lastCall("&nbsp;" + match.captured(2).toHtmlEscaped());
+                QString lastCall(match.captured(2).toHtmlEscaped());
                 int longestMatchLength = 0;
                 QString callTiming;
                 
@@ -1481,13 +1480,45 @@ void MainWindow::do_sd_tab_completion()
 }
 
 
+void MainWindow::SDDebug(const QString &str, bool bold) {
+    QListWidgetItem *item = new QListWidgetItem(str);
+    QFont font(item->font());
+    font.setBold(bold);
+    font.setFixedPitch(true);
+    item->setFont(font);
+    ui->listWidgetSDOutput->addItem(item);
+    ui->listWidgetSDOutput->scrollToBottom();
+}
 
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
 //    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
 //    while (redoRow >= 0 && redoRow < sd_redo_stack->length())
 //        sd_redo_stack->erase(sd_redo_stack->begin() + redoRow);
+    QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
+    if (cmd.startsWith("debug "))
+    {
+        if (cmd == "debug undo")
+        {
+            SDDebug("Undo Command Stack", true);
+            for (QString s : sd_redo_stack->command_stack)
+            {
+                SDDebug(s);
+            }
+            SDDebug("Redo Command Stack", true);
+            for (int i = 0; i < sd_redo_stack->redo_stack.count(); ++i)
+            {
+                SDDebug(QString("%1").arg(i));
+                for (QString s : sd_redo_stack->redo_stack[i])
+                {
+                    SDDebug(QString("    %1").arg(s));
+                }
+            }
+        }
+        ui->lineEditSDInput->clear();
+    }
 
+    
     sd_redo_stack->set_doing_user_input();
     submit_lineEditSDInput_contents_to_sd();
     sd_redo_stack->clear_doing_user_input();
@@ -1662,7 +1693,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
             if (row < 0) row = 0;
             if (!cmd.compare(str_undo_last_call, Qt::CaseInsensitive))
             {
-                sd_redo_stack->set_did_an_undo();
+                sd_redo_stack->did_an_undo();
             }
             else
             {
@@ -1989,7 +2020,7 @@ void MainWindow::undo_last_sd_action()
 {
     sdthread->do_user_input(str_undo_last_call);
     sdthread->do_user_input("refresh");
-    sd_redo_stack->set_did_an_undo();
+    sd_redo_stack->did_an_undo();
     
     ui->lineEditSDInput->setFocus();
 }
@@ -1998,11 +2029,18 @@ void MainWindow::redo_last_sd_action()
 {
     int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
     if (redoRow < 0) redoRow = 0;
-    QStringList redoCommands(sd_redo_stack->get_redo_commands(redoRow));
+    QStringList redoCommands(sd_redo_stack->get_redo_commands());
+    sd_redo_stack->set_doing_user_input();
     for (auto redoCommand : redoCommands)
     {
-        sdthread->do_user_input(redoCommand);
+        if (!redoCommand.startsWith("<")) {
+            ui->lineEditSDInput->setText(redoCommand);
+            submit_lineEditSDInput_contents_to_sd();
+//            sdthread->do_user_input(redoCommand);
+        }
     }
+    sd_redo_stack->clear_doing_user_input();
+    sd_redo_stack->discard_redo_commands();
 
     ui->lineEditSDInput->setFocus();
 }

@@ -471,6 +471,7 @@ private slots:
     void on_actionSave_As_triggered();
 
     // SD integration
+    void SDDebug(const QString &str, bool bold = false);
     void on_lineEditSDInput_returnPressed();
     void on_lineEditSDInput_textChanged();
     void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
