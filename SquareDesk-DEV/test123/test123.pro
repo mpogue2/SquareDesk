@@ -34,6 +34,7 @@ TEMPLATE = app
 DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
+    AppleMusicLibraryXMLReader.cpp \
         mainwindow.cpp \
     bass_audio.cpp \
     preferencesdialog.cpp \
