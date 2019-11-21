@@ -1335,7 +1335,8 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
         bool newerThanFence = now.addSecs(-ageInSecs) > recentFenceDateTime;
         if (newerThanFence) {
 //            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
-            recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
+//            recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
+            recentString = "*";  // this is a nice compromise between clearly visible and too annoying
         } // else it will be ""
     }
     return(recentString);
