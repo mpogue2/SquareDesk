@@ -70,6 +70,7 @@ SOURCES += main.cpp\
     sdredostack.cpp \
     makeflashdrivewizard.cpp \
     songlistmodel.cpp \
+    taminationsinterface.cpp \
     mydatetimeedit.cpp \
     tablelabelitem.cpp
 
@@ -124,6 +125,7 @@ HEADERS  += mainwindow.h \
     sdredostack.h \
     makeflashdrivewizard.h \
     songlistmodel.h \
+    taminationsinterface.h \
     mydatetimeedit.h \
     keyactions.h \
     songsetting_attributes.h \
