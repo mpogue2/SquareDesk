@@ -10094,7 +10094,7 @@ void MainWindow::readFlashCallsList() {
 
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Could not open 'allcalls.csv' file.";
+        qDebug() << "Could not open 'allcalls.csv' file. Flash calls will not work.";
         qDebug() << "looked here:" << allcallsPath;
         return;
     }

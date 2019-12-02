@@ -487,6 +487,7 @@ private slots:
     void set_sd_copy_options_selected_cells();
     void toggle_sd_copy_html_includes_headers();
     void toggle_sd_copy_html_formations_as_svg();
+    void toggle_sd_copy_include_deep();
     void update_sd_animations();
 
     void undo_sd_to_row();

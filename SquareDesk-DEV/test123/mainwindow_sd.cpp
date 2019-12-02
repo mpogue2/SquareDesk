@@ -2053,6 +2053,7 @@ void MainWindow::undo_sd_to_row()
     }
 }
 
+
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
     bool copyAllRows(prefsManager.GetSDCallListCopyOptions() == 1);
@@ -2095,7 +2096,15 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
             selection += item->text() + "\n";
         }
     }
-    
+     
+    if (prefsManager.GetSDCallListCopyDeepUndoBuffer())
+    {
+        selection += "\nCommand Stack:\n";
+        for (QString s : sd_redo_stack->command_stack)
+        {
+            selection += s + "\n";
+        }
+    }
     QApplication::clipboard()->setText(selection);
 }
 
@@ -2274,6 +2283,10 @@ void MainWindow::toggle_sd_copy_html_formations_as_svg()
     prefsManager.SetSDCallListCopyHTMLFormationsAsSVG(!prefsManager.GetSDCallListCopyHTMLFormationsAsSVG());
 }
 
+void MainWindow::toggle_sd_copy_include_deep()
+{
+    prefsManager.SetSDCallListCopyDeepUndoBuffer(!prefsManager.GetSDCallListCopyDeepUndoBuffer());
+}
 
 
 void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos)
@@ -2370,7 +2383,13 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     menuCopySettings.addAction(&action1_5);
     contextMenu.addMenu(&menuCopySettings);
 
-    
+    QAction action1_6("Include Undo Buffer", this);
+    action1_6.setCheckable(true);
+    action1_6.setChecked(prefsManager.GetSDCallListCopyDeepUndoBuffer());
+    connect(&action1_6, SIGNAL(triggered()), this, SLOT(toggle_sd_copy_include_deep()));
+    menuCopySettings.addAction(&action1_6);
+    contextMenu.addMenu(&menuCopySettings);
+
     contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
 }
 
