@@ -191,52 +191,52 @@ static Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y) {
 //            Unknown, if there is no defined ordering for this gender (e.g. dancers are colinear)
 static void inOrder(struct dancer dancers[], Order *bOrder, Order *gOrder) {
 
-    double minx, maxx, miny, maxy;
-    minx = miny = 99;
-    maxx = maxy = -99;
-    for (int i = 0; i < 8; i++) {
-        minx = fmin(minx, dancers[i].x);
-        miny = fmin(miny, dancers[i].y);
-        maxx = fmax(maxx, dancers[i].x);
-        maxy = fmax(maxy, dancers[i].y);
-    }
-//    qDebug() << "min x/y = " << minx << miny << ", max x/y = " << maxx << maxy;
-    double dividerx = (minx + maxx)/2.0;  // find midpoint dividers of formation
-    double dividery = (miny + maxy)/2.0;
+//    double minx, maxx, miny, maxy;
+//    minx = miny = 99;
+//    maxx = maxy = -99;
+//    for (int i = 0; i < 8; i++) {
+//        minx = fmin(minx, dancers[i].x);
+//        miny = fmin(miny, dancers[i].y);
+//        maxx = fmax(maxx, dancers[i].x);
+//        maxy = fmax(maxy, dancers[i].y);
+//    }
+////    qDebug() << "min x/y = " << minx << miny << ", max x/y = " << maxx << maxy;
+//    double dividerx = (minx + maxx)/2.0;  // find midpoint dividers of formation
+//    double dividery = (miny + maxy)/2.0;
 
-    // let's calculate the X and Y positions for each dancer
-    double boy1_x = 0, boy1_y = 0, boy2_x = 0, boy2_y = 0;
-    double girl1_x = 0, girl1_y = 0, girl2_x = 0, girl2_y = 0;
-    for (int i = 0; i < 8; i++) {
-        double xpos = 1.0 * (dancers[i].x - dividerx);  // X relative to the center
-        double ypos = -3.0 * (dancers[i].y - dividery);  // Y rel to center needs to be mult by 3 and flipped
+//    // let's calculate the X and Y positions for each dancer
+//    double boy1_x = 0, boy1_y = 0, boy2_x = 0, boy2_y = 0;
+//    double girl1_x = 0, girl1_y = 0, girl2_x = 0, girl2_y = 0;
+//    for (int i = 0; i < 8; i++) {
+//        double xpos = 1.0 * (dancers[i].x - dividerx);  // X relative to the center
+//        double ypos = -3.0 * (dancers[i].y - dividery);  // Y rel to center needs to be mult by 3 and flipped
 
-        // grab just #1 boy/girl and #2 boy/girl (they might not be in order by i)
-        if (dancers[i].gender != 1) {
-            // boys
-            if (dancers[i].coupleNum == 0) {  // couple # 1
-                boy1_x = xpos;
-                boy1_y = ypos;
-            } else if (dancers[i].coupleNum == 1) { // couple # 2
-                boy2_x = xpos;
-                boy2_y = ypos;
-            }
-        } else {
-            // girls
-            if (dancers[i].coupleNum == 0) {  // couple # 1
-                girl1_x = xpos;
-                girl1_y = ypos;
-            } else if (dancers[i].coupleNum == 1) {  // couple # 2
-                girl2_x = xpos;
-                girl2_y = ypos;
-            }
-        }
-    }
+//        // grab just #1 boy/girl and #2 boy/girl (they might not be in order by i)
+//        if (dancers[i].gender != 1) {
+//            // boys
+//            if (dancers[i].coupleNum == 0) {  // couple # 1
+//                boy1_x = xpos;
+//                boy1_y = ypos;
+//            } else if (dancers[i].coupleNum == 1) { // couple # 2
+//                boy2_x = xpos;
+//                boy2_y = ypos;
+//            }
+//        } else {
+//            // girls
+//            if (dancers[i].coupleNum == 0) {  // couple # 1
+//                girl1_x = xpos;
+//                girl1_y = ypos;
+//            } else if (dancers[i].coupleNum == 1) {  // couple # 2
+//                girl2_x = xpos;
+//                girl2_y = ypos;
+//            }
+//        }
+//    }
 //    qDebug() << "Boy1/2: " << boy1_x << boy1_y << boy2_x << boy2_y;
 //    qDebug() << "Girl1/2: " << girl1_x << girl1_y << girl2_x << girl2_y;
 
-    *bOrder = whichOrder(boy1_x, boy1_y, boy2_x, boy2_y);
-    *gOrder = whichOrder(girl1_x, girl1_y, girl2_x, girl2_y);
+//    *bOrder = whichOrder(boy1_x, boy1_y, boy2_x, boy2_y);
+//    *gOrder = whichOrder(girl1_x, girl1_y, girl2_x, girl2_y);
 
 //    qDebug() << "Boys: " << orderToString(*bOrder).c_str() << ", Girls: " << orderToString(*gOrder).c_str();
 }
