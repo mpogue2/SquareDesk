@@ -424,7 +424,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 //    *gOrder = inOrder(dancers, Girls);
 
     // determine order/sequence of boys and girls
-    inOrder(dancers, bOrder, gOrder);
+//    inOrder(dancers, bOrder, gOrder);
 
 //    qDebug() << "Boy order: " << *bOrder << ", Girl order: " << *gOrder;
 
@@ -714,31 +714,31 @@ void MainWindow::on_sd_set_window_title(QString /* str */)
 
 void MainWindow::set_sd_last_formation_name(const QString &str)
 {
-    sdLastFormationName = str;
+//    sdLastFormationName = str;
+// NEXT LINE IS SUSPECT?
+//    QString boyOrderString = QString(orderToString(boyOrder, true).c_str());
+//    QString girlOrderString = QString(orderToString(girlOrder, true).c_str());
+//    QString orderString = "[B:" + boyOrderString + " G:" + girlOrderString + "]";
 
-    QString boyOrderString = QString(orderToString(boyOrder, true).c_str());
-    QString girlOrderString = QString(orderToString(girlOrder, true).c_str());
-    QString orderString = "[B:" + boyOrderString + " G:" + girlOrderString + "]";
-
-    bool showOrderSequence = prefsManager.Getenableordersequence();
+//    bool showOrderSequence = prefsManager.Getenableordersequence();
 
     if ( sdLastFormationName == "<startup>" ||
          sdLastFormationName == "(any setup)" ) {
-        if (showOrderSequence) {
-            graphicsTextItemSDStatusBarText_fixed->setPlainText(orderString);
-            graphicsTextItemSDStatusBarText_animated->setPlainText(orderString);
-        } else {
+//        if (showOrderSequence) {
+//            graphicsTextItemSDStatusBarText_fixed->setPlainText(orderString);
+//            graphicsTextItemSDStatusBarText_animated->setPlainText(orderString);
+//        } else {
             graphicsTextItemSDStatusBarText_fixed->setPlainText("");
             graphicsTextItemSDStatusBarText_animated->setPlainText("");
-        }
+//        }
     } else {
-        if (showOrderSequence) {
-            graphicsTextItemSDStatusBarText_fixed->setPlainText(sdLastFormationName + " " + orderString);
-            graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName + " " + orderString);
-        } else {
+//        if (showOrderSequence) {
+//            graphicsTextItemSDStatusBarText_fixed->setPlainText(sdLastFormationName + " " + orderString);
+//            graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName + " " + orderString);
+//        } else {
             graphicsTextItemSDStatusBarText_fixed->setPlainText(sdLastFormationName);
             graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName);
-        }
+//        }
     }
 }
 
@@ -801,8 +801,8 @@ void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
 
 void MainWindow::set_sd_last_order(Order bOrder, Order gOrder) {
 //    qDebug() << "updating SD order..." << bOrder << "," << gOrder;
-    boyOrder = bOrder;
-    girlOrder = gOrder;
+//    boyOrder = bOrder;
+//    girlOrder = gOrder;
 }
 
 void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
