@@ -913,8 +913,8 @@ private: // SD
     QGraphicsTextItem *graphicsTextItemSDTopGroupText_fixed;
     QGraphicsTextItem *graphicsTextItemSDTopGroupText_animated;
 
-    int leftGroup, topGroup;  // groupness numbers, 0 = P, 1 = RH, 2 = O, 3 = C
-    Order boyOrder, girlOrder;     // order: 0 = in order, 1 = out of order, 2 = unknown order
+    int leftGroup, topGroup;        // groupness numbers, 0 = P, 1 = RH, 2 = O, 3 = C
+    Order boyOrder, girlOrder;      // order: 0 = in order, 1 = out of order, 2 = unknown order
 
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
@@ -934,12 +934,24 @@ private: // SD
     void render_sd_item_data(QTableWidgetItem *item);
     void SetAnimationSpeed(AnimationSpeed speed);
     void set_sd_last_formation_name(const QString&);
-    void set_sd_last_groupness(int l, int t); // update groupness strings
-    void set_sd_last_order(Order bOrder, Order gOrder);  // update order strings
+    void set_sd_last_groupness(); // update groupness strings
 
     bool replayGain_dB(QString filepath); // async call
 
 private:
+    void decode_formation_into_dancer_destinations(const QStringList &sdformation, QList<SDDancer> &sdpeople);
+
+    // ORDER:
+    void inOrder(struct dancer dancers[]);
+    Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y);
+
+    // GROUPness:
+    bool sameGroup(int group1, int group2);
+    int whichGroup (struct dancer dancers[], bool top);
+    int groupNum(struct dancer dancers[], bool top, int coupleNum, int gender);
+
+    QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text);
+
     void reset_sd_dancer_locations();
     void startSDThread(dance_level dance_program);
     void restartSDThread(dance_level dance_program);

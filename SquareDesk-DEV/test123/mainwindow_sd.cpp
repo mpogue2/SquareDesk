@@ -142,28 +142,8 @@ static struct dancer dancers[8];
 
 #define BETWEEN(a, b, c) ((b <= a) && (a <= c))
 
-std::string orderToString(Order order, bool shortstring = false) {
-    if (shortstring) {
-        if (order == InOrder) {
-            return(std::string("in"));
-        } else if (order == OutOfOrder) {
-            return(std::string("out"));
-        } else {
-            return(std::string("?"));
-        }
-    } else {
-        if (order == InOrder) {
-            return(std::string("In Order"));
-        } else if (order == OutOfOrder) {
-            return(std::string("Out of Order"));
-        } else {
-            return(std::string("Unknown Order"));
-        }
-    }
-}
-
 // SEQUENCE ---------
-static Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y) {
+Order MainWindow::whichOrder(double p1_x, double p1_y, double p2_x, double p2_y) {
     double p1_deg = (180.0/M_PI) * atan2(p1_y, p1_x);
     double p2_deg = (180.0/M_PI) * atan2(p2_y, p2_x);
 
@@ -188,7 +168,8 @@ static Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y) {
 //    returns InOrder, if boys/girls are in order
 //            OutOfOrder, otherwise
 //            Unknown, if there is no defined ordering for this gender (e.g. dancers are colinear)
-static void inOrder(struct dancer dancers[], Order *bOrder, Order *gOrder) {
+void MainWindow::inOrder(struct dancer dancers[])
+{
 
     double minx, maxx, miny, maxy;
     minx = miny = 99;
@@ -234,14 +215,15 @@ static void inOrder(struct dancer dancers[], Order *bOrder, Order *gOrder) {
 //    qDebug() << "Boy1/2: " << boy1_x << boy1_y << boy2_x << boy2_y;
 //    qDebug() << "Girl1/2: " << girl1_x << girl1_y << girl2_x << girl2_y;
 
-    *bOrder = whichOrder(boy1_x, boy1_y, boy2_x, boy2_y);
-    *gOrder = whichOrder(girl1_x, girl1_y, girl2_x, girl2_y);
+    // set globals
+    boyOrder = whichOrder(boy1_x, boy1_y, boy2_x, boy2_y);
+    girlOrder = whichOrder(girl1_x, girl1_y, girl2_x, girl2_y);
 
 //    qDebug() << "Boys: " << orderToString(*bOrder).c_str() << ", Girls: " << orderToString(*gOrder).c_str();
 }
 
 // GROUPNESS --------
-static int groupNum(struct dancer dancers[], bool top, int coupleNum, int gender) {
+int MainWindow::groupNum(struct dancer dancers[], bool top, int coupleNum, int gender) {
 //    qDebug() << "searching: " << top << coupleNum << gender;
     for (int i = 0; i < 8; i++) {
         if (dancers[i].coupleNum == coupleNum && dancers[i].gender == gender) {
@@ -257,12 +239,12 @@ static int groupNum(struct dancer dancers[], bool top, int coupleNum, int gender
     return(-1);  // get rid of warning
 }
 
-static bool sameGroup(int group1, int group2) {
+bool MainWindow::sameGroup(int group1, int group2) {
 //    qDebug() << "checking: " << group1 << group2;
     return (group1 == group2 && group1 != -1 && group2 != -1);
 }
 
-static int whichGroup (struct dancer dancers[], bool top) {
+int MainWindow::whichGroup (struct dancer dancers[], bool top) {
     double minx, maxx, miny, maxy;
     minx = miny = 99;
     maxx = maxy = -99;
@@ -315,8 +297,10 @@ static int whichGroup (struct dancer dancers[], bool top) {
     return(group);
 }
 
-static void decode_formation_into_dancer_destinations(const QStringList &sdformation,
-                       QList<SDDancer> &sdpeople, int *lGroup, int *tGroup, Order *bOrder, Order *gOrder)
+// also sets leftGroup, topGroup, boyOrder, girlOrder in MainWindow object
+void MainWindow::decode_formation_into_dancer_destinations(
+        const QStringList &sdformation,
+        QList<SDDancer> &sdpeople)
 {
     int coupleNumber = -1;
     int girl = 0;
@@ -408,10 +392,10 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 
     // group-ness check ------------------------
 //    qDebug() << "CHECKING FOR LEFT GROUP ------";
-    *lGroup = whichGroup(dancers, false);
+    leftGroup = whichGroup(dancers, false);
 
 //    qDebug() << "CHECKING FOR TOP GROUP ------";
-    *tGroup = whichGroup(dancers, true);
+    topGroup = whichGroup(dancers, true);
 
 //    qDebug() << "------------------------------";
 
@@ -422,8 +406,8 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 //    *bOrder = inOrder(dancers, Boys);
 //    *gOrder = inOrder(dancers, Girls);
 
-    // determine order/sequence of boys and girls
-    inOrder(dancers, bOrder, gOrder);
+    // determine order/sequence of boys and girls, sets boyOrder, girlOrder
+    inOrder(dancers);
 
 //    qDebug() << "Boy order: " << *bOrder << ", Girl order: " << *gOrder;
 
@@ -573,18 +557,14 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
 }
 
 void MainWindow::reset_sd_dancer_locations() {
-    int lGroup, tGroup;
-    Order bOrder, gOrder;
-
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup, &bOrder, &gOrder);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup, &bOrder, &gOrder);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people); // also sets L/Tgroup and B/Gorder
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people);     // also sets L/Tgroup and B/Gorder
     // Easiest way to make sure dest and source are the same
     // FIX: Why is this done twice??
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people, &lGroup, &tGroup, &bOrder, &gOrder);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people, &lGroup, &tGroup, &bOrder, &gOrder);
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people); // also sets L/Tgroup and B/Gorder
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people);     // also sets L/Tgroup and B/Gorder
 
-    set_sd_last_groupness(lGroup, tGroup); // update groupness strings
-    set_sd_last_order(bOrder, gOrder);     // update order strings
+    set_sd_last_groupness(); // update groupness strings
 
     move_dancers(sd_animation_people, 1.0);
     move_dancers(sd_fixed_people, 1.0);
@@ -719,8 +699,29 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
     QRegularExpression re("resolve: \\d+ out of \\d+", QRegularExpression::CaseInsensitiveOption);
     sdLastFormationName.replace(re, "Resolve");
 
-    QString boyOrderString = QString(orderToString(boyOrder, true).c_str());
-    QString girlOrderString = QString(orderToString(girlOrder, true).c_str());
+    QString boyOrderString, girlOrderString;
+    switch (boyOrder) {
+        case InOrder:
+            boyOrderString = "in";
+            break;
+        case OutOfOrder:
+            boyOrderString = "out";
+            break;
+        default:
+            boyOrderString = "?";
+            break;
+    }
+    switch (girlOrder) {
+        case InOrder:
+            girlOrderString = "in";
+            break;
+        case OutOfOrder:
+            girlOrderString = "out";
+            break;
+        default:
+            girlOrderString = "?";
+            break;
+    }
     QString orderString = "[B:" + boyOrderString + " G:" + girlOrderString + "]";
 
     bool showOrderSequence = prefsManager.Getenableordersequence();
@@ -745,21 +746,18 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
     }
 }
 
-void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
+void MainWindow::set_sd_last_groupness() {
 //    qDebug() << "updating SD groupness...";
 
-    topGroup = tGroup;
-    leftGroup = lGroup; // FIX: these two lines are unused?
-
     QString leftGroupStr, topGroupStr;
-    switch (lGroup) {
+    switch (leftGroup) {
         case 0: leftGroupStr = "P"; break;
         case 1: leftGroupStr = "R"; break;
         case 2: leftGroupStr = "O"; break;
         case 3: leftGroupStr = "C"; break;
         default: leftGroupStr = "?"; break;
     }
-    switch (tGroup) {
+    switch (topGroup) {
         case 0: topGroupStr = "P"; break;
         case 1: topGroupStr = "R"; break;
         case 2: topGroupStr = "O"; break;
@@ -802,11 +800,11 @@ void MainWindow::set_sd_last_groupness(int lGroup, int tGroup) {
     }
 }
 
-void MainWindow::set_sd_last_order(Order bOrder, Order gOrder) {
-//    qDebug() << "updating SD order..." << bOrder << "," << gOrder;
-    boyOrder = bOrder;
-    girlOrder = gOrder;
-}
+//void MainWindow::set_sd_last_order(Order bOrder, Order gOrder) {
+////    qDebug() << "updating SD order..." << bOrder << "," << gOrder;
+////    boyOrder = bOrder;
+////    girlOrder = gOrder;
+//}
 
 void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
 {
@@ -856,12 +854,13 @@ void MainWindow::on_sd_update_status_bar(QString str)
     if (!sdformation.empty())
     {
         sd_redo_stack->checkpoint_formation(sdLastLine, formation);
-        int lGroup, tGroup;
-        Order bOrder, gOrder;
-        decode_formation_into_dancer_destinations(sdformation, sd_animation_people, &lGroup, &tGroup, &bOrder, &gOrder);
-        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people, &lGroup, &tGroup, &bOrder, &gOrder);
-        set_sd_last_groupness(lGroup, tGroup); // update groupness strings
-        set_sd_last_order(bOrder, gOrder);     // update order strings
+
+        decode_formation_into_dancer_destinations(sdformation, sd_animation_people);     // also sets L/Tgroup and B/Gorder
+        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people);         // also sets L/Tgroup and B/Gorder
+
+        set_sd_last_groupness(); // update groupness strings
+//        set_sd_last_order(boyOrder, girlOrder);     // update order strings
+
         set_sd_last_formation_name(str);  // this must be last to pull in the order strings (hack)
 
         sd_animation_t_value = sd_animation_delta_t;
@@ -1166,11 +1165,9 @@ void MainWindow::render_sd_item_data(QTableWidgetItem *item)
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
             {
-                int lGroup, tGroup;
-                Order bOrder, gOrder;
-                decode_formation_into_dancer_destinations(formationList, sd_animation_people, &lGroup, &tGroup, &bOrder, &gOrder);
-                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
-                set_sd_last_order(bOrder, gOrder);     // update groupness strings
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people);  // also sets L/Tgroup and B/Gorder
+                set_sd_last_groupness(); // update groupness strings
+//                set_sd_last_order(boyOrder, girlOrder);     // update order strings
 
                 set_sd_last_formation_name(formationList[0]); // must be last
                 formationList.removeFirst();
@@ -1319,11 +1316,9 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
             {
-                int lGroup, tGroup;
-                Order bOrder, gOrder;
-                decode_formation_into_dancer_destinations(formationList, sd_animation_people, &lGroup, &tGroup, &bOrder, &gOrder);
-                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
-                set_sd_last_order(bOrder, gOrder); // update groupness strings
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people);   // also sets L/Tgroup and B/Gorder
+                set_sd_last_groupness(); // update groupness strings
+//                set_sd_last_order(boyOrder, girlOrder); // update groupness strings
 
                 set_sd_last_formation_name(formationList[0]); // must be last
                 formationList.removeFirst();
@@ -2125,7 +2120,7 @@ void MainWindow::copy_selection_from_listWidgetSDOutput()
     QApplication::clipboard()->setText(selection);
 }
 
-static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text)
+QString MainWindow::render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text)
 {
     QString selection;
     QVariant v = imageItem->data(Qt::UserRole);
@@ -2148,9 +2143,7 @@ static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsS
             }
             else
             {
-                int lGroup, tGroup;
-                Order bOrder, gOrder;
-                decode_formation_into_dancer_destinations(formationList, people, &lGroup, &tGroup, &bOrder, &gOrder);
+                decode_formation_into_dancer_destinations(formationList, people);   // also sets L/Tgroup and B/Gorder
 //                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
                 move_dancers(people, 1);
                 QBuffer svgText;
