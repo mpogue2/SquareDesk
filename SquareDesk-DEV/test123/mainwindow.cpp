@@ -326,7 +326,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
-    Q_UNUSED(splash);
+    Q_UNUSED(splash)
+
+    mp3gain = nullptr; // must not count on this being initialized to zero
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
