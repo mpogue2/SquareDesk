@@ -1099,6 +1099,10 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         if (match.hasMatch())
         {
             QString move = match.captured(2).trimmed();
+            sdHasSubsidiaryCallContinuation = false;
+            if (move.contains("[") && !move.contains("]")) {
+                sdHasSubsidiaryCallContinuation = true;
+            }
             sdLastLine = match.captured(1).toInt();
             if (sdLastLine > 0 && !move.isEmpty())
             {
@@ -1117,7 +1121,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 QString callTiming;
                 
                 for (int i = 0 ; danceprogram_callinfo[i].name; ++i)
-                {
+                {n
                     if (danceprogram_callinfo[i].timing)
                     {
                         QString thisCallName(danceprogram_callinfo[i].name);
@@ -1148,6 +1152,13 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 //                qDebug() << "Appending additional call info " << lastCall;
                 moveItem->setText(lastCall);
             }
+        } else if (sdHasSubsidiaryCallContinuation) {
+                QTableWidgetItem *moveItem(ui->tableWidgetCurrentSequence->item(sdLastLine - 1, kColCurrentSequenceCall));
+                QString lastCall(moveItem->text());
+                lastCall += " " + str.trimmed();
+//                qDebug() << "Appending additional call info " << lastCall;
+                moveItem->setText(lastCall);
+                sdHasSubsidiaryCallContinuation = false;
         }
 
         // Drawing the people happens over in on_sd_update_status_bar
@@ -1688,6 +1699,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
             if (row < 0) row = 0;
             if (!cmd.compare(str_undo_last_call, Qt::CaseInsensitive))
             {
+                sdthread->do_user_input("refresh");
                 sd_redo_stack->did_an_undo();
             }
             else

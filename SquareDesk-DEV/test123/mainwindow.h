@@ -901,6 +901,7 @@ private: // SD
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;
+    bool sdHasSubsidiaryCallContinuation;
     bool sdLastLineWasResolve;
     bool sdOutputtingAvailableCalls;
     QList<SDAvailableCall> sdAvailableCalls;

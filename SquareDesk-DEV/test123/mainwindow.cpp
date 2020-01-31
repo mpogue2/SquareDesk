@@ -316,6 +316,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sd_animation_running(false),
     sdLastLine(-1),
     sdWasNotDrawingPicture(true),
+    sdHasSubsidiaryCallContinuation(false),
     sdLastLineWasResolve(false),
     sdOutputtingAvailableCalls(false),
     sdAvailableCalls(),
