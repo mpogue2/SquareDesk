@@ -5334,19 +5334,19 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
 }
 
-static QString getTitleColText(MyTableWidget *songTable,int row)
+static QString getTitleColText(MyTableWidget *songTable, int row)
 {
     return dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->text();
 }
 
-static QString getTitleColTitle(MyTableWidget *songTable,int row)
+static QString getTitleColTitle(MyTableWidget *songTable, int row)
 {
     QString title = getTitleColText(songTable, row);
     int where = title.indexOf(title_tags_remover);
     if (where >= 0) {
         title.truncate(where);
     }
-    title.replace("&quot;","\"");  // if filename contains a double quote
+    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
     return title;
 }
 
