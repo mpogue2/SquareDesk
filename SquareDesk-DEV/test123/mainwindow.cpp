@@ -1114,8 +1114,18 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     int songCount = 0;
     QString firstBadSongLine;
-    QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
-    firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+
+    QString oldCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+    QString newCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
+
+    if (QFileInfo::exists(newCurrentPlaylistFileName)) {
+        // if the V2 version exists, use it, and ignore the M3U file
+        firstBadSongLine = loadPlaylistFromFile(newCurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+    } else if (QFileInfo::exists(oldCurrentPlaylistFileName)) {
+        // if we didn't find a new V2 version, look for an old M3U version, and it present, load it.
+        // when saved next time, it will become a V2 CSV version.
+        firstBadSongLine = loadPlaylistFromFile(oldCurrentPlaylistFileName, songCount);  // load "current.m3u" (if doesn't exist, do nothing)
+    }
 
     t.elapsed(__LINE__);
 
@@ -2566,10 +2576,10 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    // Just before the app quits, save the current playlist state in "current.m3u", and it will be reloaded
+    // Just before the app quits, save the current playlist state in "current.csv", and it will be reloaded
     //   when the app starts up again.
     // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
-    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
     saveCurrentPlaylistToFile(PlaylistFileName);
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
@@ -6759,6 +6769,8 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     // --------
     QList<PlaylistExportRecord> exports;
 
+    bool savingToM3U = PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive);
+
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
@@ -6773,8 +6785,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             // TODO: reconcile int here with double elsewhere on insertion
             PlaylistExportRecord rec;
             rec.index = playlistIndex.toInt();
-            rec.title = pathToMP3.replace(musicRootPath, "");  // NOTE: this is now a relative (to the musicDir) path
-                                                               //    that should survive moving musicDir or sharing it via Dropbox or Google Drive
+            if (savingToM3U) {
+                rec.title = pathToMP3;  // NOTE: M3U must remain absolute
+                                        //    it will NOT survive moving musicDir or sharing it via Dropbox or Google Drive
+            } else {
+                rec.title = pathToMP3.replace(musicRootPath, "");  // NOTE: this is now a relative (to the musicDir) path
+                                                                   //    that should survive moving musicDir or sharing it via Dropbox or Google Drive
+            }
             rec.pitch = pitch;
             rec.tempo = tempo;
             exports.append(rec);
