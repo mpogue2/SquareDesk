@@ -2328,7 +2328,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     contextMenu.addAction(&action4);
 
     QAction action4a("Square Your Sets", this);
-    connect(&action4a, SIGNAL(triggered()), this, SLOT(square_your_sets()));
+    connect(&action4a, SIGNAL(triggered()), this, SLOT(on_actionSDSquareYourSets_triggered()));
     contextMenu.addAction(&action4a);
 
     contextMenu.addSeparator(); // ---------------
