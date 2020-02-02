@@ -7291,6 +7291,10 @@ void MainWindow::PlaylistItemToTop() {
     }
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7334,6 +7338,10 @@ void MainWindow::PlaylistItemToBottom() {
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
     }
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7365,6 +7373,10 @@ void MainWindow::PlaylistItemMoveUp() {
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
     // TODO: turn on sorting again
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7398,6 +7410,10 @@ void MainWindow::PlaylistItemMoveDown() {
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
     // TODO: turn on sorting again
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7429,6 +7445,10 @@ void MainWindow::PlaylistItemRemove() {
     // and then set this one to #LAST
     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // removed an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 
