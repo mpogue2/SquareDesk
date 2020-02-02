@@ -6524,6 +6524,12 @@ QStringList MainWindow::parseCSV(const QString &string)
     return fields;
 }
 
+bool MainWindow::compareRelative(QString relativePlaylistPath, QString absolutePathstackPath) {
+    // compare paths with MusicDir stripped off of the left (relative compare to root of MusicDir)
+    QString stripped2 = absolutePathstackPath.replace(musicRootPath, "");
+    return(relativePlaylistPath == stripped2);
+}
+
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
 
@@ -6551,13 +6557,17 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
             QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
 
+            // V1 playlists use absolute paths, V2 playlists use relative paths
+            // This allows two things:
+            //   - moving an entire Music Directory from one place to another, and playlists still work
+            //   - sharing an entire Music Directory across platforms, and playlists still work
+            bool v2playlist = header.contains("relpath");
+            bool v1playlist = !v2playlist;
+
             while (!in.atEnd()) {
                 QString line = in.readLine();
 
-                if (line == "abspath") {
-                    // V1 of the CSV file format has exactly one field, an absolute pathname in quotes
-                }
-                else if (line == "") {
+                if (line == "") {
                     // ignore, it's a blank line
                 }
                 else {
@@ -6571,8 +6581,10 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
                         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
 
-                        if (list1[0] == pathToMP3) { // FIX: this is fragile, if songs are moved around, since absolute paths are used.
-
+                        if ( (v1playlist && (list1[0] == pathToMP3)) ||             // compare absolute pathnames (fragile, old V1 way)
+                             (v2playlist && compareRelative(list1[0], pathToMP3))   // compare relative pathnames (better, new V2 way)
+                           ) {
+                            // qDebug() << "MATCH::" << list1[0] << pathToMP3;
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
 
@@ -6761,8 +6773,8 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             // TODO: reconcile int here with double elsewhere on insertion
             PlaylistExportRecord rec;
             rec.index = playlistIndex.toInt();
-//            rec.title = songTitle;
-            rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
+            rec.title = pathToMP3.replace(musicRootPath, "");  // NOTE: this is now a relative (to the musicDir) path
+                                                               //    that should survive moving musicDir or sharing it via Dropbox or Google Drive
             rec.pitch = pitch;
             rec.tempo = tempo;
             exports.append(rec);
@@ -6803,7 +6815,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     else if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
-            stream << "abspath,pitch,tempo" << endl;
+            stream << "relpath,pitch,tempo" << endl;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
 
             foreach (const PlaylistExportRecord &rec, exports)
             {

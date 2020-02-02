@@ -939,6 +939,8 @@ private: // SD
 
     bool replayGain_dB(QString filepath); // async call
 
+    bool compareRelative(QString s1, QString s2);  // compare pathnames relative to MusicDir
+
 private:
     void decode_formation_into_dancer_destinations(const QStringList &sdformation, QList<SDDancer> &sdpeople);
 
