@@ -10984,16 +10984,18 @@ void MainWindow::MP3Gain_finished(int exitCode) {
 
 void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
 {
-    Q_UNUSED(showGroupStation)
+//    Q_UNUSED(showGroupStation)
 //    qDebug() << "TOGGLED: " << showGroupStation;
+    ui->actionShow_group_station->setChecked(showGroupStation); // when called from constructor
     prefsManager.Setenablegroupstation(showGroupStation);  // persistent menu item
     on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
 }
 
 void MainWindow::on_actionShow_order_sequence_toggled(bool showOrderSequence)
 {
-    Q_UNUSED(showOrderSequence)
+//    Q_UNUSED(showOrderSequence)
 //    qDebug() << "TOGGLED ORDER SEQUENCE: " << showOrderSequence;
+    ui->actionShow_order_sequence->setChecked(showOrderSequence); // when called from constructor
     prefsManager.Setenableordersequence(showOrderSequence);  // persistent menu item
     on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
 }
