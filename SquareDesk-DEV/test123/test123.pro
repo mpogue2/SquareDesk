@@ -9,6 +9,7 @@ QT       += core gui sql network printsupport svg
 macx {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
+    QMAKE_INFO_PLIST = $$PWD/Info.plist
 }
 
 win32:CONFIG(debug, debug|release): {
@@ -648,6 +649,7 @@ OBJECTIVE_SOURCES += \
     macUtils.mm
 
 DISTFILES += \
+    Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
     cuesheet2.css \

@@ -14,6 +14,7 @@ SUBDIRS += quazip mp3gain
 #sdApp.depends = sd
 #test123.depends = sd taglib html-tidy sdlib
 test123.depends = taglib html-tidy sdlib
+
 }
 
 # WIN32: where to find the sub projects -----------------
