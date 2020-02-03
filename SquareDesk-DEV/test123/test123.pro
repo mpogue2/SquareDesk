@@ -64,6 +64,7 @@ SOURCES += main.cpp\
     sdlineedit.cpp \
     downloadmanager.cpp \
     sdinterface.cpp \
+    sdformationutils.cpp \
     mainwindow_sd.cpp \
     songtitlelabel.cpp \
     sdsequencecalllabel.cpp \
@@ -120,6 +121,7 @@ HEADERS  += mainwindow.h \
     sdlineedit.h \
     downloadmanager.h \
     sdinterface.h \
+    sdformationutils.h \
     songtitlelabel.h \
     sdsequencecalllabel.h \
     perftimer.h \
