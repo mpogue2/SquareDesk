@@ -929,6 +929,8 @@ private: // SD
     QShortcut *shortcutSDCurrentSequenceCopy;
     SDRedoStack *sd_redo_stack;
 
+    QString prettify(QString call);
+
     double sd_animation_t_value;
     double sd_animation_delta_t;
     double sd_animation_msecs_per_frame;

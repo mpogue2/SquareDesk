@@ -964,6 +964,30 @@ void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidg
     do_sd_double_click_call_completion(item);
 }
 
+QString toCamelCase(const QString& s)
+{
+    QStringList parts = s.split(' ', QString::SkipEmptyParts);
+    for (int i = 0; i < parts.size(); ++i)
+        parts[i].replace(0, 1, parts[i][0].toUpper());
+
+    return parts.join(" ");
+}
+
+QString MainWindow::prettify(QString call) {
+    QString call1 = toCamelCase(call);  // HEADS square thru 4 --> Heads Square Thru 4
+
+    // from Mike's process_V1.5.R
+    // ALL CAPS the who of each line (the following explicitly defined terms, at the beginning of a line)
+    // This matches up with what Mike is doing for Ceder cards.
+    QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)");
+    QRegularExpressionMatch match = who.match(call1);
+    if (match.hasMatch()) {
+        QString matched = match.captured(0);
+        call1.replace(match.capturedStart(), match.capturedLength(), matched.toUpper());  // replace the match with the toUpper of the match
+    }
+
+    return(call1);
+}
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
@@ -1040,7 +1064,10 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
 
 #ifdef NO_TIMING_INFO
-                QTableWidgetItem *moveItem(new QTableWidgetItem(match.captured(2)));
+                QString theCall = match.captured(2);
+                QString thePrettifiedCall = prettify(theCall);
+
+                QTableWidgetItem *moveItem(new QTableWidgetItem(thePrettifiedCall));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
 #else
@@ -1462,6 +1489,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 void MainWindow::submit_lineEditSDInput_contents_to_sd()
 {
     QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
+    cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
     ui->lineEditSDInput->clear();
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
