@@ -1258,6 +1258,19 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             {
                 sizes.append(sizeStr.toInt());
             }
+            // NOTE: assumes two widgets
+            if (sizes[0] == 0) {
+                sizes[0] += 300;
+                sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minheight of the checkers widget
+                                  //   so that user is not confused when the checkers widget disappears by dragging upward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+            if (sizes[1] == 0) {
+                sizes[0] -= 300;
+                sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minheight of the menu options widget
+                                  //   so that user is not confused when the menu options widget disappears by dragging downward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
             ui->splitterSDTabVertical->setSizes(sizes);
         }
     }
@@ -1270,6 +1283,21 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             {
                 sizes.append(sizeStr.toInt());
             }
+
+            // NOTE: assumes two widgets
+            if (sizes[0] == 0) {
+                sizes[0] += 300;
+                sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minwidth of the current sequence widget
+                                  //   so that user is not confused when the current sequence widget disappears by dragging leftward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+            if (sizes[1] == 0) {
+                sizes[0] -= 300;
+                sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minwidth of the checkers widget
+                                  //   so that user is not confused when the menu options widget disappears by dragging rightward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+
             ui->splitterSDTabHorizontal->setSizes(sizes);
         }
     }
