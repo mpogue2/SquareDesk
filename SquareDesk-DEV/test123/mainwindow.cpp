@@ -1319,7 +1319,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 void MainWindow::musicRootModified(QString s)
 {
-    Q_UNUSED(s);
+    Q_UNUSED(s)
     Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
     int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
     // reload the musicTable.  Note that it will switch to default sort order.
@@ -7524,7 +7524,7 @@ void MainWindow::PlaylistItemRemove() {
 
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 {
-    Q_UNUSED(pos);
+    Q_UNUSED(pos)
     QStringList currentTags;
 
     if (ui->songTable->selectionModel()->hasSelection()) {
@@ -8032,7 +8032,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 }
 
 void MainWindow::loadGlobalSettingsForSong(QString songTitle) {
-   Q_UNUSED(songTitle);
+   Q_UNUSED(songTitle)
 //   qDebug() << "loadGlobalSettingsForSong";
    cBass.SetGlobals();
 }
@@ -8391,7 +8391,7 @@ void MainWindow::readPSData()
 
 void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
 {
-    Q_UNUSED(error);
+    Q_UNUSED(error)
 }
 
 void MainWindow::pocketSphinx_started()
@@ -11029,7 +11029,7 @@ void MainWindow::readMP3GainData() {
 }
 
 void MainWindow::MP3Gain_errorOccurred(QProcess::ProcessError error) {
-    Q_UNUSED(error);
+    Q_UNUSED(error)
     songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
     cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
     qDebug() << "MP3Gain_errorOccurred";

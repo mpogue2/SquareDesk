@@ -812,7 +812,7 @@ void SquareDesk_iofull::display_help()
 
 void SquareDesk_iofull::terminate(int code)
 {
-    Q_UNUSED(code);
+    Q_UNUSED(code)
 //    qWarning() << "SquareDesk_iofull::terminate(" <<  code << ");";
 }
 
