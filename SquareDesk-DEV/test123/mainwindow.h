@@ -188,6 +188,8 @@ public:
 
     double songLoadedReplayGain_dB;
 
+    bool lyricsCopyIsAvailable;
+
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
@@ -229,6 +231,8 @@ public:
 public slots:
 
     void changeApplicationState(Qt::ApplicationState state);
+
+    void LyricsCopyAvailable(bool yes);
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

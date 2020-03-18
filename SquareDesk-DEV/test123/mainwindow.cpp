@@ -296,6 +296,9 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
         }
     }
     
+void MainWindow::LyricsCopyAvailable(bool yes) {
+    lyricsCopyIsAvailable = yes;
+}
 
 
 // ----------------------------------------------------------------------
@@ -328,6 +331,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sd_redo_stack(new SDRedoStack())
 {
     Q_UNUSED(splash)
+
+    lyricsCopyIsAvailable = false;
 
     mp3gain = nullptr; // must not count on this being initialized to zero
 
@@ -1306,6 +1311,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         sdSliderSidesAreSwapped = true;
         ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
     }
+
+    connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
+            this, SLOT(LyricsCopyAvailable(bool)));
+
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -3818,6 +3827,15 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
+        int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
+        bool tabIsLyricsOrPatter = (ui->tabWidget->tabText(cindex) == "Lyrics" || ui->tabWidget->tabText(cindex) == "*Lyrics" ||  // and I'm on the Lyrics/Patter tab
+                                    ui->tabWidget->tabText(cindex) == "Patter" || ui->tabWidget->tabText(cindex) == "*Patter");
+
+        bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
+
+//        qDebug() << "tabIsLyricsOrPatter: " << tabIsLyricsOrPatter << ", cmdC_KeyPressed: " << cmdC_KeyPressed <<
+//                    "lyricsCopyIsAvailable: " << maybeMainWindow->lyricsCopyIsAvailable << "has focus: " << ui->textBrowserCueSheet->hasFocus();
+
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
         // UNLESS it's one of the search/timer edit fields and the ESC key is pressed (we must still allow
@@ -3828,6 +3846,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             && KeyEvent->key() == Qt::Key_Tab)
         {
             maybeMainWindow->do_sd_tab_completion();
+            return true;
+        }
+        else if (cmdC_KeyPressed                        // When CMD-C is pressed
+                 && tabIsLyricsOrPatter                 // and we're on the Lyrics editor tab
+                 && maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
+                 ) {
+            ui->textBrowserCueSheet->copy();  // Then let's do the copy to clipboard manually anyway, even though we might not have focus
             return true;
         }
         else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
