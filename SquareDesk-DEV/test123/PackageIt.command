@@ -38,10 +38,12 @@ QT_VERSION="5_9_3"   # same thing, but with underscores (yes, change both of the
 
 #MANUAL="SquareDeskManual.pdf"
 
+MIKEBUILDDIR="/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_VERSION}_clang_64bit5-${WHICH}"
+
 # ------------------------------------------------------------------------
 echo Now running otool to fixup libraries...
 # Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
-pushd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_VERSION}_clang_64bit5-${WHICH}/test123/SquareDesk.app/Contents/MacOS
+pushd ${MIKEBUILDDIR}/test123/SquareDesk.app/Contents/MacOS
 otool -L SquareDesk | egrep "qua|tidy"
 install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
 install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
@@ -90,6 +92,14 @@ rm -rf "${STAGING_DIR}" "${DMG_TMP}" "${DMG_FINAL}"
 mkdir -p "${STAGING_DIR}"
 #cp -rpf "${APP_NAME}.app" "${STAGING_DIR}"
 cp -Rpf "${APP_NAME}.app" "${STAGING_DIR}"
+
+# ----------------
+# I am not sure why the .plist file is not getting copied into the executable.
+#  Do that here to be sure it's in.
+echo "**** COPYING IN PLIST FILE...."
+SOURCEDIR="../../SquareDesk-DEV"
+cp ${SOURCEDIR}/test123/Info.plist "${STAGING_DIR}/${APP_NAME}.app/Contents/Info.plist"
+# ----------------
 
 # copy in the SquareDesk Manual
 #cp -rpf "${MANUAL}" "${STAGING_DIR}"
