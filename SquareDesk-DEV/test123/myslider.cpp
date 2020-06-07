@@ -190,7 +190,7 @@ void MySlider::paintEvent(QPaintEvent *e)
 #if defined(Q_OS_WIN)
         pen.setWidth(10);
 #endif
-        int middle = height/2;
+        int middle = height/2 + 3;
 #if defined(Q_OS_WIN)
         // Windows sliders are drawn differently, so colors are just
         //   under the horizontal bar on Windows (only).  Otherwise
