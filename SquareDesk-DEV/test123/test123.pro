@@ -276,6 +276,7 @@ macx {
     DISTFILES += desk1d.icns
     DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
 
+    # ERROR: Could not resolve SDK Path for 'macosx10.14'
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
@@ -284,7 +285,7 @@ macx {
     #   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
     #   You must delete that file manually right now, when the MAC SDK version changes.
     #   See: https://bugreports.qt.io/browse/QTBUG-43015
-    QMAKE_MAC_SDK = macosx10.14
+    QMAKE_MAC_SDK = macosx10.15
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
