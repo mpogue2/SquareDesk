@@ -9152,6 +9152,7 @@ void MainWindow::setFontSizes()
     ui->typeSearch->setFont(font);
     ui->labelSearch->setFont(font);
     ui->titleSearch->setFont(font);
+    ui->lineEditSDInput->setFont(font);  // SD Input box needs to resize, too.
     ui->clearSearchButton->setFont(font);
     ui->songTable->setFont(font);
 
@@ -9319,6 +9320,7 @@ void MainWindow::adjustFontSizes()
     ui->typeSearch->setFixedHeight(searchBoxesHeight[index]);
     ui->labelSearch->setFixedHeight(searchBoxesHeight[index]);
     ui->titleSearch->setFixedHeight(searchBoxesHeight[index]);
+    ui->lineEditSDInput->setFixedHeight(searchBoxesHeight[index]);
 
     ui->dateTimeEditIntroTime->setFixedHeight(searchBoxesHeight[index]);  // this scales the intro/outro button height, too...
     ui->dateTimeEditOutroTime->setFixedHeight(searchBoxesHeight[index]);
@@ -9333,6 +9335,7 @@ void MainWindow::adjustFontSizes()
     ui->typeSearch->setFont(currentFont);
     ui->labelSearch->setFont(currentFont);
     ui->titleSearch->setFont(currentFont);
+    ui->lineEditSDInput->setFont(currentFont);
 
     ui->tempoLabel->setFont(currentFont);
     ui->pitchLabel->setFont(currentFont);
