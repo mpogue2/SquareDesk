@@ -1637,8 +1637,10 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     }
 
     // handle "square thru" -> "square thru 4"
-    if (cmd == "square thru") {
-        cmd = "square thru 4";
+    //  and "heads square thru" --> "heads square thru 4"
+    //  and "sides..."
+    if (cmd.endsWith("square thru")) {
+        cmd.replace("square thru", "square thru 4");
     }
 
     // SD COMMANDS -------
@@ -1650,6 +1652,15 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     }
     else
     {
+        if (ui->tableWidgetCurrentSequence->rowCount() == 0 && !cmd.contains("1p2p")) {
+            if (cmd.startsWith("heads ")) {
+                sdthread->do_user_input("heads start");
+                cmd.replace("heads ", "");
+            } else if (cmd.startsWith("sides")) {
+                sdthread->do_user_input("sides start");
+                cmd.replace("sides ", "");
+            }
+        }
         if (sdthread->do_user_input(cmd))
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
