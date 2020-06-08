@@ -1154,7 +1154,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
+             <enum>QSlider::TicksAbove</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
