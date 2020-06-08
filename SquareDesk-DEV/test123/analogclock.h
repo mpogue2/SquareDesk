@@ -128,6 +128,10 @@ public:
 
 private slots:
     void redrawTimerExpired();
+    void clearClockColoring();
+
+public slots:
+    void customMenuRequested(QPoint pos);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

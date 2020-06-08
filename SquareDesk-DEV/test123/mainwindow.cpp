@@ -609,6 +609,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // analog clock -----
     analogClock = new AnalogClock(this);
+    analogClock->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(analogClock, SIGNAL(customContextMenuRequested(QPoint)), analogClock, SLOT(customMenuRequested(QPoint)));
     ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
     analogClock->setFixedSize(QSize(110,110));
     analogClock->setEnabled(true);

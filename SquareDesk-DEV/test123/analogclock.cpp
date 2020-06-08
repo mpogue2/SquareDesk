@@ -36,10 +36,12 @@ AnalogClock::AnalogClock(QWidget *parent)
     analogClockTimer->start(1000);
 
     // initially, all minutes have no session color
-    for (int i = 0; i < 60; i++) {
-        typeInMinute[i] = NONE;
-        lastHourSet[i] = -1;     // invalid hour, matches no real hour
-    }
+//    for (int i = 0; i < 60; i++) {
+//        typeInMinute[i] = NONE;
+//        lastHourSet[i] = -1;     // invalid hour, matches no real hour
+//    }
+
+    clearClockColoring();
 
     coloringIsHidden = true;
 //    tipLengthAlarm = false;
@@ -447,4 +449,25 @@ void AnalogClock::resetPatter(void)
 void AnalogClock::setSingingCallSection(QString s)
 {
     singingCallSection = s;
+}
+
+void AnalogClock::customMenuRequested(QPoint pos){
+    Q_UNUSED(pos)
+
+    QMenu *menu = new QMenu(this);
+    QAction action1("Clear clock coloring", this);
+    connect(&action1, SIGNAL(triggered()), this, SLOT(clearClockColoring()));
+    menu -> addAction(&action1);
+
+    menu->popup(QCursor::pos());
+    menu->exec();
+
+    delete(menu);
+}
+
+void AnalogClock::clearClockColoring() {
+    for (int i = 0; i < 60; i++) {
+        typeInMinute[i] = NONE;
+        lastHourSet[i] = -1;     // invalid hour, matches no real hour
+    }
 }
