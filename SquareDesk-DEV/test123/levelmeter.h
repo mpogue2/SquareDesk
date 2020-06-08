@@ -39,7 +39,7 @@
 ****************************************************************************/
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016, 2017, 2018, 2019, 2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -66,7 +66,8 @@
 #ifndef LEVELMETER_H
 #define LEVELMETER_H
 
-#include <QTime>
+//#include <QTime>
+#include <QElapsedTimer>
 #include <QWidget>
 
 /**
@@ -115,7 +116,7 @@ private:
     /**
      * Time at which m_peakLevel was last changed.
      */
-    QTime m_peakLevelChanged;
+    QElapsedTimer m_peakLevelChanged;
 
     /**
      * Rate at which peak level bar decays.
@@ -132,7 +133,7 @@ private:
     /**
      * Time at which m_peakHoldLevel was last changed.
      */
-    QTime m_peakHoldLevelChanged;
+    QElapsedTimer m_peakHoldLevelChanged;
 
     QTimer *m_redrawTimer;
 

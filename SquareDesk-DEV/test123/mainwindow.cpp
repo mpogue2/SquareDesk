@@ -38,6 +38,7 @@
 #include <QNetworkRequest>
 #include <QProcess>
 #include <QProgressDialog>
+#include <QRandomGenerator>
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QStorageInfo>
@@ -734,19 +735,19 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // define type names (before reading in the music filenames!) ------------------
     QString value;
     value = prefsManager.GetMusicTypeSinging();
-    songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+    songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypePatter();
-    songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+    songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypeExtras();
-    songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+    songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypeCalled();
-    songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+    songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
 
     value = prefsManager.GetToggleSingingPatterSequence();
-    songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+    songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
 
     t.elapsed(__LINE__);
 
@@ -914,7 +915,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             Qt::LeftToRight,
             Qt::AlignCenter,
             size(),
-            qApp->desktop()->availableGeometry()
+//            qApp->desktop()->availableGeometry()
+            QGuiApplication::screens()[0]->geometry()
         )
     );
 
@@ -2756,7 +2758,8 @@ void MainWindow::randomizeFlashCall() {
 
     int newRandCallIndex;
     do {
-        newRandCallIndex = qrand() % numCalls;
+//        newRandCallIndex = qrand() % numCalls;
+        newRandCallIndex = QRandomGenerator::global()->bounded(numCalls); // 0 thru numCalls-1
     } while (newRandCallIndex == randCallIndex);
     randCallIndex = newRandCallIndex;
 }
@@ -3706,7 +3709,8 @@ void MainWindow::on_UIUpdateTimerTick(void)
     // -----------------------
     // about once a second, poll for volume changes
     newVolumeList = getCurrentVolumes();  // get the current state of the world
-    qSort(newVolumeList);  // sort to allow direct comparison
+//    qSort(newVolumeList);  // sort to allow direct comparison
+    std::sort(newVolumeList.begin(), newVolumeList.end());
     if(lastKnownVolumeList == newVolumeList){
         // This space intentionally blank.
     } else {
@@ -4687,7 +4691,8 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
     t.elapsed(__LINE__);
 
-    qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
+//    qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
+    std::sort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
     QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
     while (iterRanked.hasNext())
     {
@@ -5661,7 +5666,7 @@ void MainWindow::loadMusicList()
         TableNumberItem *newTableItem4 = new TableNumberItem(s2);
 
         newTableItem4->setTextAlignment(Qt::AlignCenter);                           // editable by default
-        newTableItem4->setTextColor(textCol);
+        newTableItem4->setForeground(textCol);
         ui->songTable->setItem(ui->songTable->rowCount()-1, kNumberCol, newTableItem4);      // add it to column 0
 
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
@@ -6015,7 +6020,7 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
         QTextStream stream(&file);
         for (int i = 0; fileLines[i]; ++i)
         {
-            stream << fileLines[i] << endl;
+            stream << fileLines[i] << Qt::endl;
         }
         programs << outputFile;
     }
@@ -6484,19 +6489,19 @@ void MainWindow::on_actionPreferences_triggered()
         {
             QString value;
             value = prefsManager.GetMusicTypeSinging();
-            songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+            songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypePatter();
-            songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+            songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypeExtras();
-            songTypeNamesForExtras = value.toLower().split(";", QString::KeepEmptyParts);
+            songTypeNamesForExtras = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypeCalled();
-            songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
+            songTypeNamesForCalled = value.split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetToggleSingingPatterSequence();
-            songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+            songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
@@ -6851,7 +6856,8 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         }
     }
 
-    qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);
+//    qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);
+    std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);
     // TODO: strip the initial part of the path off the Paths, e.g.
     //   /Users/mpogue/__squareDanceMusic/patter/C 117 - Restless Romp (Patter).mp3
     //   becomes
@@ -6867,13 +6873,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
             QTextStream stream(&file);
-            stream << "#EXTM3U" << endl << endl;
+            stream << "#EXTM3U" << Qt::endl << Qt::endl;
 
             // list is auto-sorted here
             foreach (const PlaylistExportRecord &rec, exports)
             {
-                stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
-                stream << rec.title << endl;
+                stream << "#EXTINF:-1," << Qt::endl;  // nothing after the comma = no special name
+                stream << rec.title << Qt::endl;
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -6885,13 +6891,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     else if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
-            stream << "relpath,pitch,tempo" << endl;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
+            stream << "relpath,pitch,tempo" << Qt::endl;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
 
             foreach (const PlaylistExportRecord &rec, exports)
             {
                 stream << "\"" << rec.title << "\"," <<
                     rec.pitch << "," <<
-                    rec.tempo << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
+                    rec.tempo << Qt::endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -8121,7 +8127,8 @@ QStringList MainWindow::getCurrentVolumes() {
     }
 #endif
 
-    qSort(volumeDirList);     // always return sorted, for convenient comparisons later
+//    qSort(volumeDirList);     // always return sorted, for convenient comparisons later
+    std::sort(volumeDirList.begin(), volumeDirList.end());
 
     return(volumeDirList);
 }
@@ -8137,7 +8144,8 @@ void MainWindow::on_newVolumeMounted() {
     if (lastKnownVolumeList.length() < newVolumeList.length()) {
         // ONE OR MORE VOLUMES APPEARED
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S NEW (if more than 1)
-        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+//        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+        newVolumes = QSet<QString>(newVolumeList.begin(), newVolumeList.end()).subtract(QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()));
         foreach (const QString &item, newVolumes) {
             newVolume = item;  // first item is the volume added
         }
@@ -8198,7 +8206,8 @@ void MainWindow::on_newVolumeMounted() {
     } else if (lastKnownVolumeList.length() > newVolumeList.length()) {
         // ONE OR MORE VOLUMES WENT AWAY
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
-        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+//        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+        goneVolumes = QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()).subtract(QSet<QString>(newVolumeList.begin(), newVolumeList.end()));
         foreach (const QString &item, goneVolumes) {
             goneVolume = item;
         }
@@ -8680,19 +8689,19 @@ void MainWindow::on_actionStartup_Wizard_triggered()
 
         QString value;
         value = prefsManager.GetMusicTypeSinging();
-        songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+        songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypePatter();
-        songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+        songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypeExtras();
-        songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+        songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypeCalled();
-        songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+        songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
 
         value = prefsManager.GetToggleSingingPatterSequence();
-        songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+        songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
@@ -9862,7 +9871,8 @@ void MainWindow::on_actionFilePrint_triggered()
             }
         }
 
-        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+//        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+        std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
 
         QString toBePrinted = "PLAYLIST\n\n";
 
@@ -10228,11 +10238,12 @@ void MainWindow::readFlashCallsList() {
         }
     }
 //    qDebug() << "Flash calls" << flashCalls;
-    qsrand(static_cast<uint>(QTime::currentTime().msec()));  // different random sequence of calls each time, please.
+//    qsrand(static_cast<uint>(QTime::currentTime().msec()));  // different random sequence of calls each time, please.
     if (flashCalls.length() == 0) {
         randCallIndex = 0;
     } else {
-        randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
+//        randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
+        randCallIndex = QRandomGenerator::global()->bounded(flashCalls.length());   // start out with a number other than zero, please.
     }
 
 //    qDebug() << "flashCalls: " << flashCalls;
@@ -10749,7 +10760,7 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     QFile outFile(logFilePath);
     outFile.open(QIODevice::WriteOnly | QIODevice::Append);
     QTextStream ts(&outFile);
-    ts << txt << endl;
+    ts << txt << Qt::endl;
     outFile.close();
 
     if (type == QtFatalMsg) {
