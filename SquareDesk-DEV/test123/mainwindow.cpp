@@ -617,6 +617,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     analogClock->setVisible(true);
     ui->gridLayout_2->setAlignment(analogClock, Qt::AlignHCenter);  // center the clock horizontally
 
+    ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
+
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
@@ -11105,3 +11108,34 @@ void MainWindow::on_actionShow_order_sequence_toggled(bool showOrderSequence)
     prefsManager.Setenableordersequence(showOrderSequence);  // persistent menu item
     on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
 }
+
+void MainWindow::customLyricsMenuRequested(QPoint pos) {
+    Q_UNUSED(pos)
+
+    if (loadedCuesheetNameWithPath != "" && !loadedCuesheetNameWithPath.contains(".template.html")) {
+        // context menu is available, only if we have loaded a cuesheet
+        QMenu *menu = new QMenu(this);
+#if defined(Q_OS_MAC)
+        menu->addAction( "Reveal in Finder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_WIN)
+        menu->addAction( "Show in Explorer" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_LINUX)
+        menu->addAction( "Open containing folder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+        menu->popup(QCursor::pos());
+        menu->exec();
+
+        delete(menu);
+    }
+}
+
+void MainWindow::revealLyricsFileInFinder() {
+//    qDebug() << "path: " << loadedCuesheetNameWithPath;
+    showInFinderOrExplorer(loadedCuesheetNameWithPath);
+}
+

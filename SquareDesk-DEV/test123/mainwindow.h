@@ -233,6 +233,7 @@ public slots:
     void changeApplicationState(Qt::ApplicationState state);
 
     void LyricsCopyAvailable(bool yes);
+    void customLyricsMenuRequested(QPoint pos);
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -365,6 +366,7 @@ private slots:
     void editTags();
     void loadSong();
     void revealInFinder();
+    void revealLyricsFileInFinder();
 
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
