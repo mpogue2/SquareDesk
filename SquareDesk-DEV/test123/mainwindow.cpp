@@ -1313,15 +1313,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             ui->splitterSDTabHorizontal->setSizes(sizes);
         }
     }
+
+    sdSliderSidesAreSwapped = false;  // start out NOT swapped
     if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides())
     {
+        // if we SHOULD be swapped, swap them...
         sdSliderSidesAreSwapped = true;
         ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
     }
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
-
 }
 
 void MainWindow::musicRootModified(QString s)
@@ -6437,10 +6439,10 @@ void MainWindow::on_actionPreferences_triggered()
 
         if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides() != sdSliderSidesAreSwapped)
         {
+            // if they are in the wrong swappage, swap them.  This is a toggle.
             sdSliderSidesAreSwapped = prefsManager.GetSwapSDTabInputAndAvailableCallsSides();
             ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
         }
-        
 
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
