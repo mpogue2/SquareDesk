@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -52,7 +52,7 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent = 0);
+    PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent = nullptr); // 0);
     ~PreferencesDialog();
     void finishPopulation();
 
@@ -98,6 +98,7 @@ public:
 #define CONFIG_ATTRIBUTE_COMBO(control, name, default) int Get##name() const; void Set##name(int value);
 #define CONFIG_ATTRIBUTE_COLOR(control, name, default) QString Get##name() const; void Set##name(QString value);
 #define CONFIG_ATTRIBUTE_INT(control, name, default) int Get##name() const; void Set##name(int value);
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default) int Get##name() const; void Set##name(int value);
 
     #include "prefs_options.h"
 
@@ -110,6 +111,7 @@ public:
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_INT
+#undef CONFIG_ATTRIBUTE_SLIDER
 
 private slots:
     void on_chooseMusicPathButton_clicked();
@@ -146,6 +148,30 @@ private slots:
 
     void on_afterBreakAction_currentIndexChanged(int index);
 
+    void on_thresholdDial_valueChanged(int value);
+
+    void on_ratioDial_valueChanged(int value);
+
+    void on_gainDial_valueChanged(int value);
+
+    void on_attackDial_valueChanged(int value);
+
+    void on_releaseDial_valueChanged(int value);
+
+    void on_compressorEnabledCheckbox_toggled(bool checked);
+
+    void on_replayGainCheckbox_toggled(bool checked);
+
+    void on_intelCenterFreqDial_valueChanged(int value);
+
+    void on_intelWidthDial_valueChanged(int value);
+
+    void on_intelGainDial_valueChanged(int value);
+
+    void on_intelResetButton_clicked();
+
+    void on_intelBoostEnabledCheckbox_toggled(bool checked);
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;
@@ -153,7 +179,7 @@ private:
 };
 
 class PushButtonColorTag : public QPushButton {
-    Q_OBJECT;
+    Q_OBJECT
 private:
     PreferencesDialog *prefsDialog;
     QString tagName;

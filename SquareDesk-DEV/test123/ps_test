@@ -1,0 +1,1 @@
+./pocketsphinx_continuous.exe -inmic yes -dict ./5365a.dic -jsgf ./plus.jsgf -hmm ./models/en-us

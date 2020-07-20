@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -33,6 +33,8 @@
 #include "sessioninfo.h"
 #include <algorithm>
 #include "mainwindow.h"
+
+extern bass_audio cBass;  // global in MainWindow.cpp
 
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;
@@ -126,6 +128,7 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
     SetTimerPulldownValuesToFirstDigit(ui->longTipLength);
 
     SetPulldownValuesToItemNumberPlusN(ui->comboBoxMusicFormat,1);
+    SetPulldownValuesToItemNumberPlusN(ui->comboBoxAnimationSettings,0);
     SetPulldownValuesToItemNumberPlusN(ui->comboBoxSessionDefault,1);
 
     // puldown menus for break and long tip sounds
@@ -183,6 +186,42 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
+
+    on_replayGainCheckbox_toggled(ui->replayGainCheckbox->isChecked());
+
+    on_intelBoostEnabledCheckbox_toggled(ui->intelBoostEnabledCheckbox->isChecked());
+
+#ifdef WANTCOMPRESSOR
+    on_compressorEnabledCheckbox_toggled(ui->compressorEnabledCheckbox->isChecked());
+#else
+//    ui->tabWidget->removeTab(5);  // remove compressor tab, if not used
+    ui->attackDial->setVisible(false);
+    ui->releaseDial->setVisible(false);
+    ui->gainDial->setVisible(false);
+    ui->thresholdDial->setVisible(false);
+    ui->ratioDial->setVisible(false);
+
+    ui->attackCaption->setVisible(false);
+    ui->releaseCaption->setVisible(false);
+    ui->gainCaption->setVisible(false);
+    ui->thresholdCaption->setVisible(false);
+    ui->ratioCaption->setVisible(false);
+
+    ui->attack_ms ->setVisible(false);
+    ui->release_ms->setVisible(false);
+    ui->makeupGain_dB->setVisible(false);
+    ui->threshold_dB->setVisible(false);
+    ui->ratio->setVisible(false);
+
+    ui->topLine->setVisible(false);
+    ui->line->setVisible(false);
+    ui->label_10->setVisible(false);
+
+    ui->compressorBypassed->setVisible(false);
+    ui->compressorEnabledCheckbox->setVisible(false);
+
+#endif
+
 }
 
 
@@ -519,7 +558,7 @@ QList<SessionInfo> PreferencesDialog::getSessionInfoList()
         QTime t(timeEdit->time());
         session.start_minutes = t.hour() * 60 + t.minute();
         session.id = -1;
-        if (ui->tableWidgetSessionsList->item(row, kSessionsColID) != NULL)
+        if (ui->tableWidgetSessionsList->item(row, kSessionsColID) != nullptr) // NULL)
         {
             QString session_id(ui->tableWidgetSessionsList->item(row, kSessionsColID)->text());
             session.id = session_id.toInt();
@@ -796,6 +835,11 @@ void PreferencesDialog::on_singingColorButton_clicked()
     int PreferencesDialog::Get##name() const { return ui->control->text().toInt(); } \
     void PreferencesDialog::Set##name(int value) { ui->control->setText(QString::number(value)); }
 
+// Sliders are done via value() and setValue(), rather than text() and setText()
+#define CONFIG_ATTRIBUTE_SLIDER(control, name, default)                 \
+    int PreferencesDialog::Get##name() const { return ui->control->value(); } \
+    void PreferencesDialog::Set##name(int value) { ui->control->setValue(value); }
+
 #include "prefs_options.h"
 
 #undef CONFIG_ATTRIBUTE_STRING
@@ -803,6 +847,7 @@ void PreferencesDialog::on_singingColorButton_clicked()
 #undef CONFIG_ATTRIBUTE_COMBO
 #undef CONFIG_ATTRIBUTE_COLOR
 #undef CONFIG_ATTRIBUTE_INT
+#undef CONFIG_ATTRIBUTE_SLIDER
 
 #undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS
 #undef CONFIG_ATTRIBUTE_STRING_NO_PREFS
@@ -936,4 +981,148 @@ void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
         mw->playSFX(QString::number(index-1));
     }
 
+}
+
+void PreferencesDialog::on_thresholdDial_valueChanged(int value)
+{
+    cBass.SetCompression(0, value);
+    ui->threshold_dB->setText(QStringLiteral("%1dB").arg(value));
+}
+
+void PreferencesDialog::on_ratioDial_valueChanged(int value)
+{
+    cBass.SetCompression(1, value);
+    ui->ratio->setText(QStringLiteral("%1:1").arg(value));
+}
+
+void PreferencesDialog::on_gainDial_valueChanged(int value)
+{
+    cBass.SetCompression(2, value);
+    ui->makeupGain_dB->setText(QStringLiteral("%1dB").arg(value));
+}
+
+void PreferencesDialog::on_attackDial_valueChanged(int value)
+{
+    cBass.SetCompression(3, value);
+    ui->attack_ms->setText(QStringLiteral("%1ms").arg(value));
+}
+
+void PreferencesDialog::on_releaseDial_valueChanged(int value)
+{
+    cBass.SetCompression(4, value);
+    ui->release_ms->setText(QStringLiteral("%1ms").arg(value));
+}
+
+void PreferencesDialog::on_compressorEnabledCheckbox_toggled(bool checked)
+{
+    ui->thresholdDial->setEnabled(checked);
+    ui->ratioDial->setEnabled(checked);
+    ui->gainDial->setEnabled(checked);
+    ui->attackDial->setEnabled(checked);
+    ui->releaseDial->setEnabled(checked);
+
+    ui->thresholdCaption->setEnabled(checked);
+    ui->ratioCaption->setEnabled(checked);
+    ui->gainCaption->setEnabled(checked);
+    ui->attackCaption->setEnabled(checked);
+    ui->releaseCaption->setEnabled(checked);
+
+    ui->threshold_dB->setEnabled(checked);
+    ui->ratio->setEnabled(checked);
+    ui->makeupGain_dB->setEnabled(checked);
+    ui->attack_ms->setEnabled(checked);
+    ui->release_ms->setEnabled(checked);
+
+    cBass.SetCompressionEnabled(checked);
+
+#if defined(WANTCOMPRESSOR)
+    ui->compressorBypassed->setVisible(!checked);
+#endif
+    if (checked) {
+        int delta = 60;
+        ui->topLine->setGeometry(330 - delta, 30, 121 + delta, 20);
+    } else {
+        ui->topLine->setGeometry(330, 30, 121, 20);
+    }
+}
+
+// Replay Gain ---------------------------------
+void PreferencesDialog::on_replayGainCheckbox_toggled(bool checked)
+{
+    if (checked) {
+//        qDebug() << "replayGainCheckbox checked";
+        cBass.SetReplayGainVolume(mw->songLoadedReplayGain_dB); // restore to last loaded song
+    } else {
+//        qDebug() << "replayGainCheckbox NOT checked";
+        cBass.SetReplayGainVolume(0.0); // set to 0.0dB (replayGain disabled)
+    }
+}
+
+// Intelligibility Boost -----------------------------------------------------------------------
+void PreferencesDialog::on_intelCenterFreqDial_valueChanged(int value)
+{
+// value is in Hz/10
+    float centerFreq_KHz = static_cast<float>(value)/10.0f; // only integer tenths of a KHz
+    ui->intelCenterFreq_KHz->setText(QStringLiteral("%1KHz").arg(centerFreq_KHz));
+    cBass.SetIntelBoost(0, centerFreq_KHz);
+}
+
+void PreferencesDialog::on_intelWidthDial_valueChanged(int value)
+{
+// value is in octaves * 10
+    float width_octaves = static_cast<float>(value)/10.0f;  // only integer tenths of an octave
+    ui->intelWidth_oct->setText(QStringLiteral("%1").arg(width_octaves, 3, 'f', 1));
+    cBass.SetIntelBoost(1, width_octaves);
+}
+
+void PreferencesDialog::on_intelGainDial_valueChanged(int value)
+{
+// value is in gain dB * 10
+    float gain_dB = static_cast<float>(value)/10.0f;  // only integer tenths of a dB
+    if (gain_dB == 0.0f) {
+        ui->intelGain_dB->setText(QStringLiteral("%1dB").arg(gain_dB));
+    } else {
+        ui->intelGain_dB->setText(QStringLiteral("-%1dB").arg(gain_dB));
+    }
+    cBass.SetIntelBoost(2, gain_dB);
+}
+
+void PreferencesDialog::on_intelResetButton_clicked()
+{
+    ui->intelCenterFreqDial->setValue(16);   // 1.6KHz
+    ui->intelWidthDial->setValue(20);        // 2.0 octaves
+    ui->intelGainDial->setValue(30);         // -3.0dB
+
+    on_intelCenterFreqDial_valueChanged(16); // force calls to cBass...
+    on_intelWidthDial_valueChanged(20);
+    on_intelGainDial_valueChanged(30);
+}
+
+void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(bool checked)
+{
+    ui->intelCenterFreqDial->setEnabled(checked);
+    ui->intelWidthDial->setEnabled(checked);
+    ui->intelGainDial->setEnabled(checked);
+
+    ui->intelCenterFreqLabel->setEnabled(checked);
+    ui->intelWidthLabel->setEnabled(checked);
+    ui->intelGainLabel->setEnabled(checked);
+
+    ui->intelCenterFreq_KHz->setEnabled(checked);
+    ui->intelWidth_oct->setEnabled(checked);
+    ui->intelGain_dB->setEnabled(checked);
+
+    ui->intelResetButton->setEnabled(checked);
+
+    ui->intelBoostBypassed->setVisible(!checked);
+
+    int delta = 60;
+    int leftExtend = 20;
+    if (checked) {
+        ui->intelBoostLine->setGeometry(330 - leftExtend - delta, 134, 390 + leftExtend + delta, 20);
+    } else {
+        ui->intelBoostLine->setGeometry(330 - leftExtend, 134, 390 + leftExtend, 20);
+    }
+
+    cBass.SetIntelBoostEnabled(checked);
 }

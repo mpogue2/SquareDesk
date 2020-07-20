@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -54,7 +54,7 @@ class SDThread : public QThread {
     Q_OBJECT
     
 public :
-    SDThread(MainWindow *mw);
+    SDThread(MainWindow *mw, dance_level dance_program, QString dance_program_name);
     ~SDThread();
     
 public:
@@ -76,9 +76,13 @@ public:
     void add_selectors_to_list_widget(QListWidget *);
     void add_directions_to_list_widget(QListWidget *listWidget);
 
+    void resetAndExecute(QStringList &commands);
+    void resetSDState();
+    QString sd_strip_leading_selectors(QString originalTe);
+ 
 private:
     bool on_user_input(QString str);
-
+    QString dance_program_name;
 signals:
     void on_sd_update_status_bar(QString s);
     void on_sd_awaiting_input();
@@ -99,6 +103,8 @@ private:
 
     QWaitCondition waitCondAckToMainThread;
     QMutex mutexAckToMainThread;
+    QStringList selectors;
+
 
     QMutex mutexThreadRunning;
     bool abort;

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -27,20 +27,32 @@
 #include <QStringList>
 
 class SDRedoStack {
-    QList<QStringList> sd_redo_stack;
-    bool doing_user_input;
-    bool did_an_undo;
 public:
+    QStringList command_stack;
+    QList<QStringList> redo_stack;
+    QString last_seen_formation;
+    int last_seen_row;
+    int last_seen_formation_line;
+    bool doing_user_input;
+    
     SDRedoStack();
 
     void initialize();
-    void add_lines_to_row(int row);
+    
     void add_command(int row, const QString &cmd);
-    QStringList get_redo_commands(int row);
+    void checkpoint_formation(int last_line, const QString &formation);
+
+    const QStringList &get_redo_commands();
+    void discard_redo_commands();
+
+    void did_an_undo();
     void set_doing_user_input();
     void clear_doing_user_input();
-    void set_did_an_undo();
+
     bool can_redo();
+
+private:
+    int build_redo_stack_from_command_tail(QStringList &redo_stack_front, int *p_last_seen_formation_line = NULL, int *p_last_seen_row = NULL);
 };
 
-#endif /* ifndef SD_REDO_STACK_INCLUDED */
+#endif /* ifndef COMMAND_STACK_INCLUDED */

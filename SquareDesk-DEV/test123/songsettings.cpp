@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -216,8 +216,9 @@ RowDefinition song_rows[] =
     RowDefinition("mix", "int"),
     RowDefinition("loop", "int"),   // 1 = yes, -1 = no, 0 = not set yet
     RowDefinition("tags", "text"),
+    RowDefinition("replayGain", "float"),  // NULL = not set yet, else replayGain in dB
 
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 
 TableDefinition song_table("songs", song_rows);
@@ -229,7 +230,7 @@ RowDefinition session_rows[] =
     RowDefinition("deleted", "INTEGER DEFAULT 0"),
     RowDefinition("day_of_week", "INTEGER DEFAULT -1"),
     RowDefinition("start_minutes", "INTEGER DEFAULT 0"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition session_table("sessions", session_rows);
 
@@ -238,7 +239,7 @@ RowDefinition song_play_rows[] =
     RowDefinition("song_rowid", "int references songs(rowid)"),
     RowDefinition("session_rowid", "int references session(rowid)"),
     RowDefinition("played_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition song_plays_table("song_plays", song_play_rows);
 
@@ -249,7 +250,7 @@ RowDefinition call_taught_on_rows[] =
     RowDefinition("call_name", "TEXT"),
     RowDefinition("session_rowid", "INT REFERENCES session(rowid)"),
     RowDefinition("taught_on", "DATETIME DEFAULT CURRENT_TIMESTAMP"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 TableDefinition call_taught_on_table("call_taught_on", call_taught_on_rows);
 
@@ -258,7 +259,7 @@ RowDefinition tag_colors_rows[] =
     RowDefinition("tag", "TEXT PRIMARY KEY"),
     RowDefinition("background", "TEXT"),
     RowDefinition("foreground", "TEXT"),
-    RowDefinition(NULL, NULL),
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
 };
 
 TableDefinition tag_colors_table("tag_colors", tag_colors_rows);
@@ -329,7 +330,8 @@ static const char *default_session_names[] =
     "Friday",
     "Saturday",
     "Sunday",
-    NULL
+    nullptr
+//    NULL
 };
 
 static const char database_type_name[] = "QSQLITE";
@@ -862,6 +864,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetMix()) { fields.append("mix"); }
     if (settings.isSetMix()) { fields.append("loop"); }
     if (settings.isSetTags()) { fields.append("tags"); }
+    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
 
     QSqlQuery q(m_db);
     if (id == -1)
@@ -931,6 +934,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":mix", settings.getMix());
     q.bindValue(":loop", settings.getLoop());
     q.bindValue(":tags", settings.getTags());
+    q.bindValue(":replayGain", settings.getReplayGain());
 
     exec("saveSettings", q);
 }
@@ -954,12 +958,13 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
     if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
     if (!q.value(15).isNull()) { settings.setTags(q.value(15).toString()); }
+    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     bool foundResults = false;
     {

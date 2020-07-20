@@ -40,7 +40,7 @@
 
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -73,15 +73,15 @@
 #include <QColor>
 
 // Constants
-const int RedrawInterval = 50; // ms
+const int RedrawInterval = 100; // ms
 const qreal PeakDecayRate = 0.001;
 const int PeakHoldLevelDuration = 2000; // ms
-
 
 LevelMeter::LevelMeter(QWidget *parent)
     :   QWidget(parent)
     ,   m_rmsLevel(0.0)
     ,   m_peakLevel(0.0)
+    ,   m_oldDecayedPeakLevel(0.0)
     ,   m_decayedPeakLevel(0.0)
     ,   m_peakDecayRate(PeakDecayRate)
     ,   m_peakHoldLevel(0.0)
@@ -102,6 +102,7 @@ void LevelMeter::reset()
 {
     m_rmsLevel = 0.0;
     m_peakLevel = 0.0;
+    m_decayedPeakLevel = m_oldDecayedPeakLevel = 0.0;
     update();
 }
 
@@ -122,7 +123,7 @@ void LevelMeter::levelChanged(qreal rmsLevel, qreal peakLevel, int numSamples)
         m_peakHoldLevelChanged.start();
     }
 
-    update();
+//    update();  // no update needed here, will be picked up when redrawTimerExpired is called
 }
 
 void LevelMeter::redrawTimerExpired()
@@ -142,13 +143,19 @@ void LevelMeter::redrawTimerExpired()
         m_peakHoldLevel = 0.0;
     }
 
-    update();
+    if (m_decayedPeakLevel != m_oldDecayedPeakLevel) {
+        // only update, if the level has changed
+        update();
+//        qDebug() << m_decayedPeakLevel << m_oldDecayedPeakLevel;
+        m_oldDecayedPeakLevel = m_decayedPeakLevel;
+    }
+
+//    update();
 }
 
 void LevelMeter::paintEvent(QPaintEvent *event)
 {
     Q_UNUSED(event)
-
     QPainter painter(this);
 
 #if defined(Q_OS_MAC)
@@ -166,8 +173,8 @@ void LevelMeter::paintEvent(QPaintEvent *event)
     const unsigned int numBoxes = 10;
     for (unsigned int i = 0; i < numBoxes; i++) {
         QRect bar = rect();
-        int bot = rect().left() + ((float)(i)/(float)numBoxes)*rect().width();
-        int top = rect().left() + ((float)(i+1)/(float)numBoxes)*rect().width();
+        int bot = static_cast<int>(rect().left() + (static_cast<float>(i)/static_cast<float>(numBoxes))*rect().width());
+        int top = static_cast<int>(rect().left() + (static_cast<float>(i+1)/static_cast<float>(numBoxes))*rect().width());
 
         bar.setLeft(top);
         bar.setRight(bot);
@@ -188,7 +195,7 @@ void LevelMeter::paintEvent(QPaintEvent *event)
             barColor = Qt::red;
             noBarColor = QColor(noBarLevel,0,0);
         }
-        if (m_decayedPeakLevel*(float)numBoxes >= (i+1)) {
+        if (m_decayedPeakLevel*static_cast<double>(numBoxes) >= (i+1)) {
             painter.fillRect(bar, barColor);
         }
         else {

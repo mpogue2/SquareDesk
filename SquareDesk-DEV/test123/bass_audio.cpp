@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -35,6 +35,7 @@
 float  gStream_Pan = 0.0;
 bool gStream_Mono = false;
 HDSP gMono_dsp = 0;  // DSP handle (u32)
+float gStream_replayGain = 1.0f;    // replayGain
 
 // ========================================================================
 // Mix/Pan, then optionally mix down to mono
@@ -69,7 +70,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             outL = KL * inL;
             outR = KR * inR;             // constant power pan
             mono = (outL + outR)/2.0f;  // mix down to mono for BOTH output channels
-            d[a] = d[a+1] = mono;
+            d[a] = d[a+1] = mono * gStream_replayGain;
         }
 
     } else {
@@ -80,8 +81,8 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             inR = d[a+1];
             outL = KL * inL;
             outR = KR * inR;  // constant power pan
-            d[a] = outL;
-            d[a+1] = outR;
+            d[a] = outL * gStream_replayGain;
+            d[a+1] = outR * gStream_replayGain;
         }
     }
 }
@@ -104,6 +105,30 @@ bass_audio::bass_audio(void)
     Stream_Eq[0] = 50.0;  // current EQ (3 bands), 0 = Bass, 1 = Mid, 2 = Treble
     Stream_Eq[1] = 50.0;
     Stream_Eq[2] = 50.0;
+
+    Global_IntelBoostEq[FREQ_KHZ] = 1.6;  // current Global EQ (one band for Intelligibility Boost)
+    Global_IntelBoostEq[BW_OCT]  = 2.0;
+    Global_IntelBoostEq[GAIN_DB] = 0.0;
+
+    IntelBoostShouldBeEnabled = false;
+
+    // compressor initial settings (defaults to OFF)
+//    Stream_Compressor[0] = 0.0f;       // threshold (OFF)
+//    Stream_Compressor[1] = 4.0f;       // ratio
+//    Stream_Compressor[2] = 0.0f;       // gain
+//    Stream_Compressor[3] = 10.0f;      // attack
+//    Stream_Compressor[4] = 200.0f;     // release
+
+#ifdef WANTCOMPRESSOR
+    compressor.fThreshold = 0.0f;
+    compressor.fRatio = 4.0f;
+    compressor.fGain = 0.0f;
+    compressor.fAttack = 10.0f;
+    compressor.fRelease = 200.0f;
+    compressor.lChannel = BASS_BFX_CHANALL;  // compress all channels
+
+    compressorShouldBeEnabled = false;
+#endif
 
     FileLength = 0.0;
     Current_Position = 0.0;
@@ -146,7 +171,34 @@ void bass_audio::SetVolume(int inVolume)
 {
 //    qDebug() << "Setting new volume: " << inVolume;
     Stream_Volume = inVolume;
-    BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);
+    BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);  // this uses the GLOBAL volume control
+}
+
+// uses the STREAM volume, rather than global volume
+void bass_audio::SetReplayGainVolume(double replayGain_dB) {
+    if (!BASS_ChannelIsSliding(Stream, BASS_ATTRIB_VOL) &&
+            (BASS_ChannelIsActive(FXStream) != BASS_ACTIVE_PLAYING) ) {
+        // if we are not fading AND we are not ducked because of a sound effect
+        //   (in both cases, when playback starts again, it will go to current volume w/ReplayGain)
+        double voltageRatio = pow(10.0, replayGain_dB/20.0); // 0 = silent, 1.0 = normal, above 1.0 = amplification
+        Stream_replayGain_dB = replayGain_dB;  // for later restore
+
+//        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
+        Stream_MaxVolume = voltageRatio;
+
+//        qDebug() << "   setReplayGainVolume: " << replayGain_dB << "dB, Voltage ratio (max volume): " << voltageRatio;
+
+        gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
+
+//        if (!BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(voltageRatio))) {
+//            qDebug() << "ERROR: ChannelSetAttribute to" << voltageRatio << "failed. ";
+//            qDebug() << "   error code: " << BASS_ErrorGetCode();
+//        }  // LOCAL volume control of just the music stream
+
+//        float val;
+//        BASS_ChannelGetAttribute(Stream, BASS_ATTRIB_VOL, &val);
+//        qDebug() << "Channel GetAttribute Volume: " << val;
+    }
 }
 
 // ------------------------------------------------------------------
@@ -180,10 +232,187 @@ void bass_audio::SetEq(int band, double val)
 
     BASS_BFX_PEAKEQ eq;
     eq.lBand = band;    // get all values of the selected band
-    BASS_FXGetParameters(fxEQ, &eq);
+    bool success = BASS_FXGetParameters(fxEQ, &eq);
+    if (!success) {
+        qDebug() << "SetEq: BASS_FXGetParameters failed" << BASS_ErrorGetCode();
+        return;
+    }
+//    qDebug() << "SetEq before: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
 
     eq.fGain = static_cast<float>(val);     // modify just the level of the selected band, and set all
-    BASS_FXSetParameters(fxEQ, &eq);
+    success = BASS_FXSetParameters(fxEQ, &eq);
+    if (!success) {
+        qDebug() << "SetEq: BASS_FXSetParameters failed" << BASS_ErrorGetCode();
+        qDebug() << "tried to set: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+        return;
+    }
+
+//    qDebug() << "SetEq after: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+//    qDebug() << "success: " << success;
+}
+
+// ------------------------------------------------------------------
+//
+void bass_audio::SetCompression(unsigned int which, float val)
+{
+
+#ifdef WANTCOMPRESSOR
+//    qDebug() << "SetCompression: " << which << "to: " << val;
+
+    switch (which) {
+        case 0: compressor.fThreshold = val; break;
+        case 1: compressor.fRatio     = val; break;
+        case 2: compressor.fGain      = val; break;
+        case 3: compressor.fAttack    = val; break;
+        case 4: compressor.fRelease   = val; break;
+        default: break;
+    }
+
+    if (fxCompressor != (HFX)NULL) {
+        // compressor exists, so go ahead and modify it!
+        BASS_FXSetParameters(fxCompressor, &compressor);
+//        qDebug() << "   Actual: " << compressor.fThreshold << compressor.fRatio << compressor.fGain << compressor.fAttack << compressor.fRelease;
+    }
+#else
+    Q_UNUSED(which)
+    Q_UNUSED(val)
+#endif
+
+}
+
+void bass_audio::SetCompressionEnabled(bool enable) {
+
+#ifdef WANTCOMPRESSOR
+    if (enable) {
+        // enabled
+//        qDebug() << "compressor should be enabled...";
+
+        if ((Stream != (HSTREAM)NULL) && (fxCompressor == (HFX)NULL)) {
+            // compressor doesn't exist yet, so create one and initialize it
+            // instantiate and init the compressor -----------------
+            fxCompressor = BASS_ChannelSetFX(Stream, BASS_FX_BFX_COMPRESSOR2, 0);  // 0 = after EQ
+            if (fxCompressor != (HFX)0) {
+//                qDebug() << "   compressor is up and running";
+                BASS_FXSetParameters(fxCompressor, &compressor);  // set parameters on compressor
+            } else {
+//                qDebug() << "error in turning on the compressor: " << BASS_ErrorGetCode();
+            }
+        }
+        compressorShouldBeEnabled = true;
+    } else {
+        // disabled
+//        qDebug() << "disabling compressor...";
+
+        if ((Stream != (HSTREAM)NULL) && (fxCompressor != (HFX)NULL)) {
+//            qDebug() << "   compressor is gone now...";
+            BASS_ChannelRemoveFX(Stream, fxCompressor);
+            fxCompressor = (HFX)NULL;  // compressor is gone now
+        }
+        compressorShouldBeEnabled = false;
+    }
+#else
+    Q_UNUSED(enable)
+#endif
+
+}
+
+// which = (FREQ_KHZ, BW_OCT, GAIN_DB)
+void bass_audio::SetIntelBoost(unsigned int which, float val)
+{
+    Global_IntelBoostEq[which] = val;
+
+    if (fxEQ == 0) {
+        return;  // if EQ is not set up yet, don't bother...
+    }
+
+//    if (which == GAIN_DB) {
+//        qDebug() << "SetIntelBoost: " << which << "to: " << -val << "dB";
+//    } else {
+//        qDebug() << "SetIntelBoost: " << which << "to: " << val;
+//    }
+
+    BASS_BFX_PEAKEQ eq;
+    eq.lBand = 3;    // get all values of the global intelligibility EQ band
+    bool success = BASS_FXGetParameters(fxEQ, &eq);
+
+    if (!success) {
+//        qDebug() << "SetIntelBoost: BASS_FXGetParameters failed" << BASS_ErrorGetCode();
+        return;
+    }
+
+//    qDebug() << "before: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+
+    switch (which) {
+        case FREQ_KHZ:  eq.fCenter    = val * 1000.0f;  // input val is KHz
+                        break;
+        case BW_OCT:    eq.fBandwidth = val;
+                        break;
+        case GAIN_DB:   eq.fGain      = (IntelBoostShouldBeEnabled ? -val : 0.0f);   // val is amount of suppression in dB, so use negative
+                        break;
+        default:
+//                    qDebug() << "SetIntelBoost: bad value" << which << ", val = " << val;
+                    return;  // don't set parameters, if bad
+    }
+
+//    if (!IntelBoostShouldBeEnabled && (which == GAIN_DB) && (val != 0.0f)) {
+//        qDebug() << "Warning: GAIN_DB overridden to 0.0f, because IntelBoost not enabled.";
+//    }
+
+    success = BASS_FXSetParameters(fxEQ, &eq);
+
+    if (!success) {
+//        qDebug() << "SetIntelBoost: BASS_FXSetParameters failed" << BASS_ErrorGetCode();
+//        qDebug() << "tried to set: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+        return;
+    }
+
+//    qDebug() << "success: " << success;
+}
+
+void bass_audio::SetIntelBoostEnabled(bool enable)
+{
+    IntelBoostShouldBeEnabled = enable;
+
+    if (fxEQ == 0) {
+//        qDebug() << "SetIntelBoostEnabled: fxEQ == 0";
+        return;  // if EQ is not enabled yet, don't bother...
+    }
+
+    BASS_BFX_PEAKEQ eq;
+    eq.lBand = 3;    // get all values of the global intelligibility EQ band
+    bool success = BASS_FXGetParameters(fxEQ, &eq);
+
+    if (!success) {
+//        qDebug() << "SetIntelBoostEnabled: BASS_FXGetParameters failed" << BASS_ErrorGetCode();
+        return;
+    }
+
+    if (enable) {
+        eq.fGain = -Global_IntelBoostEq[GAIN_DB]; // restore to previously-saved gain
+    } else {
+        eq.fGain = 0.0;  // set to zero (NOTE: do NOT remember this value)
+    }
+
+    success = BASS_FXSetParameters(fxEQ, &eq);
+    if (!success) {
+//        qDebug() << "SetIntelBoostEnabled: BASS_FXSetParameters failed" << BASS_ErrorGetCode();
+//        qDebug() << "tried to set: (" << eq.fCenter << eq.fBandwidth << eq.fGain << eq.fQ << eq.lBand << eq.lChannel << ")";
+        return;
+    } else {
+//        qDebug() << "SetIntelBoostEnabled: " << enable << ", new gain = " << eq.fGain;
+    }
+}
+
+void bass_audio::SetGlobals()
+{
+    // global EQ, like Inteliigibility Boost, can only be set AFTER the song is loaded.
+    //   before that, there is no Stream to set EQ on.
+    // So, call this from loadMP3File() after song is loaded, so that global EQ is set, too,
+    //   from the Global_IntelBoostEq parameters.
+//    qDebug() << "***** cBass.SetGlobals:";
+    SetIntelBoost(FREQ_KHZ, Global_IntelBoostEq[FREQ_KHZ]);
+    SetIntelBoost(BW_OCT, Global_IntelBoostEq[BW_OCT]);
+    SetIntelBoost(GAIN_DB, Global_IntelBoostEq[GAIN_DB]);
 }
 
 // *******************
@@ -284,12 +513,29 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
 {
     Q_UNUSED(intro1_frac)
     Q_UNUSED(outro1_frac)
-    BASS_StreamFree(Stream);
+
+    if (Stream != (HSTREAM)NULL) {
+        // if there is a valid stream,
+        if (fxEQ != (HFX)NULL) {
+            // and there's a valid EQ processor
+            BASS_ChannelRemoveFX(Stream, fxEQ);  // remove the EQ
+            fxEQ = (HFX)NULL;
+        }
+#ifdef WANTCOMPRESSOR
+        if (fxCompressor != (HFX)NULL) {
+            // and there's a valid compressor
+            BASS_ChannelRemoveFX(Stream, fxCompressor);  // remove the compressor
+            fxCompressor = (HFX)NULL;  // other code looks at this to determine whether a compressor exists
+        }
+#endif
+
+    }
+    BASS_StreamFree(Stream);  // free the old stream
 
     // OPEN THE STREAM FOR PLAYBACK ------------------------
     Stream = BASS_StreamCreateFile(false, filepath, 0, 0,BASS_SAMPLE_FLOAT|BASS_STREAM_DECODE);
     Stream = BASS_FX_TempoCreate(Stream, BASS_FX_FREESOURCE);
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 100.0f/100.0f);
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 100.0f/100.0f);  // now set by ReplayGain below...
     BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_TEMPO, 0.0f);
     StreamGetLength(); // sets FileLength
 
@@ -310,12 +556,12 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
 
     BASS_BFX_PEAKEQ eq;
 
-    // set peaking equalizer effect with no bands
-    fxEQ = BASS_ChannelSetFX(Stream, BASS_FX_BFX_PEAKEQ, 0);
+    // set peaking equalizer effect with no bands -----------------
+    fxEQ = BASS_ChannelSetFX(Stream, BASS_FX_BFX_PEAKEQ, 1);
 
     float fGain = 0.0f;
     float fBandwidth = 2.5f;
-    float fQ = 0.0f;
+    float fQ = 0.0f;  // unnecessary, because non-zero fBandwidth overrides fQ
     float fCenter_Bass = 125.0f;
     float fCenter_Mid = 1000.0f;
     float fCenter_Treble = 8000.0f;
@@ -336,10 +582,22 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     BASS_FXSetParameters(fxEQ, &eq);
 
     // create 3rd band for treble
-    eq.lBand=2;
-    eq.fCenter=fCenter_Treble;
+    eq.lBand = 2;
+    eq.fCenter = fCenter_Treble;
     BASS_FXSetParameters(fxEQ, &eq);
 
+    // create 4th band for global Intelligibility Boost (initial gain = 0.0)
+    eq.lBand = 3;
+    eq.fCenter = 1600.0f;
+    eq.fBandwidth = 2.0f;
+    BASS_FXSetParameters(fxEQ, &eq);
+
+#ifdef WANTCOMPRESSOR
+    // instantiate and init the compressor, if it's not already -----------------
+    SetCompressionEnabled(compressorShouldBeEnabled);
+#endif
+
+    // -------------------------------------------------------------
     bPaused = true;
 
     ClearLoop();
@@ -396,6 +654,8 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     // when the fade is done, call a SYNCPROC that pauses playback
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
     Q_UNUSED(handle)
+
+    SetReplayGainVolume(0.0);  // initialize the replayGain to "disabled", sets the LOCAL volume
 }
 
 // ------------------------------------------------------------------
@@ -508,7 +768,9 @@ void bass_audio::SetMono(bool on)
 void bass_audio::Play(void)
 {
     bPaused = false;
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0);  // ramp quickly to full volume
+//    qDebug() << "   Play: Play volume set to: " << Stream_MaxVolume;
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Stream_MaxVolume);  // ramp quickly to full volume (with ReplayGain applied)
     BASS_ChannelPlay(Stream, false);
     StreamGetPosition();  // tell the position bar in main window where we are
 }
@@ -543,8 +805,9 @@ void bass_audio::FadeOutAndPause(void) {
 
 void bass_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
 //    qDebug() << "Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
+    qDebug() << "StartVolumeDucking volume set to: " << static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f;
 
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(duckToPercent)/100.0f); // drop Stream (main music stream) to a % of current volume
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f); // drop Stream (main music stream) to a % of current max volume (w/ReplayGain)
 
     QTimer::singleShot(forSeconds*1000.0, [=] {
         StopVolumeDucking();
@@ -553,8 +816,9 @@ void bass_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
 }
 
 void bass_audio::StopVolumeDucking() {
-//    qDebug() << "End volume ducking...";
-    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0); // drop Stream (main music stream) to a % of current volume
+//    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, 1.0); // drop Stream (main music stream) to a % of current volume
+    qDebug() << "End volume ducking, vol set to: " << Stream_MaxVolume;
+    BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, Stream_MaxVolume); // Stream (main music stream) to 100% of current volume (w/ReplayGain)
 }
 
 
@@ -579,7 +843,8 @@ void bass_audio::PlayOrStopSoundEffect(int which, const char *filename, int volu
         BASS_StreamFree(FXStream);                                                  // clean up the old stream
     }
     FXStream = BASS_StreamCreateFile(false, filename, 0, 0, 0);
-    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, static_cast<float>(volume)/100.0f);  // volume relative to 100% of Music
+    qDebug() << "Sound FX stream vol set to: " << static_cast<float>(Stream_MaxVolume * volume)/100.0f;
+    BASS_ChannelSetAttribute(FXStream, BASS_ATTRIB_VOL, static_cast<float>(Stream_MaxVolume * volume)/100.0f);  // volume relative to 100% of Music (w/ReplayGain)
 
     QWORD Length = BASS_ChannelGetLength(FXStream, BASS_POS_BYTE);
     double FXLength_seconds = BASS_ChannelBytes2Seconds(FXStream, Length);

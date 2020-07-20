@@ -49,7 +49,7 @@
 ****************************************************************************/
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -128,6 +128,10 @@ public:
 
 private slots:
     void redrawTimerExpired();
+    void clearClockColoring();
+
+public slots:
+    void customMenuRequested(QPoint pos);
 
 protected:
     void paintEvent(QPaintEvent *event) Q_DECL_OVERRIDE;

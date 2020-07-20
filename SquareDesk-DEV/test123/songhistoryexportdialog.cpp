@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -126,4 +126,14 @@ void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
                                     omitEndDate,
                                     endDate);
     } // end of successful open
+}
+
+void SongHistoryExportDialog::on_checkBoxOmitStart_stateChanged(int newState)
+{
+    ui->dateTimeEditStart->setEnabled(newState == Qt::Unchecked);
+}
+
+void SongHistoryExportDialog::on_checkBoxOmitEnd_stateChanged(int newState)
+{
+    ui->dateTimeEditEnd->setEnabled(newState == Qt::Unchecked);
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -22,6 +22,7 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+#ifdef OLDRENDERAREA
 
 #include "renderarea.h"
 
@@ -397,3 +398,4 @@ void RenderArea::paintEvent(QPaintEvent * /* event */)
 // TODO: search messes us up, because it shows the final formation, which gets drawn. :-(
 // TODO: Show a static square to start, before heads start.  (just initialize the layout strings properly!)
 
+#endif

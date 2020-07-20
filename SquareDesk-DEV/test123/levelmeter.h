@@ -39,7 +39,7 @@
 ****************************************************************************/
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -66,7 +66,8 @@
 #ifndef LEVELMETER_H
 #define LEVELMETER_H
 
-#include <QTime>
+//#include <QTime>
+#include <QElapsedTimer>
 #include <QWidget>
 
 /**
@@ -79,7 +80,7 @@ class LevelMeter : public QWidget
     Q_OBJECT
 
 public:
-    explicit LevelMeter(QWidget *parent = 0);
+    explicit LevelMeter(QWidget *parent = nullptr); // 0);
     ~LevelMeter();
 
     void paintEvent(QPaintEvent *event);
@@ -109,12 +110,13 @@ private:
      * This is calculated by decaying m_peakLevel depending on the
      * elapsed time since m_peakLevelChanged, and the value of m_decayRate.
      */
+    qreal m_oldDecayedPeakLevel;
     qreal m_decayedPeakLevel;
 
     /**
      * Time at which m_peakLevel was last changed.
      */
-    QTime m_peakLevelChanged;
+    QElapsedTimer m_peakLevelChanged;
 
     /**
      * Rate at which peak level bar decays.
@@ -131,7 +133,7 @@ private:
     /**
      * Time at which m_peakHoldLevel was last changed.
      */
-    QTime m_peakHoldLevelChanged;
+    QElapsedTimer m_peakHoldLevelChanged;
 
     QTimer *m_redrawTimer;
 

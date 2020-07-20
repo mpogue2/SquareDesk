@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -52,6 +52,11 @@ public:
     ~SongHistoryExportDialog();
     void exportSongPlayData(SongSettings &settings);
     void populateOptions(SongSettings &settings);
+
+private slots:
+    void on_checkBoxOmitStart_stateChanged(int arg1);
+
+    void on_checkBoxOmitEnd_stateChanged(int arg1);
 
 private:
     Ui::SongHistoryExportDialog *ui;

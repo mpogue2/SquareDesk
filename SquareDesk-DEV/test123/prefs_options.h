@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -96,6 +96,9 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_playlist_dir, QDir::homePath())
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablevoiceinput, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableautoscrolllyrics, false);
 
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enablegroupstation, true);  // defatuls to show group/station
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(enableordersequence, true); // defaults to show order/sequence
+
 CONFIG_ATTRIBUTE_BOOLEAN(enableAutoAirplaneModeCheckbox, enableAutoAirplaneMode, false)
 //CONFIG_ATTRIBUTE_BOOLEAN(enableAutoMicsOffCheckbox, enableAutoMicsOff, false)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showRecentColumn, true);
@@ -125,8 +128,7 @@ CONFIG_ATTRIBUTE_COLOR(pushButtonTagsBackgroundColor,  tagsBackgroundColorString
 CONFIG_ATTRIBUTE_COLOR(pushButtonTagsForegroundColor,  tagsForegroundColorString,  DEFAULTTAGSFOREGROUNDCOLOR)
 
 // SD Animation
-CONFIG_ATTRIBUTE_STRING(lineEditSDAnimationDeltaT, SDAnimationDeltaT, "1.0")
-CONFIG_ATTRIBUTE_STRING(lineEditSDAnimationMSecsPerFrame, SDAnimationMSecsPerFrame, "50")
+CONFIG_ATTRIBUTE_COMBO(comboBoxAnimationSettings, AnimationSpeed, AnimationSpeedMedium)
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxAutomaticEnterOnAnythingTabCompletion, AutomaticEnterOnAnythingTabCompletion, false)
 
 
@@ -134,6 +136,29 @@ CONFIG_ATTRIBUTE_INT_NO_PREFS(prefsDialogLastActiveTab, 0)
 CONFIG_ATTRIBUTE_INT_NO_PREFS(SDCallListCopyOptions, 1)
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLIncludeHeaders, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyDeepUndoBuffer, true);
 
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
+
+CONFIG_ATTRIBUTE_BOOLEAN(checkBoxInOutEditOnlyWhenLyricsUnlocked, InOutEditingOnlyWhenLyricsUnlocked, false);
+
+// Global FX tab
+CONFIG_ATTRIBUTE_BOOLEAN(compressorEnabledCheckbox, compressorIsEnabled, false)
+CONFIG_ATTRIBUTE_SLIDER(thresholdDial, threshold_dB, -15)  // sliders are integers controlled by value()/setValue()
+CONFIG_ATTRIBUTE_SLIDER(ratioDial, ratio_toOne, 4)
+CONFIG_ATTRIBUTE_SLIDER(gainDial, gain_dB, 0)
+CONFIG_ATTRIBUTE_SLIDER(attackDial, attack_ms, 10)
+CONFIG_ATTRIBUTE_SLIDER(releaseDial, release_ms, 200)
+
+CONFIG_ATTRIBUTE_BOOLEAN(replayGainCheckbox, replayGainIsEnabled, false)
+
+CONFIG_ATTRIBUTE_BOOLEAN(intelBoostEnabledCheckbox, intelBoostIsEnabled, false)
+CONFIG_ATTRIBUTE_SLIDER(intelCenterFreqDial, intelCenterFreq_KHz, 16)  // sliders are integers controlled by value()/setValue()
+CONFIG_ATTRIBUTE_SLIDER(intelWidthDial, intelWidth_oct, 20)
+CONFIG_ATTRIBUTE_SLIDER(intelGainDial, intelGain_dB, 30) // expressed as a positive number
+
+CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwapSDTabInputAndAvailableCallsSides, SwapSDTabInputAndAvailableCallsSides, false)
+    
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabHorizontalSplitterPosition, "")
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabVerticalSplitterPosition, "")

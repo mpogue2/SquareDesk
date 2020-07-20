@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -38,6 +38,7 @@
 #include <QNetworkRequest>
 #include <QProcess>
 #include <QProgressDialog>
+#include <QRandomGenerator>
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QStorageInfo>
@@ -58,6 +59,7 @@
 #include "utility.h"
 #include "perftimer.h"
 #include "tablenumberitem.h"
+#include "tablelabelitem.h"
 #include "importdialog.h"
 #include "exportdialog.h"
 #include "songhistoryexportdialog.h"
@@ -203,12 +205,38 @@ using namespace TagLib;
 // Toggle between Music/Lyrics  T
 
 // GLOBALS:
-static bass_audio cBass;
+extern bass_audio cBass;  // make this accessible to PreferencesDialog
+bass_audio cBass;
+
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
 static QString title_tags_suffix(" </span>");
 static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
+
+
+class SelectionRetainer {
+    QTextEdit *textEdit;
+    QTextCursor cursor;
+    int anchorPosition;
+    int cursorPosition;
+    // No inadvertent copies
+private:
+    SelectionRetainer() {};
+    SelectionRetainer(const SelectionRetainer &) {};
+public:
+    SelectionRetainer(QTextEdit *textEdit) : textEdit(textEdit), cursor(textEdit->textCursor())
+    {
+        anchorPosition = cursor.anchor();
+        cursorPosition = cursor.position();
+    }
+    ~SelectionRetainer() {
+        cursor.setPosition(anchorPosition);
+        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
+        textEdit->setTextCursor(cursor);
+    }
+};
+
 
 #include <QProxyStyle>
 
@@ -269,10 +297,13 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
         }
     }
     
+void MainWindow::LyricsCopyAvailable(bool yes) {
+    lyricsCopyIsAvailable = yes;
+}
 
 
 // ----------------------------------------------------------------------
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
@@ -289,15 +320,23 @@ MainWindow::MainWindow(QWidget *parent) :
     sd_animation_running(false),
     sdLastLine(-1),
     sdWasNotDrawingPicture(true),
+    sdHasSubsidiaryCallContinuation(false),
     sdLastLineWasResolve(false),
     sdOutputtingAvailableCalls(false),
     sdAvailableCalls(),
     sdLineEditSDInputLengthWhenAvailableCallsWasBuilt(-1),
     shortcutSDTabUndo(nullptr),
+    shortcutSDTabRedo(nullptr),
     shortcutSDCurrentSequenceSelectAll(nullptr),
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    Q_UNUSED(splash)
+
+    lyricsCopyIsAvailable = false;
+
+    mp3gain = nullptr; // must not count on this being initialized to zero
+
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
     filewatcherShouldIgnoreOneFileSave = false;
@@ -482,7 +521,13 @@ MainWindow::MainWindow(QWidget *parent) :
     keybindingActionToMenuAction[keyActionName_FadeOut ] = ui->actionFade_Out;
     keybindingActionToMenuAction[keyActionName_LoopToggle] = ui->actionLoop;
     keybindingActionToMenuAction[keyActionName_TestLoop] = ui->actionTest_Loop;
-//    keybindingActionToMenuAction[keyActionName_NextTab] = ;
+    keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
+
+    keybindingActionToMenuAction[keyActionName_SDSquareYourSets] = ui->actionSDSquareYourSets;
+    keybindingActionToMenuAction[keyActionName_SDHeadsStart] = ui->actionSDHeadsStart;
+    keybindingActionToMenuAction[keyActionName_SDHeadsSquareThru] = ui->actionSDHeadsSquareThru;
+    keybindingActionToMenuAction[keyActionName_SDHeads1p2p] = ui->actionSDHeads1p2p;
+        
     keybindingActionToMenuAction[keyActionName_PlaySong] = ui->actionPlay;
 
     // This lets us set default hotkeys in the menus so that the default button in the dialog box works.
@@ -550,7 +595,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // VU Meter -----
     vuMeterTimer = new QTimer(this);
     connect(vuMeterTimer, SIGNAL(timeout()), this, SLOT(on_vuMeterTimerTick()));
-    vuMeterTimer->start(50);           // adjust from GUI with timer->setInterval(newValue)
+    vuMeterTimer->start(100);           // adjust from GUI with timer->setInterval(newValue)
 
     vuMeter = new LevelMeter(this);
     ui->gridLayout_2->addWidget(vuMeter, 1,5);  // add it to the layout in the right spot
@@ -564,11 +609,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // analog clock -----
     analogClock = new AnalogClock(this);
+    analogClock->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(analogClock, SIGNAL(customContextMenuRequested(QPoint)), analogClock, SLOT(customMenuRequested(QPoint)));
     ui->gridLayout_2->addWidget(analogClock, 2,6,4,1);  // add it to the layout in the right spot
     analogClock->setFixedSize(QSize(110,110));
     analogClock->setEnabled(true);
     analogClock->setVisible(true);
     ui->gridLayout_2->setAlignment(analogClock, Qt::AlignHCenter);  // center the clock horizontally
+
+    ui->textBrowserCueSheet->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->textBrowserCueSheet, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customLyricsMenuRequested(QPoint)));
 
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
@@ -587,14 +637,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-#define DISABLEFILEWATCHER 1
+//#define DISABLEFILEWATCHER 1
 
 #ifndef DISABLEFILEWATCHER
     PerfTimer t2("filewatcher init", __LINE__);
 
     // ---------------------------------------
-    // let's watch for changes in the musicDir
-    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+//    // let's watch for changes in the musicDir
+//    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
     QRegExp ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
     while (it.hasNext()) {
         QString aPath = it.next();
@@ -623,23 +674,28 @@ MainWindow::MainWindow(QWidget *parent) :
     t.elapsed(__LINE__);
 
     // do the same for lyrics (included the "downloaded" subdirectory) -------
-    QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-    while (it2.hasNext()) {
-        QString aPath = it2.next();
-        lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
-//        qDebug() << "adding lyrics path: " << aPath;
-        t.elapsed(__LINE__);
-    }
+//    QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+//    while (it2.hasNext()) {
+//        QString aPath = it2.next();
+//        lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
+////        qDebug() << "adding lyrics path: " << aPath;
+//        t.elapsed(__LINE__);
+//    }
 
     t.elapsed(__LINE__);
 
-    lyricsWatcher.addPath(musicRootPath + "/lyrics");  // add the root lyrics directory itself
+    lyricsWatcher.addPath(musicRootPath + "/lyrics");      // add the root lyrics directory itself
+    lyricsWatcher.addPath(musicRootPath + "/lyrics/downloaded");
+
     QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
     // ---------------------------------------
-
     t.elapsed(__LINE__);
 
     t2.elapsed(__LINE__);
+
+//    qDebug() << "Dirs 1:" << musicRootWatcher.directories();
+//    qDebug() << "Dirs 2:" << lyricsWatcher.directories();
+
 #endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
@@ -679,26 +735,24 @@ MainWindow::MainWindow(QWidget *parent) :
     // ----------------------------------------------
     songFilenameFormat = static_cast<SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
-    sd_animation_delta_t = prefsManager.GetSDAnimationDeltaT().toDouble();
-    sd_animation_msecs_per_frame = prefsManager.GetSDAnimationMSecsPerFrame().toDouble();
-    clamp_sd_animation_values();
+    SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
     
     // define type names (before reading in the music filenames!) ------------------
     QString value;
     value = prefsManager.GetMusicTypeSinging();
-    songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+    songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypePatter();
-    songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+    songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypeExtras();
-    songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+    songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypeCalled();
-    songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+    songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
 
     value = prefsManager.GetToggleSingingPatterSequence();
-    songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+    songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
 
     t.elapsed(__LINE__);
 
@@ -707,7 +761,13 @@ MainWindow::MainWindow(QWidget *parent) :
     t.elapsed(__LINE__);
 
     // used to store the file paths
+//    splash->showMessage("Locating songs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    QCoreApplication::instance()->processEvents();  // process events to date
+
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+
+//    splash->showMessage("Loading song info...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    QCoreApplication::instance()->processEvents();  // process events to date
 
     t.elapsed(__LINE__);
 
@@ -715,6 +775,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
+
+    t.elapsed(__LINE__);
 
     ui->songTable->resizeColumnToContents(kTypeCol);  // and force resizing of column widths to match songs
     ui->songTable->resizeColumnToContents(kLabelCol);
@@ -858,7 +920,8 @@ MainWindow::MainWindow(QWidget *parent) :
             Qt::LeftToRight,
             Qt::AlignCenter,
             size(),
-            qApp->desktop()->availableGeometry()
+//            qApp->desktop()->availableGeometry()
+            QGuiApplication::screens()[0]->geometry()
         )
     );
 
@@ -930,8 +993,8 @@ MainWindow::MainWindow(QWidget *parent) :
     sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
 
-    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
-    sdActionGroup2->setExclusive(true);
+//    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
+//    sdActionGroup2->setExclusive(true);
 
 //    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
 //    //   Is there a better way to do this?
@@ -942,37 +1005,37 @@ MainWindow::MainWindow(QWidget *parent) :
 //    sdActionGroup1->addAction(actions[NORMALNUM+3]);    // Sight
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
-    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
+//    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
 
     t.elapsed(__LINE__);
 
     // let's look through the items in the SD menu
-    QStringList ag1, ag2;
+    QStringList ag1; // , ag2;
     ag1 << "Normal" << "Color only" << "Mental image" << "Sight";
-    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
+//    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
 
     foreach (QAction *action, ui->menuSequence->actions()) {
         if (action->isSeparator()) {
 //            qDebug() << "separator";
         } else if (action->menu()) {
-//            qDebug() << "item with submenu: " << action->text();
-            // iterating just one level down
-            foreach (QAction *action2, action->menu()->actions()) {
-                if (action2->isSeparator()) {
-//                    qDebug() << "     separator";
-                } else if (action2->menu()) {
-//                    qDebug() << "     item with submenu: " << action2->text();
-                } else {
-//                    qDebug() << "     item: " << action2->text();
-                    if (ag2.contains(action2->text()) ) {
-                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
-                        action2->setCheckable(true); // all these items are checkable
-                        if (action2->text() == "Plus") {
-                            action2->setChecked(true);   // initially only PLUS is checked
-                        }
-                    }
-                }
-            }
+////            qDebug() << "item with submenu: " << action->text();
+//            // iterating just one level down
+//            foreach (QAction *action2, action->menu()->actions()) {
+//                if (action2->isSeparator()) {
+////                    qDebug() << "     separator";
+//                } else if (action2->menu()) {
+////                    qDebug() << "     item with submenu: " << action2->text();
+//                } else {
+////                    qDebug() << "     item: " << action2->text();
+//                    if (ag2.contains(action2->text()) ) {
+//                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
+//                        action2->setCheckable(true); // all these items are checkable
+//                        if (action2->text() == "Plus") {
+//                            action2->setChecked(true);   // initially only PLUS is checked
+//                        }
+//                    }
+//                }
+//            }
         } else {
 //            qDebug() << "item: " << action->text();
             if (ag1.contains(action->text()) ) {
@@ -1063,8 +1126,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     int songCount = 0;
     QString firstBadSongLine;
-    QString CurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
-    firstBadSongLine = loadPlaylistFromFile(CurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+
+    QString oldCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+    QString newCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
+
+    if (QFileInfo::exists(newCurrentPlaylistFileName)) {
+        // if the V2 version exists, use it, and ignore the M3U file
+        firstBadSongLine = loadPlaylistFromFile(newCurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+    } else if (QFileInfo::exists(oldCurrentPlaylistFileName)) {
+        // if we didn't find a new V2 version, look for an old M3U version, and it present, load it.
+        // when saved next time, it will become a V2 CSV version.
+        firstBadSongLine = loadPlaylistFromFile(oldCurrentPlaylistFileName, songCount);  // load "current.m3u" (if doesn't exist, do nothing)
+    }
 
     t.elapsed(__LINE__);
 
@@ -1105,19 +1178,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+//    splash->showMessage("Loading reference docs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
+//    QCoreApplication::instance()->processEvents();  // process events to date
+
     initReftab();
 
     t.elapsed(__LINE__);
 
-    currentSDVUILevel      = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-    currentSDKeyboardLevel = "plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDKeyboardLevel = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
 
     t.elapsed(__LINE__);
 
-    // Initializers for these should probably be up in the constructor
-    sdthread = new SDThread(this);
-    sdthread->start();
-    sdthread->unlock();
+    startSDThread(get_current_sd_dance_program());
 
     t.elapsed(__LINE__);
 
@@ -1159,12 +1232,103 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
     ui->actionSave->setEnabled(false);  // save is disabled to start out
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    ui->pushButtonSetIntroTime->setEnabled(false);
+    ui->pushButtonSetOutroTime->setEnabled(false);
+    ui->dateTimeEditIntroTime->setEnabled(false);
+    ui->dateTimeEditOutroTime->setEnabled(false);
 
+    // should the compressor be enabled?  Even if it's not actually instantiated here and now,p
+    //   this will set compressorShouldBeEnabled, so that when a song is loaded, the compressor will
+    //   be instantiated, too.
+    cBass.SetCompressionEnabled(prefsManager.GetcompressorIsEnabled());
+    cBass.SetCompression(0, prefsManager.Getthreshold_dB()); // yes, we have to initialize these manually
+    cBass.SetCompression(1, prefsManager.Getratio_toOne());
+    cBass.SetCompression(2, prefsManager.Getgain_dB());
+    cBass.SetCompression(3, prefsManager.Getattack_ms());
+    cBass.SetCompression(4, prefsManager.Getrelease_ms());
+
+    cBass.SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
+    cBass.SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
+    cBass.SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
+    cBass.SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
+
+//#ifdef Q_OS_MAC
+//    QString testPath("/Users/mpogue/mp3gain-1_6_2-src/test1.mp3");
+//    if (!replayGain_dB(testPath)) {
+//        qDebug() << "ERROR: can't get ReplayGain for: " << testPath;
+//    }
+//#endif
+
+    on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
+    on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
+    {
+        QString sizesStr = prefsManager.GetSDTabVerticalSplitterPosition();
+        if (!sizesStr.isEmpty())
+        {
+            QList<int> sizes;
+            for (QString sizeStr : sizesStr.split(","))
+            {
+                sizes.append(sizeStr.toInt());
+            }
+            // NOTE: assumes two widgets
+            if (sizes[0] == 0) {
+                sizes[0] += 300;
+                sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minheight of the checkers widget
+                                  //   so that user is not confused when the checkers widget disappears by dragging upward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+            if (sizes[1] == 0) {
+                sizes[0] -= 300;
+                sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minheight of the menu options widget
+                                  //   so that user is not confused when the menu options widget disappears by dragging downward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+            ui->splitterSDTabVertical->setSizes(sizes);
+        }
+    }
+    {
+        QString sizesStr = prefsManager.GetSDTabHorizontalSplitterPosition();
+        if (!sizesStr.isEmpty())
+        {
+            QList<int> sizes;
+            for (QString sizeStr : sizesStr.split(","))
+            {
+                sizes.append(sizeStr.toInt());
+            }
+
+            // NOTE: assumes two widgets
+            if (sizes[0] == 0) {
+                sizes[0] += 300;
+                sizes[1] -= 300;  // please, oh Layout Manager, pay attention to the minwidth of the current sequence widget
+                                  //   so that user is not confused when the current sequence widget disappears by dragging leftward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+            if (sizes[1] == 0) {
+                sizes[0] -= 300;
+                sizes[1] += 300;  // please, oh Layout Manager, pay attention to the minwidth of the checkers widget
+                                  //   so that user is not confused when the menu options widget disappears by dragging rightward
+                                  //   and they don't notice the tiny little splitter handle.
+            }
+
+            ui->splitterSDTabHorizontal->setSizes(sizes);
+        }
+    }
+
+    sdSliderSidesAreSwapped = false;  // start out NOT swapped
+    if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides())
+    {
+        // if we SHOULD be swapped, swap them...
+        sdSliderSidesAreSwapped = true;
+        ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
+    }
+
+    connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
+            this, SLOT(LyricsCopyAvailable(bool)));
 }
 
 void MainWindow::musicRootModified(QString s)
 {
-    Q_UNUSED(s);
+    Q_UNUSED(s)
     Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
     int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
     // reload the musicTable.  Note that it will switch to default sort order.
@@ -1230,7 +1394,8 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
         bool newerThanFence = now.addSecs(-ageInSecs) > recentFenceDateTime;
         if (newerThanFence) {
 //            qDebug() << "recent fence: " << recentFenceDateTime << ", now: " << now << ", ageInSecs: " << ageInSecs;
-            recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
+//            recentString = "🔺";  // this is a nice compromise between clearly visible and too annoying
+            recentString = "*";  // this is a nice compromise between clearly visible and too annoying
         } // else it will be ""
     }
     return(recentString);
@@ -1500,6 +1665,17 @@ void MainWindow::showHTML(QString fromWhere) {
     qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
+void MainWindow::setInOutButtonState() {
+    bool checked = ui->pushButtonEditLyrics->isChecked();
+    if (!prefsManager.GetInOutEditingOnlyWhenLyricsUnlocked())
+        checked = true;
+
+    ui->pushButtonSetIntroTime->setEnabled(checked);
+    ui->pushButtonSetOutroTime->setEnabled(checked);
+    ui->dateTimeEditIntroTime->setEnabled(checked);
+    ui->dateTimeEditOutroTime->setEnabled(checked);
+}
+
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 {
 //    qDebug() << "on_pushButtonEditLyrics_toggled" << checkState;
@@ -1534,6 +1710,8 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
         ui->textBrowserCueSheet->clearFocus();  // if the user locks the editor, remove focus
         ui->textBrowserCueSheet->setFocusPolicy(Qt::NoFocus);  // and don't allow it to get focus
     }
+
+    setInOutButtonState();
 }
 
 int MainWindow::currentSelectionContains() {
@@ -1609,6 +1787,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
         ui->pushButtonCueSheetEditHeader->setChecked(false);
         ui->pushButtonCueSheetEditLyrics->setChecked(false);
     }
+    setInOutButtonState();
 }
 
 // TODO: can't make a doc from scratch yet.
@@ -1616,6 +1795,7 @@ void MainWindow::on_textBrowserCueSheet_selectionChanged()
 void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 {
 //    qDebug() << "on_pushButtonCueSheetClearFormatting_clicked";
+        SelectionRetainer retainer(ui->textBrowserCueSheet);
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
         // now look at it as HTML
@@ -1703,6 +1883,7 @@ void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(const QTextChar
 static void setSelectedTextToClass(QTextEdit *editor, QString blockClass)
 {
 //    qDebug() << "setSelectedTextToClass: " << blockClass;
+    SelectionRetainer retainer(editor);
     QTextCursor cursor = editor->textCursor();
 
     if (!cursor.hasComplexSelection())
@@ -1851,6 +2032,10 @@ void MainWindow::writeCuesheet(QString filename)
 #ifdef WRITETHEMODIFIEDLYRICSFILE
     if ( file.open(QIODevice::WriteOnly) )
     {
+        filewatcherShouldIgnoreOneFileSave = true;  // when we save it will trigger filewatcher, which
+        //  will reorder the songTable.  We are adding the file to the pathStack manually, so there
+        //  really is no need to trigger the filewatcher.
+
         // Make sure the destructor gets called before we try to load this file...
         {
             QTextStream stream( &file );
@@ -1887,6 +2072,7 @@ void MainWindow::writeCuesheet(QString filename)
 
 void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 {
+    QTextCursor tc = ui->textBrowserCueSheet->textCursor();  // save text cursor
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
 //    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
 
@@ -1895,16 +2081,21 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 //        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
 //    }
 
-        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-        ui->pushButtonCueSheetEditSaveAs->hide();
-        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
-        ui->actionSave->setEnabled(false);  // save is disabled now
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
+    ui->actionSave->setEnabled(false);  // save is disabled now
+    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    setInOutButtonState();
+
+    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
 }
 
 void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 {
-//    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
+    QTextCursor tc = ui->textBrowserCueSheet->textCursor();  // save text cursor
+
+    //    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
     saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
 
     ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
@@ -1912,6 +2103,9 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
     ui->actionSave->setEnabled(false);  // save is disabled now
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    setInOutButtonState();
+
+    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
 }
 
 
@@ -2115,11 +2309,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 }
 
 void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
-//    qDebug() << "maybeLoadCSSfileIntoTextBrowser";
     // makes the /lyrics directory, if it doesn't exist already
-    // also copies cuesheet2.css to /lyrics, if not already present
-
-    // read the CSS file (if any)
     QString musicDirPath = prefsManager.GetmusicPath();
     QString lyricsDir = musicDirPath + "/lyrics";
 
@@ -2130,14 +2320,14 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
     }
 
     // ------------------------------------------------------------------
-    // get internal cuesheet2.css file, if it exists
-    QString cuesheet2 = getResourceFile("cuesheet2.css");
-//    qDebug() << "cuesheet2: " << cuesheet2;
-    if (cuesheet2.isEmpty()) {
-        qDebug() << "SOMETHING WENT WRONG with fetching the internal cuesheet2.css";
-    } else {
-        ui->textBrowserCueSheet->document()->setDefaultStyleSheet(cuesheet2);
-    }
+    QString css = "/* For correct operation of the Lyrics editor, the colors must be distinct from each other */\n"
+                  "body, p, font { font-size: large;   font-weight: Normal; color: #000000; line-height: 100%; background: #FFFFE0; }\n\n"
+                  ".title        { font-family: Arial Black; font-size: x-large; font-weight: Normal; color: #010101;}\n"
+                  ".label        { font-size: medium;  font-weight: Normal; color: #60C060;}\n"
+                  ".artist       { font-size: medium;  font-weight: Normal; color: #0000FF;}\n"
+                  ".hdr          { font-size: x-large; font-weight: Normal; color: #FF0002;}\n"
+                  ".lyrics       { font-size: large;   font-weight: Normal; color: #030303; background-color: #FFC0CB;}\n";
+    ui->textBrowserCueSheet->document()->setDefaultStyleSheet(css);
 }
 
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
@@ -2240,6 +2430,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
     ui->actionSave->setEnabled(false);  // save is disabled to start out
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    setInOutButtonState();
 }
 
 // END LYRICS EDITOR STUFF
@@ -2431,10 +2622,10 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    // Just before the app quits, save the current playlist state in "current.m3u", and it will be reloaded
+    // Just before the app quits, save the current playlist state in "current.csv", and it will be reloaded
     //   when the app starts up again.
     // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
-    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
     saveCurrentPlaylistToFile(PlaylistFileName);
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
@@ -2574,7 +2765,8 @@ void MainWindow::randomizeFlashCall() {
 
     int newRandCallIndex;
     do {
-        newRandCallIndex = qrand() % numCalls;
+//        newRandCallIndex = qrand() % numCalls;
+        newRandCallIndex = QRandomGenerator::global()->bounded(numCalls); // 0 thru numCalls-1
     } while (newRandCallIndex == randCallIndex);
     randCallIndex = newRandCallIndex;
 }
@@ -2589,8 +2781,8 @@ void MainWindow::on_playButton_clicked()
 
 //    if (currentState == kStopped || currentState == kPaused) {
     uint32_t Stream_State = cBass.currentStreamState();
-    if (Stream_State == BASS_ACTIVE_STOPPED || Stream_State == BASS_ACTIVE_PAUSED) {
-        cBass.Play();  // currently stopped or paused, so start playing
+    if (Stream_State != BASS_ACTIVE_PLAYING) {
+        cBass.Play();  // currently stopped or paused or stalled, so try to start playing
 
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
         randomizeFlashCall();
@@ -2886,6 +3078,7 @@ void MainWindow::on_actionMute_triggered()
 // ----------------------------------------------------------------------
 void MainWindow::on_tempoSlider_valueChanged(int value)
 {
+//    qDebug() << "on_tempoSlider_valueChanged:" << value;
     if (tempoIsBPM) {
         double desiredBPM = static_cast<double>(value);            // desired BPM
         int newBASStempo = static_cast<int>(round(100.0*desiredBPM/baseBPM));
@@ -3010,6 +3203,31 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
 
         int currentPos_i = static_cast<int>(cBass.Current_Position);
+
+// to help track down the failure-to-progress error...
+#define WATCHDOG460
+#ifdef WATCHDOG460
+        // watchdog for "failure to progress" error ------
+        if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
+            if (cBass.Current_Position <= previousPosition
+                    // || previousPosition > 10.0  // DEBUG
+               )
+            {
+                qDebug() << "Failure/manual seek:" << previousPosition << cBass.Current_Position
+                         << "songloaded: " << songLoaded;
+                previousPosition = -1.0;  // uninitialized
+            } else {
+//                qDebug() << "Progress:" << previousPosition << cBass.Current_Position;
+                // this will always be executed on the first info_seekbar update when playing
+                previousPosition = cBass.Current_Position;  // remember previous position
+            }
+        } else {
+//            qDebug() << "Paused:" << previousPosition << currentPos_i;
+            // when stopped, we'll set previous position to -1
+            previousPosition = -1.0;  // uninitialized
+        }
+#endif
+
         if (forceSlider) {
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
@@ -3498,7 +3716,8 @@ void MainWindow::on_UIUpdateTimerTick(void)
     // -----------------------
     // about once a second, poll for volume changes
     newVolumeList = getCurrentVolumes();  // get the current state of the world
-    qSort(newVolumeList);  // sort to allow direct comparison
+//    qSort(newVolumeList);  // sort to allow direct comparison
+    std::sort(newVolumeList.begin(), newVolumeList.end());
     if(lastKnownVolumeList == newVolumeList){
         // This space intentionally blank.
     } else {
@@ -3531,6 +3750,37 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();  // OK to close, if user said "OK" or "SAVE"
         saveCurrentSongSettings();
 
+        {
+            QList<int> sizes = ui->splitterSDTabVertical->sizes();
+            QString sizeStr("");
+            for (int s : sizes)
+            {
+                if (sizeStr.length())
+                {
+                    sizeStr += ",";
+                }
+                QString sstr(QString("%1").arg(s));
+                sizeStr += sstr;
+            }
+            prefsManager.SetSDTabVerticalSplitterPosition(sizeStr);
+        }
+        
+
+        {
+            QList<int> sizes = ui->splitterSDTabHorizontal->sizes();
+            QString sizeStr("");
+            for (int s : sizes)
+            {
+                if (sizeStr.length())
+                {
+                    sizeStr += ",";
+                }
+                QString sstr(QString("%1").arg(s));
+                sizeStr += sstr;
+            }
+            prefsManager.SetSDTabHorizontalSplitterPosition(sizeStr);
+        }
+
         // as per http://doc.qt.io/qt-5.7/restoring-geometry.html
         prefsManager.MySettings.setValue("lastCuesheetSavePath", lastCuesheetSavePath);
         prefsManager.MySettings.setValue("geometry", saveGeometry());
@@ -3547,7 +3797,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("(Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
@@ -3588,6 +3838,15 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
+        int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
+        bool tabIsLyricsOrPatter = (ui->tabWidget->tabText(cindex) == "Lyrics" || ui->tabWidget->tabText(cindex) == "*Lyrics" ||  // and I'm on the Lyrics/Patter tab
+                                    ui->tabWidget->tabText(cindex) == "Patter" || ui->tabWidget->tabText(cindex) == "*Patter");
+
+        bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
+
+//        qDebug() << "tabIsLyricsOrPatter: " << tabIsLyricsOrPatter << ", cmdC_KeyPressed: " << cmdC_KeyPressed <<
+//                    "lyricsCopyIsAvailable: " << maybeMainWindow->lyricsCopyIsAvailable << "has focus: " << ui->textBrowserCueSheet->hasFocus();
+
         // if any of these widgets has focus, let them process the key
         //  otherwise, we'll process the key
         // UNLESS it's one of the search/timer edit fields and the ESC key is pressed (we must still allow
@@ -3598,6 +3857,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             && KeyEvent->key() == Qt::Key_Tab)
         {
             maybeMainWindow->do_sd_tab_completion();
+            return true;
+        }
+        else if (cmdC_KeyPressed                        // When CMD-C is pressed
+                 && tabIsLyricsOrPatter                 // and we're on the Lyrics editor tab
+                 && maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
+                 ) {
+            ui->textBrowserCueSheet->copy();  // Then let's do the copy to clipboard manually anyway, even though we might not have focus
             return true;
         }
         else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
@@ -4044,6 +4310,7 @@ struct FilenameMatchers {
 struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingType songFilenameFormat)
 {
     static struct FilenameMatchers best_guess_matches[] = {
+        { QRegularExpression("^(4-[Bb][Aa][Rr]-[Bb]\\s*\\d{1,5})\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "4-bar-b 123 - Chicken Plucker"
         { QRegularExpression("^(.*) - ([A-Z]+[\\- ]\\d+)( *-?[VMA-C]|\\-\\d+)?$"), 1, 2, -1, 3, -1 },
         { QRegularExpression("^([A-Z]+[\\- ]\\d+)(-?[VvMA-C]?) - (.*)$"), 3, 1, -1, 2, -1 },
         { QRegularExpression("^([A-Z]+ ?\\d+)([MV]?)[ -]+(.*)$/"), 3, 1, -1, 2, -1 },
@@ -4060,8 +4327,8 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*(\\d+)([a-zA-Z]{1,2})?\\s*-\\s*(.*?)\\s*(\\(.*\\))?$"), 4, 1, 2, 3, 5 }, // SIR 705b - Papa Was A Rollin Stone (Instrumental).mp3
         { QRegularExpression("^([A-Z0-9]{1,5}+)\\s*-\\s*(.*)$"), 2, 1, -1, -1, -1 },    // e.g. "POP - Chicken Plucker" (if it has a dash but fails all other tests,
         { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Z]{1,5})(\\d{1,5})\\s*(\\(.*\\))?$"), 1, 2, 3, -1, 4 },    // e.g. "A Summer Song - CHIC3002 (female vocals)
-        { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7}|4-Bar-B)-(\\d{1,5})(\\-?([AB]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor-4936B"
-        { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7}|4-Bar-B) (\\d{1,5})(\\-?([AB]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor-4936B"
+        { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7}|4-[Bb][Aa][Rr]-[Bb])-(\\d{1,5})(\\-?([AB]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor-4936B"
+        { QRegularExpression("^(.*?)\\s*\\-\\s*([A-Za-z]{1,7}|4-[Bb][Aa][Rr]-[Bb]) (\\d{1,5})(\\-?([AB]))?$"), 1, 2, 3, 5, -1 },    // e.g. "Paper Doll - Windsor-4936B"
 
         { QRegularExpression(), -1, -1, -1, -1, -1 }
     };
@@ -4080,9 +4347,11 @@ struct FilenameMatchers *getFilenameMatchersForType(enum SongFilenameMatchingTyp
         case SongFilenameBestGuess :
             return best_guess_matches;
         case SongFilenameLabelDashName :
-        default:  // ignore the warning here, this default label does NOT cover all enum values
+//        default:  // all the cases are covered already (default is not needed here)
             return label_first_matches;
     }
+    // Shut up the warnings, all the returns happen in the switch above
+    return label_first_matches;
 }
 
 
@@ -4429,15 +4698,8 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
 
     t.elapsed(__LINE__);
 
-//    qDebug() << "findPossibleCuesheets():";
-    QString mp3Lyrics = loadLyrics(MP3Filename);
-//    qDebug() << "mp3Lyrics:" << mp3Lyrics;
-    if (mp3Lyrics.length())
-    {
-        possibleCuesheets.append(MP3Filename);
-    }
-
-    qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
+//    qSort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
+    std::sort(possibleRankings.begin(), possibleRankings.end(), CompareCuesheetWithRanking);
     QListIterator<CuesheetWithRanking *> iterRanked(possibleRankings);
     while (iterRanked.hasNext())
     {
@@ -4446,6 +4708,17 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         delete cswr;
     }
 
+    // append the MP3 filename itself, IF it contains lyrics, but do this at the end,
+    //  after all the other (scored/ranked) cuesheets are added to the list of possibleCuesheets,
+    //  so that the default for a new song will be a real cuesheet, rather than the lyrics inside the MP3 file.
+
+    //    qDebug() << "findPossibleCuesheets():";
+        QString mp3Lyrics = loadLyrics(MP3Filename);
+    //    qDebug() << "mp3Lyrics:" << mp3Lyrics;
+        if (mp3Lyrics.length())
+        {
+            possibleCuesheets.append(MP3Filename);
+        }
 }
 
 void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
@@ -4681,6 +4954,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         // This can always be overridden using TBPM in the ID3 tag inside a specific patter song, if needed.
         //        qDebug() << "Riverboat patter detected!";
         songBPM = 126;
+        tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
 
     // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
@@ -4688,6 +4962,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     if (songBPM_ID3 != 0.0) {
         songBPM = static_cast<int>(songBPM_ID3);
+        tempoIsBPM = true;  // this song's tempo is BPM, not %
     }
 
     baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
@@ -4708,24 +4983,26 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->tempoSlider->setMaximum(songBPM+15);
 
         t.elapsed(__LINE__);
-        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
-        int initialBPM = prefsManager.GetinitialBPM();
-        t.elapsed(__LINE__);
-        if (tryToSetInitialBPM) {
-            // if the user wants us to try to hit a particular BPM target, use that value
-            ui->tempoSlider->setValue(initialBPM);
-            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-            t.elapsed(__LINE__);
-        } else {
-            // otherwise, if the user wants us to start with the slider at the regular detected BPM
-            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
-            //     all saved tempo preferences will always win.
-            ui->tempoSlider->setValue(songBPM);
-            ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-            t.elapsed(__LINE__);
-        }
+//        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
+//        int initialBPM = prefsManager.GetinitialBPM();
+//        t.elapsed(__LINE__);
+//        qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
+//        if (tryToSetInitialBPM) {
+//            qDebug() << "tryToSetInitialBPM true: " << initialBPM;
+//            // if the user wants us to try to hit a particular BPM target, use that value
+//            ui->tempoSlider->setValue(initialBPM);
+//            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+//            t.elapsed(__LINE__);
+//        } else {
+//            // otherwise, if the user wants us to start with the slider at the regular detected BPM
+//            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
+//            //     all saved tempo preferences will always win.
+        ui->tempoSlider->setValue(songBPM);
+        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+//            t.elapsed(__LINE__);
+//        }
 
-        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here
+        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
         ui->tempoSlider->setEnabled(true);
         t.elapsed(__LINE__);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
@@ -4831,7 +5108,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     t.elapsed(__LINE__);
 
-    if (!isSingingCall) {
+    if (isPatter) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
         ui->pushButtonSetIntroTime->setText("Start Loop");
@@ -4839,6 +5116,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->pushButtonTestLoop->setHidden(false);
         analogClock->setSingingCallSection("");
     } else {
+        // NOTE: if unknown type, it will be treated as a singing call, so as to NOT set looping
         // singing call or vocals or xtras, so Loop mode defaults to OFF
         on_loopButton_toggled(false); // default is to loop, if type is patter
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
@@ -4849,14 +5127,61 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     t.elapsed(__LINE__);
 
-    loadSettingsForSong(songTitle);
+    loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo
+
+    loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
 
     t.elapsed(__LINE__);
+
+    // NOTE: this needs to be down here, to override the tempo setting loaded by loadSettingsForSong()
+    bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
+    int initialBPM = prefsManager.GetinitialBPM();
+    t.elapsed(__LINE__);
+
+//    qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
+
+    if (tryToSetInitialBPM && tempoIsBPM) {
+//        qDebug() << "tryToSetInitialBPM overrides to: " << initialBPM;
+        // if the user wants us to try to hit a particular BPM target, use that value
+        //  iff the tempo is actually measured in BPM for this song
+        ui->tempoSlider->setValue(initialBPM);
+        ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        t.elapsed(__LINE__);
+    }
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
 
     songLoaded = true;  // now seekBar can be updated
+
+#ifdef Q_OS_MAC
+    // TODO: HOW TO FORCE RECALC OF REPLAYGAIN ON A FILE?
+    songLoadedReplayGain_dB = 0.0;
+    bool songHasReplayGain = settings1.isSetReplayGain();
+    if (songHasReplayGain) {
+//        qDebug() << "   loadMP3File: replayGain found in DB:" << settings1.getReplayGain();
+        songLoadedReplayGain_dB = settings1.getReplayGain();
+    }
+    if (!songHasReplayGain) // || (songLoadedReplayGain_dB == 0.0) )
+    {
+        // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
+        //   and song does NOT have replayGain
+        // //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
+        // //     failed the last time)  <-- this part disabled intentionally
+        bool replayGainCheckboxIsChecked = prefsManager.GetreplayGainIsEnabled();
+        if (replayGainCheckboxIsChecked) {
+            if (!replayGain_dB(MP3FileName)) {
+//                qDebug() << "ERROR: can't get ReplayGain for: " << MP3FileName;
+            } else {
+//                qDebug() << "Now calculating ReplayGain for: " << MP3FileName;
+            }
+        } else {
+//            qDebug() << "ReplayGain is currently disabled, so calculation will not be started.";
+        }
+    }
+#endif
+
+    setInOutButtonState();
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -5071,6 +5396,8 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     QTableWidgetItem *newTableItem;
     if (column == kNumberCol || column == kAgeCol || column == kPitchCol || column == kTempoCol) {
         newTableItem = new TableNumberItem( str.trimmed() );  // does sorting correctly for numbers
+    } else if (column == kLabelCol) {
+        newTableItem = new TableLabelItem( str.trimmed() );  // does sorting correctly for labels
     } else {
         newTableItem = new QTableWidgetItem( str.trimmed() );
     }
@@ -5082,19 +5409,19 @@ void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
     songTable->setItem(songTable->rowCount()-1, column, newTableItem);
 }
 
-static QString getTitleColText(MyTableWidget *songTable,int row)
+static QString getTitleColText(MyTableWidget *songTable, int row)
 {
     return dynamic_cast<QLabel*>(songTable->cellWidget(row,kTitleCol))->text();
 }
 
-static QString getTitleColTitle(MyTableWidget *songTable,int row)
+static QString getTitleColTitle(MyTableWidget *songTable, int row)
 {
     QString title = getTitleColText(songTable, row);
     int where = title.indexOf(title_tags_remover);
     if (where >= 0) {
         title.truncate(where);
     }
-    title.replace("&quot;","\"");  // if filename contains a double quote
+    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
     return title;
 }
 
@@ -5346,7 +5673,7 @@ void MainWindow::loadMusicList()
         TableNumberItem *newTableItem4 = new TableNumberItem(s2);
 
         newTableItem4->setTextAlignment(Qt::AlignCenter);                           // editable by default
-        newTableItem4->setTextColor(textCol);
+        newTableItem4->setForeground(textCol);
         ui->songTable->setItem(ui->songTable->rowCount()-1, kNumberCol, newTableItem4);      // add it to column 0
 
         addStringToLastRowOfSongTable(textCol, ui->songTable, type, kTypeCol);
@@ -5700,7 +6027,7 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
         QTextStream stream(&file);
         for (int i = 0; fileLines[i]; ++i)
         {
-            stream << fileLines[i] << endl;
+            stream << fileLines[i] << Qt::endl;
         }
         programs << outputFile;
     }
@@ -5846,15 +6173,16 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
                                            //   exactly the same as the previous value.  This will ensure that cBass.setPitch() gets called (right now) on the new stream.
 
-    if (tempo != "0" && tempo != "0%") {
-        // iff tempo is known, then update the table
-        QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
-        int tempoInt = tempo2.toInt();
-        if (tempoInt !=0)
-        {
-            ui->tempoSlider->setValue(tempoInt);
-        }
-    }
+// this code does not appear to do what the comment intended.
+//    if (tempo != "0" && tempo != "0%") {
+//        // iff tempo is known, then update the table
+//        QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
+//        int tempoInt = tempo2.toInt();
+//        if (tempoInt !=0)
+//        {
+//            ui->tempoSlider->setValue(tempoInt);
+//        }
+//    }
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -6035,6 +6363,7 @@ void MainWindow::on_actionPreferences_triggered()
     trapKeypresses = true;
 
     QString oldMusicRootPath = prefsManager.GetmusicPath();
+    bool oldReplayGainEnabled = prefsManager.GetreplayGainIsEnabled();
 
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
@@ -6061,6 +6390,15 @@ void MainWindow::on_actionPreferences_triggered()
             // 3) TODO: clear out the lyrics
             // 4) TODO: clear out the reference tab
             // 5) TODO: load the reference material from the new musicDirectory
+        }
+
+        bool newReplayGainEnabled = prefsManager.GetreplayGainIsEnabled();
+        if (!oldReplayGainEnabled && newReplayGainEnabled) {
+//            qDebug() << "TODO: force calculate replay gain for current song, if it doesn't have one yet";
+        }
+
+        if (!newReplayGainEnabled) {
+            ui->statusBar->clearMessage(); // clear out the old replaygain message, if ReplayGain is now off
         }
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
@@ -6097,6 +6435,13 @@ void MainWindow::on_actionPreferences_triggered()
                 ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
             }
             showTimersTab = false;
+        }
+
+        if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides() != sdSliderSidesAreSwapped)
+        {
+            // if they are in the wrong swappage, swap them.  This is a toggle.
+            sdSliderSidesAreSwapped = prefsManager.GetSwapSDTabInputAndAvailableCallsSides();
+            ui->splitterSDTabHorizontal->addWidget(ui->splitterSDTabHorizontal->widget(0));
         }
 
         // ----------------------------------------------------------------
@@ -6146,26 +6491,24 @@ void MainWindow::on_actionPreferences_triggered()
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
 
-        sd_animation_delta_t = prefsManager.GetSDAnimationDeltaT().toDouble();
-        sd_animation_msecs_per_frame = prefsManager.GetSDAnimationMSecsPerFrame().toDouble();
-        clamp_sd_animation_values();
+        SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
         
         {
             QString value;
             value = prefsManager.GetMusicTypeSinging();
-            songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+            songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypePatter();
-            songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+            songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypeExtras();
-            songTypeNamesForExtras = value.toLower().split(";", QString::KeepEmptyParts);
+            songTypeNamesForExtras = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypeCalled();
-            songTypeNamesForCalled = value.split(";", QString::KeepEmptyParts);
+            songTypeNamesForCalled = value.split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetToggleSingingPatterSequence();
-            songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+            songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
@@ -6181,6 +6524,7 @@ void MainWindow::on_actionPreferences_triggered()
             airplaneMode(false);
         }
     }
+    setInOutButtonState();
 
     delete prefDialog;
     prefDialog = nullptr;
@@ -6255,6 +6599,12 @@ QStringList MainWindow::parseCSV(const QString &string)
     return fields;
 }
 
+bool MainWindow::compareRelative(QString relativePlaylistPath, QString absolutePathstackPath) {
+    // compare paths with MusicDir stripped off of the left (relative compare to root of MusicDir)
+    QString stripped2 = absolutePathstackPath.replace(musicRootPath, "");
+    return(relativePlaylistPath == stripped2);
+}
+
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
 
@@ -6282,13 +6632,17 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
             QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
 
+            // V1 playlists use absolute paths, V2 playlists use relative paths
+            // This allows two things:
+            //   - moving an entire Music Directory from one place to another, and playlists still work
+            //   - sharing an entire Music Directory across platforms, and playlists still work
+            bool v2playlist = header.contains("relpath");
+            bool v1playlist = !v2playlist;
+
             while (!in.atEnd()) {
                 QString line = in.readLine();
 
-                if (line == "abspath") {
-                    // V1 of the CSV file format has exactly one field, an absolute pathname in quotes
-                }
-                else if (line == "") {
+                if (line == "") {
                     // ignore, it's a blank line
                 }
                 else {
@@ -6302,8 +6656,10 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
                         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
 
-                        if (list1[0] == pathToMP3) { // FIX: this is fragile, if songs are moved around, since absolute paths are used.
-
+                        if ( (v1playlist && (list1[0] == pathToMP3)) ||             // compare absolute pathnames (fragile, old V1 way)
+                             (v2playlist && compareRelative(list1[0], pathToMP3))   // compare relative pathnames (better, new V2 way)
+                           ) {
+                            // qDebug() << "MATCH::" << list1[0] << pathToMP3;
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
 
@@ -6478,6 +6834,8 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     // --------
     QList<PlaylistExportRecord> exports;
 
+    bool savingToM3U = PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive);
+
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
@@ -6492,15 +6850,21 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             // TODO: reconcile int here with double elsewhere on insertion
             PlaylistExportRecord rec;
             rec.index = playlistIndex.toInt();
-//            rec.title = songTitle;
-            rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
+            if (savingToM3U) {
+                rec.title = pathToMP3;  // NOTE: M3U must remain absolute
+                                        //    it will NOT survive moving musicDir or sharing it via Dropbox or Google Drive
+            } else {
+                rec.title = pathToMP3.replace(musicRootPath, "");  // NOTE: this is now a relative (to the musicDir) path
+                                                                   //    that should survive moving musicDir or sharing it via Dropbox or Google Drive
+            }
             rec.pitch = pitch;
             rec.tempo = tempo;
             exports.append(rec);
         }
     }
 
-    qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);
+//    qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);
+    std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);
     // TODO: strip the initial part of the path off the Paths, e.g.
     //   /Users/mpogue/__squareDanceMusic/patter/C 117 - Restless Romp (Patter).mp3
     //   becomes
@@ -6516,13 +6880,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
             QTextStream stream(&file);
-            stream << "#EXTM3U" << endl << endl;
+            stream << "#EXTM3U" << Qt::endl << Qt::endl;
 
             // list is auto-sorted here
             foreach (const PlaylistExportRecord &rec, exports)
             {
-                stream << "#EXTINF:-1," << endl;  // nothing after the comma = no special name
-                stream << rec.title << endl;
+                stream << "#EXTINF:-1," << Qt::endl;  // nothing after the comma = no special name
+                stream << rec.title << Qt::endl;
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -6534,13 +6898,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     else if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
-            stream << "abspath,pitch,tempo" << endl;
+            stream << "relpath,pitch,tempo" << Qt::endl;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
 
             foreach (const PlaylistExportRecord &rec, exports)
             {
                 stream << "\"" << rec.title << "\"," <<
                     rec.pitch << "," <<
-                    rec.tempo << endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
+                    rec.tempo << Qt::endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -6757,11 +7121,12 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
 
-    if (tempo != "0") {
-        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
-        int tempoInt = tempo.toInt();
-        ui->tempoSlider->setValue(tempoInt);
-    }
+// not sure this is needed anymore...test with next song, previous song to be sure
+//    if (tempo != "0") {
+//        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
+//        int tempoInt = tempo.toInt();
+//        ui->tempoSlider->setValue(tempoInt);
+//    }
 
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
@@ -7009,6 +7374,10 @@ void MainWindow::PlaylistItemToTop() {
     }
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7052,6 +7421,10 @@ void MainWindow::PlaylistItemToBottom() {
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
     }
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7083,6 +7456,10 @@ void MainWindow::PlaylistItemMoveUp() {
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
     // TODO: turn on sorting again
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7116,6 +7493,10 @@ void MainWindow::PlaylistItemMoveDown() {
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
     // TODO: turn on sorting again
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // moved an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 // --------------------------------------------------------------------
@@ -7147,12 +7528,16 @@ void MainWindow::PlaylistItemRemove() {
     // and then set this one to #LAST
     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    // removed an item, so we must enable saving of the playlist
+    ui->actionSave->setEnabled(true);       // menu item Save is enabled now
+    ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
 }
 
 
 void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 {
-    Q_UNUSED(pos);
+    Q_UNUSED(pos)
     QStringList currentTags;
 
     if (ui->songTable->selectionModel()->hasSelection()) {
@@ -7498,10 +7883,22 @@ void MainWindow::saveCurrentSongSettings()
         setting.setMidrange( ui->midrangeSlider->value() );
         setting.setMix( ui->mixSlider->value() );
 
+//        setting.setReplayGain();  // TODO:
+
         if (ui->actionLoop->isChecked()) {
             setting.setLoop( 1 );
         } else {
             setting.setLoop( -1 );
+        }
+
+        // When it comes time to save the replayGain value, it should be done being calculated.
+        // So, save it, whatever it is.  This will fail, if the song is quickly clicked through.
+        // We guard against this by NOT saving, if it's exactly 0.0 dB (meaning not calculated yet).
+        if (cBass.Stream_replayGain_dB != 0.0) {
+//            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass.Stream_replayGain_dB;
+            setting.setReplayGain(cBass.Stream_replayGain_dB);
+        } else {
+//            qDebug() << "***** saveCurrentSongSettings: NOT saving replayGain value for" << currentSong << ", because it's 0.0dB, so not set yet";
         }
 
         songSettings.saveSettings(currentMP3filenameWithPath,
@@ -7626,6 +8023,17 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             }
         }
 
+        // if RPG is enabled, AND song has a RPG, then get the value and use it
+        if (prefsManager.GetreplayGainIsEnabled() && settings.isSetReplayGain()) {
+//            qDebug() << "******* loadSettingsForSong: SAVED replayGain used for" << songTitle << "was " << settings.getReplayGain() << "dB";
+            double currentReplayGain = settings.getReplayGain();
+            cBass.SetReplayGainVolume(currentReplayGain);
+            ui->statusBar->showMessage(QString("ReplayGain enabled: %1dB").arg(currentReplayGain));
+        } else {
+            ui->statusBar->clearMessage();
+//            qDebug() << "******* loadSettingsForSong: REPLAY GAIN for" << songTitle << "has not been set yet.";
+        }
+
     }
     else
     {
@@ -7634,6 +8042,12 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->midrangeSlider->setValue(0);
         ui->mixSlider->setValue(0);
     }
+}
+
+void MainWindow::loadGlobalSettingsForSong(QString songTitle) {
+   Q_UNUSED(songTitle)
+//   qDebug() << "loadGlobalSettingsForSong";
+   cBass.SetGlobals();
 }
 
 // ------------------------------------------------------------------------------------------
@@ -7720,7 +8134,8 @@ QStringList MainWindow::getCurrentVolumes() {
     }
 #endif
 
-    qSort(volumeDirList);     // always return sorted, for convenient comparisons later
+//    qSort(volumeDirList);     // always return sorted, for convenient comparisons later
+    std::sort(volumeDirList.begin(), volumeDirList.end());
 
     return(volumeDirList);
 }
@@ -7736,7 +8151,8 @@ void MainWindow::on_newVolumeMounted() {
     if (lastKnownVolumeList.length() < newVolumeList.length()) {
         // ONE OR MORE VOLUMES APPEARED
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S NEW (if more than 1)
-        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+//        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+        newVolumes = QSet<QString>(newVolumeList.begin(), newVolumeList.end()).subtract(QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()));
         foreach (const QString &item, newVolumes) {
             newVolume = item;  // first item is the volume added
         }
@@ -7797,7 +8213,8 @@ void MainWindow::on_newVolumeMounted() {
     } else if (lastKnownVolumeList.length() > newVolumeList.length()) {
         // ONE OR MORE VOLUMES WENT AWAY
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
-        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+//        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+        goneVolumes = QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()).subtract(QSet<QString>(newVolumeList.begin(), newVolumeList.end()));
         foreach (const QString &item, goneVolumes) {
             goneVolume = item;
         }
@@ -7905,15 +8322,16 @@ void MainWindow::microphoneStatusUpdate() {
 
     int index = ui->tabWidget->currentIndex();
 
-    QString micsON("MICS ON (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
-    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel.toUpper() + ", Kybd: " + currentSDKeyboardLevel.toUpper() + ")");
+    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
+    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
     if (ui->tabWidget->tabText(index) == "SD"
         || ui->tabWidget->tabText(index) == "SD 2") {
         if (voiceInputEnabled &&
             currentApplicationState == Qt::ApplicationActive) {
-            if (!ps)
+            if (!ps) {
                 initSDtab();
+            }
         }
         if (voiceInputEnabled && ps &&
             currentApplicationState == Qt::ApplicationActive) {
@@ -7989,8 +8407,9 @@ void MainWindow::readPSData()
 
 void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
 {
-    Q_UNUSED(error);
+    Q_UNUSED(error)
 }
+
 void MainWindow::pocketSphinx_started()
 {
 }
@@ -8075,6 +8494,22 @@ void MainWindow::initReftab() {
 #endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                documentsTab->addTab(webview[numWebviews], tabname);
+                numWebviews++;
+        } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
+                tabname = filename.split("/").last().remove(QRegExp(".[Mm][Dd]$"));
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+                webview[numWebviews] = new QWebEngineView();
+#else
+                webview[numWebviews] = new QWebView();
+#endif
+
+                QFile f1(filename);
+                f1.open(QIODevice::ReadOnly | QIODevice::Text);
+                QTextStream in(&f1);
+                QString html = txtToHTMLlyrics(in.readAll(), filename);
+                webview[numWebviews]->setHtml(html);
+                webview[numWebviews]->setZoomFactor(1.5);
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         } else if (filename.endsWith(".pdf")) {
@@ -8261,19 +8696,19 @@ void MainWindow::on_actionStartup_Wizard_triggered()
 
         QString value;
         value = prefsManager.GetMusicTypeSinging();
-        songTypeNamesForSinging = value.toLower().split(";", QString::KeepEmptyParts);
+        songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypePatter();
-        songTypeNamesForPatter = value.toLower().split(";", QString::KeepEmptyParts);
+        songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypeExtras();
-        songTypeNamesForExtras = value.toLower().split(';', QString::KeepEmptyParts);
+        songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypeCalled();
-        songTypeNamesForCalled = value.toLower().split(';', QString::KeepEmptyParts);
+        songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
 
         value = prefsManager.GetToggleSingingPatterSequence();
-        songTypeToggleList = value.toLower().split(';', QString::KeepEmptyParts);
+        songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
@@ -8733,6 +9168,7 @@ void MainWindow::setFontSizes()
     ui->typeSearch->setFont(font);
     ui->labelSearch->setFont(font);
     ui->titleSearch->setFont(font);
+    ui->lineEditSDInput->setFont(font);  // SD Input box needs to resize, too.
     ui->clearSearchButton->setFont(font);
     ui->songTable->setFont(font);
 
@@ -8900,6 +9336,7 @@ void MainWindow::adjustFontSizes()
     ui->typeSearch->setFixedHeight(searchBoxesHeight[index]);
     ui->labelSearch->setFixedHeight(searchBoxesHeight[index]);
     ui->titleSearch->setFixedHeight(searchBoxesHeight[index]);
+    ui->lineEditSDInput->setFixedHeight(searchBoxesHeight[index]);
 
     ui->dateTimeEditIntroTime->setFixedHeight(searchBoxesHeight[index]);  // this scales the intro/outro button height, too...
     ui->dateTimeEditOutroTime->setFixedHeight(searchBoxesHeight[index]);
@@ -8914,6 +9351,7 @@ void MainWindow::adjustFontSizes()
     ui->typeSearch->setFont(currentFont);
     ui->labelSearch->setFont(currentFont);
     ui->titleSearch->setFont(currentFont);
+    ui->lineEditSDInput->setFont(currentFont);
 
     ui->tempoLabel->setFont(currentFont);
     ui->pitchLabel->setFont(currentFont);
@@ -8971,6 +9409,7 @@ void MainWindow::adjustFontSizes()
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFont(currentFont);
+    ui->songTable->horizontalHeader()->setFixedHeight(searchBoxesHeight[index]);
 //    qDebug() << "setting font to: " << currentFont;
 
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(67*(currentMacPointSize/13.0)));
@@ -9439,7 +9878,8 @@ void MainWindow::on_actionFilePrint_triggered()
             }
         }
 
-        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+//        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+        std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
 
         QString toBePrinted = "PLAYLIST\n\n";
 
@@ -9477,10 +9917,12 @@ void MainWindow::saveLyrics()
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
-        writeCuesheet(cuesheetFilename);            // this will trigger Filewatcher, which will clear the flag
+        writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)
+
         loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
         saveCurrentSongSettings();
     }
+    setInOutButtonState();
 
 }
 
@@ -9530,7 +9972,9 @@ void MainWindow::saveLyricsAs()
         ui->actionSave->setEnabled(false);  // save is disabled to start out
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
 
-        writeCuesheet(filename);
+        filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
+        writeCuesheet(filename);            // this will NOT trigger FileWatcher
+
         loadCuesheets(currentMP3filenameWithPath, filename);
         saveCurrentSongSettings();
     }
@@ -9775,7 +10219,7 @@ void MainWindow::readFlashCallsList() {
 
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qDebug() << "Could not open 'allcalls.csv' file.";
+        qDebug() << "Could not open 'allcalls.csv' file. Flash calls will not work.";
         qDebug() << "looked here:" << allcallsPath;
         return;
     }
@@ -9801,11 +10245,12 @@ void MainWindow::readFlashCallsList() {
         }
     }
 //    qDebug() << "Flash calls" << flashCalls;
-    qsrand(static_cast<uint>(QTime::currentTime().msec()));  // different random sequence of calls each time, please.
+//    qsrand(static_cast<uint>(QTime::currentTime().msec()));  // different random sequence of calls each time, please.
     if (flashCalls.length() == 0) {
         randCallIndex = 0;
     } else {
-        randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
+//        randCallIndex = qrand() % flashCalls.length();   // start out with a number other than zero, please.
+        randCallIndex = QRandomGenerator::global()->bounded(flashCalls.length());   // start out with a number other than zero, please.
     }
 
 //    qDebug() << "flashCalls: " << flashCalls;
@@ -10163,13 +10608,14 @@ QList<QString> MainWindow::getListOfCuesheets() {
 }
 
 void MainWindow::maybeLyricsChanged() {
-    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
-    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-    loadMusicList(); // and filter them into the songTable
-
     // AND, just in case the list of matching cuesheets for the current song has been
     //   changed by the recent addition of cuesheets...
     if (!filewatcherShouldIgnoreOneFileSave) {
+        // don't rescan, if this is a SAVE or SAVE AS Lyrics (those get added manually to the pathStack)
+        // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
+        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+        loadMusicList(); // and filter them into the songTable
+
         // reload only if this isn't a SAVE LYRICS FILE
         reloadCurrentMP3File();
     }
@@ -10321,7 +10767,7 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     QFile outFile(logFilePath);
     outFile.open(QIODevice::WriteOnly | QIODevice::Append);
     QTextStream ts(&outFile);
-    ts << txt << endl;
+    ts << txt << Qt::endl;
     outFile.close();
 
     if (type == QtFatalMsg) {
@@ -10525,3 +10971,173 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
     } // if accepted
 #endif
 }
+
+// ----------------------------------------------------------------------
+bool MainWindow::replayGain_dB(QString filepath) {
+    QFile musicFile(filepath);
+    if (!musicFile.exists(filepath)) {
+        qDebug() << "REPLAYGAIN ERROR: " << filepath << "does not exist.";
+        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+        ui->statusBar->showMessage("Error: could not get ReplayGain");
+        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
+        return(false);  // error return
+    }
+
+#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
+    QString pathToMp3gain = appDir + "mp3gain";
+
+    QString pathToAACgain = appDir + "aacgain";
+    QFileInfo checkAACFile(pathToAACgain);
+    if (checkAACFile.exists(pathToAACgain)) {
+        pathToMp3gain = pathToAACgain;  // if aacgain exists in the same directory, use it instead (it's compatible with mp3gain)
+        qDebug() << "REPLAYGAIN: Found aacgain, so using it instead of mp3gain.";
+    }
+
+#if defined(Q_OS_WIN32)
+    pathToMp3gain += ".exe";   // executable has a different name on Win32
+#endif
+
+#else /* must be (Q_OS_LINUX) */
+    QString pathToMp3gain = "pocketsphinx_mp3gain";
+#endif
+
+    if (pathToMp3gain.endsWith("mp3gain") && filepath.endsWith("m4a", Qt::CaseInsensitive)) {
+        qDebug() << "REPLAYGAIN ERROR: can't get ReplayGain for M4A files yet.";
+        ui->statusBar->showMessage("ReplayGain not available for M4A file");
+        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
+        return(false);  // error return
+    }
+
+    QStringList mp3gainArgs;
+    mp3gainArgs << "-s" << "s" << filepath;  // do not modify file, just analyze it
+
+    if (mp3gain != nullptr) {
+        qDebug() << "ERROR: an mp3gain process was running...killing the old one.";
+        mp3gain->kill();  // kill any running instance, before starting another one
+    }
+
+    mp3gain = new QProcess(Q_NULLPTR);
+
+//    qDebug() << "mp3gain starting: " << pathToMp3gain << mp3gainArgs;
+
+    mp3gain->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
+    mp3gain->setProcessChannelMode(QProcess::MergedChannels);  // stdout and stderr go to the same place
+
+    connect(mp3gain, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(MP3Gain_errorOccurred(QProcess::ProcessError)));
+    connect(mp3gain, SIGNAL(finished(int)), this, SLOT(MP3Gain_finished(int)));
+
+    mp3gainResult_filepath = filepath;  // results go here
+    mp3gainResult_dB = -1000.0;         //   -1000 = unknown correction
+
+    ui->statusBar->showMessage(QString("Calculating ReplayGain..."));
+
+    mp3gain->start(pathToMp3gain, mp3gainArgs); // start new process instance, with args
+
+    bool startedStatus = mp3gain->waitForStarted();
+    if (!startedStatus)
+    {
+        qDebug() << "startedStatus: " << startedStatus;
+        delete mp3gain;
+        mp3gain = nullptr;
+    }
+
+    return(true); // everything looks OK so far
+}
+
+void MainWindow::readMP3GainData() {
+}
+
+void MainWindow::MP3Gain_errorOccurred(QProcess::ProcessError error) {
+    Q_UNUSED(error)
+    songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
+    cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
+    qDebug() << "MP3Gain_errorOccurred";
+}
+
+void MainWindow::MP3Gain_finished(int exitCode) {
+    Q_UNUSED(exitCode)
+
+    QByteArray ba = mp3gain->readAllStandardOutput(); // get all stdout/stderr output from mp3gain
+    QString resultStr = QString::fromUtf8(ba.data());
+
+    // extract the value we want, that looks like this:
+    //   Recommended "Track" dB change: -3.780000
+    QRegExp rx("(\\r|\\n)"); // RegEx for '\r' or '\n'
+    QStringList query = resultStr.split(QRegExp("\\r|\\n")).filter("Recommended \"Track\" dB change:");
+
+    if (query.length() > 0) {
+        // if there's a line that looks like the one we want
+        qDebug() << "mp3gain: " << query[0];
+
+        // extract the numeric result
+        QRegExp number_input("([-+]?[0-9]*\\.?[0-9]+)");
+        if(number_input.indexIn(query[0]) != -1) {
+            mp3gainResult_dB = number_input.cap(1).toDouble();
+        }
+    } else {
+        mp3gainResult_dB = 0.0;  // no result, so no ReplayGain correction
+    }
+    qDebug() << "     ----> mp3gain result:" << mp3gainResult_dB << "dB\n";
+
+    mp3gain = nullptr; // process is gone now
+
+    songLoadedReplayGain_dB = mp3gainResult_dB;      // save for dynamic checkbox in preferences FIX FIX is this still needed?
+
+    // Now we can apply the ReplayGain correction to the current song, if it is enabled
+    bool replayGainIsEnabled = prefsManager.GetreplayGainIsEnabled();
+    if (replayGainIsEnabled) {
+        ui->statusBar->showMessage(QString("ReplayGain calculated: %1dB").arg(mp3gainResult_dB));
+        cBass.SetReplayGainVolume(mp3gainResult_dB);  // Let's do this!
+    }
+}
+
+void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
+{
+//    Q_UNUSED(showGroupStation)
+//    qDebug() << "TOGGLED: " << showGroupStation;
+    ui->actionShow_group_station->setChecked(showGroupStation); // when called from constructor
+    prefsManager.Setenablegroupstation(showGroupStation);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+void MainWindow::on_actionShow_order_sequence_toggled(bool showOrderSequence)
+{
+//    Q_UNUSED(showOrderSequence)
+//    qDebug() << "TOGGLED ORDER SEQUENCE: " << showOrderSequence;
+    ui->actionShow_order_sequence->setChecked(showOrderSequence); // when called from constructor
+    prefsManager.Setenableordersequence(showOrderSequence);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+void MainWindow::customLyricsMenuRequested(QPoint pos) {
+    Q_UNUSED(pos)
+
+    if (loadedCuesheetNameWithPath != "" && !loadedCuesheetNameWithPath.contains(".template.html")) {
+        // context menu is available, only if we have loaded a cuesheet
+        QMenu *menu = new QMenu(this);
+#if defined(Q_OS_MAC)
+        menu->addAction( "Reveal in Finder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_WIN)
+        menu->addAction( "Show in Explorer" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_LINUX)
+        menu->addAction( "Open containing folder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+        menu->popup(QCursor::pos());
+        menu->exec();
+
+        delete(menu);
+    }
+}
+
+void MainWindow::revealLyricsFileInFinder() {
+//    qDebug() << "path: " << loadedCuesheetNameWithPath;
+    showInFinderOrExplorer(loadedCuesheetNameWithPath);
+}
+

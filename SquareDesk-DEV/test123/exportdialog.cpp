@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -84,7 +84,7 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
             if (i > 0) stream << separator;
             stream << headerNames[outputFields[i]];
         }
-        stream << endl;
+        stream << Qt::endl;
     }
     
     QListIterator<QString> musicFilenameIter(*musicFilenames);
@@ -167,7 +167,7 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
                     break;
                 }
             } // end of iterating through fields
-            stream << endl;
+            stream << Qt::endl;
         } // end of if we could load settings for this file
     } // end of while iterating through filenames
 }

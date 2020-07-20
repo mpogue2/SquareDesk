@@ -11,6 +11,8 @@ PerfTimer::PerfTimer(const char *name, int lineNumber)
 {
 #ifdef ENABLEPERFTIMER
     start(lineNumber);
+#else
+    Q_UNUSED(lineNumber)
 #endif
 }
 
@@ -22,6 +24,9 @@ void PerfTimer::start(int lineNumber)
     indentLevel++;  // increase indent level
     qDebug().noquote() << QString("  ").repeated(indentLevel) <<
                           "*** Timer " << name << "[line" << lineNumber << "], started";
+#else
+    Q_UNUSED(lineNumber)
+    Q_UNUSED(name)  // gets rid of the warning around "name"
 #endif
 }
 
@@ -34,6 +39,9 @@ void PerfTimer::elapsed(int lineNumber)
                           "ms (delta_ms:" << elapsed_ms - lastElapsedTime_ms << ")";
     // no change to indentLevel...
     lastElapsedTime_ms = elapsed_ms;  // save last elapsed time
+#else
+    Q_UNUSED(lineNumber)
+    Q_UNUSED(lastElapsedTime_ms)
 #endif
 }
 
@@ -48,6 +56,8 @@ void PerfTimer::stop()
                               "*** Timer " << name << " stopped:" << elapsed << "ms";
         indentLevel--;
     }
+#else
+    Q_UNUSED(stopped)
 #endif
 }
 

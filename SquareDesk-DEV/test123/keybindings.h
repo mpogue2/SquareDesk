@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -37,7 +37,7 @@ class MainWindow;
 
 class MainWindow;
 
-#define CURRENT_VERSION_OF_KEY_DEFAULTS 1
+#define CURRENT_VERSION_OF_KEY_DEFAULTS 2
 #define MAX_KEYPRESSES_PER_ACTION 5
 
 class KeyAction : public QObject

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -82,7 +82,7 @@ const char *danceprogram_basic1[] = {
     "30, Square Thru (1, 2, 3, 4)/Left Square Thru (1, 2, 3, 4)",
     "31, Circle to a Line",
     "32, Dive Thru",
-    NULL
+    nullptr
 };
 
 /* Callerlab as of 2018-09-01 */
@@ -108,7 +108,7 @@ const char *danceprogram_basic2[] = {
     "46, Trade By",
     "47, Touch 1/4",
     "48, Ferris Wheel",
-    NULL
+    nullptr
 };
 
 /* Callerlab as of 2018-10-29 */
@@ -137,7 +137,7 @@ const char *danceprogram_mainstream[] = {
     "17.b, Fraction (1/4, 1/2, 3/4) Tag",
     "18, Scoot Back",
     "19, Recycle (from a wave only)",
-    NULL,
+    nullptr
 };
 
 /* Callerlab as of 2018-09-22 */
@@ -170,7 +170,7 @@ const char *danceprogram_plus[] = {
     "26, Chase Right",
     "27, Dixie Grand",
     "28, Spin Chain and Exchange the Gears",
-    NULL
+    nullptr
 };
 
 /* Callerlab as of 2018-09-15 */
@@ -226,7 +226,7 @@ const char *danceprogram_a1[] = {
     "49, Any Hand Concept",
     "50, Split Square Chain Thru",
     "51, Triple Cross/Double Cross",
-    NULL
+    nullptr
 };
 
 /* Callerlab as of 2018-09-15 */
@@ -276,7 +276,7 @@ const char *danceprogram_a2[] = {
     "35.e, All 8 Switch the Wave",
     "35.f, All 8 Walk and Dodge",
     "35.g, All 8 Mix",
-    NULL
+    nullptr
 };
 
 static const char *b1 = "b1";
@@ -542,9 +542,10 @@ const struct DanceProgramCallInfo danceprogram_callinfo[] = {
     { a2, "All 4 Couples Right and Left Thru", "10" },
     { a2, "All 4 Couples Chase Right", "10" },
     { a2, "All 8 Swing Thru", "8" },
-    { a2, "All 8 Switch the Wave", NULL },
+    { a2, "All 8 Switch the Wave", nullptr }, // NULL },
     { a2, "All 8 Walk and Dodge", "6" },
-    { a2, "All 8 Mix", NULL },
-    { NULL, NULL, NULL }
+    { a2, "All 8 Mix", nullptr }, // NULL },
+    { nullptr, nullptr, nullptr }
+//    { NULL, NULL, NULL }
 };
 

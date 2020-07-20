@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -57,5 +57,26 @@ enum CheckerColorScheme
     CheckerColorSchemeSight
 };
 
+enum AnimationSpeed
+{
+    AnimationSpeedOff = 0,
+    AnimationSpeedSlow,
+    AnimationSpeedMedium,
+    AnimationSpeedFast,
+};
+
+enum Gender
+{
+    Boys = 0,
+    Girls,
+    UnknownGender
+};
+
+enum Order
+{
+    InOrder = 0,
+    OutOfOrder,
+    UnknownOrder
+};
 
 #endif // ifndef COMMON_ENUMS_H

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -48,6 +48,7 @@
 #include <QProxyStyle>
 #include "prefsmanager.h"
 #include <QSlider>
+#include <QSplashScreen>
 #include <QStack>
 #include <QTableWidgetItem>
 #include <QToolTip>
@@ -76,7 +77,7 @@
 #include "levelmeter.h"
 #include "analogclock.h"
 #include "console.h"
-#include "renderarea.h"
+//#include "renderarea.h"
 #include "songsettings.h"
 
 #if defined(Q_OS_MAC)
@@ -160,9 +161,9 @@ public:
 
 
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
-//  Also remember to change the "latest" file on GitHub!
-
-#define VERSIONSTRING "0.9.2alpha8b"
+// ALSO REMEMBER TO CHANGE THE VERSION IN PackageIt.command !
+// Also remember to change the "latest" file on GitHub (for Beta releases)!
+#define VERSIONSTRING "0.9.5"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -182,8 +183,12 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QSplashScreen *splash, QWidget *parent = nullptr);
     ~MainWindow() override;
+
+    double songLoadedReplayGain_dB;
+
+    bool lyricsCopyIsAvailable;
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
@@ -223,6 +228,13 @@ public:
 #endif    
     QTabWidget *documentsTab;
 
+public slots:
+
+    void changeApplicationState(Qt::ApplicationState state);
+
+    void LyricsCopyAvailable(bool yes);
+    void customLyricsMenuRequested(QPoint pos);
+
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
@@ -255,6 +267,12 @@ private slots:
     void on_clearSearchButton_clicked();
     void on_actionLoop_triggered();
 
+    void on_actionSDSquareYourSets_triggered();
+    void on_actionSDHeadsStart_triggered();
+    void on_actionSDHeadsSquareThru_triggered();
+    void on_actionSDHeads1p2p_triggered();
+    
+    
     void on_UIUpdateTimerTick(void);
     void on_vuMeterTimerTick(void);
 
@@ -325,7 +343,7 @@ private slots:
 
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
-
+    void setInOutButtonState();
     // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
     void timerCountUp_update();
     void timerCountDown_update();
@@ -348,6 +366,7 @@ private slots:
     void editTags();
     void loadSong();
     void revealInFinder();
+    void revealLyricsFileInFinder();
 
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
@@ -361,8 +380,13 @@ private slots:
     void readPSStdErr();
     void pocketSphinx_errorOccurred(QProcess::ProcessError error);
     void pocketSphinx_started();
+
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
+
+    void readMP3GainData();
+    void MP3Gain_errorOccurred(QProcess::ProcessError error);
+    void MP3Gain_finished(int exitCode);
 
     void on_actionShow_All_Ages_triggered(bool checked);
 
@@ -401,7 +425,6 @@ private slots:
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 
 
-    void changeApplicationState(Qt::ApplicationState state);
     void focusChanged(QWidget *old, QWidget *now);
 
     void lyricsDownloadEnd();
@@ -454,6 +477,7 @@ private slots:
     void on_actionSave_As_triggered();
 
     // SD integration
+    void SDDebug(const QString &str, bool bold = false);
     void on_lineEditSDInput_returnPressed();
     void on_lineEditSDInput_textChanged();
     void on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item);
@@ -469,6 +493,7 @@ private slots:
     void set_sd_copy_options_selected_cells();
     void toggle_sd_copy_html_includes_headers();
     void toggle_sd_copy_html_formations_as_svg();
+    void toggle_sd_copy_include_deep();
     void update_sd_animations();
 
     void undo_sd_to_row();
@@ -526,6 +551,10 @@ private slots:
     void on_action20_seconds_triggered();
 
     void on_actionMake_Flash_Drive_Wizard_triggered();
+
+    void on_actionShow_group_station_toggled(bool arg1);
+
+    void on_actionShow_order_sequence_toggled(bool arg1);
 
 public:
     void on_threadSD_errorString(QString str);
@@ -624,6 +653,8 @@ private:
 
     void Info_Volume(void);
     void Info_Seekbar(bool forceSlider);
+    double previousPosition;  // cBass's previous idea of where we are
+
     QString position2String(int position, bool pad);
 
     bool closeEventHappened;
@@ -642,6 +673,9 @@ private:
     void writeCuesheet(QString filename);
     void saveCurrentSongSettings();
     void loadSettingsForSong(QString songTitle);
+
+    void loadGlobalSettingsForSong(QString songTitle); // settings that must be set after song is loaded
+
     void randomizeFlashCall();
 
     QString filepath2SongType(QString MP3Filename);  // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
@@ -766,9 +800,13 @@ private:
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
 
-    QProcess *ps;  // pocketsphinx process
+    QProcess *ps;       // pocketsphinx process
+    QProcess *mp3gain;  // mp3gain process
+    QString mp3gainResult_filepath;    // results of the mp3gain process
+    double  mp3gainResult_dB;   // results of the mp3gain process
+
     Highlighter *highlighter;
-    RenderArea *renderArea;
+//    RenderArea *renderArea;
     QString uneditedData;
     QString editedData;
     QString copyrightText;  // sd copyright string (shown once at start)
@@ -864,14 +902,27 @@ private: // SD
     QList<SDDancer> sd_animation_people;
     QList<SDDancer> sd_fixed_people;
 
+    bool sdSliderSidesAreSwapped;
+
     int sdLastLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;
+    bool sdHasSubsidiaryCallContinuation;
     bool sdLastLineWasResolve;
     bool sdOutputtingAvailableCalls;
     QList<SDAvailableCall> sdAvailableCalls;
     int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;
-    QGraphicsTextItem *graphicsTextItemSDStatusBarText;
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText_fixed;
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText_animated;
+
+    QGraphicsTextItem *graphicsTextItemSDLeftGroupText_fixed;  // for display of group-ness
+    QGraphicsTextItem *graphicsTextItemSDLeftGroupText_animated;
+    QGraphicsTextItem *graphicsTextItemSDTopGroupText_fixed;
+    QGraphicsTextItem *graphicsTextItemSDTopGroupText_animated;
+
+    int leftGroup, topGroup;        // groupness numbers, 0 = P, 1 = RH, 2 = O, 3 = C
+    Order boyOrder, girlOrder;      // order: 0 = in order, 1 = out of order, 2 = unknown order
+
     QAction **danceProgramActions;
     void setSDCoupleColoringScheme(const QString &scheme);
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
@@ -879,16 +930,42 @@ private: // SD
     void set_current_sequence_icons_visible(bool visible);
     QString sdLastFormationName;
     QShortcut *shortcutSDTabUndo;
+    QShortcut *shortcutSDTabRedo;
     QShortcut *shortcutSDCurrentSequenceSelectAll;
     QShortcut *shortcutSDCurrentSequenceCopy;
     SDRedoStack *sd_redo_stack;
+
+    QString prettify(QString call);
 
     double sd_animation_t_value;
     double sd_animation_delta_t;
     double sd_animation_msecs_per_frame;
     void render_sd_item_data(QTableWidgetItem *item);
-    void clamp_sd_animation_values();
-    void set_sd_last_formation_name(const QString&);    
+    void SetAnimationSpeed(AnimationSpeed speed);
+    void set_sd_last_formation_name(const QString&);
+    void set_sd_last_groupness(); // update groupness strings
+
+    bool replayGain_dB(QString filepath); // async call
+
+    bool compareRelative(QString s1, QString s2);  // compare pathnames relative to MusicDir
+
+private:
+    void decode_formation_into_dancer_destinations(const QStringList &sdformation, QList<SDDancer> &sdpeople);
+
+    // ORDER:
+    void inOrder(struct dancer dancers[]);
+    Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y);
+
+    // GROUPness:
+    bool sameGroup(int group1, int group2);
+    int whichGroup (struct dancer dancers[], bool top);
+    int groupNum(struct dancer dancers[], bool top, int coupleNum, int gender);
+
+    QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text);
+
+    void reset_sd_dancer_locations();
+    void startSDThread(dance_level dance_program);
+    void restartSDThread(dance_level dance_program);
 public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);

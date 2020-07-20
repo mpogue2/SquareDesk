@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016, 2017, 2018 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2020 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -22,10 +22,9 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "renderarea.h"
+//#include "renderarea.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -36,16 +35,18 @@
 #include "common.h"
 #include "danceprograms.h"
 #include "../sdlib/database.h"
+#include "sdformationutils.h"
 
-
-#define NO_TIMING_INFO 1
+//#define NO_TIMING_INFO 1
 
 static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
+#define NO_TIMING_INFO 1
 #ifndef NO_TIMING_INFO
 static const int kColCurrentSequenceTiming = 2;
 #include "sdsequencecalllabel.h"
 #endif
+
 
 static const double dancerGridSize = 16;
 static const double backgroundSquareCount = 8;
@@ -73,19 +74,17 @@ static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
 
 
-static QList<QStringList> sd_undo_stack;
-
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
     static QPen pen(Qt::black, 1.5, Qt::SolidLine, Qt::SquareCap, Qt::RoundJoin);
 
-    static float rectSize = 16;
+    static double rectSize = 16;
     static QRectF rect(-rectSize/2, -rectSize/2, rectSize, rectSize);
     static QRectF directionRect(-2,-rectSize / 2 - 4,4,4);
 
     QGraphicsItem *mainItem = boy ?
-        (QGraphicsItem*)(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
-        :   (QGraphicsItem*)(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
+                dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
+        :   dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
 
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
 
@@ -136,19 +135,111 @@ void move_dancers(QList<SDDancer> &sdpeople, double t)
     }
 }
 
-static void decode_formation_into_dancer_destinations(const QStringList &sdformation,
-                       QList<SDDancer> &sdpeople)
+// remember for groupness and sequence check later
+//
+static struct dancer dancers[8];
+
+
+// SEQUENCE ---------
+//    returns InOrder, if boys/girls are in order
+//            OutOfOrder, otherwise
+//            Unknown, if there is no defined ordering for this gender (e.g. dancers are colinear)
+void MainWindow::inOrder(struct dancer dancers[])
+{
+    getDancerOrder(dancers, &boyOrder, &girlOrder);
+
+}
+
+// GROUPNESS --------
+int MainWindow::groupNum(struct dancer dancers[], bool top, int coupleNum, int gender) {
+//    qDebug() << "searching: " << top << coupleNum << gender;
+    for (int i = 0; i < 8; i++) {
+        if (dancers[i].coupleNum == coupleNum && dancers[i].gender == gender) {
+            if (top) {
+//                qDebug() << "found: " << dancers[i].topside;
+                return(dancers[i].topside);
+            } else {
+//                qDebug() << "found: " << dancers[i].leftside;
+                return(dancers[i].leftside);
+            }
+        }
+    }
+    return(-1);  // get rid of warning
+}
+
+bool MainWindow::sameGroup(int group1, int group2) {
+//    qDebug() << "checking: " << group1 << group2;
+    return (group1 == group2 && group1 != -1 && group2 != -1);
+}
+
+int MainWindow::whichGroup (struct dancer dancers[], bool top) {
+    double minx, maxx, miny, maxy;
+    minx = miny = 99;
+    maxx = maxy = -99;
+    for (int i = 0; i < 8; i++) {
+        minx = fmin(minx, dancers[i].x);
+        miny = fmin(miny, dancers[i].y);
+        maxx = fmax(maxx, dancers[i].x);
+        maxy = fmax(maxy, dancers[i].y);
+    }
+//    qDebug() << "min x/y = " << minx << miny << ", max x/y = " << maxx << maxy;
+    double dividerx = (minx + maxx)/2.0;  // find midpoint dividers of formation
+    double dividery = (miny + maxy)/2.0;
+    for (int i = 0; i < 8; i++) {
+        dancers[i].leftside = (dancers[i].x < dividerx ? 1 : (dancers[i].x > dividerx ? 0 : -1)); // 1 = left, 0 = right, -1 = i dunno
+        dancers[i].topside = (dancers[i].y < dividery ? 1 : (dancers[i].y > dividery ? 0 : -1)); // 1 = top, 0 = bottom, -1 = i dunno
+//        qDebug() << dancers[i].coupleNum + 1 << (dancers[i].gender == 1 ? "G" : "B") << dancers[i].x << dancers[i].y << dancers[i].topside << dancers[i].leftside;
+    }
+
+    int group = -1;
+    if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 0, 1)) &&
+         sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 1, 1)) )
+    {
+        // 1B and 1G in same top group, and 2B and 2G in same top group, so
+//        qDebug() << "PARTNER GROUP";
+        group = 0;
+
+    } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 1, 1)) &&
+                sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 2, 1)) )
+    {
+        // 1B and 2G in same top group, 2B and 3G in same top group, so
+//        qDebug() << "RIGHT HAND LADY GROUP";
+        group = 1;
+    } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 2, 1)) &&
+                sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 3, 1)) )
+    {
+        // 1B and 3G in same top group, 2B and 4G in same top group, so
+//        qDebug() << "OPPOSITE GROUP";
+        group = 2;
+    } else if ( sameGroup(groupNum(dancers, top, 0, 0), groupNum(dancers, top, 3, 1)) &&
+                sameGroup(groupNum(dancers, top, 1, 0), groupNum(dancers, top, 0, 1)) )
+    {
+        // 1B and 4G in same top group, 2B and 1G in same top group, so
+//        qDebug() << "CORNER GROUP";
+        group = 3;
+    } else {
+//        qDebug() << "NO GROUP";
+    }
+
+//    qDebug() << "TOP GROUP = " << group;
+    return(group);
+}
+
+// also sets leftGroup, topGroup, boyOrder, girlOrder in MainWindow object
+void MainWindow::decode_formation_into_dancer_destinations(
+        const QStringList &sdformation,
+        QList<SDDancer> &sdpeople)
 {
     int coupleNumber = -1;
     int girl = 0;
-    double max_y = (double)(sdformation.length());
+    double max_y = static_cast<double>(sdformation.length());
 
     // Assign each dancer a location based on the picture
     for (int y = 0; y < sdformation.length(); ++y)
     {
         int dancer_start_x = -1;
         bool draw = false;
-        float direction = -1;
+        int direction = -1.0;
 
         for (int x = 0; x < sdformation[y].length(); ++x)
         {
@@ -206,7 +297,15 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
                     }
                     else
                     {
-                        sdpeople[dancerNum].setDestination(dancer_start_x, y, direction);
+                        sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
+                        QString gend = (girl == 1 ? "G" : "B");
+//                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
+                        dancers[dancerNum].coupleNum = coupleNumber;
+                        dancers[dancerNum].gender = girl;
+                        dancers[dancerNum].x = dancer_start_x;
+                        dancers[dancerNum].y = y;
+                        dancers[dancerNum].leftside = 0;
+                        dancers[dancerNum].topside = 0;
                     }
                 }
                 draw = false;
@@ -217,6 +316,30 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
         } /* end of for x */
     } /* end of for y */
 
+//    qDebug() << "END";
+
+    // group-ness check ------------------------
+//    qDebug() << "CHECKING FOR LEFT GROUP ------";
+    leftGroup = whichGroup(dancers, false);
+
+//    qDebug() << "CHECKING FOR TOP GROUP ------";
+    topGroup = whichGroup(dancers, true);
+
+//    qDebug() << "------------------------------";
+
+//    qDebug() << "Left Group: " << *lGroup;  // save for later display
+//    qDebug() << "Top Group: " << *tGroup;
+
+    // FIX: this is inefficient because we calculate them both each time.
+//    *bOrder = inOrder(dancers, Boys);
+//    *gOrder = inOrder(dancers, Girls);
+
+    // determine order/sequence of boys and girls, sets boyOrder, girlOrder
+    inOrder(dancers);
+
+//    qDebug() << "Boy order: " << *bOrder << ", Girl order: " << *gOrder;
+
+    // -----------------------------------------
 
     // Now calculate the lowest common divisor for the X position and the scene bounds
     
@@ -226,7 +349,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
     // left_x = min(dancers.x)
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        int dancer_start_x = sdpeople[dancerNum].getX(1.0);
+        int dancer_start_x = static_cast<int>(sdpeople[dancerNum].getX(1.0));
         if (left_x < 0 || dancer_start_x < left_x)
             left_x = dancer_start_x;
     }
@@ -238,13 +361,13 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
 
     for (int dancerNum = 0; dancerNum < sdpeople.length(); dancerNum++)
     {
-        int dancer_start_x = sdpeople[dancerNum].getX(1) - left_x;
+        int dancer_start_x = static_cast<int>(sdpeople[dancerNum].getX(1) - left_x);
         if (dancer_start_x > max_x)
             max_x = dancer_start_x;
 
         for (size_t i = 0; i < sizeof(factors) / sizeof(*factors); ++i)
         {
-            if (0 != (dancer_start_x % (i + 3)))
+            if (0 != (static_cast<unsigned long>(dancer_start_x) % (i + 3)))
             {
                 factors[i] = false;
             }
@@ -267,6 +390,7 @@ static void decode_formation_into_dancer_destinations(const QStringList &sdforma
     {
         sdpeople[dancerNum].setDestinationScalingFactors(left_x, max_x, max_y, lowest_factor);
     }
+
 }
 
 void MainWindow::update_sd_animations()
@@ -277,7 +401,7 @@ void MainWindow::update_sd_animations()
     move_dancers(sd_animation_people, sd_animation_t_value);
     if (sd_animation_t_value < 1.0)
     {
-        QTimer::singleShot(sd_animation_msecs_per_frame,this,SLOT(update_sd_animations()));
+        QTimer::singleShot(static_cast<int>(sd_animation_msecs_per_frame), this, SLOT(update_sd_animations()));
         sd_animation_running = true;
     }
     else
@@ -288,7 +412,9 @@ void MainWindow::update_sd_animations()
 
 
 static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
-                             QGraphicsTextItem *&graphicsTextItemSDStatusBarText)
+                             QGraphicsTextItem *&graphicsTextItemSDStatusBarText,
+                             QGraphicsTextItem *&graphicsTextItemSDLeftGroupText,
+                             QGraphicsTextItem *&graphicsTextItemSDTopGroupText)
 {
 #if defined(Q_OS_MAC)
     dancerLabelFont = QFont("Arial",11);
@@ -307,16 +433,30 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
                           halfBackgroundSize * 2,
                           halfBackgroundSize * 2);
     sdscene.addRect(backgroundRect, backgroundPen, backgroundBrush);
+
     graphicsTextItemSDStatusBarText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform;
     statusBarTransform.translate(-halfBackgroundSize, -halfBackgroundSize);
     statusBarTransform.scale(2,2);
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
 
-    for (double x =  -halfBackgroundSize + gridSize;
+    // groupness labels
+    graphicsTextItemSDLeftGroupText = sdscene.addText("Q", dancerLabelFont);
+    QTransform statusBarTransform2;
+    statusBarTransform2.translate(-halfBackgroundSize/8, halfBackgroundSize*7/8);
+//    statusBarTransform2.scale(2,2);
+    graphicsTextItemSDLeftGroupText->setTransform(statusBarTransform2);
+
+    graphicsTextItemSDTopGroupText = sdscene.addText("R", dancerLabelFont);
+    QTransform statusBarTransform3;
+    statusBarTransform3.translate(-halfBackgroundSize, -halfBackgroundSize/8);
+//    statusBarTransform3.scale(2,2);
+    graphicsTextItemSDTopGroupText->setTransform(statusBarTransform3);
+
+    for (double x = -halfBackgroundSize + gridSize;
          x < halfBackgroundSize; x += gridSize)
     {
-        QPen &pen(x == 0 ? axisPen : gridPen);
+        QPen &pen(x == 0.0 ? axisPen : gridPen);
         sdscene.addLine(x, -halfBackgroundSize, x, halfBackgroundSize, pen);
         sdscene.addLine(-halfBackgroundSize, x, halfBackgroundSize, x, pen);
     }
@@ -344,23 +484,44 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
     }
 }
 
+void MainWindow::reset_sd_dancer_locations() {
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people); // also sets L/Tgroup and B/Gorder
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people);     // also sets L/Tgroup and B/Gorder
+    // Easiest way to make sure dest and source are the same
+    // FIX: Why is this done twice??
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people); // also sets L/Tgroup and B/Gorder
+    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people);     // also sets L/Tgroup and B/Gorder
+
+    set_sd_last_groupness(); // update groupness strings
+
+    move_dancers(sd_animation_people, 1.0);
+    move_dancers(sd_fixed_people, 1.0);
+}
+
+
 void MainWindow::initialize_internal_sd_tab()
 {
     sd_redo_stack->initialize();
     
-    if (NULL != shortcutSDTabUndo)
+    if (nullptr != shortcutSDTabUndo)
         delete shortcutSDTabUndo;
     shortcutSDTabUndo = new QShortcut(ui->tabSDIntegration);
     connect(shortcutSDTabUndo, SIGNAL(activated()), this, SLOT(undo_last_sd_action()));
     shortcutSDTabUndo->setKey(QKeySequence::Undo);
 
-   if (NULL != shortcutSDCurrentSequenceSelectAll)
+    if (nullptr != shortcutSDTabRedo)
+        delete shortcutSDTabRedo;
+    shortcutSDTabRedo = new QShortcut(ui->tabSDIntegration);
+    connect(shortcutSDTabRedo, SIGNAL(activated()), this, SLOT(redo_last_sd_action()));
+    shortcutSDTabRedo->setKey(QKeySequence::Redo);
+
+   if (nullptr != shortcutSDCurrentSequenceSelectAll)
         delete shortcutSDCurrentSequenceSelectAll;
     shortcutSDCurrentSequenceSelectAll = new QShortcut(ui->tableWidgetCurrentSequence);
     connect(shortcutSDCurrentSequenceSelectAll, SIGNAL(activated()), this, SLOT(select_all_sd_current_sequence()));
     shortcutSDCurrentSequenceSelectAll->setKey(QKeySequence::SelectAll);
 
-   if (NULL != shortcutSDCurrentSequenceCopy)
+   if (nullptr != shortcutSDCurrentSequenceCopy)
         delete shortcutSDCurrentSequenceCopy;
     shortcutSDCurrentSequenceCopy = new QShortcut(ui->tableWidgetCurrentSequence);
     connect(shortcutSDCurrentSequenceCopy, SIGNAL(activated()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
@@ -382,7 +543,7 @@ void MainWindow::initialize_internal_sd_tab()
         ui->actionSDDanceProgramC3x,
         ui->actionSDDanceProgramC4,
         ui->actionSDDanceProgramC4x,
-        NULL
+        nullptr
     };
  
     danceProgramActions = new QAction *[sizeof(danceProgramActionsStatic) / sizeof(*danceProgramActionsStatic)];
@@ -417,8 +578,10 @@ void MainWindow::initialize_internal_sd_tab()
     
     ui->listWidgetSDOutput->setIconSize(QSize(128,128));
 
-    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText);
-    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText);
+    initialize_scene(sd_animation_scene, sd_animation_people, graphicsTextItemSDStatusBarText_animated,
+                     graphicsTextItemSDLeftGroupText_animated, graphicsTextItemSDTopGroupText_animated);
+    initialize_scene(sd_fixed_scene, sd_fixed_people, graphicsTextItemSDStatusBarText_fixed,
+                     graphicsTextItemSDLeftGroupText_fixed, graphicsTextItemSDTopGroupText_fixed);
     ui->graphicsViewSDFormation->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
     ui->graphicsViewSDFormation->setScene(&sd_animation_scene);
 
@@ -430,13 +593,7 @@ void MainWindow::initialize_internal_sd_tab()
     initialDancerLocations.append(" 4G>    .     .    2B<");
     initialDancerLocations.append("");
     initialDancerLocations.append("  .    1B^   1G^    .");
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people); 
-    // Easiest way to make sure dest and source are the same
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_animation_people);
-    decode_formation_into_dancer_destinations(initialDancerLocations, sd_fixed_people); 
-    move_dancers(sd_animation_people, 1.0);
-    move_dancers(sd_fixed_people, 1.0);
+    reset_sd_dancer_locations();
     sd_animation_t_value = 1.0;
 
     QStringList tableHeader;
@@ -445,12 +602,12 @@ void MainWindow::initialize_internal_sd_tab()
     ui->tableWidgetCurrentSequence->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setVisible(false);
     ui->tableWidgetCurrentSequence->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    ui->tableWidgetCurrentSequence->setColumnWidth(1, currentSequenceIconSize + 8);
+    ui->tableWidgetCurrentSequence->setColumnWidth(1, static_cast<int>(currentSequenceIconSize) + 8);
     QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
     initialTableWidgetCurrentSequenceDefaultSectionSize =
         verticalHeader->defaultSectionSize();
-    verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
+    verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
 }
 
 
@@ -465,11 +622,141 @@ void MainWindow::on_sd_set_window_title(QString /* str */)
 void MainWindow::set_sd_last_formation_name(const QString &str)
 {
     sdLastFormationName = str;
-    graphicsTextItemSDStatusBarText->setPlainText(sdLastFormationName.compare("(any setup)") == 0 ? "" : sdLastFormationName);
+
+    // get rid of "resolve: N out of M" --> "Resolve" (so text field doesn't grow without bound)
+    QRegularExpression re("resolve: \\d+ out of \\d+", QRegularExpression::CaseInsensitiveOption);
+    sdLastFormationName.replace(re, "Resolve");
+
+    QString boyOrderString, girlOrderString;
+    switch (boyOrder) {
+        case InOrder:
+            boyOrderString = "in";
+            break;
+        case OutOfOrder:
+            boyOrderString = "out";
+            break;
+        default:
+            boyOrderString = "?";
+            break;
+    }
+    switch (girlOrder) {
+        case InOrder:
+            girlOrderString = "in";
+            break;
+        case OutOfOrder:
+            girlOrderString = "out";
+            break;
+        default:
+            girlOrderString = "?";
+            break;
+    }
+    QString orderString = "[B:" + boyOrderString + " G:" + girlOrderString + "]";
+
+    bool showOrderSequence = prefsManager.Getenableordersequence();
+
+    if ( sdLastFormationName == "<startup>" ||
+         sdLastFormationName == "(any setup)" ) {
+        if (showOrderSequence) {
+            graphicsTextItemSDStatusBarText_fixed->setPlainText(orderString);
+            graphicsTextItemSDStatusBarText_animated->setPlainText(orderString);
+        } else {
+            graphicsTextItemSDStatusBarText_fixed->setPlainText("");
+            graphicsTextItemSDStatusBarText_animated->setPlainText("");
+        }
+    } else {
+        if (showOrderSequence) {
+            graphicsTextItemSDStatusBarText_fixed->setPlainText(sdLastFormationName + " " + orderString);
+            graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName + " " + orderString);
+        } else {
+            graphicsTextItemSDStatusBarText_fixed->setPlainText(sdLastFormationName);
+            graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName);
+        }
+    }
 }
 
-void MainWindow::clamp_sd_animation_values()
+void MainWindow::set_sd_last_groupness() {
+//    qDebug() << "updating SD groupness...";
+
+    QString leftGroupStr, topGroupStr;
+    switch (leftGroup) {
+        case 0: leftGroupStr = "P"; break;
+        case 1: leftGroupStr = "R"; break;
+        case 2: leftGroupStr = "O"; break;
+        case 3: leftGroupStr = "C"; break;
+        default: leftGroupStr = "?"; break;
+    }
+    switch (topGroup) {
+        case 0: topGroupStr = "P"; break;
+        case 1: topGroupStr = "R"; break;
+        case 2: topGroupStr = "O"; break;
+        case 3: topGroupStr = "C"; break;
+        default: topGroupStr = "?"; break;
+    }
+
+//    qDebug() << "Groupness strings updated to L/T: " << leftGroupStr << topGroupStr;
+
+    if (graphicsTextItemSDLeftGroupText_fixed != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDLeftGroupText_fixed->setPlainText(leftGroupStr);
+        } else {
+            graphicsTextItemSDLeftGroupText_fixed->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDLeftGroupText_animated != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDLeftGroupText_animated->setPlainText(leftGroupStr);
+        } else {
+            graphicsTextItemSDLeftGroupText_animated->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDTopGroupText_fixed != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDTopGroupText_fixed->setPlainText(topGroupStr);
+        } else {
+            graphicsTextItemSDTopGroupText_fixed->setPlainText("");
+        }
+    }
+
+    if (graphicsTextItemSDTopGroupText_animated != nullptr) {
+        if (ui->actionShow_group_station->isChecked()) {
+            graphicsTextItemSDTopGroupText_animated->setPlainText(topGroupStr);
+        } else {
+            graphicsTextItemSDTopGroupText_animated->setPlainText("");
+        }
+    }
+}
+
+//void MainWindow::set_sd_last_order(Order bOrder, Order gOrder) {
+////    qDebug() << "updating SD order..." << bOrder << "," << gOrder;
+////    boyOrder = bOrder;
+////    girlOrder = gOrder;
+//}
+
+void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
 {
+    switch (speed)
+    {
+    case AnimationSpeedSlow :
+        sd_animation_delta_t = .05;
+        sd_animation_msecs_per_frame = 50;
+        break;
+    case AnimationSpeedMedium:
+        sd_animation_delta_t = .1;
+        sd_animation_msecs_per_frame = 50;
+        break;
+    case AnimationSpeedFast:
+        sd_animation_delta_t = .2;
+        sd_animation_msecs_per_frame = 50;
+        break;
+        
+    case AnimationSpeedOff:
+//    default:  // all enums are explicit, no need for default
+        sd_animation_delta_t = 1;
+        sd_animation_msecs_per_frame = 0;
+    }
+
     if (sd_animation_msecs_per_frame <= 0)
         sd_animation_msecs_per_frame = 1;
     if (sd_animation_msecs_per_frame >= 1000)
@@ -479,10 +766,12 @@ void MainWindow::clamp_sd_animation_values()
     if (sd_animation_delta_t > 1)
         sd_animation_delta_t = 1;
             
+//    qDebug() << "Animation speed: " << speed << " :" << sd_animation_delta_t << "/" << sd_animation_msecs_per_frame;
 }
 
 void MainWindow::on_sd_update_status_bar(QString str)
 {
+//    qDebug() << "updating SD status bar...";
     if (!str.compare("<startup>"))
     {
         sdformation = initialDancerLocations;
@@ -492,12 +781,20 @@ void MainWindow::on_sd_update_status_bar(QString str)
                       "\n" + sdformation.join("\n"));
     if (!sdformation.empty())
     {
-        decode_formation_into_dancer_destinations(sdformation, sd_animation_people);
-        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people);
+        sd_redo_stack->checkpoint_formation(sdLastLine, formation);
+
+        decode_formation_into_dancer_destinations(sdformation, sd_animation_people);     // also sets L/Tgroup and B/Gorder
+        decode_formation_into_dancer_destinations(sdformation, sd_fixed_people);         // also sets L/Tgroup and B/Gorder
+
+        set_sd_last_groupness(); // update groupness strings
+//        set_sd_last_order(boyOrder, girlOrder);     // update order strings
+
+        set_sd_last_formation_name(str);  // this must be last to pull in the order strings (hack)
+
         sd_animation_t_value = sd_animation_delta_t;
 
         move_dancers(sd_fixed_people, 1);
-        QPixmap image(sdListIconSize,sdListIconSize);
+        QPixmap image(static_cast<int>(sdListIconSize), static_cast<int>(sdListIconSize));
         image.fill();
         QPainter painter(&image);
         painter.setRenderHint(QPainter::Antialiasing);
@@ -507,7 +804,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
         item->setData(Qt::UserRole, formation);
         item->setIcon(QIcon(image));
         ui->listWidgetSDOutput->addItem(item); 
-
+        
         update_sd_animations();
    }
     if (!sdformation.empty() && sdLastLine >= 1)
@@ -522,7 +819,7 @@ void MainWindow::on_sd_update_status_bar(QString str)
 #endif /* ifdef NO_TIMING_INFO */
         /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
-    sdformation.clear();
+//    sdformation.clear(); // not needed.  If here, it prevents updates when group menu item is toggled.
 }
 
 
@@ -580,7 +877,7 @@ void MainWindow::highlight_sd_replaceables()
 
     if (!(call.contains("<") && call.contains(">")))
     {
-        qDebug() << "No <>, return pressed";
+//        qDebug() << "No <>, return pressed";
         submit_lineEditSDInput_contents_to_sd();
         ui->lineEditSDInput->setFocus();
     }
@@ -667,6 +964,30 @@ void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidg
     do_sd_double_click_call_completion(item);
 }
 
+QString toCamelCase(const QString& s)
+{
+    QStringList parts = s.split(' ', Qt::SkipEmptyParts);
+    for (int i = 0; i < parts.size(); ++i)
+        parts[i].replace(0, 1, parts[i][0].toUpper());
+
+    return parts.join(" ");
+}
+
+QString MainWindow::prettify(QString call) {
+    QString call1 = toCamelCase(call);  // HEADS square thru 4 --> Heads Square Thru 4
+
+    // from Mike's process_V1.5.R
+    // ALL CAPS the who of each line (the following explicitly defined terms, at the beginning of a line)
+    // This matches up with what Mike is doing for Ceder cards.
+    QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)");
+    QRegularExpressionMatch match = who.match(call1);
+    if (match.hasMatch()) {
+        QString matched = match.captured(0);
+        call1.replace(match.capturedStart(), match.capturedLength(), matched.toUpper());  // replace the match with the toUpper of the match
+    }
+
+    return(call1);
+}
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
@@ -730,26 +1051,32 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         if (match.hasMatch())
         {
             QString move = match.captured(2).trimmed();
+            sdHasSubsidiaryCallContinuation = false;
+            if (move.contains("[") && !move.contains("]")) {
+                sdHasSubsidiaryCallContinuation = true;
+            }
             sdLastLine = match.captured(1).toInt();
             if (sdLastLine > 0 && !move.isEmpty())
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
-                    sd_redo_stack->add_lines_to_row(sdLastLine);
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 }
 
 #ifdef NO_TIMING_INFO
-                QTableWidgetItem *moveItem(new QTableWidgetItem(match.captured(2)));
+                QString theCall = match.captured(2);
+                QString thePrettifiedCall = prettify(theCall);
+
+                QTableWidgetItem *moveItem(new QTableWidgetItem(thePrettifiedCall));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
 #else
-                QString lastCall("&nbsp;" + match.captured(2).toHtmlEscaped());
+                QString lastCall(match.captured(2).toHtmlEscaped());
                 int longestMatchLength = 0;
                 QString callTiming;
                 
                 for (int i = 0 ; danceprogram_callinfo[i].name; ++i)
-                {
+                {n
                     if (danceprogram_callinfo[i].timing)
                     {
                         QString thisCallName(danceprogram_callinfo[i].name);
@@ -767,7 +1094,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
                 QLabel *moveLabel(new SDSequenceCallLabel(this));
 //                moveLabel->setTextFormat(Qt::RichText);
-                qDebug() << "Setting move label to " << lastCall;
+//                qDebug() << "Setting move label to " << lastCall;
                 moveLabel->setText(lastCall);
                 ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveLabel);
 #endif
@@ -777,12 +1104,20 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 QTableWidgetItem *moveItem(ui->tableWidgetCurrentSequence->item(sdLastLine - 1, kColCurrentSequenceCall));
                 QString lastCall(moveItem->text());
                 lastCall += " " + str;
-                qDebug() << "Appending additional call info " << lastCall;
+//                qDebug() << "Appending additional call info " << lastCall;
                 moveItem->setText(lastCall);
             }
+        } else if (sdHasSubsidiaryCallContinuation) {
+                QTableWidgetItem *moveItem(ui->tableWidgetCurrentSequence->item(sdLastLine - 1, kColCurrentSequenceCall));
+                QString lastCall(moveItem->text());
+                lastCall += " " + str.trimmed();
+//                qDebug() << "Appending additional call info " << lastCall;
+                moveItem->setText(lastCall);
+                sdHasSubsidiaryCallContinuation = false;
         }
 
         // Drawing the people happens over in on_sd_update_status_bar
+        
         ui->listWidgetSDOutput->addItem(str);
     }
 }
@@ -797,10 +1132,14 @@ void MainWindow::render_sd_item_data(QTableWidgetItem *item)
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
             {
-                set_sd_last_formation_name(formationList[0]);            
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people);  // also sets L/Tgroup and B/Gorder
+                set_sd_last_groupness(); // update groupness strings
+//                set_sd_last_order(boyOrder, girlOrder);     // update order strings
+
+                set_sd_last_formation_name(formationList[0]); // must be last
                 formationList.removeFirst();
-                decode_formation_into_dancer_destinations(formationList, sd_animation_people);
-                move_dancers(sd_animation_people, 1); 
+
+                move_dancers(sd_animation_people, 1);
             }
         }
 }
@@ -825,12 +1164,14 @@ void MainWindow::on_sd_awaiting_input()
 
 void MainWindow::on_sd_set_pick_string(QString str)
 {
-    qDebug() << "on_sd_set_pick_string: " <<  str;
+    Q_UNUSED(str)
+//    qDebug() << "on_sd_set_pick_string: " <<  str;
 }
 
 void MainWindow::on_sd_dispose_of_abbreviation(QString str)
 {
-    qDebug() << "on_sd_dispose_of_abbreviation: " <<  str;
+    Q_UNUSED(str)
+//    qDebug() << "on_sd_dispose_of_abbreviation: " <<  str;
 }
 
 
@@ -861,7 +1202,7 @@ void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetIte
 
 void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation)
 {
-    QPixmap image(currentSequenceIconSize,currentSequenceIconSize);
+    QPixmap image(static_cast<int>(currentSequenceIconSize), static_cast<int>(currentSequenceIconSize));
     image.fill();
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing);
@@ -884,7 +1225,7 @@ void MainWindow::set_current_sequence_icons_visible(bool visible)
     if (visible)
     {
         QHeaderView *verticalHeader = ui->tableWidgetCurrentSequence->verticalHeader();
-        verticalHeader->setDefaultSectionSize(currentSequenceIconSize);
+        verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
     }
     else
     {
@@ -902,9 +1243,9 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
     {
         call = calls[0];
     }
-    qDebug() << "Double click " << call;
+//    qDebug() << "Double click " << call;
     ui->lineEditSDInput->setText(call);
-    qDebug() << "Highlighting replacebales";
+//    qDebug() << "Highlighting replaceables";
     highlight_sd_replaceables();
 }
 
@@ -942,10 +1283,14 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
             {
-                set_sd_last_formation_name(formationList[0]);            
+                decode_formation_into_dancer_destinations(formationList, sd_animation_people);   // also sets L/Tgroup and B/Gorder
+                set_sd_last_groupness(); // update groupness strings
+//                set_sd_last_order(boyOrder, girlOrder); // update groupness strings
+
+                set_sd_last_formation_name(formationList[0]); // must be last
                 formationList.removeFirst();
-                decode_formation_into_dancer_destinations(formationList, sd_animation_people);
-                move_dancers(sd_animation_people, 1); 
+
+                move_dancers(sd_animation_people, 1);
             }
         }
 
@@ -964,7 +1309,7 @@ static QRegExp regexCallNth("<Nth>");
 static QRegExp regexEnteredN("(\\d+)");
 static QRegExp regexCallN("<N>");
 
-static int compareEnteredCallToCall(const QString &enteredCall, const QString &call, QString * maxCall = NULL)
+static int compareEnteredCallToCall(const QString &enteredCall, const QString &call, QString *maxCall = nullptr)
 {
     
     int enteredCallPos = 0;
@@ -995,7 +1340,7 @@ static int compareEnteredCallToCall(const QString &enteredCall, const QString &c
         }
     }
     
-    if (NULL != maxCall)
+    if (nullptr != maxCall)
     {
         *maxCall = enteredCall.left(enteredCallPos) + call.right(call.length() - callPos);
     }
@@ -1046,7 +1391,7 @@ static QString get_longest_match_from_list_widget(QListWidget *listWidget,
 void MainWindow::do_sd_tab_completion()
 {
     QString originalText(ui->lineEditSDInput->text().simplified());
-    QString callSearch = sd_strip_leading_selectors(originalText);
+    QString callSearch = sdthread->sd_strip_leading_selectors(originalText);
     QString prefix = originalText.left(originalText.length() - callSearch.length());
 
     
@@ -1057,7 +1402,7 @@ void MainWindow::do_sd_tab_completion()
                                                       originalText,
                                                       originalText,
                                                       longestMatch);
-    qDebug() << "longest match is " << longestMatch;
+//    qDebug() << "longest match is " << longestMatch;
     
     if (longestMatch.length() > callSearch.length())
     {
@@ -1088,8 +1433,8 @@ void MainWindow::do_sd_tab_completion()
             else if (new_line.contains(strBracketsSubsidiaryCall))
             {
                 int indexStart = new_line.indexOf(strBracketsSubsidiaryCall) + 1;
-                qDebug() << "Settng subsidiary call at " << indexStart;
-                ui->lineEditSDInput->setSelection(indexStart, strlen(strBracketsSubsidiaryCall) - 2);
+//                qDebug() << "Setting subsidiary call at " << indexStart;
+                ui->lineEditSDInput->setSelection(indexStart, static_cast<int>(strlen(strBracketsSubsidiaryCall) - 2));
                 ui->lineEditSDInput->setFocus();
             }
         }
@@ -1097,13 +1442,45 @@ void MainWindow::do_sd_tab_completion()
 }
 
 
+void MainWindow::SDDebug(const QString &str, bool bold) {
+    QListWidgetItem *item = new QListWidgetItem(str);
+    QFont font(item->font());
+    font.setBold(bold);
+    font.setFixedPitch(true);
+    item->setFont(font);
+    ui->listWidgetSDOutput->addItem(item);
+    ui->listWidgetSDOutput->scrollToBottom();
+}
 
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
 //    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
 //    while (redoRow >= 0 && redoRow < sd_redo_stack->length())
 //        sd_redo_stack->erase(sd_redo_stack->begin() + redoRow);
+    QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
+    if (cmd.startsWith("debug "))
+    {
+        if (cmd == "debug undo")
+        {
+            SDDebug("Undo Command Stack", true);
+            for (QString s : sd_redo_stack->command_stack)
+            {
+                SDDebug(s);
+            }
+            SDDebug("Redo Command Stack", true);
+            for (int i = 0; i < sd_redo_stack->redo_stack.count(); ++i)
+            {
+                SDDebug(QString("%1").arg(i));
+                for (QString s : sd_redo_stack->redo_stack[i])
+                {
+                    SDDebug(QString("    %1").arg(s));
+                }
+            }
+        }
+        ui->lineEditSDInput->clear();
+    }
 
+    
     sd_redo_stack->set_doing_user_input();
     submit_lineEditSDInput_contents_to_sd();
     sd_redo_stack->clear_doing_user_input();
@@ -1112,6 +1489,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 void MainWindow::submit_lineEditSDInput_contents_to_sd()
 {
     QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
+    cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
     ui->lineEditSDInput->clear();
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
@@ -1259,8 +1637,10 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     }
 
     // handle "square thru" -> "square thru 4"
-    if (cmd == "square thru") {
-        cmd = "square thru 4";
+    //  and "heads square thru" --> "heads square thru 4"
+    //  and "sides..."
+    if (cmd.endsWith("square thru")) {
+        cmd.replace("square thru", "square thru 4");
     }
 
     // SD COMMANDS -------
@@ -1272,13 +1652,23 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     }
     else
     {
+        if (ui->tableWidgetCurrentSequence->rowCount() == 0 && !cmd.contains("1p2p")) {
+            if (cmd.startsWith("heads ")) {
+                sdthread->do_user_input("heads start");
+                cmd.replace("heads ", "");
+            } else if (cmd.startsWith("sides")) {
+                sdthread->do_user_input("sides start");
+                cmd.replace("sides ", "");
+            }
+        }
         if (sdthread->do_user_input(cmd))
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
             if (row < 0) row = 0;
             if (!cmd.compare(str_undo_last_call, Qt::CaseInsensitive))
             {
-                sd_redo_stack->set_did_an_undo();
+                sdthread->do_user_input("refresh");
+                sd_redo_stack->did_an_undo();
             }
             else
             {
@@ -1290,7 +1680,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
 
 dance_level MainWindow::get_current_sd_dance_program()
 {
-    dance_level current_dance_program = (dance_level)(INT_MAX);
+    dance_level current_dance_program = static_cast<dance_level>(INT_MAX);
 
     if (ui->actionSDDanceProgramMainstream->isChecked())
     {
@@ -1343,7 +1733,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
 {
     bool showCommands = ui->actionShow_Commands->isChecked();
     bool showConcepts = ui->actionShow_Concepts->isChecked();
-
     
     QString currentText = ui->lineEditSDInput->text().simplified();
     int currentTextLastChar = currentText.length() - 1;
@@ -1363,7 +1752,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
             sdAvailableCalls.clear();
     }
     
-    QString strippedText = sd_strip_leading_selectors(currentText);
+    QString strippedText = sdthread->sd_strip_leading_selectors(currentText);
 
     dance_level current_dance_program = get_current_sd_dance_program();
     
@@ -1388,7 +1777,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
                 {
                     static QRegExp regexpReplaceableParts("<.*?>");
                     QString callName = ui->listWidgetSDOptions->item(i)->text();
-                    QStringList callParts(callName.split(regexpReplaceableParts, QString::SkipEmptyParts));
+                    QStringList callParts(callName.split(regexpReplaceableParts, Qt::SkipEmptyParts));
                     
                     for (auto call : sdAvailableCalls)
                     {
@@ -1419,16 +1808,59 @@ void MainWindow::on_lineEditSDInput_textChanged()
 
 }
 
+void MainWindow::startSDThread(dance_level dance_program) {
+    // Initializers for these should probably be up in the constructor
+    sdthread = new SDThread(this, dance_program, sdLevelEnumsToStrings[dance_program]);
+    sdthread->start();
+    sdthread->unlock();
+}
+
+void MainWindow::restartSDThread(dance_level dance_program)
+{
+    if (sdthread)
+    {
+        sdthread->finishAndShutdownSD();
+        sdthread->wait(250);
+        
+        sdthread = nullptr; // NULL;
+    }
+    startSDThread(dance_program);
+    reset_sd_dancer_locations();
+    
+}
+
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
-    sdthread->set_dance_program(dance_program);
+    restartSDThread(dance_program);
 //    for (int i = 0; actions[i]; ++i)
 //    {
 //        bool checked = (i == (int)(dance_program));
 //        actions[i]->setChecked(checked);
 //    }
+
+    // set string for keyboard level in UI
+    currentSDKeyboardLevel = "UNK";
+    switch (dance_program) {
+        case l_mainstream: currentSDKeyboardLevel = "Mainstream"; break;
+        case l_plus: currentSDKeyboardLevel = "Plus"; break;
+        case l_a1:   currentSDKeyboardLevel = "A1"; break;
+        case l_a2:   currentSDKeyboardLevel = "A2"; break;
+        case l_c1:   currentSDKeyboardLevel = "C1"; break;
+        case l_c2:   currentSDKeyboardLevel = "C2"; break;
+        case l_c3a:  currentSDKeyboardLevel = "C3a"; break;
+        case l_c3:   currentSDKeyboardLevel = "C3"; break;
+        case l_c3x:  currentSDKeyboardLevel = "C3x"; break;
+        case l_c4a:  currentSDKeyboardLevel = "C4a"; break;
+        case l_c4:   currentSDKeyboardLevel = "C4"; break;
+        case l_c4x:  currentSDKeyboardLevel = "C4x"; break;
+        default: break;
+    }
+    microphoneStatusUpdate(); // update the level designator
+
     on_lineEditSDInput_textChanged();
 }
+
+
 
 void MainWindow::on_actionSDDanceProgramMainstream_triggered()
 {
@@ -1562,7 +1994,8 @@ void MainWindow::select_all_sd_current_sequence()
 void MainWindow::undo_last_sd_action()
 {
     sdthread->do_user_input(str_undo_last_call);
-    sd_redo_stack->set_did_an_undo();
+    sdthread->do_user_input("refresh");
+    sd_redo_stack->did_an_undo();
     
     ui->lineEditSDInput->setFocus();
 }
@@ -1571,11 +2004,18 @@ void MainWindow::redo_last_sd_action()
 {
     int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
     if (redoRow < 0) redoRow = 0;
-    QStringList redoCommands(sd_redo_stack->get_redo_commands(redoRow));
+    QStringList redoCommands(sd_redo_stack->get_redo_commands());
+    sd_redo_stack->set_doing_user_input();
     for (auto redoCommand : redoCommands)
     {
-        sdthread->do_user_input(redoCommand);
+        if (!redoCommand.startsWith("<")) {
+            ui->lineEditSDInput->setText(redoCommand);
+            submit_lineEditSDInput_contents_to_sd();
+//            sdthread->do_user_input(redoCommand);
+        }
     }
+    sd_redo_stack->clear_doing_user_input();
+    sd_redo_stack->discard_redo_commands();
 
     ui->lineEditSDInput->setFocus();
 }
@@ -1587,6 +2027,7 @@ void MainWindow::undo_sd_to_row()
         undo_last_sd_action();
     }
 }
+
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
@@ -1630,7 +2071,15 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
             selection += item->text() + "\n";
         }
     }
-    
+     
+    if (prefsManager.GetSDCallListCopyDeepUndoBuffer())
+    {
+        selection += "\nCommand Stack:\n";
+        for (QString s : sd_redo_stack->command_stack)
+        {
+            selection += s + "\n";
+        }
+    }
     QApplication::clipboard()->setText(selection);
 }
 
@@ -1651,7 +2100,7 @@ void MainWindow::copy_selection_from_listWidgetSDOutput()
     QApplication::clipboard()->setText(selection);
 }
 
-static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text)
+QString MainWindow::render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsScene &scene, QList<SDDancer> &people, bool graphics_as_text)
 {
     QString selection;
     QVariant v = imageItem->data(Qt::UserRole);
@@ -1674,14 +2123,15 @@ static QString render_image_item_as_html(QTableWidgetItem *imageItem, QGraphicsS
             }
             else
             {
-                decode_formation_into_dancer_destinations(formationList, people);
-                move_dancers(people, 1); 
+                decode_formation_into_dancer_destinations(formationList, people);   // also sets L/Tgroup and B/Gorder
+//                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
+                move_dancers(people, 1);
                 QBuffer svgText;
                 svgText.open(QBuffer::ReadWrite);
                 QSvgGenerator svgGen;
                 svgGen.setOutputDevice(&svgText);
-                svgGen.setSize(QSize(halfBackgroundSize * 2,
-                                     halfBackgroundSize * 2));
+                svgGen.setSize(QSize(static_cast<int>(halfBackgroundSize) * 2,
+                                     static_cast<int>(halfBackgroundSize) * 2));
                 svgGen.setTitle(formationName);
                 svgGen.setDescription(formation.toHtmlEscaped());
                 {
@@ -1705,7 +2155,9 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
     QGraphicsTextItem *graphicsTextItemStatusBar;
     bool copyOnlySelectedCells(prefsManager.GetSDCallListCopyOptions() == 3);
 
-    initialize_scene(scene,people, graphicsTextItemStatusBar);
+    QGraphicsTextItem *graphicsTextItemLeftGroup;
+    QGraphicsTextItem *graphicsTextItemTopGroup;
+    initialize_scene(scene, people, graphicsTextItemStatusBar, graphicsTextItemLeftGroup, graphicsTextItemTopGroup);
     
     QString selection("<!DOCTYPE html>\n"
                       "<html lang=\"en\">\n"
@@ -1753,7 +2205,7 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
             selection += "<li><b>" + item->text().toHtmlEscaped() + "</b>";
             QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation);
-            if (1 || imageItem->isSelected())
+            if ( (1) || imageItem->isSelected() )
             {
                 selection += render_image_item_as_html(imageItem, scene, people, graphics_as_text);
             }
@@ -1804,6 +2256,10 @@ void MainWindow::toggle_sd_copy_html_formations_as_svg()
     prefsManager.SetSDCallListCopyHTMLFormationsAsSVG(!prefsManager.GetSDCallListCopyHTMLFormationsAsSVG());
 }
 
+void MainWindow::toggle_sd_copy_include_deep()
+{
+    prefsManager.SetSDCallListCopyDeepUndoBuffer(!prefsManager.GetSDCallListCopyDeepUndoBuffer());
+}
 
 
 void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos)
@@ -1832,10 +2288,18 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     action3.setShortcut(QKeySequence::SelectAll);
     contextMenu.addAction(&action3);
 
+    contextMenu.addSeparator(); // ---------------
+
     sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
     QAction action4("Go Back To Here", this);
     connect(&action4, SIGNAL(triggered()), this, SLOT(undo_sd_to_row()));
     contextMenu.addAction(&action4);
+
+    QAction action4a("Square Your Sets", this);
+    connect(&action4a, SIGNAL(triggered()), this, SLOT(on_actionSDSquareYourSets_triggered()));
+    contextMenu.addAction(&action4a);
+
+    contextMenu.addSeparator(); // ---------------
 
     QAction action5("Copy as HTML", this);
     connect(&action5, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
@@ -1892,7 +2356,13 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     menuCopySettings.addAction(&action1_5);
     contextMenu.addMenu(&menuCopySettings);
 
-    
+    QAction action1_6("Include Undo Buffer", this);
+    action1_6.setCheckable(true);
+    action1_6.setChecked(prefsManager.GetSDCallListCopyDeepUndoBuffer());
+    connect(&action1_6, SIGNAL(triggered()), this, SLOT(toggle_sd_copy_include_deep()));
+    menuCopySettings.addAction(&action1_6);
+    contextMenu.addMenu(&menuCopySettings);
+
     contextMenu.exec(ui->tableWidgetCurrentSequence->mapToGlobal(pos));
 }
 
@@ -1916,4 +2386,42 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
     contextMenu.addAction(&action3);
 
     contextMenu.exec(ui->listWidgetSDOutput->mapToGlobal(pos));
+}
+
+void MainWindow::on_actionSDSquareYourSets_triggered() {
+    ui->lineEditSDInput->clear();
+    restartSDThread(get_current_sd_dance_program());
+
+    if (nullptr == sdthread) // NULL == sdthread)
+    {
+        qDebug() << "Something has gone wrong, sdthread is null!";
+        restartSDThread(get_current_sd_dance_program());
+    }
+//    qDebug() << "Square your sets";
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
+}
+
+void MainWindow::on_actionSDHeadsStart_triggered() {
+//    qDebug() << "(square your sets and) Heads start";
+    on_actionSDSquareYourSets_triggered();
+    QStringList list(QString("heads start"));
+    sdthread->resetAndExecute(list);
+
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
+}
+
+void MainWindow::on_actionSDHeadsSquareThru_triggered() {
+    on_actionSDSquareYourSets_triggered();
+    QStringList list(QString("heads start"));
+    list.append(QString("square thru 4"));  // don't need to repeat "heads" here
+    sdthread->resetAndExecute(list);
+}
+
+void MainWindow::on_actionSDHeads1p2p_triggered() {
+//    qDebug() << "(square your sets and ) Heads 1p2p";
+    on_actionSDSquareYourSets_triggered();
+    QStringList list(QString("heads 1p2p"));
+    sdthread->resetAndExecute(list);
+
+    ui->lineEditSDInput->setFocus();  // set focus to the input line
 }

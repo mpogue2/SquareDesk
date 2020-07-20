@@ -9,6 +9,7 @@ QT       += core gui sql network printsupport svg
 macx {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
+    QMAKE_INFO_PLIST = $$PWD/Info.plist
 }
 
 win32:CONFIG(debug, debug|release): {
@@ -34,9 +35,11 @@ TEMPLATE = app
 DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
+    AppleMusicLibraryXMLReader.cpp \
         mainwindow.cpp \
     bass_audio.cpp \
     preferencesdialog.cpp \
+    choreosequencedialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
     songhistoryexportdialog.cpp \
@@ -50,7 +53,8 @@ SOURCES += main.cpp\
     songsettings.cpp \
     typetracker.cpp \
     console.cpp \
-    renderarea.cpp \
+    squaredancerscene.cpp \
+#    renderarea.cpp \
     sdhighlighter.cpp \
     utility.cpp \
     danceprograms.cpp \
@@ -60,6 +64,7 @@ SOURCES += main.cpp\
     sdlineedit.cpp \
     downloadmanager.cpp \
     sdinterface.cpp \
+    sdformationutils.cpp \
     mainwindow_sd.cpp \
     songtitlelabel.cpp \
     sdsequencecalllabel.cpp \
@@ -68,7 +73,9 @@ SOURCES += main.cpp\
     sdredostack.cpp \
     makeflashdrivewizard.cpp \
     songlistmodel.cpp \
-    mydatetimeedit.cpp
+    taminationsinterface.cpp \
+    mydatetimeedit.cpp \
+    tablelabelitem.cpp
 
 macx {
 SOURCES += ../qpdfjs/src/communicator.cpp
@@ -87,6 +94,7 @@ HEADERS  += mainwindow.h \
     exportdialog.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
+    choreosequencedialog.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \
@@ -100,7 +108,8 @@ HEADERS  += mainwindow.h \
     clickablelabel.h \
     typetracker.h \
     console.h \
-    renderarea.h \
+    squaredancerscene.h \
+#    renderarea.h \
     common.h \
     sdhighlighter.h \
     danceprograms.h \
@@ -112,6 +121,7 @@ HEADERS  += mainwindow.h \
     sdlineedit.h \
     downloadmanager.h \
     sdinterface.h \
+    sdformationutils.h \
     songtitlelabel.h \
     sdsequencecalllabel.h \
     perftimer.h \
@@ -119,8 +129,11 @@ HEADERS  += mainwindow.h \
     sdredostack.h \
     makeflashdrivewizard.h \
     songlistmodel.h \
+    taminationsinterface.h \
     mydatetimeedit.h \
-    keyactions.h
+    keyactions.h \
+    songsetting_attributes.h \
+    tablelabelitem.h
 
 macx {
 HEADERS += ../qpdfjs/src/communicator.h
@@ -137,6 +150,7 @@ FORMS    += mainwindow.ui \
     importdialog.ui \
     exportdialog.ui \
     songhistoryexportdialog.ui \
+    choreosequencedialog.ui \
     preferencesdialog.ui
 
 macx {
@@ -262,6 +276,7 @@ macx {
     DISTFILES += desk1d.icns
     DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
 
+    # ERROR: Could not resolve SDK Path for 'macosx10.14'
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
     #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
@@ -270,7 +285,7 @@ macx {
     #   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
     #   You must delete that file manually right now, when the MAC SDK version changes.
     #   See: https://bugreports.qt.io/browse/QTBUG-43015
-    QMAKE_MAC_SDK = macosx10.14
+    QMAKE_MAC_SDK = macosx10.15
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
@@ -386,6 +401,34 @@ macx {
     export(copydata2q.commands)
     export(copydata3q.commands)
     QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
+
+    # For the Mac OS X DMG installer build, we need exactly 2 files stuck into the results directory ---------
+    installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command
+    installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
+    first.depends += installer1 installer2
+    export(first.depends)
+    export(installer1.commands)
+    export(installer2.commands)
+    QMAKE_EXTRA_TARGETS += installer1 installer2
+
+    # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
+    #   then, copies over the dependency (libmpg123) from /usr/local/opt (assumed installed via BREW)
+    #   then, the library reference is changed in the mp3gain executable to point at the LOCAL version of libmpg123
+    #   then, the lib reference is changed to point at the local QCore framework
+    #   finally, otool is used to double check that the library reference is correct
+    mp3gain1.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    mp3gain2.commands = $(COPY) /usr/local/opt/mpg123/lib/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    mp3gain3.commands = install_name_tool -change /usr/local/opt/mpg123/lib/libmpg123.0.dylib @executable_path/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+    mp3gain4.commands = install_name_tool -change @rpath/QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+    mp3gain5.commands = otool -L $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+    first.depends += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
+    export(first.depends)
+    export(mp3gain1.commands)
+    export(mp3gain2.commands)
+    export(mp3gain3.commands)
+    export(mp3gain4.commands)
+    export(mp3gain5.commands)
+    QMAKE_EXTRA_TARGETS += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
 }
 
 win32:CONFIG(debug, debug|release): {
@@ -463,6 +506,21 @@ win32:CONFIG(debug, debug|release): {
     #export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
 
+    # BUG WORKAROUND --------------------------------------
+    # To get around the "app failed to start because...platform plugin "windows" in "" problem
+    # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
+    #   rename is so that there is only one .exe in the directory for windeployqt.exe
+    fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+    fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
+    fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+
+    first.depends += fixbug1 fixbug2 fixbug3
+    export(first.depends)
+    export(fixbug1.commands)
+    export(fixbug2.commands)
+    export(fixbug3.commands)
+    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+
 }
 
 win32:CONFIG(release, debug|release): {
@@ -523,7 +581,6 @@ win32:CONFIG(release, debug|release): {
     QMAKE_EXTRA_TARGETS += copydata10b copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11g copydata11h copydata12h
 
     # For the PDF viewer -----------------
-    # For the PDF viewer -----------------
     copydata1p.commands = if not exist $$shell_path($$OUT_PWD/release/minified) $(MKDIR) $$shell_path($$OUT_PWD/release/minified)
     copydata2p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/web)   $$shell_path($$OUT_PWD/release/minified/web)
     copydata3p.commands = $(COPY_DIR) $$shell_path($$PWD/../qpdfjs/minified/build) $$shell_path($$OUT_PWD/release/minified/build)
@@ -536,6 +593,53 @@ win32:CONFIG(release, debug|release): {
     export(copydata3p.commands)
     #export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p #copydata4p
+
+    # BUG WORKAROUND --------------------------------------
+    # To get around the "app failed to start because...platform plugin "windows" in "" problem
+    # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
+    #   rename is so that there is only one .exe in the directory for windeployqt.exe
+    fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+    fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
+    fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+
+    first.depends += fixbug1 fixbug2 fixbug3
+    export(first.depends)
+    export(fixbug1.commands)
+    export(fixbug2.commands)
+    export(fixbug3.commands)
+    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+}
+
+win32:CONFIG(debug, debug|release): {
+    # MISC FILES --------------------------------------
+    ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/debug)
+    quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/debug)
+    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/debug)
+    manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/debug/SquareDeskManual.pdf)
+
+    first.depends += ico quaz pstest manual
+    export(first.depends)
+    export(ico.commands)
+    export(quaz.commands)
+    export(pstest.commands)
+    export(manual.commands)
+    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+}
+
+win32:CONFIG(release, debug|release): {
+    # MISC FILES --------------------------------------
+    ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/release)
+    quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/release)
+    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/release)
+    manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/release/SquareDeskManual.pdf)
+
+    first.depends += ico quaz pstest manual
+    export(first.depends)
+    export(ico.commands)
+    export(quaz.commands)
+    export(pstest.commands)
+    export(manual.commands)
+    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
 }
 
 RESOURCES += resources.qrc
@@ -548,10 +652,12 @@ OBJECTIVE_SOURCES += \
     macUtils.mm
 
 DISTFILES += \
+    Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
     cuesheet2.css \
-    lyrics.template.html
+    lyrics.template.html \
+    PackageIt.command
 
 CONFIG += c++11
 

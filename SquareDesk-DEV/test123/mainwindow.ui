@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>923</width>
+    <width>1008</width>
     <height>582</height>
    </rect>
   </property>
@@ -80,7 +80,7 @@
             <number>60</number>
            </attribute>
            <attribute name="horizontalHeaderHighlightSections">
-            <bool>true</bool>
+            <bool>false</bool>
            </attribute>
            <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
             <bool>true</bool>
@@ -231,51 +231,75 @@
           <property name="bottomMargin">
            <number>7</number>
           </property>
-          <item row="4" column="2">
-           <widget class="MySlider" name="volumeSlider">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
+          <item row="1" column="3">
+           <widget class="QLabel" name="currentLocLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
+            <property name="minimumSize">
+             <size>
+              <width>42</width>
+              <height>0</height>
+             </size>
             </property>
-            <property name="maximum">
-             <number>100</number>
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>100</height>
+             </size>
             </property>
-            <property name="value">
-             <number>100</number>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
             </property>
-            <property name="sliderPosition">
-             <number>100</number>
+            <property name="font">
+             <font>
+              <family>.SF NS Text</family>
+              <pointsize>9</pointsize>
+             </font>
             </property>
-            <property name="tracking">
-             <bool>true</bool>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="volumeLabel">
             <property name="text">
-             <string>Volume</string>
+             <string>   0:00</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="4" column="3" colspan="2">
-           <widget class="QLabel" name="currentVolumeLabel">
+          <item row="3" column="3" colspan="2">
+           <widget class="QLabel" name="currentPitchLabel">
             <property name="text">
-             <string>MAX</string>
+             <string>0 semitones</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="7">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6" alignment="Qt::AlignHCenter">
+           <widget class="clickableLabel" name="warningLabel">
+            <property name="font">
+             <font>
+              <pointsize>18</pointsize>
+             </font>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Figure 4</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -289,6 +313,25 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QLabel" name="songLengthLabel">
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>.SF NS Text</family>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>/ 1:23</string>
             </property>
            </widget>
           </item>
@@ -325,169 +368,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="songLengthLabel">
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <family>.SF NS Text</family>
-              <pointsize>9</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>/ 1:23</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="5">
-           <widget class="QWidget" name="vuMeterProxy" native="true">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>40</width>
-              <height>40</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3" colspan="2">
-           <widget class="QLabel" name="currentTempoLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="7">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QToolButton" name="nextSongButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>48</width>
-              <height>22</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>&gt;&gt;|</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="stopButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>S</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="MySlider" name="pitchSlider">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="minimum">
-             <number>-5</number>
-            </property>
-            <property name="maximum">
-             <number>5</number>
-            </property>
-            <property name="pageStep">
-             <number>2</number>
-            </property>
-            <property name="value">
-             <number>0</number>
-            </property>
-            <property name="sliderPosition">
-             <number>0</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
-            </property>
-            <property name="tickInterval">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
           <item row="3" column="1">
            <widget class="QLabel" name="pitchLabel">
             <property name="text">
@@ -495,102 +375,6 @@
             </property>
             <property name="alignment">
              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="MySlider" name="tempoSlider">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="minimum">
-             <number>117</number>
-            </property>
-            <property name="maximum">
-             <number>137</number>
-            </property>
-            <property name="pageStep">
-             <number>5</number>
-            </property>
-            <property name="value">
-             <number>127</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
-            </property>
-            <property name="tickInterval">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="3" colspan="2">
-           <widget class="QLabel" name="currentMixLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>90</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>50% L / 50% R</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="MySlider" name="seekBar">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="maximum">
-             <number>180</number>
-            </property>
-            <property name="value">
-             <number>30</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
-            </property>
-            <property name="tickInterval">
-             <number>10</number>
             </property>
            </widget>
           </item>
@@ -625,18 +409,8 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="QLabel" name="mixLabel">
-            <property name="text">
-             <string>Mix</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="MySlider" name="mixSlider">
+          <item row="4" column="2">
+           <widget class="MySlider" name="volumeSlider">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -649,17 +423,14 @@
             <property name="focusPolicy">
              <enum>Qt::NoFocus</enum>
             </property>
-            <property name="minimum">
-             <number>-100</number>
-            </property>
             <property name="maximum">
              <number>100</number>
             </property>
             <property name="value">
-             <number>0</number>
+             <number>100</number>
             </property>
             <property name="sliderPosition">
-             <number>0</number>
+             <number>100</number>
             </property>
             <property name="tracking">
              <bool>true</bool>
@@ -667,14 +438,8 @@
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <property name="invertedAppearance">
-             <bool>false</bool>
-            </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
-            </property>
-            <property name="tickInterval">
-             <number>10</number>
+             <enum>QSlider::TicksAbove</enum>
             </property>
            </widget>
           </item>
@@ -854,71 +619,88 @@
             </widget>
            </widget>
           </item>
-          <item row="3" column="3" colspan="2">
-           <widget class="QLabel" name="currentPitchLabel">
-            <property name="text">
-             <string>0 semitones</string>
+          <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="stopButton">
+            <property name="enabled">
+             <bool>false</bool>
             </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QLabel" name="currentLocLabel">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>42</width>
+              <width>48</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>60</width>
-              <height>100</height>
+              <width>50</width>
+              <height>16777215</height>
              </size>
             </property>
-            <property name="baseSize">
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>S</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QToolButton" name="nextSongButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
              <size>
-              <width>0</width>
+              <width>48</width>
               <height>0</height>
              </size>
             </property>
-            <property name="font">
-             <font>
-              <family>.SF NS Text</family>
-              <pointsize>9</pointsize>
-             </font>
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
             </property>
             <property name="text">
-             <string>   0:00</string>
+             <string>&gt;&gt;|</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3" colspan="2">
+           <widget class="QLabel" name="currentVolumeLabel">
+            <property name="text">
+             <string>MAX</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
-          <item row="1" column="6" alignment="Qt::AlignHCenter">
-           <widget class="clickableLabel" name="warningLabel">
-            <property name="font">
-             <font>
-              <pointsize>18</pointsize>
-             </font>
+          <item row="1" column="5">
+           <widget class="QWidget" name="vuMeterProxy" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Figure 4</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
             </property>
            </widget>
           </item>
@@ -943,6 +725,239 @@
             </property>
             <property name="text">
              <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="MySlider" name="pitchSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="minimum">
+             <number>-5</number>
+            </property>
+            <property name="maximum">
+             <number>5</number>
+            </property>
+            <property name="pageStep">
+             <number>2</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="sliderPosition">
+             <number>0</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksAbove</enum>
+            </property>
+            <property name="tickInterval">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="3" colspan="2">
+           <widget class="QLabel" name="currentMixLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>90</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>50% L / 50% R</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="MySlider" name="mixSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="minimum">
+             <number>-100</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="sliderPosition">
+             <number>0</number>
+            </property>
+            <property name="tracking">
+             <bool>true</bool>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="invertedAppearance">
+             <bool>false</bool>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksAbove</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" colspan="2">
+           <widget class="QLabel" name="currentTempoLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="MySlider" name="seekBar">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="maximum">
+             <number>180</number>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksAbove</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="mixLabel">
+            <property name="text">
+             <string>Mix</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="volumeLabel">
+            <property name="text">
+             <string>Volume</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="MySlider" name="tempoSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="minimum">
+             <number>117</number>
+            </property>
+            <property name="maximum">
+             <number>137</number>
+            </property>
+            <property name="pageStep">
+             <number>5</number>
+            </property>
+            <property name="value">
+             <number>127</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::TicksAbove</enum>
+            </property>
+            <property name="tickInterval">
+             <number>1</number>
             </property>
            </widget>
           </item>
@@ -1139,7 +1154,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksBothSides</enum>
+             <enum>QSlider::TicksAbove</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -1566,137 +1581,160 @@
        <attribute name="title">
         <string>SD</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <layout class="QVBoxLayout" name="verticalLayout_12">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
-           <widget class="QTabWidget" name="tabWidget_2">
-            <property name="currentIndex">
-             <number>1</number>
+           <widget class="QSplitter" name="splitterSDTabHorizontal">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-            <widget class="QWidget" name="tabWidget_2Page1">
-             <attribute name="title">
-              <string>SD Output</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
+            <widget class="QWidget" name="layoutWidgetSDTab">
+             <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QListWidget" name="listWidgetSDOutput">
-                <property name="contextMenuPolicy">
-                 <enum>Qt::CustomContextMenu</enum>
+               <widget class="QTabWidget" name="tabWidget_2">
+                <property name="currentIndex">
+                 <number>1</number>
                 </property>
-                <property name="selectionMode">
-                 <enum>QAbstractItemView::ContiguousSelection</enum>
-                </property>
+                <widget class="QWidget" name="tabWidget_2Page1">
+                 <attribute name="title">
+                  <string>SD Output</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="verticalLayout_5">
+                  <item>
+                   <widget class="QListWidget" name="listWidgetSDOutput">
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::CustomContextMenu</enum>
+                    </property>
+                    <property name="selectionMode">
+                     <enum>QAbstractItemView::ContiguousSelection</enum>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+                <widget class="QWidget" name="tabWidget_2Page2">
+                 <attribute name="title">
+                  <string>Current Sequence</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                  <item>
+                   <widget class="QTableWidget" name="tableWidgetCurrentSequence">
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::CustomContextMenu</enum>
+                    </property>
+                    <column>
+                     <property name="text">
+                      <string>Call</string>
+                     </property>
+                    </column>
+                    <column>
+                     <property name="text">
+                      <string>Result</string>
+                     </property>
+                    </column>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_SD_Resolve">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
                </widget>
+              </item>
+              <item>
+               <widget class="SDLineEdit" name="lineEditSDInput"/>
               </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="tabWidget_2Page2">
-             <attribute name="title">
-              <string>Current Sequence</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_7">
-              <item>
-               <widget class="QTableWidget" name="tableWidgetCurrentSequence">
-                <property name="contextMenuPolicy">
-                 <enum>Qt::CustomContextMenu</enum>
-                </property>
-                <column>
-                 <property name="text">
-                  <string>Call</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>Result</string>
-                 </property>
-                </column>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_SD_Resolve">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </widget>
-          </item>
-          <item>
-           <widget class="SDLineEdit" name="lineEditSDInput"/>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayoutSDStatus">
-          <item>
-           <widget class="QGraphicsView" name="graphicsViewSDFormation">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>290</width>
-              <height>290</height>
-             </size>
-            </property>
-            <property name="verticalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-            <property name="horizontalScrollBarPolicy">
-             <enum>Qt::ScrollBarAlwaysOff</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
-            <property name="currentIndex">
-             <number>2</number>
-            </property>
-            <widget class="QWidget" name="tab">
-             <attribute name="title">
-              <string>Options</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <item>
-               <widget class="QListWidget" name="listWidgetSDOptions">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="horizontalScrollBarPolicy">
-                 <enum>Qt::ScrollBarAlwaysOff</enum>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_2">
-             <attribute name="title">
-              <string>'?' Completion</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_9">
-              <item>
-               <widget class="QListWidget" name="listWidgetSDQuestionMarkComplete"/>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_3">
-             <attribute name="title">
-              <string>Additional</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
-              <item>
-               <widget class="QListWidget" name="listWidgetSDAdditionalOptions"/>
-              </item>
-             </layout>
+            <widget class="QSplitter" name="splitterSDTabVertical">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <widget class="SquareDancerScene" name="graphicsViewSDFormation">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>290</width>
+                <height>290</height>
+               </size>
+              </property>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="backgroundBrush">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>255</green>
+                 <blue>255</blue>
+                </color>
+               </brush>
+              </property>
+              <property name="interactive">
+               <bool>true</bool>
+              </property>
+             </widget>
+             <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
+              <property name="currentIndex">
+               <number>2</number>
+              </property>
+              <widget class="QWidget" name="tab">
+               <attribute name="title">
+                <string>Options</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_8">
+                <item>
+                 <widget class="QListWidget" name="listWidgetSDOptions">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="horizontalScrollBarPolicy">
+                   <enum>Qt::ScrollBarAlwaysOff</enum>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab_2">
+               <attribute name="title">
+                <string>'?' Completion</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_9">
+                <item>
+                 <widget class="QListWidget" name="listWidgetSDQuestionMarkComplete"/>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab_3">
+               <attribute name="title">
+                <string>Additional</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_10">
+                <item>
+                 <widget class="QListWidget" name="listWidgetSDAdditionalOptions"/>
+                </item>
+               </layout>
+              </widget>
+             </widget>
             </widget>
            </widget>
           </item>
@@ -1802,7 +1840,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>923</width>
+     <width>1008</width>
      <height>22</height>
     </rect>
    </property>
@@ -1923,27 +1961,6 @@
     <property name="title">
      <string>SD</string>
     </property>
-    <widget class="QMenu" name="menuEnable_keyboard_input">
-     <property name="title">
-      <string>Enable keyboard input</string>
-     </property>
-     <addaction name="actionMainstream"/>
-     <addaction name="actionPlus"/>
-     <addaction name="separator"/>
-     <addaction name="actionA1"/>
-     <addaction name="actionA2"/>
-     <addaction name="separator"/>
-     <addaction name="actionC1"/>
-     <addaction name="actionC2"/>
-     <addaction name="separator"/>
-     <addaction name="actionC3a"/>
-     <addaction name="actionC3"/>
-     <addaction name="actionC3x"/>
-     <addaction name="separator"/>
-     <addaction name="actionC4a"/>
-     <addaction name="actionC4"/>
-     <addaction name="actionC4x"/>
-    </widget>
     <widget class="QMenu" name="menuDance_Program">
      <property name="title">
       <string>Dance Program</string>
@@ -1965,7 +1982,6 @@
     <addaction name="actionShow_Commands"/>
     <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
-    <addaction name="menuEnable_keyboard_input"/>
     <addaction name="separator"/>
     <addaction name="actionNormal"/>
     <addaction name="actionColor_only"/>
@@ -1973,6 +1989,14 @@
     <addaction name="actionSight"/>
     <addaction name="separator"/>
     <addaction name="actionFormation_Thumbnails"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_group_station"/>
+    <addaction name="actionShow_order_sequence"/>
+    <addaction name="separator"/>
+    <addaction name="actionSDSquareYourSets"/>
+    <addaction name="actionSDHeadsStart"/>
+    <addaction name="actionSDHeadsSquareThru"/>
+    <addaction name="actionSDHeads1p2p"/>
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
@@ -2927,6 +2951,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Plus</string>
    </property>
@@ -3204,6 +3231,48 @@
     <string>Don't Save Plays</string>
    </property>
   </action>
+  <action name="actionShow_group_station">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show group/station</string>
+   </property>
+  </action>
+  <action name="actionSDSquareYourSets">
+   <property name="text">
+    <string>Square Your Sets</string>
+   </property>
+  </action>
+  <action name="actionSDHeadsStart">
+   <property name="text">
+    <string>Heads Start</string>
+   </property>
+  </action>
+  <action name="actionSDHeadsSquareThru">
+   <property name="text">
+    <string>Corner Box</string>
+   </property>
+  </action>
+  <action name="actionSDHeads1p2p">
+   <property name="text">
+    <string>Partner Line</string>
+   </property>
+  </action>
+  <action name="actionShow_order_sequence">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show order/sequence</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -3231,6 +3300,11 @@
    <class>SDLineEdit</class>
    <extends>QLineEdit</extends>
    <header location="global">sdlineedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SquareDancerScene</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">squaredancerscene.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

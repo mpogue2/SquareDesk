@@ -18,7 +18,7 @@ html-tidy.target = html-tidy
 html-tidy.commands = \
    cd $$PWD/build/cmake && \
 #   rm CMakeCache.txt && \
-   /usr/local/bin/cmake ../.. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/../../../../local && \
+   /usr/local/bin/cmake ../.. -Wno-dev -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/../../../../local && \
    make && make install && \
    cd $$PWD/../local/lib && \
    rm libtidy.dylib && \
