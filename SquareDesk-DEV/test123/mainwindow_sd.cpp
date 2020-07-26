@@ -441,13 +441,13 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
     graphicsTextItemSDStatusBarText->setTransform(statusBarTransform);
 
     // groupness labels
-    graphicsTextItemSDLeftGroupText = sdscene.addText("Q", dancerLabelFont);
+    graphicsTextItemSDLeftGroupText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform2;
     statusBarTransform2.translate(-halfBackgroundSize/8, halfBackgroundSize*7/8);
 //    statusBarTransform2.scale(2,2);
     graphicsTextItemSDLeftGroupText->setTransform(statusBarTransform2);
 
-    graphicsTextItemSDTopGroupText = sdscene.addText("R", dancerLabelFont);
+    graphicsTextItemSDTopGroupText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform3;
     statusBarTransform3.translate(-halfBackgroundSize, -halfBackgroundSize/8);
 //    statusBarTransform3.scale(2,2);
