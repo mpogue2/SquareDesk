@@ -124,6 +124,7 @@ public:
     
     void setDestinationScalingFactors(double left_x, double max_x, double max_y, double lowest_factor)
     {
+//        qDebug() << "setDestScalingFactors:" << left_x << max_x << max_y << lowest_factor;
         double dancer_start_x = dest_x - left_x;
         dest_x = (dancer_start_x / lowest_factor - max_x / 2.0);
         dest_y = dest_y - max_y / 2.0;

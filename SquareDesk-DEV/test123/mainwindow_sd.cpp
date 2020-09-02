@@ -232,7 +232,13 @@ void MainWindow::decode_formation_into_dancer_destinations(
 {
     int coupleNumber = -1;
     int girl = 0;
+
     double max_y = static_cast<double>(sdformation.length());
+    if (sdformation.first() != "") {
+        max_y += 1;  // When double clicking on sequence, there will be "waves" or "8 chain" as an extra entry at beginning
+                     //   by compensating for this, the whole diagram will no longer shift downward.
+                     //   Don't ask me why it's +1 instead of -1.
+    }
 
     // Assign each dancer a location based on the picture
     for (int y = 0; y < sdformation.length(); ++y)
