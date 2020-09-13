@@ -29,6 +29,17 @@
 #include <QString>
 #include <math.h>
 
+
+#if QT_VERSION >= 0x051400
+#define KEEP_EMPTY_PARTS Qt::KeepEmptyParts
+#define SKIP_EMPTY_PARTS Qt::SkipEmptyParts
+#define ENDL Qt::endl
+#else
+#define KEEP_EMPTY_PARTS QString::KeepEmptyParts
+#define SKIP_EMPTY_PARTS QString::SkipEmptyParts
+#define ENDL endl
+#endif
+
 class RecursionGuard
 {
 private:

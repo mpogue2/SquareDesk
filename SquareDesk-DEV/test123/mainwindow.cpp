@@ -39,6 +39,7 @@
 #include <QProcess>
 #include <QProgressDialog>
 #include <QRandomGenerator>
+#include <QScreen>
 #include <QScrollBar>
 #include <QStandardPaths>
 #include <QStorageInfo>
@@ -740,19 +741,19 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // define type names (before reading in the music filenames!) ------------------
     QString value;
     value = prefsManager.GetMusicTypeSinging();
-    songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
+    songTypeNamesForSinging = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
     value = prefsManager.GetMusicTypePatter();
-    songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
+    songTypeNamesForPatter = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
     value = prefsManager.GetMusicTypeExtras();
-    songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
+    songTypeNamesForExtras = value.toLower().split(';', KEEP_EMPTY_PARTS);
 
     value = prefsManager.GetMusicTypeCalled();
-    songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
+    songTypeNamesForCalled = value.toLower().split(';', KEEP_EMPTY_PARTS);
 
     value = prefsManager.GetToggleSingingPatterSequence();
-    songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
+    songTypeToggleList = value.toLower().split(';', KEEP_EMPTY_PARTS);
 
     t.elapsed(__LINE__);
 
@@ -6027,7 +6028,7 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
         QTextStream stream(&file);
         for (int i = 0; fileLines[i]; ++i)
         {
-            stream << fileLines[i] << Qt::endl;
+            stream << fileLines[i] << ENDL;
         }
         programs << outputFile;
     }
@@ -6496,19 +6497,19 @@ void MainWindow::on_actionPreferences_triggered()
         {
             QString value;
             value = prefsManager.GetMusicTypeSinging();
-            songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
+            songTypeNamesForSinging = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
             value = prefsManager.GetMusicTypePatter();
-            songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
+            songTypeNamesForPatter = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
             value = prefsManager.GetMusicTypeExtras();
-            songTypeNamesForExtras = value.toLower().split(";", Qt::KeepEmptyParts);
+            songTypeNamesForExtras = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
             value = prefsManager.GetMusicTypeCalled();
-            songTypeNamesForCalled = value.split(";", Qt::KeepEmptyParts);
+            songTypeNamesForCalled = value.split(";", KEEP_EMPTY_PARTS);
 
             value = prefsManager.GetToggleSingingPatterSequence();
-            songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
+            songTypeToggleList = value.toLower().split(';', KEEP_EMPTY_PARTS);
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
@@ -6880,13 +6881,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
             QTextStream stream(&file);
-            stream << "#EXTM3U" << Qt::endl << Qt::endl;
+            stream << "#EXTM3U" << ENDL << ENDL;
 
             // list is auto-sorted here
             foreach (const PlaylistExportRecord &rec, exports)
             {
-                stream << "#EXTINF:-1," << Qt::endl;  // nothing after the comma = no special name
-                stream << rec.title << Qt::endl;
+                stream << "#EXTINF:-1," << ENDL;  // nothing after the comma = no special name
+                stream << rec.title << ENDL;
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -6898,13 +6899,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     else if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
-            stream << "relpath,pitch,tempo" << Qt::endl;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
+            stream << "relpath,pitch,tempo" << ENDL;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
 
             foreach (const PlaylistExportRecord &rec, exports)
             {
                 stream << "\"" << rec.title << "\"," <<
                     rec.pitch << "," <<
-                    rec.tempo << Qt::endl; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
+                    rec.tempo << ENDL; // quoted absolute path, integer pitch (no quotes), integer tempo (opt % or 0)
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
@@ -8151,8 +8152,11 @@ void MainWindow::on_newVolumeMounted() {
     if (lastKnownVolumeList.length() < newVolumeList.length()) {
         // ONE OR MORE VOLUMES APPEARED
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S NEW (if more than 1)
-//        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+#if QT_VERSION >= 0x051400
         newVolumes = QSet<QString>(newVolumeList.begin(), newVolumeList.end()).subtract(QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()));
+#else
+        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+#endif
         foreach (const QString &item, newVolumes) {
             newVolume = item;  // first item is the volume added
         }
@@ -8213,8 +8217,11 @@ void MainWindow::on_newVolumeMounted() {
     } else if (lastKnownVolumeList.length() > newVolumeList.length()) {
         // ONE OR MORE VOLUMES WENT AWAY
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
-//        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+#if QT_VERSION >= 0x051400
         goneVolumes = QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()).subtract(QSet<QString>(newVolumeList.begin(), newVolumeList.end()));
+#else
+        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+#endif
         foreach (const QString &item, goneVolumes) {
             goneVolume = item;
         }
@@ -8696,19 +8703,19 @@ void MainWindow::on_actionStartup_Wizard_triggered()
 
         QString value;
         value = prefsManager.GetMusicTypeSinging();
-        songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
+        songTypeNamesForSinging = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
         value = prefsManager.GetMusicTypePatter();
-        songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
+        songTypeNamesForPatter = value.toLower().split(";", KEEP_EMPTY_PARTS);
 
         value = prefsManager.GetMusicTypeExtras();
-        songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
+        songTypeNamesForExtras = value.toLower().split(';', KEEP_EMPTY_PARTS);
 
         value = prefsManager.GetMusicTypeCalled();
-        songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
+        songTypeNamesForCalled = value.toLower().split(';', KEEP_EMPTY_PARTS);
 
         value = prefsManager.GetToggleSingingPatterSequence();
-        songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
+        songTypeToggleList = value.toLower().split(';', KEEP_EMPTY_PARTS);
         
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
@@ -10767,7 +10774,7 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     QFile outFile(logFilePath);
     outFile.open(QIODevice::WriteOnly | QIODevice::Append);
     QTextStream ts(&outFile);
-    ts << txt << Qt::endl;
+    ts << txt << ENDL;
     outFile.close();
 
     if (type == QtFatalMsg) {

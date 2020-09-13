@@ -84,7 +84,7 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
             if (i > 0) stream << separator;
             stream << headerNames[outputFields[i]];
         }
-        stream << Qt::endl;
+        stream << ENDL;
     }
     
     QListIterator<QString> musicFilenameIter(*musicFilenames);
@@ -167,7 +167,7 @@ void exportSongList(QTextStream &stream, SongSettings &settings, QList<QString> 
                     break;
                 }
             } // end of iterating through fields
-            stream << Qt::endl;
+            stream << ENDL;
         } // end of if we could load settings for this file
     } // end of while iterating through filenames
 }
