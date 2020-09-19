@@ -1121,15 +1121,16 @@ void SDThread::run()
 #endif
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
+    char *levelString = strdup(const_cast<char *>(dance_program_name.toStdString().c_str())); // make a copy of the string
 
     char *argv[] = {const_cast<char *>("SquareDesk"),
                     const_cast<char *>("-db"), //
                     const_cast<char *>(p),
                     const_cast<char *>("-minigrand_getouts"),
                     const_cast<char *>("-bend_line_home_getouts"),
-                    const_cast<char *>(dance_program_name.toStdString().c_str()),
+//            const_cast<char *>(dance_program_name.toStdString().c_str()),
+                    levelString,
                     nullptr};
-//                    NULL};
 
     sdmain(sizeof(argv) / sizeof(*argv) - 1, argv, ggg);  // note: manually set argc to match number of argv arguments...
 }
