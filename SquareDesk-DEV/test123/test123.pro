@@ -279,13 +279,31 @@ macx {
     # ERROR: Could not resolve SDK Path for 'macosx10.14'
     # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
     # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
-    #   in Terminal and change the QMAKE_MAC_SDK variable accordingly.
+    #   in Terminal and change the QMAKE_MAC_SDK variable below accordingly.
+    #
+    # NOTE: this has to be done every time that Apple updates the SDK.
+    #
+    # If you get an error message, like "could not find Squaredesk", you'll want to run qmake again on everything.
+    # You will almost certainly have to clear the .qmake* files first, like the error message says:
+    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_0_clang_64bit-Debug; rm .qmake*
+    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_0_clang_64bit-Release; rm .qmake*
+    # Then, Build > Clean All Projects.  Then rebuild everything.
+    #
     # NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
     #   stale .qmake.stash file in the BUILD directory.  This file is supposed to be regenerated when the kit changes,
     #   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
     #   You must delete that file manually right now, when the MAC SDK version changes.
     #   See: https://bugreports.qt.io/browse/QTBUG-43015
-    QMAKE_MAC_SDK = macosx10.15
+    #
+    # So far, it looks like we can ignore this warning:
+    #    Project WARNING: Qt has only been tested with version 10.15 of the platform SDK, you're using 11.1.
+    #    Project WARNING: This is an unsupported configuration. You may experience build issues, and by using
+    #    Project WARNING: the 11.1 SDK you are opting in to new features that Qt has not been prepared for.
+    #    Project WARNING: Please downgrade the SDK you use to build your app to version 10.15, or configure
+    #    Project WARNING: with CONFIG+=sdk_no_version_check when running qmake to silence this warning.
+
+#    QMAKE_MAC_SDK = macosx10.15
+    QMAKE_MAC_SDK = macosx11.1
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
