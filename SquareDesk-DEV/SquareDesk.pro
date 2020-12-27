@@ -15,6 +15,8 @@ SUBDIRS += quazip mp3gain
 #test123.depends = sd taglib html-tidy sdlib
 test123.depends = taglib html-tidy sdlib
 
+# TEMPORARILY TURN OFF THE VERSION CHECK FOR MACOS 11
+CONFIG+=sdk_no_version_check
 }
 
 # WIN32: where to find the sub projects -----------------

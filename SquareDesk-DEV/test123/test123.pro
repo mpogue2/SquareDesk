@@ -266,7 +266,9 @@ macx {
     INCLUDEPATH += $$PWD/../taglib/binaries/include
 
     # ZLIB ------------------------------------------
-    LIBS += /usr/lib/libz.dylib
+    #  do "brew install zlib"
+#    LIBS += /usr/lib/libz.dylib
+    LIBS += /usr/local/opt/zlib/lib/libz.dylib
 
     # SDLIB ------------------------------------------
     LIBS += -L$$OUT_PWD/../sdlib -lsdlib
@@ -301,6 +303,8 @@ macx {
     #    Project WARNING: the 11.1 SDK you are opting in to new features that Qt has not been prepared for.
     #    Project WARNING: Please downgrade the SDK you use to build your app to version 10.15, or configure
     #    Project WARNING: with CONFIG+=sdk_no_version_check when running qmake to silence this warning.
+
+    # NOTE: TEMPORARY TURNING OFF THE VERSION CHECK
 
 #    QMAKE_MAC_SDK = macosx10.15
     QMAKE_MAC_SDK = macosx11.1

@@ -32,7 +32,9 @@ CONFIG(staticlib): DEFINES += QUAZIP_STATIC
 
 
 macx {
-    LIBS += /usr/lib/libz.dylib
+# Do "brew install zlib" beforehand!  libz is no longer in /usr/lib
+#    LIBS += /usr/lib/libz.dylib
+    LIBS += /usr/local/opt/zlib/lib/libz.dylib
 }
 
 # Input

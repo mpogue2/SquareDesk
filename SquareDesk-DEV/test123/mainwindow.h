@@ -55,7 +55,7 @@
 #include <QVariant>
 #include <QShortcut>
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-#include <QtWebEngineWidgets>
+#include <QtWebEngineWidgets/QtWebEngineWidgets>
 #else
 #include <QtWebKitWidgets/QWebView>
 #endif
