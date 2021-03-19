@@ -44,4 +44,14 @@
 #define COUPLECOLOR_BLUE (QColor(0,199,250))
 #define COUPLECOLOR_YELLOW (QColor(255,255,180))
 
+// Color-blind-friendly palette (with gray) from: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)
+#define RANDOMCOLOR1 (QColor(153,153,153))
+#define RANDOMCOLOR2 (QColor(230,159,0))
+#define RANDOMCOLOR3 (QColor(86,180,233))
+#define RANDOMCOLOR4 (QColor(0,158,115))
+#define RANDOMCOLOR5 (QColor(240,228,66))
+#define RANDOMCOLOR6 (QColor(9,114,178))
+#define RANDOMCOLOR7 (QColor(213,94,0))
+#define RANDOMCOLOR8 (QColor(204,121,167))
+
 #endif // COMMON_H

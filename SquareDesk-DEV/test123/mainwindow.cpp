@@ -1004,6 +1004,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    sdActionGroup1->addAction(actions[NORMALNUM+1]);    // Color only
 //    sdActionGroup1->addAction(actions[NORMALNUM+2]);    // Mental image
 //    sdActionGroup1->addAction(actions[NORMALNUM+3]);    // Sight
+//    sdActionGroup1->addAction(actions[NORMALNUM+4]);    // Random
 
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
 //    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
@@ -1012,7 +1013,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // let's look through the items in the SD menu
     QStringList ag1; // , ag2;
-    ag1 << "Normal" << "Color only" << "Mental image" << "Sight";
+    ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Random Color only"; // OK to have one be prefix of another
 //    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
 
     foreach (QAction *action, ui->menuSequence->actions()) {

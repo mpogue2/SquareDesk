@@ -37,6 +37,7 @@
 #include "danceprograms.h"
 #include "../sdlib/database.h"
 #include "sdformationutils.h"
+#include <algorithm>  // for random_shuffle
 
 //#define NO_TIMING_INFO 1
 
@@ -1941,7 +1942,7 @@ void SDDancer::setColor(const QColor &color)
 
 static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &colorScheme)
 {
-    bool showDancerLabels = (colorScheme == "Normal");
+    bool showDancerLabels = (colorScheme == "Normal") || (colorScheme == "Random");
     for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
     {
         sdpeople[dancerNum].label->setVisible(showDancerLabels);
@@ -1965,7 +1966,7 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
         sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE4 * 2 + 0].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE4 * 2 + 1].setColor(GREYCOUPLECOLOR);
-    } else {
+    } else if (colorScheme == "Sight") {
         // Sight
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
         sdpeople[COUPLE1 * 2 + 1].setColor(COUPLE1COLOR);
@@ -1975,6 +1976,22 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
         sdpeople[COUPLE3 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);
         sdpeople[COUPLE4 * 2 + 1].setColor(COUPLE4COLOR);
+    } else {
+        // Random, or Random Color only (every time we get here, we get new colors!
+        QColor randomColors[8] = {RANDOMCOLOR1, RANDOMCOLOR2, RANDOMCOLOR3, RANDOMCOLOR4,
+                   RANDOMCOLOR5, RANDOMCOLOR6, RANDOMCOLOR7, RANDOMCOLOR8};
+        int indexes[8] ={0,1,2,3,4,5,6,7};
+
+        std::random_shuffle(std::begin(indexes), std::end(indexes)); // randomize colors
+
+        sdpeople[COUPLE1 * 2 + 0].setColor(randomColors[indexes[0]]);
+        sdpeople[COUPLE1 * 2 + 1].setColor(randomColors[indexes[1]]);
+        sdpeople[COUPLE2 * 2 + 0].setColor(randomColors[indexes[2]]);
+        sdpeople[COUPLE2 * 2 + 1].setColor(randomColors[indexes[3]]);
+        sdpeople[COUPLE3 * 2 + 0].setColor(randomColors[indexes[4]]);
+        sdpeople[COUPLE3 * 2 + 1].setColor(randomColors[indexes[5]]);
+        sdpeople[COUPLE4 * 2 + 0].setColor(randomColors[indexes[6]]);
+        sdpeople[COUPLE4 * 2 + 1].setColor(randomColors[indexes[7]]);
     }
 }
 

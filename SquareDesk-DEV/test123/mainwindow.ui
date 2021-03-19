@@ -1841,7 +1841,7 @@
      <x>0</x>
      <y>0</y>
      <width>1008</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1987,6 +1987,8 @@
     <addaction name="actionColor_only"/>
     <addaction name="actionMental_image"/>
     <addaction name="actionSight"/>
+    <addaction name="actionRandom"/>
+    <addaction name="actionRandom_Color_only"/>
     <addaction name="separator"/>
     <addaction name="actionFormation_Thumbnails"/>
     <addaction name="separator"/>
@@ -3271,6 +3273,22 @@
    </property>
    <property name="text">
     <string>Show order/sequence</string>
+   </property>
+  </action>
+  <action name="actionRandom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Random</string>
+   </property>
+  </action>
+  <action name="actionRandom_Color_only">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Random Color only</string>
    </property>
   </action>
  </widget>
