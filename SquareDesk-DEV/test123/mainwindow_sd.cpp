@@ -88,6 +88,22 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
                 dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
         :   dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
 
+// HEXAGON style:
+//    QGraphicsPolygonItem *hex = new QGraphicsPolygonItem();
+//    QPolygonF hexagon;
+//    qreal side = rectSize/2;
+//    qreal dx = qSqrt(3)/2 * side;
+//    hexagon
+//        << QPointF(dx, -side/2)
+//        << QPointF(0, -side)
+//        << QPointF(-dx, -side/2)
+//        << QPointF(-dx, side/2)
+//        << QPointF(0, side)
+//        << QPointF(dx, side/2);
+////    hex->setPolygon(hexagon);
+////    hex->setPen(pen);
+//    QGraphicsItem *mainItem = dynamic_cast<QGraphicsItem*>(sdscene.addPolygon(hexagon, pen, coupleColorBrushes[1]));
+
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
 
     QGraphicsTextItem *label = sdscene.addText(QString("%1").arg(number + 1),
@@ -1934,8 +1950,10 @@ void SDDancer::setColor(const QColor &color)
 {
     QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(mainItem);
     QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(mainItem);
+//    QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(mainItem);  // HEXAGON
     if (rectItem) rectItem->setBrush(QBrush(color));
     if (ellipseItem) ellipseItem->setBrush(QBrush(color));
+//    if (polygonItem) polygonItem->setBrush(QBrush(color));   // HEXAGON
     directionRectItem->setBrush(QBrush(color));
 }
 

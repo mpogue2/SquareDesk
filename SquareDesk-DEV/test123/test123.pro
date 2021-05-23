@@ -306,8 +306,15 @@ macx {
 
     # NOTE: TEMPORARY TURNING OFF THE VERSION CHECK
 
-#    QMAKE_MAC_SDK = macosx10.15
-    QMAKE_MAC_SDK = macosx11.1
+# The following SDK must exist in /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
+# If it does not exist, change the following to match the SDK you want to compile with.
+#   QMAKE_MAC_SDK = macosx10.15
+#   QMAKE_MAC_SDK = macosx11.1
+QMAKE_MAC_SDK = macosx11.3
+
+# If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
+# the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
+# "If using Qt Creator, you have to uncheck the Add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH option from the Run section in the Projects tab:"
 
     # LYRICS AND PATTER TEMPLATES --------------------------------------------
     # Copy the lyrics.template.html and patter.template.html files to the right place
