@@ -993,58 +993,59 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     sdActionGroup1 = new QActionGroup(this);  // checker styles
     sdActionGroup1->setExclusive(true);
-
-//    sdActionGroup2 = new QActionGroup(this);  // SD GUI levels
-//    sdActionGroup2->setExclusive(true);
-
-//    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
-//    //   Is there a better way to do this?
-//#define NORMALNUM (3)
-//    sdActionGroup1->addAction(actions[NORMALNUM]);      // NORMAL
-//    sdActionGroup1->addAction(actions[NORMALNUM+1]);    // Color only
-//    sdActionGroup1->addAction(actions[NORMALNUM+2]);    // Mental image
-//    sdActionGroup1->addAction(actions[NORMALNUM+3]);    // Sight
-//    sdActionGroup1->addAction(actions[NORMALNUM+4]);    // Random
-
     connect(sdActionGroup1, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggered(QAction*)));
-//    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
+
+    sdActionGroupColors = new QActionGroup(this);  // checker styles: colors
+    sdActionGroupColors->setExclusive(true);
+    connect(sdActionGroupColors, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredColors(QAction*)));
+
+    sdActionGroupNumbers = new QActionGroup(this);  // checker styles: numbers
+    sdActionGroupNumbers->setExclusive(true);
+    connect(sdActionGroupNumbers, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredNumbers(QAction*)));
+
+    sdActionGroupGenders = new QActionGroup(this);  // checker styles: genders
+    sdActionGroupGenders->setExclusive(true);
+    connect(sdActionGroupGenders, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredGenders(QAction*)));
 
     t.elapsed(__LINE__);
 
-    // let's look through the items in the SD menu
+    // let's look through the items in the SD menu (this method is less fragile now)
     QStringList ag1; // , ag2;
     ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Random Color only"; // OK to have one be prefix of another
-//    ag2 << "Mainstream" << "Plus" << "A1" << "A2" << "C1" << "C2" << "C3a" << "C3" << "C3x" << "C4a" << "C4" << "C4x";
 
+    // ITERATE THRU MENU SETTING UP EXCLUSIVITY -------
+    QString submenuName;
     foreach (QAction *action, ui->menuSequence->actions()) {
-        if (action->isSeparator()) {
+        if (action->isSeparator()) {  // top level separator
 //            qDebug() << "separator";
-        } else if (action->menu()) {
-////            qDebug() << "item with submenu: " << action->text();
-//            // iterating just one level down
-//            foreach (QAction *action2, action->menu()->actions()) {
-//                if (action2->isSeparator()) {
-////                    qDebug() << "     separator";
-//                } else if (action2->menu()) {
-////                    qDebug() << "     item with submenu: " << action2->text();
-//                } else {
-////                    qDebug() << "     item: " << action2->text();
-//                    if (ag2.contains(action2->text()) ) {
-//                        sdActionGroup2->addAction(action2); // ag2 are all mutually exclusive, and are all one level down
-//                        action2->setCheckable(true); // all these items are checkable
-//                        if (action2->text() == "Plus") {
-//                            action2->setChecked(true);   // initially only PLUS is checked
-//                        }
-//                    }
-//                }
-//            }
+        } else if (action->menu()) {  // top level menu
+//            qDebug() << "item with submenu: " << action->text();
+            submenuName = action->text();  // remember which submenu we're in
+            // iterating just one level down
+            foreach (QAction *action2, action->menu()->actions()) {
+                if (action2->isSeparator()) {  // one level down separator
+//                    qDebug() << "     separator";
+                } else if (action2->menu()) {  // one level down sub-menu
+//                    qDebug() << "     item with second-level submenu: " << action2->text();
+                } else {
+//                    qDebug() << "     item: " << action2->text() << "in submenu: " << submenuName;  // one level down item
+                    if (submenuName == "Colors") {
+                        sdActionGroupColors->addAction(action2);
+                    } else if (submenuName == "Numbers") {
+                        sdActionGroupNumbers->addAction(action2);
+                    } else if (submenuName == "Genders") {
+                        sdActionGroupGenders->addAction(action2);
+                    }
+                }
+            }
         } else {
-//            qDebug() << "item: " << action->text();
+//            qDebug() << "item: " << action->text(); // top level item
             if (ag1.contains(action->text()) ) {
-                sdActionGroup1->addAction(action); // ag1 are all mutually exclusive, and are all at top level
+                sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
             }
         }
     }
+    // END ITERATION -------
 
     // -----------------------
 //    // Make SD menu items for GUI level mutually exclusive
@@ -8745,6 +8746,25 @@ void MainWindow::sdActionTriggered(QAction * action) {
     action->setChecked(true);  // check the new one
 //    renderArea->setCoupleColoringScheme(action->text());  // removed: causes crash on Win32, and not needed
     setSDCoupleColoringScheme(action->text());
+}
+
+// SD Colors, Numbers, and Genders ------------
+void MainWindow::sdActionTriggeredColors(QAction * action) {
+    qDebug() << "***** sdActionTriggeredColors()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    setSDCoupleColoringScheme(action->text());
+}
+
+void MainWindow::sdActionTriggeredNumbers(QAction * action) {
+    qDebug() << "***** sdActionTriggeredNumbers()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    setSDCoupleNumberingScheme(action->text());
+}
+
+void MainWindow::sdActionTriggeredGenders(QAction * action) {
+    qDebug() << "***** sdActionTriggeredGenders()" << action << action->isChecked();
+    action->setChecked(true);  // check the new one
+    setSDCoupleGenderingScheme(action->text());
 }
 
 void MainWindow::sdAction2Triggered(QAction * action) {

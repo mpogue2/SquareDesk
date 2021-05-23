@@ -99,7 +99,11 @@ public:
 
     
     QGraphicsItemGroup *graphics;
-    QGraphicsItem *mainItem;
+//    QGraphicsItem *mainItem;
+    QGraphicsItem *boyItem;
+    QGraphicsItem *girlItem;
+    QGraphicsItem *hexItem;
+
     QGraphicsRectItem *directionRectItem;
     QGraphicsTextItem *label;
 
@@ -209,6 +213,10 @@ public:
     QActionGroup *sdActionGroup2;
     QActionGroup *sdActionGroupDanceProgram;
 
+    QActionGroup *sdActionGroupColors;
+    QActionGroup *sdActionGroupNumbers;
+    QActionGroup *sdActionGroupGenders;
+
     QActionGroup *flashCallTimingActionGroup;
 
     void checkLockFile();
@@ -256,6 +264,10 @@ protected:
 private slots:
     void sdActionTriggered(QAction * action);  // checker style
     void sdAction2Triggered(QAction * action); // SD level
+
+    void sdActionTriggeredColors(QAction * action);  // checker style: Colors
+    void sdActionTriggeredNumbers(QAction * action);  // checker style: Numbers
+    void sdActionTriggeredGenders(QAction * action);  // checker style: Genders
 
     void on_stopButton_clicked();
     void on_playButton_clicked();
@@ -925,7 +937,11 @@ private: // SD
     Order boyOrder, girlOrder;      // order: 0 = in order, 1 = out of order, 2 = unknown order
 
     QAction **danceProgramActions;
+
     void setSDCoupleColoringScheme(const QString &scheme);
+    void setSDCoupleNumberingScheme(const QString &scheme);
+    void setSDCoupleGenderingScheme(const QString &scheme);
+
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
     void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
     void set_current_sequence_icons_visible(bool visible);

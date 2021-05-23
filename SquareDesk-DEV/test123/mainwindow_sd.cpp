@@ -84,25 +84,33 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     static QRectF rect(-rectSize/2, -rectSize/2, rectSize, rectSize);
     static QRectF directionRect(-2,-rectSize / 2 - 4,4,4);
 
-    QGraphicsItem *mainItem = boy ?
-                dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
-        :   dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
+//    QGraphicsItem *mainItem = boy ?
+//                dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
+//        :   dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
+
+    // Now we have 2 items, and we only show one of them, depending on gender.  This allows for dynamic changing of gender via menu.
+    QGraphicsItem *boyItem = dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]));
+    QGraphicsItem *girlItem = dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
 
 // HEXAGON style:
-//    QGraphicsPolygonItem *hex = new QGraphicsPolygonItem();
-//    QPolygonF hexagon;
-//    qreal side = rectSize/2;
-//    qreal dx = qSqrt(3)/2 * side;
-//    hexagon
-//        << QPointF(dx, -side/2)
-//        << QPointF(0, -side)
-//        << QPointF(-dx, -side/2)
-//        << QPointF(-dx, side/2)
-//        << QPointF(0, side)
-//        << QPointF(dx, side/2);
-////    hex->setPolygon(hexagon);
-////    hex->setPen(pen);
-//    QGraphicsItem *mainItem = dynamic_cast<QGraphicsItem*>(sdscene.addPolygon(hexagon, pen, coupleColorBrushes[1]));
+    QGraphicsPolygonItem *hex = new QGraphicsPolygonItem();
+    QPolygonF hexagon;
+    qreal side = rectSize/2;
+    qreal dx = qSqrt(3)/2 * side;
+    hexagon
+        << QPointF(dx, -side/2)
+        << QPointF(0, -side)
+        << QPointF(-dx, -side/2)
+        << QPointF(-dx, side/2)
+        << QPointF(0, side)
+        << QPointF(dx, side/2);
+    hex->setPolygon(hexagon);
+    hex->setPen(pen);
+    QGraphicsItem *hexItem = dynamic_cast<QGraphicsItem*>(sdscene.addPolygon(hexagon, pen, coupleColorBrushes[number]));
+
+    boyItem->setVisible(boy);
+    girlItem->setVisible(!boy);
+    hexItem->setVisible(false);  // always invisible to start
 
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
 
@@ -118,12 +126,20 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     label->setTransform(labelTransform);
 
     QList<QGraphicsItem*> items;
-    items.append(mainItem);
+//    items.append(mainItem);
+    items.append(boyItem);
+    items.append(girlItem);
+    items.append(hexItem);
+
     items.append(directionRectItem);
     items.append(label);
     QGraphicsItemGroup *group = sdscene.createItemGroup(items);
     dancer.graphics = group;
-    dancer.mainItem = mainItem;
+//    dancer.mainItem = mainItem;
+    dancer.boyItem = boyItem;
+    dancer.girlItem = girlItem;
+    dancer.hexItem = hexItem;
+
     dancer.directionRectItem = directionRectItem;
     dancer.label = label;
 
@@ -1948,24 +1964,34 @@ void MainWindow::on_actionFormation_Thumbnails_triggered()
 
 void SDDancer::setColor(const QColor &color)
 {
-    QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(mainItem);
-    QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(mainItem);
-//    QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(mainItem);  // HEXAGON
-    if (rectItem) rectItem->setBrush(QBrush(color));
-    if (ellipseItem) ellipseItem->setBrush(QBrush(color));
-//    if (polygonItem) polygonItem->setBrush(QBrush(color));   // HEXAGON
+//    QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(mainItem);
+//    QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(mainItem);
+////    QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(mainItem);  // HEXAGON
+//    if (rectItem) rectItem->setBrush(QBrush(color));
+//    if (ellipseItem) ellipseItem->setBrush(QBrush(color));
+////    if (polygonItem) polygonItem->setBrush(QBrush(color));   // HEXAGON
+
+    QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(boyItem);
+    rectItem->setBrush(QBrush(color));
+
+    QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(girlItem);
+    ellipseItem->setBrush(QBrush(color));
+
+    QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(hexItem);
+    polygonItem->setBrush(QBrush(color));
+
     directionRectItem->setBrush(QBrush(color));
 }
 
-
 static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &colorScheme)
 {
-    bool showDancerLabels = (colorScheme == "Normal") || (colorScheme == "Random");
-    for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
-    {
-        sdpeople[dancerNum].label->setVisible(showDancerLabels);
-    }
+//    bool showDancerLabels = (colorScheme == "Normal") || (colorScheme == "Random");
+//    for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
+//    {
+//        sdpeople[dancerNum].label->setVisible(showDancerLabels);
+//    }
 
+    // New colors are: "Normal", "Mental Image", "Sight", "Randomize"
     if (colorScheme == "Normal" || colorScheme == "Color only") {
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
         sdpeople[COUPLE1 * 2 + 1].setColor(COUPLE1COLOR);
@@ -1975,7 +2001,7 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
         sdpeople[COUPLE3 * 2 + 1].setColor(COUPLE3COLOR);
         sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);
         sdpeople[COUPLE4 * 2 + 1].setColor(COUPLE4COLOR);
-    } else if (colorScheme == "Mental image") {
+    } else if (colorScheme == "Mental Image") {
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
         sdpeople[COUPLE1 * 2 + 1].setColor(GREYCOUPLECOLOR);
         sdpeople[COUPLE2 * 2 + 0].setColor(GREYCOUPLECOLOR);
@@ -1995,6 +2021,7 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
         sdpeople[COUPLE4 * 2 + 0].setColor(COUPLE4COLOR);
         sdpeople[COUPLE4 * 2 + 1].setColor(COUPLE4COLOR);
     } else {
+        // Randomize
         // Random, or Random Color only (every time we get here, we get new colors!
         QColor randomColors[8] = {RANDOMCOLOR1, RANDOMCOLOR2, RANDOMCOLOR3, RANDOMCOLOR4,
                    RANDOMCOLOR5, RANDOMCOLOR6, RANDOMCOLOR7, RANDOMCOLOR8};
@@ -2013,6 +2040,38 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
     }
 }
 
+static void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme)
+{
+    // New numbers are: "Normal", "Invisible"
+    bool showDancerLabels = (numberScheme == "Normal");
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
+    {
+        sdpeople[dancerNum].label->setVisible(showDancerLabels);
+    }
+}
+
+static void setPeopleGenderingScheme(QList<SDDancer> &sdpeople, const QString &genderScheme)
+{
+    // New genders are: "Normal", "Arky (reversed)", "Randomize", "None (hex)"
+    for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
+    {
+        if (genderScheme == "Normal") {
+            sdpeople[dancerNum].boyItem->setVisible(dancerNum % 2 == 0);   // even dancer nums are boys
+            sdpeople[dancerNum].girlItem->setVisible(dancerNum % 2 == 1);  // odd dancer nums are girls
+            sdpeople[dancerNum].hexItem->setVisible(false);
+        } else if (genderScheme == "Arky (reversed)") {
+            sdpeople[dancerNum].boyItem->setVisible(dancerNum % 2 == 1);   // even dancer nums are girls
+            sdpeople[dancerNum].girlItem->setVisible(dancerNum % 2 == 0);  // odd dancer nums are girls
+            sdpeople[dancerNum].hexItem->setVisible(false);
+        } else if (genderScheme == "Randomize") {
+            qDebug() << "TODO: Random genders";
+        } else if (genderScheme == "None (hex)") {
+            sdpeople[dancerNum].boyItem->setVisible(false);   // even dancer nums are girls
+            sdpeople[dancerNum].girlItem->setVisible(false);  // odd dancer nums are girls
+            sdpeople[dancerNum].hexItem->setVisible(true);    // show genderless checkers
+        }
+    }
+}
 
 void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 {
@@ -2020,6 +2079,19 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
     setPeopleColoringScheme(sd_fixed_people, colorScheme);
 }
 
+void MainWindow::setSDCoupleNumberingScheme(const QString &numberScheme)
+{
+    qDebug() << "setSDCoupleNumberingScheme: " << numberScheme;
+    setPeopleNumberingScheme(sd_animation_people, numberScheme);
+    setPeopleNumberingScheme(sd_fixed_people, numberScheme);
+}
+
+void MainWindow::setSDCoupleGenderingScheme(const QString &genderScheme)
+{
+    qDebug() << "setSDCoupleGenderingScheme: " << genderScheme;
+    setPeopleGenderingScheme(sd_animation_people, genderScheme);
+    setPeopleGenderingScheme(sd_fixed_people, genderScheme);
+}
 
 void MainWindow::select_all_sd_current_sequence()
 {

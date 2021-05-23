@@ -1977,11 +1977,40 @@
      <addaction name="actionSDDanceProgramC4"/>
      <addaction name="actionSDDanceProgramC4x"/>
     </widget>
+    <widget class="QMenu" name="menuColors">
+     <property name="title">
+      <string>Colors</string>
+     </property>
+     <addaction name="actionNormal_2"/>
+     <addaction name="actionMental_Image"/>
+     <addaction name="actionSight_2"/>
+     <addaction name="actionRandomize"/>
+    </widget>
+    <widget class="QMenu" name="menuNumbers">
+     <property name="title">
+      <string>Numbers</string>
+     </property>
+     <addaction name="actionNormal_3"/>
+     <addaction name="actionInvisible"/>
+    </widget>
+    <widget class="QMenu" name="menuGenders">
+     <property name="title">
+      <string>Genders</string>
+     </property>
+     <addaction name="actionNormal_4"/>
+     <addaction name="actionArky_reversed"/>
+     <addaction name="actionRandomize_2"/>
+     <addaction name="actionNone_hex"/>
+    </widget>
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
     <addaction name="separator"/>
     <addaction name="actionEnable_voice_input"/>
+    <addaction name="separator"/>
+    <addaction name="menuColors"/>
+    <addaction name="menuNumbers"/>
+    <addaction name="menuGenders"/>
     <addaction name="separator"/>
     <addaction name="actionNormal"/>
     <addaction name="actionColor_only"/>
@@ -2593,6 +2622,9 @@
    <property name="text">
     <string>Normal</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionMental_image">
    <property name="checkable">
@@ -2600,6 +2632,9 @@
    </property>
    <property name="text">
     <string>Mental image</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionSight">
@@ -2609,6 +2644,9 @@
    <property name="text">
     <string>Sight</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionColor_only">
    <property name="checkable">
@@ -2616,6 +2654,9 @@
    </property>
    <property name="text">
     <string>Color only</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="action_1">
@@ -3282,6 +3323,9 @@
    <property name="text">
     <string>Random</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionRandom_Color_only">
    <property name="checkable">
@@ -3289,6 +3333,101 @@
    </property>
    <property name="text">
     <string>Random Color only</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionNormal_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normal</string>
+   </property>
+  </action>
+  <action name="actionMental_Image">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Mental Image</string>
+   </property>
+  </action>
+  <action name="actionSight_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sight</string>
+   </property>
+  </action>
+  <action name="actionRandomize">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Randomize</string>
+   </property>
+  </action>
+  <action name="actionNormal_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normal</string>
+   </property>
+  </action>
+  <action name="actionInvisible">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Invisible</string>
+   </property>
+  </action>
+  <action name="actionNormal_4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normal</string>
+   </property>
+  </action>
+  <action name="actionArky_reversed">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Arky (reversed)</string>
+   </property>
+  </action>
+  <action name="actionRandomize_2">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Randomize</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionNone_hex">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None (hex)</string>
    </property>
   </action>
  </widget>
