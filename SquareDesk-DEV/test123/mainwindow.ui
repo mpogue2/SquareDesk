@@ -1999,7 +1999,7 @@
      </property>
      <addaction name="actionNormal_4"/>
      <addaction name="actionArky_reversed"/>
-     <addaction name="actionRandomize_2"/>
+     <addaction name="actionRandomize_3"/>
      <addaction name="actionNone_hex"/>
     </widget>
     <addaction name="menuDance_Program"/>
@@ -3411,23 +3411,20 @@
     <string>Arky (reversed)</string>
    </property>
   </action>
-  <action name="actionRandomize_2">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Randomize</string>
-   </property>
-   <property name="visible">
-    <bool>false</bool>
-   </property>
-  </action>
   <action name="actionNone_hex">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
     <string>None (hex)</string>
+   </property>
+  </action>
+  <action name="actionRandomize_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Randomize</string>
    </property>
   </action>
  </widget>

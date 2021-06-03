@@ -2064,7 +2064,10 @@ static void setPeopleGenderingScheme(QList<SDDancer> &sdpeople, const QString &g
             sdpeople[dancerNum].girlItem->setVisible(dancerNum % 2 == 0);  // odd dancer nums are girls
             sdpeople[dancerNum].hexItem->setVisible(false);
         } else if (genderScheme == "Randomize") {
-            qDebug() << "TODO: Random genders";
+            bool randBoyGirl = rand() > (RAND_MAX / 2); // 50% boy, 50% girl; persistent until next Randomize
+            sdpeople[dancerNum].boyItem->setVisible(randBoyGirl);
+            sdpeople[dancerNum].girlItem->setVisible(!randBoyGirl);
+            sdpeople[dancerNum].hexItem->setVisible(false); // not doing genderless dancers yet
         } else if (genderScheme == "None (hex)") {
             sdpeople[dancerNum].boyItem->setVisible(false);   // even dancer nums are girls
             sdpeople[dancerNum].girlItem->setVisible(false);  // odd dancer nums are girls
@@ -2081,14 +2084,14 @@ void MainWindow::setSDCoupleColoringScheme(const QString &colorScheme)
 
 void MainWindow::setSDCoupleNumberingScheme(const QString &numberScheme)
 {
-    qDebug() << "setSDCoupleNumberingScheme: " << numberScheme;
+//    qDebug() << "setSDCoupleNumberingScheme: " << numberScheme;
     setPeopleNumberingScheme(sd_animation_people, numberScheme);
     setPeopleNumberingScheme(sd_fixed_people, numberScheme);
 }
 
 void MainWindow::setSDCoupleGenderingScheme(const QString &genderScheme)
 {
-    qDebug() << "setSDCoupleGenderingScheme: " << genderScheme;
+//    qDebug() << "setSDCoupleGenderingScheme: " << genderScheme;
     setPeopleGenderingScheme(sd_animation_people, genderScheme);
     setPeopleGenderingScheme(sd_fixed_people, genderScheme);
 }

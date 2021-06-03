@@ -8750,19 +8750,19 @@ void MainWindow::sdActionTriggered(QAction * action) {
 
 // SD Colors, Numbers, and Genders ------------
 void MainWindow::sdActionTriggeredColors(QAction * action) {
-    qDebug() << "***** sdActionTriggeredColors()" << action << action->isChecked();
+//    qDebug() << "***** sdActionTriggeredColors()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     setSDCoupleColoringScheme(action->text());
 }
 
 void MainWindow::sdActionTriggeredNumbers(QAction * action) {
-    qDebug() << "***** sdActionTriggeredNumbers()" << action << action->isChecked();
+//    qDebug() << "***** sdActionTriggeredNumbers()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     setSDCoupleNumberingScheme(action->text());
 }
 
 void MainWindow::sdActionTriggeredGenders(QAction * action) {
-    qDebug() << "***** sdActionTriggeredGenders()" << action << action->isChecked();
+//    qDebug() << "***** sdActionTriggeredGenders()" << action << action->isChecked();
     action->setChecked(true);  // check the new one
     setSDCoupleGenderingScheme(action->text());
 }
