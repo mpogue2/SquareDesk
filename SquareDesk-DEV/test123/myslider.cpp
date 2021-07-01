@@ -35,6 +35,12 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
     SetDefaultIntroOutroPositions(false, 0.0, 0.0, 0.0, 0.0);  // bare minimum init
     origin = 0;
 
+//    AddMarker(0.0);  // DEBUG
+//    AddMarker(10.0);
+//    AddMarker(20.0);
+//    DeleteMarker(10.0);
+//    qDebug() << GetMarkers();  // DEBUG
+
     // install the wheel/scroll eater for ALL MySlider's
     this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
 }
@@ -148,6 +154,27 @@ void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't w
     valueChanged(origin);
 }
 
+// MARKERS ==================
+void MySlider::AddMarker(double markerLoc) {
+    markers.insert(markerLoc);
+    drawMarkers = true;
+}
+
+void MySlider::DeleteMarker(double markerLoc) {
+    markers.remove(markerLoc);
+    drawMarkers = markers.size() > 0;  // only draw markers, if there are some
+}
+
+QSet<double> MySlider::GetMarkers() {
+    return(markers);
+}
+
+void MySlider::ClearMarkers() {
+    markers.clear();  // clears out all markers
+}
+
+
+// PAINT IT ====================
 // http://stackoverflow.com/questions/3894737/qt4-how-to-draw-inside-a-widget
 void MySlider::paintEvent(QPaintEvent *e)
 {
@@ -159,38 +186,14 @@ void MySlider::paintEvent(QPaintEvent *e)
     int height = this->height();
     int width = this->width() - 2 * offset;
 
-    if (drawLoopPoints) {
-        QPen pen;  //   = (QApplication::palette().dark().color());
-        pen.setColor(Qt::blue);
-        painter.setPen(pen);
-
-        // double to = 0.1f;
-        double to = introPosition;
-        QLineF line4(to * width + offset, 3,          to * width + offset, height-4);
-        QLineF line5(to * width + offset, 3,          to * width + offset + 5, 3);
-        QLineF line6(to * width + offset, height-4,   to * width + offset + 5, height-4);
-        painter.drawLine(line4);
-        painter.drawLine(line5);
-        painter.drawLine(line6);
-
-        // double from = 0.9f;
-        double from = outroPosition;
-//        qDebug() << "repaint: " << from;
-        QLineF line1(from * width + offset, 3,          from * width + offset, height-4);
-        QLineF line2(from * width + offset, 3,          from * width + offset - 5, 3);
-        QLineF line3(from * width + offset, height-4,   from * width + offset - 5, height-4);
-        painter.drawLine(line1);
-        painter.drawLine(line2);
-        painter.drawLine(line3);
-    }
-
+    // SINGING CALL SECTION COLORS =====================
     if (singingCall) {
         QPen pen;
-        pen.setWidth(7);
+        pen.setWidth(6);
 #if defined(Q_OS_WIN)
         pen.setWidth(10);
 #endif
-        int middle = height/2 + 3;
+        int middle = height/2 - 2;
 #if defined(Q_OS_WIN)
         // Windows sliders are drawn differently, so colors are just
         //   under the horizontal bar on Windows (only).  Otherwise
@@ -259,6 +262,62 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.drawEllipse(rectangle);
 #endif
     }
+
+    // MARKERS ----------------
+    if (drawMarkers) {
+        // if there are any markers
+        QPen pen;  //   = (QApplication::palette().dark().color());
+        pen.setColor(Qt::black);
+        painter.setPen(pen);
+        painter.setRenderHint( QPainter::Antialiasing );  // be nice now!
+
+        foreach (const double &markerPos, markers) {
+            qDebug() << "Drawing: " << markerPos;
+            int triangleWidth = 3;
+//            QLineF lineM1(markerPos * width + 6, 0, markerPos * width + 6 - triangleWidth, height-16); // left
+//            painter.drawLine(lineM1);
+//            QLineF lineM2(markerPos * width + 6, 0, markerPos * width + 6 + triangleWidth, height-16); // right
+//            painter.drawLine(lineM2);
+//            QLineF lineM3(markerPos * width + 6 - triangleWidth, height-16, markerPos * width + 6 + triangleWidth, height-16); // base
+//            painter.drawLine(lineM3);
+
+            QPolygon markerShape;
+            markerShape << QPoint(markerPos * width + 6, 0)
+                        << QPoint(markerPos * width + 6 - triangleWidth, height-16)
+                        << QPoint(markerPos * width + 6 + triangleWidth, height-16)
+                        << QPoint(markerPos * width + 6, 0);
+            painter.setBrush(QBrush(Qt::red));
+            painter.drawPolygon(markerShape);
+        }
+    }
+
+    // LOOP POINTS ----------------
+    if (drawLoopPoints) {
+        QPen pen;  //   = (QApplication::palette().dark().color());
+        pen.setColor(Qt::blue);
+        painter.setPen(pen);
+
+        // double to = 0.1f;
+        double to = introPosition;
+        QLineF line4(to * width + offset, 1,          to * width + offset, height-5);
+        QLineF line5(to * width + offset, 1,          to * width + offset + 5, 1);
+        QLineF line6(to * width + offset, height-5,   to * width + offset + 5, height-5);
+        painter.drawLine(line4);
+        painter.drawLine(line5);
+        painter.drawLine(line6);
+
+        // double from = 0.9f;
+        double from = outroPosition;
+//        qDebug() << "repaint: " << from;
+        QLineF line1(from * width + offset, 1,          from * width + offset, height-5);
+        QLineF line2(from * width + offset, 1,          from * width + offset - 5, 1);
+        QLineF line3(from * width + offset, height-5,   from * width + offset - 5, height-5);
+        painter.drawLine(line1);
+        painter.drawLine(line2);
+        painter.drawLine(line3);
+    }
+
+    // FINISH UP -------------------
 #ifndef Q_OS_LINUX
     QSlider::paintEvent(e);         // parent draws
 #endif // ifndef Q_OS_LINUX

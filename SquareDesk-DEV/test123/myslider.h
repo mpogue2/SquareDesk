@@ -29,6 +29,7 @@
 #include <QSlider>
 #include <QPainter>
 #include <QPen>
+#include <QSet>
 
 // ---------------------------------------------
 class MySlider : public QSlider
@@ -48,6 +49,11 @@ public:
 
     bool eventFilter(QObject *obj, QEvent *event);
 
+    void AddMarker(double markerLoc);
+    void DeleteMarker(double markerLoc);
+    QSet<double> GetMarkers();
+    void ClearMarkers();
+
 protected:
     void mouseDoubleClickEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *event);
@@ -59,6 +65,8 @@ private:
     double outroPosition;
     int origin;  // reset to this point when double-clicked
 
+    bool drawMarkers;
+    QSet<double> markers;
 };
 
 #endif // MYSLIDER_H

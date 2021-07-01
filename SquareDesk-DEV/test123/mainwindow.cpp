@@ -3184,6 +3184,7 @@ void SetSeekBarNoSongLoaded(MySlider *seekBar)
 {
     seekBar->setMinimum(0);
     seekBar->setValue(0);
+    seekBar->ClearMarkers();
 }
 
 // ----------------------------------------------------------------------
@@ -7952,6 +7953,13 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             intro = intro / length;
             outro = outro / length;
         }
+
+        // setup Markers for this song in the seekBar ----------------------------------
+        // ui->seekBar->AddMarker(20.0/length);  // stored as fraction of the song length  // DEBUG DEBUG DEBUG, 20 sec for now
+        // TODO: key to toggle a marker at (OR NEAR WITHIN A THRESHOLD) the current song position
+        // TODO: repurpose |<< and >>| to jump to the next/previous marker (and if at beginning, go to prev song, at end, go to next song)
+        // TODO: load from/store to DB for this song
+        // -----------------------------------------------------------------------------
 
         ui->pitchSlider->setValue(pitch);
         ui->tempoSlider->setValue(tempo);
