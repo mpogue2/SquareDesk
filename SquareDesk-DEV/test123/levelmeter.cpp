@@ -129,7 +129,7 @@ void LevelMeter::levelChanged(qreal rmsLevel, qreal peakLevel, int numSamples)
 void LevelMeter::redrawTimerExpired()
 {
     // Decay the peak signal
-    const int elapsedMs = m_peakLevelChanged.elapsed();
+    const int elapsedMs = (m_peakLevelChanged.isValid() ? m_peakLevelChanged.elapsed() : 0);
     const qreal decayAmount = m_peakDecayRate * elapsedMs;
     if (decayAmount < m_peakLevel) {
         m_decayedPeakLevel = m_peakLevel - decayAmount;
@@ -139,14 +139,13 @@ void LevelMeter::redrawTimerExpired()
     }
 
     // Check whether to clear the peak hold level
-    if (m_peakHoldLevelChanged.elapsed() > PeakHoldLevelDuration) {
+    if ((m_peakHoldLevelChanged.isValid() ? m_peakHoldLevelChanged.elapsed() : 0) > PeakHoldLevelDuration) {
         m_peakHoldLevel = 0.0;
     }
 
     if (m_decayedPeakLevel != m_oldDecayedPeakLevel) {
         // only update, if the level has changed
         update();
-//        qDebug() << m_decayedPeakLevel << m_oldDecayedPeakLevel;
         m_oldDecayedPeakLevel = m_decayedPeakLevel;
     }
 
