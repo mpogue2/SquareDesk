@@ -272,7 +272,7 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.setRenderHint( QPainter::Antialiasing );  // be nice now!
 
         foreach (const double &markerPos, markers) {
-            qDebug() << "Drawing: " << markerPos;
+//            qDebug() << "Drawing: " << markerPos;
             int triangleWidth = 3;
 //            QLineF lineM1(markerPos * width + 6, 0, markerPos * width + 6 - triangleWidth, height-16); // left
 //            painter.drawLine(lineM1);
