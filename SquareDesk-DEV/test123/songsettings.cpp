@@ -272,6 +272,18 @@ IndexDefinition index_definitions[] = {
     IndexDefinition("call_taught_on_dance_program_call_name_session","call_taught_on(dance_program, call_name, session_rowid)")
 };
 
+// Markers ----------------
+//  Any number of markers can be placed in a song, and the user can FF/REW to the next/previous one.
+//  This makes playback of tapes, e.g. for C1, much simpler, because frequently we want to re-do the previous sequence, without
+//    having to hunt for where that sequence began.
+//  Markers can be created or deleted, but not moved or copied.
+RowDefinition markers_rows[] =
+{
+    RowDefinition("song_rowid", "int references songs(rowid)"),
+    RowDefinition("markerPos", "float"),  // 0.0 - 1.0 within a song, just like introPos/outroPos
+    RowDefinition(nullptr, nullptr), // NULL, NULL),
+};
+TableDefinition markers_table("markers", markers_rows);
 
 /*
 "CREATE TABLE play_history (
@@ -377,6 +389,7 @@ void SongSettings::openDatabase(const QString& path,
     ensureSchema(&song_plays_table);
     ensureSchema(&call_taught_on_table);
     ensureSchema(&tag_colors_table);
+    ensureSchema(&markers_table);
     
     for (size_t i = 0; i < sizeof(index_definitions) / sizeof(*index_definitions); ++i)
     {
@@ -966,6 +979,39 @@ bool SongSettings::loadSettings(const QString &filenameWithPath,
 {
     QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+
+//    qDebug() << "********* DEBUG get/setSongMarkers **********";
+
+//    QMap<float,int> markers;
+//    qDebug() << "0. No Markers for: " << filenameWithPathNormalized << " are " << markers;
+
+//    getSongMarkers(filenameWithPathNormalized, markers);
+//    qDebug() << "1. Markers found for: " << filenameWithPathNormalized << " are " << markers;
+
+//    markers.insert(0.6, 1);
+//    markers.insert(0.26, 1); // note out of order
+//    markers.insert(0.16, 1); // note out of order
+//    qDebug() << "2. Markers after insertion for: " << filenameWithPathNormalized << " are " << markers;
+
+//    setSongMarkers(filenameWithPathNormalized, markers);
+//    qDebug() << "3. Markers after set for: " << filenameWithPathNormalized << " are " << markers;
+
+//    getSongMarkers(filenameWithPathNormalized, markers);
+//    qDebug() << "4. Updated Markers after get for: " << filenameWithPathNormalized << " are " << markers;
+
+//    addMarker(0.4, markers);
+//    addMarker(0.2, markers);
+//    addMarker(0.3, markers);
+//    qDebug() << "5. Markers after addMarkers: " << markers;
+
+//    deleteNearbyMarker(0.4, markers);
+//    qDebug() << "6. Markers after deleteNearbyMarker: " << markers;
+
+//    deleteNearbyMarker(0.2005, markers);
+//    qDebug() << "7. Markers after deleteNearbyMarker: " << markers;
+
+//    qDebug() << "********* END DEBUG get/setSongMarkers **********";
+
     bool foundResults = false;
     {
         QSqlQuery q(m_db);
@@ -1106,3 +1152,110 @@ void SongSettings::setSessionInfo(const QList<SessionInfo> &sessions)
         exec("SessionInfo COMMIT", q);
     }
 }
+
+// MARKERS ---------------
+// TODO: typedef the QMap to "markerSet"
+void SongSettings::getSongMarkers(const QString &filename, QMap<float,int> &markers)
+{
+    markers.clear(); // clear out whatever was in the QMap before
+    int song_rowid = getSongIDFromFilenameAlone(filename);
+
+    QSqlQuery q(m_db);
+    q.prepare("SELECT markerPos FROM markers WHERE song_rowid=:song_rowid");
+    q.bindValue(":song_rowid", song_rowid);
+    exec("getSongMarkers", q);
+
+    while (q.next())
+    {
+        float markerPos = q.value(0).toFloat();
+//        qDebug() << "MARKER for: " << filename << " = " << markerPos;
+
+        if (markerPos >= 0.0 && markerPos <= 1.0) {  // a little bit of error checking, to prevent weird corruption
+            // only allow getting of valid markerPositions
+            markers[markerPos] = 0; // keys are automatically kept sorted, but values (0) are ignored
+        }
+    }
+}
+
+void SongSettings::setSongMarkers(const QString &filename, const QMap<float,int> &markers)
+{
+    int song_rowid = getSongIDFromFilenameAlone(filename);
+
+    {
+        // start transaction -------
+        QSqlQuery q(m_db);
+        q.prepare("BEGIN");
+        exec("setSongMarkers BEGIN", q);
+    }
+
+    {
+        // delete old markers for this song -------
+        QSqlQuery q(m_db);
+        q.prepare("DELETE FROM markers WHERE song_rowid=:song_rowid");
+        q.bindValue(":song_rowid", song_rowid);
+        exec("setSongMarkers DELETE", q);
+    }
+
+    {
+        // insert new markers for this song --------
+        QSqlQuery q(m_db);
+        q.prepare("INSERT INTO markers(song_rowid, markerPos) VALUES (:song_rowid,:markerPos)");
+        for (auto markerPosition = markers.cbegin(); markerPosition != markers.cend(); ++markerPosition)
+        {
+            if (markerPosition.key() >= 0.0 && markerPosition.key() <= 1.0) {  // a little bit of error checking, to prevent weird corruption
+                // only allow storing of valid markerPositions into DB
+                q.bindValue(":song_rowid", song_rowid);             // key is song's rowid
+                q.bindValue(":markerPos", markerPosition.key());    // key in QMap is the markerPosition, QMap value is ignored
+                exec("setSongMarkers INSERT", q);
+            }
+        }
+    }
+
+    {
+        // end transaction --------
+        QSqlQuery q(m_db);
+        q.prepare("COMMIT");
+        exec("setSongMarkers COMMIT", q);
+    }
+}
+
+// add a marker position to a set of markers
+void SongSettings::addMarker(const float markerPos, QMap<float,int> &markers)
+{
+    markers[markerPos] = 1;  // value is ignored
+}
+
+const float markerTolerance = 0.001;  // remember: this is a percentage of the song
+                                      // typical song = 5 min = 300 sec, so 0.001 * 300 = 0.3sec either side
+
+// what is the exact marker position of the nearest marker to markerPos (within tolerance)
+float SongSettings::getNearbyMarker(const float markerPos, QMap<float,int> &markers)
+{
+    for (QMap<float, int>::iterator markerPosition = markers.begin(); markerPosition != markers.end(); /* no increment here */)
+    {
+        if (abs(markerPos - markerPosition.key()) <= markerTolerance ) {
+            return(markerPosition.key());
+        }
+    }
+    return(-1.0);  // no nearby marker found
+}
+
+// delete a marker that is "close enough to" (within tolerance of) a marker in the set
+//   This is so we can delete markers via the GUI, later on...
+//   It also takes care of the tolerance problem with matching floats exactly.
+//   Passing in exact values is fine, too -- it will do the Right Thing.
+void SongSettings::deleteNearbyMarker(const float markerPos, QMap<float,int> &markers)
+{
+    // Idiom: https://stackoverflow.com/questions/11689465/how-to-remove-values-from-a-qmap
+    for (QMap<float, int>::iterator markerPosition = markers.begin(); markerPosition != markers.end(); /* no increment here */)
+    {
+        if (abs(markerPos - markerPosition.key()) <= markerTolerance ) {
+            // it's close enough, so get rid of this one.
+            markerPosition = markers.erase(markerPosition); // erase this one, and point at next one
+        } else {
+            // this is not the droid you're looking for...
+            ++markerPosition; // normal increment
+        }
+    }
+}
+

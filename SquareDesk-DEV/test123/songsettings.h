@@ -109,7 +109,14 @@ public:
                             QString startDate,
                             bool omitEndDate,
                             QString endDate);
-    
+
+    void getSongMarkers(const QString &filename, QMap<float,int> &markers);  // get all markers associated with a song from DB
+    void setSongMarkers(const QString &filename, const QMap<float,int> &markers);  // set markers associated with a song in DB
+
+    void addMarker(const float markerPos, QMap<float,int> &markers);  // add a new marker position to a marker set
+    float getNearbyMarker(const float markerPos, QMap<float,int> &markers);
+    void deleteNearbyMarker(const float markerPos, QMap<float,int> &markers);  // delete a marker position from a marker set
+
 private:
     bool debugErrors(const char *where, QSqlQuery &q);
     void exec(const char *where, QSqlQuery &q);

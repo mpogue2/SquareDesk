@@ -92,6 +92,7 @@ HEADERS  += mainwindow.h \
     bassmix.h \
     importdialog.h \
     exportdialog.h \
+    sessioninfo.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
     choreosequencedialog.h \
