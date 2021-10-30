@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2013  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -32,8 +32,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 /* This defines the following functions:
    general_initialize
@@ -100,7 +98,6 @@ and the following external variables:
 #include <ctype.h>
 
 #include "sd.h"
-#include "sdui.h"
 #include "paths.h"
 
 
@@ -145,15 +142,17 @@ extern void general_initialize()
    // That way, one can run two usefully independent tests
    // on a multiprocessor, by giving them slightly
    // different timeouts.
-   unsigned int seed = (ui_options.resolve_test_minutes != 0) ?
-      ui_options.resolve_test_minutes : time((time_t *)0);
+   unsigned int seed = (ui_options.resolve_test_random_seed != 0) ?
+      ui_options.resolve_test_random_seed : (uint32_t) time((time_t *)0);
    srand(seed);
+   random_count = 0;
 }
 
 
 extern int generate_random_number(int modulus)
 {
    random_number = (int) rand();
+   random_recent_history[(random_count++) & 127] = random_number;
    return random_number % modulus;
 }
 
@@ -168,7 +167,7 @@ extern void hash_nonrandom_number(int number)
 //   // of the C++ language, of course.  It is left here as a memorial to the types
 //   // of things people had to do when dealing with buggy compilers or libraries.
 //
-//   extern void *get_mem(uint32 siz)
+//   extern void *get_mem(uint32_t siz)
 //   {
 //      // Using "calloc" instead of "malloc" clears the memory.
 //      // We claim this isn't necessary; our code, being correctly written,
@@ -193,7 +192,7 @@ extern void hash_nonrandom_number(int number)
 //
 //   // Of course, we no longer take pity on broken compilers or operating systems.
 //
-//   extern void *get_more_mem(void *oldp, uint32 siz)
+//   extern void *get_more_mem(void *oldp, uint32_t siz)
 //   {
 //      void *buf;
 //
@@ -579,7 +578,7 @@ void ui_utils::write_file(const char line[])
 {
    if (file_error) return;    // Don't keep trying after a failure.
 
-   uint32 size = strlen(line);
+   uint32_t size = strlen(line);
 
    if (size != 0) {
       if ((fwrite(line, 1, size, fildes) != size) || ferror(fildes)) {

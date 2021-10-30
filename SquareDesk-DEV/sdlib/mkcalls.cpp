@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2015  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -16,12 +16,13 @@
 //    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 //    License for more details.
 //
-//    You should have received a copy of the GNU General Public License
-//    along with Sd; if not, write to the Free Software Foundation, Inc.,
-//    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//    You should have received a copy of the GNU General Public License,
+//    in the file COPYING.txt, along with Sd.  See
+//    http://www.gnu.org/licenses/
 //
-//    This is for version 36.
+//    ===================================================================
 
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <errno.h>
 
@@ -396,12 +397,34 @@ const char *sstab[] = {
    "p3ptpd",
    "4ptpd",
    "p4ptpd",
+   "2x2dmd",
+   "p2x2dmd",
    "hqtag",
    "phqtag",
    "hsqtag",
    "phsqtag",
    "wingedstar",
    "pwingedstar",
+   "ntrgl6cw",
+   "pntrgl6cw",
+   "ntrgl6ccw",
+   "pntrgl6ccw",
+   "nftrgl6cw",
+   "pnftrgl6cw",
+   "nftrgl6ccw",
+   "pnftrgl6ccw",
+   "ntrglcw",
+   "pntrglcw",
+   "ntrglccw",
+   "pntrglccw",
+   "nptrglcw",
+   "pnptrglcw",
+   "nptrglccw",
+   "pnptrglccw",
+   "nxtrglcw",
+   "pnxtrglcw",
+   "nxtrglccw",
+   "pnxtrglccw",
    "3x23",
    "p3x23",
    "3x43",
@@ -412,6 +435,10 @@ const char *sstab[] = {
    "p5x25",
    "5x45",
    "p5x45",
+   "3x5",
+   "p3x5",
+   "434",
+   "p434",
    "5h45",
    "p5h45",
    "2x3232",
@@ -487,13 +514,13 @@ const char *estab[] = {
    "2x3",
    "1x2dmd",
    "2x1dmd",
+   "dbltrngl",
    "wingedstar6",
    "1x3p1dmd",
    "3p1x1dmd",
    "qtag",
    "bone",
    "1x8",
-   "littlestars",
    "2stars",
    "1x3dmd",
    "3x1dmd",
@@ -505,16 +532,16 @@ const char *estab[] = {
    "2x4",
    "2x5",
    "d2x5",
-   "???",
-   "???",
-   "???",
-   "???",
-   "???",
-   "???",
-   "???",
-   "???",
-   "???",
-   "???",
+   "ntrgl6cw",
+   "ntrgl6ccw",
+   "nftrgl6cw",
+   "nftrgl6ccw",
+   "ntrglcw",
+   "ntrglccw",
+   "nptrglcw",
+   "nptrglccw",
+   "nxtrglcw",
+   "nxtrglccw",
    "pgdmdcw",
    "pgdmdccw",
    "1x4dmd",
@@ -535,8 +562,6 @@ const char *estab[] = {
    "1p5x4",
    "???",
    "???",
-   "???",
-   "???",
    "2x8",
    "4x4",
    "1x10",
@@ -550,6 +575,7 @@ const char *estab[] = {
    "4dmd",
    "3ptpd",
    "4ptpd",
+   "2x2dmd",
    "trngl8",
    "4p2x1dmd",
    "plinepdmd",
@@ -598,7 +624,10 @@ const char *estab[] = {
    "???",
    "???",
    "???",
-   "???",
+   "x1x6",
+   "s1x4_1x6",
+   "s1x4_1x8",
+   "s1x6_1x8",
    "x1x8",
    "???",
    "???",
@@ -613,6 +642,8 @@ const char *estab[] = {
    "3x223",
    "5x25",
    "5x45",
+   "3x5",
+   "4x34",
    "5h45",
    "2x3232",
    "3mdmd",
@@ -654,6 +685,7 @@ const char *schematab[] = {
    "grandsinglecrossconc",
    "singleconc_together",
    "singlecrossconc_together",
+   "maybe6x2singleconc_together",
    "maybematrix_singleconc_together",
    "maybesingleconc",
    "maybesinglecrossconc",
@@ -680,7 +712,7 @@ const char *schematab[] = {
    "conc_zs",
    "crossconc_zs",
    "conc_or_diamond_line",
-   "conc_or_6_2_line",
+   "conc_or_2_6_line",
    "conc6_2",
    "crossconc6_2",
    "conc6_2_line",
@@ -689,6 +721,7 @@ const char *schematab[] = {
    "conc2_4",
    "crossconc2_4",
    "conc2_4_or_normal",
+   "conc2_4_or_single",
    "conc4_2",
    "conc4_2_prefer_1x4",
    "crossconc4_2",
@@ -698,6 +731,9 @@ const char *schematab[] = {
    "???",
    "???",
    "conc2_6_or_2_4",
+   "conc2_6_or_2_4_or_2_2",
+   "conc6_2_or_4_2",
+   "conc6_2_or_4_2_line",
    "crossconc2_6_or_2_4",
    "conc_innermost",
    "conc_touch_by_1_of_3",
@@ -708,6 +744,7 @@ const char *schematab[] = {
    "singlecrossconc_together_if_odd",
    "conc6p",
    "conc6p_or_normal",
+   "conc6p_or_normal_maybe_single",
    "conc6p_or_normal_or_2x6_2x3",
    "conc6p_or_singletogether",
    "crossconc6p_or_normal",
@@ -717,6 +754,7 @@ const char *schematab[] = {
    "conc_no31dwarn",
    "conc_specialpromenade",
    "crossconc_specialpromenade",
+   "conc_ctrbox",
    "conc_12",
    "conc_16",
    "conc_star",
@@ -749,6 +787,8 @@ const char *schematab[] = {
    "sgl_in_out_triple",
    "3x3_in_out_triple",
    "4x4_in_out_triple",
+   "inner_2x4",
+   "inner_2x6",
    "in_out_quad",
    "in_out_12mquad",
    "???",
@@ -777,6 +817,7 @@ const char *schematab[] = {
    "matrix",
    "partnermatrix",
    "partnerpartialmatrix",
+   "counter_rotate",
    "rolldefine",
    "recenter",
    "seq",
@@ -802,6 +843,9 @@ const char *qualtab[] = {
    "ctr_2fl_only",
    "3x3_2fl_only",
    "4x4_2fl_only",
+   "tidal_line_only",
+   "tidal_wave_only",
+   "tidal_2fl_only",
    "leads_only",
    "trailers_only",
    "couples_only",
@@ -816,6 +860,8 @@ const char *qualtab[] = {
    "diamond_like",
    "qtag_like",
    "qtag_like_anisotropic",
+   "qline_like_l",
+   "qline_like_r",
    "pu_qtag_like",
    "conc_cpls_same",
    "conc_cpls_diff",
@@ -860,12 +906,15 @@ const char *qualtab[] = {
    "said_triangle",
    "didnt_say_triangle",
    "said_galaxy",
+   "didnt_say_matrix",
    "occupied_as_stars",
    "occupied_as_clumps",
    "occupied_as_blocks",
+   "occupied_as_traps",
    "occupied_as_h",
    "occupied_as_qtag",
    "occupied_as_3x1tgl",
+   "occupied_as_o",
    "line_ends_looking_out",
    "col_ends_looking_in",
    "ripple_one_end",
@@ -896,17 +945,27 @@ const char *qualtab[] = {
    "judge_is_ccw",
    "socker_is_cw",
    "socker_is_ccw",
+   "ends_didnt_move",
    "levelplus",
    "levela1",
    "levela2",
    "levelc1",
    "levelc2",
+   "levelc3a",
    "levelc3",
+   "levelc4a",
    "levelc4",
    "not_tboned",
    "opposite_sex",
+   "quarterbox",
+   "threequarterbox",
    "quarterbox_or_col",
    "quarterbox_or_magic_col",
+   "???",
+   "???",
+   "???",
+   "???",
+   "???",
    "???",
    "???",
    "???",
@@ -930,10 +989,10 @@ const char *defmodtab1[] = {
    "conc_force_spots",
    "conc_concentric_rules",
    "suppress_elongation_warnings",
+   "???",
    "or_anycall",
    "mandatory_anycall",
    "allow_forced_mod",
-   "only_force_elong_if_empty",
    "roll_transparent_if_z",
    "endscando",
    "finish_this_part",
@@ -948,6 +1007,8 @@ const char *defmodtab1[] = {
    "no_check_mod_level",
    "???",
    "suppress_roll",
+   "only_force_elong_if_empty",
+   "assumption_transparent",
    ""};
 
 // This table is keyed to the constants "DFM1_SEQ***".  These are the general
@@ -959,6 +1020,8 @@ const char *seqmodtab1[] = {
    "seq_re_enable_elongation_check",
    "repeat_n",
    "repeat_nm1",
+   "repeat_nover4",
+   "repeat_nover2",
    "normalize",
    ""};
 
@@ -1014,7 +1077,7 @@ const char *flagtab1f[] = {
    "dont_raise_overcast",
    "overcast_transparent",
    "is_star_call",
-   "accept_in_all_menus",
+   "can_do_in_z",
    ""};
 
 // The next three tables are all in step with each other, and with the "heritable" flags.
@@ -1035,12 +1098,37 @@ const char *flagtabh[] = {
    "single_is_inherited",
    "singlefile_is_inherited",
    "half_is_inherited",
+   "lasthalf_is_inherited",
    "rewind_is_inherited",
    "straight_is_inherited",
    "twisted_is_inherited",
-   "lasthalf_is_inherited",
    "fractal_is_inherited",
    "fast_is_inherited",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "quarter_is_inherited",
+   "inroll_is_inherited",
+   "outroll_is_inherited",
+   "splittrade_is_inherited",
+   "bias_is_inherited",
+   "biastrade_is_inherited",
+   "orbit_is_inherited",
+   "twinorbit_is_inherited",
+   "rotary_is_inherited",
+   "scatter_is_inherited",
+   "zoomroll_is_inherited",
+   "trade_is_inherited",
+   "crossover_is_inherited",
    ""};
 
 // This table is keyed to the constants "INHERITFLAG_???".
@@ -1059,12 +1147,37 @@ const char *altdeftabh[] = {
    "single",
    "singlefile",
    "half",
+   "lasthalf",
    "rewind",
    "straight",
    "twisted",
-   "lasthalf",
    "fractal",
    "fast",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "quarter",
+   "inroll",
+   "outroll",
+   "splittrade",
+   "bias",
+   "biastrade",
+   "orbit",
+   "twinorbit",
+   "rotary",
+   "scatter",
+   "zoomroll",
+   "trade",
+   "crossover",
    ""};
 
 // See INHERITFLAG_YOYOETCMASK in database.h
@@ -1093,6 +1206,8 @@ const char *mxntabforce[] = {
    "force_4x0",
    "force_6x2",
    "force_3x2",
+   "force_3x5",
+   "force_5x3",
    ""};
 
 // See INHERITFLAG_MXNMASK in database.h
@@ -1107,6 +1222,8 @@ const char *mxntabplain[] = {
    "4x0",
    "6x2",
    "3x2",
+   "3x5",
+   "5x3",
    ""};
 
 // See INHERITFLAG_NXNMASK in database.h
@@ -1153,7 +1270,7 @@ const char *reverttabplain[] = {
    "reflectreflect",
    ""};
 
-// This table is keyed to the constants "dfm_***".  These are the heritable
+// This table is keyed to the constants "dfm1_***".  These are the heritable
 // definition-modifier flags.  They go in the "modifiersh" word of a by_def_item.
 // Notice that it looks like flagtabh.
 const char *defmodtabh[] = {
@@ -1170,12 +1287,37 @@ const char *defmodtabh[] = {
    "inherit_single",
    "inherit_singlefile",
    "inherit_half",
+   "inherit_lasthalf",
    "inherit_rewind",
    "inherit_straight",
    "inherit_twisted",
-   "inherit_lasthalf",
    "inherit_fractal",
    "inherit_fast",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "inherit_quarter",
+   "inherit_inroll",
+   "inherit_outroll",
+   "inherit_splittrade",
+   "inherit_bias",
+   "inherit_biastrade",
+   "inherit_orbit",
+   "inherit_twinorbit",
+   "inherit_rotary",
+   "inherit_scatter",
+   "inherit_zoomroll",
+   "inherit_trade",
+   "inherit_crossover",
    ""};
 
 // This table is keyed to the constants "dfm_***".  These are the heritable
@@ -1198,14 +1340,38 @@ const char *forcetabh[] = {
    "force_single",
    "force_singlefile",
    "force_half",
+   "force_lasthalf",
    "force_rewind",
    "force_straight",
    "force_twisted",
-   "force_lasthalf",
    "force_fractal",
    "force_fast",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "?",
+   "force_quarter",
+   "force_inroll",
+   "force_outroll",
+   "force_splittrade",
+   "force_bias",
+   "force_biastrade",
+   "force_orbit",
+   "force_twinorbit",
+   "force_rotary",
+   "force_scatter",
+   "force_zoomroll",
+   "force_trade",
+   "force_crossover",
    ""};
-
 
 // This table is keyed to the constants "MTX_???".
 const char *matrixcallflagtab[] = {
@@ -1218,6 +1384,7 @@ const char *matrixcallflagtab[] = {
    "both_selected_ok",
    "find_squeezers",
    "find_spreaders",
+   "find_traders",
    "use_veer_data",
    "use_number",
    "lateral_mirror_if_right_of_center",
@@ -1226,6 +1393,8 @@ const char *matrixcallflagtab[] = {
    "add_2n",
    "include_phantoms",
    "not_true_invader",
+   "selector_is_trailers",
+   "do_half_of_ctr_rot",
    ""};
 
 // BEWARE!!  This list must track the array "pred_table" in sdpreds.cpp .
@@ -1249,7 +1418,6 @@ const char *predtab[] = {
    "person_select_sum9",
    "person_select_sum11",
    "person_select_sum13",
-   "person_select_sum15",
    "person_select_plus1",
    "person_select_plus2",
    "person_select_plus3",
@@ -1273,23 +1441,6 @@ const char *predtab[] = {
    "person_select_real_plus9",
    "person_select_real_plus10",
    "person_select_real_plus11",
-   "person_select_nocross_plus1",
-   "person_select_nocross_plus2",
-   "person_select_nocross_plus3",
-   "person_select_nocross_plus4",
-   "person_select_nocross_plus5",
-   "person_select_nocross_plus6",
-   "person_select_nocross_plus7",
-   "person_select_nocross_plus8",
-   "person_select_nocross_plus9",
-   "person_select_nocross_plus10",
-   "person_select_nocross_plus11",
-   "select_4x3_on_left",
-   "select_4x3_on_right",
-   "select_w_adj_4x4",
-   "select_w_or_4x4",
-   "select_w_ctr_4x4",
-   "select_w_end_4x4",
    "semi_squeezer_select",
    "select_once_rem_from_unselect",
    "unselect_once_rem_from_select",
@@ -1301,8 +1452,35 @@ const char *predtab[] = {
    "1x4_selectee_of_far_side_is_linelike_facing_ccw",
    "kicker_coming",
    "always",
+   "person_real_plus1",
+   "person_real_plus2",
+   "person_real_plus3",
+   "person_real_plus4",
+   "person_real_plus5",
+   "person_real_plus6",
+   "person_real_plus7",
+   "person_real_plus8",
+   "person_real_plus9",
+   "person_real_plus10",
+   "person_real_plus11",
+   "person_real_plus12",
+   "person_real_plus13",
+   "person_real_plus14",
+   "person_real_plus15",
+   "person_real_plus16",
+   "person_real_plus17",
+   "person_real_plus18",
+   "person_real_plus19",
+   "person_real_sum5",
+   "person_real_sum8",
+   "person_real_sum9",
+   "person_real_sum11",
+   "person_real_sum13",
+   "person_real_sum24",
    "2x2_miniwave",
    "2x2_couple",
+   "2x2_miniwave_nocycle_wheel",
+   "2x2_couple_nocycle_wheel",
    "2x2_tandem_with_someone",
    "2x2_antitandem",
    "2x2_facing_someone",
@@ -1373,18 +1551,6 @@ const char *predtab[] = {
    "judge_is_left",
    "socker_is_right",
    "socker_is_left",
-   "judge_is_right_1x3",
-   "judge_is_left_1x3",
-   "socker_is_right_1x3",
-   "socker_is_left_1x3",
-   "judge_is_right_1x6",
-   "judge_is_left_1x6",
-   "socker_is_right_1x6",
-   "socker_is_left_1x6",
-   "judge_is_right_1x8",
-   "judge_is_left_1x8",
-   "socker_is_right_1x8",
-   "socker_is_left_1x8",
    "inroller_is_cw",
    "magic_inroller_is_cw",
    "outroller_is_cw",
@@ -1486,15 +1652,23 @@ tagtabitem tagtabinit[num_base_call_indices] = {
    {0, "chreact_1"},      // This is used for propagating the hinge info for part 2 of chain reaction.
    {0, "makepass_1"},     // This is used for propagating the cast off 3/4 info for part 2 of make a pass.
    {0, "nuclear_1"},      // Same, for part 2 of nuclear reaction.
+   {0, "jaywalk"},        // Propagating 3/4-tag-ness, and handedness.
    {0, "scootback"},
+   {0, "qtagscootback"},
    {0, "scootbacktowave"},
+   {0, "tradethewave"},
+   {0, "ctr_rot"},
+   {0, "splitctrrot"},
    {0, "backemup"},       // This is used for remembering the handedness.
    {0, "circulate"},
    {0, "trade"},
+   {0, "touch"},
    {0, "plainprom"},
    {0, "plainpromeighths"},
    {0, "any_hand_remake_start_with_n"},
    {0, "passthru"},       // To tell how to do "12_16_matrix_means_split".
+   {0, "pass_in"},
+   {0, "pass_out"},
    {0, "check_cross_counter"},
    {0, "lockit"},
    {0, "disband1"},
@@ -1509,6 +1683,7 @@ tagtabitem tagtabinit[num_base_call_indices] = {
    {0, "hinge_for_breaker"},
    {0, "hinge_then_trade"},
    {0, "hinge_then_trade_for_breaker"},
+   {0, "ctrarmturn_n4_utb"},
    {0, "two_o_circs_for_frac"},
    {0, "cloverleaf"},
    {0, "clover"},
@@ -1520,7 +1695,11 @@ tagtabitem tagtabinit[num_base_call_indices] = {
    {0, "circnullcall"},
    {0, "turnstarn"},
    {0, "revert_if_needed"},
-   {0, "extend_n"}};
+   {0, "extend"},
+   {0, "extend_n"},
+   {0, "inrollcirc"},
+   {0, "outrollcirc"},
+};
 
 int tagtabsize;          // Number of items we currently have in tagtab.
 int tagtabmax;           // Amount of space allocated for tagtab;
@@ -1548,15 +1727,16 @@ char *return_ptr;
 int callcount;
 int filecount;
 int dumbflag;
-uint32 call_flags1;
-uint32 call_flagsh;
-uint32 call_flags1overflow;
-uint32 call_tag;
+uint32_t call_flags1;
+uint64_t call_flagsh;
+uint32_t call_flags1overflow;
+uint32_t call_tag;
+heritflags phonyheritbit;
 char call_name[100];
 int call_namelen;
 int call_level;
 int call_startsetup;
-uint32 qual_stuff;
+uint32_t qual_stuff;
 int call_endsetup;
 int call_endsetup_in;
 int call_endsetup_out;
@@ -1627,7 +1807,7 @@ static int get_char()
          return 1;
       }
 
-      linelen = strlen(line);
+      linelen = (int) strlen(line);
 
       // Strip off any superfluous "return" or "newline" characters at the end.
       // If things are going well, there will just be a single '\n', because the
@@ -1768,7 +1948,7 @@ static int search(const char *table[])
 
 
 // The returned value fits into 13 bits.
-static uint32 tagsearch(int def)
+static uint32_t tagsearch(int def)
 {
    int i;
 
@@ -1843,20 +2023,20 @@ void db_putc(char ch)
       db_output_error();
 }
 
-static void write_byte(uint32 n)
+static void write_byte(uint32_t n)
 {
    db_putc((char) ((n) & 0xFF));
    filecount += 1;
 }
 
-static void write_halfword(uint32 n)
+static void write_halfword(uint32_t n)
 {
    db_putc((char) ((n>>8) & 0xFF));
    db_putc((char) ((n) & 0xFF));
    filecount += 2;
 }
 
-static void write_fullword(uint32 n)
+static void write_fullword(uint32_t n)
 {
    db_putc((char) ((n>>24) & 0xFF));
    db_putc((char) ((n>>16) & 0xFF));
@@ -1872,8 +2052,8 @@ static void write_fullword(uint32 n)
 static void write_defmod_flags(int is_seq)
 {
    int i;
-   uint32 rr1 = 0;
-   uint32 rrh = 0;
+   uint32_t rr1 = 0;
+   heritflags rrh = 0ULL;
 
    get_tok();
    if (tok_kind != tok_lbkt)
@@ -1948,31 +2128,38 @@ static void write_defmod_flags(int is_seq)
             rrh |= INHERITFLAG_YOYOETCK_GENEROUS;
          }
          else if ((i = search(defmodtabh)) >= 0) {
-            uint32 bit = 1U << i;
+            uint64_t bit = 1ULL << i;
 
             // Don't check the left/reverse flags -- they are complicated,
             // so there is no "force" word for them.
-            if (bit & ~(call_flagsh | INHERITFLAG_REVERSE | INHERITFLAG_LEFT))
+            if ((bit & ~(call_flagsh | INHERITFLAG_REVERSE | INHERITFLAG_LEFT)) != 0)
                errexit("Can't use an \"inherit\" flag unless corresponding top level flag is on");
 
             rrh |= bit;
          }
          else {
-            uint32 bit;
+            heritflags heritbit= 0ULL;
 
-            if ((i = search(forcetabh)) >= 0) bit = (1U << i);
-            else if ((i = search(yoyotabforce)) >= 0) bit = INHERITFLAG_YOYOETCBIT * (i+1);
-            else if ((i = search(mxntabforce)) >= 0) bit = INHERITFLAG_MXNBIT * (i+1);
-            else if ((i = search(nxntabforce)) >= 0) bit = INHERITFLAG_NXNBIT * (i+1);
-            else if ((i = search(reverttabforce)) >= 0) bit = INHERITFLAG_REVERTBIT * (i+1);
+            if ((i = search(forcetabh)) >= 0) {
+               uint64_t bit = 1ULL << i;
+               heritbit |= bit;
+            }
+            else if ((i = search(yoyotabforce)) >= 0) 
+               heritbit |= INHERITFLAG_YOYOETCBIT * (i+1);
+            else if ((i = search(mxntabforce)) >= 0)
+               heritbit |= INHERITFLAG_MXNBIT * (i+1);
+            else if ((i = search(nxntabforce)) >= 0)
+               heritbit |= INHERITFLAG_NXNBIT * (i+1);
+            else if ((i = search(reverttabforce)) >= 0)
+               heritbit |= INHERITFLAG_REVERTBIT * (i+1);
             else errexit("Unknown defmod key");
 
             // Don't check the left/reverse flags -- they are complicated,
             // so there is no "force" word for them.
-            if (bit & call_flagsh & ~(INHERITFLAG_REVERSE | INHERITFLAG_LEFT))
+            if ((heritbit & call_flagsh & ~(INHERITFLAG_REVERSE | INHERITFLAG_LEFT)))
                errexit("Can't use a \"force\" flag unless corresponding top level flag is off");
 
-            if (do_heritflag_merge(&rrh, bit))
+            if (do_heritflag_merge(rrh, heritbit))
                errexit("Redundant \"force\" flags");
          }
 
@@ -1982,7 +2169,8 @@ static void write_defmod_flags(int is_seq)
    }
 
    write_fullword(rr1);
-   write_fullword(rrh);
+   write_fullword(rrh & 0x00000000FFFFFFFFULL);
+   write_fullword(rrh >> 32);
 }
 
 
@@ -2001,7 +2189,7 @@ static void write_callarray(int num, bool doing_matrix)
          write_halfword(0);
       else if (tok_kind == tok_symbol) {
          int p;
-         uint32 stab = STB_NONE;
+         uint32_t stab = STB_NONE;
          int repetition = 0;
 
          for (p=0; letcount-p >= 2; p++) {
@@ -2053,7 +2241,7 @@ static void write_callarray(int num, bool doing_matrix)
 
       stability_done:
 
-         uint32 dat = 0;
+         uint32_t dat = 0;
 
          // Read the "slide" indicator.
 
@@ -2140,11 +2328,22 @@ static void write_call_header(calldef_schema schema)
 
    write_halfword(call_flags1overflow);
    write_fullword(call_flags1);
-   write_fullword(call_flagsh);
-   write_halfword((call_namelen << 8) | (uint32) schema);
+
+   // If this is a "base_circ_call", write out 64 bits of phony "force" info.
+   if (call_flags1 & CFLAG1_BASE_CIRC_CALL) {
+      write_fullword(phonyheritbit & 0x00000000FFFFFFFFULL);
+      write_fullword(phonyheritbit >> 32);
+   }
+   else if (phonyheritbit != 0ULL) {
+      errexit("Special top-level herit item requires \"base_circ_call\"");
+   }
+
+   write_fullword(call_flagsh & 0x00000000FFFFFFFFULL);
+   write_fullword(call_flagsh >> 32);
+   write_halfword((call_namelen << 8) | (uint32_t) schema);
 
    for (j=0; j<call_namelen; j++)
-      write_byte((uint32) call_name[j]);
+      write_byte((uint32_t) call_name[j]);
 
    callcount++;
 }
@@ -2204,7 +2403,7 @@ static void write_pred_clauses()
 }
 
 
-static void write_array_def_block(uint32 callarrayflags)
+static void write_array_def_block(uint32_t callarrayflags)
 {
    // Bits in specifying an array def are very precious, so we use only a single "1" bit
    // to indicate an array def block.
@@ -2252,7 +2451,7 @@ static int scan_for_per_array_def_flags(void)
 
 static void process_alt_def_header()
 {
-   uint32 rrr = 0;
+   heritflags altherit = 0ULL;
 
    get_tok();
    if (tok_kind != tok_lbkt)
@@ -2262,19 +2461,26 @@ static void process_alt_def_header()
    if (tok_kind != tok_rbkt) {
       for (;;) {
          int i;
-         uint32 bit;
+         heritflags heritbit = 0ULL;
 
          if (tok_kind != tok_symbol)
             errexit("Improper alternate_definition key");
 
-         if ((i = search(altdeftabh)) >= 0) bit = (1U << i);
-         else if ((i = search(yoyotabplain)) >= 0) bit = INHERITFLAG_YOYOETCBIT * (i+1);
-         else if ((i = search(mxntabplain)) >= 0) bit = INHERITFLAG_MXNBIT * (i+1);
-         else if ((i = search(nxntabplain)) >= 0) bit = INHERITFLAG_NXNBIT * (i+1);
-         else if ((i = search(reverttabplain)) >= 0) bit = INHERITFLAG_REVERTBIT * (i+1);
+         if ((i = search(altdeftabh)) >= 0) {
+            uint64_t bit = 1ULL << i;
+            heritbit |= bit;
+         }
+         else if ((i = search(yoyotabplain)) >= 0)
+            heritbit |= INHERITFLAG_YOYOETCBIT * (i+1);
+         else if ((i = search(mxntabplain)) >= 0)
+            heritbit |= INHERITFLAG_MXNBIT * (i+1);
+         else if ((i = search(nxntabplain)) >= 0)
+            heritbit |= INHERITFLAG_NXNBIT * (i+1);
+         else if ((i = search(reverttabplain)) >= 0)
+            heritbit |= INHERITFLAG_REVERTBIT * (i+1);
          else errexit("Unknown alternate_definition key");
 
-         if (do_heritflag_merge(&rrr, bit))
+         if (do_heritflag_merge(altherit, heritbit))
             errexit("Can't specify this combination of flags");
 
          get_tok();
@@ -2289,15 +2495,16 @@ static void process_alt_def_header()
    if (alt_level >= 16) errexit("Too many levels");
 
    write_halfword(0x4000 | alt_level);
-   write_fullword(rrr);
+   write_fullword(altherit & 0x00000000FFFFFFFFULL);
+   write_fullword(altherit >> 32);
 }
 
 
 
-static void write_array_def(uint32 incoming)
+static void write_array_def(uint32_t incoming)
 {
    int jjj;
-   uint32 callarray_flags1, callarray_flags2;
+   uint32_t callarray_flags1, callarray_flags2;
 
    callarray_flags1 = incoming;
 
@@ -2471,6 +2678,10 @@ def2:
          callarray_flags1 |= CAF__NO_COMPRESS;
       else if (!strcmp(tok_str, "plus_eighth_rotation"))
          callarray_flags1 |= CAF__PLUSEIGHTH_ROTATION;
+      else if (!strcmp(tok_str, "roll_transparent"))
+         callarray_flags1 |= CAF__ROLL_TRANSPARENT;
+      else if (!strcmp(tok_str, "is_space_invader"))
+         callarray_flags1 |= CAF__IS_SPACE_INVADER;
       else if ((!(callarray_flags1 & CAF__CONCEND)) && (!strcmp(tok_str, "concendsetup"))) {
          if (call_endsetup != (int) s_normal_concentric)
             errexit("concendsetup with wrong end_setup");
@@ -2558,7 +2769,7 @@ int main(int argc, char *argv[])
    }
 
    int i, iii;
-   uint32 funnyflag;
+   uint32_t funnyflag;
 
    tagtabsize = num_base_call_indices;
    tagtabmax = 100;
@@ -2589,17 +2800,18 @@ int main(int argc, char *argv[])
    if (tok_kind != tok_string) errexit("Improper version string -- must be in quotes");
    write_halfword(char_ct);
    for (i=0; i<char_ct; i++)
-      db_putc((char) (((uint32) tok_str[i]) & 0xFF));
+      db_putc((char) (((uint32_t) tok_str[i]) & 0xFF));
    filecount += char_ct;
 
    callcount = 0;
    for (;;) {
-      uint32 matrixflags;
+      uint32_t matrixflags;
       int bit;
       calldef_schema ccc;
 
       get_tok_or_eof();
    startagain:
+      phonyheritbit = 0ULL;
       if (eof) break;
       else if (tok_kind != tok_symbol) errexit("Missing indicator");
       else if (strcmp(tok_str, "call")) errexit("Item in illegal context");
@@ -2631,17 +2843,25 @@ int main(int argc, char *argv[])
          if (tok_kind != tok_symbol) errexit("Missing indicator");
       }
 
+      // Get the phony "force" flag, if present.  This is only allowed on "base_circ_call" things.
+      if ((iii = search(forcetabh)) >= 0) {
+         uint64_t bit = 1ULL << iii;
+         phonyheritbit |= bit;
+         get_tok();
+         if (tok_kind != tok_symbol) errexit("Missing indicator");
+      }
+
    restart_compound_call:
 
       // Get toplevel options.
 
-      call_flagsh = 0;
+      call_flagsh = 0ULL;
       call_flags1 = 0;
       call_flags1overflow = 0;
 
       for (;;) {
-         uint32 flagh_to_set = 0;
-         uint32 flag1_to_set = 0;
+         uint32_t flag1_to_set = 0;
+         uint64_t heritflag_to_set = 0ULL;
 
          if ((iii = search(flagtab1f)) >= 0) {
             if (iii >= 32) {
@@ -2651,7 +2871,7 @@ int main(int argc, char *argv[])
                   errexit("Too many secondary flags");
             }
             else {
-               uint32 bit = 1U << iii;
+               uint32_t bit = 1U << iii;
                if ((call_flags1 & CFLAG1_STEP_REAR_MASK) &&
                    (bit & CFLAG1_STEP_REAR_MASK))
                   errexit("Too many touch/rear flags");
@@ -2686,19 +2906,21 @@ int main(int argc, char *argv[])
          else if (!strcmp(tok_str, "base_tag_call_2"))
             flag1_to_set = (3*CFLAG1_BASE_TAG_CALL_BIT);
          else if (!strcmp(tok_str, "yoyo_is_inherited"))        // These two sort of cheat.
-            flagh_to_set = INHERITFLAG_YOYOETCK_YOYO;           // Set the "yoyo" bit.
+            heritflag_to_set = INHERITFLAG_YOYOETCK_YOYO;     // Set the "yoyo" bit.
          else if (!strcmp(tok_str, "gen_sting_is_inherited"))
-            flagh_to_set = INHERITFLAG_YOYOETCK_GENEROUS;       // Set the other bit, which is called "generous".
+            heritflag_to_set = INHERITFLAG_YOYOETCK_GENEROUS; // Set the other bit, which is called "generous".
          else if (!strcmp(tok_str, "mxn_is_inherited"))
-            flagh_to_set = INHERITFLAG_MXNMASK;
+            heritflag_to_set = INHERITFLAG_MXNMASK;
          else if (!strcmp(tok_str, "nxn_is_inherited"))
-            flagh_to_set = INHERITFLAG_NXNMASK;
+            heritflag_to_set = INHERITFLAG_NXNMASK;
          else if (!strcmp(tok_str, "bigmatrix_is_inherited"))
-            flagh_to_set = INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX;
+            heritflag_to_set = INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX;
          else if (!strcmp(tok_str, "revert_is_inherited"))
-            flagh_to_set = INHERITFLAG_REVERTMASK;
-         else if ((iii = search(flagtabh)) >= 0)
-            flagh_to_set = (1U << iii);
+            heritflag_to_set = INHERITFLAG_REVERTMASK;
+         else if ((iii = search(flagtabh)) >= 0) {
+            uint64_t bit = 1ULL << iii;
+            heritflag_to_set = bit;
+         }
          else
             break;
 
@@ -2707,10 +2929,10 @@ int main(int argc, char *argv[])
 
          call_flags1 |= flag1_to_set;
 
-         if ((call_flagsh & flagh_to_set) != 0)
+         if ((call_flagsh & heritflag_to_set) != 0)
             errexit("Redundant indicator");
 
-         call_flagsh |= flagh_to_set;
+         call_flagsh |= heritflag_to_set;
 
          get_tok();
          if (tok_kind != tok_symbol) errexit("Missing indicator");
@@ -2746,6 +2968,7 @@ int main(int argc, char *argv[])
       case schema_matrix:
       case schema_partner_matrix:
       case schema_partner_partial_matrix:
+      case schema_counter_rotate:
          matrixflags = 0;
 
          for (;;) {     // Get matrix call options.
@@ -2758,7 +2981,7 @@ int main(int argc, char *argv[])
          write_fullword(matrixflags);
 
          for ( ;; ) {
-            write_callarray((ccc == schema_matrix) ? 2 : 16, true);
+            write_callarray((ccc == schema_matrix || ccc == schema_counter_rotate) ? 2 : 16, true);
             get_tok_or_eof();
 
             if (tok_kind != tok_symbol || strcmp(tok_str, "alternate_definition"))
@@ -2789,7 +3012,7 @@ int main(int argc, char *argv[])
 
          break;
       case schema_alias:
-         if (call_flagsh|call_flags1|call_flags1overflow|call_tag)
+         if (call_flagsh|(call_flags1 & ~CFLAG1_BASE_CIRC_CALL)|call_flags1overflow|call_tag)
             errexit("Flags not allowed with alias");
          get_tok();
          if (tok_kind != tok_symbol) errexit("Improper alias symbol");

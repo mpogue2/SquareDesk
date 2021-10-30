@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2012  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //    Copyright (C) 1995  Robert E. Cays
 //    Copyright (C) 1996  Charles Petzold
 //
@@ -34,8 +34,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 //    sdui-win.cpp - SD -- Microsoft Windows User Interface
 
@@ -45,6 +43,7 @@
 
 // Do this to get WM_MOUSEWHEEL defined in windows header files.
 #define _WIN32_WINNT 0x0400
+#define _CRT_SECURE_NO_WARNINGS
 
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
@@ -59,7 +58,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "sdui.h"
+#include "sd.h"
 
 static int window_size_args[4] = {780, 560, 10, 20};
 
@@ -323,9 +322,9 @@ static void erase_questionable_stuff()
 }
 
 
-void iofull::show_match(int frequency_to_show)
+void iofull::show_match()
 {
-   get_utils_ptr()->show_match_item(frequency_to_show);
+   get_utils_ptr()->show_match_item();
 }
 
 
@@ -500,7 +499,7 @@ static int LookupKeystrokeBinding(
 {
    modifier_block *keyptr;
    int nc;
-   uint32 ctlbits;
+   uint32_t ctlbits;
    int newparm = -99;
    matcher_class &matcher = *gg77->matcher_p;
 
@@ -786,7 +785,7 @@ LRESULT WINAPI AboutWndProc(HWND hDlg, UINT Message, WPARAM wParam, LPARAM lPara
    return FALSE;
 }
 
-static uint32 text_color_translate[8] = {
+static uint32_t text_color_translate[8] = {
   RGB(0, 0, 0),      // 0 - not used
   RGB(128, 128, 0),  // 1 - substitute for yellow against bright background
   RGB(255, 0, 0),    // 2 - red
@@ -843,7 +842,7 @@ RGBQUAD icon_color_translate[8];    // Will be filled in during initialization.
 // was 10
 #define BMP_PERSON_SPACE 0
 
-static uint32 plaintext_fg, plaintext_bg;
+static uint32_t plaintext_fg, plaintext_bg;
 
 static void Transcript_OnPaint(HWND hwnd)
 {
@@ -1165,6 +1164,8 @@ popup_return iofull::get_popup_string(Cstring prompt1, Cstring prompt2, Cstring 
    return PopupStatus;
 }
 
+// This is the top-level entry for Sd, on Windows.  The OS should invoke this
+// when the command is given.
 int WINAPI WinMain(
    HINSTANCE hInstance,
    HINSTANCE hPrevInstance,
@@ -1190,11 +1191,7 @@ int WINAPI WinMain(
    // They had previously had two initial underscores.  The double-underscore
    // symbols exist, but they don't give what we want.
 
-#if defined(__GNUC__)
-   return sdmain(_argc, _argv, ggg);
-#else
    return sdmain(__argc, __argv, ggg);
-#endif
 }
 
 
@@ -1513,7 +1510,7 @@ void MainWindow_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
       matcher.m_final_result.match.packed_next_conc_or_subcall = 0;
       matcher.m_final_result.match.packed_secondary_subcall = 0;
-      matcher.m_final_result.match.call_conc_options = null_options;
+      matcher.m_final_result.match.call_conc_options.initialize();
       matcher.m_final_result.real_next_subcall = (match_result *) 0;
       matcher.m_final_result.real_secondary_subcall = (match_result *) 0;
 
@@ -2663,7 +2660,7 @@ void iofull::process_command_line(int *argcp, char ***argvp)
 
 
 
-static void scan_menu(Cstring name, HDC hDC, int *nLongest_p, uint32 itemdata)
+static void scan_menu(Cstring name, HDC hDC, int *nLongest_p, uint32_t itemdata)
 {
    SIZE Size;
 
@@ -2703,11 +2700,12 @@ void ShowListBox(int nWhichOne)
          UpdateStatusBar("<circulate replacement>");
 
          for (unsigned int iu=0 ; iu<number_of_circcers ; iu++)
-            scan_menu(get_call_menu_name(circcer_calls[iu]), hDC, &nLongest, MAKELONG(iu, 0));
+            scan_menu(get_call_menu_name(circcer_calls[iu].the_circcer), hDC, &nLongest, MAKELONG(iu, 0));
       }
       else if (nLastOne >= matcher_class::e_match_taggers &&
                nLastOne < matcher_class::e_match_taggers+NUM_TAGGER_CLASSES) {
          int tagclass = nLastOne - matcher_class::e_match_taggers;
+
          UpdateStatusBar("<tagging call>");
 
          for (unsigned int iu=0 ; iu<number_of_taggers[tagclass] ; iu++)
@@ -2903,7 +2901,7 @@ int iofull::yesnoconfirm(Cstring title, Cstring line1, Cstring line2, bool excl,
       strcpy(finalline, line2);
    }
 
-   uint32 flags = MB_YESNO | MB_DEFBUTTON2;
+   uint32_t flags = MB_YESNO | MB_DEFBUTTON2;
    if (excl) flags |= MB_ICONEXCLAMATION;
    if (info) flags |= MB_ICONINFORMATION;
 
@@ -2972,7 +2970,7 @@ direction_kind iofull::do_direction_popup(matcher_class &matcher)
 int iofull::do_circcer_popup()
 {
    matcher_class &matcher = *gg77->matcher_p;
-   uint32 retval = 0;
+   uint32_t retval = 0;
 
    if (interactivity == interactivity_verify) {
       retval = verify_options.circcer;
@@ -3010,17 +3008,17 @@ int iofull::do_tagger_popup(int tagger_class)
 }
 
 
-uint32 iofull::get_one_number(matcher_class &matcher)
+uint32_t iofull::get_one_number(matcher_class &matcher)
 {
    match_result saved_match = matcher.m_final_result;
    // Return excessively high value if user cancelled; client will notice.
-   uint32 retval = do_popup((int) matcher_class::e_match_number) ? matcher.m_final_result.match.index : NUM_CARDINALS+99;
+   uint32_t retval = do_popup((int) matcher_class::e_match_number) ? matcher.m_final_result.match.index : NUM_CARDINALS+99;
    matcher.m_final_result = saved_match;
    return retval;
 }
 
 
-void iofull::add_new_line(const char the_line[], uint32 drawing_picture)
+void iofull::add_new_line(const char the_line[], uint32_t drawing_picture)
 {
    erase_questionable_stuff();
    lstrcpyn(CurDisplay->Line, the_line, DISPLAY_LINE_LENGTH-1);

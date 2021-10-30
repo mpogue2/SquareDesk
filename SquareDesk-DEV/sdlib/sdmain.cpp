@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2017  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -32,8 +32,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 
 //    The version of this file is as shown immediately below.  This string
@@ -46,8 +44,8 @@
 //    string is also required by paragraphs 2(a) and 2(c) of the GNU
 //    General Public License if you distribute the file.
 
-#define VERSION_STRING "38.93"
-#define TIME_STAMP "wba@alum.mit.edu May 8 2017 $"
+#define VERSION_STRING "39.39"
+#define TIME_STAMP "wba@alum.mit.edu Sep 28 2021 $"
 
 /* This defines the following functions:
    sd_version_string
@@ -65,11 +63,12 @@ and the following external variables:
 */
 
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <string.h>
 
 #include "sd.h"
-#include "sdui.h"
 #include "paths.h"
 #include "resource.h"
 
@@ -179,17 +178,6 @@ command_list_menu_item command_menu[] = {
    {"clipboard paste all",            command_paste_all_calls, -1},
    {"keep picture",                   command_save_pic, ID_COMMAND_KEEP_PICTURE},
    {"refresh display",                command_refresh, -1},
-
-   {"frequency show",                 command_freq_show, -1},
-   {"frequency show level",           command_freq_show_level, -1},
-   {"frequency show near level",      command_freq_show_nearlevel, -1},
-   {"frequency show sort",            command_freq_show_sort, -1},
-   {"frequency show sort level",      command_freq_show_sort_level, -1},
-   {"frequency show sort near level", command_freq_show_sort_nearlevel, -1},
-   {"frequency reset",                command_freq_reset, -1},
-   {"frequency start",                command_freq_start, -1},
-   {"frequency delete",               command_freq_delete, -1},
-
    {"resolve",                        command_resolve, ID_COMMAND_RESOLVE},
    {"normalize",                      command_normalize, ID_COMMAND_NORMALIZE},
    {"standardize",                    command_standardize, ID_COMMAND_STANDARDIZE},
@@ -248,6 +236,7 @@ startup_list_menu_item startup_menu[] = {
    {"heads 1p2p",                  start_select_h1p2p, -1},
    {"sides 1p2p",                  start_select_s1p2p, -1},
    {"just as they are",            start_select_as_they_are, -1},
+   {"two couples only",            start_select_two_couple, -1},
    {"toggle concept levels",       start_select_toggle_conc, ID_COMMAND_TOGGLE_CONC},
    {"toggle active phantoms",      start_select_toggle_act, ID_COMMAND_TOGGLE_PHAN},
    {"toggle minigrand getouts",    start_select_toggle_minigrand, -1},
@@ -269,26 +258,15 @@ startup_list_menu_item startup_menu[] = {
    {"change output file",          start_select_change_outfile, ID_COMMAND_CH_OUTFILE},
    {"change output prefix",        start_select_change_outprefix, -1},
    {"change title",                start_select_change_title, ID_COMMAND_CH_TITLE},
-
-   {"frequency show",              start_select_freq_show, -1},
-   {"frequency show level",        start_select_freq_show_level, -1},
-   {"frequency show near level",   start_select_freq_show_nearlevel, -1},
-   {"frequency show sort",         start_select_freq_show_sort, -1},
-   {"frequency show sort level",   start_select_freq_show_sort_level, -1},
-   {"frequency show sort near level", start_select_freq_show_sort_nearlevel, -1},
-   {"frequency reset",             start_select_freq_reset, -1},
-   {"frequency start",             start_select_freq_start, -1},
-   {"frequency delete",            start_select_freq_delete, -1},
-
    {(Cstring) 0}};
 
 int last_file_position = -1;
 
 
 /* Returns TRUE if it fails, meaning that the user waved the mouse away. */
-static bool find_tagger(uint32 tagclass, uint32 *tagg, call_with_name **tagger_call)
+static bool find_tagger(uint32_t tagclass, uint32_t *tagg, call_with_name **tagger_call)
 {
-   uint32 numtaggers = number_of_taggers[tagclass];
+   uint32_t numtaggers = number_of_taggers[tagclass];
    call_with_name **tagtable = tagger_calls[tagclass];
 
    if (numtaggers == 0) return true;   /* We can't possibly do this. */
@@ -341,7 +319,7 @@ static bool find_tagger(uint32 tagclass, uint32 *tagg, call_with_name **tagger_c
 
 
 /* Returns true if it fails, meaning that the user waved the mouse away. */
-static bool find_circcer(uint32 *circcp)
+static bool find_circcer(uint32_t *circcp)
 {
    if (number_of_circcers == 0) return true;   // We can't possibly do this.
 
@@ -363,24 +341,36 @@ static bool find_circcer(uint32 *circcp)
 
 
 /* Returns true if it fails, meaning that the user waved the mouse away. */
-static bool find_selector(selector_kind *sel_p, bool is_for_call)
+static bool find_selector(who_list *sel_p, bool is_for_call)
 {
-   if (interactivity == interactivity_normal) {
-      matcher_class &matcher = *gg77->matcher_p;
-      selector_kind sel;
+   sel_p->initialize();
 
-      if (matcher.m_final_result.valid &&
-          (matcher.m_final_result.match.call_conc_options.who != selector_uninitialized)) {
-         sel = matcher.m_final_result.match.call_conc_options.who;
-         matcher.m_final_result.match.call_conc_options.who = selector_uninitialized;
+   do {
+      selector_kind sel0;
+
+      if (interactivity == interactivity_normal) {
+         matcher_class &matcher = *gg77->matcher_p;
+
+         if (matcher.m_final_result.valid &&
+             (matcher.m_final_result.match.call_conc_options.who.who[sel_p->who_stack_ptr] != selector_uninitialized)) {
+            sel0 = matcher.m_final_result.match.call_conc_options.who.who[sel_p->who_stack_ptr];
+            matcher.m_final_result.match.call_conc_options.who.who[sel_p->who_stack_ptr] = selector_uninitialized;
+         }
+         else {
+            sel0 = gg77->iob88.do_selector_popup(matcher);
+
+            if (sel0 == selector_uninitialized)
+               return true;
+         }
       }
-      else if ((sel = gg77->iob88.do_selector_popup(matcher)) == selector_uninitialized)
-         return true;
+      else
+         sel0 = do_selector_iteration(is_for_call);
 
-      *sel_p = sel;
-   }
-   else
-      *sel_p = do_selector_iteration(is_for_call);
+      sel_p->who[sel_p->who_stack_ptr++] = sel0;
+
+      if (sel0 < selector_RECURSIVE_START || sel0 >= selector_SOME_START)
+         break;
+   } while (sel_p->who_stack_ptr < sel_p->who_stack_size);
 
    return false;
 }
@@ -413,7 +403,7 @@ static bool find_direction(direction_kind *dir_p)
 // Returns TRUE if it fails, meaning that the user waved the mouse away,
 // or that the number from a verify iteration violated the "odd only" rule.
 static bool find_numbers(int howmanynumbers, bool forbid_zero,
-   uint32 odd_number_only, bool allow_iteration, uint32 *number_list)
+   uint32_t odd_number_only, bool allow_iteration, uint32_t *number_list)
 {
    if (interactivity == interactivity_normal)
       *number_list = gg77->get_number_fields(howmanynumbers, odd_number_only != 0, forbid_zero);
@@ -440,11 +430,11 @@ extern bool deposit_call(call_with_name *call, const call_conc_option_state *opt
 {
    parse_block *new_block;
    call_with_name *tagger_call;
-   uint32 tagg = 0;
-   selector_kind sel = selector_uninitialized;
+   uint32_t tagg = 0;
+   who_list sel;
    direction_kind dir = direction_uninitialized;
-   uint32 circc = 0;    /* Circulator index (1-based). */
-   uint32 number_list = 0;
+   uint32_t circc = 0;    /* Circulator index (1-based). */
+   uint32_t number_list = 0;
    int howmanynums = (call->the_defn.callflags1 & CFLAG1_NUMBER_MASK) / CFLAG1_NUMBER_BIT;
    if (howmanynums == 7) howmanynums = 0;  // The "optional_special_number" stuff doesn't apply here.
 
@@ -544,7 +534,7 @@ extern bool deposit_call(call_with_name *call, const call_conc_option_state *opt
       if (circc > number_of_circcers) fail_no_retry("bad circcer index???");
 
       parse_state.concept_write_ptr = &new_block->next->subsidiary_root;
-      if (deposit_call(circcer_calls[circc-1], &null_options))
+      if (deposit_call(circcer_calls[circc-1].the_circcer, &null_options))
          throw error_flag_type(error_flag_wrong_command);     // User waved the mouse away while getting subcall.
       parse_state.concept_write_ptr = savecwp;
    }
@@ -567,9 +557,9 @@ extern bool deposit_call(call_with_name *call, const call_conc_option_state *opt
 extern bool deposit_concept(const concept_descriptor *conc)
 {
    parse_block *new_block;
-   selector_kind sel = selector_uninitialized;
+   who_list sel;
    direction_kind dir = direction_uninitialized;
-   uint32 number_list = 0;
+   uint32_t number_list = 0;
    int howmanynumbers = 0;
 
    // We hash the actual concept pointer, as though it were an integer index.
@@ -733,9 +723,6 @@ extern bool query_for_call()
             break;
          case error_flag_wrong_command:
             gg77->writestuff("You can't select that here.");
-            break;
-         case error_flag_OK_but_dont_erase:
-            global_error_flag = error_flag_none;
             break;
          }
 
@@ -972,42 +959,8 @@ extern bool query_for_call()
 }
 
 
-ui_option_type::ui_option_type() :
-   color_scheme(color_by_gender),
-   force_session(-1000000),
-   sequence_num_override(-1),
-   no_graphics(0),
-   no_c3x(false),
-   no_intensify(false),
-   reverse_video(false),
-   pastel_color(false),
-   use_magenta(false),
-   use_cyan(false),
-   singlespace_mode(false),
-   nowarn_mode(false),
-   keep_all_pictures(false),
-   accept_single_click(false),
-   hide_glyph_numbers(false),
-   diagnostic_mode(false),
-   no_sound(false),
-   tab_changes_focus(false),
-   max_print_length(59),
-   resolve_test_minutes(0),
-   singing_call_mode(0),
-   use_escapes_for_drawing_people(0),
-   pn1("11223344"),
-   pn2("BGBGBGBG"),
-   direc("?>?<????^?V?????"),
-   stddirec("?>?<????^?V?????"),
-   squeeze_this_newline(0),
-   drawing_picture(0)
-{}
-
-
 extern int sdmain(int argc, char *argv[], iobase & ggg)
 {
-//    printf("sdmain: argc=%d\n", argc);
-//    fflush(stdout);
    bool just_get_out_of_here = false;
 
    if (argc >= 2 && strcmp(argv[1], "-help") == 0) {
@@ -1036,6 +989,7 @@ extern int sdmain(int argc, char *argv[], iobase & ggg)
       printf("-color_by_couple_ygrb       similar to color_by_couple, but with ygrb\n");
       printf("-color_by_corner            similar to color_by_couple, but make corners match\n");
       printf("-no_sound                   do not make any noise when an error occurs\n");
+      printf("-keep_all_pictures          all pictures will be kept; no need to specify individually\n");
       printf("-no_intensify               show text in the normal shade instead of extra-bright\n");
       printf("-tab_changes_focus          (Sd only) make the tab key move keyboard focus\n");
       printf("-no_c3x                     C3X calls are off-list, even at C4\n");
@@ -1065,10 +1019,11 @@ extern int sdmain(int argc, char *argv[], iobase & ggg)
    testing_fidelity = false;
    header_comment[0] = 0;
    abridge_filename[0] = 0;
-   verify_options.who = selector_uninitialized;
+   verify_options.who.who[0] = selector_uninitialized;
+   verify_options.who.who[1] = selector_uninitialized;
+   verify_options.who.who[2] = selector_uninitialized;
    verify_options.number_fields = 0;
    verify_options.howmanynumbers = 0;
-   GLOB_doing_frequency = false;
    history_allocation = 15;
    configuration::history = new configuration[history_allocation];
 
@@ -1084,7 +1039,6 @@ extern int sdmain(int argc, char *argv[], iobase & ggg)
    global_cache_failed_flag = false;
 
    // The "ui_utils" object is a singleton.  It will be accessed by the global static variable "gg77".
-   // (Declared in sdbase.h, proclaimed in sdtop.cpp.)
    //
    // There are two other important global singleton objects inside the "ui_utils" object:
    //    The "matcher_p" field is a pointer to the matcher, which is in sdmatch.cpp.  We instantiate
@@ -1092,22 +1046,23 @@ extern int sdmain(int argc, char *argv[], iobase & ggg)
    //    The "iob88" field is a pointer (a reference, to be precise) to the actual user interface.
    //       This is the base interface class that distinguishes between Sd and Sdtty.
    //       It is instantiated in the top-level Sd/Sdtty file and passed to us as incoming argument ggg.
-   //
-   // These are all declared in sdbase.h.
 
-   matcher_class global_matcher;
-   ui_utils thingy(&global_matcher, ggg);
-   gg77 = &thingy;
+   // Create a scope to go into and out of, so that the "matcher_class" destructor will be called.
+   {
+      matcher_class global_matcher;
+      ui_utils thingy(&global_matcher, ggg);
+      gg77 = &thingy;
 
-   if (just_get_out_of_here) general_final_exit(0);  // general_final_exit requires gg77, even if just doing "-help".
+      if (!just_get_out_of_here) {
+         // In addition to the "ui_utils" object having a reference ("iob88") to the user interface,
+         // the user interface needs a pointer back to the "ui_utils" object.  This is set with "set_utils_ptr".
+         ggg.set_utils_ptr(gg77);
 
-   // In addition to the "ui_utils" object having a reference ("iob88") to the user interface,
-   // the user interface needs a pointer back to the "ui_utils" object.  This is set with "set_utils_ptr".
-   ggg.set_utils_ptr(gg77);
-
-   if (!open_session(argc, argv)) {
-      thingy.run_program(ggg);
-      close_session();
+         if (!open_session(argc, argv)) {
+            thingy.run_program(ggg);
+            close_session();
+         }
+      }
    }
 
    // This does a lot more than just exit.  It updates the init file.

@@ -5,7 +5,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2017  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -35,8 +35,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 // These are written as the first two halfwords of the binary database file.
 // The format version is not related to the version of the program or database.
@@ -47,7 +45,7 @@
 // database format version.
 
 #define DATABASE_MAGIC_NUM 21316
-#define DATABASE_FORMAT_VERSION 341
+#define DATABASE_FORMAT_VERSION 396
 
 
 // We used to do some stuff to cater to compiler vendors (e.g. Sun
@@ -76,6 +74,7 @@
 // (But we still leave the ifdef in place; it does no harm.)
 //
 // We no longer take pity on broken compilers or operating systems.
+// We are now using "int8_t" in place of "veryshort".
 
 #ifdef NO_SIGNED_CHAR
 #error "We need to have the char datatype be signed"
@@ -141,15 +140,18 @@
 // incorrect code, in a phase-of-the-moon-dependent way, for "snag bits and pieces",
 // and there is no evidence that Micro$oft ever fixed this.  So we stick with version 6
 // and use it only for its nice debugger.  Production code is compiled with MinGW/gcc.
-// Apparently VS 2015, with _MSC_VER = 1900, doesn't need this.  They finally got their act together
-// (in this small matter.)
+// Apparently VS 2015, with _MSC_VER = 1900, doesn't need this.  They finally got
+// their act together (in this small matter.)
+// In Visual C++ 6.0, _MSC_VER is 1200.
+// In Visual C++ 2019, _MSC_VER is 1925.
 
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #define USE_OWN_INT_MACROS
 #endif
 
 // Put other definitions based on known properties of compilers here ....
-
+// Yes, this stuff happens vith Visual C++ 6.0.
+// It does not happen with Mingw G++ 4.8.1 on Windows XP.
 
 #if defined(USE_OWN_INT_MACROS)
 typedef int int32_t;
@@ -170,28 +172,16 @@ typedef unsigned char uint8_t;
 #undef UINT16_C
 #undef INT32_C
 #undef UINT32_C
+#undef UINT64_C
 #define INT8_C(val) ((int8_t) + (val))
 #define UINT8_C(val) ((uint8_t) + (val##U))
 #define INT16_C(val) ((int16_t) + (val))
 #define UINT16_C(val) ((uint16_t) + (val##U))
 #define INT32_C(val) ((uint32_t) + (val##L))
 #define UINT32_C(val) ((uint32_t) + (val##UL))
+#define UINT64_C(val) ((uint64_t) + (val##ULL))
 
 
-
-// The goal is to get rid of the following typedefs, and use the standard
-// type symbols everywhere. That is, things like "uint32" are "legacy code".
-// They will be replaced in due time.
-
-typedef int32_t int32;
-typedef uint32_t uint32;
-typedef int16_t int16;
-typedef uint16_t uint16;
-typedef int8_t veryshort;
-//typedef int8_t int8;
-typedef signed char int8;  // for MSVC 17
-typedef uint8_t uint8;
-// Except this one.
 typedef const char *Cstring;
 
 
@@ -208,15 +198,23 @@ enum base_call_index {
    base_call_chreact_1,
    base_call_makepass_1,
    base_call_nuclear_1,
+   base_call_jaywalk,
    base_call_scootback,
+   base_call_qtagscootback,
    base_call_scoottowave,
+   base_call_tradethewave,
+   base_call_ctrrot,
+   base_call_splctrrot,
    base_call_backemup,
    base_call_circulate,
    base_call_trade,
+   base_call_touch,
    base_call_plainprom,
    base_call_plainpromeighths,
    base_call_any_hand_remake,
    base_call_passthru,
+   base_call_passin,
+   base_call_passout,
    base_call_check_cross_counter,
    base_call_lockit,
    base_call_disband1,
@@ -231,6 +229,7 @@ enum base_call_index {
    base_base_hinge_for_breaker,
    base_base_hinge_and_then_trade,
    base_base_hinge_and_then_trade_for_breaker,
+   base_call_ctrarmturn_n4_utb,
    base_call_two_o_circs,
    base_call_cloverleaf,
    base_call_clover,
@@ -242,11 +241,12 @@ enum base_call_index {
    base_call_circcer,
    base_call_turnstar_n,
    base_call_revert_if_needed,
+   base_call_extend,
    base_call_extend_n,
+   base_call_inrollcirc,
+   base_call_outrollcirc,
    num_base_call_indices    // Not an actual enumeration item.
 };
-
-
 
 // BEWARE!!  This list must track the tables "flagtabh", "defmodtabh",
 // "forcetabh", and "altdeftabh" in mkcalls.cpp .  The "K" items also track
@@ -255,86 +255,105 @@ enum base_call_index {
 //
 // These are the infamous "heritable flags".  They are used in generally
 // corresponding ways in the "callflagsh" word of a top level callspec_block,
-// the "modifiersh" word of a "by_def_item", and the "modifier_seth" word of a
+// the "modifiersh" word of a "by_def_item", the "modifier_seth" word of a
 // "calldef_block", and the "cmd_final_flags.herit" of a setup with its command block.
+// These things (right then left) track the table "defmodtabh" in mkcalls.cpp.
 
-enum heritflags {
-   INHERITFLAG_DIAMOND    = 0x00000001U,
-   INHERITFLAG_REVERSE    = 0x00000002U,
-   INHERITFLAG_LEFT       = 0x00000004U,
-   INHERITFLAG_FUNNY      = 0x00000008U,
-   INHERITFLAG_INTLK      = 0x00000010U,
-   INHERITFLAG_MAGIC      = 0x00000020U,
-   INHERITFLAG_GRAND      = 0x00000040U,
-   INHERITFLAG_12_MATRIX  = 0x00000080U,
-   INHERITFLAG_16_MATRIX  = 0x00000100U,
-   INHERITFLAG_CROSS      = 0x00000200U,
-   INHERITFLAG_SINGLE     = 0x00000400U,
-   INHERITFLAG_SINGLEFILE = 0x00000800U,
-   INHERITFLAG_HALF       = 0x00001000U,
-   INHERITFLAG_REWIND     = 0x00002000U,
-   INHERITFLAG_STRAIGHT   = 0x00004000U,
-   INHERITFLAG_TWISTED    = 0x00008000U,
-   INHERITFLAG_LASTHALF   = 0x00010000U,
-   INHERITFLAG_FRACTAL    = 0x00020000U,
-   INHERITFLAG_FAST       = 0x00040000U,
+// This (heritflags) used to be an enum (two of them, in fact, because these things were
+// divided into 32-bit fields.  But apparently enums aren't 64 bits, even with 64 bit
+// compilers, so they are now nakes uint64's.
 
-   // This is a 2 bit field.  These track "yoyotabforce" and "yoyotabplain" in mkcalls.cpp.
-   INHERITFLAG_YOYOETCMASK      = 0x00180000U,
-   // This is its low bit.
-   INHERITFLAG_YOYOETCBIT       = 0x00080000U,
-   // These 3 things are the choices available inside.
-   // Warning!  We sort of cheat on inheritance.  The low bit ("yoyo") means inherit yoyo,
-   // and the high bit ("generous") means inherit both generous and stingy.
-   // The local function "fix_gensting_weirdness", in sdmoves.cpp, deals with this.
-   INHERITFLAG_YOYOETCK_YOYO    = 0x00080000U,
-   INHERITFLAG_YOYOETCK_GENEROUS= 0x00100000U,
-   INHERITFLAG_YOYOETCK_STINGY  = 0x00180000U,
+const uint64_t INHERITFLAG_DIAMOND    = 0x0000000000000001ULL;
+const uint64_t INHERITFLAG_REVERSE    = 0x0000000000000002ULL;
+const uint64_t INHERITFLAG_LEFT       = 0x0000000000000004ULL;
+const uint64_t INHERITFLAG_FUNNY      = 0x0000000000000008ULL;
+const uint64_t INHERITFLAG_INTLK      = 0x0000000000000010ULL;
+const uint64_t INHERITFLAG_MAGIC      = 0x0000000000000020ULL;
+const uint64_t INHERITFLAG_GRAND      = 0x0000000000000040ULL;
+const uint64_t INHERITFLAG_12_MATRIX  = 0x0000000000000080ULL;
+const uint64_t INHERITFLAG_16_MATRIX  = 0x0000000000000100ULL;
+const uint64_t INHERITFLAG_CROSS      = 0x0000000000000200ULL;
+const uint64_t INHERITFLAG_SINGLE     = 0x0000000000000400ULL;
+const uint64_t INHERITFLAG_SINGLEFILE = 0x0000000000000800ULL;
+const uint64_t INHERITFLAG_HALF       = 0x0000000000001000ULL;
+const uint64_t INHERITFLAG_LASTHALF   = 0x0000000000002000ULL;
+const uint64_t INHERITFLAG_REWIND     = 0x0000000000004000ULL;
+const uint64_t INHERITFLAG_STRAIGHT   = 0x0000000000008000ULL;
+const uint64_t INHERITFLAG_TWISTED    = 0x0000000000010000ULL;
+const uint64_t INHERITFLAG_FRACTAL    = 0x0000000000020000ULL;
+const uint64_t INHERITFLAG_FAST       = 0x0000000000040000ULL;
 
-   // This is a 4 bit field.  These track "mxntabforce" and "mxntabplain" in mkcalls.cpp.
-   INHERITFLAG_MXNMASK    = 0x01E00000U,
-   // This is its low bit.
-   INHERITFLAG_MXNBIT     = 0x00200000U,
-   // These 10 things are some of the 15 choices available inside.
-   INHERITFLAGMXNK_1X2    = 0x00200000U,
-   INHERITFLAGMXNK_2X1    = 0x00400000U,
-   INHERITFLAGMXNK_1X3    = 0x00600000U,
-   INHERITFLAGMXNK_3X1    = 0x00800000U,
-   INHERITFLAGMXNK_0X3    = 0x00A00000U,
-   INHERITFLAGMXNK_3X0    = 0x00C00000U,
-   INHERITFLAGMXNK_0X4    = 0x00E00000U,
-   INHERITFLAGMXNK_4X0    = 0x01000000U,
-   INHERITFLAGMXNK_6X2    = 0x01200000U,   // For 6x2 acey deucey.
-   INHERITFLAGMXNK_3X2    = 0x01400000U,   // For 3x2 acey deucey.
+// This is a 2 bit field.  These track "yoyotabforce" and "yoyotabplain" in mkcalls.cpp.
+const uint64_t INHERITFLAG_YOYOETCMASK      = 0x0000000000180000ULL;
+// This is its low bit.
+const uint64_t INHERITFLAG_YOYOETCBIT       = 0x0000000000080000ULL;
+// These 3 things are the choices available inside.
+// Warning!  We sort of cheat on inheritance.  The low bit ("yoyo") means inherit yoyo,
+// and the high bit ("generous") means inherit both generous and stingy.
+// The local function "fix_gensting_weirdness", in sdmoves.cpp, deals with this.
+const uint64_t INHERITFLAG_YOYOETCK_YOYO    = 0x0000000000080000ULL;
+const uint64_t INHERITFLAG_YOYOETCK_GENEROUS= 0x0000000000100000ULL;
+const uint64_t INHERITFLAG_YOYOETCK_STINGY  = 0x0000000000180000ULL;
 
-   // This is a 3 bit field.  These track "nxntabforce" and  "nxntabplain" in mkcalls.cpp.
-   INHERITFLAG_NXNMASK    = 0x0E000000U,
-   // This is its low bit.
-   INHERITFLAG_NXNBIT     = 0x02000000U,
-   // These 7 things are the choices available inside.
-   INHERITFLAGNXNK_2X2    = 0x02000000U,
-   INHERITFLAGNXNK_3X3    = 0x04000000U,
-   INHERITFLAGNXNK_4X4    = 0x06000000U,
-   INHERITFLAGNXNK_5X5    = 0x08000000U,
-   INHERITFLAGNXNK_6X6    = 0x0A000000U,
-   INHERITFLAGNXNK_7X7    = 0x0C000000U,
-   INHERITFLAGNXNK_8X8    = 0x0E000000U,
+// This is a 4 bit field.  These track "mxntabforce" and "mxntabplain" in mkcalls.cpp.
+const uint64_t INHERITFLAG_MXNMASK    = 0x0000000001E00000ULL;
+// This is its low bit.
+const uint64_t INHERITFLAG_MXNBIT     = 0x0000000000200000ULL;
+// These 12 things are some of the 15 choices available inside.
+const uint64_t INHERITFLAGMXNK_1X2    = 0x0000000000200000ULL;
+const uint64_t INHERITFLAGMXNK_2X1    = 0x0000000000400000ULL;
+const uint64_t INHERITFLAGMXNK_1X3    = 0x0000000000600000ULL;
+const uint64_t INHERITFLAGMXNK_3X1    = 0x0000000000800000ULL;
+const uint64_t INHERITFLAGMXNK_0X3    = 0x0000000000A00000ULL;
+const uint64_t INHERITFLAGMXNK_3X0    = 0x0000000000C00000ULL;
+const uint64_t INHERITFLAGMXNK_0X4    = 0x0000000000E00000ULL;
+const uint64_t INHERITFLAGMXNK_4X0    = 0x0000000001000000ULL;
+const uint64_t INHERITFLAGMXNK_6X2    = 0x0000000001200000ULL;   // For 6x2 acey deucey.
+const uint64_t INHERITFLAGMXNK_3X2    = 0x0000000001400000ULL;   // For 3x2 acey deucey.
+const uint64_t INHERITFLAGMXNK_3X5    = 0x0000000001600000ULL;
+const uint64_t INHERITFLAGMXNK_5X3    = 0x0000000001800000ULL;
 
-   // This is a 3 bit field.  These track "reverttabforce" and "reverttabplain" in mkcalls.cpp .
-   INHERITFLAG_REVERTMASK = 0x70000000U,
-   // This is its low bit.
-   INHERITFLAG_REVERTBIT  = 0x10000000U,
-   // These 7 things are the choices available inside.
-   INHERITFLAGRVRTK_REVERT= 0x10000000U,
-   INHERITFLAGRVRTK_REFLECT=0x20000000U,
-   INHERITFLAGRVRTK_RVF   = 0x30000000U,
-   INHERITFLAGRVRTK_RFV   = 0x40000000U,
-   INHERITFLAGRVRTK_RVFV  = 0x50000000U,
-   INHERITFLAGRVRTK_RFVF  = 0x60000000U,
-   INHERITFLAGRVRTK_RFF   = 0x70000000U
+// This is a 3 bit field.  These track "nxntabforce" and  "nxntabplain" in mkcalls.cpp.
+const uint64_t INHERITFLAG_NXNMASK    = 0x000000000E000000ULL;
+// This is its low bit.
+const uint64_t INHERITFLAG_NXNBIT     = 0x0000000002000000ULL;
+// These 7 things are the choices available inside.
+const uint64_t INHERITFLAGNXNK_2X2    = 0x0000000002000000ULL;
+const uint64_t INHERITFLAGNXNK_3X3    = 0x0000000004000000ULL;
+const uint64_t INHERITFLAGNXNK_4X4    = 0x0000000006000000ULL;
+const uint64_t INHERITFLAGNXNK_5X5    = 0x0000000008000000ULL;
+const uint64_t INHERITFLAGNXNK_6X6    = 0x000000000A000000ULL;
+const uint64_t INHERITFLAGNXNK_7X7    = 0x000000000C000000ULL;
+const uint64_t INHERITFLAGNXNK_8X8    = 0x000000000E000000ULL;
 
-   // one bit remains.
-};
+// This is a 3 bit field.  These track "reverttabforce" and "reverttabplain" in mkcalls.cpp .
+const uint64_t INHERITFLAG_REVERTMASK = 0x0000000070000000ULL;
+// This is its low bit.
+const uint64_t INHERITFLAG_REVERTBIT  = 0x0000000010000000ULL;
+// These 7 things are the choices available inside.
+const uint64_t INHERITFLAGRVRTK_REVERT= 0x0000000010000000ULL;
+const uint64_t INHERITFLAGRVRTK_REFLECT=0x0000000020000000ULL;
+const uint64_t INHERITFLAGRVRTK_RVF   = 0x0000000030000000ULL;
+const uint64_t INHERITFLAGRVRTK_RFV   = 0x0000000040000000ULL;
+const uint64_t INHERITFLAGRVRTK_RVFV  = 0x0000000050000000ULL;
+const uint64_t INHERITFLAGRVRTK_RFVF  = 0x0000000060000000ULL;
+const uint64_t INHERITFLAGRVRTK_RFF   = 0x0000000070000000ULL;
+const uint64_t INHERITFLAG_QUARTER    = 0x0000000080000000ULL;
+const uint64_t INHERITFLAG_INROLL     = 0x0000000100000000ULL;
+const uint64_t INHERITFLAG_OUTROLL    = 0x0000000200000000ULL;
+const uint64_t INHERITFLAG_SPLITTRADE = 0x0000000400000000ULL;
+const uint64_t INHERITFLAG_BIAS       = 0x0000000800000000ULL;
+const uint64_t INHERITFLAG_BIASTRADE  = 0x0000001000000000ULL;
+const uint64_t INHERITFLAG_ORBIT      = 0x0000002000000000ULL;
+const uint64_t INHERITFLAG_TWINORBIT  = 0x0000004000000000ULL;
+const uint64_t INHERITFLAG_ROTARY     = 0x0000008000000000ULL;
+const uint64_t INHERITFLAG_SCATTER    = 0x0000010000000000ULL;
+const uint64_t INHERITFLAG_ZOOMROLL   = 0x0000020000000000ULL;
+const uint64_t INHERITFLAG_TRADE      = 0x0000040000000000ULL;
+const uint64_t INHERITFLAG_CROSSOVER  = 0x0000080000000000ULL;
+
+
+typedef uint64_t heritflags;
 
 
 // CFLAG1_FUDGE_TO_Q_TAG means three things, the main one being that the
@@ -412,7 +431,7 @@ enum {
    CFLAG2_NO_RAISE_OVERCAST         = 0x08000000U,
    CFLAG2_OVERCAST_TRANSPARENT      = 0x10000000U,
    CFLAG2_IS_STAR_CALL              = 0x20000000U,
-   CFLAG2_ACCEPT_IN_ALL_MENUS       = 0x40000000U
+   CFLAG2_CAN_DO_IN_Z               = 0x40000000U
    // 1 spare.
 };
 
@@ -427,14 +446,17 @@ enum {
    MTX_BOTH_SELECTED_OK       = 0x40,
    MTX_FIND_SQUEEZERS         = 0x80,
    MTX_FIND_SPREADERS         = 0x100,
-   MTX_USE_VEER_DATA          = 0x200,
-   MTX_USE_NUMBER             = 0x400,
-   MTX_MIRROR_IF_RIGHT_OF_CTR = 0x800,
-   MTX_ONLY_IN                = 0x1000,
-   MTX_ONLY_OUT               = 0x2000,
-   MTX_ADD_2N                 = 0x4000,
-   MTX_INCLUDE_PHANTOMS       = 0x8000,
-   MTX_NOT_TRUE_INVADER       = 0x10000
+   MTX_FIND_TRADERS           = 0x200,
+   MTX_USE_VEER_DATA          = 0x400,
+   MTX_USE_NUMBER             = 0x800,
+   MTX_MIRROR_IF_RIGHT_OF_CTR = 0x1000,
+   MTX_ONLY_IN                = 0x2000,
+   MTX_ONLY_OUT               = 0x4000,
+   MTX_ADD_2N                 = 0x8000,
+   MTX_INCLUDE_PHANTOMS       = 0x10000,
+   MTX_NOT_TRUE_INVADER       = 0x20000,
+   MTX_SELECTOR_IS_TRAILERS   = 0x40000,
+   MTX_DO_HALF_OF_CTR_ROT     = 0x80000
 };
 
 
@@ -528,13 +550,13 @@ enum setup_kind {
    s2x3,
    s_1x2dmd,
    s_2x1dmd,
+   sdbltrngl,
    s_wingedstar6,
    s1x3p1dmd,
    s3p1x1dmd,
    s_qtag,
    s_bone,
    s1x8,
-   slittlestars,
    s_2stars,
    s1x3dmd,
    s3x1dmd,
@@ -576,8 +598,6 @@ enum setup_kind {
    s1p5x4,
    sfudgy2x6l,
    sfudgy2x6r,
-   sfudgy2x3l,
-   sfudgy2x3r,
    s2x8,
    s4x4,
    s1x10,
@@ -591,6 +611,7 @@ enum setup_kind {
    s4dmd,
    s3ptpd,
    s4ptpd,
+   s2x2dmd,
    s_trngl8,
    s4p2x1dmd,
    splinepdmd,
@@ -639,9 +660,12 @@ enum setup_kind {
    s_tinyhyperbone, // Ditto.
    s8x8,      // Ditto.
    sxequlize, // Ditto.
-   sx1x6,     // Ditto.
-   sx1x8,     // This one is now real!
-   sx1x16,    // Ditto.
+   sx1x6,   
+   s1x4_1x6,
+   s1x4_1x8,
+   s1x6_1x8,
+   sx1x8,   
+   sx1x16,    // As above.
    shypergal, // Ditto.
    shyper4x8a,// Ditto.
    shyper4x8b,// Ditto.
@@ -654,6 +678,8 @@ enum setup_kind {
    s_3223,
    s_525,
    s_545,
+   s3x5,
+   s_434,
    sh545,
    s_23232,
    s_3mdmd,
@@ -835,12 +861,34 @@ enum begin_kind {
    b_p3ptpd,
    b_4ptpd,
    b_p4ptpd,
+   b_2x2dmd,
+   b_p2x2dmd,
    b_hqtag,
    b_phqtag,
    b_hsqtag,
    b_phsqtag,
    b_wingedstar,
    b_pwingedstar,
+   b_ntrgl6cw,
+   b_pntrgl6cw,
+   b_ntrgl6ccw,
+   b_pntrgl6ccw,
+   b_nftrgl6cw,
+   b_pnftrgl6cw,
+   b_nftrgl6ccw,
+   b_pnftrgl6ccw,
+   b_ntrglcw,
+   b_pntrglcw,
+   b_ntrglccw,
+   b_pntrglccw,
+   b_nptrglcw,
+   b_pnptrglcw,
+   b_nptrglccw,
+   b_pnptrglccw,
+   b_nxtrglcw,
+   b_pnxtrglcw,
+   b_nxtrglccw,
+   b_pnxtrglccw,
    b_323,
    b_p323,
    b_343,
@@ -851,6 +899,10 @@ enum begin_kind {
    b_p525,
    b_545,
    b_p545,
+   b_3x5,
+   b_p3x5,
+   b_434,
+   b_p434,
    bh545,
    bhp545,
    b_23232,
@@ -910,32 +962,36 @@ enum begin_kind {
 
 enum {
    // This one must be 1!!!!
-   CAF__ROT                     = 0x1,
-   CAF__FACING_FUNNY            = 0x2,
+   CAF__ROT                  = 0x00000001,
+   CAF__FACING_FUNNY         = 0x00000002,
    // Next one says this is concentrically defined --- the "end_setup" slot
-   // has the centers' end setup, and there is an extra slot with the ends' end setup.
-   CAF__CONCEND                 = 0x4,
+   // has the centers' final setup, and there is an extra slot with the ends' final setup.
+   CAF__CONCEND              = 0x00000004,
    // Next one meaningful only if previous one is set.
-   CAF__ROT_OUT                 = 0x8,
+   CAF__ROT_OUT              = 0x00000008,
+
    // This is a 3 bit field.
-   CAF__RESTR_MASK             = 0x70,
-   // These next 6 are the nonzero values it can have.
-   CAF__RESTR_UNUSUAL          = 0x10,
-   CAF__RESTR_FORBID           = 0x20,
-   CAF__RESTR_RESOLVE_OK       = 0x30,
-   CAF__RESTR_CONTROVERSIAL    = 0x40,
-   CAF__RESTR_BOGUS            = 0x50,
-   CAF__RESTR_ASSUME_DPT       = 0x60,
-   CAF__RESTR_EACH_1X3         = 0x70,
-   CAF__PREDS                  = 0x80,
-   CAF__NO_CUTTING_THROUGH    = 0x100,
-   CAF__NO_FACING_ENDS        = 0x200,
-   CAF__LATERAL_TO_SELECTEES  = 0x400,
-   CAF__OTHER_ELONGATE        = 0x800,
-   CAF__SPLIT_TO_BOX         = 0x1000,
-   CAF__REALLY_WANT_DIAMOND  = 0x2000,
-   CAF__NO_COMPRESS          = 0x4000,
-   CAF__PLUSEIGHTH_ROTATION  = 0x8000,
+   CAF__RESTR_MASK           = 0x00000070,
+   // These next 7 are the nonzero values it can have.
+   CAF__RESTR_UNUSUAL        = 0x00000010,
+   CAF__RESTR_FORBID         = 0x00000020,
+   CAF__RESTR_RESOLVE_OK     = 0x00000030,
+   CAF__RESTR_CONTROVERSIAL  = 0x00000040,
+   CAF__RESTR_BOGUS          = 0x00000050,
+   CAF__RESTR_ASSUME_DPT     = 0x00000060,
+   CAF__RESTR_EACH_1X3       = 0x00000070,
+
+   CAF__PREDS                = 0x00000080,
+   CAF__NO_CUTTING_THROUGH   = 0x00000100,
+   CAF__NO_FACING_ENDS       = 0x00000200,
+   CAF__LATERAL_TO_SELECTEES = 0x00000400,
+   CAF__OTHER_ELONGATE       = 0x00000800,
+   CAF__SPLIT_TO_BOX         = 0x00001000,
+   CAF__REALLY_WANT_DIAMOND  = 0x00002000,
+   CAF__NO_COMPRESS          = 0x00004000,
+   CAF__PLUSEIGHTH_ROTATION  = 0x00008000,
+   CAF__ROLL_TRANSPARENT     = 0x00010000,
+   CAF__IS_SPACE_INVADER     = 0x00020000
 };
 
 // BEWARE!!  This list must track the array "qualtab" in mkcalls.cpp
@@ -954,6 +1010,9 @@ enum call_restriction {
    cr_ctr_2fl_only,
    cr_3x3_2fl_only,
    cr_4x4_2fl_only,
+   cr_tidal_line,
+   cr_tidal_wave,
+   cr_tidal_2fl,
    cr_leads_only,          // Restriction only.
    cr_trailers_only,       // Restriction only.
    cr_couples_only,
@@ -968,6 +1027,8 @@ enum call_restriction {
    cr_diamond_like,
    cr_qtag_like,
    cr_qtag_like_anisotropic,
+   cr_qline_like_l,
+   cr_qline_like_r,
    cr_pu_qtag_like,
    cr_conc_iosame,
    cr_conc_iodiff,
@@ -1012,12 +1073,15 @@ enum call_restriction {
    cr_said_tgl,            // Qualifier only.
    cr_didnt_say_tgl,       // Qualifier only.
    cr_said_gal,            // Qualifier only.
+   cr_didnt_say_matrix,    // Qualifier only.
    cr_occupied_as_stars,   // Qualifier only.
    cr_occupied_as_clumps,  // Qualifier only.
    cr_occupied_as_blocks,  // Qualifier only.
+   cr_occupied_as_traps,   // Qualifier only.
    cr_occupied_as_h,       // Qualifier only.
    cr_occupied_as_qtag,    // Qualifier only.
    cr_occupied_as_3x1tgl,  // Qualifier only.
+   cr_occupied_as_o,       // Qualifier only.
    cr_line_ends_looking_out, // Qualifier only.
    cr_col_ends_lookin_in,  // Qualifier only.
    cr_ripple_one_end,      // Qualifier only.
@@ -1048,15 +1112,20 @@ enum call_restriction {
    cr_judge_is_ccw,
    cr_socker_is_cw,
    cr_socker_is_ccw,
+   cr_ends_didnt_move,
    cr_levelplus,
    cr_levela1,
    cr_levela2,
    cr_levelc1,
    cr_levelc2,
+   cr_levelc3a,
    cr_levelc3,
+   cr_levelc4a,
    cr_levelc4,
    cr_not_tboned,          // Restriction only.
    cr_opposite_sex,
+   cr_quarterbox,
+   cr_threequarterbox,
    cr_quarterbox_or_col,   // Restriction only.
    cr_quarterbox_or_magic_col, // Restriction only.
    cr_all_ns,              // Restriction only.
@@ -1065,6 +1134,11 @@ enum call_restriction {
    cr_real_3_4_tag,        // Restriction only.
    cr_real_1_4_line,       // Restriction only.
    cr_real_3_4_line,       // Restriction only.
+   cr_hourglass,           // Restriction only.
+   cr_galaxy,              // Restriction only.
+   cr_split_square_setup,  // Restriction only.
+   cr_liftoff_setup,       // Restriction only.
+   cr_i_setup,             // Restriction only.
    cr_jleft,               // Restriction only.
    cr_jright,              // Restriction only.
    cr_ijleft,              // Restriction only.
@@ -1102,6 +1176,7 @@ enum calldef_schema {
    schema_grand_single_cross_concentric,
    schema_single_concentric_together,
    schema_single_cross_concentric_together,
+   schema_maybe_6x2_single_conc_together,
    schema_maybe_matrix_single_concentric_together,
    schema_maybe_single_concentric,
    schema_maybe_single_cross_concentric,
@@ -1128,7 +1203,7 @@ enum calldef_schema {
    schema_concentric_zs,
    schema_cross_concentric_zs,
    schema_concentric_or_diamond_line,
-   schema_concentric_or_6_2_line,
+   schema_concentric_or_2_6_line,
    schema_concentric_6_2,
    schema_cross_concentric_6_2,
    schema_concentric_6_2_line,
@@ -1137,6 +1212,7 @@ enum calldef_schema {
    schema_concentric_2_4,
    schema_cross_concentric_2_4,
    schema_concentric_2_4_or_normal,
+   schema_concentric_2_4_or_single,
    schema_concentric_4_2,
    schema_concentric_4_2_prefer_1x4,
    schema_cross_concentric_4_2,
@@ -1146,6 +1222,9 @@ enum calldef_schema {
    schema_concentric_8_4,        // Not for public use!
    schema_concentric_big2_6,     // Not for public use!
    schema_concentric_2_6_or_2_4,
+   schema_concentric_2_6_or_2_4_or_2_2,
+   schema_concentric_6_2_or_4_2,
+   schema_concentric_6_2_or_4_2_line,
    schema_cross_concentric_2_6_or_2_4,
    schema_concentric_innermost,
    schema_concentric_touch_by_1_of_3,
@@ -1156,6 +1235,7 @@ enum calldef_schema {
    schema_single_cross_concentric_together_if_odd,
    schema_concentric_6p,
    schema_concentric_6p_or_normal,
+   schema_concentric_6p_or_normal_maybe_single,
    schema_concentric_6p_or_normal_or_2x6_2x3,
    schema_concentric_6p_or_sgltogether,
    schema_cross_concentric_6p_or_normal,
@@ -1165,6 +1245,7 @@ enum calldef_schema {
    schema_concentric_no31dwarn,
    schema_concentric_specialpromenade,
    schema_cross_concentric_specialpromenade,
+   schema_concentric_ctrbox,
    schema_conc_12,
    schema_conc_16,
    schema_conc_star,
@@ -1197,6 +1278,8 @@ enum calldef_schema {
    schema_sgl_in_out_triple,
    schema_3x3_in_out_triple,
    schema_4x4_in_out_triple,
+   schema_inner_2x4,
+   schema_inner_2x6,
    schema_in_out_quad,
    schema_in_out_12mquad,
    schema_in_out_triple_zcom,
@@ -1225,6 +1308,7 @@ enum calldef_schema {
    schema_matrix,
    schema_partner_matrix,
    schema_partner_partial_matrix,
+   schema_counter_rotate,
    schema_roll,
    schema_recenter,
    schema_sequential,            // All after this point are sequential.
@@ -1252,13 +1336,13 @@ enum calldef_schema {
    database.h . There is compile-time code in sdinit.cpp to check that these
    constants are all in step.
 
-   dfm_conc_demand_lines             --  concdefine outers: must be ends of lines at start
-   dfm_conc_demand_columns           --  concdefine outers: must be ends of columns at start
-   dfm_conc_force_lines              --  concdefine outers: force them to line spots when done
-   dfm_conc_force_columns            --  concdefine outers: force them to column spots when done
-   dfm_conc_force_otherway           --  concdefine outers: force them to other spots when done
-   dfm_conc_force_spots              --  concdefine outers: force them to same spots when done
-   dfm1_conc_concentric_rules        --  concdefine outers: apply actual concentric ("lines-to-lines/columns-to-columns") rule
+   dfm1_conc_demand_lines        --  concdefine outers: must be ends of lines at start
+   dfm1_conc_demand_columns      --  concdefine outers: must be ends of columns at start
+   dfm1_conc_force_lines         --  concdefine outers: force them to line spots when done
+   dfm1_conc_force_columns       --  concdefine outers: force them to column spots when done
+   dfm1_conc_force_otherway      --  concdefine outers: force them to other spots when done
+   dfm1_conc_force_spots         --  concdefine outers: force them to same spots when done
+   dfm1_conc_concentric_rules    --  concdefine outers: apply actual concentric ("lines-to-lines/columns-to-columns") rule
    dfm1_suppress_elongation_warnings --  concdefine outers: suppress warn_lineconc_perp etc.
            NOTE: the above 8 flags are specified only in the second spec, even if the concept is
               cross-concentric, in which case the "demand" flags might be considered to belong
@@ -1332,8 +1416,12 @@ enum mods1_word {
    DFM1_SEQ_REENABLE_ELONG_CHK       = 0x00000008U,
    DFM1_SEQ_REPEAT_N                 = 0x00000010U,
    DFM1_SEQ_REPEAT_NM1               = 0x00000020U,
-   DFM1_SEQ_NORMALIZE                = 0x00000040U,
-   // Beware!!  The above "seq" flags must all lie within DFM1_CONCENTRICITY_FLAG_MASK.
+   DFM1_SEQ_REPEAT_NOVER4            = 0x00000040U,
+   DFM1_SEQ_REPEAT_NOVER2            = 0x00000080U,
+   DFM1_SEQ_NORMALIZE                = 0x00000100U,
+
+
+   // Beware!!  The above "conc" and "seq" flags must all lie within DFM1_CONCENTRICITY_FLAG_MASK.
 
    // End of the separate conc/seq flags.  This constant embraces them.
    // Beware!!  The above "conc" and "seq" flags must lie within this.
@@ -1341,23 +1429,22 @@ enum mods1_word {
    // If this mask is made bigger, be sure the CMD_MISC__ flags (in sd.h)
    // are moved out of the way.  If it is made smaller (to accommodate CMD_MISC__)
    // be sure the conc/seq flags stay inside it.
-   DFM1_CONCENTRICITY_FLAG_MASK      = 0x000000FF,
+   DFM1_CONCENTRICITY_FLAG_MASK      = 0x000001FF,
 
    // BEWARE!!  The following ones must track the table "defmodtab1" in mkcalls.cpp
    // Start of miscellaneous flags.
 
    // This is a 3 bit field -- CALL_MOD_BIT tells where its low bit lies.
-   DFM1_CALL_MOD_MASK                = 0x00000700U,
-   DFM1_CALL_MOD_BIT                 = 0x00000100U,
+   DFM1_CALL_MOD_MASK                = 0x00000E00U,
+   DFM1_CALL_MOD_BIT                 = 0x00000200U,
    // Here are the codes that can be inside.
-   DFM1_CALL_MOD_ANYCALL             = 0x00000100U,
-   DFM1_CALL_MOD_MAND_ANYCALL        = 0x00000200U,
-   DFM1_CALL_MOD_ALLOW_PLAIN_MOD     = 0x00000300U,
-   DFM1_CALL_MOD_ALLOW_FORCED_MOD    = 0x00000400U,
-   DFM1_CALL_MOD_OR_SECONDARY        = 0x00000500U,
-   DFM1_CALL_MOD_MAND_SECONDARY      = 0x00000600U,
+   DFM1_CALL_MOD_ANYCALL             = 0x00000200U,
+   DFM1_CALL_MOD_MAND_ANYCALL        = 0x00000400U,
+   DFM1_CALL_MOD_ALLOW_PLAIN_MOD     = 0x00000600U,
+   DFM1_CALL_MOD_ALLOW_FORCED_MOD    = 0x00000800U,
+   DFM1_CALL_MOD_OR_SECONDARY        = 0x00000A00U,
+   DFM1_CALL_MOD_MAND_SECONDARY      = 0x00000C00U,
 
-   DFM1_ONLY_FORCE_ELONG_IF_EMPTY    = 0x00000800U,
    DFM1_ROLL_TRANSPARENT_IF_Z        = 0x00001000U,
    DFM1_ENDSCANDO                    = 0x00002000U,
    DFM1_FINISH_THIS                  = 0x00004000U,
@@ -1372,7 +1459,9 @@ enum mods1_word {
    DFM1_NUM_INSERT_BIT               = 0x00100000U,
    DFM1_NO_CHECK_MOD_LEVEL           = 0x00800000U,
    DFM1_FRACTAL_INSERT               = 0x01000000U,
-   DFM1_SUPPRESS_ROLL                = 0x02000000U
+   DFM1_SUPPRESS_ROLL                = 0x02000000U,
+   DFM1_ONLY_FORCE_ELONG_IF_EMPTY    = 0x04000000U,
+   DFM1_ASSUMPTION_TRANSPARENT       = 0x08000000U
 };
 
 enum  {
@@ -1417,7 +1506,7 @@ enum {
 
 // Some external stuff in common.cpp:
 
-extern bool do_heritflag_merge(uint32 *dest, uint32 source);
+extern bool do_heritflag_merge(heritflags & dest, heritflags source);
 extern int begin_sizes[];
 
 #endif   /* DATABASE_H */

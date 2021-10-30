@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2017  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -32,8 +32,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 /* This defines the following functions:
    get_escape_string
@@ -60,9 +58,6 @@
    initialize_parse
    run_program
 and the following external variables:
-   GLOB_doing_frequency
-   GLOB_stats_filename
-   GLOB_decorated_stats_filename
    global_error_flag
    global_cache_failed_flag
    global_cache_miss_reason
@@ -88,7 +83,6 @@ and the following external variables:
 #include <string.h>
 
 #include "sd.h"
-#include "sdui.h"
 #include "sort.h"
 
 
@@ -97,16 +91,13 @@ ui_option_type ui_options;
 Cstring cardinals[NUM_CARDINALS+1];
 Cstring ordinals[NUM_CARDINALS+1];
 abridge_mode_t glob_abridge_mode;
-bool GLOB_doing_frequency;
-char GLOB_stats_filename[MAX_TEXT_LINE_LENGTH];
-char GLOB_decorated_stats_filename[MAX_TEXT_LINE_LENGTH];
 error_flag_type global_error_flag;
 bool global_cache_failed_flag;
 // Word 0 is the error code
 //   (Zero if hit, missing index+1 if miss, 9 if couldn't open the cache file.)
 // Word 1 is what we wanted at the index.
 // Word 2 is what we got.
-int global_cache_miss_reason[3];
+int global_cache_miss_reason[15];
 uims_reply_thing global_reply(ui_user_cancel, 99);
 configuration *clipboard = (configuration *) 0;
 int clipboard_size = 0;
@@ -356,10 +347,47 @@ void ui_utils::write_nice_number(char indicator, int num)
 }
 
 
+ui_option_type::ui_option_type() :
+   color_scheme(color_by_gender),
+   force_session(-1000000),
+   sequence_num_override(-1),
+   no_graphics(0),
+   no_c3x(false),
+   no_intensify(false),
+   reverse_video(false),
+   pastel_color(false),
+   use_magenta(false),
+   use_cyan(false),
+   singlespace_mode(false),
+   nowarn_mode(false),
+   keep_all_pictures(false),
+   accept_single_click(false),
+   hide_glyph_numbers(false),
+   diagnostic_mode(false),
+   no_sound(false),
+   tab_changes_focus(false),
+   max_print_length(59),
+   resolve_test_minutes(0),
+   resolve_test_random_seed(0),
+   singing_call_mode(0),
+   use_escapes_for_drawing_people(0),
+   pn1("11223344"),
+   pn2("BGBGBGBG"),
+   direc("?>?<????^?V?????"),
+   stddirec("?>?<????^?V?????"),
+   squeeze_this_newline(0),
+   drawing_picture(0)
+{}
+
+
+
+
 void ui_utils::writestuff_with_decorations(const call_conc_option_state *cptr, Cstring f, bool is_concept)
 {
-   uint32 index = cptr->number_fields;
+   uint32_t index = cptr->number_fields;
    int howmany = cptr->howmanynumbers;
+   call_conc_option_state recurse_ptr = *cptr;
+   recurse_ptr.who.collapse_down();
 
    while (f[0]) {
       if (f[0] == '@') {
@@ -374,10 +402,10 @@ void ui_utils::writestuff_with_decorations(const call_conc_option_state *cptr, C
             writestuff(is_concept ? direction_names[cptr->where].name_uc : direction_names[cptr->where].name);
             break;
          case '6': case 'K': case 'V':
-            writestuff(selector_list[cptr->who].name_uc);
+            writestuff_with_decorations(&recurse_ptr, selector_list[cptr->who.who[0]].name_uc, is_concept);
             break;
          case 'k':
-            writestuff(selector_list[cptr->who].sing_name_uc);
+            writestuff_with_decorations(&recurse_ptr, selector_list[cptr->who.who[0]].sing_name_uc, is_concept);
             break;
          default:   /**** maybe we should really do what "translate_menu_name"
                           does, using call to "get_escape_string". */
@@ -392,7 +420,7 @@ void ui_utils::writestuff_with_decorations(const call_conc_option_state *cptr, C
 }
 
 
-void ui_utils::printperson(uint32 x)
+void ui_utils::printperson(uint32_t x)
 {
    if (x & BIT_PERSON) {
       if (enable_file_writing || ui_options.use_escapes_for_drawing_people == 0) {
@@ -479,6 +507,7 @@ void ui_utils::print_4_person_setup(int ps, small_setup *s, int elong)
    offs = (((roti >> 1) & 1) * (modulus / 2)) - modulus;
 
    if (s->skind == s2x2) {
+      offs = 0;
       if (elong < 0)
          str = "ab@dc@";
       else if (elong == 1)
@@ -486,7 +515,20 @@ void ui_utils::print_4_person_setup(int ps, small_setup *s, int elong)
       else if (elong == 2)
          str = "ab@@@dc@";
       else
-         str = "a6b@@@d6c@";
+         str = "a  b@@d  c@";
+   }
+   else if (s->skind == s1x4 && (roti & 1) && two_couple_calling) {
+      str = "a@@b@@d@@c";
+   }
+   else if (s->skind == s_trngl4 && two_couple_calling) {
+      Cstring tgl4strings[4] = {
+         "cd@5b@5a@",
+         " 6 6c@7a b@7 6 6d@",
+         "5a@5b@dc@",
+         "d@76b a@7c@"};
+
+      offs = 0;
+      str = tgl4strings[roti];
    }
    else
       str = setup_attrs[s->skind].print_strings[roti & 1];
@@ -497,6 +539,11 @@ void ui_utils::print_4_person_setup(int ps, small_setup *s, int elong)
    }
    else
       writestuff(" ????");
+
+   if (s->seighth_rotation != 0) {
+      writestuff("  Note:  Actual setup is 45 degrees clockwise from diagram above.");
+      newline();
+   }
 
    newline();
 }
@@ -516,7 +563,7 @@ void ui_utils::printsetup(setup *x)
 
    personstart = 0;
 
-   if (setup_attrs[x->kind].four_way_symmetry) {
+   if ((setup_attrs[x->kind].setup_props & SPROP_4_WAY_SYMMETRY) != 0) {
       /* still to do???
          s_1x1
          s2x2
@@ -531,7 +578,7 @@ void ui_utils::printsetup(setup *x)
       str = setup_attrs[x->kind].print_strings[roti & 1];
    }
 
-   if (str)
+   if (str && !two_couple_calling)
       do_write(str);
    else {
       switch (x->kind) {
@@ -761,13 +808,13 @@ void ui_utils::printsetup(setup *x)
             str = "6 6 c d e@7a b@76 6 h g f";
             break;
          case 1:
-            str = " 5a@@ 5b@@ hc@@ gd@@ fe@";
+            str = " 5a@@ 5b@@ hc@@ gd@@ fe";
             break;
          case 2:
             str = "f g h@76 6 6 b a@7e d c";
             break;
          default:
-            str = " ef@@ dg@@ ch@@ 5b@@ 5a@";
+            str = " ef@@ dg@@ ch@@ 5b@@ 5a";
             break;
          }
 
@@ -847,7 +894,7 @@ void ui_utils::printsetup(setup *x)
             str = "h 6 6 d@76 f e 6 b a@7g 6 6 c";
             break;
          default:
-            str = " gh@@ 5f@@ 5e@@ cd@@ 5b@@ 5a@";
+            str = " gh@@ 5f@@ 5e@@ cd@@ 5b@@ 5a";
             break;
          }
 
@@ -868,6 +915,26 @@ void ui_utils::printsetup(setup *x)
             break;
          default:
             str = "696 c@f g@76 6 b d@7e h@696 a";
+            break;
+         }
+
+         do_write(str);
+         break;
+      case sdbltrngl:
+         offs = 0;
+
+         switch (roti) {
+         case 0:
+            str = "6 b 6 e@7a 6 d@76 c 6 f";
+            break;
+         case 1:
+            str = "6 5a@@6 c b@@6 5d@@6 f e";
+            break;
+         case 2:
+            str = "f 6 c@76 6 d 6 a@7e 6 b";
+            break;
+         default:
+            str = "6 e f@@6 5d@@6 b c@@6 5a";
             break;
          }
 
@@ -933,10 +1000,19 @@ void ui_utils::printsetup(setup *x)
          print_4_person_setup(12, &(x->outer), x->concsetup_outer_elongation);
          break;
       default:
-         ui_options.drawing_picture = 0;
-         writestuff("???? UNKNOWN SETUP ????");
-         newline();
-         ui_options.drawing_picture = 1;
+         if (two_couple_calling) {
+            small_setup ss;
+            ss.skind = x->kind;
+            ss.srotation = x->rotation;
+            ss.seighth_rotation = x->eighth_rotation;
+            print_4_person_setup(0, &ss, 3);
+         }
+         else {
+            ui_options.drawing_picture = 0;
+            writestuff("???? UNKNOWN SETUP ????");
+            newline();
+            ui_options.drawing_picture = 1;
+         }
       }
    }
 
@@ -952,6 +1028,7 @@ void ui_utils::write_history_line(int history_index,
                                  file_write_flag write_to_file)
 {
    m_leave_missing_calls_blank = leave_missing_calls_blank;
+   m_selector_recursion_level = -1;  // Will go up to >= 0 when printing selectors.
 
    int w, i;
    parse_block *thing;
@@ -1021,8 +1098,8 @@ void ui_utils::write_history_line(int history_index,
    if (this_item->test_one_warning_specific(warn__split_to_1x3s))
       this_item->clear_one_warning_specific(warn__split_to_1x6s);
 
-   // Or "controversial" and "seriously controversial".
-   if (this_item->test_one_warning_specific(warn_verycontroversial))
+   // Or "controversial" and "other axis".
+   if (this_item->test_one_warning_specific(warn_other_axis))
       this_item->clear_one_warning_specific(warn_controversial);
 
    // Or "really_no_eachsetup".
@@ -1071,12 +1148,12 @@ void ui_utils::write_history_line(int history_index,
 uint32_t ui_utils::get_number_fields(int nnumbers, bool odd_number_only, bool forbid_zero)
 {
    int i;
-   uint32 number_fields = matcher_p->m_final_result.match.call_conc_options.number_fields;
+   uint32_t number_fields = matcher_p->m_final_result.match.call_conc_options.number_fields;
    int howmanynumbers = matcher_p->m_final_result.match.call_conc_options.howmanynumbers;
-   uint32 number_list = 0;
+   uint32_t number_list = 0;
 
    for (i=0 ; i<nnumbers ; i++) {
-      uint32 this_num;
+      uint32_t this_num;
 
       if (!matcher_p->m_final_result.valid || (howmanynumbers <= 0)) {
          this_num = iob88.get_one_number(*matcher_p);
@@ -1140,13 +1217,41 @@ void ui_utils::unparse_call_name(Cstring name, char *s, const call_conc_option_s
 }
 
 
-/* There are 2 bits that are meaningful in the argument to "print_recurse":
+/* There are a few bits that are meaningful in the argument to "print_recurse":
          PRINT_RECURSE_STAR
    This means to print an asterisk for a call that is missing in the
    current type-in state.
          PRINT_RECURSE_CIRC
    This means that this is a circulate-substitute call, and should have any
-   @O ... @P stuff elided from it. */
+   @O ... @P stuff elided from it.
+         PRINT_RECURSE_SELECTOR
+   This means that we are really just printing a selector, from the stack
+   in local_cptr->options.who.
+         PRINT_RECURSE_SELECTOR_SING
+         As above, but print singular name. */
+
+
+
+
+selector_kind fix_short_other_selector(selector_kind kk)
+{
+   selector_kind opp = selector_list[kk].opposite;
+   if (two_couple_calling) {
+      switch (opp) {
+      case selector_outer6: opp = selector_ends; break;
+      case selector_farsix: opp = selector_fartwo; break;
+      case selector_nearsix: opp = selector_neartwo; break;
+      case selector_farfive: opp = selector_farthest1; break;
+      case selector_nearfive: opp = selector_nearest1; break;
+      }
+   }
+
+   return opp;
+}
+
+
+
+
 
 
 void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
@@ -1189,7 +1294,6 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
       }
       else if (k > marker_end_of_list) {
          // This is a concept.
-         if (enable_file_writing) item->frequency++;
          bool force = false;
          // 1 for comma, 2 for the word "all", 3 to skip an extra if it's "tandem".
          int request_comma_after_next_concept = 0;
@@ -1373,7 +1477,7 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
             }
             else if (k == concept_some_vs_others &&
                      (selective_key) item->arg1 != selective_key_own) {
-               selector_kind opp = selector_list[local_cptr->options.who].opposite;
+               selector_kind opp = fix_short_other_selector(local_cptr->options.who.who[0]);
                writestuff(" WHILE THE ");
                writestuff((opp == selector_uninitialized) ?
                           ((Cstring) "OTHERS") :
@@ -1601,10 +1705,6 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
          parse_block *search;
          bool pending_subst1, pending_subst2;
 
-         selector_kind i16junk = local_cptr->options.who;
-         direction_kind idirjunk = local_cptr->options.where;
-         uint32 number_list = local_cptr->options.number_fields;
-         const call_with_name *localcall = local_cptr->call_to_print;
          parse_block *save_cptr = local_cptr;
 
          bool subst1_in_use = false;
@@ -1656,10 +1756,20 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
 
          /* Call = NIL means we are echoing input and user hasn't entered call yet. */
 
-         if (localcall) {
-            Cstring np = localcall->name;
+         direction_kind idirjunk = local_cptr->options.where;
+         uint32_t number_list = local_cptr->options.number_fields;
+         const call_with_name *localcall = local_cptr->call_to_print;
 
-            if (enable_file_writing) localcall->the_defn.frequency++;
+         if (localcall) {
+            Cstring np;
+
+            if (print_recurse_arg & PRINT_RECURSE_SELECTOR_SING)
+               np = selector_list[local_cptr->options.who.who[m_selector_recursion_level]].sing_name;
+            else if (print_recurse_arg & PRINT_RECURSE_SELECTOR)
+               np = selector_list[local_cptr->options.who.who[m_selector_recursion_level]].name;
+            else {
+               np = localcall->name;
+            }
 
             while (*np) {
                char c = *np++;
@@ -1670,12 +1780,12 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
                   switch (savec) {
                   case '6': case 'k': case 'K': case 'V':
                      write_blank_if_needed();
-                     if (savec == 'k')
-                        writestuff(selector_list[i16junk].sing_name);
-                     else
-                        writestuff(selector_list[i16junk].name);
-                     if (np[0] && np[0] != ' ' && np[0] != ']')
+                     m_selector_recursion_level++;
+                     print_recurse(local_cptr, savec == 'k' ? PRINT_RECURSE_SELECTOR_SING : PRINT_RECURSE_SELECTOR);
+                     if (np[0] && np[0] != ' ' && np[0] != ']' && np[0] != '-')
                         writestuff(" ");
+
+                     m_selector_recursion_level--;
                      break;
                   case 'v': case 'w': case 'x': case 'y':
                      write_blank_if_needed();
@@ -1686,8 +1796,7 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
                         parse_block *subsidiary_ptr = search->subsidiary_root;
                         if (subsidiary_ptr &&
                             subsidiary_ptr->call_to_print &&
-                            (subsidiary_ptr->call_to_print->the_defn.callflags1 &
-                             CFLAG1_BASE_TAG_CALL_MASK)) {
+                            (subsidiary_ptr->call_to_print->the_defn.callflags1 & CFLAG1_BASE_TAG_CALL_MASK)) {
                            print_recurse(subsidiary_ptr, 0);
                            goto did_tagger;
                         }
@@ -1731,7 +1840,7 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
                            See if we can get it from the "circcer" field. */
 
                      if (save_cptr->options.circcer > 0)
-                        writestuff(circcer_calls[(save_cptr->options.circcer)-1]->menu_name);
+                        writestuff(circcer_calls[(save_cptr->options.circcer)-1].the_circcer->menu_name);
                      else
                         writestuff("NO CIRCCER???");
 
@@ -1925,7 +2034,9 @@ void ui_utils::print_recurse(parse_block *thing, int print_recurse_arg)
             a natural replacement.  In any case, we have to find forcible replacements and
             report them. */
 
-         if (k == concept_another_call_next_mod) {
+         if (k == concept_another_call_next_mod &&
+             ((print_recurse_arg & (PRINT_RECURSE_SELECTOR_SING | PRINT_RECURSE_SELECTOR)) == 0)) {
+
             int first_replace = 0;
 
             for (search = save_cptr->next ; search ; search = search->next) {
@@ -2060,7 +2171,7 @@ void ui_utils::clear_screen()
    open_text_line();
 }
 
-void ui_utils::write_header_stuff(bool with_ui_version, uint32 act_phan_flags)
+void ui_utils::write_header_stuff(bool with_ui_version, uint32_t act_phan_flags)
 {
    if (!ui_options.diagnostic_mode) {
       // Log creation version info.
@@ -2206,14 +2317,8 @@ void ui_utils::writestuff(const char *s)
    while (*s) writechar(*s++);
 }
 
-void ui_utils::show_match_item(int frequency_to_show)
+void ui_utils::show_match_item()
 {
-   if (frequency_to_show >= 0) {
-      char buffer[MAX_TEXT_LINE_LENGTH];
-      sprintf(buffer, "%-4d ", frequency_to_show);
-      writestuff(buffer);
-   }
-
    if (matcher_p->m_final_result.indent) writestuff("   ");
    writestuff(matcher_p->m_user_input);
    writestuff(matcher_p->m_full_extension);
@@ -2230,7 +2335,7 @@ void parse_block::initialize(const concept_descriptor *cc)
    concept = cc;
    call = (call_with_name *) 0;
    call_to_print = (call_with_name *) 0;
-   options = null_options;
+   options.initialize();
    replacement_key = 0;
    no_check_call_level = false;
    say_and = false;
@@ -2308,8 +2413,7 @@ static parse_state_type saved_parse_state;
 static parse_block *saved_command_root;
 
 
-// SDLIB_API
-extern void reset_parse_tree(parse_block *original_tree, parse_block *final_head)
+SDLIB_API extern void reset_parse_tree(parse_block *original_tree, parse_block *final_head)
 {
    parse_block *new_item = final_head;
    parse_block *old_item = original_tree;
@@ -2718,14 +2822,14 @@ bool ui_utils::write_sequence_to_file() THROW_DECL
 
 namespace {
 
-uint32 id_fixer_array[16] = {
+uint32_t id_fixer_array[16] = {
    07777525252, 07777454545, 07777313131, 07777262626,
    07777522525, 07777453232, 07777314646, 07777265151,
    07777255225, 07777324532, 07777463146, 07777512651,
    07777252552, 07777323245, 07777464631, 07777515126};
 
 
-selector_kind translate_selector_permutation1(uint32 x)
+selector_kind translate_selector_permutation1(uint32_t x)
 {
    switch (x & 077) {
    case 01: return selector_sidecorners;
@@ -2739,7 +2843,7 @@ selector_kind translate_selector_permutation1(uint32 x)
 }
 
 
-selector_kind translate_selector_permutation2(uint32 x)
+selector_kind translate_selector_permutation2(uint32_t x)
 {
    switch (x & 07) {
    case 04: return selector_headboys;
@@ -2760,13 +2864,13 @@ selector_kind translate_selector_permutation2(uint32 x)
 // Otherwise, "1" bit says at
 // least one selector changed.  Zero means nothing changed.
 
-extern uint32 translate_selector_fields(parse_block *xx, uint32 mask)
+extern uint32_t translate_selector_fields(parse_block *xx, uint32_t mask)
 {
    selector_kind z;
-   uint32 retval = 0;
+   uint32_t retval = 0;
 
    for ( ; xx ; xx=xx->next) {
-      switch (xx->options.who) {
+      switch (xx->options.who.who[0]) {
       case selector_heads:
          z = translate_selector_permutation1(mask >> 13);
          break;
@@ -2832,8 +2936,8 @@ extern uint32 translate_selector_fields(parse_block *xx, uint32 mask)
       }
 
       if (z == selector_uninitialized) retval = 2;   // Raise error.
-      if (z != xx->options.who) retval |= 1;         // Note that we changed something.
-      xx->options.who = z;
+      if (z != xx->options.who.who[0]) retval |= 1;         // Note that we changed something.
+      xx->options.who.who[0] = z;
 
    nofix:
 
@@ -2844,7 +2948,7 @@ extern uint32 translate_selector_fields(parse_block *xx, uint32 mask)
 }
 
 // This alters the parse tree in configuration::next_config().command_root.
-extern bool fix_up_call_for_fidelity_test(const setup *old, const setup *nuu, uint32 &global_status)
+extern bool fix_up_call_for_fidelity_test(const setup *old, const setup *nuu, uint32_t &global_status)
 {
    // If the setup, population, and facing directions don't match, the
    // call execution is problematical.  We don't translate selectors.
@@ -2855,21 +2959,21 @@ extern bool fix_up_call_for_fidelity_test(const setup *old, const setup *nuu, ui
       return true;
    }
 
-   uint32 mask = 0777777;
-   uint32 directions1 = 0;
-   uint32 directions2 = 0;
-   uint32 livemask1 = 0;
-   uint32 livemask2 = 0;
+   uint32_t mask = 0777777;
+   uint32_t directions1 = 0;
+   uint32_t directions2 = 0;
+   uint32_t livemask1 = 0;
+   uint32_t livemask2 = 0;
 
    // Find out whether the formations agree, and gather the information
    // that we need to translate the selectors.
 
    for (int i=0; i<=attr::slimit(old); i++) {
-      uint32 q = old->people[i].id1;
-      uint32 p = nuu->people[i].id1;
-      uint32 oldmask = mask;
-      uint32 a = (p >> 6) & 3;
-      uint32 b = (q >> 6) & 3;
+      uint32_t q = old->people[i].id1;
+      uint32_t p = nuu->people[i].id1;
+      uint32_t oldmask = mask;
+      uint32_t a = (p >> 6) & 3;
+      uint32_t b = (q >> 6) & 3;
 
       livemask1 <<= 1;
       livemask2 <<= 1;
@@ -2909,130 +3013,7 @@ extern bool fix_up_call_for_fidelity_test(const setup *old, const setup *nuu, ui
 }
 
 
-class freqitemforsorting {
-public:
-   static bool inorder(uint32 a, uint32 b)
-   { return a > b; }
-};
 
-
-typedef SORT<uint32, freqitemforsorting> freqtablesorter;
-
-
-void ui_utils::do_freq_reset()
-{
-   if (iob88.yesnoconfirm("Confirmation",
-                          "This will reset the frequency counters for the current session, so that they will start over"
-                          " at zero.  No other aspect of this session will change.",
-                          "Do you really want to do this?",
-                          true, false) == POPUP_ACCEPT) {
-      int i;
-
-      for (i=0 ; i<number_of_calls[call_list_any] ; i++)
-         main_call_lists[call_list_any][i]->the_defn.frequency = 0;
-
-      for (i=0 ; i<matcher_p->m_level_concept_list.the_list_size ; i++)
-         concept_descriptor_table[matcher_p->m_level_concept_list.the_list[i]].frequency = 0;
-   }
-}
-
-void ui_utils::do_freq_start()
-{
-   if (session_index <= 0) {
-      writestuff("Frequency counting must be associated with a session.");
-      newline();
-      return;
-   }
-
-   if (GLOB_doing_frequency) {
-      writestuff("You already have frequency counting enabled.");
-      newline();
-      return;
-   }
-
-   if (iob88.get_popup_string("*Enter new frequency file:", "",
-                              "Enter frequency file:", "", GLOB_stats_filename) == POPUP_ACCEPT_WITH_STRING)
-      start_stats_file_from_GLOB_stats_filename();
-   else
-      GLOB_stats_filename[0] = 0;    // Don't leave garbage in it.
-}
-
-void ui_utils::do_freq_delete()
-{
-   if (!GLOB_doing_frequency) {
-      writestuff("Frequency counting is not enabled.");
-      newline();
-      return;
-   }
-
-   if (iob88.yesnoconfirm("Confirmation",
-                          "This will delete the association of the current session with frequency counters,"
-                          " and delete the counter file itself.  No other aspect of this session will change.",
-                          "Do you really want to do this?",
-                          true, false) == POPUP_ACCEPT) {
-      GLOB_doing_frequency = false;
-      remove(GLOB_decorated_stats_filename);
-   }
-}
-
-
-
-void ui_utils::do_freq_show(int options)
-{
-   int freq_show_level_tolerance = options & 0xFFFF;
-
-   if (GLOB_doing_frequency) {
-      // Make the table to sort.
-      // format is
-      //    if call      frequency   complement of (index into actual call or concept list)
-      //        (1)         (15)                           (16)
-      // The reason for the complement is so that the sort will appear to be stable --
-      // items are in decreasing order, so that they are in listed with calls before concepts,
-      // in decreasing frequency, and in the order in the original lists.
-      uint32 *table = new uint32[number_of_calls[call_list_any] + matcher_p->m_level_concept_list.the_list_size];
-      int i;
-      iob88.prepare_for_listing();
-      int how_much_in_table = 0;
-
-      for (i=0 ; i<number_of_calls[call_list_any] ; i++) {
-         const call_with_name *this_call = main_call_lists[call_list_any][i];
-         if ((this_call->the_defn.level) < (int) calling_level-freq_show_level_tolerance) continue;
-         table[how_much_in_table++] = 0x80000000 | (this_call->the_defn.frequency << 16) | (0xFFFF & ~i);
-      }
-
-      for (i=0 ; i<matcher_p->m_level_concept_list.the_list_size ; i++) {
-         const concept_descriptor *this_concept =
-            &concept_descriptor_table[matcher_p->m_level_concept_list.the_list[i]];
-         table[how_much_in_table++] = (this_concept->frequency << 16) | (0xFFFF & ~i);
-      }
-
-      // Optionally sort the list.
-      if (options & 0x10000) {
-         freqtablesorter::heapsort(table, how_much_in_table);
-      }
-
-      for (i=0 ; i<how_much_in_table ; i++) {
-         if (matcher_p->m_showing_has_stopped) break;
-         matcher_p->m_final_result.indent = false;
-         matcher_p->m_user_input[0] = 0;
-         uint32 table_item = table[i];
-
-         if (table_item & 0x80000000) {
-            const call_with_name *this_call = main_call_lists[call_list_any][~table_item & 0xFFFF];
-            strncpy(matcher_p->m_full_extension, this_call->menu_name, INPUT_TEXTLINE_SIZE);
-         }
-         else {
-            const concept_descriptor *this_concept =
-               &concept_descriptor_table[matcher_p->m_level_concept_list.the_list[~table_item & 0xFFFF]];
-            strncpy(matcher_p->m_full_extension, this_concept->menu_name, INPUT_TEXTLINE_SIZE);
-         }
-
-         iob88.show_match((table_item >> 16) & 0x7FFF);
-      }
-
-      delete [] table;
-   }
-}
 
 
 popup_return ui_utils::do_header_popup(char *dest)
@@ -3059,7 +3040,7 @@ void ui_utils::run_program(iobase & ggg)
       writestuff("SD -- square dance caller's helper.");
       newline();
       newline();
-      writestuff("Copyright (c) 1990-2017 William B. Ackerman");
+      writestuff("Copyright (c) 1990-2021 William B. Ackerman");
       newline();
       writestuff("   and Stephen Gildea.");
       newline();
@@ -3115,14 +3096,18 @@ void ui_utils::run_program(iobase & ggg)
 
    // If in diagnostic mode, we print a detailed reason for any cache miss.
    if (ui_options.diagnostic_mode && global_cache_miss_reason[0] != 0) {
-      char reasonstuff[50];
+      char localreason[500];
 
-      (void) sprintf(reasonstuff, "Cache miss, reloaded: %d %d %d.",
-                     global_cache_miss_reason[0],
-                     global_cache_miss_reason[1],
-                     global_cache_miss_reason[2]);
+      sprintf(localreason, "Cache miss, reloaded: %d %d %d %d %d %d %d.",
+              global_cache_miss_reason[0],
+              global_cache_miss_reason[1],
+              global_cache_miss_reason[2],
+              global_cache_miss_reason[3],
+              global_cache_miss_reason[4],
+              global_cache_miss_reason[5],
+              global_cache_miss_reason[6]);
       newline();
-      writestuff(reasonstuff);
+      writestuff(localreason);
       newline();
       newline();
    }
@@ -3254,7 +3239,7 @@ void ui_utils::run_program(iobase & ggg)
       switch (global_reply.minorpart) {
       case start_select_toggle_conc:
          allowing_all_concepts = !allowing_all_concepts;
-         goto new_sequence;
+          goto new_sequence;
       case start_select_toggle_singlespace:
          ui_options.singlespace_mode = !ui_options.singlespace_mode;
          goto new_sequence;
@@ -3402,34 +3387,6 @@ void ui_utils::run_program(iobase & ggg)
       case start_select_change_title:
          do_header_popup(header_comment);
          goto new_sequence;
-
-      case start_select_freq_show:
-         do_freq_show(1000);    // Make sure everything gets shown.
-         goto new_sequence;
-      case start_select_freq_show_level:
-         do_freq_show(0);
-         goto new_sequence;
-      case start_select_freq_show_nearlevel:
-         do_freq_show(1);
-         goto new_sequence;
-      case start_select_freq_show_sort:
-         do_freq_show(0x10000 + 1000);    // Make sure everything gets shown.
-         goto new_sequence;
-      case start_select_freq_show_sort_level:
-         do_freq_show(0x10000 + 0);
-         goto new_sequence;
-      case start_select_freq_show_sort_nearlevel:
-         do_freq_show(0x10000 + 1);
-         goto new_sequence;
-      case start_select_freq_reset:
-         do_freq_reset();
-         goto new_sequence;
-      case start_select_freq_start:
-         do_freq_start();
-         goto new_sequence;
-      case start_select_freq_delete:
-         do_freq_delete();
-         goto new_sequence;
       case start_select_exit:
          goto normal_exit;
       }
@@ -3443,6 +3400,7 @@ void ui_utils::run_program(iobase & ggg)
       configuration::history[1].init_resolve();
       // Put the people into their starting position.
       configuration::history[1].state = *configuration::history[1].get_startinfo_specific()->the_setup_p;
+      two_couple_calling = (attr::klimit(configuration::history[1].state.kind) < 4);
       configuration::history[1].state_is_valid = true;
 
       written_history_items = -1;
@@ -3570,7 +3528,7 @@ void ui_utils::run_program(iobase & ggg)
 
             if (config_history_ptr >= 1 &&
                 (config_history_ptr >= 2 || !configuration::history[1].get_startinfo_specific()->into_the_middle)) {
-               uint32 status = 0;
+               uint32_t status = 0;
 
                while (clipboard_size != 0) {
                   setup *old = &configuration::current_config().state;
@@ -3689,44 +3647,6 @@ void ui_utils::run_program(iobase & ggg)
             // We have to back up to BEFORE the item we just changed.
             if (written_history_items > config_history_ptr-1)
                written_history_items = config_history_ptr-1;
-            goto simple_restart;
-
-         case command_freq_show:
-            do_freq_show(1000);    // Make sure everything gets shown.
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_show_sort:
-            do_freq_show(0x10000 + 1000);    // Make sure everything gets shown.
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_show_nearlevel:
-            do_freq_show(1);
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_show_sort_nearlevel:
-            do_freq_show(0x10000 + 1);
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_show_level:
-            do_freq_show(0);
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_show_sort_level:
-            do_freq_show(0x10000 + 0);
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-
-         case command_freq_reset:
-            do_freq_reset();
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_start:
-            do_freq_start();
-            global_error_flag = error_flag_OK_but_dont_erase;
-            goto simple_restart;
-         case command_freq_delete:
-            do_freq_delete();
-            global_error_flag = error_flag_OK_but_dont_erase;
             goto simple_restart;
 
          case command_help:
