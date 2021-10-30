@@ -1706,7 +1706,7 @@ void matcher_class::match_wildcard(
          if (m_current_result->match.call_conc_options.where == direction_uninitialized) {
             direction_kind save_where = m_current_result->match.call_conc_options.where;
 
-            for (i=1; i<=last_direction_kind; ++i) {
+            for (i=1; i<=last_direction_kind-1; ++i) { // I'm not sure about this (eliminates crash), -mpogue
                m_current_result->match.call_conc_options.where = (direction_kind) i;
                match_suffix_2(user, direction_names[i].name, &p2b, patxi);
             }

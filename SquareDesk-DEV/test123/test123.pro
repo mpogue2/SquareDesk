@@ -288,8 +288,8 @@ macx {
     #
     # If you get an error message, like "could not find Squaredesk", you'll want to run qmake again on everything.
     # You will almost certainly have to clear the .qmake* files first, like the error message says:
-    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_0_clang_64bit-Debug; rm .qmake*
-    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_0_clang_64bit-Release; rm .qmake*
+    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Debug; rm .qmake*
+    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Release; rm .qmake*
     # Then, Build > Clean All Projects.  Then rebuild everything.
     #
     # NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
@@ -311,7 +311,8 @@ macx {
 # If it does not exist, change the following to match the SDK you want to compile with.
 #   QMAKE_MAC_SDK = macosx10.15
 #   QMAKE_MAC_SDK = macosx11.1
-QMAKE_MAC_SDK = macosx11.3
+# QMAKE_MAC_SDK = macosx11.3
+QMAKE_MAC_SDK = macosx12.0
 
 # If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
 # the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
