@@ -39,7 +39,7 @@ namespace TagLib {
 
     class File;
 
-    static const uint HeaderSize = 32;
+    static const unsigned int HeaderSize = 32;
 
     //! An implementation of audio property reading for WavPack
 
@@ -58,12 +58,12 @@ namespace TagLib {
        * \deprecated This constructor will be dropped in favor of the one below
        * in a future version.
        */
-      Properties(const ByteVector &data, long streamLength, ReadStyle style = Average);
+      TAGLIB_DEPRECATED Properties(const ByteVector &data, long streamLength,
+                                   ReadStyle style = Average);
 
       /*!
        * Create an instance of WavPack::Properties.
        */
-      // BIC: merge with the above constructor
       Properties(File *file, long streamLength, ReadStyle style = Average);
 
       /*!
@@ -79,7 +79,7 @@ namespace TagLib {
        *
        * \deprecated
        */
-      virtual int length() const;
+      TAGLIB_DEPRECATED virtual int length() const;
 
       /*!
        * Returns the length of the file in seconds.  The length is rounded down to
@@ -126,7 +126,7 @@ namespace TagLib {
       /*!
        * Returns the total number of audio samples in file.
        */
-      uint sampleFrames() const;
+      unsigned int sampleFrames() const;
 
       /*!
        * Returns WavPack version.
@@ -138,7 +138,7 @@ namespace TagLib {
       Properties &operator=(const Properties &);
 
       void read(File *file, long streamLength);
-      uint seekFinalIndex(File *file, long streamLength);
+      unsigned int seekFinalIndex(File *file, long streamLength);
 
       class PropertiesPrivate;
       PropertiesPrivate *d;

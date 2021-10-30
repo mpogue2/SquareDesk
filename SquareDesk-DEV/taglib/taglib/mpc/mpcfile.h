@@ -141,9 +141,6 @@ namespace TagLib {
        * Saves the file.
        *
        * This returns true if the save was successful.
-       *
-       * \warning In the current implementation, it's dangerous to call save()
-       * repeatedly.  At worst it will corrupt the file.
        */
       virtual bool save();
 
@@ -201,7 +198,7 @@ namespace TagLib {
        * \deprecated
        * \see strip
        */
-      void remove(int tags = AllTags);
+      TAGLIB_DEPRECATED void remove(int tags = AllTags);
 
       /*!
        * Returns whether or not the file on disk actually has an ID3v1 tag.
@@ -217,14 +214,20 @@ namespace TagLib {
        */
       bool hasAPETag() const;
 
+      /*!
+       * Returns whether or not the given \a stream can be opened as an MPC
+       * file.
+       *
+       * \note This method is designed to do a quick check.  The result may
+       * not necessarily be correct.
+       */
+      static bool isSupported(IOStream *stream);
+
     private:
       File(const File &);
       File &operator=(const File &);
 
       void read(bool readProperties);
-      long findAPE();
-      long findID3v1();
-      long findID3v2();
 
       class FilePrivate;
       FilePrivate *d;

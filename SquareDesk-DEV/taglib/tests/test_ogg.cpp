@@ -1,3 +1,28 @@
+/***************************************************************************
+    copyright           : (C) 2009 by Lukas Lalinsky
+    email               : lukas@oxygene.sk
+ ***************************************************************************/
+
+/***************************************************************************
+ *   This library is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License version   *
+ *   2.1 as published by the Free Software Foundation.                     *
+ *                                                                         *
+ *   This library is distributed in the hope that it will be useful, but   *
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
+ *   Lesser General Public License for more details.                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this library; if not, write to the Free Software   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
+ ***************************************************************************/
+
 #include <string>
 #include <stdio.h>
 #include <tag.h>
@@ -17,10 +42,13 @@ class TestOGG : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(TestOGG);
   CPPUNIT_TEST(testSimple);
-  CPPUNIT_TEST(testSplitPackets);
+  CPPUNIT_TEST(testSplitPackets1);
+  CPPUNIT_TEST(testSplitPackets2);
   CPPUNIT_TEST(testDictInterface1);
   CPPUNIT_TEST(testDictInterface2);
   CPPUNIT_TEST(testAudioProperties);
+  CPPUNIT_TEST(testPageChecksum);
+  CPPUNIT_TEST(testPageGranulePosition);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -30,43 +58,85 @@ public:
     ScopedFileCopy copy("empty", ".ogg");
     string newname = copy.fileName();
 
-    Vorbis::File *f = new Vorbis::File(newname.c_str());
-    f->tag()->setArtist("The Artist");
-    f->save();
-    delete f;
-
-    f = new Vorbis::File(newname.c_str());
-    CPPUNIT_ASSERT_EQUAL(String("The Artist"), f->tag()->artist());
-    delete f;
+    {
+      Vorbis::File f(newname.c_str());
+      f.tag()->setArtist("The Artist");
+      f.save();
+    }
+    {
+      Vorbis::File f(newname.c_str());
+      CPPUNIT_ASSERT_EQUAL(String("The Artist"), f.tag()->artist());
+    }
   }
 
-  void testSplitPackets()
+  void testSplitPackets1()
   {
     ScopedFileCopy copy("empty", ".ogg");
     string newname = copy.fileName();
 
-    String longText(std::string(128 * 1024, ' ').c_str());
-    for (size_t i = 0; i < longText.length(); ++i)
-      longText[i] = static_cast<wchar>(L'A' + (i % 26));
+    const String text = longText(128 * 1024, true);
 
-    Vorbis::File *f = new Vorbis::File(newname.c_str());
-    f->tag()->setTitle(longText);
-    f->save();
-    delete f;
+    {
+      Vorbis::File f(newname.c_str());
+      f.tag()->setTitle(text);
+      f.save();
+    }
+    {
+      Vorbis::File f(newname.c_str());
+      CPPUNIT_ASSERT(f.isValid());
+      CPPUNIT_ASSERT_EQUAL(136383L, f.length());
+      CPPUNIT_ASSERT_EQUAL(19, f.lastPageHeader()->pageSequenceNumber());
+      CPPUNIT_ASSERT_EQUAL(30U, f.packet(0).size());
+      CPPUNIT_ASSERT_EQUAL(131127U, f.packet(1).size());
+      CPPUNIT_ASSERT_EQUAL(3832U, f.packet(2).size());
+      CPPUNIT_ASSERT_EQUAL(text, f.tag()->title());
 
-    f = new Vorbis::File(newname.c_str());
-    CPPUNIT_ASSERT(f->isValid());
-    CPPUNIT_ASSERT_EQUAL(19, f->lastPageHeader()->pageSequenceNumber());
-    CPPUNIT_ASSERT_EQUAL(longText, f->tag()->title());
-    f->tag()->setTitle("ABCDE");
-    f->save();
-    delete f;
+      CPPUNIT_ASSERT(f.audioProperties());
+      CPPUNIT_ASSERT_EQUAL(3685, f.audioProperties()->lengthInMilliseconds());
 
-    f = new Vorbis::File(newname.c_str());
-    CPPUNIT_ASSERT(f->isValid());
-    CPPUNIT_ASSERT_EQUAL(3, f->lastPageHeader()->pageSequenceNumber());
-    CPPUNIT_ASSERT_EQUAL(String("ABCDE"), f->tag()->title());
-    delete f;
+      f.tag()->setTitle("ABCDE");
+      f.save();
+    }
+    {
+      Vorbis::File f(newname.c_str());
+      CPPUNIT_ASSERT(f.isValid());
+      CPPUNIT_ASSERT_EQUAL(4370L, f.length());
+      CPPUNIT_ASSERT_EQUAL(3, f.lastPageHeader()->pageSequenceNumber());
+      CPPUNIT_ASSERT_EQUAL(30U, f.packet(0).size());
+      CPPUNIT_ASSERT_EQUAL(60U, f.packet(1).size());
+      CPPUNIT_ASSERT_EQUAL(3832U, f.packet(2).size());
+      CPPUNIT_ASSERT_EQUAL(String("ABCDE"), f.tag()->title());
+
+      CPPUNIT_ASSERT(f.audioProperties());
+      CPPUNIT_ASSERT_EQUAL(3685, f.audioProperties()->lengthInMilliseconds());
+    }
+  }
+
+  void testSplitPackets2()
+  {
+    ScopedFileCopy copy("empty", ".ogg");
+    string newname = copy.fileName();
+
+    const String text = longText(60890, true);
+
+    {
+      Vorbis::File f(newname.c_str());
+      f.tag()->setTitle(text);
+      f.save();
+    }
+    {
+      Vorbis::File f(newname.c_str());
+      CPPUNIT_ASSERT(f.isValid());
+      CPPUNIT_ASSERT_EQUAL(text, f.tag()->title());
+
+      f.tag()->setTitle("ABCDE");
+      f.save();
+    }
+    {
+      Vorbis::File f(newname.c_str());
+      CPPUNIT_ASSERT(f.isValid());
+      CPPUNIT_ASSERT_EQUAL(String("ABCDE"), f.tag()->title());
+    }
   }
 
   void testDictInterface1()
@@ -74,22 +144,20 @@ public:
     ScopedFileCopy copy("empty", ".ogg");
     string newname = copy.fileName();
 
-    Vorbis::File *f = new Vorbis::File(newname.c_str());
+    Vorbis::File f(newname.c_str());
 
-    CPPUNIT_ASSERT_EQUAL(TagLib::uint(0), f->tag()->properties().size());
+    CPPUNIT_ASSERT_EQUAL((unsigned int)0, f.tag()->properties().size());
 
     PropertyMap newTags;
     StringList values("value 1");
     values.append("value 2");
     newTags["ARTIST"] = values;
-    f->tag()->setProperties(newTags);
+    f.tag()->setProperties(newTags);
 
-    PropertyMap map = f->tag()->properties();
-    CPPUNIT_ASSERT_EQUAL(TagLib::uint(1), map.size());
-    CPPUNIT_ASSERT_EQUAL(TagLib::uint(2), map["ARTIST"].size());
+    PropertyMap map = f.tag()->properties();
+    CPPUNIT_ASSERT_EQUAL((unsigned int)1, map.size());
+    CPPUNIT_ASSERT_EQUAL((unsigned int)2, map["ARTIST"].size());
     CPPUNIT_ASSERT_EQUAL(String("value 1"), map["ARTIST"][0]);
-    delete f;
-
   }
 
   void testDictInterface2()
@@ -97,10 +165,10 @@ public:
     ScopedFileCopy copy("test", ".ogg");
     string newname = copy.fileName();
 
-    Vorbis::File *f = new Vorbis::File(newname.c_str());
-    PropertyMap tags = f->tag()->properties();
+    Vorbis::File f(newname.c_str());
+    PropertyMap tags = f.tag()->properties();
 
-    CPPUNIT_ASSERT_EQUAL(TagLib::uint(2), tags["UNUSUALTAG"].size());
+    CPPUNIT_ASSERT_EQUAL((unsigned int)2, tags["UNUSUALTAG"].size());
     CPPUNIT_ASSERT_EQUAL(String("usual value"), tags["UNUSUALTAG"][0]);
     CPPUNIT_ASSERT_EQUAL(String("another value"), tags["UNUSUALTAG"][1]);
     CPPUNIT_ASSERT_EQUAL(
@@ -110,29 +178,77 @@ public:
     tags["UNICODETAG"][0] = String(
       "\xCE\xBD\xCE\xB5\xCF\x89\x20\xCE\xBD\xCE\xB1\xCE\xBB\xCF\x85\xCE\xB5", String::UTF8);
     tags.erase("UNUSUALTAG");
-    f->tag()->setProperties(tags);
+    f.tag()->setProperties(tags);
     CPPUNIT_ASSERT_EQUAL(
       String("\xCE\xBD\xCE\xB5\xCF\x89\x20\xCE\xBD\xCE\xB1\xCE\xBB\xCF\x85\xCE\xB5", String::UTF8),
-      f->tag()->properties()["UNICODETAG"][0]);
-    CPPUNIT_ASSERT_EQUAL(false, f->tag()->properties().contains("UNUSUALTAG"));
-
-    delete f;
+      f.tag()->properties()["UNICODETAG"][0]);
+    CPPUNIT_ASSERT_EQUAL(false, f.tag()->properties().contains("UNUSUALTAG"));
   }
 
   void testAudioProperties()
   {
     Ogg::Vorbis::File f(TEST_FILE_PATH_C("empty.ogg"));
     CPPUNIT_ASSERT(f.audioProperties());
-    CPPUNIT_ASSERT_EQUAL(3, f.audioProperties()->length());
     CPPUNIT_ASSERT_EQUAL(3, f.audioProperties()->lengthInSeconds());
     CPPUNIT_ASSERT_EQUAL(3685, f.audioProperties()->lengthInMilliseconds());
-    CPPUNIT_ASSERT_EQUAL(9, f.audioProperties()->bitrate());
+    CPPUNIT_ASSERT_EQUAL(1, f.audioProperties()->bitrate());
     CPPUNIT_ASSERT_EQUAL(2, f.audioProperties()->channels());
     CPPUNIT_ASSERT_EQUAL(44100, f.audioProperties()->sampleRate());
     CPPUNIT_ASSERT_EQUAL(0, f.audioProperties()->vorbisVersion());
     CPPUNIT_ASSERT_EQUAL(0, f.audioProperties()->bitrateMaximum());
     CPPUNIT_ASSERT_EQUAL(112000, f.audioProperties()->bitrateNominal());
     CPPUNIT_ASSERT_EQUAL(0, f.audioProperties()->bitrateMinimum());
+  }
+
+  void testPageChecksum()
+  {
+    ScopedFileCopy copy("empty", ".ogg");
+
+    {
+      Vorbis::File f(copy.fileName().c_str());
+      f.tag()->setArtist("The Artist");
+      f.save();
+
+      f.seek(0x50);
+      CPPUNIT_ASSERT_EQUAL((unsigned int)0x3d3bd92d, f.readBlock(4).toUInt(0, true));
+    }
+    {
+      Vorbis::File f(copy.fileName().c_str());
+      f.tag()->setArtist("The Artist 2");
+      f.save();
+
+      f.seek(0x50);
+      CPPUNIT_ASSERT_EQUAL((unsigned int)0xd985291c, f.readBlock(4).toUInt(0, true));
+    }
+
+  }
+
+  void testPageGranulePosition()
+  {
+    ScopedFileCopy copy("empty", ".ogg");
+    {
+      Vorbis::File f(copy.fileName().c_str());
+      // Force the Vorbis comment packet to span more than one page and
+      // check if the granule position is -1 indicating that no packets
+      // finish on this page.
+      f.tag()->setComment(String(ByteVector(70000, 'A')));
+      f.save();
+
+      f.seek(0x3a);
+      CPPUNIT_ASSERT_EQUAL(ByteVector("OggS\0\0", 6), f.readBlock(6));
+      CPPUNIT_ASSERT_EQUAL(static_cast<long long>(-1), f.readBlock(8).toLongLong());
+    }
+    {
+      Vorbis::File f(copy.fileName().c_str());
+      // Use a small Vorbis comment package which ends on the seconds page and
+      // check if the granule position is zero.
+      f.tag()->setComment("A small comment");
+      f.save();
+
+      f.seek(0x3a);
+      CPPUNIT_ASSERT_EQUAL(ByteVector("OggS\0\0", 6), f.readBlock(6));
+      CPPUNIT_ASSERT_EQUAL(static_cast<long long>(0), f.readBlock(8).toLongLong());
+    }
   }
 };
 

@@ -5,7 +5,7 @@
 
 /***************************************************************************
  *   This library is free software; you can redistribute it and/or modify  *
- *   it  under the terms of the GNU Lesser General Public License version  *
+ *   it under the terms of the GNU Lesser General Public License version   *
  *   2.1 as published by the Free Software Foundation.                     *
  *                                                                         *
  *   This library is distributed in the hope that it will be useful, but   *
@@ -15,8 +15,12 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
- *   MA  02110-1301  USA                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
 #include <s3mfile.h>
@@ -98,22 +102,22 @@ private:
     CPPUNIT_ASSERT_EQUAL( 0, p->bitrate());
     CPPUNIT_ASSERT_EQUAL( 0, p->sampleRate());
     CPPUNIT_ASSERT_EQUAL(16, p->channels());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)   0, p->lengthInPatterns());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)   0, p->lengthInPatterns());
     CPPUNIT_ASSERT_EQUAL(false, p->stereo());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)   5, p->sampleCount());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)   1, p->patternCount());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)   0, p->flags());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)4896, p->trackerVersion());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)   2, p->fileFormatVersion());
-    CPPUNIT_ASSERT_EQUAL((TagLib::uchar) 64, p->globalVolume());
-    CPPUNIT_ASSERT_EQUAL((TagLib::uchar) 48, p->masterVolume());
-    CPPUNIT_ASSERT_EQUAL((TagLib::uchar)125, p->tempo());
-    CPPUNIT_ASSERT_EQUAL((TagLib::uchar)  6, p->bpmSpeed());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)   5, p->sampleCount());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)   1, p->patternCount());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)   0, p->flags());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)4896, p->trackerVersion());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)   2, p->fileFormatVersion());
+    CPPUNIT_ASSERT_EQUAL((unsigned char) 64, p->globalVolume());
+    CPPUNIT_ASSERT_EQUAL((unsigned char) 48, p->masterVolume());
+    CPPUNIT_ASSERT_EQUAL((unsigned char)125, p->tempo());
+    CPPUNIT_ASSERT_EQUAL((unsigned char)  6, p->bpmSpeed());
     CPPUNIT_ASSERT_EQUAL(title, t->title());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->artist());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->album());
+    CPPUNIT_ASSERT_EQUAL(String(), t->artist());
+    CPPUNIT_ASSERT_EQUAL(String(), t->album());
     CPPUNIT_ASSERT_EQUAL(comment, t->comment());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->genre());
+    CPPUNIT_ASSERT_EQUAL(String(), t->genre());
     CPPUNIT_ASSERT_EQUAL(0U, t->year());
     CPPUNIT_ASSERT_EQUAL(0U, t->track());
     CPPUNIT_ASSERT_EQUAL(String("ScreamTracker III"), t->trackerName());

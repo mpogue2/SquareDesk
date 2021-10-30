@@ -46,15 +46,15 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 EventTimingCodesFrame::EventTimingCodesFrame() :
-  Frame("ETCO")
+  Frame("ETCO"),
+  d(new EventTimingCodesFramePrivate())
 {
-  d = new EventTimingCodesFramePrivate;
 }
 
 EventTimingCodesFrame::EventTimingCodesFrame(const ByteVector &data) :
-  Frame(data)
+  Frame(data),
+  d(new EventTimingCodesFramePrivate())
 {
-  d = new EventTimingCodesFramePrivate;
   setData(data);
 }
 
@@ -109,8 +109,8 @@ void EventTimingCodesFrame::parseFields(const ByteVector &data)
   int pos = 1;
   d->synchedEvents.clear();
   while(pos + 4 < end) {
-    EventType type = EventType(uchar(data[pos++]));
-    uint time = data.toUInt(pos, true);
+    EventType type = static_cast<EventType>(static_cast<unsigned char>(data[pos++]));
+    unsigned int time = data.toUInt(pos, true);
     pos += 4;
     d->synchedEvents.append(SynchedEvent(time, type));
   }
@@ -136,9 +136,9 @@ ByteVector EventTimingCodesFrame::renderFields() const
 // private members
 ////////////////////////////////////////////////////////////////////////////////
 
-EventTimingCodesFrame::EventTimingCodesFrame(const ByteVector &data, Header *h)
-  : Frame(h)
+EventTimingCodesFrame::EventTimingCodesFrame(const ByteVector &data, Header *h) :
+  Frame(h),
+  d(new EventTimingCodesFramePrivate())
 {
-  d = new EventTimingCodesFramePrivate();
   parseFields(fieldData(data));
 }

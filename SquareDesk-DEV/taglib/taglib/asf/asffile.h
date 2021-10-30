@@ -112,11 +112,17 @@ namespace TagLib {
        * Save the file.
        *
        * This returns true if the save was successful.
-       *
-       * \warning In the current implementation, it's dangerous to call save()
-       * repeatedly.  At worst it will corrupt the file.
        */
       virtual bool save();
+
+      /*!
+       * Returns whether or not the given \a stream can be opened as an ASF
+       * file.
+       *
+       * \note This method is designed to do a quick check.  The result may
+       * not necessarily be correct.
+       */
+      static bool isSupported(IOStream *stream);
 
     private:
       void read();

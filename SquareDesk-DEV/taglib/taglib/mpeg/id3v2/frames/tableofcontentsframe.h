@@ -29,6 +29,8 @@
 #include "id3v2tag.h"
 #include "id3v2frame.h"
 
+#include "tbytevectorlist.h"
+
 namespace TagLib {
 
   namespace ID3v2 {
@@ -95,7 +97,7 @@ namespace TagLib {
        *
        * \see childElements()
        */
-      uint entryCount() const;
+      unsigned int entryCount() const;
 
       /*!
        * Returns list of child elements of the frame.

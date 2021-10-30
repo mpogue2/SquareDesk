@@ -1,3 +1,28 @@
+/***************************************************************************
+    copyright           : (C) 2010 by Lukas Lalinsky
+    email               : lukas@oxygene.sk
+ ***************************************************************************/
+
+/***************************************************************************
+ *   This library is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License version   *
+ *   2.1 as published by the Free Software Foundation.                     *
+ *                                                                         *
+ *   This library is distributed in the hope that it will be useful, but   *
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
+ *   Lesser General Public License for more details.                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this library; if not, write to the Free Software   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
+ ***************************************************************************/
+
 #include <string>
 #include <stdio.h>
 #include <tag.h>
@@ -34,7 +59,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(0, pic.numColors());
     CPPUNIT_ASSERT_EQUAL(String("image/png"), pic.mimeType());
     CPPUNIT_ASSERT_EQUAL(String("A pixel."), pic.description());
-    CPPUNIT_ASSERT_EQUAL(TagLib::uint(150), pic.data().size());
+    CPPUNIT_ASSERT_EQUAL((unsigned int)150, pic.data().size());
   }
 
   void testPassThrough()

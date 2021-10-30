@@ -24,6 +24,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/s3m
   ${CMAKE_CURRENT_SOURCE_DIR}/it
   ${CMAKE_CURRENT_SOURCE_DIR}/xm
+  ${taglib_SOURCE_DIR}/3rdparty
 )
 
 if(ZLIB_FOUND)
@@ -60,6 +61,7 @@ set(tag_HDRS
   mpeg/xingheader.h
   mpeg/id3v1/id3v1tag.h
   mpeg/id3v1/id3v1genres.h
+  mpeg/id3v2/id3v2.h
   mpeg/id3v2/id3v2extendedheader.h
   mpeg/id3v2/id3v2frame.h
   mpeg/id3v2/id3v2header.h
@@ -83,6 +85,7 @@ set(tag_HDRS
   mpeg/id3v2/frames/urllinkframe.h
   mpeg/id3v2/frames/chapterframe.h
   mpeg/id3v2/frames/tableofcontentsframe.h
+  mpeg/id3v2/frames/podcastframe.h
   ogg/oggfile.h
   ogg/oggpage.h
   ogg/oggpageheader.h
@@ -177,6 +180,7 @@ set(frames_SRCS
   mpeg/id3v2/frames/urllinkframe.cpp
   mpeg/id3v2/frames/chapterframe.cpp
   mpeg/id3v2/frames/tableofcontentsframe.cpp
+  mpeg/id3v2/frames/podcastframe.cpp
 )
 
 set(ogg_SRCS
@@ -303,13 +307,8 @@ set(toolkit_SRCS
   toolkit/tpropertymap.cpp
   toolkit/trefcounter.cpp
   toolkit/tdebuglistener.cpp
+  toolkit/tzlib.cpp
 )
-
-if(NOT WIN32)
-  set(unicode_SRCS
-    toolkit/unicode.cpp
-  )
-endif()
 
 if(HAVE_ZLIB_SOURCE)
   set(zlib_SRCS
@@ -327,16 +326,18 @@ set(tag_LIB_SRCS
   ${vorbis_SRCS} ${oggflacs_SRCS} ${mpc_SRCS} ${ape_SRCS} ${toolkit_SRCS} ${flacs_SRCS}
   ${wavpack_SRCS} ${speex_SRCS} ${trueaudio_SRCS} ${riff_SRCS} ${aiff_SRCS} ${wav_SRCS}
   ${asf_SRCS} ${mp4_SRCS} ${mod_SRCS} ${s3m_SRCS} ${it_SRCS} ${xm_SRCS} ${opus_SRCS}
-  ${unicode_SRCS} ${zlib_SRCS}
+  ${zlib_SRCS}
   tag.cpp
   tagunion.cpp
   fileref.cpp
   audioproperties.cpp
+  tagutils.cpp
 )
 
 add_library(tag ${tag_LIB_SRCS} ${tag_HDRS})
+set_property(TARGET tag PROPERTY CXX_STANDARD 98)
 
-if(ZLIB_FOUND)
+if(HAVE_ZLIB AND NOT HAVE_ZLIB_SOURCE)
   target_link_libraries(tag ${ZLIB_LIBRARIES})
 endif()
 
@@ -348,8 +349,18 @@ set_target_properties(tag PROPERTIES
   LINK_INTERFACE_LIBRARIES ""
   PUBLIC_HEADER "${tag_HDRS}"
 )
+if(VISIBILITY_HIDDEN)
+  set_target_properties(tag PROPERTIES C_VISIBILITY_PRESET hidden)
+endif()
+
 if(BUILD_FRAMEWORK)
-  set_target_properties(tag PROPERTIES FRAMEWORK TRUE)
+  unset(INSTALL_NAME_DIR)
+  set_target_properties(tag PROPERTIES 
+      FRAMEWORK TRUE
+      MACOSX_RPATH 1
+      VERSION "A"
+      SOVERSION "A"
+      )
 endif()
 
 install(TARGETS tag

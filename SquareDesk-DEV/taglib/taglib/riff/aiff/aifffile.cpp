@@ -28,6 +28,7 @@
 #include <id3v2tag.h>
 #include <tstringlist.h>
 #include <tpropertymap.h>
+#include <tagutils.h>
 
 #include "aifffile.h"
 
@@ -39,7 +40,6 @@ public:
   FilePrivate() :
     properties(0),
     tag(0),
-    tagChunkID("ID3 "),
     hasID3v2(false) {}
 
   ~FilePrivate()
@@ -50,10 +50,21 @@ public:
 
   Properties *properties;
   ID3v2::Tag *tag;
-  ByteVector tagChunkID;
 
   bool hasID3v2;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// static members
+////////////////////////////////////////////////////////////////////////////////
+
+bool RIFF::AIFF::File::isSupported(IOStream *stream)
+{
+  // An AIFF file has to start with "FORM????AIFF" or "FORM????AIFC".
+
+  const ByteVector id = Utils::readHeader(stream, 12, false);
+  return (id.startsWith("FORM") && (id.containsAt("AIFF", 8) || id.containsAt("AIFC", 8)));
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // public members
@@ -107,6 +118,11 @@ RIFF::AIFF::Properties *RIFF::AIFF::File::audioProperties() const
 
 bool RIFF::AIFF::File::save()
 {
+    return save(ID3v2::v4);
+}
+
+bool RIFF::AIFF::File::save(ID3v2::Version version)
+{
   if(readOnly()) {
     debug("RIFF::AIFF::File::save() -- File is read only.");
     return false;
@@ -117,8 +133,16 @@ bool RIFF::AIFF::File::save()
     return false;
   }
 
-  setChunkData(d->tagChunkID, d->tag->render());
-  d->hasID3v2 = true;
+  if(d->hasID3v2) {
+    removeChunk("ID3 ");
+    removeChunk("id3 ");
+    d->hasID3v2 = false;
+  }
+
+  if(tag() && !tag()->isEmpty()) {
+    setChunkData("ID3 ", d->tag->render(version));
+    d->hasID3v2 = true;
+  }
 
   return true;
 }
@@ -134,12 +158,11 @@ bool RIFF::AIFF::File::hasID3v2Tag() const
 
 void RIFF::AIFF::File::read(bool readProperties)
 {
-  for(uint i = 0; i < chunkCount(); ++i) {
+  for(unsigned int i = 0; i < chunkCount(); ++i) {
     const ByteVector name = chunkName(i);
     if(name == "ID3 " || name == "id3 ") {
       if(!d->tag) {
         d->tag = new ID3v2::Tag(this, chunkOffset(i));
-        d->tagChunkID = name;
         d->hasID3v2 = true;
       }
       else {

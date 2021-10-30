@@ -28,6 +28,7 @@ INCLUDEPATH += $$PWD/ogg/speex
 INCLUDEPATH += $$PWD/ogg/vorbis
 INCLUDEPATH += $$PWD/riff/aiff
 INCLUDEPATH += $$PWD/riff/wav
+INCLUDEPATH += $$PWD/../3rdparty
 
 HEADERS += $$PWD/audioproperties.h
 HEADERS += $$PWD/fileref.h
@@ -230,7 +231,7 @@ SOURCES += $$PWD/toolkit/tpropertymap.cpp
 SOURCES += $$PWD/toolkit/trefcounter.cpp
 SOURCES += $$PWD/toolkit/tstring.cpp
 SOURCES += $$PWD/toolkit/tstringlist.cpp
-SOURCES += $$PWD/toolkit/unicode.cpp
+#SOURCES += $$PWD/toolkit/unicode.cpp
 SOURCES += $$PWD/trueaudio/trueaudiofile.cpp
 SOURCES += $$PWD/trueaudio/trueaudioproperties.cpp
 SOURCES += $$PWD/wavpack/wavpackfile.cpp

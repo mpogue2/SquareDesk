@@ -37,17 +37,21 @@ class ChapterFrame::ChapterFramePrivate
 {
 public:
   ChapterFramePrivate() :
-    tagHeader(0)
+    tagHeader(0),
+    startTime(0),
+    endTime(0),
+    startOffset(0),
+    endOffset(0)
   {
     embeddedFrameList.setAutoDelete(true);
   }
 
   const ID3v2::Header *tagHeader;
   ByteVector elementID;
-  TagLib::uint startTime;
-  TagLib::uint endTime;
-  TagLib::uint startOffset;
-  TagLib::uint endOffset;
+  unsigned int startTime;
+  unsigned int endTime;
+  unsigned int startOffset;
+  unsigned int endOffset;
   FrameListMap embeddedFrameListMap;
   FrameList embeddedFrameList;
 };
@@ -57,21 +61,20 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 ChapterFrame::ChapterFrame(const ID3v2::Header *tagHeader, const ByteVector &data) :
-    ID3v2::Frame(data)
+  ID3v2::Frame(data),
+  d(new ChapterFramePrivate())
 {
-  d = new ChapterFramePrivate;
   d->tagHeader = tagHeader;
   setData(data);
 }
 
 ChapterFrame::ChapterFrame(const ByteVector &elementID,
-                           TagLib::uint startTime, TagLib::uint endTime,
-                           TagLib::uint startOffset, TagLib::uint endOffset,
+                           unsigned int startTime, unsigned int endTime,
+                           unsigned int startOffset, unsigned int endOffset,
                            const FrameList &embeddedFrames) :
-    ID3v2::Frame("CHAP")
+  ID3v2::Frame("CHAP"),
+  d(new ChapterFramePrivate())
 {
-  d = new ChapterFramePrivate;
-
   // setElementID has a workaround for a previously silly API where you had to
   // specifically include the null byte.
 
@@ -97,22 +100,22 @@ ByteVector ChapterFrame::elementID() const
   return d->elementID;
 }
 
-TagLib::uint ChapterFrame::startTime() const
+unsigned int ChapterFrame::startTime() const
 {
   return d->startTime;
 }
 
-TagLib::uint ChapterFrame::endTime() const
+unsigned int ChapterFrame::endTime() const
 {
   return d->endTime;
 }
 
-TagLib::uint ChapterFrame::startOffset() const
+unsigned int ChapterFrame::startOffset() const
 {
   return d->startOffset;
 }
 
-TagLib::uint ChapterFrame::endOffset() const
+unsigned int ChapterFrame::endOffset() const
 {
   return d->endOffset;
 }
@@ -125,22 +128,22 @@ void ChapterFrame::setElementID(const ByteVector &eID)
     d->elementID = d->elementID.mid(0, d->elementID.size() - 1);
 }
 
-void ChapterFrame::setStartTime(const TagLib::uint &sT)
+void ChapterFrame::setStartTime(const unsigned int &sT)
 {
   d->startTime = sT;
 }
 
-void ChapterFrame::setEndTime(const TagLib::uint &eT)
+void ChapterFrame::setEndTime(const unsigned int &eT)
 {
   d->endTime = eT;
 }
 
-void ChapterFrame::setStartOffset(const TagLib::uint &sO)
+void ChapterFrame::setStartOffset(const unsigned int &sO)
 {
   d->startOffset = sO;
 }
 
-void ChapterFrame::setEndOffset(const TagLib::uint &eO)
+void ChapterFrame::setEndOffset(const unsigned int &eO)
 {
   d->endOffset = eO;
 }
@@ -198,7 +201,7 @@ String ChapterFrame::toString() const
     s += ", start offset: " + String::number(d->startOffset);
 
   if(d->endOffset != 0xFFFFFFFF)
-    s += ", start offset: " + String::number(d->endOffset);
+    s += ", end offset: " + String::number(d->endOffset);
 
   if(!d->embeddedFrameList.isEmpty()) {
     StringList frameIDs;
@@ -238,7 +241,7 @@ ChapterFrame *ChapterFrame::findByElementID(const ID3v2::Tag *tag, const ByteVec
 
 void ChapterFrame::parseFields(const ByteVector &data)
 {
-  TagLib::uint size = data.size();
+  unsigned int size = data.size();
   if(size < 18) {
     debug("A CHAP frame must contain at least 18 bytes (1 byte element ID "
           "terminated by null and 4x4 bytes for start and end time and offset).");
@@ -246,7 +249,7 @@ void ChapterFrame::parseFields(const ByteVector &data)
   }
 
   int pos = 0;
-  TagLib::uint embPos = 0;
+  unsigned int embPos = 0;
   d->elementID = readStringField(data, String::Latin1, &pos).data(String::Latin1);
   d->startTime = data.toUInt(pos, true);
   pos += 4;
@@ -264,7 +267,7 @@ void ChapterFrame::parseFields(const ByteVector &data)
     return;
 
   while(embPos < size - header()->size()) {
-    Frame *frame = FrameFactory::instance()->createFrame(data.mid(pos + embPos), (d->tagHeader != 0));
+    Frame *frame = FrameFactory::instance()->createFrame(data.mid(pos + embPos), d->tagHeader);
 
     if(!frame)
       return;
@@ -298,9 +301,9 @@ ByteVector ChapterFrame::renderFields() const
 }
 
 ChapterFrame::ChapterFrame(const ID3v2::Header *tagHeader, const ByteVector &data, Header *h) :
-  Frame(h)
+  Frame(h),
+  d(new ChapterFramePrivate())
 {
-  d = new ChapterFramePrivate;
   d->tagHeader = tagHeader;
   parseFields(fieldData(data));
 }

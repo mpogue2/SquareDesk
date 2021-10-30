@@ -131,7 +131,7 @@ void Speex::Properties::read(File *file)
     return;
   }
 
-  uint pos = 28;
+  unsigned int pos = 28;
 
   // speex_version_id;       /**< Version for Speex (for checking compatibility) */
   d->speexVersion = data.toUInt(pos, false);
@@ -182,8 +182,14 @@ void Speex::Properties::read(File *file)
 
       if(frameCount > 0) {
         const double length = frameCount * 1000.0 / d->sampleRate;
+        long fileLengthWithoutOverhead = file->length();
+        // Ignore the two header packets, see "Ogg file format" in
+        // https://www.speex.org/docs/manual/speex-manual/node8.html
+        for (unsigned int i = 0; i < 2; ++i) {
+          fileLengthWithoutOverhead -= file->packet(i).size();
+        }
         d->length  = static_cast<int>(length + 0.5);
-        d->bitrate = static_cast<int>(file->length() * 8.0 / length + 0.5);
+        d->bitrate = static_cast<int>(fileLengthWithoutOverhead * 8.0 / length + 0.5);
       }
     }
     else {

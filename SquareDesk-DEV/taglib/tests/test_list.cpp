@@ -1,26 +1,27 @@
-/* Copyright (C) 2003 Scott Wheeler <wheeler@kde.org>
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/***************************************************************************
+    copyright           : (C) 2007 by Lukas Lalinsky
+    email               : lukas@oxygene.sk
+ ***************************************************************************/
+
+/***************************************************************************
+ *   This library is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License version   *
+ *   2.1 as published by the Free Software Foundation.                     *
+ *                                                                         *
+ *   This library is distributed in the hope that it will be useful, but   *
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
+ *   Lesser General Public License for more details.                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this library; if not, write to the Free Software   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
+ ***************************************************************************/
 
 #include <tlist.h>
 #include <cppunit/extensions/HelperMacros.h>
@@ -31,12 +32,13 @@ using namespace TagLib;
 class TestList : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(TestList);
-  CPPUNIT_TEST(testList);
+  CPPUNIT_TEST(testAppend);
+  CPPUNIT_TEST(testDetach);
   CPPUNIT_TEST_SUITE_END();
 
 public:
 
-  void testList()
+  void testAppend()
   {
     List<int> l1;
     List<int> l2;
@@ -50,14 +52,25 @@ public:
     l3.append(2);
     l3.append(3);
     l3.append(4);
+    CPPUNIT_ASSERT_EQUAL(4U, l1.size());
     CPPUNIT_ASSERT(l1 == l3);
-
-    List<int> l4 = l1;
-    List<int>::Iterator it = l4.find(3);
-    *it = 33;
-    CPPUNIT_ASSERT_EQUAL(l1[2], 3);
-    CPPUNIT_ASSERT_EQUAL(l4[2], 33);
   }
+
+  void testDetach()
+  {
+    List<int> l1;
+    l1.append(1);
+    l1.append(2);
+    l1.append(3);
+    l1.append(4);
+
+    List<int> l2 = l1;
+    List<int>::Iterator it = l2.find(3);
+    *it = 33;
+    CPPUNIT_ASSERT_EQUAL(3,  l1[2]);
+    CPPUNIT_ASSERT_EQUAL(33, l2[2]);
+  }
+
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestList);

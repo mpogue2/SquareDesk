@@ -135,9 +135,6 @@ namespace TagLib {
        * Saves the file.
        *
        * This returns true if the save was successful.
-       *
-       * \warning In the current implementation, it's dangerous to call save()
-       * repeatedly.  At worst it will corrupt the file.
        */
       virtual bool save();
 
@@ -203,13 +200,19 @@ namespace TagLib {
        */
       bool hasAPETag() const;
 
+      /*!
+       * Check if the given \a stream can be opened as a WavPack file.
+       *
+       * \note This method is designed to do a quick check.  The result may
+       * not necessarily be correct.
+       */
+      static bool isSupported(IOStream *stream);
+
     private:
       File(const File &);
       File &operator=(const File &);
 
       void read(bool readProperties);
-      long findID3v1();
-      long findAPE();
 
       class FilePrivate;
       FilePrivate *d;

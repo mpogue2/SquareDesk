@@ -5,7 +5,7 @@
 
 /***************************************************************************
  *   This library is free software; you can redistribute it and/or modify  *
- *   it  under the terms of the GNU Lesser General Public License version  *
+ *   it under the terms of the GNU Lesser General Public License version   *
  *   2.1 as published by the Free Software Foundation.                     *
  *                                                                         *
  *   This library is distributed in the hope that it will be useful, but   *
@@ -15,8 +15,12 @@
  *                                                                         *
  *   You should have received a copy of the GNU Lesser General Public      *
  *   License along with this library; if not, write to the Free Software   *
- *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,            *
- *   MA  02110-1301  USA                                                   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
 #include <xmfile.h>
@@ -130,22 +134,22 @@ public:
     CPPUNIT_ASSERT_EQUAL(0, p->bitrate());
     CPPUNIT_ASSERT_EQUAL(0, p->sampleRate());
     CPPUNIT_ASSERT_EQUAL(8, p->channels());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  1, p->lengthInPatterns());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  0, p->version());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  0 , p->restartPosition());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  1, p->patternCount());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  0, p->instrumentCount());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  1, p->flags());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  6, p->tempo());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)125, p->bpmSpeed());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  1, p->lengthInPatterns());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  0, p->version());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  0 , p->restartPosition());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  1, p->patternCount());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  0, p->instrumentCount());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  1, p->flags());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  6, p->tempo());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)125, p->bpmSpeed());
     CPPUNIT_ASSERT_EQUAL(titleBefore, t->title());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->artist());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->album());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->comment());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->genre());
+    CPPUNIT_ASSERT_EQUAL(String(), t->artist());
+    CPPUNIT_ASSERT_EQUAL(String(), t->album());
+    CPPUNIT_ASSERT_EQUAL(String(), t->comment());
+    CPPUNIT_ASSERT_EQUAL(String(), t->genre());
     CPPUNIT_ASSERT_EQUAL(0U, t->year());
     CPPUNIT_ASSERT_EQUAL(0U, t->track());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->trackerName());
+    CPPUNIT_ASSERT_EQUAL(String(), t->trackerName());
   }
 
   void testWriteTagsShort()
@@ -176,19 +180,19 @@ private:
     CPPUNIT_ASSERT_EQUAL(0, p->bitrate());
     CPPUNIT_ASSERT_EQUAL(0, p->sampleRate());
     CPPUNIT_ASSERT_EQUAL(8, p->channels());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  1, p->lengthInPatterns());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)260, p->version());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  0, p->restartPosition());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  1, p->patternCount());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)128, p->instrumentCount());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  1, p->flags());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)  6, p->tempo());
-    CPPUNIT_ASSERT_EQUAL((TagLib::ushort)125, p->bpmSpeed());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  1, p->lengthInPatterns());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)260, p->version());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  0, p->restartPosition());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  1, p->patternCount());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)128, p->instrumentCount());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  1, p->flags());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)  6, p->tempo());
+    CPPUNIT_ASSERT_EQUAL((unsigned short)125, p->bpmSpeed());
     CPPUNIT_ASSERT_EQUAL(title, t->title());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->artist());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->album());
+    CPPUNIT_ASSERT_EQUAL(String(), t->artist());
+    CPPUNIT_ASSERT_EQUAL(String(), t->album());
     CPPUNIT_ASSERT_EQUAL(comment, t->comment());
-    CPPUNIT_ASSERT_EQUAL(String::null, t->genre());
+    CPPUNIT_ASSERT_EQUAL(String(), t->genre());
     CPPUNIT_ASSERT_EQUAL(0U, t->year());
     CPPUNIT_ASSERT_EQUAL(0U, t->track());
     CPPUNIT_ASSERT_EQUAL(trackerName, t->trackerName());

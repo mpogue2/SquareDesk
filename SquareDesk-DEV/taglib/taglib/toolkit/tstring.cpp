@@ -23,96 +23,116 @@
  *   http://www.mozilla.org/MPL/                                           *
  ***************************************************************************/
 
-// This class assumes that std::basic_string<T> has a contiguous and null-terminated buffer.
+#include <cerrno>
+#include <climits>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <utf8-cpp/checked.h>
+
+#include <tdebug.h>
+#include <tstringlist.h>
+#include <trefcounter.h>
+#include <tutils.h>
 
 #include "tstring.h"
-#include "tdebug.h"
-#include "tstringlist.h"
-#include "trefcounter.h"
-#include "tutils.h"
-
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-
-#ifdef _WIN32
-# include <windows.h>
-#else
-# include "unicode.h"
-#endif
 
 namespace
 {
   using namespace TagLib;
 
-  inline size_t UTF16toUTF8(
-    const wchar_t *src, size_t srcLength, char *dst, size_t dstLength)
+  // Returns the native format of std::wstring.
+  String::Type wcharByteOrder()
   {
-    size_t len = 0;
-
-#ifdef _WIN32
-
-    len = ::WideCharToMultiByte(CP_UTF8, 0, src, srcLength, dst, dstLength, NULL, NULL);
-
-#else
-
-    using namespace Unicode;
-
-    const UTF16 *srcBegin = src;
-    const UTF16 *srcEnd   = srcBegin + srcLength;
-
-    UTF8 *dstBegin = reinterpret_cast<UTF8*>(dst);
-    UTF8 *dstEnd   = dstBegin + dstLength;
-
-    ConversionResult result = ConvertUTF16toUTF8(
-      &srcBegin, srcEnd, &dstBegin, dstEnd, lenientConversion);
-
-    if(result == conversionOK)
-      len = dstBegin - reinterpret_cast<UTF8*>(dst);
-
-#endif
-
-    if(len == 0)
-      debug("String::UTF16toUTF8() - Unicode conversion error.");
-
-    return len;
+    if(Utils::systemByteOrder() == Utils::LittleEndian)
+      return String::UTF16LE;
+    else
+      return String::UTF16BE;
   }
 
-  inline size_t UTF8toUTF16(
-    const char *src, size_t srcLength, wchar_t *dst, size_t dstLength)
+  // Converts a Latin-1 string into UTF-16(without BOM/CPU byte order)
+  // and copies it to the internal buffer.
+  void copyFromLatin1(std::wstring &data, const char *s, size_t length)
   {
-    size_t len = 0;
+    data.resize(length);
 
-#ifdef _WIN32
+    for(size_t i = 0; i < length; ++i)
+      data[i] = static_cast<unsigned char>(s[i]);
+  }
 
-    len = ::MultiByteToWideChar(CP_UTF8, 0, src, srcLength, dst, dstLength);
+  // Converts a UTF-8 string into UTF-16(without BOM/CPU byte order)
+  // and copies it to the internal buffer.
+  void copyFromUTF8(std::wstring &data, const char *s, size_t length)
+  {
+    data.resize(length);
 
-#else
+    try {
+      const std::wstring::iterator dstEnd = utf8::utf8to16(s, s + length, data.begin());
+      data.resize(dstEnd - data.begin());
+    }
+    catch(const utf8::exception &e) {
+      const String message(e.what());
+      debug("String::copyFromUTF8() - UTF8-CPP error: " + message);
+      data.clear();
+    }
+  }
 
-    using namespace Unicode;
+  // Helper functions to read a UTF-16 character from an array.
+  template <typename T>
+  unsigned short nextUTF16(const T **p);
 
-    const UTF8 *srcBegin = reinterpret_cast<const UTF8*>(src);
-    const UTF8 *srcEnd   = srcBegin + srcLength;
+  template <>
+  unsigned short nextUTF16<wchar_t>(const wchar_t **p)
+  {
+    return static_cast<unsigned short>(*(*p)++);
+  }
 
-    UTF16 *dstBegin = dst;
-    UTF16 *dstEnd   = dstBegin + dstLength;
+  template <>
+  unsigned short nextUTF16<char>(const char **p)
+  {
+    union {
+      unsigned short w;
+      char c[2];
+    } u;
+    u.c[0] = *(*p)++;
+    u.c[1] = *(*p)++;
+    return u.w;
+  }
 
-    ConversionResult result = ConvertUTF8toUTF16(
-      &srcBegin, srcEnd, &dstBegin, dstEnd, lenientConversion);
+  // Converts a UTF-16 (with BOM), UTF-16LE or UTF16-BE string into
+  // UTF-16(without BOM/CPU byte order) and copies it to the internal buffer.
+  template <typename T>
+  void copyFromUTF16(std::wstring &data, const T *s, size_t length, String::Type t)
+  {
+    bool swap;
+    if(t == String::UTF16) {
+      if(length < 1) {
+        debug("String::copyFromUTF16() - Invalid UTF16 string. Too short to have a BOM.");
+        return;
+      }
 
-    if(result == conversionOK)
-      len = dstBegin - dst;
+      const unsigned short bom = nextUTF16(&s);
+      if(bom == 0xfeff)
+        swap = false; // Same as CPU endian. No need to swap bytes.
+      else if(bom == 0xfffe)
+        swap = true;  // Not same as CPU endian. Need to swap bytes.
+      else {
+        debug("String::copyFromUTF16() - Invalid UTF16 string. BOM is broken.");
+        return;
+      }
 
-#endif
+      length--;
+    }
+    else {
+      swap = (t != wcharByteOrder());
+    }
 
-    if(len == 0)
-      debug("String::UTF8toUTF16() - Unicode conversion error.");
-
-    return len;
+    data.resize(length);
+    for(size_t i = 0; i < length; ++i) {
+      const unsigned short c = nextUTF16(&s);
+      if(swap)
+        data[i] = Utils::byteSwap(c);
+      else
+        data[i] = c;
+    }
   }
 }
 
@@ -121,22 +141,8 @@ namespace TagLib {
 class String::StringPrivate : public RefCounter
 {
 public:
-  StringPrivate()
-    : RefCounter()
-  {
-  }
-
-  StringPrivate(const wstring &s)
-    : RefCounter()
-    , data(s)
-  {
-  }
-
-  StringPrivate(uint n, wchar_t c)
-    : RefCounter()
-    , data(static_cast<size_t>(n), c)
-  {
-  }
+  StringPrivate() :
+    RefCounter() {}
 
   /*!
    * Stores string in UTF-16. The byte order depends on the CPU endian.
@@ -152,108 +158,114 @@ public:
 String String::null;
 
 ////////////////////////////////////////////////////////////////////////////////
+// public members
+////////////////////////////////////////////////////////////////////////////////
 
-String::String()
-  : d(new StringPrivate())
+String::String() :
+  d(new StringPrivate())
 {
 }
 
-String::String(const String &s)
-  : d(s.d)
+String::String(const String &s) :
+  d(s.d)
 {
   d->ref();
 }
 
-String::String(const std::string &s, Type t)
-  : d(new StringPrivate())
+String::String(const std::string &s, Type t) :
+  d(new StringPrivate())
 {
   if(t == Latin1)
-    copyFromLatin1(s.c_str(), s.length());
+    copyFromLatin1(d->data, s.c_str(), s.length());
   else if(t == String::UTF8)
-    copyFromUTF8(s.c_str(), s.length());
+    copyFromUTF8(d->data, s.c_str(), s.length());
   else {
     debug("String::String() -- std::string should not contain UTF16.");
   }
 }
 
-String::String(const wstring &s, Type t)
-  : d(new StringPrivate())
+String::String(const wstring &s, Type t) :
+  d(new StringPrivate())
 {
   if(t == UTF16 || t == UTF16BE || t == UTF16LE) {
     // This looks ugly but needed for the compatibility with TagLib1.8.
     // Should be removed in TabLib2.0.
     if (t == UTF16BE)
-      t = WCharByteOrder;
+      t = wcharByteOrder();
     else if (t == UTF16LE)
-      t = (WCharByteOrder == UTF16LE ? UTF16BE : UTF16LE);
+      t = (wcharByteOrder() == UTF16LE ? UTF16BE : UTF16LE);
 
-    copyFromUTF16(s.c_str(), s.length(), t);
+    copyFromUTF16(d->data, s.c_str(), s.length(), t);
   }
   else {
     debug("String::String() -- TagLib::wstring should not contain Latin1 or UTF-8.");
   }
 }
 
-String::String(const wchar_t *s, Type t)
-  : d(new StringPrivate())
+String::String(const wchar_t *s, Type t) :
+  d(new StringPrivate())
 {
   if(t == UTF16 || t == UTF16BE || t == UTF16LE) {
     // This looks ugly but needed for the compatibility with TagLib1.8.
     // Should be removed in TabLib2.0.
     if (t == UTF16BE)
-      t = WCharByteOrder;
+      t = wcharByteOrder();
     else if (t == UTF16LE)
-      t = (WCharByteOrder == UTF16LE ? UTF16BE : UTF16LE);
+      t = (wcharByteOrder() == UTF16LE ? UTF16BE : UTF16LE);
 
-    copyFromUTF16(s, ::wcslen(s), t);
+    copyFromUTF16(d->data, s, ::wcslen(s), t);
   }
   else {
     debug("String::String() -- const wchar_t * should not contain Latin1 or UTF-8.");
   }
 }
 
-String::String(const char *s, Type t)
-  : d(new StringPrivate())
+String::String(const char *s, Type t) :
+  d(new StringPrivate())
 {
   if(t == Latin1)
-    copyFromLatin1(s, ::strlen(s));
+    copyFromLatin1(d->data, s, ::strlen(s));
   else if(t == String::UTF8)
-    copyFromUTF8(s, ::strlen(s));
+    copyFromUTF8(d->data, s, ::strlen(s));
   else {
     debug("String::String() -- const char * should not contain UTF16.");
   }
 }
 
-String::String(wchar_t c, Type t)
-  : d(new StringPrivate())
+String::String(wchar_t c, Type t) :
+  d(new StringPrivate())
 {
   if(t == UTF16 || t == UTF16BE || t == UTF16LE)
-    copyFromUTF16(&c, 1, t);
+    copyFromUTF16(d->data, &c, 1, t);
   else {
     debug("String::String() -- wchar_t should not contain Latin1 or UTF-8.");
   }
 }
 
-String::String(char c, Type t)
-  : d(new StringPrivate(1, static_cast<uchar>(c)))
+String::String(char c, Type t) :
+  d(new StringPrivate())
 {
-  if(t != Latin1 && t != UTF8) {
+  if(t == Latin1)
+    copyFromLatin1(d->data, &c, 1);
+  else if(t == String::UTF8)
+    copyFromUTF8(d->data, &c, 1);
+  else {
     debug("String::String() -- char should not contain UTF16.");
   }
 }
 
-String::String(const ByteVector &v, Type t)
-  : d(new StringPrivate())
+String::String(const ByteVector &v, Type t) :
+  d(new StringPrivate())
 {
   if(v.isEmpty())
     return;
 
   if(t == Latin1)
-    copyFromLatin1(v.data(), v.size());
+    copyFromLatin1(d->data, v.data(), v.size());
   else if(t == UTF8)
-    copyFromUTF8(v.data(), v.size());
+    copyFromUTF8(d->data, v.data(), v.size());
   else
-    copyFromUTF16(v.data(), v.size(), t);
+    copyFromUTF16(d->data, v.data(), v.size() / 2, t);
 
   // If we hit a null in the ByteVector, shrink the string again.
   d->data.resize(::wcslen(d->data.c_str()));
@@ -313,12 +325,12 @@ String::ConstIterator String::end() const
 
 int String::find(const String &s, int offset) const
 {
-  return d->data.find(s.d->data, offset);
+  return static_cast<int>(d->data.find(s.d->data, offset));
 }
 
 int String::rfind(const String &s, int offset) const
 {
-  return d->data.rfind(s.d->data, offset);
+  return static_cast<int>(d->data.rfind(s.d->data, offset));
 }
 
 StringList String::split(const String &separator) const
@@ -346,9 +358,12 @@ bool String::startsWith(const String &s) const
   return substr(0, s.length()) == s;
 }
 
-String String::substr(uint position, uint n) const
+String String::substr(unsigned int position, unsigned int n) const
 {
-  return String(d->data.substr(position, n));
+  if(position == 0 && n >= size())
+    return *this;
+  else
+    return String(d->data.substr(position, n));
 }
 
 String &String::append(const String &s)
@@ -358,15 +373,20 @@ String &String::append(const String &s)
   return *this;
 }
 
+String & String::clear()
+{
+  *this = String();
+  return *this;
+}
+
 String String::upper() const
 {
   String s;
+  s.d->data.reserve(size());
 
-  static int shift = 'A' - 'a';
-
-  for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); ++it) {
+  for(ConstIterator it = begin(); it != end(); ++it) {
     if(*it >= 'a' && *it <= 'z')
-      s.d->data.push_back(*it + shift);
+      s.d->data.push_back(*it + 'A' - 'a');
     else
       s.d->data.push_back(*it);
   }
@@ -374,19 +394,19 @@ String String::upper() const
   return s;
 }
 
-TagLib::uint String::size() const
+unsigned int String::size() const
 {
-  return d->data.size();
+  return static_cast<unsigned int>(d->data.size());
 }
 
-TagLib::uint String::length() const
+unsigned int String::length() const
 {
   return size();
 }
 
 bool String::isEmpty() const
 {
-  return d->data.size() == 0;
+  return d->data.empty();
 }
 
 bool String::isNull() const
@@ -403,24 +423,26 @@ ByteVector String::data(Type t) const
       ByteVector v(size(), 0);
       char *p = v.data();
 
-      for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); it++)
+      for(ConstIterator it = begin(); it != end(); ++it)
         *p++ = static_cast<char>(*it);
 
       return v;
     }
   case UTF8:
-    if(!d->data.empty())
     {
-      ByteVector v(size() * 4 + 1, 0);
+      ByteVector v(size() * 4, 0);
 
-      const size_t len = UTF16toUTF8(
-        d->data.c_str(), d->data.size(), v.data(), v.size());
-      v.resize(len);
+      try {
+        const ByteVector::Iterator dstEnd = utf8::utf16to8(begin(), end(), v.begin());
+        v.resize(static_cast<unsigned int>(dstEnd - v.begin()));
+      }
+      catch(const utf8::exception &e) {
+        const String message(e.what());
+        debug("String::data() - UTF8-CPP error: " + message);
+        v.clear();
+      }
 
       return v;
-    }
-    else {
-      return ByteVector::null;
     }
   case UTF16:
     {
@@ -432,7 +454,7 @@ ByteVector String::data(Type t) const
       *p++ = '\xff';
       *p++ = '\xfe';
 
-      for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); it++) {
+      for(ConstIterator it = begin(); it != end(); ++it) {
         *p++ = static_cast<char>(*it & 0xff);
         *p++ = static_cast<char>(*it >> 8);
       }
@@ -444,7 +466,7 @@ ByteVector String::data(Type t) const
       ByteVector v(size() * 2, 0);
       char *p = v.data();
 
-      for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); it++) {
+      for(ConstIterator it = begin(); it != end(); ++it) {
         *p++ = static_cast<char>(*it >> 8);
         *p++ = static_cast<char>(*it & 0xff);
       }
@@ -456,7 +478,7 @@ ByteVector String::data(Type t) const
       ByteVector v(size() * 2, 0);
       char *p = v.data();
 
-      for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); it++) {
+      for(ConstIterator it = begin(); it != end(); ++it) {
         *p++ = static_cast<char>(*it & 0xff);
         *p++ = static_cast<char>(*it >> 8);
       }
@@ -466,7 +488,7 @@ ByteVector String::data(Type t) const
   default:
     {
       debug("String::data() - Invalid Type value.");
-      return ByteVector::null;
+      return ByteVector();
     }
   }
 }
@@ -478,54 +500,35 @@ int String::toInt() const
 
 int String::toInt(bool *ok) const
 {
-  int value = 0;
+  const wchar_t *begin = d->data.c_str();
+  wchar_t *end;
+  errno = 0;
+  const long value = ::wcstol(begin, &end, 10);
 
-  uint size = d->data.size();
-  bool negative = size > 0 && d->data[0] == '-';
-  uint start = negative ? 1 : 0;
-  uint i = start;
+  // Has wcstol() consumed the entire string and not overflowed?
+  if(ok) {
+    *ok = (errno == 0 && end > begin && *end == L'\0');
+    *ok = (*ok && value > INT_MIN && value < INT_MAX);
+  }
 
-  for(; i < size && d->data[i] >= '0' && d->data[i] <= '9'; i++)
-    value = value * 10 + (d->data[i] - '0');
-
-  if(negative)
-    value = value * -1;
-
-  if(ok)
-    *ok = (size > start && i == size);
-
-  return value;
+  return static_cast<int>(value);
 }
 
 String String::stripWhiteSpace() const
 {
-  wstring::const_iterator begin = d->data.begin();
-  wstring::const_iterator end = d->data.end();
+  static const wchar_t *WhiteSpaceChars = L"\t\n\f\r ";
 
-  while(begin != end &&
-        (*begin == '\t' || *begin == '\n' || *begin == '\f' ||
-         *begin == '\r' || *begin == ' '))
-  {
-    ++begin;
-  }
+  const size_t pos1 = d->data.find_first_not_of(WhiteSpaceChars);
+  if(pos1 == std::wstring::npos)
+    return String();
 
-  if(begin == end)
-    return null;
-
-  // There must be at least one non-whitespace character here for us to have
-  // gotten this far, so we should be safe not doing bounds checking.
-
-  do {
-    --end;
-  } while(*end == '\t' || *end == '\n' ||
-          *end == '\f' || *end == '\r' || *end == ' ');
-
-  return String(wstring(begin, end + 1));
+  const size_t pos2 = d->data.find_last_not_of(WhiteSpaceChars);
+  return substr(static_cast<unsigned int>(pos1), static_cast<unsigned int>(pos2 - pos1 + 1));
 }
 
 bool String::isLatin1() const
 {
-  for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); it++) {
+  for(ConstIterator it = begin(); it != end(); ++it) {
     if(*it >= 256)
       return false;
   }
@@ -534,7 +537,7 @@ bool String::isLatin1() const
 
 bool String::isAscii() const
 {
-  for(wstring::const_iterator it = d->data.begin(); it != d->data.end(); it++) {
+  for(ConstIterator it = begin(); it != end(); ++it) {
     if(*it >= 128)
       return false;
   }
@@ -546,13 +549,13 @@ String String::number(int n) // static
   return Utils::formatString("%d", n);
 }
 
-TagLib::wchar &String::operator[](int i)
+wchar_t &String::operator[](int i)
 {
   detach();
   return d->data[i];
 }
 
-const TagLib::wchar &String::operator[](int i) const
+const wchar_t &String::operator[](int i) const
 {
   return d->data[i];
 }
@@ -572,7 +575,7 @@ bool String::operator==(const char *s) const
   const wchar_t *p = toCWString();
 
   while(*p != L'\0' || *s != '\0') {
-    if(*p++ != static_cast<uchar>(*s++))
+    if(*p++ != static_cast<unsigned char>(*s++))
       return false;
   }
   return true;
@@ -614,7 +617,7 @@ String &String::operator+=(const char *s)
   detach();
 
   for(int i = 0; s[i] != 0; i++)
-    d->data += uchar(s[i]);
+    d->data += static_cast<unsigned char>(s[i]);
   return *this;
 }
 
@@ -630,96 +633,68 @@ String &String::operator+=(char c)
 {
   detach();
 
-  d->data += uchar(c);
+  d->data += static_cast<unsigned char>(c);
   return *this;
 }
 
 String &String::operator=(const String &s)
 {
-  if(&s == this)
-    return *this;
-
-  if(d->deref())
-    delete d;
-  d = s.d;
-  d->ref();
+  String(s).swap(*this);
   return *this;
 }
 
 String &String::operator=(const std::string &s)
 {
-  if(d->deref())
-    delete d;
-
-  d = new StringPrivate;
-  copyFromLatin1(s.c_str(), s.length());
-
+  String(s).swap(*this);
   return *this;
 }
 
 String &String::operator=(const wstring &s)
 {
-  if(d->deref())
-    delete d;
-  d = new StringPrivate(s);
+  String(s).swap(*this);
   return *this;
 }
 
 String &String::operator=(const wchar_t *s)
 {
-  if(d->deref())
-    delete d;
-
-  d = new StringPrivate(s);
+  String(s).swap(*this);
   return *this;
 }
 
 String &String::operator=(char c)
 {
-  if(d->deref())
-    delete d;
-
-  d = new StringPrivate(1, static_cast<uchar>(c));
+  String(c).swap(*this);
   return *this;
 }
 
 String &String::operator=(wchar_t c)
 {
-  if(d->deref())
-    delete d;
-
-  d = new StringPrivate(1, c);
+  String(c, wcharByteOrder()).swap(*this);
   return *this;
 }
 
 String &String::operator=(const char *s)
 {
-  if(d->deref())
-    delete d;
-
-  d = new StringPrivate;
-  copyFromLatin1(s, ::strlen(s));
-
+  String(s).swap(*this);
   return *this;
 }
 
 String &String::operator=(const ByteVector &v)
 {
-  if(d->deref())
-    delete d;
-
-  d = new StringPrivate;
-  copyFromLatin1(v.data(), v.size());
-
-  // If we hit a null in the ByteVector, shrink the string again.
-  d->data.resize(::wcslen(d->data.c_str()));
-
+  String(v).swap(*this);
   return *this;
+}
+
+void String::swap(String &s)
+{
+  using std::swap;
+
+  swap(d, s.d);
 }
 
 bool String::operator<(const String &s) const
 {
-  return d->data < s.d->data;
+  return (d->data < s.d->data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -728,112 +703,19 @@ bool String::operator<(const String &s) const
 
 void String::detach()
 {
-  if(d->count() > 1) {
-    d->deref();
-    d = new StringPrivate(d->data);
-  }
+  if(d->count() > 1)
+    String(d->data.c_str()).swap(*this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // private members
 ////////////////////////////////////////////////////////////////////////////////
 
-void String::copyFromLatin1(const char *s, size_t length)
-{
-  d->data.resize(length);
-
-  for(size_t i = 0; i < length; ++i)
-    d->data[i] = static_cast<uchar>(s[i]);
-}
-
-void String::copyFromUTF8(const char *s, size_t length)
-{
-  d->data.resize(length);
-
-  if(length > 0) {
-    const size_t len = UTF8toUTF16(s, length, &d->data[0], d->data.size());
-    d->data.resize(len);
-  }
-}
-
-void String::copyFromUTF16(const wchar_t *s, size_t length, Type t)
-{
-  bool swap;
-  if(t == UTF16) {
-    if(length >= 1 && s[0] == 0xfeff)
-      swap = false; // Same as CPU endian. No need to swap bytes.
-    else if(length >= 1 && s[0] == 0xfffe)
-      swap = true;  // Not same as CPU endian. Need to swap bytes.
-    else {
-      debug("String::copyFromUTF16() - Invalid UTF16 string.");
-      return;
-    }
-
-    s++;
-    length--;
-  }
-  else
-    swap = (t != WCharByteOrder);
-
-  d->data.resize(length);
-  if(length > 0) {
-    if(swap) {
-      for(size_t i = 0; i < length; ++i)
-        d->data[i] = Utils::byteSwap(static_cast<ushort>(s[i]));
-    }
-    else {
-      ::wmemcpy(&d->data[0], s, length);
-    }
-  }
-}
-
-void String::copyFromUTF16(const char *s, size_t length, Type t)
-{
-  bool swap;
-  if(t == UTF16) {
-    if(length < 2) {
-      debug("String::copyFromUTF16() - Invalid UTF16 string.");
-      return;
-    }
-
-    // Uses memcpy instead of reinterpret_cast to avoid an alignment exception.
-    ushort bom;
-    ::memcpy(&bom, s, 2);
-
-    if(bom == 0xfeff)
-      swap = false; // Same as CPU endian. No need to swap bytes.
-    else if(bom == 0xfffe)
-      swap = true;  // Not same as CPU endian. Need to swap bytes.
-    else {
-      debug("String::copyFromUTF16() - Invalid UTF16 string.");
-      return;
-    }
-
-    s += 2;
-    length -= 2;
-  }
-  else
-    swap = (t != WCharByteOrder);
-
-  d->data.resize(length / 2);
-  for(size_t i = 0; i < length / 2; ++i) {
-    ushort c;
-    ::memcpy(&c, s, 2);
-    if(swap)
-      c = Utils::byteSwap(c);
-
-    d->data[i] = static_cast<wchar_t>(c);
-    s += 2;
-  }
-}
-
-const String::Type String::WCharByteOrder
-  = (Utils::systemByteOrder() == Utils::BigEndian) ? String::UTF16BE : String::UTF16LE;
-
+const String::Type String::WCharByteOrder = wcharByteOrder();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// related functions
+// related non-member functions
 ////////////////////////////////////////////////////////////////////////////////
 
 const TagLib::String operator+(const TagLib::String &s1, const TagLib::String &s2)

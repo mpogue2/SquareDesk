@@ -127,18 +127,18 @@ void Opus::Properties::read(File *file)
   const ByteVector data = file->packet(0);
 
   // *Magic Signature*
-  uint pos = 8;
+  unsigned int pos = 8;
 
   // *Version* (8 bits, unsigned)
-  d->opusVersion = uchar(data.at(pos));
+  d->opusVersion = static_cast<unsigned char>(data.at(pos));
   pos += 1;
 
   // *Output Channel Count* 'C' (8 bits, unsigned)
-  d->channels = uchar(data.at(pos));
+  d->channels = static_cast<unsigned char>(data.at(pos));
   pos += 1;
 
   // *Pre-skip* (16 bits, unsigned, little endian)
-  const ushort preSkip = data.toUShort(pos, false);
+  const unsigned short preSkip = data.toUShort(pos, false);
   pos += 2;
 
   // *Input Sample Rate* (32 bits, unsigned, little endian)
@@ -163,8 +163,14 @@ void Opus::Properties::read(File *file)
 
       if(frameCount > 0) {
         const double length = frameCount * 1000.0 / 48000.0;
+        long fileLengthWithoutOverhead = file->length();
+        // Ignore the two mandatory header packets, see "3. Packet Organization"
+        // in https://tools.ietf.org/html/rfc7845.html
+        for (unsigned int i = 0; i < 2; ++i) {
+          fileLengthWithoutOverhead -= file->packet(i).size();
+        }
         d->length  = static_cast<int>(length + 0.5);
-        d->bitrate = static_cast<int>(file->length() * 8.0 / length + 0.5);
+        d->bitrate = static_cast<int>(fileLengthWithoutOverhead * 8.0 / length + 0.5);
       }
     }
     else {

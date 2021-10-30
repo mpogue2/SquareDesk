@@ -67,6 +67,23 @@ namespace TagLib {
     {
     public:
       /*!
+       * This set of flags is used for various operations and is suitable for
+       * being OR-ed together.
+       */
+      enum TagTypes {
+        //! Empty set.  Matches no tag types.
+        NoTags      = 0x0000,
+        //! Matches Vorbis comments.
+        XiphComment = 0x0001,
+        //! Matches ID3v1 tags.
+        ID3v1       = 0x0002,
+        //! Matches ID3v2 tags.
+        ID3v2       = 0x0004,
+        //! Matches all tag types.
+        AllTags     = 0xffff
+      };
+
+      /*!
        * Constructs a FLAC file from \a file.  If \a readProperties is true the
        * file's audio properties will also be read.
        *
@@ -155,9 +172,6 @@ namespace TagLib {
        * has no XiphComment, one will be constructed from the ID3-tags.
        *
        * This returns true if the save was successful.
-       *
-       * \warning In the current implementation, it's dangerous to call save()
-       * repeatedly.  At worst it will corrupt the file.
        */
       virtual bool save();
 
@@ -226,7 +240,7 @@ namespace TagLib {
        * \see ID3v2FrameFactory
        * \deprecated This value should be passed in via the constructor
        */
-      void setID3v2FrameFactory(const ID3v2::FrameFactory *factory);
+      TAGLIB_DEPRECATED void setID3v2FrameFactory(const ID3v2::FrameFactory *factory);
 
       /*!
        * Returns the block of data used by FLAC::Properties for parsing the
@@ -234,7 +248,7 @@ namespace TagLib {
        *
        * \deprecated Always returns an empty vector.
        */
-      ByteVector streamInfoData(); // BIC: remove
+      TAGLIB_DEPRECATED ByteVector streamInfoData(); // BIC: remove
 
       /*!
        * Returns the length of the audio-stream, used by FLAC::Properties for
@@ -242,7 +256,7 @@ namespace TagLib {
        *
        * \deprecated Always returns zero.
        */
-      long streamLength();  // BIC: remove
+      TAGLIB_DEPRECATED long streamLength();  // BIC: remove
 
       /*!
        * Returns a list of pictures attached to the FLAC file.
@@ -269,6 +283,21 @@ namespace TagLib {
       void addPicture(Picture *picture);
 
       /*!
+       * This will remove the tags that match the OR-ed together TagTypes from
+       * the file.  By default it removes all tags.
+       *
+       * \warning This will also invalidate pointers to the tags as their memory
+       * will be freed.
+       *
+       * \note In order to make the removal permanent save() still needs to be
+       * called.
+       *
+       * \note This won't remove the Vorbis comment block completely.  The
+       * vendor ID will be preserved.
+       */
+      void strip(int tags = AllTags);
+
+      /*!
        * Returns whether or not the file on disk actually has a XiphComment.
        *
        * \see xiphComment()
@@ -289,14 +318,21 @@ namespace TagLib {
        */
       bool hasID3v2Tag() const;
 
+      /*!
+       * Returns whether or not the given \a stream can be opened as a FLAC
+       * file.
+       *
+       * \note This method is designed to do a quick check.  The result may
+       * not necessarily be correct.
+       */
+      static bool isSupported(IOStream *stream);
+
     private:
       File(const File &);
       File &operator=(const File &);
 
       void read(bool readProperties);
       void scan();
-      long findID3v2();
-      long findID3v1();
 
       class FilePrivate;
       FilePrivate *d;

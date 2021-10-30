@@ -45,16 +45,16 @@ public:
 ////////////////////////////////////////////////////////////////////////////////
 
 TextIdentificationFrame::TextIdentificationFrame(const ByteVector &type, String::Type encoding) :
-  Frame(type)
+  Frame(type),
+  d(new TextIdentificationFramePrivate())
 {
-  d = new TextIdentificationFramePrivate;
   d->textEncoding = encoding;
 }
 
 TextIdentificationFrame::TextIdentificationFrame(const ByteVector &data) :
-  Frame(data)
+  Frame(data),
+  d(new TextIdentificationFramePrivate())
 {
-  d = new TextIdentificationFramePrivate;
   setData(data);
 }
 
@@ -63,7 +63,10 @@ TextIdentificationFrame *TextIdentificationFrame::createTIPLFrame(const Property
   TextIdentificationFrame *frame = new TextIdentificationFrame("TIPL");
   StringList l;
   for(PropertyMap::ConstIterator it = properties.begin(); it != properties.end(); ++it){
-    l.append(it->first);
+    const String role = involvedPeopleMap()[it->first];
+    if(role.isEmpty()) // should not happen
+      continue;
+    l.append(role);
     l.append(it->second.toString(",")); // comma-separated list of names
   }
   frame->setText(l);
@@ -119,22 +122,26 @@ void TextIdentificationFrame::setTextEncoding(String::Type encoding)
   d->textEncoding = encoding;
 }
 
-// array of allowed TIPL prefixes and their corresponding key value
-static const TagLib::uint involvedPeopleSize = 5;
-static const char* involvedPeople[][2] = {
-    {"ARRANGER", "ARRANGER"},
-    {"ENGINEER", "ENGINEER"},
-    {"PRODUCER", "PRODUCER"},
-    {"DJ-MIX", "DJMIXER"},
-    {"MIX", "MIXER"},
-};
+namespace
+{
+  // array of allowed TIPL prefixes and their corresponding key value
+  const char* involvedPeople[][2] = {
+      {"ARRANGER", "ARRANGER"},
+      {"ENGINEER", "ENGINEER"},
+      {"PRODUCER", "PRODUCER"},
+      {"DJ-MIX", "DJMIXER"},
+      {"MIX", "MIXER"},
+  };
+  const size_t involvedPeopleSize = sizeof(involvedPeople) / sizeof(involvedPeople[0]);
+}
 
 const KeyConversionMap &TextIdentificationFrame::involvedPeopleMap() // static
 {
   static KeyConversionMap m;
-  if(m.isEmpty())
-    for(uint i = 0; i < involvedPeopleSize; ++i)
+  if(m.isEmpty()) {
+    for(size_t i = 0; i < involvedPeopleSize; ++i)
       m.insert(involvedPeople[i][1], involvedPeople[i][0]);
+  }
   return m;
 }
 
@@ -146,7 +153,7 @@ PropertyMap TextIdentificationFrame::asProperties() const
     return makeTMCLProperties();
   PropertyMap map;
   String tagName = frameIDToKey(frameID());
-  if(tagName.isNull()) {
+  if(tagName.isEmpty()) {
     map.unsupportedData().append(frameID());
     return map;
   }
@@ -248,9 +255,10 @@ ByteVector TextIdentificationFrame::renderFields() const
 // TextIdentificationFrame private members
 ////////////////////////////////////////////////////////////////////////////////
 
-TextIdentificationFrame::TextIdentificationFrame(const ByteVector &data, Header *h) : Frame(h)
+TextIdentificationFrame::TextIdentificationFrame(const ByteVector &data, Header *h) :
+  Frame(h),
+  d(new TextIdentificationFramePrivate())
 {
-  d = new TextIdentificationFramePrivate;
   parseFields(fieldData(data));
 }
 
@@ -265,14 +273,14 @@ PropertyMap TextIdentificationFrame::makeTIPLProperties() const
   StringList l = fieldList();
   for(StringList::ConstIterator it = l.begin(); it != l.end(); ++it) {
     bool found = false;
-    for(uint i = 0; i < involvedPeopleSize; ++i)
+    for(size_t i = 0; i < involvedPeopleSize; ++i)
       if(*it == involvedPeople[i][0]) {
         map.insert(involvedPeople[i][1], (++it)->split(","));
         found = true;
         break;
       }
     if(!found){
-      // invalid involved role -> mark whole frame as unsupported in order to be consisten with writing
+      // invalid involved role -> mark whole frame as unsupported in order to be consistent with writing
       map.clear();
       map.unsupportedData().append(frameID());
       return map;
@@ -292,7 +300,7 @@ PropertyMap TextIdentificationFrame::makeTMCLProperties() const
   StringList l = fieldList();
   for(StringList::ConstIterator it = l.begin(); it != l.end(); ++it) {
     String instrument = it->upper();
-    if(instrument.isNull()) {
+    if(instrument.isEmpty()) {
       // instrument is not a valid key -> frame unsupported
       map.clear();
       map.unsupportedData().append(frameID());
@@ -312,8 +320,8 @@ UserTextIdentificationFrame::UserTextIdentificationFrame(String::Type encoding) 
   d(0)
 {
   StringList l;
-  l.append(String::null);
-  l.append(String::null);
+  l.append(String());
+  l.append(String());
   setText(l);
 }
 
@@ -334,14 +342,20 @@ UserTextIdentificationFrame::UserTextIdentificationFrame(const String &descripti
 
 String UserTextIdentificationFrame::toString() const
 {
-  return "[" + description() + "] " + fieldList().toString();
+  // first entry is the description itself, drop from values list
+  StringList l = fieldList();
+  for(StringList::Iterator it = l.begin(); it != l.end(); ++it) {
+    l.erase(it);
+    break;
+  }
+  return "[" + description() + "] " + l.toString();
 }
 
 String UserTextIdentificationFrame::description() const
 {
   return !TextIdentificationFrame::fieldList().isEmpty()
     ? TextIdentificationFrame::fieldList().front()
-    : String::null;
+    : String();
 }
 
 StringList UserTextIdentificationFrame::fieldList() const
@@ -354,7 +368,7 @@ StringList UserTextIdentificationFrame::fieldList() const
 void UserTextIdentificationFrame::setText(const String &text)
 {
   if(description().isEmpty())
-    setDescription(String::null);
+    setDescription(String());
 
   TextIdentificationFrame::setText(StringList(description()).append(text));
 }
@@ -362,7 +376,7 @@ void UserTextIdentificationFrame::setText(const String &text)
 void UserTextIdentificationFrame::setText(const StringList &fields)
 {
   if(description().isEmpty())
-    setDescription(String::null);
+    setDescription(String());
 
   TextIdentificationFrame::setText(StringList(description()).append(fields));
 }
@@ -417,7 +431,7 @@ void UserTextIdentificationFrame::checkFields()
   int fields = fieldList().size();
 
   if(fields == 0)
-    setDescription(String::null);
+    setDescription(String());
   if(fields <= 1)
-    setText(String::null);
+    setText(String());
 }

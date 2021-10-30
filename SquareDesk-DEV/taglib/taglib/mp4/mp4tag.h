@@ -42,7 +42,7 @@ namespace TagLib {
     /*!
      * \deprecated
      */
-    typedef TagLib::Map<String, Item> ItemListMap;
+    TAGLIB_DEPRECATED typedef TagLib::Map<String, Item> ItemListMap;
     typedef TagLib::Map<String, Item> ItemMap;
 
     class TAGLIB_EXPORT Tag: public TagLib::Tag
@@ -50,31 +50,31 @@ namespace TagLib {
     public:
         Tag();
         Tag(TagLib::File *file, Atoms *atoms);
-        ~Tag();
+        virtual ~Tag();
         bool save();
 
-        String title() const;
-        String artist() const;
-        String album() const;
-        String comment() const;
-        String genre() const;
-        uint year() const;
-        uint track() const;
+        virtual String title() const;
+        virtual String artist() const;
+        virtual String album() const;
+        virtual String comment() const;
+        virtual String genre() const;
+        virtual unsigned int year() const;
+        virtual unsigned int track() const;
 
-        void setTitle(const String &value);
-        void setArtist(const String &value);
-        void setAlbum(const String &value);
-        void setComment(const String &value);
-        void setGenre(const String &value);
-        void setYear(uint value);
-        void setTrack(uint value);
+        virtual void setTitle(const String &value);
+        virtual void setArtist(const String &value);
+        virtual void setAlbum(const String &value);
+        virtual void setComment(const String &value);
+        virtual void setGenre(const String &value);
+        virtual void setYear(unsigned int value);
+        virtual void setTrack(unsigned int value);
 
         virtual bool isEmpty() const;
 
         /*!
          * \deprecated Use the item() and setItem() API instead
          */
-        ItemMap &itemListMap();
+        TAGLIB_DEPRECATED ItemMap &itemListMap();
 
         /*!
          * Returns a string-keyed map of the MP4::Items for this tag.
@@ -105,6 +105,13 @@ namespace TagLib {
         PropertyMap properties() const;
         void removeUnsupportedProperties(const StringList& properties);
         PropertyMap setProperties(const PropertyMap &properties);
+
+    protected:
+        /*!
+         * Sets the value of \a key to \a value, overwriting any previous value.
+         * If \a value is empty, the item is removed.
+         */
+        void setTextItem(const String &key, const String &value);
 
     private:
         AtomDataList parseData2(const Atom *atom, int expectedFlags = -1,

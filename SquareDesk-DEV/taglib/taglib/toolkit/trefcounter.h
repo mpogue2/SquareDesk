@@ -30,6 +30,7 @@
 #include "taglib.h"
 
 #ifdef __APPLE__
+#  define OSATOMIC_DEPRECATED 0
 #  include <libkern/OSAtomic.h>
 #  define TAGLIB_ATOMIC_MAC
 #elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
@@ -102,7 +103,7 @@ namespace TagLib
     bool deref() { return ! --refCount; }
     int count() { return refCount; }
   private:
-    uint refCount;
+    unsigned int refCount;
 #endif
   };
 

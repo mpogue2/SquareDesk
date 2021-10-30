@@ -35,7 +35,7 @@ namespace TagLib {
 
     class File;
 
-    static const uint HeaderSize = 8*7;
+    static const unsigned int HeaderSize = 8 * 7;
 
     //! An implementation of audio property reading for MPC
 
@@ -74,7 +74,7 @@ namespace TagLib {
        *
        * \deprecated
        */
-      virtual int length() const;
+      TAGLIB_DEPRECATED virtual int length() const;
 
       /*!
        * Returns the length of the file in seconds.  The length is rounded down to
@@ -113,8 +113,8 @@ namespace TagLib {
        */
       int mpcVersion() const;
 
-      uint totalFrames() const;
-      uint sampleFrames() const;
+      unsigned int totalFrames() const;
+      unsigned int sampleFrames() const;
 
       /*!
       * Returns the track gain as an integer value,

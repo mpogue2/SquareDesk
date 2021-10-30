@@ -26,6 +26,8 @@
 #include <tdebug.h>
 #include <tstring.h>
 #include <tpropertymap.h>
+#include <tagutils.h>
+
 #include "mp4atom.h"
 #include "mp4tag.h"
 #include "mp4file.h"
@@ -68,6 +70,22 @@ public:
   MP4::Atoms      *atoms;
   MP4::Properties *properties;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// static members
+////////////////////////////////////////////////////////////////////////////////
+
+bool MP4::File::isSupported(IOStream *stream)
+{
+  // An MP4 file has to have an "ftyp" box first.
+
+  const ByteVector id = Utils::readHeader(stream, 8, false);
+  return id.containsAt("ftyp", 4);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// public members
+////////////////////////////////////////////////////////////////////////////////
 
 MP4::File::File(FileName file, bool readProperties, AudioProperties::ReadStyle) :
   TagLib::File(file),
@@ -130,8 +148,7 @@ MP4::File::read(bool readProperties)
   }
 
   // must have a moov atom, otherwise consider it invalid
-  MP4::Atom *moov = d->atoms->find("moov");
-  if(!moov) {
+  if(!d->atoms->find("moov")) {
     setValid(false);
     return;
   }
@@ -158,3 +175,8 @@ MP4::File::save()
   return d->tag->save();
 }
 
+bool
+MP4::File::hasMP4Tag() const
+{
+  return (d->atoms->find("moov", "udta", "meta", "ilst") != 0);
+}

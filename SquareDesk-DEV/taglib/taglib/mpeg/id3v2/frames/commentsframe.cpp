@@ -48,15 +48,17 @@ public:
 // public members
 ////////////////////////////////////////////////////////////////////////////////
 
-CommentsFrame::CommentsFrame(String::Type encoding) : Frame("COMM")
+CommentsFrame::CommentsFrame(String::Type encoding) :
+  Frame("COMM"),
+  d(new CommentsFramePrivate())
 {
-  d = new CommentsFramePrivate;
   d->textEncoding = encoding;
 }
 
-CommentsFrame::CommentsFrame(const ByteVector &data) : Frame(data)
+CommentsFrame::CommentsFrame(const ByteVector &data) :
+  Frame(data),
+  d(new CommentsFramePrivate())
 {
-  d = new CommentsFramePrivate;
   setData(data);
 }
 
@@ -116,8 +118,6 @@ PropertyMap CommentsFrame::asProperties() const
   PropertyMap map;
   if(key.isEmpty() || key == "COMMENT")
     map.insert("COMMENT", text());
-  else if(key.isNull())
-    map.unsupportedData().append(L"COMM/" + description());
   else
     map.insert("COMMENT:" + key, text());
   return map;
@@ -164,7 +164,7 @@ void CommentsFrame::parseFields(const ByteVector &data)
     } else {
       d->description = String(l.front(), d->textEncoding);
       d->text = String(l.back(), d->textEncoding);
-    }  
+    }
   }
 }
 
@@ -190,8 +190,9 @@ ByteVector CommentsFrame::renderFields() const
 // private members
 ////////////////////////////////////////////////////////////////////////////////
 
-CommentsFrame::CommentsFrame(const ByteVector &data, Header *h) : Frame(h)
+CommentsFrame::CommentsFrame(const ByteVector &data, Header *h) :
+  Frame(h),
+  d(new CommentsFramePrivate())
 {
-  d = new CommentsFramePrivate();
   parseFields(fieldData(data));
 }

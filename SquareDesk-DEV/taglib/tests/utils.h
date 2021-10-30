@@ -1,3 +1,28 @@
+/***************************************************************************
+    copyright           : (C) 2007 by Lukas Lalinsky
+    email               : lukas@oxygene.sk
+ ***************************************************************************/
+
+/***************************************************************************
+ *   This library is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Lesser General Public License version   *
+ *   2.1 as published by the Free Software Foundation.                     *
+ *                                                                         *
+ *   This library is distributed in the hope that it will be useful, but   *
+ *   WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU     *
+ *   Lesser General Public License for more details.                       *
+ *                                                                         *
+ *   You should have received a copy of the GNU Lesser General Public      *
+ *   License along with this library; if not, write to the Free Software   *
+ *   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA         *
+ *   02110-1301  USA                                                       *
+ *                                                                         *
+ *   Alternatively, this file is available under the Mozilla Public        *
+ *   License Version 1.1.  You may obtain a copy of the License at         *
+ *   http://www.mozilla.org/MPL/                                           *
+ ***************************************************************************/
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -30,17 +55,11 @@ inline string copyFile(const string &filename, const string &ext)
   char testFileName[1024];
 
 #ifdef _WIN32
-  GetTempPathA(sizeof(testFileName), testFileName);
-  GetTempFileNameA(testFileName, "tag", 0, testFileName);
-  DeleteFileA(testFileName);
-# if defined(_MSC_VER) && _MSC_VER > 1500
-  strcat_s(testFileName, ext.c_str());
-# else
-  strcat(testFileName, ext.c_str());
-# endif
+  char tempDir[MAX_PATH + 1];
+  GetTempPathA(sizeof(tempDir), tempDir);
+  wsprintfA(testFileName, "%s\\taglib-test%s", tempDir, ext.c_str());
 #else
-  snprintf(testFileName, sizeof(testFileName), "/%s/taglib-test-XXXXXX%s", P_tmpdir, ext.c_str());
-  static_cast<void>(mkstemps(testFileName, 6));
+  snprintf(testFileName, sizeof(testFileName), "/%s/taglib-test%s", P_tmpdir, ext.c_str());
 #endif
 
   string sourceFileName = testFilePath(filename) + ext;
@@ -84,13 +103,34 @@ inline bool fileEqual(const string &filename1, const string &filename2)
   return stream1.good() == stream2.good();
 }
 
+#ifdef TAGLIB_STRING_H
+
+namespace TagLib {
+
+  inline String longText(size_t length, bool random = false)
+  {
+    const wchar_t chars[] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_";
+
+    std::wstring text(length, L'X');
+
+    if(random) {
+      for(size_t i = 0; i < length; ++i)
+        text[i] = chars[rand() % 53];
+    }
+
+    return String(text);
+  }
+}
+
+#endif
+
 class ScopedFileCopy
 {
 public:
-  ScopedFileCopy(const string &filename, const string &ext, bool deleteFile=true)
+  ScopedFileCopy(const string &filename, const string &ext, bool deleteFile=true) :
+    m_deleteFile(deleteFile),
+    m_filename(copyFile(filename, ext))
   {
-    m_deleteFile = deleteFile;
-    m_filename = copyFile(filename, ext);
   }
 
   ~ScopedFileCopy()
@@ -99,12 +139,12 @@ public:
       deleteFile(m_filename);
   }
 
-  string fileName()
+  string fileName() const
   {
     return m_filename;
   }
 
 private:
-  bool m_deleteFile;
-  string m_filename;
+  const bool m_deleteFile;
+  const string m_filename;
 };
