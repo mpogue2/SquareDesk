@@ -518,40 +518,6 @@ ptpd        |  0  |_____|  2  |  6  |_____|  4  |
                   |_____|           |_____|           |_____|
 
 
-
-                _____                                           _____
-               |     |                                         |     |
-               |  0  |         _____             _____         |  3  |
-             __|__ __|__ _____|     |_____ _____|     |_____ __|__ __|__
-            |     |     |     |  1  |     |     |  2  |     |     |     |
-4mdmd       | 12  | 13  | 14  |_____| 15  |  7  |_____|  6  |  5  |  4  |
-            |_____|_____|_____|     |_____|_____|     |_____|_____|_____|
-               |     |        | 10  |           |  9  |        |     |
-               | 11  |        |_____|           |_____|        |  8  |
-               |_____|                                         |_____|
-
-
-                                  _____       _____
-                                 |     |     |     |
-                   _____         |  1  |     |  2  |         _____
-             _____|     |_____ __|__ __|__ __|__ __|__ _____|     |_____
-            |     |  0  |     |     |     |     |     |     |  3  |     |
-4mptpd      | 12  |_____| 13  | 14  | 15  |  7  |  6  |  5  |_____|  4  |
-            |_____|     |_____|_____|_____|_____|_____|_____|     |_____|
-                  | 11  |        |     |     |     |        |  8  |
-                  |_____|        | 10  |     |  9  |        |_____|
-                                 |_____|     |_____|
-
-
-
-                   _____             _____             _____             _____
-             _____|     |_____ _____|     |_____ _____|     |_____ _____|     |_____
-            |     |  0  |     |     |  1  |     |     |  2  |     |     |  3  |     |
-4ptpd       | 12  |_____| 13  | 14  |_____| 15  |  7  |_____|  6  |  5  |_____|  4  |
-            |_____|     |_____|_____|     |_____|_____|     |_____|_____|     |_____|
-                  | 11  |           | 10  |           |  9  |           |  8  |
-                  |_____|           |_____|           |_____|           |_____|
-
                          _____
              _____ _____|     |_____ _____
             |     |     |  2  |     |     |
@@ -651,6 +617,16 @@ ptpd        |  0  |_____|  2  |  6  |_____|  4  |
                                  |_____|
 
 
+                   _____             _____             _____
+             _____|     |_____ _____|     |_____ _____|     |_____
+            |     |  0  |     |     |  1  |     |     |  2  |     |
+3ptpd       |  9  |_____| 10  | 11  |_____|  5  |  4  |_____|  3  |
+            |_____|     |_____|_____|     |_____|_____|     |_____|
+                  |  8  |           |  7  |           |  6  |
+                  |_____|           |_____|           |_____|
+
+
+
                 _____       _____       _____       _____
                |     |     |     |     |     |     |     |
                |  0  |     |  1  |     |  2  |     |  3  |
@@ -663,14 +639,28 @@ ptpd        |  0  |_____|  2  |  6  |_____|  4  |
                |_____|     |_____|     |_____|     |_____|
 
 
+                _____                                           _____
+               |     |                                         |     |
+               |  0  |         _____             _____         |  3  |
+             __|__ __|__ _____|     |_____ _____|     |_____ __|__ __|__
+            |     |     |     |  1  |     |     |  2  |     |     |     |
+4mdmd       | 12  | 13  | 14  |_____| 15  |  7  |_____|  6  |  5  |  4  |
+            |_____|_____|_____|     |_____|_____|     |_____|_____|_____|
+               |     |        | 10  |           |  9  |        |     |
+               | 11  |        |_____|           |_____|        |  8  |
+               |_____|                                         |_____|
 
-                   _____             _____             _____
-             _____|     |_____ _____|     |_____ _____|     |_____
-            |     |  0  |     |     |  1  |     |     |  2  |     |
-3ptpd       |  9  |_____| 10  | 11  |_____|  5  |  4  |_____|  3  |
-            |_____|     |_____|_____|     |_____|_____|     |_____|
-                  |  8  |           |  7  |           |  6  |
-                  |_____|           |_____|           |_____|
+
+                                  _____       _____
+                                 |     |     |     |
+                   _____         |  1  |     |  2  |         _____
+             _____|     |_____ __|__ __|__ __|__ __|__ _____|     |_____
+            |     |  0  |     |     |     |     |     |     |  3  |     |
+4mptpd      | 12  |_____| 13  | 14  | 15  |  7  |  6  |  5  |_____|  4  |
+            |_____|     |_____|_____|_____|_____|_____|_____|     |_____|
+                  | 11  |        |     |     |     |        |  8  |
+                  |_____|        | 10  |     |  9  |        |_____|
+                                 |_____|     |_____|
 
 
 
@@ -682,6 +672,30 @@ ptpd        |  0  |_____|  2  |  6  |_____|  4  |
                   | 11  |           | 10  |           |  9  |           |  8  |
                   |_____|           |_____|           |_____|           |_____|
 
+
+                   _____             _____             _____             _____
+             _____|     |_____ _____|     |_____ _____|     |_____ _____|     |_____
+            |     |  0  |     |     |  1  |     |     |  2  |     |     |  3  |     |
+4ptpd       | 12  |_____| 13  | 14  |_____| 15  |  7  |_____|  6  |  5  |_____|  4  |
+            |_____|     |_____|_____|     |_____|_____|     |_____|_____|     |_____|
+                  | 11  |           | 10  |           |  9  |           |  8  |
+                  |_____|           |_____|           |_____|           |_____|
+
+
+
+                   _____             _____
+             _____|     |_____ _____|     |_____
+            |     |  1  |     |     |  7  |     |
+            |  0  |_____|  2  |  6  |_____|  4  |
+            |_____|     |_____|_____|     |_____|
+                  |  3  |           |  5  |
+2x2dmd            |_____|           |_____|
+             _____|     |_____ _____|     |_____
+            |     | 13  |     |     | 11  |     |
+            | 12  |_____| 14  | 10  |_____|  8  |
+            |_____|     |_____|_____|     |_____|
+                  | 15  |           |  9  |
+                  |_____|           |_____|
 
 
                                         _____
@@ -784,19 +798,6 @@ barredstar16   | 14  | 15          16  | 17           8  |  7           6  |  5 
                |     |     |     |           |     |           |     |     |     |
                | 13  |     | 12  |           | 11  |           | 10  |     |  9  |
                |_____|     |_____|           |_____|           |_____|     |_____|
-
-
-
-                   _____             _____
-                  |     |           |     |
-                  |  0  |           |  1  |
-             _____|     |_____ _____|     |_____
-            |      \   /      |      \   /      |
-littlestars |  6           7  |  3           2  |    (internal use only!)
-            |_____ /   \ _____|_____ /   \ _____|
-                  |     |           |     |
-                  |  5  |           |  4  |
-                  |_____|           |_____|
 
 
 
@@ -909,6 +910,32 @@ hyper3x4    |_____| 22  | 23          11  | 10  |_____|
                   |     |     |     |
                   |  7  |  6  |  5  |
                   |_____|_____|_____|
+
+
+
+                   _____ _____ _____ _____ _____
+                  |     |     |     |     |     |
+                  |  0  |  1  |  2  |  3  |  4  |
+                  |_____|_____|_____|_____|_____|
+                  |     |     |     |     |     |
+3x5               | 12  | 13  | 14  |  6  |  5  |
+                  |_____|_____|_____|_____|_____|
+                  |     |     |     |     |     |
+                  | 11  | 10  |  9  |  8  |  7  |
+                  |_____|_____|_____|_____|_____|
+
+
+
+                   _____ _____ _____ _____
+                  |     |     |     |     |
+                  |  0  |  1  |  2  |  3  |
+                  |_____|_____|_____|_____|
+                     |     |     |     |
+434                  |  9  | 10  |  4  |
+                   __|_____|_____|_____|__
+                  |     |     |     |     |
+                  |  4  |  7  |  6  |  5  |
+                  |_____|_____|_____|_____|
 
 
 
@@ -1267,6 +1294,15 @@ slinefbox   |  0  |  1  |  2  |  3  |_____|  6  |  5  |   (1 way symmetry)
                                     |_____|
 
 
+                   _____       _____
+             _____|     |_____|     |
+            |     |  1  |     |  4  |
+sdbltrngl   |  0  |_____|  3  |_____|     (1 way symmetry)
+            |_____|     |_____|     |
+                  |  2  |     |  5  |
+                  |_____|     |_____|
+
+
                          _____             _____
              _____ _____|     |_____ _____|     |
             |     |     |  2  |     |     |  6  |
@@ -1397,17 +1433,125 @@ bigbigh     |_____|  4  |  5  |  6  |  7  | 15  | 14  | 13  | 12  |_____|
 
 
 
+                             _____
+                            |     |
+                            |  3  |
+                            |_____|
+                            |     |
+                            |  4  |
+                            |_____|
+                            |     |
+                            |  5  |
+           _____ _____ _____|     |_____ _____ _____
+          |     |     |      \   /      |     |     |
+x1x6      |  0  |  1  |  2           8  |  7  |  6  |      (4 way symmetry)
+          |_____|_____|_____ /   \ _____|_____|_____|
+                            |     |
+                            | 11  |
+                            |_____|
+                            |     |
+                            | 10  |
+                            |_____|
+                            |     |
+                            |  9  |
+                            |_____|
 
-x1x8  (4 way symmetry, all the way into the center, like a thar)
-          4
-          5
-          6
-          7
-   0 1 2 3 11 10 9 8
-          15
-          14
-          13
-          12
+
+
+
+
+                             _____
+                            |     |
+                            |  3  |
+                            |_____|
+                            |     |
+                            |  4  |
+           _____ _____ _____|     |_____ _____ _____
+          |     |     |      \   /      |     |     |
+s1x4_1x6  |  0  |  1  |  2           7  |  6  |  5  |
+          |_____|_____|_____ /   \ _____|_____|_____|
+                            |     |
+                            |  9  |
+                            |_____|
+                            |     |
+                            |  8  |
+                            |_____|
+
+
+
+                                     _____
+                                    |     |
+                                    |  4  |
+                                    |_____|
+                                    |     |
+                                    |  5  |
+             _____ _____ _____ _____|     |_____ _____ _____ _____
+            |     |     |     |      \   /      |     |     |     |
+s1x4_1x8    |  0  |  1  |  2  |  3           9  |   8 |  7  |  6  |
+            |_____|_____|_____|_____ /   \ _____|_____|_____|_____|
+                                    |     |
+                                    | 11  |
+                                    |_____|
+                                    |     |
+                                    | 10  |
+                                    |_____|
+
+
+
+
+                                     _____
+                                    |     |
+                                    |  4  |
+                                    |_____|
+                                    |     |
+                                    |  5  |
+                                    |_____|
+                                    |     |
+                                    |  6  |
+             _____ _____ _____ _____|     |_____ _____ _____ _____
+            |     |     |     |      \   /      |     |     |     |
+s1x6_1x8    |  0  |  1  |  2  |  3          10  |  9  |  8  |  7  |
+            |_____|_____|_____|_____ /   \ _____|_____|_____|_____|
+                                    |     |
+                                    | 13  |
+                                    |_____|
+                                    |     |
+                                    | 12  |
+                                    |_____|
+                                    |     |
+                                    | 11  |
+                                    |_____|
+
+
+                                     _____
+                                    |     |
+                                    |  4  |
+                                    |_____|
+                                    |     |
+                                    |  5  |
+                                    |_____|
+                                    |     |
+                                    |  6  |
+                                    |_____|
+                                    |     |
+                                    |  7  |
+             _____ _____ _____ _____|     |_____ _____ _____ _____
+            |     |     |     |      \   /      |     |     |     |
+x1x8        |  0  |  1  |  2  |  3          11  | 10  |  9  |  8  |      (4 way symmetry)
+            |_____|_____|_____|_____ /   \ _____|_____|_____|_____|
+                                    |     |
+                                    | 15  |
+                                    |_____|
+                                    |     |
+                                    | 14  |
+                                    |_____|
+                                    |     |
+                                    | 13  |
+                                    |_____|
+                                    |     |
+                                    | 12  |
+                                    |_____|
+
 
                                      _____
                                     |     |
@@ -2865,6 +3009,8 @@ x14_once_rem_couple
 lines_miniwave
       applies to 1x2, 1x4, 1x6, 1x8, 2x4, 3x4, 2x6, or 2x8 lines only.
       (Or thar in which only line-like people have a legal move.)
+      (It may also be used in a diamond, in which case it tests the opposite,
+      that is, the other point or the other center.)
       Returns TRUE if the lateral partner of the person under test is alive
       and facing the opposite direction.  Returns FALSE if the partner is
       a phantom or faces the same way or is T-boned.
@@ -2872,6 +3018,8 @@ lines_miniwave
 lines_couple
       applies to 1x2, 1x4, 1x6, 1x8, 2x4, 3x4, 2x6, or 2x8 lines only.
       (Or thar in which only line-like people have legal move.)
+      (It may also be used in a diamond, in which case it tests the opposite,
+      that is, the other point or the other center.)
       Returns TRUE if the lateral partner of the person under test is alive
       and facing the same direction.  Returns FALSE if the partner is
       a phantom or faces the opposite way or is T-boned.
@@ -3064,8 +3212,8 @@ columns_miniwave
       person is a phantom) it simply returns TRUE.
 
 can_swing_right, can_swing_left
-      applies to 1x4, 1x3dmd, c1phan, deep2x1dmd, or wqtag.  People are required
-      to be in "normal" couple-like orientation.  Returns TRUE if the
+      applies to 1x4, 1x3dmd, c1phan, deep2x1dmd, 4x4, or wqtag.  People are
+      required to be in "normal" couple-like orientation.  Returns TRUE if the
       person has a live neighbor to his right(left), and that person is facing
       in the opposite direction.  Returns FALSE otherwise.
 
@@ -3217,7 +3365,7 @@ outroller_is_cw_2x8
       apply to 2x6 and 2x8 lines only.  These are 2x6 and 2x8 versions.
 
 outposter_is_cw
-      applies to 2x4 lines only.  Returns TRUE if the end of the line clockwise
+      applies to 2x4 or 2x3 lines only.  Returns TRUE if the end of the line clockwise
       from this person is the outposter.  The rules for outposters are different
       from the rules for outrollers:  if both ends of the line are looking out,
       the one on the right (the "judge") is the outposter -- there is no conflict.
@@ -3225,7 +3373,7 @@ outposter_is_cw
       or there is no live outposter.
 
 outposter_is_ccw
-      applies to 2x4 lines only.  Returns TRUE if the end of the line counterclockwise
+      applies to 2x4 or 2x3 lines only.  Returns TRUE if the end of the line counterclockwise
       from this person is the outposter.  Returns FALSE if the outposter is at the
       clockwise end of the line, or there is no live outposter.
 
@@ -3592,6 +3740,7 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
                                     1x8 - a tidal 2FL; 4x1 - single DPT or single CDPT;
                                     qtag - 2FL in center; 2x2 - "1-faced" box;
                                     bigdmd - 2FL in center;
+                                    4x5 - 2FL in center 1x4;
                                     4x4 - consistent 2FL's; 4x2 columns - a DPT or CDPT;
                                     trngl - all 3 facing the same way.
                                     thar/crosswave - same handedness 2FL's.
@@ -3600,7 +3749,7 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
                                     "left/right/in/out" mofifiers:
 
                                     1x4/2x4/3x4 - R/L gives handedness of 2FL
-                                    qtag/bigdmd - applies to center 2FL
+                                    qtag/bigdmd/4x5 - applies to center 2FL
                                     4x1/4x2 - I/O means starting/completed DPT
                                     thar/crosswave - R/L 2FL's
 
@@ -3684,6 +3833,14 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
                                     or "out".  It typically *IS* used with "live", which
                                     requires all people be live.
 
+   qline_like_l       R/Q           qtag only - with "in", demands a left-handed 1/4 line,
+                                    that is, left 2fl in center.  With "out", demands a
+                                    right-handed 3/4 line.
+
+   qline_like_r       R/Q           qtag only - with "in", demands a right-handed 1/4 line,
+                                    that is, right 2fl in center.  With "out", demands a
+                                    left-handed 3/4 line.
+
    gen_n_4_tag        Q             dmd/qtag/3dmd/4dmd - this is a "general 1/4 tag",
                                     in which the ends could individually be facing either
                                     in or out, and the centers form some kind of line.
@@ -3726,14 +3883,15 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
                                        When used in a c1phan, the expectation is that
                                        people are in stars.
 
-   dmd_facing         R/Q           dmd, qtag, ptpd, or c1phan - diamond(s) are actual
+   dmd_facing         R/Q           dmd, qtag, ptpd, hrglass, or c1phan - diamond(s) are actual
                                        diamonds, are facing, and have consistent handedness.
                                        "Right/left" and "live" may be used when it
                                        is a qualifier -- right/left demand that handedness
                                        for the ends; the centers will be the opposite.
-                                       When used in a c1phan, the expectation is that
-                                       people are in stars, and "right"/"left" are
-                                       meaningless.
+                                       When used in an hourglass, it applies to the center
+                                       diamond.  When used in a c1phan, the expectation is
+                                       that people are in stars.  "Right"/"left" are
+                                       meaningless in this case.
 
    conc_cpls_same     R/Q           2x4 - centers and ends are couples, T-boned to each
                                        other, but all looking in or all looking out.
@@ -3776,6 +3934,8 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
                                        Alamo (line-like) - miniwave boxes of opposite handedness.
                                        (For column-like alamo, use in_or_out.)
                                        Hourglass - the diamond is facing.  Points are not checked.
+                                       bigdmd - the center wave is of opposite handedness from
+                                       the outer miniwaves.  And they must be (mini)waves.
                                        "Right/left/in/out" and "live" may be used when
                                        it is a qualifier --
                                           2x4 - I/O refers to centers
@@ -3783,6 +3943,7 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
                                           crosswave - R/L refers to handedness of
                                              outer disconnected wave.
                                           hourglass - R/L refers to points of the diamond.
+                                          bigdmd - R/L refers to the outer miniwaves.
 
    explodable,                      1x4 - centers facing the same way
    reverse_explodable,              1x4 - ends facing the same way
@@ -3793,6 +3954,8 @@ These restrictions are "overloaded" -- their meaning depends on the starting set
    outroller_is_cw    Q             2x4 or qtag - the outrollers are in clockwise position
    outroller_is_ccw   Q             2x4 or qtag - the outrollers are in counterclockwise
                                        position
+
+   ends_didnt_move    Q             1x4, 1x8, 2x4 - all the ends of the 1x4 or each 1x4 didn't move.
 
    peelable_box                     2x2, 3x2, 4x2, 5x2, 6x2 or 8x2 - all people in each
                                        column are facing same way
@@ -4377,10 +4540,10 @@ inherit_single
 @K        - put selector here, and allow "some" (and a few others) in parse expand.  (@6 and @k don't expand "some".)
 @V        - put selector here, but don't allow "centers" or "ends".
 @u        - put ordinal number (1st, 2nd, ...) here.
-@v        - put tagging call here.
-@w        - put tagging call here.
-@x        - put tagging call here.
-@y        - put tagging call here.
+@v        - put tagging call here, works with base_tag_call_0.
+@w        - put tagging call here, works with base_tag_call_1.
+@x        - put tagging call here, works with base_tag_call_2.
+@y        - put tagging call here, works with base_tag_call_3.
 @N        - put circulate call here.
 @O ... @P - text to remove if invoked as a circulate-type call
 @X        - put "others" here, or be more specific if possible.

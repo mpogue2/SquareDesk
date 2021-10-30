@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2012  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -32,8 +32,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 /* This defines the following functions:
    tglmap::initialize
@@ -83,19 +81,26 @@ void tglmap::initialize()
 
 
 
-extern void prepare_for_call_in_series(setup *result, setup *ss, bool dont_clear__no_reeval /* = false */)
+void prepare_for_call_in_series(setup *result, setup *ss,
+                                bool dont_clear__no_reeval /* = false */)
 {
+
    *result = *ss;
-   // Clear all except these two bits.
-   result->result_flags.misc &= (RESULTFLAG__NO_REEVALUATE|RESULTFLAG__REALLY_NO_REEVALUATE);
-   // Or clear even RESULTFLAG__NO_REEVALUATE, but never RESULTFLAG__REALLY_NO_REEVALUATE.
+   if ((result->cmd.prior_expire_bits & RESULTFLAG__PRESERVE_INCOMING_EXPIRATIONS) == 0)
+      result->result_flags.misc &= ~RESULTFLAG__EXPIRATION_BITS;
+
+   // And clear all the rest except these few bits.
+   result->result_flags.misc &= (RESULTFLAG__NO_REEVALUATE|RESULTFLAG__REALLY_NO_REEVALUATE|RESULTFLAG__EXPIRATION_BITS);
+
+   // Or clear even RESULTFLAG__NO_REEVALUATE if requested, but never RESULTFLAG__REALLY_NO_REEVALUATE.
    if (!dont_clear__no_reeval)
-      result->result_flags.misc &= RESULTFLAG__REALLY_NO_REEVALUATE;
+      result->result_flags.misc &= ~RESULTFLAG__NO_REEVALUATE;
+
    result->result_flags.maximize_split_info();
 }
 
 
-extern void minimize_splitting_info(setup *ss, const resultflag_rec & other_split_info)
+void minimize_splitting_info(setup *ss, const resultflag_rec & other_split_info)
 {
    if (ss->result_flags.split_info[0] > other_split_info.split_info[0])
       ss->result_flags.split_info[0] = other_split_info.split_info[0];
@@ -118,13 +123,13 @@ void map::initialize()
    }
 
    for (map_thing *tab2p = map_init_table ; tab2p->inner_kind != nothing ; tab2p++) {
-      uint32 code = hetero_mapkind(tab2p->map_kind) ?
+      uint32_t code = hetero_mapkind(tab2p->map_kind) ?
          HETERO_MAPCODE(tab2p->inner_kind,tab2p->arity,tab2p->map_kind,tab2p->vert,
                         (setup_kind) (tab2p->rot >> 24), (tab2p->rot & 0xF)) :
          MAPCODE(tab2p->inner_kind,tab2p->arity,tab2p->map_kind,tab2p->vert);
 
       tab2p->code = code;
-      uint32 hash_num =
+      uint32_t hash_num =
          (((code+(code>>8)) * ((unsigned int) 035761254233)) >> 13) &
          (NUM_MAP_HASH_BUCKETS-1);
 
@@ -134,7 +139,7 @@ void map::initialize()
 }
 
 
-extern void remove_z_distortion(setup *ss) THROW_DECL
+void remove_z_distortion(setup *ss) THROW_DECL
 {
    static const expand::thing fix_cw  = {{1, 2, 4, 5}, s2x2, s2x3, 0};
    static const expand::thing fix_ccw = {{0, 1, 3, 4}, s2x2, s2x3, 0};
@@ -159,7 +164,7 @@ extern void remove_z_distortion(setup *ss) THROW_DECL
 }
 
 
-extern void remove_tgl_distortion(setup *ss) THROW_DECL
+void remove_tgl_distortion(setup *ss) THROW_DECL
 {
    if (!(ss->result_flags.misc & RESULTFLAG__DID_TGL_EXPANSION))
       return;
@@ -188,7 +193,7 @@ extern void remove_tgl_distortion(setup *ss) THROW_DECL
    static const expand::thing thingqtga = {{6, 7, 1, 2, 3, 5}, s_ntrgl6ccw, s_qtag, 0};
    static const expand::thing thingqtgb = {{0, 3, 2, 4, 7, 6}, s_ntrgl6cw,  s_qtag, 0};
 
-   uint32 where = little_endian_live_mask(ss);
+   uint32_t where = little_endian_live_mask(ss);
 
    switch (ss->kind) {
    case s2x4:
@@ -348,12 +353,12 @@ extern void remove_tgl_distortion(setup *ss) THROW_DECL
 }
 
 
-const map::map_thing *map::get_map_from_code(uint32 map_encoding)
+const map::map_thing *map::get_map_from_code(uint32_t map_encoding)
 {
    if (map_encoding >= 0x10000) {
       // Normal maps will be at least that big, because they have the setup kind
       // in the left side, and setup kinds (other than "nothing") are nonzero.
-      uint32 hash_num =
+      uint32_t hash_num =
          (((map_encoding+(map_encoding>>8)) * ((unsigned int) 035761254233)) >> 13) &
          (NUM_MAP_HASH_BUCKETS-1);
 
@@ -372,7 +377,7 @@ const map::map_thing *map::get_map_from_code(uint32 map_encoding)
 
 static void multiple_move_innards(
    setup *ss,
-   uint32 map_encoding,
+   uint32_t map_encoding,
    const map::map_thing *maps,
    bool recompute_id,
    assumption_thing new_assume,
@@ -384,27 +389,27 @@ static void multiple_move_innards(
    whuzzisthingy *thing = (whuzzisthingy *) 0) THROW_DECL
 {
    int i, j;
-   uint32 rotstate, pointclip;
-   uint32 vrot;
-   const veryshort *getptr;
+   uint32_t rotstate, pointclip;
+   uint32_t vrot;
+   const int8_t *getptr;
 
    setup_kind xorigkind[16];
    int xorigrot[16];
 
    setup_command *sscmd = &ss->cmd;
-   uint32 rot = maps->rot;
+   uint32_t rot = maps->rot;
    int vert = (maps->vert ^ rot) & 1;
    int arity = maps->arity;
    mpkind map_kind = maps->map_kind;
    int insize = attr::klimit(maps->inner_kind)+1;
-   uint32 rrr;
+   uint32_t rrr;
    bool no_reuse_map = false;
    bool fix_pgram = false;
    bool check_offset_z = true;
-   uint32 mysticflag = sscmd->cmd_misc2_flags;
+   uint32_t mysticflag = sscmd->cmd_misc2_flags;
 
    mpkind starting_map_kind = map_kind;
-   uint32 eighth_rot_flag = ~0U;
+   uint32_t eighth_rot_flag = ~0U;
 
    sscmd->cmd_misc2_flags &= ~(CMD_MISC2__MYSTIFY_SPLIT | CMD_MISC2__MYSTIFY_INVERT);
 
@@ -442,11 +447,11 @@ static void multiple_move_innards(
          // Executing a call can mess up the x's, so save what we need.
          xorigkind[i] = x[i].kind;
          xorigrot[i] = x[i].rotation;
-         uint32 save_verify_flags = x[i].cmd.cmd_misc_flags & CMD_MISC__VERIFY_MASK;
+         uint32_t save_verify_flags = x[i].cmd.cmd_misc_flags & CMD_MISC__VERIFY_MASK;
 
          // Handle special cases of things like "parallelogram triple boxes".
          if (thing) {
-            uint32 map_code;
+            uint32_t map_code;
 
             if (thing->k == concept_do_phantom_2x4) {
                do_matrix_expansion(&x[i], CONCPROP__NEEDK_4X4, false);
@@ -653,12 +658,12 @@ static void multiple_move_innards(
    }
 
    if (thing) {
-      normalize_setup(&z[0], plain_normalize, false);
+      normalize_setup(&z[0], plain_normalize, qtag_compress);
       no_reuse_map = true;
    }
 
    const map::map_thing *final_map = (map::map_thing *) 0;
-   uint32 final_mapcode;
+   uint32_t final_mapcode;
 
    // The z[i] setups are now oriented the "correct" way relative to the overall setup.
    // This includes the possibility that they may be oriented inconsistently.  For
@@ -671,8 +676,9 @@ static void multiple_move_innards(
        z[0].kind == nothing && z[1].kind == s_dead_concentric && z[1].inner.skind == s2x2) {
       result->kind = s4x4;
       result->rotation += z[1].inner.srotation;
+      result->eighth_rotation += z[1].inner.seighth_rotation;
       result->clear_people();
-      static const veryshort butterfly_fixer[] = {15, 3, 7, 11};
+      static const int8_t butterfly_fixer[] = {15, 3, 7, 11};
       scatter(result, &z[1], butterfly_fixer, 3, 0);
       result->result_flags = z[1].result_flags;
       return;
@@ -794,6 +800,7 @@ static void multiple_move_innards(
                      z[i] = qtagtemp;
                   else if (x[i].kind == s2x4 &&
                            z[i].inner.skind == s1x4 &&
+                           z[i].inner.seighth_rotation == 0 &&
                            ((x[i].rotation+z[i].rotation+z[i].inner.srotation) & 1) == 1)
                      z[i] = qtagtemp;   // Try to fix single file dixie diamond.
                   else
@@ -817,7 +824,7 @@ static void multiple_move_innards(
             map_kind = MPKIND__HET_OFFS_R_HALF;
       }
 
-      if (!hetero_mapkind(map_kind) && (arity != 2 || !setup_attrs[z[0].kind].no_symmetry)) {
+      if (!hetero_mapkind(map_kind) && (arity != 2 || (setup_attrs[z[0].kind].setup_props & SPROP_NO_SYMMETRY) == 0)) {
          if ((rotstate & 0xF03) == 0) {
             // Rotations are alternating.  Aside from the two map kinds just below,
             // we demand funnymap on.  These are the maps that want alternating rotations.
@@ -903,7 +910,7 @@ static void multiple_move_innards(
    // (basic_move) knows what is happening and will fix that bit.
    // Also, check that the "did_last_part" bits are the same.
 
-   uint32 savemisc = result->result_flags.misc;
+   uint32_t savemisc = result->result_flags.misc;
    result->result_flags = get_multiple_parallel_resultflags(z, arity);
    result->result_flags.misc |= savemisc & RESULTFLAG__COMPRESSED_FROM_2X3;
 
@@ -919,7 +926,7 @@ static void multiple_move_innards(
    // But maps with unsymmetrical things (e.g. triangles) inside are always hetero.
 
    if (arity == 1 || (z[0].kind == z[1].kind && z[0].rotation == z[1].rotation &&
-                      !setup_attrs[z[0].kind].no_symmetry)) {
+                      (setup_attrs[z[0].kind].setup_props & SPROP_NO_SYMMETRY) == 0)) {
       if (map_kind == MPKIND__HET_ONCEREM) {
          map_kind = MPKIND__REMOVED;
       }
@@ -1008,7 +1015,9 @@ static void multiple_move_innards(
       break;
    }
 
-   if ((sscmd->cmd_misc_flags & CMD_MISC__MATRIX_CONCEPT) || (result->result_flags.misc & RESULTFLAG__INVADED_SPACE)) {
+   // There used to be some involvement of RESULTFLAG__INVADED_SPACE here,
+   // but it turns out that the situation is more complicated than that.  See t18.
+   if ((sscmd->cmd_misc_flags & CMD_MISC__MATRIX_CONCEPT)) {
       int after_distance;
       bool deadconc = false;
 
@@ -1025,6 +1034,7 @@ static void multiple_move_innards(
          for (i=0; i<arity; i++) {
             z[i].kind = z[i].inner.skind;
             z[i].rotation += z[i].inner.srotation;
+            z[i].eighth_rotation += z[i].inner.seighth_rotation;
             canonicalize_rotation(&z[i]);
          }
       }
@@ -1201,7 +1211,7 @@ static void multiple_move_innards(
    }
 
    if (arity == 1 && z[0].kind == s_c1phan) {
-      uint32 livemask = little_endian_live_mask(&z[0]);
+      uint32_t livemask = little_endian_live_mask(&z[0]);
 
       if (map_kind == MPKIND__OFFS_L_HALF) {
          if ((livemask & ~0x5555) == 0) {
@@ -1307,8 +1317,8 @@ static void multiple_move_innards(
       // We allow the special case of appending two 4x4's or 2x8's, if the
       // real people (this includes active phantoms!) can fit inside a 4x4 or 2x8.
       if (arity == 2 && z[0].kind == s4x4 && map_kind == MPKIND__SPLIT) {
-         uint32 mask0 = little_endian_live_mask(&z[0]);
-         uint32 mask1 = little_endian_live_mask(&z[1]);
+         uint32_t mask0 = little_endian_live_mask(&z[0]);
+         uint32_t mask1 = little_endian_live_mask(&z[1]);
 
          if (vert == 1) {
             if (((mask0 | mask1) & 0x1717) != 0)
@@ -1325,8 +1335,8 @@ static void multiple_move_innards(
       }
       else if (arity == 2 && z[0].kind == s2x8 && map_kind == MPKIND__SPLIT) {
          if (vert != z[0].rotation) {
-            uint32 mask0 = little_endian_live_mask(&z[0]);
-            uint32 mask1 = little_endian_live_mask(&z[1]);
+            uint32_t mask0 = little_endian_live_mask(&z[0]);
+            uint32_t mask1 = little_endian_live_mask(&z[1]);
 
             if (((mask0 | mask1) & 0xC3C3) != 0)
                final_mapcode = spcmap_f2x8_2x8;
@@ -1458,10 +1468,10 @@ static void multiple_move_innards(
    vrot = final_map->per_person_rot;
 
    for (j=0,rot=final_map->rot ; j<arity ; j++,rot>>=2) {
-      if (j == 1 && final_map->map_kind == MPKIND__HET_TWICEREM) {
-         // Need secondary insize.
+      if ((j&1) && hetero_mapkind(final_map->map_kind))
          insize = attr::klimit((setup_kind) (final_map->rot >> 24))+1;
-      }
+      else
+         insize = attr::klimit(final_map->inner_kind)+1;
 
       for (i=0 ; i<insize ; i++) {
          install_rot(result, *getptr++, &z[j], i, 011*((rot+vrot) & 3));
@@ -1472,35 +1482,40 @@ static void multiple_move_innards(
    result->kind = final_map->outer_kind;
 
    if (fix_pgram && result->kind == s1p5x8) {
-#ifdef Z_AXLE_GOES_TO_2X8
-      static const expand::thing thingyF0F0 = {
-         {-1, -1, -1, -1, 4, 5, 6, 7, -1, -1, -1, -1, 12, 13, 14, 15}, s2x8, s1p5x8, 0};
-      static const expand::thing thingy0F0F = {
-         {0, 1, 2, 3, -1, -1, -1, -1, 8, 9, 10, 11, -1, -1, -1, -1}, s2x8, s1p5x8, 0};
-#else
-      static const expand::thing thingyF0F0 = {
+      static const expand::thing thingyF0F0goto2x6 = {
          {-1, -1, 4, 5, 6, 7, -1, -1, 12, 13, 14, 15}, s2x6, s1p5x8, 0};
-      static const expand::thing thingy0F0F = {
+      static const expand::thing thingyF0F0goto2x8 = {
+         {-1, -1, -1, -1, 4, 5, 6, 7, -1, -1, -1, -1, 12, 13, 14, 15}, s2x8, s1p5x8, 0};
+      static const expand::thing thingy0F0Fgoto2x6 = {
          {0, 1, 2, 3, -1, -1, 8, 9, 10, 11, -1, -1}, s2x6, s1p5x8, 0};
-#endif
+      static const expand::thing thingy0F0Fgoto2x8 = {
+         {0, 1, 2, 3, -1, -1, -1, -1, 8, 9, 10, 11, -1, -1, -1, -1}, s2x8, s1p5x8, 0};
 
       switch (little_endian_live_mask(result)) {
       case 0xF0F0:
-         expand::compress_setup(thingyF0F0, result);
-#ifndef Z_AXLE_GOES_TO_2X8
-         warn(warn__check_pgram);
-#endif
+         if (result->result_flags.misc & RESULTFLAG__INVADED_SPACE) {
+            expand::compress_setup(thingyF0F0goto2x6, result);
+            warn(warn__check_pgram);
+         }
+         else {
+            expand::compress_setup(thingyF0F0goto2x8, result);
+         }
+
          break;
       case 0x0F0F:
-         expand::compress_setup(thingy0F0F, result);
-#ifndef Z_AXLE_GOES_TO_2X8
-         warn(warn__check_pgram);
-#endif
+         if (result->result_flags.misc & RESULTFLAG__INVADED_SPACE) {
+            expand::compress_setup(thingy0F0Fgoto2x6, result);
+            warn(warn__check_pgram);
+         }
+         else {
+            expand::compress_setup(thingy0F0Fgoto2x8, result);
+         }
+
          break;
       }
    }
 
-   getout:
+ getout:
 
    canonicalize_rotation(result);
    return;
@@ -1509,7 +1524,7 @@ static void multiple_move_innards(
 
 extern void divided_setup_move(
    setup *ss,
-   uint32 map_encoding,
+   uint32_t map_encoding,
    phantest_kind phancontrol,
    bool recompute_id,
    setup *result,
@@ -1529,11 +1544,11 @@ extern void divided_setup_move(
    setup_kind kn = maps->inner_kind;
    setup_kind kn_secondary = (setup_kind) (maps->rot >> 24);  // Only meaningful for maps with secondary setup.
    int insize = attr::klimit(kn)+1;
-   const veryshort *getptr = maps->maps;
-   uint32 rot = maps->rot;
-   uint32 vrot = maps->per_person_rot;
+   const int8_t *getptr = maps->maps;
+   uint32_t rot = maps->rot;
+   uint32_t vrot = maps->per_person_rot;
    int arity = maps->arity;
-   uint32 frot;
+   uint32_t frot;
 
    // We have already figured out what kind of enforced splitting
    // is called for.  Erase that information.
@@ -1542,9 +1557,10 @@ extern void divided_setup_move(
    for (j=0,frot=rot; j<arity; j++,frot>>=2) {
       vflags[j] = 0;
 
-      if (j == 1 && hetero_mapkind(maps->map_kind)) {
+      if ((j&1) && hetero_mapkind(maps->map_kind))
          insize = attr::klimit(kn_secondary)+1;
-      }
+      else
+         insize = attr::klimit(kn)+1;
 
       for (i=0; i<insize; i++) {
          int mm = *getptr++;
@@ -1558,7 +1574,8 @@ extern void divided_setup_move(
       }
    }
 
-   switch (phancontrol) {
+   if (!two_couple_calling) {
+      switch (phancontrol) {
       case phantest_both:
          if (!(vflags[0] && vflags[1]))
             warn(warn__stupid_phantom_clw);   // Only one of the two setups is occupied.
@@ -1593,6 +1610,7 @@ extern void divided_setup_move(
          // Test for NOT "C1" blocks.
          if ((vflags[0] | vflags[2]) && (vflags[1] | vflags[3])) fail("Not in blocks.");
          break;
+      }
    }
 
    for (j=0; j<arity; j++)
@@ -1605,7 +1623,7 @@ extern void divided_setup_move(
          x[2].kind = kn_secondary;
    }
 
-   if (t.assumption == cr_couples_only || t.assumption == cr_miniwaves) {
+   if (t.assumption == cr_couples_only || t.assumption == cr_miniwaves || t.assumption == cr_wave_only) {
       // Pass it through.
    }
    else if (recompute_id) {
@@ -1632,11 +1650,22 @@ extern void divided_setup_move(
    }
 
    setup z[16];
+
+   // Address the issue that the proper definition of "phantom waves", called from parallel waves
+   // (that is, just the centers two waves occupied) is *illegal* if the call is something like
+   // split recycle, sending each 2x4 pair of parallel waves into a 1x8.  The outer pair of waves
+   // has to go to an outer 1x8, split in a way that violates the Solomon rule.  Even if the outer
+   // formation is empty.  But, in two-couple calling, make it legal if the outer pair of waves is
+   // empty.  In that case, the strict definition of "phantom waves" is no longer enforced, and it
+   // becomes effectively an "assume waves".  Cf. t28t and pt00t.
+
+
    multiple_move_innards(
       ss, map_encoding, maps, recompute_id, t,
       noexpand_bits_to_set,
       (maps->map_kind == MPKIND__CONCPHAN &&
-       phancontrol == phantest_ctr_phantom_line && !vflags[0]),
+       !vflags[0] &&
+       (phancontrol == phantest_ctr_phantom_line || (phancontrol == phantest_first_or_both && two_couple_calling))),
       x, z, result, thing);
 
    // "Multiple_move_innards" has returned with the splitting info correct for the subcalls, but
@@ -1665,7 +1694,7 @@ extern void divided_setup_move(
             result->result_flags.split_info[1] = result->rotation ^ 1;
          }
          else {
-            uint16 field = result->result_flags.split_info[fieldselect];
+            uint16_t field = result->result_flags.split_info[fieldselect];
             if (field < 100)
                result->result_flags.split_info[fieldselect] += (field+1) * ((arity>>1)-1);
             field = result->result_flags.split_info[fieldselect^1];
@@ -1674,7 +1703,7 @@ extern void divided_setup_move(
          }
       }
       else {
-         uint16 field = result->result_flags.split_info[fieldselect];
+         uint16_t field = result->result_flags.split_info[fieldselect];
          if (field < 100)
             result->result_flags.split_info[fieldselect] += (field+1) * (arity-1);
       }
@@ -1696,18 +1725,144 @@ extern void divided_setup_move(
           maps->map_kind == MPKIND__OFFS_R_THIRD) {
          // Look at the other field.
          fieldselect ^= 1;
-         uint32 otherfield = result->result_flags.split_info[fieldselect];
+         uint32_t otherfield = result->result_flags.split_info[fieldselect];
          if (otherfield < 100)
-            result->result_flags.split_info[fieldselect] += (uint16) ((otherfield+1) >> 1);
+            result->result_flags.split_info[fieldselect] += (uint16_t) ((otherfield+1) >> 1);
       }
       else if (maps->map_kind == MPKIND__OFFS_L_FULL ||
                maps->map_kind == MPKIND__OFFS_R_FULL) {
          // Change a 2-way split to a 4-way split.
          fieldselect ^= 1;
-         uint32 otherfield = result->result_flags.split_info[fieldselect];
+         uint32_t otherfield = result->result_flags.split_info[fieldselect];
          if (otherfield < 100)
-            result->result_flags.split_info[fieldselect] += (uint16) (otherfield+1);
+            result->result_flags.split_info[fieldselect] += (uint16_t) (otherfield+1);
       }
+   }
+
+   // If expansion to a 2x3 occurred (because the call was, for example, a "pair the line"),
+   // and the two 2x3's are end-to-end in a 2x6, see if we can squash phantoms.  We squash both
+   // internal (the center triple box) and external ones.  The external ones would probably have
+   // been squashed anyway due to the top level normalization, but we want this to occur
+   // immediately, not just at the top level, though we can't think of a concrete example
+   // in which it makes a difference.
+
+   if (result->result_flags.misc & RESULTFLAG__EXPAND_TO_2X3) {
+      static const expand::thing inner_2x6 = {{0, 1, 4, 5, 6, 7, 10, 11}, s2x4, s2x6, 0};
+      static const expand::thing inner_dblbone6 = {{1, 9, 11, 8, 7, 3, 5, 2}, s_rigger, sdblbone6, 0};
+      static const expand::thing outer_dblbone6 = {{0, 10, 11, 8, 6, 4, 5, 2}, s_bone, sdblbone6, 0};
+      static const expand::thing inner8_2x10 = {{0, 1, 2, 7, 8, 9, 10, 11, 12, 17, 18, 19}, s2x6, s2x10, 0};
+      static const expand::thing inner_2x10 = {
+         {0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18, 19}, s2x8, s2x10, 0};
+      static const expand::thing outer8_2x10 = {{2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16, 17}, s2x6, s2x10, 0};
+      static const expand::thing outer_2x10 = {
+         {1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14, 15, 16, 17, 18}, s2x8, s2x10, 0};
+      static const expand::thing inner_rig = {{6, 7, -1, 2, 3, -1}, s1x6, s_rigger, 0};
+      static const expand::thing inner_4x6 = {{4, 7, 22, 8, 13, 14, 15, 21, 16, 19, 10, 20, 1, 2, 3, 9},
+                                              s4x4, s4x6, 0};
+      static const expand::thing outer_4x6 = {{5, 6, 23, 7, 12, 13, 16, 22, 17, 18, 11, 19, 0, 1, 4, 10},
+                                              s4x4, s4x6, 0};
+      static const expand::thing inner_3x6 = {{0, 1, 4, 5, 6, 7, 9, 10, 13, 14, 15, 16}, s3x4, s3x6, 0};
+      static const expand::thing outer_3x6 = {{1, 2, 3, 4, 7, 8, 10, 11, 12, 13, 16, 17}, s3x4, s3x6, 0};
+
+      const expand::thing *expand_ptr = (const expand::thing *) 0;
+
+      switch (result->kind) {
+      case s2x6:
+         if (!(result->people[2].id1 | result->people[3].id1 |
+               result->people[8].id1 | result->people[9].id1)) {
+            // Inner spots are empty.
+
+            // If the outer ones are empty also, we don't know what to do.
+            // This is presumably a "snag pair the line", or something like that.
+            // Clear the inner spots away, and turn off the flag, so that
+            // "punt_centers_use_concept" will know what to do.
+            if (!(result->people[0].id1 | result->people[5].id1 |
+                  result->people[6].id1 | result->people[11].id1))
+               result->result_flags.misc &= ~RESULTFLAG__EXPAND_TO_2X3;
+
+            expand_ptr = &inner_2x6;
+         }
+         break;
+      case sdblbone6:
+         if (!(result->people[1].id1 | result->people[3].id1 |
+               result->people[7].id1 | result->people[9].id1)) {
+            // Inner spots are empty.
+
+            // If the outer ones are empty also, trim the outer ones,
+            // resulting in a rigger, and leave the flag on.
+            if (!(result->people[0].id1 | result->people[4].id1 |
+                  result->people[6].id1 | result->people[10].id1))
+               expand_ptr = &inner_dblbone6;
+            else
+               expand_ptr = &outer_dblbone6;    // Remove the inner ones, and leave the flag on.
+         }
+         break;
+      case s2x10:
+         if (!(result->people[4].id1 | result->people[5].id1 |
+               result->people[14].id1 | result->people[15].id1)) {
+            // Innermost 4 spots are empty.
+            if (!(result->people[3].id1 | result->people[6].id1 | result->people[13].id1 | result->people[16].id1))
+               expand_ptr = &inner8_2x10;   // Actually, inner 8 spots are empty.
+            else
+               expand_ptr = &inner_2x10;
+         }
+         else if (!(result->people[0].id1 | result->people[9].id1 |
+                    result->people[10].id1 | result->people[19].id1)) {
+            // Outermost 4 spots are empty.
+            if (!(result->people[1].id1 | result->people[8].id1 | result->people[11].id1 | result->people[18].id1))
+               expand_ptr = &outer8_2x10;   // Actually, outer 8 spots are empty.
+            else
+               expand_ptr = &outer_2x10;
+         }
+         break;
+      case s_rigger:
+         // The outer spots are already known to be empty and have been cleaned up.
+         // So we just have to deal with the inner spots.  This means that both
+         // inner and outer spots are empty, so we have to do the same thing
+         // that we do above in the 2x6.
+         if (!(result->people[0].id1 | result->people[1].id1 |
+               result->people[4].id1 | result->people[5].id1)) {
+            result->result_flags.misc &= ~RESULTFLAG__EXPAND_TO_2X3;
+            expand_ptr = &inner_rig;
+         }
+         break;
+      case s4x6:
+         // We do the same for two concatenated 3x4's.
+         // This could happen if the people folding were not the ends.
+         if (!(result->people[2].id1 | result->people[3].id1 |
+               result->people[8].id1 | result->people[9].id1 |
+               result->people[20].id1 | result->people[21].id1 |
+               result->people[14].id1 | result->people[15].id1)) {
+            // Inner spots are empty.
+            expand_ptr = &outer_4x6;
+         }
+         else if (!( result->people[0].id1 | result->people[5].id1 |
+                     result->people[6].id1 | result->people[11].id1 |
+                     result->people[18].id1 | result->people[23].id1 |
+                     result->people[12].id1 | result->people[17].id1)) {
+            // Outer spots are empty.
+            expand_ptr = &inner_4x6;
+         }
+         break;
+      case s3x6:
+         if (result->result_flags.split_info[result->rotation & 1] == 1 &&
+             result->result_flags.split_info[(result->rotation ^ 1) & 1] == 0) {
+            // These were offset 2x3's.
+            if (!(result->people[2].id1 | result->people[3].id1 | result->people[8].id1 |
+                  result->people[11].id1 | result->people[12].id1 | result->people[17].id1)) {
+               // Inner spots are empty.
+               expand_ptr = &inner_3x6;
+            }
+            else if (!(result->people[0].id1 | result->people[5].id1 | result->people[6].id1 |
+                       result->people[9].id1 | result->people[14].id1 | result->people[15].id1)) {
+               // Outer spots are empty.
+               expand_ptr = &outer_3x6;
+            }
+         }
+         break;
+      }
+
+      if (expand_ptr) expand::compress_setup(*expand_ptr, result);
    }
 
    // Now we reinstate the incoming rotation, which we have completely ignored up until
@@ -1725,14 +1880,14 @@ extern void divided_setup_move(
 
 extern void overlapped_setup_move(
    setup *ss,
-   uint32 map_encoding,
-   uint32 *masks,
+   uint32_t map_encoding,
+   uint32_t *masks,
    setup *result,
    unsigned int noexpand_bits_to_set /* = CMD_MISC__NO_EXPAND_1 | CMD_MISC__NO_EXPAND_2 */ ) THROW_DECL
 {
    ss->clear_all_overcasts();
    int i, j, rot;
-   uint32 k;
+   uint32_t k;
    setup x[8];
    assumption_thing t = ss->cmd.cmd_assume;
    const map::map_thing *maps = map::get_map_from_code(map_encoding);
@@ -1743,7 +1898,7 @@ extern void overlapped_setup_move(
    setup_kind kn = maps->inner_kind;
    int insize = attr::klimit(kn)+1;
    int arity = maps->arity;
-   const veryshort *mapbase = maps->maps;
+   const int8_t *mapbase = maps->maps;
 
    if (arity >= 8) fail("Can't handle this many overlapped setups.");
 
@@ -1773,7 +1928,7 @@ static void phantom_2x4_move(
    setup *ss,
    int lineflag,
    phantest_kind phantest,
-   uint32 map_encoding,
+   uint32_t map_encoding,
    setup *result) THROW_DECL
 {
    setup hpeople, vpeople;
@@ -1813,7 +1968,7 @@ static void phantom_2x4_move(
       break;
    case phantest_first_or_both:
       // This occurs on "phantom lines", for example, and is
-      // intended to give the smae error as above if only the center
+      // intended to give the same error as above if only the center
       // phantom lines are occupied.  But the headliners might
       // occupy just the center phantom lines while the sideliners
       // make full use of the concept, so, once again, we have to
@@ -1888,7 +2043,7 @@ extern void do_phantom_2x4_concept(
    int clw = parseptr->concept->arg2 & 3;
    int linesp = clw & 1;
    int rot = (global_tbonetest ^ linesp ^ 1) & 1;
-   uint32 map_code;
+   uint32_t map_code;
 
    if ((ss->cmd.cmd_misc2_flags & CMD_MISC2__MYSTIFY_SPLIT) &&
        parseptr->concept->arg3 != MPKIND__CONCPHAN)
@@ -1907,6 +2062,9 @@ extern void do_phantom_2x4_concept(
    // The default value.
    unsigned int noexpand_bits_to_set = CMD_MISC__NO_EXPAND_1 | CMD_MISC__NO_EXPAND_2;
 
+   if (two_couple_calling && ss->kind == s2x2 && parseptr->concept->arg3 == MPKIND__CONCPHAN)
+      expand::expand_setup(s_2x2_4x4_ctrs, ss);
+
    switch (ss->kind) {
    case s1x16:
       if ((global_tbonetest & 011) == 011)
@@ -1923,7 +2081,6 @@ extern void do_phantom_2x4_concept(
       map_code = MAPCODE(s1x8,2,parseptr->concept->arg3,0);
       break;
    case s4x4:
-
       if (parseptr->concept->arg3 == MPKIND__NONE)
          map_code = parseptr->concept->arg4;
       else if (parseptr->concept->arg3 == MPKIND__OFFS_BOTH_FULL)
@@ -1944,7 +2101,27 @@ extern void do_phantom_2x4_concept(
          }
       }
 
-      if ((global_tbonetest & 011) == 011) {
+      // Big block diamonds are special.  Just looking at global_tbonetest isn't enough.
+
+      if (map_code == spcmap_bbdmds) {
+         ss->cmd.cmd_misc3_flags |= CMD_MISC3__SAID_DIAMOND;
+
+         if (global_livemask != 0xD2D2 && global_livemask != 0x2D2D)
+            fail("Can't find big block diamonds.");
+
+         rot = ss->people[0].id1 | ss->people[4].id1 | ss->people[8].id1 | ss->people[12].id1;
+
+         if (rot & 1)
+            rot |= ss->people[5].id1 | ss->people[6].id1 | ss->people[13].id1 | ss->people[14].id1;
+         else
+            rot |= ss->people[1].id1 | ss->people[2].id1 | ss->people[9].id1 | ss->people[10].id1;
+
+         if ((rot & 011) == 011)
+            fail("Can't find big block diamonds.");
+
+         rot &= 1;
+      }
+      else if ((global_tbonetest & 011) == 011) {
          // People are T-boned!  This is messy.
          phantom_2x4_move(ss,
                           linesp,
@@ -1954,9 +2131,8 @@ extern void do_phantom_2x4_concept(
          result->clear_all_overcasts();
          return;
       }
-
-      // Allow split phantom CLW, triple boxes.
-      if (parseptr->concept->arg3 == MPKIND__SPLIT)
+      else if (parseptr->concept->arg3 == MPKIND__SPLIT)
+         // Allow split phantom CLW, triple boxes.
          noexpand_bits_to_set = CMD_MISC__NO_EXPAND_1;
       break;
    case s2x6:
@@ -2046,7 +2222,7 @@ extern void do_phantom_diag_qtg_concept(
    setup *result) THROW_DECL
 {
    ss->clear_all_overcasts();
-   uint32 mapcode;
+   uint32_t mapcode;
    int rot = 0;
 
    if (ss->kind == s4x4) {
@@ -2102,15 +2278,15 @@ static bool full_search(
    int length_to_search,
    bool no_err_print,
    int num_to_find,
-   veryshort map_to_fill[],
-   const veryshort dests[],
-   const veryshort srcs[],
+   int8_t map_to_fill[],
+   const int8_t dests[],
+   const int8_t srcs[],
    const setup *ss) THROW_DECL
 {
    bool retval = true;
 
    for (int j=0 ; j<num_searches ; j++) {
-      const veryshort *row = &srcs[j*length_to_search];
+      const int8_t *row = &srcs[j*length_to_search];
       int fill_count = 0;
       int z = num_to_find;   // Counts downward as we see consecutive people.
       bool win = false;
@@ -2153,32 +2329,32 @@ static bool full_search(
 }
 
 
-static const veryshort list_2x8[16] = {
+static const int8_t list_2x8[16] = {
    0, 15, 1, 14, 3, 12, 2, 13, 7, 8, 6, 9, 4, 11, 5, 10};
 
-static const veryshort list_2x8_in[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+static const int8_t list_2x8_in[8] = {0, 1, 2, 3, 4, 5, 6, 7};
 
-static const veryshort list_3x4_in[8] = {0, 1, 2, 3, 7, 6, 5, 4};
-static const veryshort list_3x4_out[12] = {0, 10, 9, 1, 11, 8, 2, 5, 7, 3, 4, 6};
+static const int8_t list_3x4_in[8] = {0, 1, 2, 3, 7, 6, 5, 4};
+static const int8_t list_3x4_out[12] = {0, 10, 9, 1, 11, 8, 2, 5, 7, 3, 4, 6};
 
-static const veryshort list_2x4_in[8] = {7, 0, 6, 1, 5, 2, 4, 3};
+static const int8_t list_2x4_in[8] = {7, 0, 6, 1, 5, 2, 4, 3};
 
-static const veryshort list_2x5_out[10] = {9, 8, 7, 6, 5, 0, 1, 2, 3, 4};
-static const veryshort list_2x6_out[12] = {11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5};
-static const veryshort list_2x7_out[14] = {13, 12, 11, 10, 9, 8, 7, 0, 1, 2, 3, 4, 5, 6};
-static const veryshort list_2x8_out[16] = {
+static const int8_t list_2x5_out[10] = {9, 8, 7, 6, 5, 0, 1, 2, 3, 4};
+static const int8_t list_2x6_out[12] = {11, 10, 9, 8, 7, 6, 0, 1, 2, 3, 4, 5};
+static const int8_t list_2x7_out[14] = {13, 12, 11, 10, 9, 8, 7, 0, 1, 2, 3, 4, 5, 6};
+static const int8_t list_2x8_out[16] = {
    15, 14, 13, 12, 11, 10, 9, 8, 0, 1, 2, 3, 4, 5, 6, 7};
-static const veryshort list_2x10_out[20] = {
+static const int8_t list_2x10_out[20] = {
    19, 18, 17, 16, 15, 14, 13, 12, 11, 10,
    0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-static const veryshort list_2x12_out[24] = {
+static const int8_t list_2x12_out[24] = {
    23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12,
    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
-static const veryshort list_foo_in[8] = {0, 4, 1, 5, 3, 7, 2, 6};
-static const veryshort list_bar_in[8] = {8, 12, 9, 13, 11, 15, 10, 14};
+static const int8_t list_foo_in[8] = {0, 4, 1, 5, 3, 7, 2, 6};
+static const int8_t list_bar_in[8] = {8, 12, 9, 13, 11, 15, 10, 14};
 
-static const veryshort list_4x4_out[16] = {
+static const int8_t list_4x4_out[16] = {
    8, 6, 5, 4, 9, 11, 7, 2, 10, 15, 3, 1, 12, 13, 14, 0};
 
 
@@ -2189,59 +2365,59 @@ extern void distorted_2x2s_move(
 {
    ss->clear_all_overcasts();
 
-   static const veryshort idenmap4[4] = {0, 1, 2, 3};
+   static const int8_t idenmap4[4] = {0, 1, 2, 3};
 
    // Maps for jays. These have the extra 24 to handle going to 1x4's.
 
-   static const veryshort mapj1[48] = {
+   static const int8_t mapj1[48] = {
       7, 2, 4, 5, 0, 1, 3, 6,              6, 3, 4, 5, 0, 1, 2, 7,      -1, -1, -1, -1, -1, -1, -1, -1,
       0, 1, 2, 3, 6, 7, 4, 5,              5, 4, 2, 3, 6, 7, 1, 0,      -1, -1, -1, -1, -1, -1, -1, -1};
 
-   static const veryshort mapj2[48] = {
+   static const int8_t mapj2[48] = {
       6, 3, 4, 5, 0, 1, 2, 7,              7, 2, 4, 5, 0, 1, 3, 6,      -1, -1, -1, -1, -1, -1, -1, -1,
       5, 4, 2, 3, 6, 7, 1, 0,              0, 1, 2, 3, 6, 7, 4, 5,      -1, -1, -1, -1, -1, -1, -1, -1};
 
-   static const veryshort mapj3[48] = {
+   static const int8_t mapj3[48] = {
       -1, -1, -1, -1, -1, -1, -1, -1,      7, 2, 4, 5, 0, 1, 3, 6,      6, 3, 4, 5, 0, 1, 2, 7,
       -1, -1, -1, -1, -1, -1, -1, -1,      0, 1, 2, 3, 6, 7, 4, 5,      5, 4, 2, 3, 6, 7, 1, 0};
 
-   static const veryshort mapj4[48] = {
+   static const int8_t mapj4[48] = {
       -1, -1, -1, -1, -1, -1, -1, -1,      6, 3, 4, 5, 0, 1, 2, 7,      7, 2, 4, 5, 0, 1, 3, 6,
       -1, -1, -1, -1, -1, -1, -1, -1,      5, 4, 2, 3, 6, 7, 1, 0,      0, 1, 2, 3, 6, 7, 4, 5};
 
    // Maps for facing/back-to-front/back-to-back parallelograms.
    // These have the extra 24 to handle going to 1x4's.
 
-   static const veryshort mapk1[48] = {
+   static const int8_t mapk1[48] = {
       3, 2, 4, 5, 0, 1, 7, 6,              6, 7, 4, 5, 0, 1, 2, 3,      -1, -1, -1, -1, -1, -1, -1, -1,
       0, 1, 2, 3, 6, 7, 4, 5,              5, 4, 2, 3, 6, 7, 1, 0,      -1, -1, -1, -1, -1, -1, -1, -1};
-   static const veryshort mapk2[48] = {
+   static const int8_t mapk2[48] = {
       6, 7, 4, 5, 0, 1, 2, 3,              3, 2, 4, 5, 0, 1, 7, 6,      -1, -1, -1, -1, -1, -1, -1, -1,
       5, 4, 2, 3, 6, 7, 1, 0,              0, 1, 2, 3, 6, 7, 4, 5,      -1, -1, -1, -1, -1, -1, -1, -1};
-   static const veryshort mapk3[48] = {
+   static const int8_t mapk3[48] = {
       -1, -1, -1, -1, -1, -1, -1, -1,      3, 2, 4, 5, 0, 1, 7, 6,      6, 7, 4, 5, 0, 1, 2, 3,
       -1, -1, -1, -1, -1, -1, -1, -1,      0, 1, 2, 3, 6, 7, 4, 5,      5, 4, 2, 3, 6, 7, 1, 0};
-   static const veryshort mapk4[48] = {
+   static const int8_t mapk4[48] = {
       -1, -1, -1, -1, -1, -1, -1, -1,      6, 7, 4, 5, 0, 1, 2, 3,      3, 2, 4, 5, 0, 1, 7, 6,
       -1, -1, -1, -1, -1, -1, -1, -1,      5, 4, 2, 3, 6, 7, 1, 0,      0, 1, 2, 3, 6, 7, 4, 5};
 
-   static const veryshort map3stag1[48] = {
+   static const int8_t map3stag1[48] = {
       1, 3, 21, 23, 5, 7, 17, 19, 9, 11, 13, 15};
 
-   static const veryshort map3stag2[48] = {
+   static const int8_t map3stag2[48] = {
       0, 2, 20, 22, 4, 6, 16, 18, 8, 10, 12, 14};
 
-   static const veryshort mapzda[9] = {1, 3, 4, 5, 7, 9, 10, 11, -1};
-   static const veryshort mapzdb[9] = {0, 2, 4, 5, 6, 8, 10, 11, -1};
-   static const veryshort mapzdc[9] = {0, 3, 4, 5, 6, 9, 10, 11, -1};
+   static const int8_t mapzda[9] = {1, 3, 4, 5, 7, 9, 10, 11, -1};
+   static const int8_t mapzdb[9] = {0, 2, 4, 5, 6, 8, 10, 11, -1};
+   static const int8_t mapzdc[9] = {0, 3, 4, 5, 6, 9, 10, 11, -1};
 
    int table_offset, arity, misc_indicator, i;
    setup inputs[4];
    setup results[4];
    int z_aspect = 1;      // Default is side-by-side.
-   const veryshort *map_ptr = 0;
-   const veryshort *map_3x4_restorer = 0;
-   const veryshort *map_z_restorer = 0;
+   const int8_t *map_ptr = 0;
+   const int8_t *map_3x4_restorer = 0;
+   const int8_t *map_z_restorer = 0;
 
    const concept_descriptor *this_concept =
       (ss->cmd.cmd_misc3_flags & CMD_MISC3__IMPOSE_Z_CONCEPT) ? &concept_special_z : parseptr->concept;
@@ -2280,13 +2456,13 @@ extern void distorted_2x2s_move(
       // Maybe they fit into a 3x6; maybe not.  We expand to a 3x8
       // and then try to cut it back to a 3x6 or whatever.
       do_matrix_expansion(ss, CONCPROP__NEEDK_3X8, false);
-      normalize_setup(ss, simple_normalize, false);
+      normalize_setup(ss, simple_normalize, qtag_compress);
    }
 
    arity = 2;
 
-   uint32 directionsBE, livemaskBEhi, livemaskBElo;
-   big_endian_get_directions(ss, directionsBE, livemaskBElo, (uint32 *) 0, &livemaskBEhi);
+   uint64_t directionsBE64, livemaskBE64;
+   big_endian_get_directions64(ss, directionsBE64, livemaskBE64);
 
    result->clear_people();
    setup_kind inner_kind = s2x2;
@@ -2298,11 +2474,11 @@ extern void distorted_2x2s_move(
          fail("Must have a 2x12 for this concept.");
 
       arity = 3;
-      if ((livemaskBElo & 0xCCCCCCCC) == 0 && (livemaskBEhi & 0xCCCC) == 0) {
+      if      ((livemaskBE64 & 0xCCCCCCCCCCCCULL) == 0ULL) {
          map_ptr = map3stag1;
       }
-      else if ((livemaskBElo & 0x33333333) == 0 && (livemaskBEhi & 0x3333) == 0) {
-         if ((livemaskBElo & 0xCCCCCCCC) == 0 && (livemaskBEhi & 0xCCCC) == 0)
+      else if ((livemaskBE64 & 0x333333333333ULL) == 0ULL) {
+         if ((livemaskBE64 & 0xCCCCCCCCCCCCULL) == 0ULL)
             fail("Can't figure this out.");  // Could only happen if setup is empty.
          map_ptr = map3stag2;
       }
@@ -2320,15 +2496,15 @@ extern void distorted_2x2s_move(
       if (arity == 3) {
 
          // Maps for triple side-to-side Z's.
-         static const veryshort mapz3x6ccw[13]  = {s3x6, 15, 1, 17, 3, 7, 5, 6, 10, 8, 12, 16, 14};
-         static const veryshort mapz3x6cw[13]   = {s3x6, 0, 16, 2, 8, 4, 6, 9, 7, 11, 17, 13, 15};
-         static const veryshort mapz3x6accw[13] = {s3x6, 0, 16, 17, 3, 4, 6, 9, 7, 8, 12, 13, 15};
-         static const veryshort mapz3x6acw[13]  = {s3x6, 15, 1, 2, 8, 7, 5, 6, 10, 11, 17, 16, 14};
+         static const int8_t mapz3x6ccw[13]  = {s3x6, 15, 1, 17, 3, 7, 5, 6, 10, 8, 12, 16, 14};
+         static const int8_t mapz3x6cw[13]   = {s3x6, 0, 16, 2, 8, 4, 6, 9, 7, 11, 17, 13, 15};
+         static const int8_t mapz3x6accw[13] = {s3x6, 0, 16, 17, 3, 4, 6, 9, 7, 8, 12, 13, 15};
+         static const int8_t mapz3x6acw[13]  = {s3x6, 15, 1, 2, 8, 7, 5, 6, 10, 11, 17, 16, 14};
          // And for triple end-to-end Z's.
-         static const veryshort mapz2x9cw[13]   = {s2x9, 1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 16, 17};
-         static const veryshort mapz2x9ccw[13]  = {s2x9, 0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16};
-         static const veryshort mapz2x9accw[13] = {s2x9, 1, 2, 3, 4, 7, 8, 10, 11, 12, 13, 16, 17};
-         static const veryshort mapz2x9acw[13]  = {s2x9, 0, 1, 4, 5, 6, 7, 9, 10, 13, 14, 15, 16};
+         static const int8_t mapz2x9cw[13]   = {s2x9, 1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 16, 17};
+         static const int8_t mapz2x9ccw[13]  = {s2x9, 0, 1, 3, 4, 6, 7, 9, 10, 12, 13, 15, 16};
+         static const int8_t mapz2x9accw[13] = {s2x9, 1, 2, 3, 4, 7, 8, 10, 11, 12, 13, 16, 17};
+         static const int8_t mapz2x9acw[13]  = {s2x9, 0, 1, 4, 5, 6, 7, 9, 10, 13, 14, 15, 16};
 
          static const expand::thing expand_2x7_2x9 = {
             {1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16}, s2x7, s2x9, 0};
@@ -2336,22 +2512,22 @@ extern void distorted_2x2s_move(
          switch (ss->kind) {
          case s3x6:
             // If outer Z's are ambiguous, make them look like inner ones.
-            if ((livemaskBElo & 0x0F03C3C0) == 0 && (livemaskBEhi & 0xF) == 0)
+            if      ((livemaskBE64 & 0xF0F03C3C0ULL) == 0ULL)
                warn(warn_same_z_shear);
 
-            if ((livemaskBElo & 0x3300CCC0) == 0 && (livemaskBEhi & 0x3) == 0) {
+            if      ((livemaskBE64 & 0x33300CCC0ULL) == 0ULL) {
                map_z_restorer = mapz3x6cw;
                goto do_real_z_final;
             }
-            else if ((livemaskBElo & 0xCC033300) == 0 && (livemaskBEhi & 0xC) == 0) {
+            else if ((livemaskBE64 & 0xCCC033300ULL) == 0ULL) {
                map_z_restorer = mapz3x6ccw;
                goto do_real_z_final;
             }
-            else if ((livemaskBElo & 0xC300F0C0) == 0 && (livemaskBEhi & 0x3) == 0) {
+            else if ((livemaskBE64 & 0x3C300F0C0ULL) == 0ULL) {
                map_z_restorer = mapz3x6accw;   // Anisotropic; center Z has different shear.
                goto do_real_z_final;
             }
-            else if ((livemaskBElo & 0x3C030F00) == 0 && (livemaskBEhi & 0xC) == 0) {
+            else if ((livemaskBE64 & 0xC3C030F00ULL) == 0ULL) {
                map_z_restorer = mapz3x6acw;   // Anisotropic; center Z has different shear.
                goto do_real_z_final;
             }
@@ -2359,29 +2535,29 @@ extern void distorted_2x2s_move(
          case s2x7:
             expand::expand_setup(expand_2x7_2x9, ss);
             // Need to get these again.
-            big_endian_get_directions(ss, directionsBE, livemaskBElo, (uint32 *) 0, &livemaskBEhi);
+            big_endian_get_directions64(ss, directionsBE64, livemaskBE64);
             // FALL THROUGH!
          case s2x9:
             // FELL THROUGH!
             z_aspect = 0;      // Z's are end-to-end.
 
             // If outer Z's are ambiguous, make them look like inner ones.
-            if ((livemaskBElo & 0xC0CF3033) == 0 && (livemaskBEhi & 0xC) == 0)
+            if      ((livemaskBE64 & 0xCC0CF3033ULL) == 0ULL)
                warn(warn_same_z_shear);
 
-            if ((livemaskBElo & 0x30C30C30) == 0 && (livemaskBEhi & 0xC) == 0) {
+            if      ((livemaskBE64 & 0xC30C30C30ULL) == 0ULL) {
                map_z_restorer = mapz2x9cw;
                goto do_real_z_final;
             }
-            else if ((livemaskBElo & 0xC30C30C3) == 0 && (livemaskBEhi & 0x0) == 0) {
+            else if ((livemaskBE64 & 0x0C30C30C3ULL) == 0ULL) {
                map_z_restorer = mapz2x9ccw;
                goto do_real_z_final;
             }
-            else if ((livemaskBElo & 0x03C300F0) == 0 && (livemaskBEhi & 0xC) == 0) {
+            else if ((livemaskBE64 & 0xC03C300F0ULL) == 0ULL) {
                map_z_restorer = mapz2x9accw;   // Anisotropic; center Z has different shear.
                goto do_real_z_final;
             }
-            else if ((livemaskBElo & 0xF00C3C03) == 0 && (livemaskBEhi & 0x0) == 0) {
+            else if ((livemaskBE64 & 0x0F00C3C03ULL) == 0ULL) {
                map_z_restorer = mapz2x9acw;   // Anisotropic; center Z has different shear.
                goto do_real_z_final;
             }
@@ -2394,78 +2570,78 @@ extern void distorted_2x2s_move(
          case s4x4:
             {
                // Maps for 4x4 Z's.
-               static const veryshort map1[16] =
+               static const int8_t map1[16] =
                {12, 15, 11, 10, 3, 2, 4, 7, 12, 3, 7, 10, 15, 2, 4, 11};
-               static const veryshort map2[16] =
+               static const int8_t map2[16] =
                {12, 13, 3, 15, 11, 7, 4, 5, 12, 13, 7, 11, 15, 3, 4, 5};
-               static const veryshort map3[16] =
+               static const int8_t map3[16] =
                {14, 1, 2, 3, 10, 11, 6, 9, 11, 1, 2, 6, 10, 14, 3, 9};
-               static const veryshort map4[16] =
+               static const int8_t map4[16] =
                {13, 14, 1, 3, 9, 11, 5, 6, 13, 14, 11, 9, 3, 1, 5, 6};
-               static const veryshort map5[16] =
+               static const int8_t map5[16] =
                {10, 13, 15, 9, 7, 1, 2, 5, 10, 7, 5, 9, 13, 1, 2, 15};
-               static const veryshort map6[16] =
+               static const int8_t map6[16] =
                {13, 14, 15, 10, 7, 2, 5, 6, 13, 14, 2, 7, 10, 15, 5, 6};
-               static const veryshort map7[16] =
+               static const int8_t map7[16] =
                {3, 0, 1, 7, 9, 15, 11, 8, 15, 0, 1, 11, 9, 3, 7, 8};
-               static const veryshort map8[16] =
+               static const int8_t map8[16] =
                {14, 0, 3, 15, 11, 7, 6, 8, 14, 0, 7, 11, 15, 3, 6, 8};
 
                arity = 2;
-               if (     (livemaskBElo & ~0x0FC30FC3) == 0) map_ptr = map1;
-               else if ((livemaskBElo & ~0x03F303F3) == 0) map_ptr = map2;
-               else if ((livemaskBElo & ~0x3F0C3F0C) == 0) map_ptr = map3;
-               else if ((livemaskBElo & ~0x333C333C) == 0) map_ptr = map4;
-               else if ((livemaskBElo & ~0x3C333C33) == 0) map_ptr = map5;
-               else if ((livemaskBElo & ~0x0C3F0C3F) == 0) map_ptr = map6;
-               else if ((livemaskBElo & ~0xF303F303) == 0) map_ptr = map7;
-               else if ((livemaskBElo & ~0xC30FC30F) == 0) map_ptr = map8;
+               if (     (livemaskBE64 & ~0x0FC30FC3ULL) == 0ULL) map_ptr = map1;
+               else if ((livemaskBE64 & ~0x03F303F3ULL) == 0ULL) map_ptr = map2;
+               else if ((livemaskBE64 & ~0x3F0C3F0CULL) == 0ULL) map_ptr = map3;
+               else if ((livemaskBE64 & ~0x333C333CULL) == 0ULL) map_ptr = map4;
+               else if ((livemaskBE64 & ~0x3C333C33ULL) == 0ULL) map_ptr = map5;
+               else if ((livemaskBE64 & ~0x0C3F0C3FULL) == 0ULL) map_ptr = map6;
+               else if ((livemaskBE64 & ~0xF303F303ULL) == 0ULL) map_ptr = map7;
+               else if ((livemaskBE64 & ~0xC30FC30FULL) == 0ULL) map_ptr = map8;
             }
             break;
          case s4x5:
             arity = 2;
             {
                // Maps for 4x5 Z's.
-               static const veryshort map45a[9] = {0, 1, 7, 8, 17, 18, 10, 11, -1};
-               static const veryshort map45b[9] = {3, 4, 6, 7, 16, 17, 13, 14, -1};
-               static const veryshort map45c[9] = {2, 3, 5, 6, 15, 16, 12, 13, -1};
-               static const veryshort map45d[9] = {1, 2, 8, 9, 18, 19, 11, 12, -1};
-               static const veryshort map45e[9] = {15, 8, 16, 14, 6, 4, 5, 18, -1};
-               static const veryshort map45f[9] = {0, 8, 16, 9, 6, 19, 10, 18, -1};
-               static const veryshort map45g[9] = {9, 1, 8, 15, 18, 5, 19, 11, -1};
-               static const veryshort map45h[9] = {9, 16, 13, 15, 3, 5, 19, 6, -1};
+               static const int8_t map45a[9] = {0, 1, 7, 8, 17, 18, 10, 11, -1};
+               static const int8_t map45b[9] = {3, 4, 6, 7, 16, 17, 13, 14, -1};
+               static const int8_t map45c[9] = {2, 3, 5, 6, 15, 16, 12, 13, -1};
+               static const int8_t map45d[9] = {1, 2, 8, 9, 18, 19, 11, 12, -1};
+               static const int8_t map45e[9] = {15, 8, 16, 14, 6, 4, 5, 18, -1};
+               static const int8_t map45f[9] = {0, 8, 16, 9, 6, 19, 10, 18, -1};
+               static const int8_t map45g[9] = {9, 1, 8, 15, 18, 5, 19, 11, -1};
+               static const int8_t map45h[9] = {9, 16, 13, 15, 3, 5, 19, 6, -1};
 
-               if (     (livemaskBElo & ~0x03CF003C) == 0 && (livemaskBEhi & ~0xF0) == 0) map_ptr = map45a;
-               else if ((livemaskBElo & ~0xCF003CF0) == 0 && (livemaskBEhi & ~0x03) == 0) map_ptr = map45b;
-               else if ((livemaskBElo & ~0x3C00F3C0) == 0 && (livemaskBEhi & ~0x0F) == 0) map_ptr = map45c;
-               else if ((livemaskBElo & ~0x00F3C00F) == 0 && (livemaskBEhi & ~0x3C) == 0) map_ptr = map45d;
-               else if ((livemaskBElo & ~0xFCC00FCC) == 0 && (livemaskBEhi & ~0x00) == 0) map_ptr = map45e;
-               else if ((livemaskBElo & ~0x0CFC00CF) == 0 && (livemaskBEhi & ~0xC0) == 0) map_ptr = map45f;
-               else if ((livemaskBElo & ~0x30F3030F) == 0 && (livemaskBEhi & ~0x30) == 0) map_ptr = map45g;
-               else if ((livemaskBElo & ~0x3C3033C3) == 0 && (livemaskBEhi & ~0x03) == 0) map_ptr = map45h;
+               if (     (livemaskBE64 & ~0xF003CF003C) == 0ULL) map_ptr = map45a;
+               else if ((livemaskBE64 & ~0x03CF003CF0) == 0ULL) map_ptr = map45b;
+               else if ((livemaskBE64 & ~0x0F3C00F3C0) == 0ULL) map_ptr = map45c;
+               else if ((livemaskBE64 & ~0x3C00F3C00F) == 0ULL) map_ptr = map45d;
+               else if ((livemaskBE64 & ~0x00FCC00FCC) == 0ULL) map_ptr = map45e;
+               else if ((livemaskBE64 & ~0xC00CFC00CF) == 0ULL) map_ptr = map45f;
+               else if ((livemaskBE64 & ~0x3030F3030F) == 0ULL) map_ptr = map45g;
+               else if ((livemaskBE64 & ~0x033C3033C3) == 0ULL) map_ptr = map45h;
             }
             break;
          case s4x6:
             arity = 2;
             {
                // Maps for 4x6 Z's.
-               static const veryshort map46a[9] = {11, 1, 10, 18, 22, 6, 23, 13, -1};
-               static const veryshort map46b[9] = {11, 19, 16, 18, 4, 6, 23, 7, -1};
-               static const veryshort map46c[9] = {0, 10, 19, 11, 7, 23, 12, 22, -1};
-               static const veryshort map46d[9] = {18, 10, 19, 17, 7, 5, 6, 22, -1};
-               static const veryshort map46e[9] = {18, 19, 15, 16, 3, 4, 6, 7, -1};
-               static const veryshort map46f[9] = {19, 20, 16, 17, 4, 5, 7, 8, -1};
-               static const veryshort map46g[9] = {1, 2, 10, 11, 22, 23, 13, 14, -1};
-               static const veryshort map46h[9] = {0, 1, 9, 10, 21, 22, 12, 13, -1};
+               static const int8_t map46a[9] = {11, 1, 10, 18, 22, 6, 23, 13, -1};
+               static const int8_t map46b[9] = {11, 19, 16, 18, 4, 6, 23, 7, -1};
+               static const int8_t map46c[9] = {0, 10, 19, 11, 7, 23, 12, 22, -1};
+               static const int8_t map46d[9] = {18, 10, 19, 17, 7, 5, 6, 22, -1};
+               static const int8_t map46e[9] = {18, 19, 15, 16, 3, 4, 6, 7, -1};
+               static const int8_t map46f[9] = {19, 20, 16, 17, 4, 5, 7, 8, -1};
+               static const int8_t map46g[9] = {1, 2, 10, 11, 22, 23, 13, 14, -1};
+               static const int8_t map46h[9] = {0, 1, 9, 10, 21, 22, 12, 13, -1};
 
-               if (     (livemaskBElo & ~0x0F300C0F) == 0 && (livemaskBEhi & ~0x300C) == 0) map_ptr = map46a;
-               else if ((livemaskBElo & ~0x0300CF03) == 0 && (livemaskBEhi & ~0x00CF) == 0) map_ptr = map46b;
-               else if ((livemaskBElo & ~0x0FC0030F) == 0 && (livemaskBEhi & ~0xC003) == 0) map_ptr = map46c;
-               else if ((livemaskBElo & ~0x0C003F0C) == 0 && (livemaskBEhi & ~0x003F) == 0) map_ptr = map46d;
-               else if ((livemaskBElo & ~0x0003CF00) == 0 && (livemaskBEhi & ~0x03CF) == 0) map_ptr = map46e;
-               else if ((livemaskBElo & ~0xC000F3C0) == 0 && (livemaskBEhi & ~0x00F3) == 0) map_ptr = map46f;
-               else if ((livemaskBElo & ~0x0F3C000F) == 0 && (livemaskBEhi & ~0x3C00) == 0) map_ptr = map46g;
-               else if ((livemaskBElo & ~0x3CF0003C) == 0 && (livemaskBEhi & ~0xF000) == 0) map_ptr = map46h;
+               if (     (livemaskBE64 & ~0x300C0F300C0FULL) == 0ULL) map_ptr = map46a;
+               else if ((livemaskBE64 & ~0x00CF0300CF03ULL) == 0ULL) map_ptr = map46b;
+               else if ((livemaskBE64 & ~0xC0030FC0030FULL) == 0ULL) map_ptr = map46c;
+               else if ((livemaskBE64 & ~0x003F0C003F0CULL) == 0ULL) map_ptr = map46d;
+               else if ((livemaskBE64 & ~0x03CF0003CF00ULL) == 0ULL) map_ptr = map46e;
+               else if ((livemaskBE64 & ~0x00F3C000F3C0ULL) == 0ULL) map_ptr = map46f;
+               else if ((livemaskBE64 & ~0x3C000F3C000FULL) == 0ULL) map_ptr = map46g;
+               else if ((livemaskBE64 & ~0xF0003CF0003CULL) == 0ULL) map_ptr = map46h;
             }
             break;
          case s3x4:
@@ -2473,23 +2649,23 @@ extern void distorted_2x2s_move(
                         // to 1.  There are nevertheless two Z's.
             {
                // Maps for 3x4 Z's.
-               static const veryshort mapc[16] =   // Only interlocked Z's
+               static const int8_t mapc[16] =   // Only interlocked Z's
                {-1, -1, -1, -1, -1, -1, -1, -1, 10, 2, 5, 9, 11, 3, 4, 8};
-               static const veryshort mapd[16] =   // Only interlocked Z's
+               static const int8_t mapd[16] =   // Only interlocked Z's
                {-1, -1, -1, -1, -1, -1, -1, -1, 0, 5, 7, 10, 1, 4, 6, 11};
-               static const veryshort mapz3x4ccw[9] = {s3x4, 10, 1, 5, 3, 4, 7, 11, 9};
-               static const veryshort mapz3x4cw[9] = {s3x4, 0, 11, 2, 4, 6, 5, 8, 10};
+               static const int8_t mapz3x4ccw[9] = {s3x4, 10, 1, 5, 3, 4, 7, 11, 9};
+               static const int8_t mapz3x4cw[9] = {s3x4, 0, 11, 2, 4, 6, 5, 8, 10};
 
-               if ((livemaskBElo & ~0x33F33F) == 0) {
+               if      ((livemaskBE64 & ~0x33F33FULL) == 0ULL) {
                   map_z_restorer = mapz3x4ccw;
                   goto do_real_z_final;
                }
-               else if ((livemaskBElo & ~0xCCFCCF) == 0) {
+               else if ((livemaskBE64 & ~0xCCFCCFULL) == 0ULL) {
                   map_z_restorer = mapz3x4cw;
                   goto do_real_z_final;
                }
-               else if ((livemaskBElo & ~0x0FF0FF) == 0) map_ptr = mapc;
-               else if ((livemaskBElo & ~0xF0FF0F) == 0) map_ptr = mapd;
+               else if ((livemaskBE64 & ~0x0FF0FFULL) == 0ULL) map_ptr = mapc;
+               else if ((livemaskBE64 & ~0xF0FF0FULL) == 0ULL) map_ptr = mapd;
             }
             break;
          case s2x6:
@@ -2497,58 +2673,69 @@ extern void distorted_2x2s_move(
                         // to 1.  There are nevertheless two Z's.
             {
                // Maps for 2x6 Z's.
-               static const veryshort mape[16] =
+               static const int8_t mape[16] =
                {0, 1, 9, 10, 3, 4, 6, 7, -1, -1, -1, -1, -1, -1, -1, -1};
-               static const veryshort mapf[16] =
+               static const int8_t mapf[16] =
                {1, 2, 10, 11, 4, 5, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1};
-               static const veryshort mapz2x6ccw[9] = {s2x6, 0, 1, 3, 4, 6, 7, 9, 10};
-               static const veryshort mapz2x6cw[9] = {s2x6, 1, 2, 4, 5, 7, 8, 10, 11};
+               static const int8_t mapz2x6ccw[9] = {s2x6, 0, 1, 3, 4, 6, 7, 9, 10};
+               static const int8_t mapz2x6cw[9] = {s2x6, 1, 2, 4, 5, 7, 8, 10, 11};
 
                z_aspect = 0;      // Z's are end-to-end.
 
-               if ((livemaskBElo & ~0xF3CF3C) == 0) {
+               if      ((livemaskBE64 & ~0xF3CF3CULL) == 0ULL) {
                   map_z_restorer = mapz2x6ccw;
                   goto do_real_z_final;
                }
-               else if ((livemaskBElo & ~0x3CF3CF) == 0) {
+               else if ((livemaskBE64 & ~0x3CF3CFULL) == 0ULL) {
                   map_z_restorer = mapz2x6cw;
                   goto do_real_z_final;
                }
-               else if ((livemaskBElo & 0x0C30C3) == 0) map_ptr = mape;
-               else if ((livemaskBElo & 0xC30C30) == 0) map_ptr = mapf;
+               else if ((livemaskBE64 & 0x0C30C3ULL) == 0ULL) map_ptr = mape;
+               else if ((livemaskBE64 & 0xC30C30ULL) == 0ULL) map_ptr = mapf;
             }
             break;
          case s3x6:
             arity = 2;
             {
                // Maps for 3x6 Z's.
-               static const veryshort mapg[16] =
+               static const int8_t mapg[16] =
                {0, 16, 13, 15, 4, 6, 9, 7, -1, -1, -1, -1, -1, -1, -1, -1};
-               static const veryshort maph[16] =
+               static const int8_t maph[16] =
                {15, 1, 16, 14, 7, 5, 6, 10, -1, -1, -1, -1, -1, -1, -1, -1};
-               static const veryshort mapi[16] =
+               static const int8_t mapi[16] =
                {16,17, 13, 14, 4, 5, 7, 8, -1, -1, -1, -1, -1, -1, -1, -1};
-               static const veryshort mapj[16] =
+               static const int8_t mapj[16] =
                {0, 1, 17, 16, 8, 7, 9, 10, -1, -1, -1, -1, -1, -1, -1, -1};
-               static const veryshort mapk[16] =
+               static const int8_t mapk[16] =
                {1, 2, 16, 15, 7, 6, 10, 11, -1, -1, -1, -1, -1, -1, -1, -1};
 
-               if (     livemaskBElo == 0x0CF3033C && livemaskBEhi == 0xC) map_ptr = mapg;
-               else if (livemaskBElo == 0x03F0C0FC && livemaskBEhi == 0x3) map_ptr = maph;
-               else if (livemaskBElo == 0x0F3C03CF && livemaskBEhi == 0x0) map_ptr = mapi;
-               else if (livemaskBElo == 0x003FC00F && livemaskBEhi == 0xF) map_ptr = mapj;
-               else if (livemaskBElo == 0xC0F0F03C && livemaskBEhi == 0x3) map_ptr = mapk;
+               if (     livemaskBE64 == 0xC0CF3033CULL) map_ptr = mapg;
+               else if (livemaskBE64 == 0x303F0C0FCULL) map_ptr = maph;
+               else if (livemaskBE64 == 0x00F3C03CFULL) map_ptr = mapi;
+               else if (livemaskBE64 == 0xF003FC00FULL) map_ptr = mapj;
+               else if (livemaskBE64 == 0x3C0F0F03CULL) map_ptr = mapk;
             }
             break;
          case s2x3:
             if (arity != 1) fail("Use the 'Z' concept here.");
             {
                // Maps for single 2x3 Z.
-               static const veryshort mape1[8] = {0, 1, 3, 4, -1, -1, -1, -1};
-               static const veryshort mapf1[8] = {1, 2, 4, 5, -1, -1, -1, -1};
+               static const int8_t mape1[8] = {0, 1, 3, 4, -1, -1, -1, -1};
+               static const int8_t mapf1[8] = {1, 2, 4, 5, -1, -1, -1, -1};
 
-               if (     (livemaskBElo & 0x0C3) == 0) map_ptr = mape1;
-               else if ((livemaskBElo & 0xC30) == 0) map_ptr = mapf1;
+               if (     (livemaskBE64 & 0x0C3ULL) == 0ULL) map_ptr = mape1;
+               else if ((livemaskBE64 & 0xC30ULL) == 0ULL) map_ptr = mapf1;
+            }
+            break;
+         case s_qtag:
+            if (arity != 1) fail("Use the 'Z' concept here.");
+            {
+               // Maps for single Z in a 1/4 tag.
+               static const int8_t mapm1[8] = {7, 1, 3, 5, -1, -1, -1, -1};
+               static const int8_t mapn1[8] = {0, 3, 4, 7, -1, -1, -1, -1};
+
+               if (     (livemaskBE64 & 0xCCCCULL) == 0ULL) map_ptr = mapm1;
+               else if ((livemaskBE64 & 0x3C3CULL) == 0ULL) map_ptr = mapn1;
             }
             break;
          case s2x2:
@@ -2559,7 +2746,7 @@ extern void distorted_2x2s_move(
             }
             break;
          default:
-            fail("Must have 3x4, 2x6, 3x6, 2x3, 4x4, 4x6, or split 1/4 tags for this concept.");
+            fail("Must have 3x4, 2x6, 3x6, 2x3, 1/4 tag, 4x4, 4x6, or split 1/4 tags for this concept.");
          }
       }
       break;
@@ -2572,24 +2759,35 @@ extern void distorted_2x2s_move(
          {
             inner_kind = s_qtag;
             arity = 1;  // Whatever the user called it, we are going to a single setup.
-            if (     (livemaskBElo & 0xCC0CC0) == 0) map_ptr = mapzda;
-            else if ((livemaskBElo & 0x330330) == 0) map_ptr = mapzdb;
+            if (     (livemaskBE64 & 0xCC0CC0ULL) == 0ULL) map_ptr = mapzda;
+            else if ((livemaskBE64 & 0x330330ULL) == 0ULL) map_ptr = mapzdb;
          }
          break;
       case s2x3:
          if (arity != 1) fail("Use the 'Z diamond' concept here.");
          {
             // Maps for single 2x3 Z.
-            static const veryshort mape1[8] = {0, 1, 3, 4};
-            static const veryshort mapf1[8] = {5, 1, 2, 4};
+            static const int8_t mape1[8] = {0, 1, 3, 4};
+            static const int8_t mapf1[8] = {5, 1, 2, 4};
 
             inner_kind = sdmd;
-            if (     (livemaskBElo & 0x0C3) == 0) map_ptr = mape1;
-            else if ((livemaskBElo & 0xC30) == 0) map_ptr = mapf1;
+            if (     (livemaskBE64 & 0x0C3ULL) == 0ULL) map_ptr = mape1;
+            else if ((livemaskBE64 & 0xC30ULL) == 0ULL) map_ptr = mapf1;
+         }
+         break;
+      case s_qtag:
+         if (arity != 1) fail("Use the 'Z diamond' concept here.");
+         {
+            // Maps for single Z in a 1/4 tag.
+            static const int8_t mapm1[8] = {7, 1, 3, 5};
+            static const int8_t mapn1[8] = {0, 3, 4, 7};
+
+            if (     (livemaskBE64 & 0xCCCCULL) == 0ULL) map_ptr = mapm1;
+            else if ((livemaskBE64 & 0x3C3CULL) == 0ULL) map_ptr = mapn1;
          }
          break;
       default:
-         fail("Must have 3x4, 2x6, 3x6, 2x3, 4x4, 4x6, or split 1/4 tags for this concept.");
+         fail("Must have 3x4, 2x6, 3x6, 2x3, 1/4 tag, 4x4, 4x6, or split 1/4 tags for this concept.");
       }
 
       break;
@@ -2604,9 +2802,9 @@ extern void distorted_2x2s_move(
       // The concept is some variety of jay.
 
       if (ss->kind == s3x4) {
-         if (     (livemaskBElo & 0xCC0CC0) == 0) map_3x4_restorer = mapzda;
-         else if ((livemaskBElo & 0x330330) == 0) map_3x4_restorer = mapzdb;
-         else if ((livemaskBElo & 0x3C03C0) == 0) map_3x4_restorer = mapzdc;
+         if (     (livemaskBE64 & 0xCC0CC0ULL) == 0ULL) map_3x4_restorer = mapzda;
+         else if ((livemaskBE64 & 0x330330ULL) == 0ULL) map_3x4_restorer = mapzdb;
+         else if ((livemaskBE64 & 0x3C03C0ULL) == 0ULL) map_3x4_restorer = mapzdc;
 
          if (map_3x4_restorer) {   // If didn't set up a restorer, it's an error.
             setup stemp = *ss;
@@ -2616,24 +2814,24 @@ extern void distorted_2x2s_move(
             *ss = stemp;
 
             // Need to do this again.
-            big_endian_get_directions(ss, directionsBE, livemaskBElo, (uint32 *) 0, &livemaskBEhi);
+            big_endian_get_directions64(ss, directionsBE64, livemaskBE64);
          }
       }
 
       if (ss->kind == s_qtag) {
-         if (table_offset == 0 || (livemaskBElo == 0xFFFF && (directionsBE & 0xF0F0) == 0xA000)) {
-            uint32 arg4 = this_concept->arg4 ^ directionsBE;
+         if (table_offset == 0 || (livemaskBE64 == 0xFFFFULL && (directionsBE64 & 0xF0F0ULL) == 0xA000ULL)) {
+            uint32_t arg4 = this_concept->arg4 ^ ((uint32_t) directionsBE64);
 
             if (     ((arg4 ^ 0x0802) & 0x0F0F) == 0) map_ptr = mapj1;
             else if (((arg4 ^ 0x0208) & 0x0F0F) == 0) map_ptr = mapj2;
             else if (((arg4 ^ 0x0A00) & 0x0F0F) == 0) map_ptr = mapk1;
             else if (((arg4 ^ 0x000A) & 0x0F0F) == 0) map_ptr = mapk2;
          }
-         else if (livemaskBElo == 0xFFFF && (directionsBE & 0xF0F0) == 0x00A0) {
-            if (     ((directionsBE ^ 0x0802) & 0x0F0F) == 0) map_ptr = mapj3;
-            else if (((directionsBE ^ 0x0208) & 0x0F0F) == 0) map_ptr = mapj4;
-            else if (((directionsBE ^ 0x0A00) & 0x0F0F) == 0) map_ptr = mapk3;
-            else if (((directionsBE ^ 0x000A) & 0x0F0F) == 0) map_ptr = mapk4;
+         else if (livemaskBE64 == 0xFFFF && (directionsBE64 & 0xF0F0) == 0x00A0) {
+            if (     ((directionsBE64 ^ 0x0802) & 0x0F0F) == 0) map_ptr = mapj3;
+            else if (((directionsBE64 ^ 0x0208) & 0x0F0F) == 0) map_ptr = mapj4;
+            else if (((directionsBE64 ^ 0x0A00) & 0x0F0F) == 0) map_ptr = mapk3;
+            else if (((directionsBE64 ^ 0x000A) & 0x0F0F) == 0) map_ptr = mapk4;
          }
       }
 
@@ -2644,13 +2842,13 @@ extern void distorted_2x2s_move(
       if (ss->kind != s3x4) fail("Must have 3x4 setup for this concept.");
 
       {
-         static const veryshort map_p1[16] =
+         static const int8_t map_p1[16] =
          {2, 3, 11, 10, 5, 4, 8, 9, -1, -1, -1, -1, -1, -1, -1, -1};
-         static const veryshort map_p2[16] =
+         static const int8_t map_p2[16] =
          {0, 1, 4, 5, 10, 11, 6, 7, -1, -1, -1, -1, -1, -1, -1, -1};
 
-         if (     (livemaskBElo & 0xF00F00) == 0) map_ptr = map_p1;
-         else if ((livemaskBElo & 0x0F00F0) == 0) map_ptr = map_p2;
+         if (     (livemaskBE64 & 0xF00F00) == 0) map_ptr = map_p1;
+         else if ((livemaskBE64 & 0x0F00F0) == 0) map_ptr = map_p2;
       }
       break;
    case 3:
@@ -2659,13 +2857,13 @@ extern void distorted_2x2s_move(
       if (ss->kind != s3x4) fail("Must have 3x4 setup for this concept.");
 
       {
-         static const veryshort map_b1[16] =
+         static const int8_t map_b1[16] =
          {1, 3, 4, 11, 10, 5, 7, 9, 1, 3, 5, 10, 11, 4, 7, 9};
-         static const veryshort map_b2[16] =
+         static const int8_t map_b2[16] =
          {0, 2, 5, 10, 11, 4, 6, 8, 0, 2, 4, 11, 10, 5, 6, 8};
 
-         if (     (livemaskBElo & 0xCC0CC0) == 0) map_ptr = map_b1;
-         else if ((livemaskBElo & 0x330330) == 0) map_ptr = map_b2;
+         if (     (livemaskBE64 & 0xCC0CC0ULL) == 0ULL) map_ptr = map_b1;
+         else if ((livemaskBE64 & 0x330330ULL) == 0ULL) map_ptr = map_b2;
       }
       break;
    case 4:
@@ -2674,13 +2872,13 @@ extern void distorted_2x2s_move(
       if (ss->kind != s_qtag) fail("Must have quarter-line setup for this concept.");
 
       if (table_offset == 0 ||
-          (livemaskBElo == 0xFFFF && (directionsBE & 0xF0F0) == 0xA000)) {
-         if (     ((directionsBE ^ 0x0A00) & 0x0F0F) == 0) map_ptr = mapk1;
-         else if (((directionsBE ^ 0x000A) & 0x0F0F) == 0) map_ptr = mapk2;
+          (livemaskBE64 == 0xFFFFULL && (directionsBE64 & 0xF0F0ULL) == 0xA000ULL)) {
+         if (     ((directionsBE64 ^ 0x0A00ULL) & 0x0F0FULL) == 0ULL) map_ptr = mapk1;
+         else if (((directionsBE64 ^ 0x000AULL) & 0x0F0FULL) == 0ULL) map_ptr = mapk2;
       }
-      else if (livemaskBElo == 0xFFFF && (directionsBE & 0xF0F0) == 0x00A0) {
-         if (     ((directionsBE ^ 0x0A00) & 0x0F0F) == 0) map_ptr = mapk3;
-         else if (((directionsBE ^ 0x000A) & 0x0F0F) == 0) map_ptr = mapk4;
+      else if (livemaskBE64 == 0xFFFFULL && (directionsBE64 & 0xF0F0ULL) == 0x00A0ULL) {
+         if (     ((directionsBE64 ^ 0x0A00ULL) & 0x0F0FULL) == 0ULL) map_ptr = mapk3;
+         else if (((directionsBE64 ^ 0x000AULL) & 0x0F0FULL) == 0ULL) map_ptr = mapk4;
       }
       break;
    case 5:
@@ -2688,7 +2886,7 @@ extern void distorted_2x2s_move(
 
       {
          setup rotss = *ss;
-         veryshort the_map[16];
+         int8_t the_map[16];
 
          int rows = 1;
          int columns = 1;
@@ -2844,8 +3042,13 @@ extern void distorted_2x2s_move(
          result->clear_people();
          // The zero slot has other stuff.
          scatter(result, &stemp, map_z_restorer+1, arity*4-1, 0);
+         return;
       }
-      else if (result->result_flags.misc & RESULTFLAG__COMPRESSED_FROM_2X3)
+      if (result->result_flags.misc & RESULTFLAG__COMPRESSED_FROM_2X3)
+         fail("Can't do this call in this setup.");
+   }
+   else if (arity == 2 && result->kind == s1x8) {
+      if (result->result_flags.misc & RESULTFLAG__COMPRESSED_FROM_2X3)
          fail("Can't do this call in this setup.");
    }
 
@@ -2857,7 +3060,7 @@ extern void distorted_move(
    setup *ss,
    parse_block *parseptr,
    disttest_kind disttest,
-   uint32 keys,
+   uint32_t keys,
    setup *result) THROW_DECL
 {
    ss->clear_all_overcasts();
@@ -2881,14 +3084,14 @@ extern void distorted_move(
    // and global_livemask, but may not look at anyone's facing direction other
    // than through global_tbonetest.
 
-   static const uint32 offs_boxes_map_code_table[4] = {
+   static const uint32_t offs_boxes_map_code_table[4] = {
       ~0U, MAPCODE(s2x4,2,MPKIND__OFFS_L_HALF,0), MAPCODE(s2x4,2,MPKIND__OFFS_R_HALF,0), ~0U};
-   static const uint32 offs_triple_clw_map_code_table[4] = {
+   static const uint32_t offs_triple_clw_map_code_table[4] = {
       ~0U, MAPCODE(s1x4,3,MPKIND__OVLOFS_L_HALF,0), MAPCODE(s1x4,3,MPKIND__OVLOFS_R_HALF,0), ~0U};
-   static const uint32 offs_triple_boxes_map_code_table[4] = {
+   static const uint32_t offs_triple_boxes_map_code_table[4] = {
       ~0U, MAPCODE(s2x2,3,MPKIND__OVLOFS_L_HALF,1), MAPCODE(s2x2,3,MPKIND__OVLOFS_R_HALF,1), ~0U};
 
-   veryshort the_map[8];
+   int8_t the_map[8];
    const parse_block *next_parseptr;
    final_and_herit_flags junk_concepts;
    int rot, rotz;
@@ -2896,10 +3099,10 @@ extern void distorted_move(
    setup a1;
    setup res1;
    mpkind mk;
-   uint32 map_code = ~0U;
+   uint32_t map_code = ~0U;
    int rotate_back = 0;
-   uint32 livemask = global_livemask;
-   uint32 linesp = keys & 7;
+   uint32_t livemask = global_livemask;
+   uint32_t linesp = keys & 7;
    distort_key distkey = (distort_key) (keys / 16);
    bool zlines = true;
    concept_kind kk;
@@ -2907,30 +3110,50 @@ extern void distorted_move(
 
    switch (distkey) {
    case DISTORTKEY_DIST_CLW:
-   case DISTORTKEY_OFFSCLW_SINGULAR:
+   case DISTORTKEY_OFFSCLWBI_SINGULAR:
       // Look for singular "offset C/L/W" in a 2x4.
 
       if (disttest == disttest_offset &&
-          ss->kind == s2x4 &&
-          distkey == DISTORTKEY_OFFSCLW_SINGULAR) {
-         if (linesp & 1) {
-            if (global_tbonetest & 1) fail("There is no offset line here.");
-         }
-         else {
-            if (global_tbonetest & 010) fail("There is no offset column here.");
-         }
+          distkey == DISTORTKEY_OFFSCLWBI_SINGULAR) {
+         if (ss->kind == s2x4) {
+            if (linesp & 1) {
+               if (global_tbonetest & 1) fail("There is no offset line here.");
+            }
+            else if (linesp == 0) {
+               if (global_tbonetest & 010) fail("There is no offset column here.");
+            }
 
-         if (livemask == 0x33)
-            map_code = MAPCODE(s1x4,1,MPKIND__OFFS_R_FULL,0);
-         else if (livemask == 0xCC)
-            map_code = MAPCODE(s1x4,1,MPKIND__OFFS_L_FULL,0);
-         else fail("Can't find offset C/L/W.");
+            if (livemask == 0x33) {
+               if (linesp == 4)
+                  map_code = MAPCODE(s2x2,1,MPKIND__OFFS_L_FULL,1);
+               else
+                  map_code = MAPCODE(s1x4,1,MPKIND__OFFS_R_FULL,0);
+            }
+            else if (livemask == 0xCC) {
+               if (linesp == 4)
+                  map_code = MAPCODE(s2x2,1,MPKIND__OFFS_R_FULL,1);
+               else
+                  map_code = MAPCODE(s1x4,1,MPKIND__OFFS_L_FULL,0);
+            }
+            else fail("Can't find offset C/L/W/B.");
 
-         goto do_divided_call;
+            goto do_divided_call;
+         }
+         else if (ss->kind == s2x3) {
+            parse_block foo;
+            // This should match the "Z" line in concept_descriptor_table in sdctable.cpp.
+            concept_descriptor bar = {"Z", concept_misc_distort, CONCPARSE_PARSE_DIRECT, l_c2,
+                                      UC_none, 0, 0, 0, 16+1};
+
+            foo.concept = &bar;
+
+            distorted_2x2s_move(ss, &foo, result);
+               return;
+         }
       }
 
       // Otherwise, it had better be plural.
-      if (distkey == DISTORTKEY_OFFSCLW_SINGULAR)
+      if (distkey == DISTORTKEY_OFFSCLWBI_SINGULAR)
          fail("Use plural offset C/L/W's.");
 
       k = s2x4;
@@ -3120,13 +3343,28 @@ extern void distorted_move(
       ss->cmd.cmd_misc_flags |= parseptr->concept->arg3;
 
       switch (ss->kind) {
+         uint32_t dirs;
+         uint32_t lives;
       case s3dmd:
          if (global_livemask == 06363) { map_code = spcmap_dqtag1; }
          else if (global_livemask == 06666) { map_code = spcmap_dqtag2; }
          break;
       case s4x4:
+         big_endian_get_directions32(ss, dirs, lives);
+         dirs &= 0x55555555;
+
+         // In order to pick out the diamond spots unambigously from block spots
+         // in a 4x4, the points must be facing in appropriate directions, and
+         // the concept must be "DISTORTED DIAMONDS", so that the user will demand
+         // such orientation.
          if (global_livemask == 0x6C6C) { map_code = spcmap_dqtag3; }
          else if (global_livemask == 0xE2E2) { map_code = spcmap_dqtag4; }
+         else if (global_livemask == 0x2D2D && dirs == 0x01100110 &&
+                  parseptr->concept->arg3 == CMD_MISC__VERIFY_DMD_LIKE)
+         { map_code = spcmap_dqtag7; }
+         else if (global_livemask == 0x2D2D && dirs == 0x40104010 &&
+                  parseptr->concept->arg3 == CMD_MISC__VERIFY_DMD_LIKE)
+         { map_code = spcmap_dqtag8; }
          else {
             rotate_back = 1;   // It must be rotated.
             ss->rotation++;
@@ -3134,6 +3372,12 @@ extern void distorted_move(
 
             if (global_livemask == 0xC6C6) { map_code = spcmap_dqtag3; }
             else if (global_livemask == 0x2E2E) { map_code = spcmap_dqtag4; }
+            else if (global_livemask == 0xD2D2 && dirs == 0x00440044 &&
+                     parseptr->concept->arg3 == CMD_MISC__VERIFY_DMD_LIKE)
+            { map_code = spcmap_dqtag7; }
+            else if (global_livemask == 0xD2D2 && dirs == 0x00050005 &&
+                     parseptr->concept->arg3 == CMD_MISC__VERIFY_DMD_LIKE)
+            { map_code = spcmap_dqtag8; }
          }
          break;
       case s4x6:
@@ -3143,7 +3387,7 @@ extern void distorted_move(
       }
 
       if (map_code == ~0U)
-         fail("Must have 4x4 or triple diamond setup for this concept.");
+         fail("Must have recognizable diamonds or 1/4 tags for this concept.");
 
       goto do_divided_nocheck;
 
@@ -3160,8 +3404,8 @@ extern void distorted_move(
 
                const map::map_thing *map_ptr = map::get_map_from_code(gptr->map_code);
 
-               uint32 tberrtest = global_tbonetest;
-               uint32 mytbone = 0;
+               uint32_t tberrtest = global_tbonetest;
+               uint32_t mytbone = 0;
                for (int k=0 ; k < 3*map_ptr->arity ; k++)
                   mytbone |= ss->people[map_ptr->maps[k]].id1;
 
@@ -3199,7 +3443,7 @@ extern void distorted_move(
 
          // Now we have to put back the inactives.  Note also that they can't roll.
 
-         const veryshort *inactivemap = goodmap->inactives;
+         const int8_t *inactivemap = goodmap->inactives;
 
          for (int i=0 ; ; i++) {
             int j = inactivemap[i];
@@ -3248,6 +3492,21 @@ extern void distorted_move(
 
       map_code = offs_boxes_map_code_table[map_table_key];
       if (map_code == ~0U) fail("Can't find offset 2x4's.");
+
+      goto do_divided_call;
+   case DISTORTKEY_OFFS_PARALLELOGRAM:
+      if (ss->kind == s3x6) {
+         switch (livemask) {
+         case 0x391C8: map_code = MAPCODE(s2x4,1,MPKIND__OFFSPG_L1,1); break;
+         case 0x389C4: map_code = MAPCODE(s2x4,1,MPKIND__OFFSPG_R1,1); break;
+         case 0x20F07: map_code = MAPCODE(s2x4,1,MPKIND__OFFSPG_L2,1); break;
+         case 0x27138: map_code = MAPCODE(s2x4,1,MPKIND__OFFSPG_R2,1); break;
+         }
+      }
+
+      if (map_code == ~0U) fail("Can't find offset parallelogram.");
+
+      warn(warn_controversial);    // Is this even a concept?
 
       goto do_divided_call;
    case DISTORTKEY_OFFS_QTAG:
@@ -3478,8 +3737,8 @@ extern void triple_twin_move(
    setup *result) THROW_DECL
 {
    ss->clear_all_overcasts();
-   uint32 tbonetest = global_tbonetest;
-   uint32 mapcode;
+   uint32_t tbonetest = global_tbonetest;
+   uint32_t mapcode;
    phantest_kind phan = (phantest_kind) parseptr->concept->arg4;
 
    // Arg1 = 0/1/3 for C/L/W, usual coding.
@@ -3627,21 +3886,29 @@ extern void do_concept_rigger(
    setup *result) THROW_DECL
 {
    ss->clear_all_overcasts();
-   /* First 8 are for rigger; second 8 are for 1/4-tag, next 16 are for crosswave. */
-   /* A huge coincidence is at work here -- the first two parts of the maps are the same. */
-   static const veryshort map1[38] = {
-         0, 1, 3, 2, 4, 5, 7, 6, 0, 1, 3, 2, 4, 5, 7, 6,
-         13, 15, 1, 3, 5, 7, 9, 11, 14, 0, 2, 4, 6, 8, 10, 12,
-         4, 5, 0, 1, 2, 3};        // For 2x3.
-   static const veryshort map2[38] = {
-         2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1,
-         0, 2, 4, 6, 8, 10, 12, 14, 1, 7, 5, 11, 9, 15, 13, 3,
-         5, 0, 1, 2, 3, 4};        // For 2x3.
+
+   // First 8 are for rigger; second 8 are for 1/4-tag; next 16 are for crosswave;
+   // next 8 are for spindle; last 6 are for short6.
+   //
+   // A huge coincidence is at work here -- the first two parts of the maps are the same.
+
+   static const int8_t map1[46] = {
+      0, 1, 3, 2, 4, 5, 7, 6,   // For rigger setup, going to 2x4.
+      0, 1, 3, 2, 4, 5, 7, 6,   // For qtag setup, going to 2x4.
+      13, 15, 1, 3, 5, 7, 9, 11, 14, 0, 2, 4, 6, 8, 10, 12,   // For xwv setup, going to c1phan.
+      0, 1, 2, 3, 4, 5, 6, 7,   // For spindle setup, going to 2x4, 25% offset.
+      4, 5, 0, 1, 2, 3};        // For short6 setup, going to 2x3.
+   static const int8_t map2[46] = {
+      2, 3, 4, 5, 6, 7, 0, 1,
+      2, 3, 4, 5, 6, 7, 0, 1,
+      0, 2, 4, 6, 8, 10, 12, 14, 1, 7, 5, 11, 9, 15, 13, 3,
+      1, 2, 3, 4, 5, 6, 7, 0,
+      5, 0, 1, 2, 3, 4};        // For 2x3.
 
    int rstuff, indicator, base;
    setup a1;
    setup res1;
-   const veryshort *map_ptr;
+   const int8_t *map_ptr;
    setup_kind startkind;
    int rot = 0;
 
@@ -3665,8 +3932,19 @@ extern void do_concept_rigger(
             ((ss->people[2].id1 ^ ss->people[6].id1) & d_mask) != 2)
          fail("'Rigger' people are not facing consistently!");
 
-      indicator = (ss->people[6].id1 ^ rstuff) & 3;
+      indicator = (ss->people[6].id1 ^ rstuff);
       base = 0;
+      startkind = s2x4;
+   }
+   else if (ss->kind == s_spindle) {
+      if (rstuff >= 16) fail("This variety of 'rigger' not permitted in this setup.");
+
+      if (!(ss->people[3].id1 & BIT_PERSON) ||
+            ((ss->people[3].id1 ^ ss->people[7].id1) & d_mask) != 2)
+         fail("'Rigger' people are not facing consistently!");
+
+      indicator = (ss->people[7].id1 ^ rstuff);
+      base = 32;
       startkind = s2x4;
    }
    else if (ss->kind == s_qtag) {
@@ -3678,7 +3956,7 @@ extern void do_concept_rigger(
             ((ss->people[0].id1 ^ ss->people[5].id1) & d_mask) != 2)
          fail("'Rigger' people are not facing consistently!");
 
-      indicator = (ss->people[0].id1 ^ rstuff ^ 3) & 3;
+      indicator = (ss->people[0].id1 ^ rstuff ^ 3);
       base = 8;
       startkind = s2x4;
    }
@@ -3689,7 +3967,7 @@ extern void do_concept_rigger(
             ((ss->people[4].id1 ^ ss->people[0].id1) & d_mask) != 2)
          fail("'Rigger' people are not facing consistently!");
 
-      indicator = (ss->people[0].id1 ^ rstuff) & 3;
+      indicator = (ss->people[0].id1 ^ rstuff);
       base = 16;
       startkind = s_c1phan;
    }
@@ -3700,13 +3978,15 @@ extern void do_concept_rigger(
             ((ss->people[1].id1 ^ ss->people[4].id1) & d_mask) != 2)
          fail("'Rigger' people are not facing consistently!");
 
-      indicator = ((ss->people[4].id1 + 1) ^ rstuff) & 3;
-      base = 32;
+      indicator = ((ss->people[4].id1 + 1) ^ rstuff);
+      base = 40;
       rot = 1;
       startkind = s2x3;
    }
    else
       fail("Can't do this concept in this setup.");
+
+   indicator &= 3;
 
    if (indicator & 1)
       fail("'Rigger' direction is inappropriate.");
@@ -3723,12 +4003,14 @@ extern void do_concept_rigger(
    a1.cmd.cmd_assume.assumption = cr_none;
    move(&a1, false, &res1);
 
-   if ((res1.rotation) & 1) base ^= 8;    /* Won't happen in C1 phantom. */
+   // Swap tables for rigger and qtag.
+   // Won't happen in C1 phantom, and will raise error if started in short6 or spindle.
+   if (((res1.rotation) & 1) && base < 16) base ^= 8;
 
    if (startkind == s_c1phan) {
       int i;
-      uint32 evens = 0;
-      uint32 odds = 0;
+      uint32_t evens = 0;
+      uint32_t odds = 0;
 
       for (i=0; i<16; i+=2) {
          evens |= res1.people[i].id1;
@@ -3767,7 +4049,13 @@ extern void do_concept_rigger(
    }
    else {
       if (res1.kind != s2x4) fail("Can't do this.");
-      result->kind = base ? s_qtag : s_rigger;
+      if (ss->kind == s_spindle) {
+         if ((res1.rotation) & 1) fail("Can't do this.");
+         result->kind = s_spindle;
+      }
+      else {
+         result->kind = base ? s_qtag : s_rigger;
+      }
    }
 
    gather(result, &res1, &map_ptr[base], attr::klimit(res1.kind), rot*011);
@@ -3827,7 +4115,7 @@ void do_concept_wing(
       selector_mysticbeaus,
       selector_all};
 
-   selector_kind saved_selector = current_options.who;
+   who_list saved_selector = current_options.who;
 
    // We scan twice -- the first time we put the normal and winged people
    // into the setup in which they belong.  The second time, we try to
@@ -3837,15 +4125,15 @@ void do_concept_wing(
 
    for (bool pass2 = false ; ; pass2 = true) {
       for (i=0; i<=sizem1; i++) {
-         uint32 this_id1 = ss->people[i].id1;
+         uint32_t this_id1 = ss->people[i].id1;
          if (this_id1) {
             if (!pass2) all_people++;
-            current_options.who = wing_sel_table[rstuff];
+            current_options.who.who[0] = wing_sel_table[rstuff];
             if (selectp(ss, i)) {
                int x = coordptr->xca[i];
                int y = coordptr->yca[i];
 
-               current_options.who = selector_belles;
+               current_options.who.who[0] = selector_belles;
                int shift = selectp(ss, i) ? -4 : 4;
 
                switch (this_id1 & 3) {
@@ -3945,8 +4233,8 @@ void do_concept_wing(
          fail("Can't do this.");
 
       for (i=0; i<=resm1; i++) {
-         uint32 r0_id1 = the_results[0].people[i].id1;
-         uint32 r1_id1 = the_results[1].people[i].id1;
+         uint32_t r0_id1 = the_results[0].people[i].id1;
+         uint32_t r1_id1 = the_results[1].people[i].id1;
          if (r0_id1 && r1_id1) {
             if ((r0_id1 ^ r1_id1) & (BIT_PERSON | XPID_MASK | 0x3F))
                fail("Can't do this.");
@@ -3980,10 +4268,10 @@ struct common_spot_map {
    int rot;                  // Whether to rotate partial setup CW.
    int uncommon[12];
    int common0[12];
-   uint32 dir0[12];
+   uint32_t dir0[12];
    int common1[12];
-   uint32 dir1[12];
-   uint32 people_accounted_for;
+   uint32_t dir1[12];
+   uint32_t people_accounted_for;
 };
 
 common_spot_map cmaps[] = {
@@ -4335,7 +4623,7 @@ extern void initialize_commonspot_tables()
 {
    for (common_spot_map *map_ptr = cmaps ; map_ptr->orig_kind != nothing ; map_ptr++) {
       int i;
-      uint32 used_mask = 0;
+      uint32_t used_mask = 0;
 
       for (i=0; i<=attr::klimit(map_ptr->partial_kind); i++) {
          int t = map_ptr->common0[i];
@@ -4389,9 +4677,9 @@ extern void common_spot_move(
       configuration::set_multiple_warnings(saved_warnings);
    }
 
-   uint32 livemask = little_endian_live_mask(ss);
+   uint32_t livemask = little_endian_live_mask(ss);
 
-   uint32 alternate_map_check = 0;
+   uint32_t alternate_map_check = 0;
 
  try_alternate_maps:
 
@@ -4513,7 +4801,7 @@ extern void common_spot_move(
          // Remove the uncommon people from the common results, while checking that
          // they wound up in the same position in all 3 results.
 
-         static veryshort partner_tab_4x4[16] = {
+         static int8_t partner_tab_4x4[16] = {
             14, 3, 7, 1, 5, 4, 8, 2, 6, 11, 15, 9, 13, 12, 0, 10};
 
          for (i=0; i<=attr::klimit(map_ptr->partial_kind); i++) {
@@ -4526,7 +4814,7 @@ extern void common_spot_move(
                      int spot_to_clear = k;
                      if ((the_results[0].people[k].id1 ^ the_results[1].people[k].id1) |
                          ((the_results[0].people[k].id2 ^ the_results[1].people[k].id2) &
-                          !ID2_BITS_NOT_INTRINSIC)) {
+                          ~ID2_BITS_NOT_INTRINSIC)) {
                         // They didn't match.  Maybe some people had collided in one setup
                         // but not the other.  Find where they might have gone.
                         if (the_results[0].kind == s4x4) {
@@ -4536,7 +4824,7 @@ extern void common_spot_move(
 
                            if ((the_results[0].people[k].id1 ^ the_results[1].people[j].id1) |
                                ((the_results[0].people[k].id2 ^ the_results[1].people[j].id2) &
-                                !ID2_BITS_NOT_INTRINSIC)) {
+                                ~ID2_BITS_NOT_INTRINSIC)) {
                               fail("People moved inconsistently during common-spot call.");
                            }
 
@@ -4600,21 +4888,16 @@ extern void common_spot_move(
 }
 
 
-static void reassemble_triangles(const veryshort *mapnums,
-                                 uint32 ri,
-                                 uint32 r,
+static void reassemble_triangles(const int8_t *mapnums,
+                                 uint32_t ri,
+                                 uint32_t r,
                                  int swap_res,
                                  const setup res[2],
-                                 const setup idle,
                                  setup *result) THROW_DECL
 {
-   // Restore the two people who don't move.
-   if (mapnums[6] >= 0) copy_rot(result, mapnums[6], &idle, 0, ri);
-   if (mapnums[7] >= 0) copy_rot(result, mapnums[7], &idle, 1, ri);
-
-   // Copy the triangles.
    scatter(result, &res[swap_res], mapnums, 2, r^022);
-   scatter(result, &res[swap_res^1], &mapnums[3], 2, r);
+   if (result->kind != sdmd)
+      scatter(result, &res[swap_res^1], &mapnums[3], 2, r);
 }
 
 
@@ -4625,11 +4908,10 @@ void tglmap::do_glorious_triangles(
    setup *result) THROW_DECL
 {
    int i, r, startingrot;
-   uint32 rotstate, pointclip;
+   uint32_t rotstate, pointclip;
    setup a1, a2;
-   setup idle;
    setup res[2];
-   const veryshort *mapnums;
+   const int8_t *mapnums;
    const map *map_ptr = ptrtable[map_ptr_table[(indicator >> 6) & 3]];
    bool specttgls = (map_ptr->randombits & 4) != 0;
 
@@ -4649,35 +4931,41 @@ void tglmap::do_glorious_triangles(
       mapnums = map_ptr->mapbd1;
       startingrot = 3;
    }
-   else {   // s_qtag, s_ptpd, or s_323.
+   else if (ss->kind == s2x4) {
+      mapnums = map_ptr->map241;
+      startingrot = map_ptr->randombits;
+   }
+   else {   // s_qtag, s_ptpd, s_323, or single diamond.
       mapnums = map_ptr->mapqt1;
       startingrot = (map_ptr->randombits & 16) ? 1 : 0;
    }
 
    r = ((-startingrot) & 3) * 011;
    gather(&a1, ss, mapnums, 2, r);
-   gather(&a2, ss, &mapnums[3], 2, r^022);
-
-   // Save the two people who don't move.
-   if (mapnums[6] >= 0) copy_person(&idle, 0, ss, mapnums[6]);
-   if (mapnums[7] >= 0) copy_person(&idle, 1, ss, mapnums[7]);
-   idle.suppress_roll(0);
-   idle.suppress_roll(1);
-
    a1.cmd = ss->cmd;
-   a2.cmd = ss->cmd;
    a1.kind = s_trngl;
-   a2.kind = s_trngl;
    a1.rotation = 0;
-   a2.rotation = 2;
    a1.eighth_rotation = 0;
-   a2.eighth_rotation = 0;
    a1.cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
-   a2.cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
    move(&a1, false, &res[0]);
-   move(&a2, false, &res[1]);
 
-   fix_n_results(2, -1, res, rotstate, pointclip, 0);
+   if (!(map_ptr->randombits & 32)) {
+      gather(&a2, ss, &mapnums[3], 2, r^022);
+      a2.cmd = ss->cmd;
+      a2.kind = s_trngl;
+      a2.rotation = 2;
+      a2.eighth_rotation = 0;
+      a2.cmd.cmd_misc_flags |= CMD_MISC__DISTORTED;
+      move(&a2, false, &res[1]);
+      fix_n_results(2, -1, res, rotstate, pointclip, 0);
+      result->result_flags = get_multiple_parallel_resultflags(res, 2);
+      res[1].rotation += 2;
+      canonicalize_rotation(&res[1]);
+   }
+   else {
+      fix_n_results(1, -1, res, rotstate, pointclip, 0);
+      result->result_flags = get_multiple_parallel_resultflags(res, 1);
+   }
 
    if (res[0].kind == nothing) {
       result->kind = nothing;
@@ -4685,18 +4973,14 @@ void tglmap::do_glorious_triangles(
       return;
    }
 
-   /* The low digit of rotstate (should have just low 2 bits on) tells
-      what possible rotation states could exist with all setups in
-      same parity.  The next digit tells what possible states of z0
-      exist with alternating parity.  The highest bit deals with triangles
-      rotating by 90 degrees from one setup to the next, or something
-      like that. */
+   // The low digit of rotstate (should have just low 2 bits on) tells
+   // what possible rotation states could exist with all setups in
+   // same parity.  The next digit tells what possible states of z0
+   // exist with alternating parity.  The highest bit deals with triangles
+   // rotating by 90 degrees from one setup to the next, or something
+   // like that.
 
    if (!(rotstate & 0xF03)) fail("Sorry, can't do this orientation changer.");
-
-   result->result_flags = get_multiple_parallel_resultflags(res, 2);
-   res[1].rotation += 2;
-   canonicalize_rotation(&res[1]);
 
    // Check for non-shape-or-orientation-changing result.
 
@@ -4704,9 +4988,12 @@ void tglmap::do_glorious_triangles(
       result->kind = ss->kind;
       result->rotation = 0;
       result->eighth_rotation = 0;
-      reassemble_triangles(mapnums, 0, (startingrot^2) * 011, 0, res, idle, result);
+      reassemble_triangles(mapnums, 0, (startingrot^2) * 011, 0, res, result);
       return;
    }
+
+   if (ss->kind == s2x4)
+      fail("Can't do this.");   // Don't apologize; it's ridiculous.
 
    res[0].rotation += startingrot;
    res[1].rotation += startingrot;
@@ -4732,7 +5019,7 @@ void tglmap::do_glorious_triangles(
       if (startingrot == 1) fail("Sorry, can't do this.");
 
       if (res[0].rotation == 0 && ss->kind != s_bone6) {
-         uint32 r = 022;
+         uint32_t r = 022;
          if (result->kind == nothing) goto shapechangeerror;
 
          if (!specttgls && ss->kind != s_short6)
@@ -4743,16 +5030,13 @@ void tglmap::do_glorious_triangles(
             r = 011;
          }
 
-         reassemble_triangles(map_ptr->mapqt1, 0, r, 0, res, idle, result);
+         reassemble_triangles(map_ptr->mapqt1, 0, r, 0, res, result);
       }
       else if (res[0].rotation == 2 && ss->kind != s_bone6) {
          if (map_ptr->nointlkshapechange)
             goto shapechangeerror;
 
          result->kind = s_c1phan;
-         // Restore the two people who don't move.
-         copy_rot(result, map_ptr->mapcp1[7], &idle, 0, r);
-         copy_rot(result, map_ptr->mapcp1[6], &idle, 1, r);
          scatter(result, &res[0], &map_ptr->mapcp1[3], 2, 0);
          scatter(result, &res[1], map_ptr->mapcp1, 2, 022);
       }
@@ -4763,8 +5047,8 @@ void tglmap::do_glorious_triangles(
          map_ptr = ptrtable[map_ptr->otherkey];
 
          if (specttgls) {
-            uint32 ri = 0;
-            uint32 r = 0;
+            uint32_t ri = 0;
+            uint32_t r = 0;
 
             if (!((map_ptr->randombits ^ res[0].rotation) & 2)) {
                if (map_ptr->randombits & 8) {
@@ -4777,7 +5061,7 @@ void tglmap::do_glorious_triangles(
                   result->rotation += 3;
                }
 
-               reassemble_triangles(map_ptr->map241, ri, 011, 1, res, idle, result);
+               reassemble_triangles(map_ptr->map241, ri, 011, 1, res, result);
             }
             else {
                if (map_ptr->randombits & 8) {
@@ -4790,7 +5074,7 @@ void tglmap::do_glorious_triangles(
                   result->kind = s_short6;
                }
 
-               reassemble_triangles(map_ptr->map261, ri, r, 1, res, idle, result);
+               reassemble_triangles(map_ptr->map261, ri, r, 1, res, result);
             }
          }
          else if (ss->kind == s_short6) {
@@ -4799,27 +5083,23 @@ void tglmap::do_glorious_triangles(
 
             result->kind = map_ptr->kind;
             result->rotation += 2;
-            reassemble_triangles(map_ptr->mapqt1, 0, 022, 1, res, idle, result);
+            reassemble_triangles(map_ptr->mapqt1, 0, 022, 1, res, result);
          }
          else if (ss->kind == s_bone6) {
             if (res[0].rotation & 1) {
-               reassemble_triangles(map_ptr->map261, 0, 0, 1, res, idle, result);
+               reassemble_triangles(map_ptr->map261, 0, 0, 1, res, result);
             }
             else {
                if (!(res[0].rotation & 2))
                   map_ptr = ptrtable[map_ptr->otherkey];
                result->kind = map_ptr->kind;
-               reassemble_triangles(map_ptr->mapqt1, 0, 022, 0, res, idle, result);
+               reassemble_triangles(map_ptr->mapqt1, 0, 022, 0, res, result);
             }
          }
          else if (result->kind == s_c1phan) {
-            reassemble_triangles(map_ptr->mapcp1, r, 0, 1, res, idle, result);
+            reassemble_triangles(map_ptr->mapcp1, r, 0, 1, res, result);
          }
          else {
-            // Restore the two people who don't move.
-            copy_rot(result, map_ptr->mapqt1[7], &idle, 0, r);
-            copy_rot(result, map_ptr->mapqt1[6], &idle, 1, r);
-
             // Copy the triangles.
             scatter(result, &res[0], map_ptr->mapqt1, 2, 0);
             scatter(result, &res[1], &map_ptr->mapqt1[3], 2, 022);
@@ -4827,12 +5107,11 @@ void tglmap::do_glorious_triangles(
       }
    }
    else if (res[0].kind == s1x3) {
-
       if (result->kind == nothing || map_ptr->nointlkshapechange)
          goto shapechangeerror;
 
       if (res[0].rotation == 0) {
-         if (ss->kind == sdeepbigqtg || ss->kind == s_323)
+         if (ss->kind == sdeepbigqtg)
             fail("Sorry, can't do this.");
 
          if (startingrot == 1) {
@@ -4845,31 +5124,34 @@ void tglmap::do_glorious_triangles(
             result->kind = map_ptr->kind1x3;
          }
 
-         reassemble_triangles(mapnums, 0, 022, 0, res, idle, result);
+         reassemble_triangles(mapnums, 0, 022, 0, res, result);
       }
       else {
          if (startingrot == 1)
             fail("Can't do this shape-changer.");
 
-         map_ptr = ptrtable[map_ptr->otherkey];
-
-         result->kind = map_ptr->kind1x3;
-
-         if (map_ptr->randombits & 1) {    // What a crock!
-            copy_rot(result, map_ptr->map241[6], &idle, 0, r);
-            copy_rot(result, map_ptr->map241[7], &idle, 1, r);
-
-            for (i=0; i<3; i++) {
-               copy_person(result, map_ptr->map241[i+3], &res[0], 2-i);
-               copy_rot(result, map_ptr->map241[i], &res[1], 2-i, 022);
-            }
+         if (map_ptr->kind == s_323) {
+            mapnums = map_ptr->map261;
+            result->kind = s2x5;
+            warn(warn__check_2x5);
+            reassemble_triangles(mapnums, 0, 022, 0, res, result);
          }
          else {
-            mapnums = map_ptr->map241;
-            copy_rot(result, mapnums[7], &idle, 0, r);
-            copy_rot(result, mapnums[6], &idle, 1, r);
-            scatter(result, &res[0], mapnums, 2, 0);
-            scatter(result, &res[1], &mapnums[3], 2, 022);
+            map_ptr = ptrtable[map_ptr->otherkey];
+
+            result->kind = map_ptr->kind1x3;
+
+            if (map_ptr->randombits & 1) {    // What a crock!
+               for (i=0; i<3; i++) {
+                  copy_person(result, map_ptr->map241[i+3], &res[0], 2-i);
+                  copy_rot(result, map_ptr->map241[i], &res[1], 2-i, 022);
+               }
+            }
+            else {
+               mapnums = map_ptr->map241;
+               scatter(result, &res[0], mapnums, 2, 0);
+               scatter(result, &res[1], &mapnums[3], 2, 022);
+            }
          }
       }
    }
@@ -4896,496 +5178,56 @@ void tglmap::do_glorious_triangles(
 }
 
 
-
-
-// This procedure does wave-base, tandem-base, and so-and-so-base.
-static void wv_tand_base_move(
-   setup *s,
-   int indicator,
-   setup *result) THROW_DECL
-{
-   uint32 tbonetest;
-   int t;
-   calldef_schema schema;
-   const tglmap::tglmapkey *map_key_table;
-
-   switch (s->kind) {
-   case s_bone:
-   case s_rigger:
-      if ((indicator & 076) == 20) {
-         if (global_selectmask != (global_livemask & 0x33))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[0].id1 | s->people[1].id1 | s->people[4].id1 | s->people[5].id1;
-
-         if ((indicator & 076) != 6 || (tbonetest & 011) == 011 || !((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      if (s->kind == s_bone) {
-         if (indicator & 0100) fail("Can't do this concept in this setup.");
-         concentric_move(s, (setup_command *) 0, &s->cmd, schema_concentric_2_6,
-                         0, 0, true, false, ~0U, result);
-         return;
-      }
-      else {
-         // We now know that the desired triangles are the "inside" ones.
-
-         if (indicator & 0100) {
-            tglmap::do_glorious_triangles(s, tglmap::rgtglmap1, indicator, result);
-            reinstate_rotation(s, result);
-            return;
-         }
-         else
-            schema = schema_concentric_6_2;
-      }
-
-      break;
-   case s_bone6:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 033))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[0].id1 | s->people[1].id1 | s->people[3].id1 | s->people[4].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || !((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      tglmap::do_glorious_triangles(s, tglmap::b6tglmap1, indicator, result);
-      reinstate_rotation(s, result);
-      return;
-   case s_short6:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 055))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[0].id1 | s->people[2].id1 | s->people[3].id1 | s->people[5].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      tglmap::do_glorious_triangles(s, tglmap::s6tglmap1, indicator, result);
-      reinstate_rotation(s, result);
-      return;
-   case s_galaxy:
-      if ((indicator & 076) != 6)   // Only "tandem-base" and "wave-base" are allowed here.
-         goto losing;
-
-      tbonetest = s->people[1].id1 | s->people[3].id1 | s->people[5].id1 | s->people[7].id1;
-
-      if ((tbonetest & 011) == 011)
-         goto losing;
-      else if ((indicator ^ tbonetest) & 1)
-         schema = (indicator & 0100) ? schema_intlk_lateral_6 : schema_lateral_6;
-      else
-         schema = (indicator & 0100) ? schema_intlk_vertical_6 : schema_vertical_6;
-
-      // For galaxies, the schema is now in terms of the absolute orientation.
-      // We know that the original setup rotation was canonicalized.
-      break;
-   case s_hrglass:
-      if ((indicator & 076) != 6)   // Only "tandem-base" and "wave-base" are allowed here.
-         goto losing;
-
-      tbonetest = s->people[0].id1 | s->people[1].id1 | s->people[4].id1 | s->people[5].id1;
-
-      if ((tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-         goto losing;
-
-      schema = (indicator & 0100) ? schema_intlk_vertical_6 : schema_vertical_6;
-      break;
-   case s_ntrglcw:
-   case s_nptrglcw:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 0xCC))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[2].id1 | s->people[3].id1 | s->people[6].id1 | s->people[7].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      concentric_move(s, (setup_command *) 0, &s->cmd, schema_concentric_2_6,
-                      0, 0, true, false, ~0U, result);
-      return;
-   case s_ntrglccw:
-   case s_nptrglccw:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 0x33))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[0].id1 | s->people[1].id1 | s->people[4].id1 | s->people[5].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      concentric_move(s, (setup_command *) 0, &s->cmd, schema_concentric_2_6,
-                      0, 0, true, false, ~0U, result);
-      return;
-   case s_nxtrglcw:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 0x66))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[1].id1 | s->people[2].id1 | s->people[5].id1 | s->people[6].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      concentric_move(s, &s->cmd, (setup_command *) 0, schema_concentric_6_2,
-                      0, 0, true, false, ~0U, result);
-      return;
-   case s_nxtrglccw:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 0x33))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[0].id1 | s->people[1].id1 | s->people[4].id1 | s->people[5].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      concentric_move(s, &s->cmd, (setup_command *) 0, schema_concentric_6_2,
-                      0, 0, true, false, ~0U, result);
-      return;
-   case s_ntrgl6cw:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 066))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[1].id1 | s->people[2].id1 | s->people[4].id1 | s->people[5].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      tglmap::do_glorious_triangles(s, tglmap::t6cwtglmap1, indicator, result);
-      reinstate_rotation(s, result);
-      return;
-   case s_ntrgl6ccw:
-      if (indicator == 20) {
-         if (global_selectmask != (global_livemask & 033))
-            goto losing;
-      }
-      else {
-         tbonetest = s->people[0].id1 | s->people[1].id1 | s->people[3].id1 | s->people[4].id1;
-
-         if ((indicator & ~1) != 6 || (tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
-            goto losing;
-      }
-
-      tglmap::do_glorious_triangles(s, tglmap::t6ccwtglmap1, indicator, result);
-      reinstate_rotation(s, result);
-      return;
-   case s_323:
-      if (indicator != 20)
-         goto losing;
-      if (global_selectmask == (global_livemask & 0x33))
-         tglmap::do_glorious_triangles(s, tglmap::s323map33, indicator, result);
-      else if (global_selectmask == (global_livemask & 0x66))
-         tglmap::do_glorious_triangles(s, tglmap::s323map66, indicator, result);
-      else
-         goto losing;
-
-      reinstate_rotation(s, result);
-      return;
-   case s_c1phan:
-      if ((indicator & 077) == 20) {
-         t = 0;
-         if (global_selectmask == (global_livemask & 0x5A5A))
-            t = 1;
-         else if (global_selectmask != (global_livemask & 0xA5A5))
-            goto losing;
-      }
-      else {
-         t = indicator & 1;
-         if ((global_tbonetest & 010) == 0) t ^= 1;
-         else if ((global_tbonetest & 1) != 0)
-            goto losing;
-      }
-
-      // Now t is 0 to select the triangles whose bases are horizontally
-      // aligned, and 1 for the vertically aligned bases.
-
-      s->rotation += t;   // Just flip the setup around and recanonicalize.
-      canonicalize_rotation(s);
-
-      if ((global_livemask & 0xAAAA) == 0)
-         map_key_table = tglmap::c1tglmap1;
-      else if ((global_livemask & 0x5555) == 0)
-         map_key_table = tglmap::c1tglmap2;
-      else
-         goto losing;
-
-      tglmap::do_glorious_triangles(s, map_key_table, indicator, result);
-      result->rotation -= t;   // Flip the setup back.
-      reinstate_rotation(s, result);
-      return;
-   case sdeepbigqtg:
-      if ((indicator & 077) == 20) {
-         if (global_selectmask != (global_livemask & 0xF0F0))
-            goto losing;
-      }
-      else {
-         if (global_tbonetest & ((indicator & 1) ? 010 : 1))
-            goto losing;
-      }
-
-      if ((global_livemask & 0x3A3A) == 0)
-         map_key_table = tglmap::dbqtglmap1;
-      else if ((global_livemask & 0xC5C5) == 0)
-         map_key_table = tglmap::dbqtglmap2;
-      else
-         goto losing;
-
-      tglmap::do_glorious_triangles(s, map_key_table, indicator, result);
-      reinstate_rotation(s, result);
-      return;
-   default:
-      fail("Can't do this concept in this setup.");
-   }
-
-   concentric_move(s, &s->cmd, (setup_command *) 0, schema, 0, 0, true, false, ~0U, result);
-   return;
-
- losing:
-   fail("Can't find the indicated triangles.");
-}
-
-
-extern void triangle_move(
+extern void do_tallshort6_move(
    setup *ss,
    parse_block *parseptr,
    setup *result) THROW_DECL
 {
    ss->clear_all_overcasts();
    calldef_schema schema;
-   int indicator = parseptr->concept->arg1;
+   int indicator = parseptr->concept->arg1;  // 0 for tall 6, 1 for short 6.
 
-/* indicator = 0 - tall 6
-               1 - short 6
-               2 - inside
-               3 - outside
-               4 - out point
-               5 - in point
-               6 - wave-base
-               7 - tandem-base
-               20 - <anyone>-base
-   Add 100 octal if interlocked triangles.
-   Add 200 octal if magic triangles. */
-
-   int indicator_base = indicator & 077;
-
-   if (indicator_base >= 2 && indicator_base <= 21 &&
-       ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_INTLK)) {
-      indicator |= 0100;     // Interlocked triangles.
-      ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_INTLK);
-   }
-
-   if (indicator_base >= 4 && indicator_base <= 5 &&
-       ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_MAGIC)) {
-      indicator |= 0200;     // Magic triangles.
-      ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_MAGIC);
-   }
-
-   // Now demand that no flags remain.
    if (ss->cmd.cmd_final_flags.test_for_any_herit_or_final_bit())
       fail("Illegal modifier for this concept.");
 
-   if (((indicator & 0100) && calling_level < intlk_triangle_level) ||
-       ((indicator & 0200) && calling_level < magic_triangle_level))
-      warn_about_concept_level();
-
    warning_info saved_warnings = configuration::save_warnings();
 
-   if (indicator <= 1) {
-      // Indicator = 0 for tall 6, 1 for short 6.
+   if (ss->kind == s_galaxy) {
+      // We know the setup rotation is canonicalized.
+      uint32_t tbonetest = ss->people[1].id1 | ss->people[3].id1 |
+         ss->people[5].id1 | ss->people[7].id1;
 
-      if (ss->kind == s_galaxy) {
-         // We know the setup rotation is canonicalized.
-         uint32 tbonetest = ss->people[1].id1 | ss->people[3].id1 |
-            ss->people[5].id1 | ss->people[7].id1;
-
-         if ((tbonetest & 011) == 011) fail("Can't find tall/short 6.");
-         else if ((indicator ^ tbonetest) & 1)
-            schema = schema_lateral_6;
-         else
-            schema = schema_vertical_6;
-      }
+      if ((tbonetest & 011) == 011) fail("Can't find tall/short 6.");
+      else if ((indicator ^ tbonetest) & 1)
+         schema = schema_lateral_6;
       else
-         fail("Must have galaxy for this concept.");
+         schema = schema_vertical_6;
 
-      // For galaxies, the schema is now in terms of the absolute orientation.
-
+      // The schema is now in terms of the absolute orientation.
       concentric_move(ss, &ss->cmd, (setup_command *) 0, schema, 0, 0, true, false, ~0U, result);
    }
-   else {
-      // Set this so we can do "peel and trail" without saying "triangle" again.
-      ss->cmd.cmd_misc3_flags |= CMD_MISC3__SAID_TRIANGLE;
-      const tglmap::tglmapkey *map_key_table = (const tglmap::tglmapkey *) 0;
+   else if (ss->kind == s_short6) {
+      uint32_t tbonetest = ss->people[0].id1 | ss->people[2].id1 |
+         ss->people[3].id1 | ss->people[5].id1;
+      if ((tbonetest & 011) == 011 || ((indicator ^ tbonetest) & 1))
+         fail("Can't find tall/short 6.");
 
-      if (indicator_base >= 6) {
-         // Indicator = 6 for wave-base, 7 for tandem-base, 20 for <anyone>-base.
-         wv_tand_base_move(ss, indicator, result);
+      // No need to call any expand function; everyone is in the right place for a 2x3.
+      ss->kind = s2x3;
+      uint16_t save_rotation = ss->rotation;  // Can the rotation field get clobbered?  We're not sure.
+
+      move(ss, false, result);
+
+      if (result->kind == s2x3 && result->rotation == save_rotation) {
+         // Once again, it's easy.
+         result->kind = s_short6;
       }
-      else if (indicator_base >= 4) {
-         // Indicator = 5 for in point, 4 for out point.
-
-         int t = 0;
-
-         if (ss->kind != s_qtag) fail("Must have diamonds.");
-
-         if (indicator_base == 5) {
-            if ((ss->people[0].id1 & d_mask) == d_east) t |= 1;
-            if ((ss->people[4].id1 & d_mask) == d_west) t |= 1;
-            if ((ss->people[1].id1 & d_mask) == d_west) t |= 2;
-            if ((ss->people[5].id1 & d_mask) == d_east) t |= 2;
-         }
-         else {
-            if ((ss->people[0].id1 & d_mask) == d_west) t |= 1;
-            if ((ss->people[4].id1 & d_mask) == d_east) t |= 1;
-            if ((ss->people[1].id1 & d_mask) == d_east) t |= 2;
-            if ((ss->people[5].id1 & d_mask) == d_west) t |= 2;
-         }
-
-         if (t == 1)
-            map_key_table = tglmap::qttglmap1;
-         else if (t == 2)
-            map_key_table = tglmap::qttglmap2;
-         else
-            fail("Can't find designated point.");
-
-         tglmap::do_glorious_triangles(ss, map_key_table, indicator, result);
-         reinstate_rotation(ss, result);
-      }
-      else {
-         // Indicator = 2 for inside, 3 for outside.
-
-         if (indicator_base == 2 && ss->kind == sbigdmd) {
-            if (global_livemask == 07474)
-               map_key_table = tglmap::bdtglmap1;
-            else if (global_livemask == 01717)
-               map_key_table = tglmap::bdtglmap2;
-            else
-               fail("Can't find the indicated triangles.");
-
-            tglmap::do_glorious_triangles(ss, map_key_table, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator == 0102 && ss->kind == s_rigger) {
-            tglmap::do_glorious_triangles(ss, tglmap::rgtglmap1, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator == 0102 && ss->kind == s_ptpd) {
-            tglmap::do_glorious_triangles(ss, tglmap::rgtglmap2, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator == 0102 && ss->kind == s_qtag) {
-            tglmap::do_glorious_triangles(ss, tglmap::rgtglmap3, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator == 0103 && ss->kind == s_rigger) {
-            tglmap::do_glorious_triangles(ss, tglmap::ritglmap1, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator == 0103 && ss->kind == s_ptpd) {
-            tglmap::do_glorious_triangles(ss, tglmap::ritglmap2, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator == 0103 && ss->kind == s_qtag) {
-            tglmap::do_glorious_triangles(ss, tglmap::ritglmap3, indicator, result);
-            reinstate_rotation(ss, result);
-            return;
-         }
-         else if (indicator & 0100)
-            fail("Illegal modifier for this concept.");
-
-         if (indicator_base == 2) {
-            switch (ss->kind) {
-            case s_hrglass:
-               // This is the schema for picking out the triangles in an hourglass.
-               schema = schema_vertical_6;
-               break;
-            case s_rigger:
-            case s_ptpd:
-            case s_nxtrglcw:
-            case s_nxtrglccw:
-               schema = schema_concentric_6_2;
-               break;
-            case sd2x7:
-               if (indicator & 0300) fail("Can't find the indicated triangles.");
-
-               if (global_livemask == 0x3C78U)
-                  map_key_table = tglmap::d7tglmap1;
-               else if (global_livemask == 0x078FU)
-                  map_key_table = tglmap::d7tglmap2;
-               else
-                  fail("Can't find the triangle.");
-               break;
-            case s_qtag:
-               schema = schema_concentric_6_2_tgl;
-               break;
-            case sbigdmd:
-            default:
-               fail("There are no 'inside' triangles.");
-            }
-
-            if (map_key_table) {
-               tglmap::do_glorious_triangles(ss, map_key_table, indicator, result);
-               reinstate_rotation(ss, result);
-               return;
-            }
-
-            concentric_move(ss, &ss->cmd, (setup_command *) 0, schema,
-                            0, 0, true, false, ~0U, result);
-         }
-         else {
-            switch (ss->kind) {
-            case s_ptpd:
-            case s_qtag:
-            case s_spindle:
-            case s_bone:
-            case s_hrglass:
-            case s_dhrglass:
-            case s_ntrglcw:
-            case s_ntrglccw:
-            case s_nptrglcw:
-            case s_nptrglccw:
-               schema = schema_concentric_2_6;
-               break;
-            default:
-               fail("There are no 'outside' triangles.");
-            }
-
-            concentric_move(ss, (setup_command *) 0, &ss->cmd, schema,
-                            0, 0, true, false, ~0U, result);
-         }
-      }
+      else if (result->kind != s1x6)  // If it's a 1x6 of either orientation, we just let it pass.
+         fail("Can't do this.");
    }
+   else
+      fail("Must have galaxy for this concept.");
 
-   // Don't give the "do the call in each 1x3" warning
-   // if it arose during a triangle call.
-   configuration::clear_one_warning(warn__split_to_1x3s);
    configuration::set_multiple_warnings(saved_warnings);
    result->clear_all_overcasts();
 }

@@ -23,14 +23,16 @@
 **
 ****************************************************************************/
 
-#include "../sdlib/sdui.h"
-#include "../sdlib/sdbase.h"
+//#include "../sdlib/sdui.h"
+//#include "../sdlib/sdbase.h"
 #include "../sdlib/sd.h"
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
 
 #include <stdio.h>
+
+typedef unsigned int uint32;
 
 static int numberOfSDThreadsActive = 0;
 
@@ -66,7 +68,8 @@ public:
     void reduce_line_count(int n);
     void update_resolve_menu(command_kind goal, int cur, int max,
                              resolver_display_state state);
-    void show_match(int frequency_to_show);
+//    void show_match(int frequency_to_show);
+    void show_match();
     const char *version_string();
     uims_reply_thing get_resolve_command();
     bool choose_font();
@@ -375,10 +378,12 @@ void SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,
 //    qWarning() << "SquareDesk_iofull::update_resolve_menu(command_kind goal, int cur, int max,";
 }
 
-void SquareDesk_iofull::show_match(int frequency_to_show)
+//void SquareDesk_iofull::show_match(int frequency_to_show)
+void SquareDesk_iofull::show_match()
 {
 //    qWarning() << "SquareDesk_iofull::show_match(int frequency_to_show);";
-    get_utils_ptr()->show_match_item(frequency_to_show);
+//    get_utils_ptr()->show_match_item(frequency_to_show);
+    get_utils_ptr()->show_match_item();
 }
 
 const char *SquareDesk_iofull::version_string()
@@ -410,7 +415,7 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
         {
             for (unsigned int i = 0; i < number_of_circcers; ++i)
             {
-                options.append(get_call_menu_name(circcer_calls[i]));
+                // options.append(get_call_menu_name(circcer_calls[i])); // FIX: Dan, please fix this!
                 dance_levels.append(QString("%1").arg(0));
             }
             UpdateStatusBar("<circulate replacement>");

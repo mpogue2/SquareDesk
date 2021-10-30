@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2013  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //    Copyright (C) 1993 Alan Snyder
 //
 //    This file is part of "Sd".
@@ -17,11 +17,11 @@
 //    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 //    License for more details.
 //
-//    You should have received a copy of the GNU General Public License
-//    along with Sd; if not, write to the Free Software Foundation, Inc.,
-//    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//    You should have received a copy of the GNU General Public License,
+//    in the file COPYING.txt, along with Sd.  See
+//    http://www.gnu.org/licenses/
 //
-//    This is for version 37.
+//    ===================================================================
 
 /* This file defines the following functions:
    matcher_initialize
@@ -32,9 +32,50 @@
 #include <stdio.h>  /* for sprintf */
 #include <ctype.h>  /* for tolower */
 
-// The definitions of "matcher_class" and "pat2_block" are in sdui.h.
+// The definition of "matcher_class" is in sdmatch.h, called from sd.h.
 
-#include "sdui.h"
+#include "sd.h"
+
+
+// Constructor.
+matcher_class::matcher_class() : s_modifier_active_list((modifier_block *) 0),
+                                 s_modifier_inactive_list((modifier_block *) 0),
+                                 m_abbrev_table_normal((abbrev_block *) 0),
+                                 m_abbrev_table_start((abbrev_block *) 0),
+                                 m_abbrev_table_resolve((abbrev_block *) 0)
+{
+   // These lists are allocated to size NUM_NAME_HASH_BUCKETS+2.
+   // So they will have two extra items at the end:
+   //   The first is for calls whose names can't be hashed.
+   //   The second is the bucket that any string starting with left bracket hashes to.
+
+   call_hashers = new index_list[NUM_NAME_HASH_BUCKETS+2];
+   conc_hashers = new index_list[NUM_NAME_HASH_BUCKETS+2];
+   conclvl_hashers = new index_list[NUM_NAME_HASH_BUCKETS+2];
+
+   m_fcn_key_table_normal = new modifier_block *[FCN_KEY_TAB_LAST-FCN_KEY_TAB_LOW+1];
+   m_fcn_key_table_start = new modifier_block *[FCN_KEY_TAB_LAST-FCN_KEY_TAB_LOW+1];
+   m_fcn_key_table_resolve = new modifier_block *[FCN_KEY_TAB_LAST-FCN_KEY_TAB_LOW+1];
+
+   ::memset(m_fcn_key_table_normal, 0,
+            sizeof(modifier_block *) * (FCN_KEY_TAB_LAST-FCN_KEY_TAB_LOW+1));
+   ::memset(m_fcn_key_table_start, 0,
+            sizeof(modifier_block *) * (FCN_KEY_TAB_LAST-FCN_KEY_TAB_LOW+1));
+   ::memset(m_fcn_key_table_resolve, 0,
+            sizeof(modifier_block *) * (FCN_KEY_TAB_LAST-FCN_KEY_TAB_LOW+1));
+}
+
+// Destructor.
+matcher_class::~matcher_class()
+{
+   delete [] call_hashers;
+   delete [] conc_hashers;
+   delete [] conclvl_hashers;
+
+   delete [] m_fcn_key_table_normal;
+   delete [] m_fcn_key_table_start;
+   delete [] m_fcn_key_table_resolve;
+}
 
 
 
@@ -50,10 +91,29 @@ void matcher_class::initialize_for_parse(int which_commands, bool show, bool onl
       s_modifier_inactive_list = item;
    }
 
-   ::memset(&m_active_result, 0, sizeof(match_result));
-   m_active_result.valid = true;
+   // (Mostly) clear out m_active_result.  We used to do this as one big memset over the
+   // whole object.  But modern compilers have gotten extremely fussy about this.
+   //
+   // It is of type "match_result", which is defined in sd.h around line 2306.
+   //
+   // Yeah, yeah, we should use nice constructors and do this up real purty.
+
+   m_active_result.valid = true;   // The field we don't clear.
+   m_active_result.exact = false;
+   m_active_result.indent = false;
+   m_active_result.real_next_subcall = (const match_result *) 0;
+   m_active_result.real_secondary_subcall = (const match_result *) 0;
+   m_active_result.recursion_depth = 0;
+   m_active_result.yield_depth = 0;
+
    m_active_result.match.kind = ui_start_select;
-   m_active_result.match.call_conc_options = null_options;
+   m_active_result.match.index = 0;
+   m_active_result.match.call_conc_options.initialize();
+   m_active_result.match.call_ptr = (call_with_name *) 0;
+   m_active_result.match.concept_ptr = (const concept_descriptor *) 0;
+   m_active_result.match.packed_next_conc_or_subcall = (modifier_block *) 0;
+   m_active_result.match.packed_secondary_subcall = (modifier_block *) 0;
+   m_active_result.match.gc_ptr = (modifier_block *) 0;
 
    m_current_result = &m_active_result;
    m_only_extension = only_want_extension;
@@ -328,7 +388,7 @@ void matcher_class::copy_sublist(const match_result *outbar, modifier_block *tai
 
 void matcher_class::copy_to_user_input(const char *stuff)
 {
-   // See comments in sdui.h about INPUT_TEXTLINE_SIZE and MAX_TEXT_LINE_LENGTH.
+   // See comments in sd.h about INPUT_TEXTLINE_SIZE and MAX_TEXT_LINE_LENGTH.
    // The target is known to be allocated to INPUT_TEXTLINE_SIZE+1.
    // The source is null-terminated and in an area of size MAX_TEXT_LINE_LENGTH.
    ::strcpy(m_user_input, stuff);
@@ -573,10 +633,10 @@ void matcher_initialize()
          gg77->matcher_p->m_level_concept_list.add_one(concept_number);
    }
 
-   // Initialize the hash buckets for call names.
+   // Initialize the hash buckets for selectors, concepts, and calls.
 
    int bucket;
-   uint32 ku;
+   uint32_t ku;
 
    // First, do the selectors.  Before that, be sure "<anyone>" is hashed.
    // These list all the buckets that selectors can go to.
@@ -588,13 +648,19 @@ void matcher_initialize()
    selector_hasher.add_one(bucket);
 
    for (i=1; i<selector_INVISIBLE_START; i++) {
+      if (selector_list[i].name[0] == '@' && (selector_list[i].name[1] == 'k' || selector_list[i].name[1] == '6')) {
+         // This is a selector like "<anyone>-based triangles".  Put it into every bucket
+         // that could match a selector.  Is any of this stuff necessary?
+         continue;
+      }
+
       if (!get_hash(selector_list[i].name, &bucket)) {
          char errbuf[255];
          sprintf(errbuf, "Can't hash selector %d - 1!", i);
          gg77->iob88.fatal_error_exit(2, errbuf);
       }
 
-      /* See if this bucket is already accounted for. */
+      // See if this bucket is already accounted for.
 
       for (j=0; j<selector_hasher.the_list_size; j++) {
          if (selector_hasher.the_list[j] == bucket) goto already_in1;
@@ -605,6 +671,12 @@ void matcher_initialize()
       // Now do it again for the singular names.
 
    already_in1:
+
+      if (selector_list[i].sing_name[0] == '@' && (selector_list[i].sing_name[1] == 'k')) {
+         // This is a selector like "<anyone>-based triangle".  Put it into every bucket
+         // that could match a selector.  Is any of this stuff necessary?
+         continue;
+      }
 
       if (!get_hash(selector_list[i].sing_name, &bucket)) {
          char errbuf[255];
@@ -725,7 +797,8 @@ void matcher_initialize()
          }
          continue;
       }
-      else if (get_hash(name, &bucket)) {
+
+      if (get_hash(name, &bucket)) {
          gg77->matcher_p->conc_hashers[bucket].add_one(the_item);
          continue;
       }
@@ -973,8 +1046,7 @@ void matcher_class::record_a_match()
       m_final_result = m_active_result;
       m_lowest_yield_depth = m_current_result->yield_depth;
 
-      /* We need to copy the modifiers to reasonably stable storage. */
-
+      // We need to copy the modifiers to reasonably stable storage.
       copy_sublist(&m_final_result, &m_final_result.match);
    }
 
@@ -989,7 +1061,7 @@ void matcher_class::record_a_match()
       m_yielding_matches++;
 
    if (m_showing) {
-      if (verify_call()) gg77->iob88.show_match(-1);
+      if (verify_call()) gg77->iob88.show_match();
    }
 }
 
@@ -1098,6 +1170,7 @@ Theorem B (prefix match):
 
 void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2, int patxi)
 {
+   match_result *save_current = m_current_result;
    const concept_descriptor *pat2_concept = (concept_descriptor *) 0;
 
    if (pat2->special_concept &&
@@ -1116,6 +1189,7 @@ void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2,
                scan_concepts_and_calls(user, " ", pat2,
                                        &m_current_result->real_next_subcall, patxi);
             }
+
             pat2 = (pat2_block *) 0;
             pat2_concept = (concept_descriptor *) 0;
          }
@@ -1124,7 +1198,7 @@ void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2,
             // stuff in brackets must be zero or more concepts PLUS A CALL.
 
             if (m_current_result->match.kind != ui_call_select && pat2->demand_a_call)
-               return;
+               goto getout;
 
             if (pat2->folks_to_restore) {
                // Be sure maximum yield depth gets propagated back.
@@ -1176,11 +1250,11 @@ void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2,
                   p++;
                   continue;
             }
+
             break;
          }
 
          while (p[0] == ',' || p[0] == '\'') p++;
-
          if (*p == ' ' || *p == '-')
             m_space_ok = true;
 
@@ -1207,7 +1281,6 @@ void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2,
 
             if (user==0) {
                // User input has run out, just looking for more wildcards.
-
                Cstring ep = get_escape_string(*pat1++);
 
                if (ep && *ep) {
@@ -1241,7 +1314,7 @@ void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2,
                            goto cont;
                         }
 
-                        if (user[i-1] != tolower(ep[i])) return;
+                        if (user[i-1] != tolower(ep[i])) goto getout;
                      }
 
                      user += ::strlen((char *) ep)-1;
@@ -1313,6 +1386,10 @@ void matcher_class::match_suffix_2(Cstring user, Cstring pat1, pat2_block *pat2,
          }
       }
    }
+
+ getout:
+
+   m_current_result = save_current;
 }
 
 
@@ -1429,7 +1506,7 @@ void matcher_class::scan_concepts_and_calls(
       p2b.car = get_concept_name(this_concept);
       m_current_result = &local_result;
       m_current_result->yield_depth = new_depth;
-      local_result.match.call_conc_options = null_options;
+      local_result.match.call_conc_options.initialize();
       match_suffix_2(user, firstchar, &p2b, patxi);
    }
 
@@ -1456,6 +1533,7 @@ void matcher_class::scan_concepts_and_calls(
 
          call_with_name *this_call =
             main_call_lists[call_list_any][using_hash ? call_hashers[bucket].the_list[i] : i];
+         local_result.match.call_conc_options = m_current_result->match.call_conc_options;
          m_current_result = &local_result;
          m_current_result->match.call_ptr = this_call;
          matches_as_seen_by_me = m_match_count;
@@ -1465,7 +1543,6 @@ void matcher_class::scan_concepts_and_calls(
          // This means "6x2 acey deucey", while it is a single call that can be clicked from the menu,
          // will yield to "6x2" + "acey deucey", making it possible to parse "echo 6x2 acey deucey".
          m_current_result->yield_depth = ((get_yield_if_ambiguous_flag(this_call)) ? new_depth+2 : new_depth);
-         local_result.match.call_conc_options = null_options;
 
          if (spiffy_parser && get_call_name(this_call)[0] == '@' &&
              (get_call_name(this_call)[1] == '0' || get_call_name(this_call)[1] == 'T')) {
@@ -1566,7 +1643,7 @@ void matcher_class::match_wildcard(
    Cstring prefix;
    Cstring *number_table;
    int i;
-   uint32 iu;
+   uint32_t iu;
    char crossname[80];
    char *crossptr;
    int concidx;
@@ -1582,23 +1659,34 @@ void matcher_class::match_wildcard(
    if (user) {
       switch (key) {
       case '6': case 'k': case 'K': case 'V':
-         if (m_current_result->match.call_conc_options.who == selector_uninitialized) {
+         // Start recursion.
+         m_current_result->match.call_conc_options.who.who_stack_ptr++;
+
+         // Don't allow recursion deeper than 2 (though the array is big enough for 3.)
+         // This would occur if someone did "girl-based triangle-based triangle circulate".
+         if (m_current_result->match.call_conc_options.who.who_stack_ptr < who_list::who_stack_size) {
             for (i=1; i<selector_INVISIBLE_START; i++) {
                if (key != 'K' && i >= selector_SOME_START)
                   continue;
-               if (key == 'V' && (i == selector_centers || i == selector_ends))
+               if (key == 'V' && (i == selector_centers || i == selector_ends || i == selector_outsides))
                   continue;
 
-               m_current_result->match.call_conc_options.who = (selector_kind) i;
-               match_suffix_2(user,
-                              (key == 'k') ? selector_list[i].sing_name : selector_list[i].name,
-                              &p2b, patxi);
+               m_current_result->match.call_conc_options.who.who[m_current_result->match.call_conc_options.who.who_stack_ptr-1] = (selector_kind) i;
+               {
+                  match_result *save_current = m_current_result;
+                  match_suffix_2(user,
+                                 (key == 'k') ? selector_list[i].sing_name : selector_list[i].name,
+                                 &p2b, patxi); m_current_result = save_current;
+               }
             }
 
-            m_current_result->match.call_conc_options.who = selector_uninitialized;
-            return;
+            m_current_result->match.call_conc_options.who.who[m_current_result->match.call_conc_options.who.who_stack_ptr-1] =
+               selector_uninitialized;
          }
-         break;
+
+         // Restore.
+         m_current_result->match.call_conc_options.who.who_stack_ptr--;
+         return;
       case '0': case 'T': case 'm':
          if (*user == '[') {
             pat2_block p3b("]", &p2b);
@@ -1618,7 +1706,7 @@ void matcher_class::match_wildcard(
          if (m_current_result->match.call_conc_options.where == direction_uninitialized) {
             direction_kind save_where = m_current_result->match.call_conc_options.where;
 
-            for (i=1; i<=last_direction_kind; ++i) {
+            for (i=1; i<=last_direction_kind-1; ++i) { // I'm not sure about this (eliminates crash), -mpogue
                m_current_result->match.call_conc_options.where = (direction_kind) i;
                match_suffix_2(user, direction_names[i].name, &p2b, patxi);
             }
@@ -1654,10 +1742,10 @@ void matcher_class::match_wildcard(
       case 'N':
          if (m_current_result->match.call_conc_options.circcer == 0) {
             char circname[80];
-            uint32 save_circcer = m_current_result->match.call_conc_options.circcer;
+            uint32_t save_circcer = m_current_result->match.call_conc_options.circcer;
 
             for (iu=0; iu<number_of_circcers; ++iu) {
-               const char *fromptr = get_call_name(circcer_calls[iu]);
+               const char *fromptr = get_call_name(circcer_calls[iu].the_circcer);
                char *toptr = circname;
                char c;
                do {
@@ -1693,7 +1781,7 @@ void matcher_class::match_wildcard(
              *user == 'q' || *user == 'h' ||
              *user == 't' || *user == 'f') {
             int save_howmanynumbers = m_current_result->match.call_conc_options.howmanynumbers;
-            uint32 save_number_fields = m_current_result->match.call_conc_options.number_fields;
+            uint32_t save_number_fields = m_current_result->match.call_conc_options.number_fields;
 
             m_current_result->match.call_conc_options.howmanynumbers++;
 
@@ -1745,7 +1833,7 @@ void matcher_class::match_wildcard(
    case 'S':
       {
          bool saved_indent = m_current_result->indent;
-         uint32 save_number_fields = m_current_result->match.call_conc_options.star_turn_option;
+         uint32_t save_number_fields = m_current_result->match.call_conc_options.star_turn_option;
          m_current_result->indent = true;
 
          m_current_result->match.call_conc_options.star_turn_option = -1;
@@ -1845,7 +1933,7 @@ void matcher_class::match_wildcard(
 
    {
       int save_howmanynumbers = m_current_result->match.call_conc_options.howmanynumbers;
-      uint32 save_number_fields = m_current_result->match.call_conc_options.number_fields;
+      uint32_t save_number_fields = m_current_result->match.call_conc_options.number_fields;
 
       m_current_result->match.call_conc_options.howmanynumbers++;
 
@@ -1857,7 +1945,6 @@ void matcher_class::match_wildcard(
 
       m_current_result->match.call_conc_options.howmanynumbers = save_howmanynumbers;
       m_current_result->match.call_conc_options.number_fields = save_number_fields;
-
       return;
    }
 
@@ -1868,7 +1955,7 @@ void matcher_class::match_wildcard(
       match_result saved_cross_result = *m_current_result;
 
       m_current_result->match.kind = ui_concept_select;
-      m_current_result->match.call_conc_options = null_options;
+      m_current_result->match.call_conc_options.initialize();
       m_current_result->match.concept_ptr = access_concept_descriptor_table(concidx);
       m_current_result->real_next_subcall = &saved_cross_result;
       m_current_result->indent = true;
@@ -1910,7 +1997,7 @@ void matcher_class::search_menu(uims_reply_kind kind)
    m_current_result->valid = true;
    m_current_result->exact = false;
    m_current_result->match.kind = kind;
-   m_current_result->match.call_conc_options = null_options;
+   m_current_result->match.call_conc_options.initialize();
    m_current_result->indent = false;
    m_current_result->real_next_subcall = (match_result *) 0;
    m_current_result->real_secondary_subcall = (match_result *) 0;
@@ -2085,7 +2172,7 @@ void matcher_class::search_menu(uims_reply_kind kind)
       else {
          for (i = 0; i < number_of_circcers; i++) {
             m_active_result.match.call_conc_options.circcer++;
-            match_pattern(get_call_name(circcer_calls[i]));
+            match_pattern(get_call_name(circcer_calls[i].the_circcer));
          }
       }
    }
