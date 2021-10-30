@@ -265,6 +265,10 @@ macx {
     # TAGLIB ----------------------------------------
     LIBS += -L$$OUT_PWD/../taglib -ltaglib
     INCLUDEPATH += $$PWD/../taglib/binaries/include
+    INCLUDEPATH += $$PWD/../taglib
+    INCLUDEPATH += $$PWD/../taglib/taglib
+    INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
+    INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 
     # ZLIB ------------------------------------------
     #  do "brew install zlib"

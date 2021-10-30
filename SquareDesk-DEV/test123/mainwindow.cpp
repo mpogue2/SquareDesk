@@ -131,18 +131,18 @@ bool InvisibleTableWidgetItem::operator< (const QTableWidgetItem &other) const
 using namespace std;
 
 // TAGLIB stuff is MAC OS X and WIN32 only for now...
-#include <taglib/tlist.h>
+#include <taglib/toolkit/tlist.h>
 #include <taglib/fileref.h>
-#include <taglib/tfile.h>
+#include <taglib/toolkit/tfile.h>
 #include <taglib/tag.h>
-#include <taglib/tpropertymap.h>
+#include <taglib/toolkit/tpropertymap.h>
 
-#include <taglib/mpegfile.h>
-#include <taglib/id3v2tag.h>
-#include <taglib/id3v2frame.h>
-#include <taglib/id3v2header.h>
+#include <taglib/mpeg/mpegfile.h>
+#include <taglib/mpeg/id3v2/id3v2tag.h>
+#include <taglib/mpeg/id3v2/id3v2frame.h>
+#include <taglib/mpeg/id3v2/id3v2header.h>
 
-#include <taglib/unsynchronizedlyricsframe.h>
+#include <taglib/mpeg/id3v2/frames/unsynchronizedlyricsframe.h>
 #include <string>
 
 #include "typetracker.h"

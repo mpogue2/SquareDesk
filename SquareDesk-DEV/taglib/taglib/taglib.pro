@@ -138,7 +138,10 @@ HEADERS += $$PWD/wavpack/wavpackproperties.h
 HEADERS += $$PWD/xm/xmfile.h
 HEADERS += $$PWD/xm/xmproperties.h
 
-SOURCES += $$PWD/audioproperties.cpp
+SOURCES += $$PWD/audioproperties.cpp \
+    mpeg/id3v2/frames/podcastframe.cpp \
+    tagutils.cpp \
+    toolkit/tzlib.cpp
 SOURCES += $$PWD/fileref.cpp
 SOURCES += $$PWD/tag.cpp
 SOURCES += $$PWD/tagunion.cpp
@@ -190,6 +193,7 @@ SOURCES += $$PWD/mpeg/id3v2/frames/commentsframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/eventtimingcodesframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/generalencapsulatedobjectframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/ownershipframe.cpp
+SOURCES += $$PWD/mpeg/id3v2/frames/podcastframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/popularimeterframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/privateframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/relativevolumeframe.cpp
