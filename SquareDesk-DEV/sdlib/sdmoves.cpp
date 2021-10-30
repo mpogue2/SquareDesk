@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2015  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -32,8 +32,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 /* This defines the following functions:
    canonicalize_rotation
@@ -87,14 +85,18 @@ extern void canonicalize_rotation(setup *result) THROW_DECL
          fail("Recursive concentric?????.");
 
       int save_rotation = result->rotation;
+      int save_eighth_rotation = result->eighth_rotation;
 
       result->kind = result->inner.skind;
       result->rotation += result->inner.srotation;
+      result->eighth_rotation += result->inner.seighth_rotation;
       canonicalize_rotation(result);    // Sorry!
       result->inner.srotation = result->rotation;
+      result->inner.seighth_rotation = result->eighth_rotation;
 
       result->kind = result->outer.skind;
       result->rotation = save_rotation + result->outer.srotation;
+      result->eighth_rotation = save_eighth_rotation + result->inner.seighth_rotation;
       for (i=0 ; i<12 ; i++) result->swap_people(i, i+12);
       canonicalize_rotation(result);    // Sorrier!
       for (i=0 ; i<12 ; i++) result->swap_people(i, i+12);
@@ -102,20 +104,22 @@ extern void canonicalize_rotation(setup *result) THROW_DECL
 
       result->kind = s_normal_concentric;
       result->rotation = 0;
+      result->eighth_rotation = 0;
    }
    else if (result->kind == s_dead_concentric) {
       if (result->inner.skind == s_normal_concentric || result->inner.skind == s_dead_concentric)
          fail("Recursive concentric?????.");
 
+      // Bring it up from the "inner" field to the main thing, canonicalize, and send it back.
+      // The individual people are in the right place throughout all this.
+      // Sorry!
       result->kind = result->inner.skind;
       result->rotation += result->inner.srotation;
-      canonicalize_rotation(result);    // Sorry!
-      result->inner.srotation = result->rotation;
-
-      result->kind = s_dead_concentric;
-      result->rotation = 0;
+      result->eighth_rotation += result->inner.seighth_rotation;
+      canonicalize_rotation(result);
+      result->turn_into_deadconc();
    }
-   else if (setup_attrs[result->kind].four_way_symmetry) {
+   else if ((setup_attrs[result->kind].setup_props & SPROP_4_WAY_SYMMETRY) != 0) {
       // The setup has 4-way symmetry.  We can canonicalize it so the
       // result rotation is zero.
       int i, rot, rot11, delta, bigd, i0, i1, i2, i3, j0, j1, j2, j3;
@@ -167,7 +171,7 @@ extern void canonicalize_rotation(setup *result) THROW_DECL
 
       result->rotation = 0;
    }
-   else if (setup_attrs[result->kind].no_symmetry) {
+   else if ((setup_attrs[result->kind].setup_props & SPROP_NO_SYMMETRY) != 0) {
    }
    else if (result->kind == s1x3) {
       if (result->rotation & 2) {
@@ -185,6 +189,37 @@ extern void canonicalize_rotation(setup *result) THROW_DECL
          result->swap_people(1, 4);
          for (int i=0; i<5; i++)
             result->rotate_person(i, 022);
+      }
+      result->rotation &= 1;
+   }
+   else if (result->kind == s3x5) {
+      if (result->rotation & 2) {
+         // Must turn this setup upside-down.
+         int offs = 7;
+
+         for (int i=0; i<offs; i++) {
+            result->swap_people(i, i+offs);
+            result->rotate_person(i, 022);
+            result->rotate_person(i+offs, 022);
+         }
+
+         result->rotate_person(offs*2, 022);
+      }
+      result->rotation &= 1;
+   }
+   else if (result->kind == s_434) {
+      if (result->rotation & 2) {
+         // Must turn this setup upside-down.
+
+         int offs = 5;
+
+         for (int i=0; i<offs; i++) {
+            result->swap_people(i, i+offs);
+            result->rotate_person(i, 022);
+            result->rotate_person(i+offs, 022);
+         }
+
+         result->rotate_person(offs*2, 022);
       }
       result->rotation &= 1;
    }
@@ -353,10 +388,10 @@ void fix_roll_transparency_stupidly(const setup *ss, setup *result)
          result->kind == ss->kind;
 
       for (int u=0; u<=attr::slimit(result); u++) {
-         uint32 *thispid1 = &result->people[u].id1;
+         uint32_t *thispid1 = &result->people[u].id1;
 
          if (*thispid1) {
-            uint32 rollinfo = *thispid1 & ROLL_DIRMASK;
+            uint32_t rollinfo = *thispid1 & ROLL_DIRMASK;
 
             // Look for people marked "M", that is, roll-neutral.
             // But if in "DFM1_ROLL_TRANSPARENT_IF_Z" mode, also look for people marked undefined,
@@ -404,7 +439,7 @@ extern void remove_mxn_spreading(setup *ss) THROW_DECL
    if (!(ss->result_flags.misc & RESULTFLAG__DID_MXN_EXPANSION))
       return;
 
-   uint32 livemasklittle = little_endian_live_mask(ss);
+   uint32_t livemasklittle = little_endian_live_mask(ss);
 
    static const expand::thing *unwind_2x6_table[] = {
       &exp52, &exp25, &exp72, &exp27,
@@ -517,17 +552,7 @@ extern void remove_mxn_spreading(setup *ss) THROW_DECL
 
 extern void remove_fudgy_2x3_2x6(setup *ss) THROW_DECL
 {
-   if (ss->kind == sfudgy2x3l) {
-      const expand::thing compressfudgy2x3l = {
-         {0, 1, -1, 4, 5, -1}, s2x3, sfudgy2x3l, 0};
-      expand::compress_setup(compressfudgy2x3l, ss);
-   }
-   else if (ss->kind == sfudgy2x3r) {
-      const expand::thing compressfudgy2x3r = {
-         {-1, 2, 3, -1, 6, 7}, s2x3, sfudgy2x3r, 0};
-      expand::compress_setup(compressfudgy2x3r, ss);
-   }
-   else if (ss->kind == sfudgy2x6l) {
+   if (ss->kind == sfudgy2x6l) {
       const expand::thing compressfudgy2x6l = {
          {0, 1, 2, 3, -1, -1, 8, 9, 10, 11, -1, -1}, s2x6, sfudgy2x6l, 0};
       expand::compress_setup(compressfudgy2x6l, ss);
@@ -540,24 +565,15 @@ extern void remove_fudgy_2x3_2x6(setup *ss) THROW_DECL
    else
       return;
 
-   warn(warn_verycontroversial);
+   warn(warn_other_axis);
 }
 
 
 // This turns s1p5x4/s1p5x8 things into sfudgy things.
 extern void repair_fudgy_2x3_2x6(setup *ss) THROW_DECL
 {
-   if (ss->kind == s1p5x4) {
-      uint32 mask = little_endian_live_mask(ss);
-      if (mask != 0 && (mask & 0xCC) == 0)
-         ss->kind = sfudgy2x3l;
-      else if (mask != 0 && (mask & 0x33) == 0)
-         ss->kind = sfudgy2x3r;
-      else
-         fail("Can't go into a 50% offset 1x4.");
-   }
-   else if (ss->kind == s1p5x8) {
-      uint32 mask = little_endian_live_mask(ss);
+   if (ss->kind == s1p5x8) {
+      uint32_t mask = little_endian_live_mask(ss);
       if (mask != 0 && (mask & 0xF0F0) == 0)
          ss->kind = sfudgy2x6l;
       else if (mask != 0 && (mask & 0x0F0F) == 0)
@@ -568,14 +584,14 @@ extern void repair_fudgy_2x3_2x6(setup *ss) THROW_DECL
    else
       return;
 
-   warn(warn_verycontroversial);
+   warn(warn_other_axis);
 }
 
 
-extern bool do_1x3_type_expansion(setup *ss, uint32 heritflags_to_check) THROW_DECL
+static bool do_1x3_type_expansion(setup *ss, heritflags heritflags_to_check) THROW_DECL
 {
    struct Nx1_checker {
-      uint32 directions;
+      uint32_t directions;
       bool unsymm;
       const expand::thing *action_if_Nx1;
       const expand::thing *action_if_1xN;
@@ -703,12 +719,12 @@ extern bool do_1x3_type_expansion(setup *ss, uint32 heritflags_to_check) THROW_D
       {05200, false, &expl25, &expl52},
       {0}};
 
-   uint32 directions;
-   uint32 dblbitlivemask;
+   uint32_t directions;
+   uint32_t dblbitlivemask;
    const Nx1_checker *getin_search;
-   uint32 full_occupation = (uint32) ((1U << ((attr::klimit(ss->kind)+1) << 1)) - 1);
+   uint32_t full_occupation = (uint32_t) ((1U << ((attr::klimit(ss->kind)+1) << 1)) - 1);
 
-   big_endian_get_directions(ss, directions, dblbitlivemask);
+   big_endian_get_directions32(ss, directions, dblbitlivemask);
 
    if (heritflags_to_check == INHERITFLAGMXNK_3X1 ||
        heritflags_to_check == INHERITFLAGMXNK_1X3) {
@@ -819,12 +835,14 @@ extern bool do_1x3_type_expansion(setup *ss, uint32 heritflags_to_check) THROW_D
          if (getin_search->action_if_Nx1 != getin_search->action_if_1xN) {
             // This is a high quality map.  It can tell what to do without requiring lots of people.
             if (highquality) return false;    // If high quality maps are ambiguous, we lose.
-            highquality = (heritflags_to_check == INHERITFLAGMXNK_3X1 ||
-                           heritflags_to_check == INHERITFLAGMXNK_4X0 ||
-                           heritflags_to_check == INHERITFLAGMXNK_3X0 ||
-                           heritflags_to_check == INHERITFLAGMXNK_2X1) ?
-               getin_search->action_if_Nx1 :
-               getin_search->action_if_1xN;
+            bool NX1 =
+               heritflags_to_check == INHERITFLAGMXNK_3X1 ||
+               heritflags_to_check == INHERITFLAGMXNK_4X0 ||
+               heritflags_to_check == INHERITFLAGMXNK_3X0 ||
+               heritflags_to_check == INHERITFLAGMXNK_2X1;
+            if ((ss->cmd.cmd_misc_flags & CMD_MISC__DID_LEFT_MIRROR) != 0)
+               NX1 = !NX1;
+            highquality = NX1 ? getin_search->action_if_Nx1 : getin_search->action_if_1xN;
          }
          else {
             // This is a low quality map.  Ambiguity is OK, up to two, if a high quality map is present.
@@ -852,20 +870,20 @@ extern bool do_1x3_type_expansion(setup *ss, uint32 heritflags_to_check) THROW_D
 
 extern bool divide_for_magic(
    setup *ss,
-   uint32 heritflags_to_check,
+   heritflags heritflags_to_check,
    setup *result) THROW_DECL
 {
    warning_info saved_warnings;
-   uint32 division_code;
+   uint32_t division_code;
 
-   uint32 heritflags_to_use = ss->cmd.cmd_final_flags.herit;
+   heritflags heritflags_to_use = ss->cmd.cmd_final_flags.herit;
 
    // If "magic" was specified, we have to be sure the level is
    // high enough (e.g. C3B).  At C1, only real magic columns,
    // and whatever calls have something explicit in the database,
    // are permitted.
 
-   if (heritflags_to_check & INHERITFLAG_MAGIC) {
+   if ((heritflags_to_check & INHERITFLAG_MAGIC) != 0ULL) {
       bool booljunk;
       assumption_thing tt;
 
@@ -889,8 +907,18 @@ extern bool divide_for_magic(
          division_code = MAPCODE(s1x4,2,MPKIND__MAGIC,1);
          goto divide_us;
       }
+      else if ((heritflags_to_check & INHERITFLAG_INTLK) != 0 &&
+               (ss->people[1].id1 | ss->people[2].id1 | ss->people[5].id1 | ss->people[6].id1) == 0) {
+         // User must actually want diamonds, only the points are present, and some code
+         // thought the right thing was to turn it into a 2x4.
+         expand::expand_setup(s_qtg_2x4, ss);
+         goto do_qtag;
+      }
+
       break;
    case s_qtag:
+   do_qtag:
+
       // Indicate that we have done a diamond division
       // and the concept name needs to be changed.
       ss->cmd.cmd_misc3_flags |= CMD_MISC3__NEED_DIAMOND;
@@ -956,7 +984,7 @@ extern bool divide_for_magic(
 
  divide_us:
 
-   ss->cmd.cmd_final_flags.herit = (heritflags) (heritflags_to_use & ~heritflags_to_check);
+   ss->cmd.cmd_final_flags.herit = (heritflags_to_use & ~heritflags_to_check);
    divided_setup_move(ss, division_code, phantest_ok, true, result);
    return true;
 
@@ -964,17 +992,18 @@ extern bool divide_for_magic(
 
    bool sixteen = (heritflags_to_use == INHERITFLAGMXNK_0X4 || heritflags_to_use == INHERITFLAGMXNK_4X0);
 
-   ss->cmd.cmd_final_flags.herit = (heritflags)
+   ss->cmd.cmd_final_flags.herit =
       ((heritflags_to_use & ~(INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK)) |
        (sixteen ? INHERITFLAGNXNK_4X4 : INHERITFLAGNXNK_3X3));
 
    if (attr::slimit(ss) > 7)
-      ss->cmd.cmd_final_flags.set_heritbit(sixteen ? INHERITFLAG_16_MATRIX : INHERITFLAG_12_MATRIX);
+      ss->cmd.cmd_final_flags.set_heritbits(sixteen ? INHERITFLAG_16_MATRIX : INHERITFLAG_12_MATRIX);
 
    saved_warnings = configuration::save_warnings();
    impose_assumption_and_move(ss, result);
    result->result_flags.misc |= RESULTFLAG__DID_MXN_EXPANSION;
-   result->result_flags.res_heritflags_to_save_from_mxn_expansion =
+
+   result->result_flags.res_heritflags_to_save_from_mxn_expansion = 
       heritflags_to_use & (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK);
 
    // Shut off "each 2x3" types of warnings -- they will arise spuriously
@@ -991,7 +1020,7 @@ extern bool do_simple_split(
    split_command_kind split_command,
    setup *result) THROW_DECL
 {
-   uint32 mapcode;
+   uint32_t mapcode;
    bool recompute_id = true;
 
    ss->cmd.cmd_misc_flags &= ~CMD_MISC__MUST_SPLIT_MASK;
@@ -1000,6 +1029,7 @@ extern bool do_simple_split(
    case s3x4:
       if (split_command == split_command_2x3) {
          mapcode = MAPCODE(s2x3,2,MPKIND__SPLIT,1);
+         ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_12_MATRIX);
          break;
       }
       else if (split_command == split_command_none) {
@@ -1029,7 +1059,7 @@ extern bool do_simple_split(
          mapcode = MAPCODE(s2x3,2,MPKIND__SPLIT,0);
          break;
       }
-      else if (split_command == split_command_1x4) {
+      else if (split_command == split_command_1x4_dmd) {
          if (ss->cmd.cmd_heritflags_to_save_from_mxn_expansion == INHERITFLAGMXNK_3X1 ||
              ss->cmd.cmd_heritflags_to_save_from_mxn_expansion == INHERITFLAGMXNK_1X3 ||
              ss->cmd.cmd_heritflags_to_save_from_mxn_expansion == INHERITFLAGMXNK_2X1 ||
@@ -1059,31 +1089,23 @@ extern bool do_simple_split(
       break;
    case s1x8:
       mapcode = MAPCODE(s1x4,2,MPKIND__SPLIT,0);
-      if (split_command == split_command_1x8) recompute_id = false;
+      if (split_command == split_command_1x8_ptpd) recompute_id = false;
       break;
    case s4x4:
-      {
-         mapcode = MAPCODE(s2x2,4,MPKIND__SPLIT_OTHERWAY_TOO,0);
-         /*
-         uint32 mask = little_endian_live_mask(ss);
-
-         if (mask == 0xB4B4)
-            mapcode = MAPCODE(s2x4,1,MPKIND__OFFS_L_FULL,0);
-         else if (mask == 0x4B4B)
-            mapcode = MAPCODE(s2x4,1,MPKIND__OFFS_R_FULL,0);
-         else
-            return true;
-
-         ss->cmd.cmd_misc_flags |= CMD_MISC__MUST_SPLIT_VERT;
-         */
-      }
+      mapcode = MAPCODE(s2x2,4,MPKIND__SPLIT_OTHERWAY_TOO,0);
+      break;
+   case s_bone:
+      mapcode = HETERO_MAPCODE(s_trngl4,2,MPKIND__HET_SPLIT,1,s_trngl4,0x7);
+      break;
+   case s_rigger:
+      mapcode = HETERO_MAPCODE(s_trngl4,2,MPKIND__HET_SPLIT,1,s_trngl4,0xD);
       break;
    case s_qtag:
       mapcode = MAPCODE(sdmd,2,MPKIND__SPLIT,1);
       break;
    case s_ptpd:
-      if (split_command == split_command_1x8) recompute_id = false;
       mapcode = MAPCODE(sdmd,2,MPKIND__SPLIT,0);
+      if (split_command == split_command_1x8_ptpd) recompute_id = false;
       break;
    default:
       return true;
@@ -1114,21 +1136,21 @@ extern bool do_simple_split(
 
 // This returns the "force" flags that it extracted from the call.
 
-extern uint32 do_call_in_series(
-   setup *sss,
+extern uint32_t do_call_in_series(
+   setup *ss,
    bool dont_enforce_consistent_split,
    bool normalize,
    bool qtfudged) THROW_DECL
 {
-   uint32 retval = 0;
-   uint32 current_elongation = 0;
-   resultflag_rec saved_result_flags = sss->result_flags;
+   uint32_t retval = 0;
+   uint32_t current_elongation = 0;
+   resultflag_rec saved_result_flags = ss->result_flags;
 
    // Start the expiration mechanism, but only if we are really doing a call.
-   if (sss->cmd.callspec)
-      sss->cmd.prior_expire_bits |= sss->result_flags.misc & RESULTFLAG__EXPIRATION_BITS;
+   if (ss->cmd.callspec)
+      ss->cmd.prior_expire_bits |= ss->result_flags.misc & RESULTFLAG__EXPIRATION_BITS;
 
-   setup qqqq = *sss;
+   setup qqqq = *ss;
 
    // Check for a concept that will need to be re-evaluated under "twice".
    // The test for this is [waves] initially twice initially once removed
@@ -1140,25 +1162,30 @@ extern uint32 do_call_in_series(
          qqqq.cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_CRAZINESS;
          qqqq.cmd.restrained_fraction = qqqq.cmd.cmd_fraction;
          qqqq.cmd.cmd_fraction.set_to_null();
+      }
+   }
 
+   if (qqqq.cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS &&
+       (qqqq.cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) == CMD_FRAC_CODE_ONLY) {
+      if (qqqq.cmd.restrained_concept->concept->kind == concept_dbl_frac_crazy) {
+         qqqq.cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_CRAZINESS;
+         qqqq.cmd.parseptr = qqqq.cmd.restrained_concept;
+         qqqq.cmd.restrained_concept = 0;
+         qqqq.cmd.restrained_fraction = qqqq.cmd.cmd_fraction;
+         qqqq.cmd.cmd_fraction.set_to_null();
       }
    }
 
    setup tempsetup;
 
-   // If we are forcing a split, and an earlier call in the series has responded
-   // to that split by returning an unequivocal splitting axis (indicated by
-   // one field being zero and the other nonzero), we continue to split
-   // along the same axis.
-
-    // We want one field nonzero and the other zero.
+   // We want one field nonzero and the other zero.
 
    if ((qqqq.cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) &&
        !dont_enforce_consistent_split &&
        (saved_result_flags.split_info[0] | saved_result_flags.split_info[1]) != 0 &&
        (saved_result_flags.split_info[0] * saved_result_flags.split_info[1]) == 0) {
       int prefer_1x4;
-      uint32 save_split = qqqq.cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK;
+      uint32_t save_split = qqqq.cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK;
 
       if (saved_result_flags.split_info[0])
          prefer_1x4 = qqqq.rotation & 1;
@@ -1171,7 +1198,8 @@ extern uint32 do_call_in_series(
          fail("Can't figure out how to split multiple part call.");
 
       if (do_simple_split(&qqqq,
-                          prefer_1x4 ? split_command_1x4 : split_command_none,
+                          prefer_1x4 ? split_command_1x4_dmd :
+                          ((qqqq.kind == s3x4) ? split_command_2x3 : split_command_none),
                           &tempsetup))
          fail("Can't figure out how to split this multiple part call.");
 
@@ -1183,39 +1211,36 @@ extern uint32 do_call_in_series(
    if (tempsetup.kind == sfudgy2x6l || tempsetup.kind == sfudgy2x6r) {
       tempsetup.kind = s1p5x8;
    }
-   else if (tempsetup.kind == sfudgy2x3l || tempsetup.kind == sfudgy2x3r) {
-      tempsetup.kind = s1p5x4;
-   }
 
    if (tempsetup.kind == s2x2) {
-      switch (sss->kind) {
-         case s1x4: case sdmd: case s2x2:
+      switch (ss->kind) {
+         case s1x4: case s_star: case sdmd: case s2x2:
             current_elongation = tempsetup.result_flags.misc & 3;
 
             /* If just the ends were doing this, and it had some
                "force_lines" type of directive, honor same. */
 
             if (qqqq.cmd.cmd_misc3_flags & CMD_MISC3__DOING_ENDS) {
-               if (sss->kind == s2x2 &&
+               if (ss->kind == s2x2 &&
                    (qqqq.cmd.cmd_misc_flags &
                     (DFM1_CONC_DEMAND_LINES | DFM1_CONC_DEMAND_COLUMNS))) {
 
                   int i;
-                  uint32 tb = 0;
+                  uint32_t tb = 0;
 
-                  for (i=0; i<4; i++) tb |= sss->people[i].id1;
+                  for (i=0; i<4; i++) tb |= ss->people[i].id1;
                   if ((tb & 011) == 011) fail("Can't figure out where people started.");
 
                   if (qqqq.cmd.cmd_misc_flags & DFM1_CONC_DEMAND_LINES)
                      tb++;
 
-                  if (sss->cmd.prior_elongation_bits & ((tb & 1) + 1))
+                  if (ss->cmd.prior_elongation_bits & ((tb & 1) + 1))
                      fail("Ends aren't starting in required position.");
                }
 
                if (qqqq.cmd.cmd_misc_flags & (DFM1_CONC_FORCE_LINES | DFM1_CONC_FORCE_COLUMNS)) {
                   int i;
-                  uint32 tb = 0;
+                  uint32_t tb = 0;
 
                   for (i=0; i<4; i++) tb |= tempsetup.people[i].id1;
                   if ((tb & 011) == 011) fail("Can't figure out where people finish.");
@@ -1226,12 +1251,12 @@ extern uint32 do_call_in_series(
                   current_elongation = (tb & 1) + 1;
                }
                else if (qqqq.cmd.cmd_misc_flags & (DFM1_CONC_FORCE_OTHERWAY)) {
-                  if ((sss->cmd.prior_elongation_bits+1) & 2)
-                     current_elongation = (sss->cmd.prior_elongation_bits & 3) ^ 3;
+                  if ((ss->cmd.prior_elongation_bits+1) & 2)
+                     current_elongation = (ss->cmd.prior_elongation_bits & 3) ^ 3;
                }
                else if (qqqq.cmd.cmd_misc_flags & (DFM1_CONC_FORCE_SPOTS)) {
-                  if ((sss->cmd.prior_elongation_bits+1) & 2)
-                     current_elongation = sss->cmd.prior_elongation_bits & 3;
+                  if ((ss->cmd.prior_elongation_bits+1) & 2)
+                     current_elongation = ss->cmd.prior_elongation_bits & 3;
                }
 
                retval = qqqq.cmd.cmd_misc_flags;
@@ -1248,11 +1273,11 @@ extern uint32 do_call_in_series(
       }
    }
 
-   uint32 save_expire = sss->cmd.prior_expire_bits;
-   *sss = tempsetup;
-   sss->cmd.prior_expire_bits = save_expire;
-   sss->cmd.cmd_misc_flags = qqqq.cmd.cmd_misc_flags;   // But pick these up from the call.
-   sss->cmd.cmd_misc_flags &= ~CMD_MISC__DISTORTED;     // But not this one!
+   uint32_t save_expire = ss->cmd.prior_expire_bits;
+   *ss = tempsetup;
+   ss->cmd.prior_expire_bits = save_expire;
+   ss->cmd.cmd_misc_flags = qqqq.cmd.cmd_misc_flags;   // But pick these up from the call.
+   ss->cmd.cmd_misc_flags &= ~CMD_MISC__DISTORTED;     // But not this one!
 
    /* Remove outboard phantoms.
       It used to be that normalize_setup was not called
@@ -1280,12 +1305,12 @@ extern uint32 do_call_in_series(
       Only "1x12 matrix" turns on CMD_MISC__EXPLICIT_MATRIX.  Plain "12 matrix will appear
       in the "new_final_concepts" word. */
 
-   if (normalize) normalize_setup(sss, plain_normalize, false);
+   if (normalize) normalize_setup(ss, plain_normalize, qtag_compress);
 
    /* To be safe, we should take away the "did last part" bit for the second call,
       but we are fairly sure it won't be on. */
 
-   sss->cmd.prior_elongation_bits = current_elongation;
+   ss->cmd.prior_elongation_bits = current_elongation;
 
    /* The computation of the new result flags is complex, since we are trying
       to accumulate results over a series of calls.  To that end, the incoming contents
@@ -1316,10 +1341,10 @@ extern uint32 do_call_in_series(
       It follows from this that the correct way to "seed" the result_flags word
       at the start of a series is by initializing it to a huge split_info field. */
 
-   sss->result_flags = saved_result_flags;
+   ss->result_flags = saved_result_flags;
 
-   sss->result_flags.misc &= ~RESULTFLAG__PART_COMPLETION_BITS;
-   sss->result_flags.misc |= tempsetup.result_flags.misc;
+   ss->result_flags.misc &= ~RESULTFLAG__PART_COMPLETION_BITS;
+   ss->result_flags.misc |= tempsetup.result_flags.misc;
 
    // Here is where we implement the policy that the internal boundaries between subcalls
    // are not checked for overcast.  But there is an exception:  If a subcall is marked
@@ -1329,18 +1354,18 @@ extern uint32 do_call_in_series(
    // and is subject to checking.
 
    if (!(qqqq.cmd.cmd_misc3_flags & (CMD_MISC3__ROLL_TRANSP|CMD_MISC3__ROLL_TRANSP_IF_Z)))
-      sss->result_flags.misc |= RESULTFLAG__STOP_OVERCAST_CHECK;
+      ss->result_flags.misc |= RESULTFLAG__STOP_OVERCAST_CHECK;
 
-   sss->result_flags.misc &= ~3;
+   ss->result_flags.misc &= ~3;
 
-   sss->cmd.cmd_heritflags_to_save_from_mxn_expansion = tempsetup.result_flags.res_heritflags_to_save_from_mxn_expansion;
-   sss->result_flags.misc |= current_elongation;
-   sss->result_flags.copy_split_info(tempsetup.result_flags);
+   ss->cmd.cmd_heritflags_to_save_from_mxn_expansion = tempsetup.result_flags.res_heritflags_to_save_from_mxn_expansion;
+   ss->result_flags.misc |= current_elongation;
+   ss->result_flags.copy_split_info(tempsetup.result_flags);
 
-   canonicalize_rotation(sss);
+   canonicalize_rotation(ss);
    // If doing the special counter rotate 3/8 stuff, the result has all the information it needs.
-   if (qqqq.kind != s4x4 || qqqq.eighth_rotation == 0 || sss->kind != s2x4 || sss->eighth_rotation != 0)
-      minimize_splitting_info(sss, saved_result_flags);
+   if (qqqq.kind != s4x4 || qqqq.eighth_rotation == 0 || ss->kind != s2x4 || ss->eighth_rotation != 0)
+      minimize_splitting_info(ss, saved_result_flags);
 
    return retval;
 }
@@ -1361,7 +1386,7 @@ struct matrix_rec {
    int y;              //   position cooresponds to an increase by 4.
    int nicex;          // This person's "nice" coordinates, used for
    int nicey;          //   calculating jay walk legality.
-   uint32 id1;         // The actual person, for error printing.
+   uint32_t id1;       // The actual person, for error printing.
    bool sel;           // True if this person is selected.  (False if selectors not in use.)
    bool done;          // Used for loop control on each pass.
    bool realdone;      // Used for loop control on each pass.
@@ -1376,11 +1401,12 @@ struct matrix_rec {
    int deltay;         //   direction, when call is finally executed.
    int nearestdrag;    // Something having to do with "drag".
    int deltarot;       // How this person will turn.
-   uint32 roll_stability_info; // This person's slide, roll, & stability info, from call def'n.
+   uint32_t roll_stability_info; // This person's slide, roll, & stability info, from call def'n.
    int orig_source_idx;
    matrix_rec *nextse; // Points to next person south (dir even) or east (dir odd.)
    matrix_rec *nextnw; // Points to next person north (dir even) or west (dir odd.)
-   bool far_squeezer;  // This person's pairing is due to being far from someone.
+   bool far_squeezerse;// This person's south/east pairing is due to being far from someone.
+   bool far_squeezernw;// This person's north/west pairing is due to being far from someone.
    bool tbstopse;      // True if nextse/nextnw is zero because the next spot
    bool tbstopnw;      //   is occupied by a T-boned person (as opposed to being empty.)
 };
@@ -1413,11 +1439,11 @@ enum { matrix_info_capacity = MAX_PEOPLE };
 static int start_matrix_call(
    const setup *ss,
    matrix_rec matrix_info[],
+   calldef_schema the_schema,
    int base,
-   uint32 flags,
+   uint32_t flags,
    setup *people)
 {
-   int i;
    int nump = base;
 
    if (base == 0) {
@@ -1427,6 +1453,10 @@ static int start_matrix_call(
 
    const coordrec *nicethingyptr = setup_attrs[ss->kind].nice_setup_coords;
    const coordrec *thingyptr = setup_attrs[ss->kind].setup_coords;
+
+   if (the_schema == schema_counter_rotate) {
+      thingyptr = nicethingyptr;
+   }
 
    if (flags & (MTX_FIND_SQUEEZERS|MTX_FIND_SPREADERS)) {
       thingyptr = nicethingyptr;
@@ -1443,22 +1473,27 @@ static int start_matrix_call(
    if (!thingyptr || !nicethingyptr || attr::slimit(ss) < 0)
       fail("Can't do this in this setup.");
 
-   for (i=0; i<=attr::slimit(ss); i++) {
-      if (ss->people[i].id1 || (flags & MTX_INCLUDE_PHANTOMS)) {
-         if (nump == matrix_info_capacity) fail("?????too many people????");
-         copy_person(people, nump, ss, i);
+   int why_cant_the_microsoft_compiler_handle_a_simple_integer_variable;
 
-         matrix_info[nump].nicex = nicethingyptr->xca[i];
-         matrix_info[nump].nicey = nicethingyptr->yca[i];
-         matrix_info[nump].x = thingyptr->xca[i];
-         matrix_info[nump].y = thingyptr->yca[i];
+   for (why_cant_the_microsoft_compiler_handle_a_simple_integer_variable=0;
+        why_cant_the_microsoft_compiler_handle_a_simple_integer_variable<=attr::slimit(ss);
+        why_cant_the_microsoft_compiler_handle_a_simple_integer_variable++) {
+      if (ss->people[why_cant_the_microsoft_compiler_handle_a_simple_integer_variable].id1 ||
+          (flags & MTX_INCLUDE_PHANTOMS)) {
+         if (nump == matrix_info_capacity) fail("?????too many people????");
+         copy_person(people, nump, ss, why_cant_the_microsoft_compiler_handle_a_simple_integer_variable);
+
+         matrix_info[nump].nicex = nicethingyptr->xca[why_cant_the_microsoft_compiler_handle_a_simple_integer_variable];
+         matrix_info[nump].nicey = nicethingyptr->yca[why_cant_the_microsoft_compiler_handle_a_simple_integer_variable];
+         matrix_info[nump].x = thingyptr->xca[why_cant_the_microsoft_compiler_handle_a_simple_integer_variable];
+         matrix_info[nump].y = thingyptr->yca[why_cant_the_microsoft_compiler_handle_a_simple_integer_variable];
 
          matrix_info[nump].done = false;
          matrix_info[nump].realdone = false;
          matrix_info[nump].mirror_this_op = false;
 
-         if (flags & MTX_USE_SELECTOR)
-            matrix_info[nump].sel = selectp(ss, i);
+         if (flags & (MTX_USE_SELECTOR | MTX_SELECTOR_IS_TRAILERS))
+            matrix_info[nump].sel = selectp(ss, why_cant_the_microsoft_compiler_handle_a_simple_integer_variable);
          else
             matrix_info[nump].sel = false;
 
@@ -1466,13 +1501,13 @@ static int start_matrix_call(
          matrix_info[nump].dir = people->people[nump].id1 & 3;
 
          if (flags & MTX_USE_VEER_DATA) {
-            uint32 rollbits = people->people[nump].id1 & ROLL_DIRMASK;
+            uint32_t rollbits = people->people[nump].id1 & ROLL_DIRMASK;
             matrix_info[nump].girlbit = (rollbits == ROLL_IS_L) ? 1 : 0;
             matrix_info[nump].boybit = (rollbits == ROLL_IS_R) ? 1 : 0;
          }
          else {
-            matrix_info[nump].girlbit = (people->people[nump].id3 & ID3_PERM_GIRL) ? 1 : 0;
-            matrix_info[nump].boybit = (people->people[nump].id3 & ID3_PERM_BOY) ? 1 : 0;
+            matrix_info[nump].girlbit = (people->people[nump].id2 & ID2_PERM_GIRL) ? 1 : 0;
+            matrix_info[nump].boybit = (people->people[nump].id2 & ID2_PERM_BOY) ? 1 : 0;
          }
 
          matrix_info[nump].nextse = 0;
@@ -1485,10 +1520,11 @@ static int start_matrix_call(
          // "Z" is set with "stb_none" and "REV".
          matrix_info[nump].roll_stability_info =
             (DBSLIDEROLL_BIT * 3) | ((STB_NONE|STB_REVERSE) * DBSTAB_BIT);
-         matrix_info[nump].orig_source_idx = i;
+         matrix_info[nump].orig_source_idx = why_cant_the_microsoft_compiler_handle_a_simple_integer_variable;
          matrix_info[nump].tbstopse = false;
          matrix_info[nump].tbstopnw = false;
-         matrix_info[nump].far_squeezer = false;
+         matrix_info[nump].far_squeezerse = false;
+         matrix_info[nump].far_squeezernw = false;
 
          for (int i = 0 ; i < NUMBER_OF_JAYWALK_CANDIDATES ; i++) {
             matrix_info[nump].jpersons[i].jp = -1;
@@ -1504,14 +1540,15 @@ static int start_matrix_call(
 
 
 struct checkitem {
-   uint32 ypar;
-   uint32 sigcheck;
+   uint32_t ypar;
+   uint32_t sigcheck;
    setup_kind new_setup;
-   uint32 mask;
-   uint32 new_rot;     // 0x100 bit means this fudging is severe.
+   // 0x100 bit means this fudging is severe; give error in some cases.
+   // 0x200 bit means this requires a special correction list.
+   uint32_t new_rot;
    warning_index warning;
    const coordrec *new_checkptr;
-   const veryshort *correction_list;
+   const int8_t *correction_list;
 };
 
 
@@ -1608,89 +1645,69 @@ static const coordrec truck_to_deepxwv = {sdeepxwv, 0x24,
       -1, -1, -1, -1, -1, -1, -1,  4,  9, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1,  5,  8, -1, -1, -1, -1, -1, -1, -1}};
 
-static const coordrec press_4dmd_4x4 = {s4x4, 0x23,
+static const coordrec squeeze_4x4_rig = {s_rigger, 0x123,
+   { -2,   2,   7,   5,   2,  -2,  -7,  -5},
+   {  2,   2,   0,   0,  -2,  -2,   0,   0}};
+
+static const coordrec squeeze_4x4_bone = {s_bone, 0x123,
+   { -6,   6,   3,   1,   6,  -6,  -3, -1},
+   {  2,   2,   0,   0,  -2,  -2,  0,  0}};
+
+static const coordrec squeeze_bone_4x4 = {s4x4, 0x123,
+   {  6,  10,  10,   2,   6,   4,  -4,   2,  -6, -10, -10,  -2,  -6,  -4,   4,  -2},
+   {  6,   2,  -2,   2,  -6,  -6,  -6,  -2,  -6,  -2,   2,  -2,   6,   6,   6,   2}};
+
+static const coordrec squeeze_1x8_deepxwv = {sdeepxwv, 0x124,
+   {-14, -10,  -4,  -2,  -2,  -4,  14,  10,   4,   2,   2,   4},
+   {  0,   0,   6,   2,  -2,  -6,   0,   0,  -6,  -2,   2,   6}};
+
+static const coordrec squeeze_rig_4x4 = {s4x4, 0x123,
+   {  8,   6,   6,   2,   8,   2,  -2,   2,  -8,  -6,  -6,  -2,  -8,  -2,   2,  -2},
+   {  6,   2,  -2,   2,  -6,  -6,  -6,  -2,  -6,  -2,   2,  -2,   6,   6,   6,   2}};
+
+static const coordrec squeeze_bigh_1x8 = {s1x8, 0x123,
+   {-10,  -8,  -2,  -6,  10,   8,   2,   6},
+   {  0,   0,   0,   0,   0,   0,   0,   0}};
+
+static const coordrec squeeze_deepxwv_1x8 = {s1x8, 0x123,
+   {-10,  -6,  -1,  -3,  10,   6,   1,   3},
+   {  0,   0,   0,   0,   0,   0,   0,   0}};
+
+static const coordrec squeeze_1x8_bigh = {sbigh, 0x123,
+   {-12,  -9,  -9, -12,  -6,  -2,  12,   9,   9,  12,   6,   2},
+   {  6,   2,  -2,  -6,   0,   0,  -6,  -2,   2,   6,   0,   0}};
+
+static const coordrec press_4dmd_4x4 = {s4x4, 0x123,
    { 11,   9,   9,   1,  11,   5,  -5,   1, -11,  -9,  -9,  -1, -11,  -5,   5,  -1},
-   {  7,   1,  -1,   1,  -7,  -7,  -7,  -1,  -7,  -1,   1,  -1,   7,   7,   7,   1}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, 12, 13, -1, -1, 14,  0, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1,  8,  6, -1, -1,  5,  4, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  7,   1,  -1,   1,  -7,  -7,  -7,  -1,  -7,  -1,   1,  -1,   7,   7,   7,   1}};
 
-static const coordrec press_4dmd_qtag1 = {s_qtag, 0x23,
+static const coordrec press_4dmd_qtag1 = {s_qtag, 0x123,
    { -7,  -1,   6,   2,   7,   1,  -6,  -2},
-   {  5,   5,   0,   0,  -5,  -5,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  0,  1, -1, -1, -1, -1,
-      -1, -1,  6,  7,  3,  2, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1,  5,  4, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  5,   5,   0,   0,  -5,  -5,   0,   0}};
 
-static const coordrec press_4dmd_qtag2 = {s_qtag, 0x23,
+static const coordrec press_4dmd_qtag2 = {s_qtag, 0x123,
    {  1,   7,   6,   2,  -1,   -7,  -6,  -2},
-   {  5,   5,   0,   0,  -5,  -5,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1,  0,  1, -1, -1,
-      -1, -1,  6,  7,  3,  2, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  5,  4, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  5,   5,   0,   0,  -5,  -5,   0,   0}};
 
-static const coordrec acc_crosswave = {s_crosswave, 0x23,
+static const coordrec acc_crosswave = {s_crosswave, 0x123,
    { -8,  -4,   0,   0,   8,   4,   0,   0},
-   {  0,   0,   6,   2,   0,   0,  -6,  -2}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1,  2, -1, -1, -1,
-      -1, -1,  0,  1,  3,  5,  4, -1,
-      -1, -1, -1, -1,  7, -1, -1, -1,
-      -1, -1, -1, -1,  6, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  0,   0,   6,   2,   0,   0,  -6,  -2}};
 
-static const coordrec s3dmdtoqtg0 = {s_qtag, 0x23,
+static const coordrec trucked_crosswave = {s_crosswave, 0x123,
+   { -9,  -5,   0,   0,   9,   5,   0,   0},
+   {  0,   0,   6,   2,   0,   0,  -6,  -2}};
+
+static const coordrec s3dmdtoqtg0 = {s_qtag, 0x123,
    { -5,   5,   6,   2,   5,  -5,  -6,  -2},
-   {  5,   5,   0,   0,  -5,  -5,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  0, -1, -1,  1, -1, -1,
-      -1, -1,  6,  7,  3,  2, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  5, -1, -1,  4, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  5,   5,   0,   0,  -5,  -5,   0,   0}};
 
-static const coordrec s3dmdtoqtg1 = {s_qtag, 0x23,
+static const coordrec s3dmdtoqtg1 = {s_qtag, 0x123,
    { -2,   5,   6,   2,   2,  -5,  -6,  -2},
-   {  5,   5,   0,   0,  -5,  -5,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  0, -1,  1, -1, -1,
-      -1, -1,  6,  7,  3,  2, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  5, -1,  4, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  5,   5,   0,   0,  -5,  -5,   0,   0}};
 
-static const coordrec s3dmdtoqtg2 = {s_qtag, 0x23,
+static const coordrec s3dmdtoqtg2 = {s_qtag, 0x123,
    { -5,   2,   6,   2,   5,  -2,  -6,  -2},
-   {  5,   5,   0,   0,  -5,  -5,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  0, -1,  1, -1, -1, -1,
-      -1, -1,  6,  7,  3,  2, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  5, -1,  4, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  5,   5,   0,   0,  -5,  -5,   0,   0}};
 
 static const coordrec alamoto2x4 = {s2x4, 0x23,
    { -5,  -2,   2,   5,   5,   2,  -2,  -5},
@@ -1704,45 +1721,13 @@ static const coordrec alamoto2x4 = {s2x4, 0x23,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1}};
 
-static const coordrec promtoc1phan1 = {s_c1phan, 0x23,
+static const coordrec promtoc1phan1 = {s_c1phan, 0x123,
    { -9,  -2,  -5,  -2,   2,   9,   2,   5,   9,   2,   5,   2,  -2,  -9,  -2, -5},
-   {  2,   9,   2,   5,   9,   2,   5,   2,  -2,  -9,  -2,  -5,  -9,  -2,  -5,  -2}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  1,  4, -1, -1, -1,
-      -1, -1, -1,  3,  6, -1, -1, -1,
-      -1,  0,  2, -1, -1,  7,  5, -1,
-      -1, 13, 15, -1, -1, 10,  8, -1,
-      -1, -1, -1, 14, 11, -1, -1, -1,
-      -1, -1, -1, 12,  9, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  2,   9,   2,   5,   9,   2,   5,   2,  -2,  -9,  -2,  -5,  -9,  -2,  -5,  -2}};
 
-// These two have slightly different pictures because of an unavoidable conflict
-// due to the way picture indices are computed from the coordinates.
-// This one is use for a right-hand promenade.
-static const coordrec promtoc1phan2e = {s_c1phan, 0x23,
+static const coordrec promtoc1phan2 = {s_c1phan, 0x123,
    { -9,  -4,  -5,  -4,   4,   9,   4,   5,   9,   4,   5,   4,  -4,  -9,  -4,  -5},
-   {  4,   9,   4,   5,   9,   4,   5,   4,  -4,  -9,  -4,  -5,  -9,  -4,  -5,  -4}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  1, -1,  4, -1, -1,
-      -1,  0,  2,  3, -1,  6,  5, -1,
-      -1, -1, -1, -1, -1,  7, -1, -1,
-      -1, 13, 15, -1, -1, 10,  8, -1,
-      -1, -1, -1, 14, 11, -1, -1, -1,
-      -1, -1, -1, 12,  9, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
-
-// This one is use for a left-hand promenade.
-static const coordrec promtoc1phan2o = {s_c1phan, 0x23,
-   { -9,  -4,  -5,  -4,   4,   9,   4,   5,   9,   4,   5,   4,  -4,  -9,  -4,  -5},
-   {  4,   9,   4,   5,   9,   4,   5,   4,  -4,  -9,  -4,  -5,  -9,  -4,  -5,  -4}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  1, -1,  4, -1, -1,
-      -1,  0,  2,  3, -1,  7,  5, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, 13, 15, -1, -1, 10,  8, -1,
-      -1, -1, -1, 14, -1, 11, -1, -1,
-      -1, -1, -1, 12, -1,  9, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  4,   9,   4,   5,   9,   4,   5,   4,  -4,  -9,  -4,  -5,  -9,  -4,  -5,  -4}};
 
 static const coordrec s1x6toshort6 = {s_galaxy, 0x23,
    { -6,  -2,   0,   2,   6,   2,   0,  -2},
@@ -1756,7 +1741,7 @@ static const coordrec s1x6toshort6 = {s_galaxy, 0x23,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1}};
 
-// Magnification turned on.       That's what   V   this "1" is about.
+// Magnification turned on.      That's what   V   this "1" is about.
 static const coordrec x343togal = {s_galaxy, 0x13,
    { -6,  -4,   0,   4,   6,   4,   0,  -4},
    {  0,   2,   6,   2,   0,  -2,  -6,  -2}, {
@@ -1805,7 +1790,7 @@ static const coordrec s4x4toqtg = {s_qtag, 0x23,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1}};
 
-static const coordrec deepxwvtoxwv = {s_crosswave, 0x23,
+static const coordrec fudgyxwvthing = {s_crosswave, 0x23,
    {-10,  -6,   0,   0,  10,   6,   0,   0},
    {  0,   0,   6,   2,   0,   0,  -6,  -2}, {
       -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1890,71 +1875,37 @@ static const coordrec qtagto3x4 = {s3x4, 0x23,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1}};
 
-static const coordrec qtagto3x4a = {s3x4, 0x23,
+static const coordrec qtagto3x4a = {s3x4, 0x123,
    { -8,  -4,   5,   9,   6,   2,   8,   4,  -5,  -9,  -6,  -2},
-   {  5,   5,   5,   5,   0,   0,  -5,  -5,  -5,  -5,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1,  0,  1, -1,  2,  3, -1,
-      -1, -1, 10, 11,  5,  4, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1,  9,  8, -1, -1,  7,  6, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
-static const veryshort qtagto3x4correction[] =
+   {  5,   5,   5,   5,   0,   0,  -5,  -5,  -5,  -5,   0,   0}};
+
+static const int8_t qtagto3x4correction[] =
 {4, 5, 9, 5,     -4, -5, -9, -5,    -3, 5, -9, 5,    3, -5, 9, -5,
  6, -4, 9, -5,   -6, 4, -9, 5,      6, 4, 9, 5,      -6, -4, -9, -5, 127};
 
-static const coordrec qtagto4x5 = {s4x5, 0x23,
-   { -9,  -4,   0,   4,   9,   8,   5,   0,  -5,  -8,   9,   4,   0,  -4,  -9,  -9,  -5,   0,   5,   8},
-   {  9,   9,   6,   9,   9,   2,   4,   2,   5,   2,  -9,  -9,  -6,  -9,  -9,  -2,  -4,  -2,  -5,  -2}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1,  0, -1,  1, -1,  3,  4, -1,
-      -1, -1,  8, -1,  2,  6, -1, -1,
-      -1, -1,  9, -1,  7, -1,  5, -1,
-      -1, 15, 16, -1, 17, -1, 19, -1,
-      -1, -1, -1, -1, 12, 18, -1, -1,
-      -1, 14, -1, 13, -1, 11, 10, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
-static const veryshort qtagto4x5correction[] =
-{-2, 8, -2, 9,    6, 8, 9, 9,    6, -8, 9, -9,    -6, 8, -9, 9,    -6, -8, -9, -9,    127};
+static const int8_t s3x6correction[] =
+{2, 5, 2, 4,     -2, 5, -2, 4,      2, -5, 2, -4,    -2, -5, -2, -4, 127};
 
-static const coordrec bonetobigh = {sbigh, 0x23,
+static const coordrec qtagto4x5 = {s4x5, 0x123,
+   { -8,  -4,   0,   4,   8,   8,   5,   0,  -5,  -8,   8,   4,   0,  -4,  -8,  -8,  -5,   0,   5,   8},
+   {  6,   9,   6,   9,   6,   2,   4,   2,   5,   2,  -6,  -9,  -6,  -9,  -6,  -2,  -4,  -2,  -5,  -2}};
+
+static const coordrec galtodeep2x1 = {sdeep2x1dmd, 0x123,
+   { -7,  -2,   0,   2,   7,   7,   2,   0,  -2,  -7},
+   {  2,   2,   7,   2,   2,  -2,  -2,  -7,  -2,  -2}};
+
+static const coordrec bonetobigh = {sbigh, 0x123,
    {-10, -10, -10, -10,  -6,  -2,  10,  10,  10,  10,   6,   2},
-   {  6,   2,  -2,  -6,   0,   0,  -6,  -2,   2,   6,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1,  0, -1, -1, -1, -1,  9, -1,
-      -1,  1,  4,  5, 11, 10,  8, -1,
-      -1,  2, -1, -1, -1, -1,  7, -1,
-      -1,  3, -1, -1, -1, -1,  6, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  6,   2,  -2,  -6,   0,   0,  -6,  -2,   2,   6,   0,   0}};
 
-static const coordrec spinto343 = {s_343, 0x23,
+static const coordrec spinto343 = {s_343, 0x123,
    { -4,   0,   4,   8,   2,   4,   0,  -4,  -8,  -2},
-   {  6,   6,   6,   0,   0,  -6,  -6,  -6,   0,   0}, {
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  0,  1,  2, -1, -1,
-      -1, -1,  8,  9,  4, -1,  3, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  7,  6,  5, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  6,   6,   6,   0,   0,  -6,  -6,  -6,   0,   0}};
 
-// Magnification turned on.  That's what   V   this "1" is about.
-static const coordrec galto343 = {s_343, 0x13,
+// Magnification turned on.  That's what    V   this "1" is about.
+static const coordrec galto343 = {s_343, 0x113,
    { -2,   0,   2,   6,   2,   2,   0,  -2,  -6,  -2},
-   {  6,   6,   6,   0,   0,  -6,  -6,  -6,   0,   0}, {
-      -1, -1, -1,  0,  1,  2, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1,  8, -1,  9, -1,  4, -1,  3,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1,  7,  6,  5, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1}};
+   {  6,   6,   6,   0,   0,  -6,  -6,  -6,   0,   0}};
 
 static const coordrec x343toglass = {s_hrglass, 0x23,
    { -4,   4,   6,   0,   4,  -4,  -6,   0},
@@ -1968,19 +1919,30 @@ static const coordrec x343toglass = {s_hrglass, 0x23,
       -1, -1, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1}};
 
-static const coordrec x1x8tox1x8 = {sx1x8, 0x23,
-   {-14, -10,  -6,  -2,   0,   0,   0,   0,  14,  10,   6,   6,   0,   0,   0,   0},
-   {  0,   0,   0,   0,  14,  10,   6,   2,   0,   0,   0,   4, -14, -10,  -6,  -2}, {
-      -1, -1, -1, -1,  4, -1, -1, -1,
-      -1, -1, -1, -1,  5, -1, -1, -1,
-      -1, -1, -1, -1,  6, 11, -1, -1,
-       0,  1,  2,  3,  7, 10,  9,  8,
-      -1, -1, -1, -1, 15, -1, -1, -1,
-      -1, -1, -1, -1, 14, -1, -1, -1,
-      -1, -1, -1, -1, 13, -1, -1, -1,
-      -1, -1, -1, -1, 12, -1, -1, -1}};
-static const veryshort sx1x8correction[] =
-{2, 0, 6, 4, 127};
+
+static const coordrec x1x4thing = {s_thar, 0x123,  // Of course there's no such thing as a sx1x4.  It's a thar.
+   { -6,  -2,   0,   0,   6,   2,   0,   0},
+   {  0,   0,   6,   2,   0,   0,  -6,  -2}};
+
+static const coordrec x1x6thing = {sx1x6, 0x123,
+   {-10,  -6,  -2,   0,   0,   0,  10,   6,   2,   0,   0,   0},
+   {  0,   0,   0,  10,   6,   2,   0,   0,   0, -10,  -6,  -2}};
+
+static const coordrec x1x8thing = {sx1x8, 0x123,
+   {-14, -10,  -6,  -2,   0,   0,   0,   0,  14,  10,   6,   2,   0,   0,   0,   0},
+   {  0,   0,   0,   0,  14,  10,   6,   2,   0,   0,   0,   0, -14, -10,  -6,  -2}};
+
+static const coordrec x1x4_1x6 = {s1x4_1x6, 0x123,
+   {-10,  -6,  -2,   0,   0,  10,   6,   2,   0,   0},
+   {  0,   0,   0,   6,   2,   0,   0,   0,  -6,  -2}};
+
+static const coordrec x1x4_1x8 = {s1x4_1x8, 0x123,
+   {-14, -10,  -6,  -2,   0,   0,  14,  10,   6,   2,   0,   0},
+   {  0,   0,   0,   0,   6,   2,   0,   0,   0,   0,  -6,  -2}};
+
+static const coordrec x1x6_1x8 = {s1x6_1x8, 0x123,
+   {-14, -10,  -6,  -2,   0,   0,   0,  14,  10,   6,   2,   0,   0,   0},
+   {  0,   0,   0,   0,  10,   6,   2,   0,   0,   0,   0, -10,  -6,  -2}};
 
 // Magnification turned on.          That's what   V   this "1" is about.
 static const coordrec galtospindle = {s_spindle, 0x13,
@@ -2016,382 +1978,571 @@ static const coordrec tolinefbox = {slinefbox, 0x24,
       -1, -1, -1, -1, -1, -1, -1, -1, -1,  7, -1, -1, -1, -1, -1, -1,
       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-static const veryshort s1x6correction_a[] =
+static const int8_t s1x6correction_a[] =
     {-9, 0, -10, 0, 9, 0, 10, 0, -5, 0, -6, 0, 5, 0, 6, 0, 127};
-static const veryshort s1x6correction_b[] =
+static const int8_t s1x6correction_b[] =
    {0, -9, 0, -10, 0, 9, 0, 10, 0, -5, 0, -6, 0, 5, 0, 6, 127};
 
 static const checkitem checktable[] = {
-   {0x00620046, 0x10808404, s_3223,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60026, 0x08080104, s_nxtrglcw,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60026, 0x0C008002, s_nxtrglccw, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00630095, 0x00840050, spgdmdcw,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00630095, 0x10800A00, spgdmdccw, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20026, 0x08008404, s_rigger, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00770077, 0x00418004, s_galaxy, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00220026, 0x01008004, s_trngl, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440026, 0x04020101, s_trngl4, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620046, 0x10808404, s_3223, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60026, 0x08080104, s_nxtrglcw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60026, 0x0C008002, s_nxtrglccw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00630095, 0x00840050, spgdmdcw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00630095, 0x10800A00, spgdmdccw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20026, 0x08008404, s_rigger, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x002600A2, 0x0800C004, s_rigger, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00770077, 0x00418004, s_galaxy, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    // Fudge this to a galaxy.  The center 2 did a squeeze or spread from a spindle.
-   {0x00840066, 0x0C000108, nothing, UINT32_C(~0), 0, warn__check_galaxy, &spec_spin_gal, (const veryshort *) 0},
+   {0x00840066, 0x0C000108, nothing, 0, warn__check_galaxy, &spec_spin_gal, (const int8_t *) 0},
 
    // Fudge this to quadruple diamonds.  Someone trucked out from a wqtag.
-   {0x00E70055, 0x0900A422, nothing, UINT32_C(~0), 0, warn__none, &spec_wqt_4dmd, (const veryshort *) 0},
+   {0x00E70055, 0x0900A422, nothing, 0, warn__none, &spec_wqt_4dmd, (const int8_t *) 0},
 
    // Centers did a 1/2 truck from point-to-point diamonds.  Fudge to a 3x6.
-   {0x00930044, 0x21018800, nothing, UINT32_C(0722722), 0, warn__none, &ptpto3x6, (const veryshort *) 0},
+   {0x00930044, 0x21018800, nothing, 0, warn__none, &ptpto3x6, (const int8_t *) 0},
    // Centers did a 1/2 truck from a 3x6.  Fudge to point-to-point diamonds.
-   {0x00A20026, 0x09080002, nothing, UINT32_C(~0), 0, warn__none, &x3x6toptp, (const veryshort *) 0},
+   {0x00A20026, 0x09080002, nothing, 0, warn__none, &x3x6toptp, (const int8_t *) 0},
+
+   // Generous/stingy squeeze from a 4x4 to a rigger.
+   {0x00730026, 0x20408004, s_rigger, 0, warn__none, &squeeze_4x4_rig, (const int8_t *) 0},
+   {0x00260073, 0x00018084, s_rigger, 1, warn__none, &squeeze_4x4_rig, (const int8_t *) 0},
+   // Or to a bone.
+   {0x00630026, 0x00081022, nothing, 0, warn__none, &squeeze_4x4_bone, (const int8_t *) 0},
+   {0x00260063, 0x30100000, nothing, 1, warn__none, &squeeze_4x4_bone, (const int8_t *) 0},
+   // Generous/stingy squeeze from a rigger to a 4x4.
+   {0x00860062, 0x40008084, nothing, 0, warn__none, &squeeze_rig_4x4, (const int8_t *) 0},
+   // Or from a bone.
+   {0x00A60062, 0x00242020, nothing, 0, warn__none, &squeeze_bone_4x4, (const int8_t *) 0},
+   // Generous/stingy squeeze from a 1x8 to a sdeepxwv or back again.
+   {0x00E60066, 0x08202000, nothing, 0, warn__none, &squeeze_1x8_deepxwv, (const int8_t *) 0},
+   {0x00A30004, 0x08001420, nothing, 0, warn__none, &squeeze_deepxwv_1x8, (const int8_t *) 0},
+   // Generous/stingy squeeze from a 1x8 to a sbigh or back again.
+   {0x00C60066, 0x01010400, nothing, 0, warn__none, &squeeze_1x8_bigh, (const int8_t *) 0},
+   {0x00A60004, 0x09000408, nothing, 0, warn__none, &squeeze_bigh_1x8, (const int8_t *) 0},
 
    // The points did a 1/2 press ahead from triple diamonds.  Fudge to a qtag.
-   {0x00630055, 0x01400420, nothing, UINT32_C(~0), 0, warn__none, &s3dmdtoqtg0, (const veryshort *) 0},
-   {0x00630055, 0x01020420, nothing, UINT32_C(~0), 0, warn__none, &s3dmdtoqtg1, (const veryshort *) 0},
-   {0x00630055, 0x01420401, nothing, UINT32_C(~0), 0, warn__none, &s3dmdtoqtg2, (const veryshort *) 0},
+   {0x00630055, 0x01400420, nothing, 0, warn__none, &s3dmdtoqtg0, (const int8_t *) 0},
+   {0x00630055, 0x01020420, nothing, 0, warn__none, &s3dmdtoqtg1, (const int8_t *) 0},
+   {0x00630055, 0x01420401, nothing, 0, warn__none, &s3dmdtoqtg2, (const int8_t *) 0},
 
    // People pressed ahead from an alamo ring.  Fudge to 2x4.
-   {0x00530023, 0x00102090, nothing, UINT32_C(~0), 0, warn__none, &alamoto2x4, (const veryshort *) 0},
-   {0x00230053, 0x00220009, nothing, UINT32_C(~0), 1, warn__none, &alamoto2x4, (const veryshort *) 0},
+   {0x00530023, 0x00102090, nothing, 0, warn__none, &alamoto2x4, (const int8_t *) 0},
+   {0x00230053, 0x00220009, nothing, 1, warn__none, &alamoto2x4, (const int8_t *) 0},
 
    // 1/2 press ahead from star promenade.
-   {0x00930093, 0x411600C1, nothing, UINT32_C(~0), 0, warn__check_c1_phan, &promtoc1phan1, (const veryshort *) 0},
-
-   // Full press ahead from RH star promenade.  Goes to same setup as 1/2 press ahead.
-   // These two need to be separate because of picture collision.
-   {0x00950095, 0x11000800, nothing, UINT32_C(~0), 0, warn__check_c1_phan, &promtoc1phan2e, (const veryshort *) 0},
-   // As above, LH.
-   {0x00950095, 0x00810404, nothing, UINT32_C(~0), 0, warn__check_c1_phan, &promtoc1phan2o, (const veryshort *) 0},
+   {0x00930093, 0x411600C1, nothing, 0, warn__check_c1_phan, &promtoc1phan1, (const int8_t *) 0},
+   // Full press ahead from star promenade.  Goes to same setup as 1/2 press ahead.
+   {0x00950095, 0x11000800, nothing, 0, warn__check_c1_phan, &promtoc1phan2, (const int8_t *) 0},
+   {0x00950095, 0x00810404, nothing, 0, warn__check_c1_phan, &promtoc1phan2, (const int8_t *) 0},
 
    // Next 3 items: fudge to a galaxy.  The points got here by pressing and trucking.
    // Don't need to tell them to check a galaxy -- it's pretty obvious.
-   {0x00660066, 0x08008404, nothing, UINT32_C(~0), 0, warn__none, &s1x6toshort6, (const veryshort *) 0},
-   {0x00660077, 0x00018404, nothing, UINT32_C(~0), 0, warn__none, &deep2x1togal, (const veryshort *) 0},
-   {0x00660066, 0x0C000500, nothing, UINT32_C(~0), 0, warn__none, &x343togal, (const veryshort *) 0},
+   {0x00660066, 0x08008404, nothing, 0, warn__none, &s1x6toshort6, (const int8_t *) 0},
+   {0x00660077, 0x00018404, nothing, 0, warn__none, &deep2x1togal, (const int8_t *) 0},
+   {0x00660066, 0x0C000500, nothing, 0, warn__none, &x343togal, (const int8_t *) 0},
 
    // Next 2 items: the trailing points pressed ahead from quadruple diamonds,
    // so that only the centers 2 diamonds are now occupied.  Fudge to diamonds.
-   {0x00730055, 0x01008420, nothing, UINT32_C(~0), 0, warn__check_dmd_qtag, &press_4dmd_qtag1, (const veryshort *) 0},
-   {0x00710051, 0x01008420, nothing, UINT32_C(~0), 0, warn__check_dmd_qtag, &press_4dmd_qtag1, (const veryshort *) 0},
+   {0x00730055, 0x01008420, nothing, 0, warn__check_dmd_qtag, &press_4dmd_qtag1, (const int8_t *) 0},
+   {0x00710051, 0x01008420, nothing, 0, warn__check_dmd_qtag, &press_4dmd_qtag1, (const int8_t *) 0},
    // Next 2 items: same, other way.
-   {0x00730055, 0x21080400, nothing, UINT32_C(~0), 0, warn__check_dmd_qtag, &press_4dmd_qtag2, (const veryshort *) 0},
-   {0x00710051, 0x21080400, nothing, UINT32_C(~0), 0, warn__check_dmd_qtag, &press_4dmd_qtag2, (const veryshort *) 0},
+   {0x00730055, 0x21080400, nothing, 0, warn__check_dmd_qtag, &press_4dmd_qtag2, (const int8_t *) 0},
+   {0x00710051, 0x21080400, nothing, 0, warn__check_dmd_qtag, &press_4dmd_qtag2, (const int8_t *) 0},
 
    // This must precede the "squeezefinalglass" stuff.
-   {0x00620026, 0x01080002, s_bone6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00620026, 0x01080002, s_bone6, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00260062, 0x10100200, s_bone6, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // People 1/2 pressed ahead from quadruple 3/4 tags.  Fudge to a 4x4.
-   {0x00B10071, 0x01806000, nothing, UINT32_C(~0), 0, warn__none, &press_4dmd_4x4, (const veryshort *) 0},
+   {0x00B10071, 0x01806000, nothing, 0, warn__none, &press_4dmd_4x4, (const int8_t *) 0},
 
    // Next 2 items: six people did a squeeze from a galaxy.  Fudge to an hourglass.
-   {0x00260062, 0x10100600, nothing, UINT32_C(~0), 0, warn__none, &squeezefinalglass, (const veryshort *) 0},
-   {0x00660066, 0x10100600, nothing, UINT32_C(~0), 0, warn__none, &squeezefinalglass, (const veryshort *) 0},
+   {0x00260062, 0x10100600, nothing, 0, warn__none, &squeezefinalglass, (const int8_t *) 0},
+   {0x00660066, 0x10100600, nothing, 0, warn__none, &squeezefinalglass, (const int8_t *) 0},
    // Next 2 items: same, other way.
-   {0x00620026, 0x09080002, nothing, UINT32_C(~0), 1, warn__none, &squeezefinalglass, (const veryshort *) 0},
-   {0x00660066, 0x09080002, nothing, UINT32_C(~0), 1, warn__none, &squeezefinalglass, (const veryshort *) 0},
+   {0x00620026, 0x09080002, nothing, 1, warn__none, &squeezefinalglass, (const int8_t *) 0},
+   {0x00660066, 0x09080002, nothing, 1, warn__none, &squeezefinalglass, (const int8_t *) 0},
 
    // Some points did a squeeze from a galaxy.  Fudge to a spindle.
-   {0x00660026, 0x00008604, nothing, UINT32_C(~0), 0, warn__none, &galtospindle, (const veryshort *) 0},
+   {0x00660026, 0x00008604, nothing, 0, warn__none, &galtospindle, (const int8_t *) 0},
    // Same, on other orientation.
-   {0x00260066, 0x09008004, nothing, UINT32_C(~0), 1, warn__none, &galtospindle, (const veryshort *) 0},
+   {0x00260066, 0x09008004, nothing, 1, warn__none, &galtospindle, (const int8_t *) 0},
 
-   {0x01150026, 0x20048202, s1x4dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00D50026, 0x22009022, splinepdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60055, 0x09000400, splinedmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00670046, 0x109408C1, slinedmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00660062, 0x1810C244, slinepdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00460086, 0x00242861, sdmdpdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00660095, 0x40050031, s_trngl8,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x01150026, 0x20048202, s1x4dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00D50026, 0x22009022, splinepdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60055, 0x09000400, splinedmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00670046, 0x109408C1, slinedmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660062, 0x1810C244, slinepdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00460086, 0x00242861, sdmdpdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660095, 0x40050031, s_trngl8, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00950062, 0x091002C0, sbigdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00550062, 0x091002C0, sbigdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00910022, 0x091002C0, sbigdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00620055, 0x01020401, sbigdmd, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00950062, 0x091002C0, sbigdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550062, 0x091002C0, sbigdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00910022, 0x091002C0, sbigdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620055, 0x01020401, sbigdmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00950095, 0x22008080, s_thar, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00530053, 0x00120081, s_alamo, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00950095, 0x22008080, s_thar, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00530053, 0x00120081, s_alamo, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // This is a "crosswave" on precise matrix spots.
-   {0x00660084, 0x01040420, nothing, UINT32_C(~0), 1, warn__none, &acc_crosswave, (const veryshort *) 0},
+   {0x00660084, 0x01040420, nothing, 1, warn__none, &acc_crosswave, (const int8_t *) 0},
 
-   {0x00950066, 0x28008200, s_crosswave, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20026, 0x01040420, s_bone, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   // And here it is after truck from sbig3dmd.
+   {0x00660095, 0x03000480, s_crosswave, 1, warn__none, &trucked_crosswave, (const int8_t *) 0},
+
+   {0x00950066, 0x28008200, s_crosswave, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20026, 0x01040420, s_bone, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x002600A2, 0x08000680, s_bone, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // Pressed in from a bigh.
-   {0x00930026, 0x01000440, nothing, UINT32_C(~0), 0, warn__none, &bightobone, (const veryshort *) 0},
+   {0x00930026, 0x01000440, nothing, 0, warn__none, &bightobone, (const int8_t *) 0},
 
-   {0x00260062, 0x08008004, s_short6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840026, 0x04000308, s_spindle, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840046, 0x04210308, sd3x4,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840044, 0x04210308, sd3x4,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00260062, 0x08008004, s_short6, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620026, 0x00008404, s_short6, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840026, 0x04000308, s_spindle, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00260084, 0x01000860, s_spindle, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840044, 0x40270019, s3x5,    0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440084, 0x40461031, s3x5,    1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840046, 0x04210308, sd3x4,   0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   // This seems to mess up 3x5!
+   //   {0x00840044, 0x04210308, sd3x4,   0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00C40026, 0x06109384, sd4x5,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00C40046, 0x06109384, sd4x5,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00C40086, 0x06109384, sd4x5,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00C40026, 0x06109384, sd4x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00C40046, 0x06109384, sd4x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00C40086, 0x06109384, sd4x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00A200A2, 0x101CC4E6, s_bigblob, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00770055, 0x01400420, s_2stars, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00A200A2, 0x101CC4E6, s_bigblob, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00770055, 0x01400420, s_2stars, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+
+   {0x00A20055, 0x09000401, s3x6, 0x200, warn__none, (const coordrec *) 0, s3x6correction},
+   {0x00A20055, 0x09020400, s3x6, 0x200, warn__none, (const coordrec *) 0, s3x6correction},
 
    // Inner wing did a tow-truck-like operation from a rigger.  Fudge to a 1/4 tag.
    // This is serious fudging, and marked as such with the "0x100".
    // Test: S1P, touch, center 4 ah so, HG shove off.
-   {0x00620026, 0x01008404, nothing, UINT32_C(~0), 0x100, warn__none, &rigtoqtg, (const veryshort *) 0},
+   {0x00620026, 0x01008404, nothing, 0x100, warn__none, &rigtoqtg, (const int8_t *) 0},
    // Similar to the above, but trucks/presses were from a 4x4.
-   {0x00620066, 0x11100400, nothing, UINT32_C(~0), 0, warn__none, &s4x4toqtg, (const veryshort *) 0},
-   {0x00660062, 0x08080202, nothing, UINT32_C(~0), 1, warn__none, &s4x4toqtg, (const veryshort *) 0},
+   {0x00620066, 0x11100400, nothing, 0, warn__none, &s4x4toqtg, (const int8_t *) 0},
+   {0x00660062, 0x08080202, nothing, 1, warn__none, &s4x4toqtg, (const int8_t *) 0},
    // Or from blocks.
-   {0x00660066, 0x01202400, nothing, UINT32_C(~0), 0, warn__none, &spec_qtag1, (const veryshort *) 0},
-   {0x00660066, 0x18800200, nothing, UINT32_C(~0), 1, warn__none, &spec_qtag1, (const veryshort *) 0},
+   {0x00660066, 0x01202400, nothing, 0, warn__none, &spec_qtag1, (const int8_t *) 0},
+   {0x00660066, 0x18800200, nothing, 1, warn__none, &spec_qtag1, (const int8_t *) 0},
    // Going to a "343" ("sausage")
-   {0x00660066, 0x09202400, nothing, UINT32_C(~0), 0, warn__none, &spec_343, (const veryshort *) 0},
-   {0x00660066, 0x18800600, nothing, UINT32_C(~0), 1, warn__none, &spec_343, (const veryshort *) 0},
+   {0x00660066, 0x09202400, nothing, 0, warn__none, &spec_343, (const int8_t *) 0},
+   {0x00660066, 0x18800600, nothing, 1, warn__none, &spec_343, (const int8_t *) 0},
 
-   // Inner people moved in from a deepxwv.
-   {0x00A60066, 0x08000600, nothing, UINT32_C(~0), 0, warn__none, &deepxwvtoxwv, (const veryshort *) 0},
-
+   // Inner people moved in from a deepxwv, or we otherwise want a crosswave.
+   {0x00A60066, 0x08000600, nothing, 0, warn__none, &fudgyxwvthing, (const int8_t *) 0},
+   {0x006600A6, 0x09004400, nothing, 1, warn__none, &fudgyxwvthing, (const int8_t *) 0},
    // Inner wing did a 1/2 tow truck from a crosswave.  We want a thar.
-   {0x00750066, 0x08400220, nothing, UINT32_C(~0), 0, warn__none, &xwvtothar, (const veryshort *) 0},
+   {0x00750066, 0x08400220, nothing, 0, warn__none, &xwvtothar, (const int8_t *) 0},
 
    // Outer person did a 1/2 tow truck from a thar.  We want a crosswave.
-   {0x00B50095, 0x02400180, nothing, UINT32_C(~0), 0, warn__none, &thartoxwv, (const veryshort *) 0},
-   {0x009500B5, 0x20018008, nothing, UINT32_C(~0), 1, warn__none, &thartoxwv, (const veryshort *) 0},
+   {0x00B50095, 0x02400180, nothing, 0, warn__none, &thartoxwv, (const int8_t *) 0},
+   {0x009500B5, 0x20018008, nothing, 1, warn__none, &thartoxwv, (const int8_t *) 0},
 
-   {0x00570067, 0x03100084, s_hsqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00570057, 0x03100084, s_hsqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00750067, 0x28008200, s_dmdlndmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00950067, 0x28008200, s_dmdlndmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00570067, 0x03100084, s_hsqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00570057, 0x03100084, s_hsqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00750067, 0x28008200, s_dmdlndmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00950067, 0x28008200, s_dmdlndmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // This must be before next two.  This one needs a small correction.  This deals with things
    // like end of wave press ahead/back, or outside right/left loop 1, in qtag.
    // A lot of the tests for these are in t59.
    // THIS APPEARS TO BE INTRACTABLE!
-   {0x00670055, 0x31800420, nothing, UINT32_C(~0), 0, warn__none, &qtagto3x4, qtagto3x4correction},
+   {0x00670055, 0x31800420, nothing, 0x200, warn__none, &qtagto3x4, qtagto3x4correction},
 
    // Test is H PTO, SG R loop 0, see t59.
-   {0x00870055, 0x09000420, nothing, UINT32_C(~0), 0, warn__none, &qtagto3x4a, (const veryshort *) 0},
+   {0x00870055, 0x09000420, nothing, 0, warn__none, &qtagto3x4a, (const int8_t *) 0},
    // Test is H PTO, SB L loop 0, see t59.
-   {0x00970055, 0x01400400, nothing, UINT32_C(~0), 0, warn__none, &qtagto3x4, (const veryshort *) 0},
+   {0x00970055, 0x01400400, nothing, 0, warn__none, &qtagto3x4, (const int8_t *) 0},
 
-   {0x00670055, 0x01000420, s_qtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00550067, 0x08410200, s_qtag, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00670055, 0x01000420, s_qtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550067, 0x08410200, s_qtag, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550063, 0x08400220, s_qtag, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00620046, 0x01080842, sd2x5, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20046, 0x010C0862, sd2x7, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00660055, 0x01000480, s_2x1dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00950026, 0x20008200, s_1x2dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00D50026, 0x20008202, s1x3dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A30055, 0x09000420, swqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60055, 0x09000420, swqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A70055, 0x09000420, swqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00950057, 0x20008620, swhrglass, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00660073, 0x00098006, sdeep2x1dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60055, 0x09000480, s3x1dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60044, 0x09040400, s_wingedstar, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A30055, 0x29008480, s3dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A70055, 0x29008480, s3dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00770055, 0x29008480, s3dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00730055, 0x29008480, s3dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E30055, 0x0940A422, s4dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00B30055, 0x0940A422, s4dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00B10051, 0x0940A422, s4dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A30055, 0x0940A422, s4dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00D50057, 0x20008202, s_3mdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00B50057, 0x20008202, s_3mdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00B70057, 0x41022480, s_3mptpd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E70057, 0x41022480, s_3mptpd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00D50066, 0x28048202, sbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01150066, 0x28048202, sbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00D10004, 0x28048202, sbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00910004, 0x28048202, sbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01110004, 0x28048202, sbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20066, 0x18108404, sdeepxwv, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00620046, 0x01080842, sd2x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00460062, 0x14100300, sd2x5, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20046, 0x010C0862, sd2x7, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660055, 0x01000480, s_2x1dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00950026, 0x20008200, s_1x2dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00D50026, 0x20008202, s1x3dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x002600D5, 0x03001080, s1x3dmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A30055, 0x09000420, swqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60055, 0x09000420, swqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A70055, 0x09000420, swqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00950057, 0x20008620, swhrglass, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660073, 0x00098006, sdeep2x1dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00770073, 0x0001A015, nothing, 0, warn__none, &galtodeep2x1, (const int8_t *) 0},
+   {0x00730077, 0x00408304, nothing, 1, warn__none, &galtodeep2x1, (const int8_t *) 0},
+   {0x00A60055, 0x09000480, s3x1dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x005500A6, 0x28004200, s3x1dmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60044, 0x09040400, s_wingedstar, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A30055, 0x29008480, s3dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A70055, 0x29008480, s3dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x005500A7, 0x20006200, s3dmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00770055, 0x29008480, s3dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550077, 0x28006200, s3dmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00730055, 0x29008480, s3dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E30055, 0x0940A422, s4dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00B30055, 0x0940A422, s4dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00B10051, 0x0940A422, s4dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A30055, 0x0940A422, s4dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00930066, 0x121008C4, s2x2dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660093, 0x04820909, s2x2dmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00910066, 0x121008C4, s2x2dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00530046, 0x121008C4, s2x2dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00530066, 0x121008C4, s2x2dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660053, 0x04020109, s2x2dmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00D50057, 0x20008202, s_3mdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00B50057, 0x20008202, s_3mdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00B70057, 0x41022480, s_3mptpd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E70057, 0x41022480, s_3mptpd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00D50066, 0x28048202, sbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01150066, 0x28048202, sbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00D10004, 0x28048202, sbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00910004, 0x28048202, sbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01110004, 0x28048202, sbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20066, 0x18108404, sdeepxwv, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    // Someone trucked from a deep2x1dmd to a deepxwv.
-   {0x006600B3, 0x0008800E, nothing, UINT32_C(~0), 1, warn__none, &truck_to_deepxwv, (const veryshort *) 0},
-   {0x00F30066, 0x12148904, sbigbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01130066, 0x12148904, sbigbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01330066, 0x12148904, sbigbigx, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01130066, 0x09406600, sbigbigh, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01130026, 0x09406600, sbigbigh, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00550057, 0x20000620, s_hrglass, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x006600B3, 0x0008800E, nothing, 1, warn__none, &truck_to_deepxwv, (const int8_t *) 0},
+   {0x00F30066, 0x12148904, sbigbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01130066, 0x12148904, sbigbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01330066, 0x12148904, sbigbigx, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01130066, 0x09406600, sbigbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01130026, 0x09406600, sbigbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550057, 0x20000620, s_hrglass, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00570067, 0x09400020, s_hrglass, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // The checkpointers squeezed or spread from a spindle.  Fudge to an hourglass.
-   {0x00840066, 0x00202208, nothing, UINT32_C(~0), 0, warn__none, &spndltohrgl, (const veryshort *) 0},
+   {0x00840066, 0x00202208, nothing, 0, warn__none, &spndltohrgl, (const int8_t *) 0},
 
    // The outsides cast back from a dhrglass, going to an hourglass.
-   {0x00670066, 0x20004240, nothing, UINT32_C(~0), 0, warn__none, &dhrgltohrgl, (const veryshort *) 0},
+   {0x00670066, 0x20004240, nothing, 0, warn__none, &dhrgltohrgl, (const int8_t *) 0},
    // Same, from bone, going to qtag.
-   {0x00620066, 0x01004440, nothing, UINT32_C(~0), 0, warn__none, &bonetoqtag, (const veryshort *) 0},
+   {0x00620066, 0x01004440, nothing, 0, warn__none, &bonetoqtag, (const int8_t *) 0},
 
-   {0x00A70026, 0x20040220, s_dhrglass, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00930026, 0x01108080, s_ptpd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00910026, 0x01108080, s_ptpd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00530026, 0x01108080, s_ptpd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00620044, 0x11800C40, s3x4, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00440062, 0x0C202300, s3x4, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840022, 0x06001300, s2x5, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00220084, 0x21080840, s2x5, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E20004, 0x09002400, s1x8, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x000400E2, 0x08004202, s1x8, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01220004, 0x49002400, s1x10, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01620004, 0x49012400, s1x12, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01A20004, 0x49012404, s1x14, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x02E20004, 0x4B012404, s1x14, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01E20004, 0x49092404, s1x16, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00620022, 0x00088006, s2x4, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00220062, 0x10108004, s2x4, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00440022, 0x04000300, s2x3, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00220044, 0x01000840, s2x3, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20022, 0x000C8026, s2x6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x002200A2, 0x10108484, s2x6, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00C40022, 0x26001B00, s2x7, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01040022, 0x36009B00, s2x9, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E20022, 0x004C8036, s2x8, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x002200E2, 0x12908484, s2x8, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01220022, 0x006C8136, s2x10,UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01620022, 0x026C81B6, s2x12,UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20044, 0x19804E40, s3x6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E20044, 0x1D806E41, s3x8, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840062, 0x4E203380, s4x5, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00620084, 0x31888C60, s4x5, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00A70026, 0x20040220, s_dhrglass, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00930026, 0x01108080, s_ptpd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x002600A2, 0x10104200, s_ptpd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00910026, 0x01108080, s_ptpd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00530026, 0x01108080, s_ptpd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620044, 0x11800C40, s3x4, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440062, 0x0C202300, s3x4, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840022, 0x06001300, s2x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00220084, 0x21080840, s2x5, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E20004, 0x09002400, s1x8, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x000400E2, 0x08004202, s1x8, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01220004, 0x49002400, s1x10, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01620004, 0x49012400, s1x12, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01A20004, 0x49012404, s1x14, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x02E20004, 0x4B012404, s1x14, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01E20004, 0x49092404, s1x16, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620022, 0x00088006, s2x4, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00220062, 0x10108004, s2x4, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440022, 0x04000300, s2x3, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00220044, 0x01000840, s2x3, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20022, 0x000C8026, s2x6, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x002200A2, 0x10108484, s2x6, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00C40022, 0x26001B00, s2x7, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01040022, 0x36009B00, s2x9, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E20022, 0x004C8036, s2x8, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x002200E2, 0x12908484, s2x8, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01220022, 0x006C8136, s2x10, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01620022, 0x026C81B6, s2x12, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20044, 0x19804E40, s3x6, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E20044, 0x1D806E41, s3x8, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840062, 0x4E203380, s4x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620084, 0x31888C60, s4x5, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // Fudge this to a 4x5.  People were trucking in a qtag.  Tests for these are in t59.
-   // Specific test is H dixie chain, HG/HB right/left loop 1.  THIS ONE IS INTRACTABLE!
-   {0x00670085, 0x21088420, nothing, UINT32_C(~0), 1, warn__none, &qtagto4x5, qtagto4x5correction},
+   {0x00670085, 0x21088420, nothing, 1, warn__none, &qtagto4x5, (const int8_t *) 0},
 
-   {0x00A20062, 0x109CC067, s4x6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x006200A2, 0x1918C4C6, s4x6, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00C40062, 0x6E001B80, s3oqtg, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00C40062, 0x6E001B80, s3oqtg, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00620062, 0x1018C046, s4x4, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01040026, 0x04100348, srigger12, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00A20062, 0x109CC067, s4x6, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x006200A2, 0x1918C4C6, s4x6, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00C40062, 0x6E001B80, s3oqtg, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00C40062, 0x6E001B80, s3oqtg, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00620062, 0x1018C046, s4x4, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01040026, 0x04100348, srigger12, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    // Result is only 7 wide, but there is no setup for that.
-   {0x00C40026, 0x04100348, srigger12, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00930066, 0x01080C40, sbigh, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00910062, 0x01080C40, sbigh, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00910022, 0x01080C40, sbigh, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00C40026, 0x04100348, srigger12, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00930066, 0x01080C40, sbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00910062, 0x01080C40, sbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00910022, 0x01080C40, sbigh, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
    // Pressed out from a bone.
-   {0x00A20066, 0x01840421, nothing, UINT32_C(~0), 0, warn__none, &bonetobigh, (const veryshort *) 0},
-   {0x00E20026, 0x01440430, sbigbone, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01620026, 0x4A00A484, sdblbone, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00A20066, 0x01840421, nothing, 0, warn__none, &bonetobigh, (const int8_t *) 0},
+   {0x00E20026, 0x01440430, sbigbone, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01620026, 0x4A00A484, sdblbone, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // Next 3 must follow the "bigbone" entry above.
-   {0x00A20026, 0x090C0422, slinebox, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00570066, 0x18118A04, sboxdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00260084, 0x20080861, sboxpdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00A20026, 0x090C0422, slinebox, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00570066, 0x18118A04, sboxdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00260084, 0x20080861, sboxpdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00C40026, 0x20120809, slinevbox, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00D50026, 0x24009102, slinefbox, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E20026, 0x09082402, nothing, UINT32_C(~0), 0, warn__none, &tolinefbox, (const veryshort *) 0},
-   {0x00840026, 0x06021308, slinejbox, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840026, 0x06021101, slineybox, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20026, 0x09048424, sdbltrngl4, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00C40026, 0x20120809, slinevbox, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00D50026, 0x24009102, slinefbox, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E20026, 0x09082402, nothing, 0, warn__none, &tolinefbox, (const int8_t *) 0},
+   {0x00840026, 0x06021308, slinejbox, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840026, 0x06021101, slineybox, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20026, 0x09048424, sdbltrngl4, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x01620026, 0x41450430, sdblrig, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01220026, 0x41450430, sdblrig, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E20026, 0x0800A404, sbigrig, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01220026, 0x4800A404, sbigrig, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01260055, 0x49002480, s5x1dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E60055, 0x49002480, s5x1dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01150026, 0x20048212, s1x5dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01550026, 0x20048212, s1x5dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E20026, 0x0808A006, swiderigger,UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00460044, 0x41040010, s_323, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00660044, 0x41040410, s_343, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x01620026, 0x41450430, sdblrig, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01220026, 0x41450430, sdblrig, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E20026, 0x0800A404, sbigrig, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01220026, 0x4800A404, sbigrig, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01260055, 0x49002480, s5x1dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E60055, 0x49002480, s5x1dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01150026, 0x20048212, s1x5dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01550026, 0x20048212, s1x5dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E20026, 0x0808A006, swiderigger, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00460044, 0x41040010, s_323,   0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660044, 0x41040410, s_343,   0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00660044, 0x10820841, s_434,   0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440066, 0x04242100, s_434,   1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // Center 4 squeeze, gal -> 343.
-   {0x00660066, 0x18100400, nothing, UINT32_C(~0), 0, warn__none, &galto343, (const veryshort *) 0},
-   {0x00660066, 0x08080402, nothing, UINT32_C(~0), 1, warn__none, &galto343, (const veryshort *) 0},
+   {0x00660066, 0x18100400, nothing, 0, warn__none, &galto343, (const int8_t *) 0},
+   {0x00660066, 0x08080402, nothing, 1, warn__none, &galto343, (const int8_t *) 0},
 
    // Center 6 squeeze, spindle -> 343.
-   {0x00840066, 0x08202008, nothing, UINT32_C(~0), 0, warn__none, &spinto343, (const veryshort *) 0},
+   {0x00840066, 0x08202008, nothing, 0, warn__none, &spinto343, (const int8_t *) 0},
    // Squeeze, 343 -> hourglass,.
-   {0x00660066, 0x00202600, nothing, UINT32_C(~0), 0, warn__none, &x343toglass, (const veryshort *) 0},
+   {0x00660066, 0x00202600, nothing, 0, warn__none, &x343toglass, (const int8_t *) 0},
 
-   {0x00860044, 0x49650044, s_525, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00440044, 0x49650044, s_525, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00860044, 0x41250410, s_545, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00860044, 0x41250018, sh545, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840004, 0x00000008, sh545, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00840004, 0x00000008, s1x5, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00040084, 0x00000020, s1x5, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00860044, 0x49650044, s_525, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440044, 0x49650044, s_525, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00860044, 0x41250410, s_545, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00860044, 0x41250018, sh545, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840004, 0x00000008, sh545, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00A600A6, 0x09006602, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
-   {0x00A600E6, 0x09006602, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
-   {0x00E600A6, 0x09006602, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
-   {0x00E600E6, 0x09006602, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
-   {0x006600A6, 0x09004400, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
-   {0x006600E6, 0x09006602, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
-   {0x00E60066, 0x09006602, nothing,   UINT32_C(~0), 0, warn__none, &x1x8tox1x8, sx1x8correction},
+   {0x00A600A6, 0x09006602, nothing,  0, warn__none, &x1x6thing, (const int8_t *) 0},
+   {0x00A600E6, 0x09006602, nothing,  1, warn__none, &x1x6_1x8,  (const int8_t *) 0},
+   {0x00E600A6, 0x09006602, nothing,  0, warn__none, &x1x6_1x8,  (const int8_t *) 0},
+   {0x006600E6, 0x09006602, nothing,  0, warn__none, &x1x6_1x8,  (const int8_t *) 0},
+   {0x00E600E6, 0x09006602, nothing,  0, warn__none, &x1x8thing, (const int8_t *) 0},
+   {0x00E60066, 0x09006602, nothing,  0, warn__none, &x1x4_1x8,  (const int8_t *) 0},
+   {0x006600A6, 0x09004600, nothing,  1, warn__none, &x1x4_1x6,  (const int8_t *) 0},
+   {0x00660066, 0x09000600, nothing,  0, warn__none, &x1x4thing, (const int8_t *) 0},
 
-   {0x00860022, 0x02080300, s_ntrglccw,UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00860022, 0x04001202, s_ntrglcw, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00860022, 0x02080300, s_ntrglccw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00860022, 0x04001202, s_ntrglcw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
-   {0x00220022, 0x00008004, s2x2, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20004, 0x09000400, s1x6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00220022, 0x00008004, s2x2, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20004, 0x09000400, s1x6, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x000400A2, 0x08004200, s1x6, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    // Two colliding 1/2 circulates from as-couples T-bone.
+   //   {0x00930004, 0x21008400, nothing, 0, warn__none, &halfcircto1x6h, (const int8_t *) 0},
+   //   {0x00040093, 0x0A000280, nothing, 1, warn__none, &halfcircto1x6v, (const int8_t *) 0},
+
    // THESE TWO ARE INTRACTABLE!
-   {0x00930004, 0x21008400, s1x6, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, s1x6correction_a},
-   {0x00040093, 0x0A000280, s1x6, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, s1x6correction_b},
-   {0x00620004, 0x01000400, s1x4, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00040062, 0x08000200, s1x4, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00550026, 0x20020200, sdmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00440004, 0x00020001, s1x3, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00040044, 0x00040001, s1x3, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00220004, 0x01000000, s1x2, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00040022, 0x00000200, s1x2, UINT32_C(~0), 1, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20066, 0x09084042, sbigptpd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A20026, 0x414C0032, sdblspindle, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x01220026, 0x414C0032, sdblspindle, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00950063, 0x01080C60, s_hqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00930067, 0x01080C60, s_hqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00970067, 0x01080C60, s_hqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00970057, 0x01080C60, s_hqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00930057, 0x01080C60, s_hqtag, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00970055, 0x114008A0, sbighrgl,  UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00E70026, 0x20440230, sbigdhrgl, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60026, 0x03080020, s_nptrglcw, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00A60026, 0x01041002, s_nptrglccw, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
-   {0x00840046, 0x42021210, s_23232, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0},
+   {0x00930004, 0x21008400, s1x6, 0x200, warn__none, (const coordrec *) 0, s1x6correction_a},
+   {0x00040093, 0x0A000280, s1x6, 0x201, warn__none, (const coordrec *) 0, s1x6correction_b},
+
+   {0x00620004, 0x01000400, s1x4, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00040062, 0x08000200, s1x4, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550026, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00260055, 0x01000080, sdmd, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00000005, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00550004, 0x20020200, sdmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00440004, 0x00020001, s1x3, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00040044, 0x00040001, s1x3, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00220004, 0x01000000, s1x2, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00040022, 0x00000200, s1x2, 1, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20066, 0x09084042, sbigptpd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A20026, 0x414C0032, sdblspindle, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x01220026, 0x414C0032, sdblspindle, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00950063, 0x01080C60, s_hqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00930067, 0x01080C60, s_hqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00970067, 0x01080C60, s_hqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00970057, 0x01080C60, s_hqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00930057, 0x01080C60, s_hqtag, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00970055, 0x114008A0, sbighrgl, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00E70026, 0x20440230, sbigdhrgl, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60026, 0x03080020, s_nptrglcw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00A60026, 0x01041002, s_nptrglccw, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
+   {0x00840046, 0x42021210, s_23232, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0},
 
    {0}};
 
 
 static checkitem c1fixup =
-{0, 0, s_c1phan, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0};
+{0, 0, s_c1phan, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0};
 
 static checkitem s4p2x1fixup =
-{0, 0, s4p2x1dmd, UINT32_C(~0), 0, warn__none, (const coordrec *) 0, (const veryshort *) 0};
+{0, 0, s4p2x1dmd, 0, warn__none, (const coordrec *) 0, (const int8_t *) 0};
 
 
 void initialize_matrix_position_tables()
 {
-#if 0
-   const checkitem *p;
+   // No longer used.
+}
 
-   for (p = checktable ; p < checktable+13 ; p++) {
-      if (p->mask == 0)
-         continue;
-      if (p->new_checkptr)
-         continue;
-      if (p->new_setup == nothing)
-         break;
 
-      int i;
-      int xmax, ymax, x, y, k;
-      uint32 signature, xpar, ypar;
-      xmax = xpar = ymax = ypar = signature = 0;
-      const coordrec *checkptr = setup_attrs[p->new_setup].setup_coords;
+static void set_matrix_info_from_calldef(matrix_rec & mi, uint32_t datum)
+{
+   mi.deltax = (uncompress_position_number(datum) - 16);
+   mi.deltay = (((datum >> 16) & 0x3F) - 16);   // This part isn't compressed.
+   mi.deltarot += datum & 3;
+   mi.roll_stability_info = datum;   // For slide, roll, and stability.
+}
 
-      for (i=0; i<=attr::klimit(p->new_setup); i++) {
-         if (!(p->mask & (1 << i)))
-            continue;
-         x = checkptr->xca[i];
-         y = checkptr->yca[i];
-         // Check for fudging.
 
-         if (p->fixer[0] != 127) {
-            for (k=0; k<32 && p->fixer[k]!=127; k+=4) {
-               if (x == p->fixer[k+2] && y == p->fixer[k+3]) {
-                  x = p->fixer[k];
-                  y = p->fixer[k+1];
-                  break;
+static int finish_matrix_call(
+   setup *ss,
+   matrix_rec matrix_info[],
+   int nump,
+   calldef_schema the_schema,
+   uint32_t flags,
+   const uint32_t *callstuff,
+   bool do_roll_stability,
+   collision_severity allow_collisions,
+   bool allow_fudging,
+   merge_action action,
+   setup *people,
+   setup *result) THROW_DECL
+{
+   int i;
+   int xmax, ymax, x, y, k, alldelta;
+   uint32_t signature, xpar, ypar;
+   result->clear_people();
+
+   xmax = xpar = ymax = ypar = signature = alldelta = 0;
+   int xatnonzeroy = -1000;
+   int previous_grab = 0;    // s_trngl4 stuff will need this.
+   bool go_one_eighth_clockwise = false;
+   uint32_t people_needing_grab_info = 0UL;  // Little-endian, of course.
+   uint32_t grab_directions = 0UL;           // 1 for CW, 2 for CCW
+
+   // If doing a schema_counter_rotate, we may need two passes.  In the first,
+   // we do all the processing for people whose counter rotate direction can be determined.
+
+   for (int pass = 0 ; pass < 2 ; pass++) {
+      if (pass >= 1 && (the_schema != schema_counter_rotate || people_needing_grab_info == 0)) continue;
+
+      for (i=0; i<nump; i++) {
+         // Yes, even phantoms participate in a counter rotate.  Otherwise, just skip this person.
+         if (matrix_info[i].id1 == 0 && the_schema != schema_counter_rotate) continue;
+
+         alldelta |= matrix_info[i].deltax | matrix_info[i].deltay;
+
+         if (the_schema == schema_counter_rotate) {
+            int grab;
+
+            if (pass == 0) {
+               // Process people that we can process.
+               int effective_dir = matrix_info[i].dir;
+               if (matrix_info[i].id1 == 0) {
+                  if (ss && ss->cmd.cmd_assume.assumption == cr_qtag_like && ss->cmd.cmd_assume.assump_both == 2) {
+                     effective_dir = (matrix_info[i].nicey > 0) ? 0 : 2;
+                  }
+                  else if (ss && ss->cmd.cmd_assume.assumption == cr_qtag_like && ss->cmd.cmd_assume.assump_both == 1) {
+                     effective_dir = (matrix_info[i].nicey > 0) ? 2 : 0;
+                  }
+                  else {
+                     // Or defer them to pass 2 if we can't.
+                     people_needing_grab_info |= 1UL << i;
+                     continue;
+                  }
+               }
+
+               grab = (effective_dir & 1) ? -matrix_info[i].y : matrix_info[i].x;
+               if (effective_dir & 2) grab = -grab;
+            }
+            else {
+               // Process the leftovers from pass 1.
+               if ((people_needing_grab_info & (1UL << i)) == 0)
+                  continue;
+
+               if (grab_directions == 1)
+                  grab = -1;
+               else if (grab_directions == 2)
+                  grab = +1;
+               else
+                  continue;   // Can't figure this person out.  Just drop her.
+            }
+
+            // It can be argued that the "center" (position 1) of a trngl4
+            // can't actually counter rotate.  But in practice, this will only be legal
+            // if the other 3 people in the group are moving in a consistent way, and,
+            // in that case, the center person's turning direction should be clear.
+            // So we take the person from slot 0;
+
+            if (ss->kind == s_trngl4 && i == 1 && grab == 0) {
+               grab = previous_grab;
+            }
+
+            int repetition_count = 1;
+
+            if ((ss->cmd.callspec->the_defn.callflags1 & CFLAG1_NUMBER_MASK) != 0 &&
+                current_options.howmanynumbers == 1) {
+               repetition_count = current_options.number_fields;
+            }
+
+            if (flags & MTX_DO_HALF_OF_CTR_ROT) {
+               // This is "counter rotate N/8".
+               if ((repetition_count & 1) != 0)
+                  go_one_eighth_clockwise = true;
+               repetition_count >>= 1;
+            }
+
+            previous_grab = grab;
+            matrix_info[i].deltarot = 0;
+
+            if (grab > 0) {
+               // Move this person CCW.
+               // Need to go 1 more if doing 1/8 rotation.
+               for (int j = 0 ; j < (go_one_eighth_clockwise ? (repetition_count+1) : repetition_count) ; j++) {
+                  matrix_info[i].dir = (matrix_info[i].dir-1) & 3;
+                  int savex = matrix_info[i].x;
+                  matrix_info[i].x = -matrix_info[i].y;
+                  matrix_info[i].y = savex;
+                  set_matrix_info_from_calldef(matrix_info[i], callstuff[1]);
+                  grab_directions |= 2;
                }
             }
+            else if (grab < 0) {
+               // Move this person CW.
+               for (int j = 0 ; j < repetition_count ; j++) {
+                  matrix_info[i].dir = (matrix_info[i].dir+1) & 3;
+                  int savex = matrix_info[i].x;
+                  matrix_info[i].x = matrix_info[i].y;
+                  matrix_info[i].y = -savex;
+                  set_matrix_info_from_calldef(matrix_info[i], callstuff[0]);
+                  grab_directions |= 1;
+               }
+            }
+            else {
+               fail("Person is on a center line.");
+            }
          }
+         else {
+            switch (matrix_info[i].dir) {
+            case 0:
+               matrix_info[i].x += matrix_info[i].deltax;
+               matrix_info[i].y += matrix_info[i].deltay;
+               break;
+            case 1:
+               matrix_info[i].x += matrix_info[i].deltay;
+               matrix_info[i].y -= matrix_info[i].deltax;
+               break;
+            case 2:
+               matrix_info[i].x -= matrix_info[i].deltax;
+               matrix_info[i].y -= matrix_info[i].deltay;
+               break;
+            case 3:
+               matrix_info[i].x -= matrix_info[i].deltay;
+               matrix_info[i].y += matrix_info[i].deltax;
+               break;
+            }
+         }
+
+         x = matrix_info[i].x;
+         y = matrix_info[i].y;
 
          // Compute new max, parity, and signature info.
 
@@ -2405,93 +2556,9 @@ void initialize_matrix_position_tables()
          xpar |= (k & (~(k-1)));
          k = y | 4;
          ypar |= (k & (~(k-1)));
+
+         if (y != 0) xatnonzeroy = x;
       }
-
-      ypar |= (xmax << 20) | (xpar << 16) | (ymax << 4);
-
-      if (p->ypar != ypar || p->sigcheck != signature)
-         gg77->iob88.fatal_error_exit(1, "Matrix position table initialization failed");
-   }
-#endif
-}
-
-
-static int finish_matrix_call(
-   matrix_rec matrix_info[],
-   int nump,
-   bool do_roll_stability,
-   collision_severity allow_collisions,
-   bool allow_fudging,
-   merge_action action,
-   setup *people,
-   setup *result) THROW_DECL
-{
-   int i;
-   int xmax, ymax, x, y, k, alldelta;
-   uint32 signature, xpar, ypar;
-   result->clear_people();
-
-   xmax = xpar = ymax = ypar = signature = alldelta = 0;
-   int xatnonzeroy = -1000;
-
-   for (i=0; i<nump; i++) {
-      if (!matrix_info[i].id1) continue;
-      /* If this person's position has low bit on, that means we consider his coordinates
-         not sufficiently well-defined that we will allow him to do any pressing or
-         trucking.  He is only allowed to turn.  That is, we will require deltax and
-         deltay to be zero.  An example of this situation is the points of a galaxy. */
-
-      /* ****** This seems to be too restrictive.  There may have been good reason for doing this
-         at one time, but now it makes all press and truck calls illegal in C1 phantoms.  The
-         table for C1 phantoms has been carefully chosen to make things legal only within one's
-         own miniwave, but it requires odd numbers.  Perhaps we need to double the resolution
-         of things in matrix_info[i].x or y, but that should wait until after version 28
-         is released. */
-
-      /* So this is patched out.  The same problem holds for bigdmds.
-         if (((matrix_info[i].x | matrix_info[i].y) & 1) &&
-             (matrix_info[i].deltax | matrix_info[i].deltay))
-            fail("Someone's ending position is not well defined.");
-      */
-
-      alldelta |= matrix_info[i].deltax | matrix_info[i].deltay;
-
-      switch (matrix_info[i].dir) {
-      case 0:
-         matrix_info[i].x += matrix_info[i].deltax;
-         matrix_info[i].y += matrix_info[i].deltay;
-         break;
-      case 1:
-         matrix_info[i].x += matrix_info[i].deltay;
-         matrix_info[i].y -= matrix_info[i].deltax;
-         break;
-      case 2:
-         matrix_info[i].x -= matrix_info[i].deltax;
-         matrix_info[i].y -= matrix_info[i].deltay;
-         break;
-      case 3:
-         matrix_info[i].x -= matrix_info[i].deltay;
-         matrix_info[i].y += matrix_info[i].deltax;
-         break;
-      }
-
-      x = matrix_info[i].x;
-      y = matrix_info[i].y;
-
-      // Compute new max, parity, and signature info.
-
-      if ((x < 0) || ((x == 0) && (y < 0))) { x = -x; y = -y; }
-      signature |= 1 << ((31000 + 12*x - 11*y) % 31);
-      if (y < 0) y = -y;
-      /* Now x and y have both had absolute values taken. */
-      if (x > xmax) xmax = x;
-      if (y > ymax) ymax = y;
-      k = x | 4;
-      xpar |= (k & (~(k-1)));
-      k = y | 4;
-      ypar |= (k & (~(k-1)));
-
-      if (y != 0) xatnonzeroy = x;
    }
 
    ypar |= (xmax << 20) | (xpar << 16) | (ymax << 4);
@@ -2525,8 +2592,8 @@ static int finish_matrix_call(
 
    // Perform any required corrections, moving people around before
    // sending them to be placed in the final setup.  That final
-   // setup placement can be very picky.
-   if (p->correction_list) {
+   // setup placement can be very picky.  The 200 bit signals that this is going to happen.
+   if (p->new_rot & 0x200) {
       for (i=0; i<nump; i++) {
          for (k=0; p->correction_list[k]!=127; k+=4) {
             if (matrix_info[i].x == p->correction_list[k] && matrix_info[i].y == p->correction_list[k+1]) {
@@ -2541,13 +2608,15 @@ static int finish_matrix_call(
    warn(p->warning);
 
    const coordrec *checkptr = (p->new_checkptr) ? p->new_checkptr :
+      (the_schema == schema_counter_rotate) ?
+      setup_attrs[p->new_setup].nice_setup_coords:
       setup_attrs[p->new_setup].setup_coords;
 
    result->rotation = p->new_rot & 3;
-   result->eighth_rotation = 0;
+   result->eighth_rotation = go_one_eighth_clockwise ? 1 : 0;
    result->kind = checkptr->result_kind;
 
-   collision_collector CC(allow_collisions);
+   collision_collector CC(result, allow_collisions);
 
    for (i=0; i<nump; i++) {
       int mx, my;
@@ -2557,39 +2626,41 @@ static int finish_matrix_call(
       if (result->rotation) { mx = -mp->y; my = mp->x; }
       else { mx = mp->x; my = mp->y; }
 
-      int place = checkptr->get_index_from_coords(mx, my);
+      int place = attr::klimit(checkptr->result_kind);
+
+      if (checkptr->xfactor & 0x100) {
+         // Brute-force search down through the list, since there is no picture.
+         // If can't find it, will break out with place == -1.
+         while ((checkptr->xca[place] != mx || checkptr->yca[place] != my) && place >= 0)
+            place--;
+      }
+      else {
+         place = checkptr->get_index_from_coords(mx, my);
+      }
+
       if (place < 0)
          fail("Person has moved into an ill-defined location.");
 
       int rot = ((mp->deltarot-result->rotation) & 3)*011;
-      CC.install_with_collision(result, place, people, i, rot);
+      uint32_t *destid1 = CC.install_with_collision(place, people, i, rot);
 
       if (do_roll_stability) {
-         uint32 sliderollstuff = (mp->roll_stability_info * (NROLL_BIT/DBSLIDEROLL_BIT)) & NSLIDE_ROLL_MASK;
+         uint32_t sliderollstuff = (mp->roll_stability_info * (NROLL_BIT/DBSLIDEROLL_BIT)) & NSLIDE_ROLL_MASK;
          // If just "L" or "R" (but not "M", that is, not both bits), turn on "moved".
          if ((sliderollstuff+NROLL_BIT) & (NROLL_BIT*2)) sliderollstuff |= PERSON_MOVED;
-         result->people[place].id1 &= ~NSLIDE_ROLL_MASK;
-         result->people[place].id1 |= sliderollstuff;
+         *destid1 &= ~NSLIDE_ROLL_MASK;
+         *destid1 |= sliderollstuff;
 
-         if (result->people[place].id1 & STABLE_ENAB)
-            do_stability(&result->people[place].id1,
+         if (*destid1 & STABLE_ENAB)
+            do_stability(destid1,
                          mp->roll_stability_info/DBSTAB_BIT,
                          mp->deltarot, mp->mirror_this_op);
       }
    }
 
    // Pass the "action" in case it's merge_c1_phantom_real_couples.
-   CC.fix_possible_collision(result, action);
+   CC.fix_possible_collision(action);
    return alldelta;
-}
-
-
-static void set_matrix_info_from_calldef(matrix_rec & mi, uint32 datum)
-{
-   mi.deltax = (uncompress_position_number(datum) - 16) << 1;
-   mi.deltay = (((datum >> 16) & 0x3F) - 16) << 1;   // This part isn't compressed.
-   mi.deltarot = datum & 3;
-   mi.roll_stability_info = datum;   // For slide, roll, and stability.
 }
 
 
@@ -2605,24 +2676,38 @@ static void mirror_slide_roll(matrix_rec *ppp)
 
 static int matrixmove(
    setup *ss,
-   uint32 flags,
-   const uint32 *callstuff,
+   calldef_schema the_schema,
+   uint32_t flags,
+   const uint32_t *callstuff,
    setup *result) THROW_DECL
 {
    setup people;
    matrix_rec matrix_info[matrix_info_capacity+1];
+   selector_kind saved_selector = current_options.who.who[0];
    int i, nump;
 
-   nump = start_matrix_call(ss, matrix_info, 0, flags, &people);
+   if (flags & MTX_SELECTOR_IS_TRAILERS)
+      current_options.who.who[0] = selector_trailers;
+
+   if (the_schema == schema_counter_rotate) {
+      flags |= MTX_INCLUDE_PHANTOMS;
+   }
+
+   if (ss->cmd.cmd_misc3_flags & CMD_MISC3__ACTUAL_Z_CONCEPT) {
+      remove_z_distortion(ss);
+      result->result_flags.misc |= RESULTFLAG__COMPRESSED_FROM_2X3;
+   }
+
+   nump = start_matrix_call(ss, matrix_info, the_schema, 0, flags, &people);
 
    for (i=0; i<nump; i++) {
       matrix_rec *thisrec = &matrix_info[i];
 
-      if (!(flags & MTX_USE_SELECTOR) || thisrec->sel) {
+      if (!(flags & (MTX_USE_SELECTOR | MTX_SELECTOR_IS_TRAILERS)) || thisrec->sel) {
          // This is legal if girlbit or boybit is on (in which case we use
          // the appropriate datum) or if the two data are identical so
          // the sex doesn't matter.
-         if ((thisrec->girlbit | thisrec->boybit) == 0 &&
+         if ((thisrec->girlbit | thisrec->boybit) == 0 && (flags & (MTX_FIND_TRADERS|MTX_INCLUDE_PHANTOMS)) == 0 &&
              callstuff[0] != callstuff[1]) {
             if (flags & MTX_USE_VEER_DATA)
                fail("Can't determine lateral direction of this person.");
@@ -2630,6 +2715,7 @@ static int matrixmove(
                fail("Can't determine sex of this person.");
          }
 
+         thisrec->deltarot = 0;
          set_matrix_info_from_calldef(*thisrec, callstuff[thisrec->girlbit]);
 
          if (flags & MTX_MIRROR_IF_RIGHT_OF_CTR) {
@@ -2648,26 +2734,155 @@ static int matrixmove(
                fail("Person is on a center line.");
          }
 
-         if (flags & MTX_USE_NUMBER) {
+         if (flags & MTX_FIND_TRADERS) {
+            const coordrec *checkptr = setup_attrs[ss->kind].setup_coords;
+            int32_t d = thisrec->dir;
+            // These numbers are -1, 0, or +1.  They tell how far to move to get the next person
+            // to this person's own left.  Negatives of these to get people to the right.
+            int dyleft = (d&1) * ((d<<30)>>30);
+            d += 3;
+            int dxleft = (d&1) * ((d<<30)>>30);
+
+            int dircount[2];   // How many people we saw to the left or right.
+            int xposition[2];
+            int yposition[2];
+            bool passed_a_gap[2];
+
+            // This is 0 for the search to the left, then 1 for the search to the right.
+            for (int searchdir=0; searchdir<2; searchdir++) {
+               bool gap = false;
+               int actualdel = 1 - searchdir*2;   // This is -1 for left, +1 for right.
+               dircount[searchdir] = 0;
+               int tx = thisrec->x;
+               int ty = thisrec->y;
+               int failcount = 0;
+               while (true) {
+                  tx += dxleft * actualdel * 4;
+                  ty += dyleft * actualdel * 4;
+
+                  // Does person at (tx, ty) exist?
+
+                  int place = checkptr->get_index_from_coords(tx, ty);
+                  if (place < 0) {
+                     // If we didn't find any valid spot with the initial step of 4,
+                     // keep looking in the same direction, with step size reduced to 1,
+                     // until we find a valid spot or go past 10.
+                     failcount++;
+                     if (failcount > 6)
+                        break;   // We really can't find a spot.
+                     gap = true;
+                     tx -= dxleft * actualdel * 3;  // Sleazy way to make the next step size be 1.
+                     ty -= dyleft * actualdel * 3;
+                     continue;
+                  }
+
+                  // Unfortunate special case:  1/4 tags (and hourglasses) have the spacing
+                  // between the outsides set to 9 for complex reasons.  This would normally
+                  // trigger the "across a gap" warning, but we don't want it to.  It will
+                  // find the person to trade with, leaving a failcount of 5.  So we watch
+                  // for that case.  The ends of the center wave of a 1/4 tag have a spacing
+                  // of 12, and the points of the diamond of an hourglass have a spacing of 10,
+                  // so they don't get this case, and they trigger the "gap" warning.
+                  if (failcount == 5 && (ss->kind == s_qtag || ss->kind == s_hrglass))
+                     gap = false;
+
+                  failcount = 0;   // Found someone; reset the fail counter.
+                  // Is that person selected?
+                  if (ss->people[place].id1 == 0 || !selectp(ss, place))
+                     continue;
+
+                  // If this is the first person in this direction, save the location.
+                  if (dircount[searchdir] == 0) {
+                     passed_a_gap[searchdir] = gap;
+                     xposition[searchdir] = tx;
+                     yposition[searchdir] = ty;
+                  }
+
+                  dircount[searchdir]++;
+               }
+            }
+
+            // One of the directions must have an odd count, the other an even count.
+            if (((dircount[0] + dircount[1]) & 1) == 0)
+               fail("Can't find trade target.");
+
+            int whichway = (dircount[0] & 1) ? 0 : 1;   // 0 if left, 1 if right.
+
+            if (passed_a_gap[whichway])
+               warn(warn__trade_across_gap);
+
+            int absdelx = xposition[whichway] - thisrec->x;
+            int absdely = yposition[whichway] - thisrec->y;
+
+            if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF)) {
+               absdelx >>= 1;
+               thisrec->deltarot = 3 - (whichway << 1);
+            }
+
+            thisrec->roll_stability_info = callstuff[whichway];
+
+            // This suff is absolute, but later code wants it relative and will convert
+            // to absolute, so we have to unwind that.
+            switch (thisrec->dir) {
+            case 0:
+               thisrec->deltax += absdelx;
+               thisrec->deltay += absdely;
+               break;
+            case 1:
+               thisrec->deltax -= absdely;
+               thisrec->deltay += absdelx;
+               break;
+            case 2:
+               thisrec->deltax -= absdelx;
+               thisrec->deltay -= absdely;
+               break;
+            case 3:
+               thisrec->deltax += absdely;
+               thisrec->deltay -= absdelx;
+               break;
+            }
+         }
+         else if (flags & MTX_USE_NUMBER) {
             int count = current_options.number_fields & NUMBER_FIELD_MASK;
             thisrec->deltax *= count;
             thisrec->deltay *= count;
          }
          else if (flags & MTX_ADD_2N) {
-            int count = current_options.number_fields & NUMBER_FIELD_MASK;
+            int count = (current_options.number_fields & NUMBER_FIELD_MASK) << 2;
             if (thisrec->deltax < 0)
-               thisrec->deltax -= (count << 2);
+               thisrec->deltax -= count;
+            else if (thisrec->deltax > 0)
+               thisrec->deltax += count;
+            else if (thisrec->deltay < 0)
+               thisrec->deltay -= count;
             else
-               thisrec->deltax += (count << 2);
+               thisrec->deltay += count;
          }
       }
    }
 
-   int alldelta = finish_matrix_call(matrix_info, nump, true, collision_severity_no,
+   current_options.who.who[0] = saved_selector;
+
+   // Normally, matrix calls do not permit colliding and taking right hands.  But
+   // "<anyone> trade" sometimes masquerades as a matrix call in order to use the matrix
+   // mechanism.  In this case the MTX_FIND_TRADERS flag is on.
+   int alldelta = finish_matrix_call(ss, matrix_info, nump, the_schema, flags, callstuff, true,
+                                     (flags & MTX_FIND_TRADERS) ? collision_severity_ok : collision_severity_no,
                                      true, merge_strict_matrix, &people, result);
 
+   if (ss->kind == s2x2 && result->kind == s2x4) {
+      if ((result->people[0].id1 | result->people[1].id1 | result->people[6].id1 | result->people[7].id1) == 0) {
+         const expand::thing fix2x2a = {{1, 2, 3, 4, 5, 6}, s2x3, s2x4, 0};
+         expand::compress_setup(fix2x2a, result);
+      }
+      else if ((result->people[2].id1 | result->people[3].id1 | result->people[4].id1 | result->people[5].id1) == 0) {
+         const expand::thing fix2x2b = {{0, 1, 2, 5, 6, 7}, s2x3, s2x4, 0};
+         expand::compress_setup(fix2x2b, result);
+      }
+   }
+
    if (alldelta != 0) {
-      if (ss->cmd.cmd_misc_flags & CMD_MISC__DISTORTED)
+      if ((ss->cmd.cmd_misc_flags & CMD_MISC__DISTORTED) && !(flags & MTX_FIND_TRADERS))
          fail("This call not allowed in distorted or virtual setup.");
 
       if (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK)
@@ -2685,7 +2900,14 @@ static int matrixmove(
 
    switch (ss->kind) {
    case s2x2: case s_short6:
-      result->result_flags.misc |= ss->cmd.prior_elongation_bits & 3;
+      // If counter rotating, switch the elongation.
+      if (the_schema == schema_counter_rotate && ((ss->cmd.prior_elongation_bits+1)&2)) {
+         result->result_flags.misc |= (ss->cmd.prior_elongation_bits^3) & 3;
+      }
+      else {
+         result->result_flags.misc |= ss->cmd.prior_elongation_bits & 3;
+      }
+
       break;
    case s1x2: case s1x4: case sdmd:
       result->result_flags.misc |= 2 - (ss->rotation & 1);
@@ -2697,29 +2919,30 @@ static int matrixmove(
 
 
 
-static void do_part_of_pair(matrix_rec *thisrec, int base, const uint32 *callstuff) THROW_DECL
+static void do_part_of_pair(matrix_rec *thisrec, int base, const uint32_t *callstuff) THROW_DECL
 {
-   if (thisrec->far_squeezer) base += 8;
-
    // This is legal if girlbit or boybit is on (in which case we use the appropriate datum)
    //   or if the two data are identical so the sex doesn't matter.
    if ((thisrec->girlbit | thisrec->boybit) == 0 && callstuff[base] != callstuff[base+1])
       fail("Can't determine sex of this person.");
-   uint32 datum = callstuff[base+thisrec->girlbit];
+   uint32_t datum = callstuff[base+thisrec->girlbit];
    if (datum == 0) failp(thisrec->id1, "can't do this call.");
+   thisrec->deltarot = 0;
    set_matrix_info_from_calldef(*thisrec, datum);
    thisrec->realdone = true;
 }
 
 
 static void do_pair(
-   matrix_rec *ppp,        /* Selected person */
-   matrix_rec *qqq,        /* Unselected person */
-   const uint32 *callstuff,
-   uint32 flags,
-   int flip,
+   matrix_rec *ppp,
+   const uint32_t *callstuff,
+   uint32_t flags,
+   bool f,
    int filter) THROW_DECL             // 1 to do N/S facers, 0 for E/W facers.
 {
+   int flip = f ? 2 : 0;
+   matrix_rec *qqq = f ? ppp->nextnw : ppp->nextse;        // Unselected person
+
    if (callstuff) {     // Doing normal matrix call.
       if ((!(flags & (MTX_IGNORE_NONSELECTEES | MTX_BOTH_SELECTED_OK))) && qqq->sel)
          fail("Two adjacent selected people.");
@@ -2729,12 +2952,24 @@ static void do_pair(
       if ((filter ^ ppp->dir) & 1) {
          int base = (ppp->dir & 2) ? 6 : 4;
          if (!(flags & MTX_USE_SELECTOR)) base &= 3;
+         if (f) {
+            if (ppp->nextnw && ppp->far_squeezernw) base += 8;
+         }
+         else {
+            if (ppp->nextse && ppp->far_squeezerse) base += 8;
+         }
          do_part_of_pair(ppp, base^flip, callstuff);
       }
 
       if ((filter ^ qqq->dir) & 1) {
          int base = (qqq->dir & 2) ? 0 : 2;
          if ((flags & MTX_IGNORE_NONSELECTEES) || qqq->sel) base |= 4;
+         if (f) {
+            if (qqq->nextse && qqq->far_squeezerse) base += 8;
+         }
+         else {
+            if (qqq->nextnw && qqq->far_squeezernw) base += 8;
+         }
          do_part_of_pair(qqq, base^flip, callstuff);
       }
 
@@ -2798,7 +3033,7 @@ static void make_matrix_chains(
    matrix_rec matrix_info[],
    int nump,
    bool finding_far_squeezers,
-   uint32 flags,
+   uint32_t flags,
    int filter) THROW_DECL       // 1 for E/W chains, 0 for N/S chains.
 {
    int i, j, k, l;
@@ -2837,7 +3072,7 @@ static void make_matrix_chains(
 
          int delx = ix - jx;
          int dely = iy - jy;
-         uint32 dirxor = mi->dir ^ mj->dir;
+         uint32_t dirxor = mi->dir ^ mj->dir;
 
          if (flags & MTX_FIND_JAYWALKERS) {
             if (dirxor == 0) continue;   // Can't be facing same direction.
@@ -2923,12 +3158,19 @@ static void make_matrix_chains(
                   break;
             }
 
-            if (mj->nextnw) fail("Adjacent to too many people.");
+            if (mj->nextnw) {
+               // If mj is already paired, there may be trouble.  But if we are looking
+               // for far squeezers, the existing link was for a near squeezer, it takes
+               // precedence, and it's OK.
+               if (finding_far_squeezers)
+                  break;
+               fail("Adjacent to too many people.");
+            }
 
             mi->nextse = mj;
             mj->nextnw = mi;
-            mi->far_squeezer = finding_far_squeezers;
-            mj->far_squeezer = finding_far_squeezers;
+            mi->far_squeezerse = finding_far_squeezers;
+            mj->far_squeezernw = finding_far_squeezers;
             break;
          }
       }
@@ -2936,11 +3178,15 @@ static void make_matrix_chains(
 }
 
 
+// Return value is one of:
+//    cost          the (nonnegative) cost of the unique best pairing of jaywalkers  
+//    -person-1     the indicated person could not find anyone with whom to jaywalk
+//    -0x1000       ambiguous: two or more equally good "best" solutions were found
 static int jaywalk_recurse(
    matrix_rec matrix_info[],
    int start_index,
    int nump,
-   uint32 flags) THROW_DECL
+   uint32_t flags) THROW_DECL
 {
    int i, j, k;
    matrix_rec best_info[matrix_info_capacity+1];
@@ -3000,6 +3246,7 @@ static int jaywalk_recurse(
       if (choice_count >= 2) {
          int cost_or_error_code;
          bool found_a_solution = false;
+         bool ambiguous = false;
 
          for (k=0 ; k<NUMBER_OF_JAYWALK_CANDIDATES ; k++) {
             int target = mi->jpersons[k].jp;
@@ -3023,10 +3270,14 @@ static int jaywalk_recurse(
                cost_or_error_code = jaywalk_recurse(temp_info, i+1, nump, flags);
 
                if (cost_or_error_code >= 0) {
-                  // Found a solution.  Save the best solution.
+                  // Found a solution.  Save the best solution.  Detect ambiguity.
                   if (!found_a_solution || cost_or_error_code < best_cost) {
                      for (j=0; j<nump; j++) best_info[j] = temp_info[j];
                      best_cost = cost_or_error_code;
+                     ambiguous = false;
+                  }
+                  else if (found_a_solution && cost_or_error_code == best_cost) {
+                     ambiguous = true;
                   }
 
                   found_a_solution = true;
@@ -3037,7 +3288,8 @@ static int jaywalk_recurse(
          // Finished the K scan.  Did any recursion find anything?
          // (If more than 1 thing was found, they were compared, and we have the best.)
 
-         if (found_a_solution) {
+         if (ambiguous) return -0x1000;
+         else if (found_a_solution) {
             for (j=0; j<nump; j++) matrix_info[j] = best_info[j];
             return best_cost;
          }
@@ -3066,13 +3318,15 @@ static int jaywalk_recurse(
 static void process_jaywalk_chains(
    matrix_rec matrix_info[],
    int nump,
-   const uint32 *callstuff,
-   uint32 flags) THROW_DECL
+   const uint32_t *callstuff,
+   uint32_t flags) THROW_DECL
 {
    int i, j;
 
    int errnum = jaywalk_recurse(matrix_info, 0, nump, flags);
-   if (errnum < 0)
+   if (errnum == -0x1000)
+      fail("This jaywalk is ambiguous.");
+   else if (errnum < 0)
       failp(matrix_info[-errnum-1].id1, "can't find person to jaywalk with.");
 
    for (i=0; i<nump; i++) {
@@ -3084,12 +3338,13 @@ static void process_jaywalk_chains(
       int dely = mj->y - mi->y;
       int deltarot;
 
-      uint32 datum = callstuff[mi->girlbit];
+      uint32_t datum = callstuff[mi->girlbit];
       if (datum == 0) failp(mi->id1, "can't do this call.");
 
       if (mi->dir & 2) delx = -delx;
       if ((mi->dir+1) & 2) dely = -dely;
 
+      mi->deltarot = 0;
       set_matrix_info_from_calldef(*mi, datum);
       mi->realdone = true;
 
@@ -3126,8 +3381,8 @@ static void process_jaywalk_chains(
 static void process_nonjaywalk_chains(
    matrix_rec matrix_info[],
    int nump,
-   const uint32 *callstuff,
-   uint32 flags,
+   const uint32_t *callstuff,
+   uint32_t flags,
    int filter) THROW_DECL    // 1 for E/W chains, 0 for N/S chains.
 {
    bool another_round = true;
@@ -3158,7 +3413,7 @@ static void process_nonjaywalk_chains(
                   if (mi->nextse->nextse) mi->nextse->nextse->nextnw = 0;
                   mi->nextse->nextse = 0;
                   another_round = true;
-                  do_pair(mi, mi->nextse, callstuff, flags, 0, filter);
+                  do_pair(mi, callstuff, flags, false, filter);
                }
             }
          }
@@ -3173,7 +3428,7 @@ static void process_nonjaywalk_chains(
                if (mi->nextnw->nextnw) mi->nextnw->nextnw->nextse = 0;
                mi->nextnw->nextnw = 0;
                another_round = true;
-               do_pair(mi, mi->nextnw, callstuff, flags, 2, filter);
+               do_pair(mi, callstuff, flags, true, filter);
             }
          }
          else {
@@ -3195,8 +3450,9 @@ static void process_nonjaywalk_chains(
 
 static int partner_matrixmove(
    setup *ss,
-   uint32 flags,
-   const uint32 *callstuff,
+   calldef_schema the_schema,
+   uint32_t flags,
+   const uint32_t *callstuff,
    setup *result) THROW_DECL
 {
    setup people;
@@ -3225,7 +3481,7 @@ static int partner_matrixmove(
       }
    }
 
-   nump = start_matrix_call(ss, matrix_info, 0, flags, &people);
+   nump = start_matrix_call(ss, matrix_info, the_schema, 0, flags, &people);
 
    // Make the lateral chains first.
 
@@ -3266,7 +3522,7 @@ static int partner_matrixmove(
       }
    }
 
-   int alldelta = finish_matrix_call(matrix_info, nump, true, collision_severity_no,
+   int alldelta = finish_matrix_call(ss, matrix_info, nump, the_schema, flags, (const uint32_t *) 0, true, collision_severity_no,
                                      true, merge_strict_matrix, &people, result);
    reinstate_rotation(ss, result);
 
@@ -3315,7 +3571,7 @@ extern void brute_force_merge(const setup *res1, const setup *res2,
       setup people;
       matrix_rec matrix_info[matrix_info_capacity+1];
 
-      int nump = start_matrix_call(res1, matrix_info, 0, 0, &people);
+      int nump = start_matrix_call(res1, matrix_info, schema_matrix, 0, 0, &people);
 
       if (r) {
          for (i=0 ; i<nump ; i++) {
@@ -3326,12 +3582,12 @@ extern void brute_force_merge(const setup *res1, const setup *res2,
          }
       }
 
-      nump = start_matrix_call(res2, matrix_info, nump, 0, &people);
+      nump = start_matrix_call(res2, matrix_info, schema_matrix, nump, 0, &people);
 
       // Note that, because we set deltarot above, we must NOT turn on the
       // "do_roll_stability" argument here.  It would treat the rotation
       // as though the person had actually done a call.
-      finish_matrix_call(matrix_info, nump, false, allow_collisions,
+      finish_matrix_call((setup *) 0, matrix_info, nump, schema_matrix, 0, (const uint32_t *) 0, false, allow_collisions,
                          action > merge_for_own, action, &people, result);
       return;
    }
@@ -3341,20 +3597,20 @@ extern void brute_force_merge(const setup *res1, const setup *res2,
 
    int rot = r * 011;
    int lim1 = attr::slimit(res1)+1;
-   collision_collector CC(allow_collisions);
+   collision_collector CC(result, allow_collisions);
 
    if (lim1 <= 0) fail("Can't figure out result setup.");
 
    *result = *res2;
 
-   CC.note_prefilled_result(result);
+   CC.note_prefilled_result();
 
    for (i=0; i<lim1; i++) {
       if (res1->people[i].id1)
-         CC.install_with_collision(result, i, res1, i, rot);
+         CC.install_with_collision(i, res1, i, rot);
    }
 
-   CC.fix_possible_collision(result);
+   CC.fix_possible_collision();
 }
 
 
@@ -3366,8 +3622,8 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    matrix_rec second_matrix_info[matrix_info_capacity+1];
    int i;
    bool fudged_start = false;
-   uint32 flags = MTX_STOP_AND_WARN_ON_TBONE | MTX_IGNORE_NONSELECTEES;
-   selector_kind saved_selector = current_options.who;
+   uint32_t flags = MTX_STOP_AND_WARN_ON_TBONE | MTX_IGNORE_NONSELECTEES;
+   who_list saved_selector = current_options.who;
    current_options.who = parseptr->options.who;
 
    setup scopy = *ss;      // Will save rotation of this to the very end.
@@ -3379,14 +3635,14 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
       fudged_start = true;
    }
 
-   int nump = start_matrix_call(&scopy, matrix_info, 0,
+   int nump = start_matrix_call(&scopy, matrix_info, schema_matrix, 0,
       MTX_USE_SELECTOR | MTX_STOP_AND_WARN_ON_TBONE, &people);
    current_options.who = saved_selector;
 
    // Make the lateral chains first.
 
    make_matrix_chains(matrix_info, nump, false, MTX_STOP_AND_WARN_ON_TBONE, 1);
-   process_nonjaywalk_chains(matrix_info, nump, (uint32 *) 0, flags, 1);
+   process_nonjaywalk_chains(matrix_info, nump, (uint32_t *) 0, flags, 1);
 
    /* Now clean off the pointers in preparation for the second pass. */
 
@@ -3401,7 +3657,7 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    // Vertical chains next.
 
    make_matrix_chains(matrix_info, nump, false, MTX_STOP_AND_WARN_ON_TBONE, 0);
-   process_nonjaywalk_chains(matrix_info, nump, (uint32 *) 0, flags, 0);
+   process_nonjaywalk_chains(matrix_info, nump, (uint32_t *) 0, flags, 0);
 
    // Scan for people who ought to have done something but didn't.
 
@@ -3422,7 +3678,7 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
 
    // Now figure out where the people who moved really are.
 
-   int second_nump = start_matrix_call(result, second_matrix_info, 0,
+   int second_nump = start_matrix_call(result, second_matrix_info, schema_matrix, 0,
                                        MTX_STOP_AND_WARN_ON_TBONE, &second_people);
 
    int final_2nd_nump = second_nump;
@@ -3433,7 +3689,7 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    for (i=0; i<nump; i++) {
       if (matrix_info[i].sel) {
          // Get the actual dragger person id1 word.
-         uint32 dragger_id = scopy.people[matrix_info[i].deltarot].id1;
+         uint32_t dragger_id = scopy.people[matrix_info[i].deltarot].id1;
 
          // Find the XY coords of the person's dragger.
 
@@ -3476,65 +3732,36 @@ extern void drag_someone_and_move(setup *ss, parse_block *parseptr, setup *resul
    }
 
    ss->rotation += result->rotation;
-   finish_matrix_call(second_matrix_info, final_2nd_nump, true, collision_severity_no, true, merge_strict_matrix, &second_people, result);
+   finish_matrix_call(ss, second_matrix_info, final_2nd_nump, schema_matrix, 0, (const uint32_t *) 0, true,
+                      collision_severity_no, true, merge_strict_matrix, &second_people, result);
    reinstate_rotation(ss, result);
    clear_result_flags(result);
 }
 
 
 
-extern void anchor_someone_and_move(
-   setup *ss,
-   parse_block *parseptr,
-   setup *result)  THROW_DECL
+static bool try_this_split(uint32_t splitting_indicator,
+                           const short int skb_box[],
+                           int nump,
+                           matrix_rec before_matrix_info[],
+                           matrix_rec after_matrix_info[],
+                           setup *result)
 {
    enum { MAX_GROUPS = 12 };
-   setup people;
-   matrix_rec before_matrix_info[matrix_info_capacity+1];
-   matrix_rec after_matrix_info[matrix_info_capacity+1];
-   int i, j, k, nump;
-   int deltax[MAX_GROUPS], deltay[MAX_GROUPS];
-   selector_kind saved_selector = current_options.who;
-   setup saved_start_people = *ss;
+
+   int i, j, k;
    int Bindex[MAX_GROUPS];
    int Aindex[MAX_GROUPS];
    int Eindex[MAX_GROUPS];
+   int deltax[MAX_GROUPS], deltay[MAX_GROUPS];
+   setup after_people;
 
-   current_options.who = parseptr->options.who;
-
-   if (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK)
-      fail("Can't split the setup.");
-
-   if (ss->cmd.cmd_misc_flags & CMD_MISC__DISTORTED)
-      fail("This call not allowed in distorted or virtual setup.");
 
    for (i=0 ; i<MAX_GROUPS ; i++) { Eindex[i] = Bindex[i] = Aindex[i] = -1; }
 
-   ss->rotation = 0;
-   ss->eighth_rotation = 0;
-
-   if (ss->kind != s2x4 &&
-       ss->kind != s1x8 &&
-       ss->kind != s2x3 &&
-       ss->kind != s2x6 &&
-       ss->kind != s2x8 &&
-       ss->kind != s2x12 &&
-       ss->kind != s3x4 &&
-       ss->kind != s4x4 &&
-       ss->kind != s4x6 &&
-       ss->kind != s_qtag &&
-       ss->kind != s_ptpd)
-      fail("Sorry, can't do this in this setup.");
-   move(ss, false, result);
-
-   nump = start_matrix_call(&saved_start_people, before_matrix_info, 0,
-                            MTX_USE_SELECTOR, &people);
-   current_options.who = saved_selector;
-
    int numgroups = 0;
-   uint32 splitting_indicator = (result->result_flags.split_info[1] << 4) | result->result_flags.split_info[0];
-   bool we_have_a_problem = false;
 
+   // Look at both fields simultaneously.
    switch (splitting_indicator) {
    case 1:       // Single split on X.
    case 0x10:    // Single split on Y.
@@ -3557,23 +3784,12 @@ extern void anchor_someone_and_move(
       numgroups = 12;
       break;
    default:
-      we_have_a_problem = true;
-   }
-
-   if (we_have_a_problem) {
-      if (ss->kind != s4x4)
-         fail("Can't 'anchor' someone for an 8-person call.");
-
-      // Needs 48-person setups!
-      divided_setup_move(ss, MAPCODE(s1x4,4,MPKIND__SPLIT,1), phantest_ok, true, result);
-      fail("Can't 'anchor' someone for an 8-person call.");
+      return false;
    }
 
    for (i=0 ; i<nump ; i++) {
       int x = before_matrix_info[i].x;
       int y = before_matrix_info[i].y;
-
-      // Look at both fields simultaneously.
 
       switch (splitting_indicator) {
       case 1:       // Single split on X.
@@ -3591,60 +3807,60 @@ extern void anchor_someone_and_move(
          break;
       case 3:       // Triple split on X.
          // This is split into four groups in a row from left to right.
-         if      (x < -setup_attrs[ss->kind].bounding_box[0]) j = 0;
+         if      (x < -skb_box[0]) j = 0;
          else if (x < 0) j = 1;
-         else if (x < setup_attrs[ss->kind].bounding_box[0]) j = 2;
+         else if (x < skb_box[0]) j = 2;
          else j = 3;
          break;
       case 0x12:    // Double split on X, single on Y.
          // This is split into 2 groups vertically and 3 groups laterally.
          if (y < 0) j = 0;
          else j = 3;
-         if (x+x/2 > setup_attrs[ss->kind].bounding_box[0]) j += 2;
-         else if (x+x/2 >= -setup_attrs[ss->kind].bounding_box[0]) j += 1;
+         if (x+x/2 > skb_box[0]) j += 2;
+         else if (x+x/2 >= -skb_box[0]) j += 1;
          break;
       case 0x21:    // Double split on Y, single on X.
          // This is split into 3 groups vertically and 2 groups laterally.
          if (x < 0) j = 0;
          else j = 3;
-         if (y+y/2 > setup_attrs[ss->kind].bounding_box[1]) j += 2;
-         else if (y+y/2 >= -setup_attrs[ss->kind].bounding_box[1]) j += 1;
+         if (y+y/2 > skb_box[1]) j += 2;
+         else if (y+y/2 >= -skb_box[1]) j += 1;
          break;
       case 0x13:    // Triple split on X, single on Y.
          // This is split into 2 groups vertically and 4 groups laterally.
          if (y < 0) j = 0;
          else j = 4;
-         if      (x < -setup_attrs[ss->kind].bounding_box[0]) j += 3;
+         if      (x < -skb_box[0]) j += 3;
          else if (x < 0) j += 2;
-         else if (x < setup_attrs[ss->kind].bounding_box[0]) j += 1;
+         else if (x < skb_box[0]) j += 1;
          break;
       case 0x31:    // Triple split on Y, single on X.
          // This is split into 4 groups vertically and 2 groups laterally.
          if (x < 0) j = 0;
          else j = 4;
-         if      (y < -setup_attrs[ss->kind].bounding_box[0]) j += 3;
+         if      (y < -skb_box[0]) j += 3;
          else if (y < 0) j += 2;
-         else if (y < setup_attrs[ss->kind].bounding_box[0]) j += 1;
+         else if (y < skb_box[0]) j += 1;
          break;
       case 0x15:    // Quintuple split on X, single on Y.
          // This is split into 2 groups vertically and 6 groups laterally.
          if (y < 0) j = 0;
          else j = 6;
-         if      (x < -2*setup_attrs[ss->kind].bounding_box[0]) j += 5;
-         if      (x < -setup_attrs[ss->kind].bounding_box[0]) j += 4;
+         if      (x < -2*skb_box[0]) j += 5;
+         if      (x < -skb_box[0]) j += 4;
          else if (x < 0) j += 3;
-         else if (x < setup_attrs[ss->kind].bounding_box[0]) j += 2;
-         else if (x < 2*setup_attrs[ss->kind].bounding_box[0]) j += 1;
+         else if (x < skb_box[0]) j += 2;
+         else if (x < 2*skb_box[0]) j += 1;
          break;
       case 0x51:    // Quintuple split on Y, single on X.
          // This is split into 6 groups vertically and 2 groups laterally.
          if (x < 0) j = 0;
          else j = 6;
-         if      (y < -2*setup_attrs[ss->kind].bounding_box[0]) j += 5;
-         if      (y < -setup_attrs[ss->kind].bounding_box[0]) j += 4;
+         if      (y < -2*skb_box[0]) j += 5;
+         if      (y < -skb_box[0]) j += 4;
          else if (y < 0) j += 3;
-         else if (y < setup_attrs[ss->kind].bounding_box[0]) j += 2;
-         else if (y < 2*setup_attrs[ss->kind].bounding_box[0]) j += 1;
+         else if (y < skb_box[0]) j += 2;
+         else if (y < 2*skb_box[0]) j += 1;
          break;
       }
 
@@ -3654,21 +3870,21 @@ extern void anchor_someone_and_move(
       before_matrix_info[i].nearestdrag = j;
 
       if (before_matrix_info[i].sel) {
-         if (Bindex[j] >= 0) fail("Need exactly one 'anchored' person in each group.");
+         if (Bindex[j] >= 0) return false;
          Bindex[j] = i;
       }
    }
 
    for (k=0 ; k<numgroups ; k++) {
       if (Eindex[k] > 0 && Bindex[k] < 0)
-         fail("Need exactly one 'anchored' person in each group.");
+         return false;
    }
 
    // If the result is a "1p5x8", we do special stuff.
    if (result->kind == s1p5x8) result->kind = s2x8;
    else if (result->kind == s1p5x4) result->kind = s2x4;
 
-   nump = start_matrix_call(result, after_matrix_info, 0, 0, &people);
+   nump = start_matrix_call(result, after_matrix_info, schema_matrix, 0, 0, &after_people);
 
    for (i=0 ; i<nump ; i++) {
       if (result->rotation) {
@@ -3704,14 +3920,138 @@ extern void anchor_someone_and_move(
       }
       fail("Can't find where this person went.");
 
-      found_person:
+   found_person:
 
       after_matrix_info[i].deltax = deltax[j];
       after_matrix_info[i].deltay = deltay[j];
       after_matrix_info[i].dir = 0;
    }
 
-   finish_matrix_call(after_matrix_info, nump, false, collision_severity_no, true, merge_strict_matrix, &people, result);
+   finish_matrix_call((setup *) 0, after_matrix_info, nump, schema_matrix, 0, (const uint32_t *) 0, false,
+                      collision_severity_no, true, merge_strict_matrix, &after_people, result);
+   return true;
+}
+
+
+static bool try_split_and_move(setup *ss, parse_block *parseptr, uint32_t division_code,
+                               matrix_rec before_matrix_info[],
+                               matrix_rec after_matrix_info[],
+                               setup *before_people_p,
+                               setup *result)
+{
+   ss->rotation = 0;
+   ss->eighth_rotation = 0;
+   current_options.who = parseptr->options.who;
+
+   // Preserved across a throw; must be volatile.
+   volatile error_flag_type maybe_throw_this = error_flag_none;
+
+   try {
+      divided_setup_move(ss, division_code, phantest_ok, true, result);
+   }
+   catch(error_flag_type foo) {
+      maybe_throw_this = foo;
+   }
+
+   if (maybe_throw_this == error_flag_none) {
+      uint32_t splitting_indicator = (result->result_flags.split_info[1] << 4) | result->result_flags.split_info[0];
+      int nump = start_matrix_call(ss, before_matrix_info, schema_matrix, 0, MTX_USE_SELECTOR, before_people_p);
+      if (try_this_split(splitting_indicator,
+                         setup_attrs[ss->kind].bounding_box,
+                         nump,
+                         before_matrix_info,
+                         after_matrix_info,
+                         result))
+         return true;
+   }
+
+   return false;
+}
+
+
+
+extern void anchor_someone_and_move(
+   setup *ss,
+   parse_block *parseptr,
+   setup *result)  THROW_DECL
+{
+   setup before_people;
+   matrix_rec before_matrix_info[matrix_info_capacity+1];
+   matrix_rec after_matrix_info[matrix_info_capacity+1];
+
+   who_list saved_selector = current_options.who;
+   setup saved_start_people = *ss;
+   ss->rotation = 0;
+   ss->eighth_rotation = 0;
+
+   if (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK)
+      fail("Can't split the setup.");
+
+   if (ss->cmd.cmd_misc_flags & CMD_MISC__DISTORTED)
+      fail("This call not allowed in distorted or virtual setup.");
+
+   if (ss->kind != s2x4 &&
+       ss->kind != s1x4 &&
+       ss->kind != s1x8 &&
+       ss->kind != s2x2 &&
+       ss->kind != s2x3 &&
+       ss->kind != s2x6 &&
+       ss->kind != s2x8 &&
+       ss->kind != s2x12 &&
+       ss->kind != s3x4 &&
+       ss->kind != s4x4 &&
+       ss->kind != s4x6 &&
+       ss->kind != s_qtag &&
+       ss->kind != s_ptpd)
+      fail("Sorry, can't do this in this setup.");
+
+   current_options.who = parseptr->options.who;
+
+   move(ss, false, result);
+   uint32_t splitting_indicator = (result->result_flags.split_info[1] << 4) | result->result_flags.split_info[0];
+
+   int nump = start_matrix_call(&saved_start_people, before_matrix_info, schema_matrix, 0, MTX_USE_SELECTOR, &before_people);
+   if (try_this_split(splitting_indicator,
+                      setup_attrs[ss->kind].bounding_box,
+                      nump,
+                      before_matrix_info,
+                      after_matrix_info,
+                      result))
+      goto we_are_done;
+
+   if (splitting_indicator == 0x01 && ss->kind == s2x4) {
+      // A 2x4 got split into two 2x2 boxes, maybe two 1x4's would have worked.
+      *ss = saved_start_people;
+      if (try_split_and_move(ss, parseptr, MAPCODE(s1x4,2,MPKIND__SPLIT,1),
+                             before_matrix_info, after_matrix_info, &before_people, result))
+         goto we_are_done;
+
+      // That didn't work.  Try 4 1x2's in a row.
+      *ss = saved_start_people;
+      if (try_split_and_move(ss, parseptr, MAPCODE(s1x2,4,MPKIND__SPLIT,1),
+                             before_matrix_info, after_matrix_info, &before_people, result))
+         goto we_are_done;
+   }
+
+   if (splitting_indicator == 0x00 && ss->kind == s2x2) {
+      // A 2x2 didn't get split at all; need to try both 1x2 splits
+      *ss = saved_start_people;
+      if (try_split_and_move(ss, parseptr, MAPCODE(s1x2,2,MPKIND__SPLIT,1),
+                             before_matrix_info, after_matrix_info, &before_people, result))
+         goto we_are_done;
+
+      // And the other way.
+      *ss = saved_start_people;
+      if (try_split_and_move(ss, parseptr, spcmap_2x2v,    // Special map; ordinary encodings can't handle this.
+                             before_matrix_info, after_matrix_info, &before_people, result))
+         goto we_are_done;
+   }
+
+   fail("Need exactly one 'anchored' person in each group.");
+
+ we_are_done:
+
+   current_options.who = saved_selector;
    reinstate_rotation(&saved_start_people, result);
    clear_result_flags(result);
 }
@@ -3733,7 +4073,7 @@ static void rollmove(
    for (i=0; i<=attr::slimit(ss); i++) {
       if (ss->people[i].id1) {
          int rot = 0;
-         uint32 st = STB_NONE+STB_REVERSE;
+         uint32_t st = STB_NONE+STB_REVERSE;
 
          if (!(callspec->callflagsf & CFLAGH__REQUIRES_SELECTOR) || selectp(ss, i)) {
             switch (ss->people[i].id1 & ROLL_DIRMASK) {
@@ -3762,14 +4102,13 @@ static void rollmove(
 }
 
 
-static uint32 fix_gensting_weirdness(const setup_command *cmd, uint32 callflagsh)
+static void fix_gensting_weirdness(const setup_command *cmd, heritflags & callflagsh)
 {
-   if (cmd->cmd_final_flags.test_heritbits(INHERITFLAG_YOYOETCMASK) == INHERITFLAG_YOYOETCK_STINGY) {
+   if ((cmd->cmd_final_flags.herit & INHERITFLAG_YOYOETCMASK) == INHERITFLAG_YOYOETCK_STINGY) {
       // User gave "stingy".  Because we are cheating with these bits, special action is needed.
-      if (callflagsh & INHERITFLAG_YOYOETCK_GENEROUS)
+      if ((callflagsh & INHERITFLAG_YOYOETCK_GENEROUS) != 0)
          callflagsh |= INHERITFLAG_YOYOETCK_STINGY;
    }
-   return callflagsh;
 }
 
 
@@ -3777,7 +4116,7 @@ static uint32 fix_gensting_weirdness(const setup_command *cmd, uint32 callflagsh
 static void do_inheritance(setup_command *cmd,
                            const calldefn *parent_call,
                            const by_def_item *defptr,
-                           uint32 extra_heritmask_bits) THROW_DECL
+                           heritflags extra_heritmask_bits) THROW_DECL
 {
    // Strip out those concepts that do not have the "dfm__xxx" flag set saying that
    // they are to be inherited to this part of the call.  BUT: the "INHERITFLAG_LEFT"
@@ -3790,12 +4129,13 @@ static void do_inheritance(setup_command *cmd,
    // This is what turns, for example, part 3 of "*REVERSE* clean sweep" into a "*LEFT*
    // 1/2 tag".
 
-   uint32 callflagsh = parent_call->callflagsh;
-   uint32 temp_concepts = cmd->cmd_final_flags.herit;
-   uint32 forcing_concepts = defptr->modifiersh & ~callflagsh;
+   heritflags callflagsh;
+   callflagsh = parent_call->callflagsherit;
+   heritflags temp_concepts = cmd->cmd_final_flags.herit;
+   heritflags forcing_concepts = defptr->modifiersh & ~callflagsh;
 
-   if (forcing_concepts & (INHERITFLAG_REVERSE | INHERITFLAG_LEFT)) {
-      if (cmd->cmd_final_flags.test_heritbits(INHERITFLAG_REVERSE | INHERITFLAG_LEFT))
+   if ((forcing_concepts & (INHERITFLAG_REVERSE | INHERITFLAG_LEFT)) != 0) {
+      if (cmd->cmd_final_flags.bool_test_heritbits(INHERITFLAG_REVERSE | INHERITFLAG_LEFT))
          temp_concepts |= (INHERITFLAG_REVERSE | INHERITFLAG_LEFT);
    }
 
@@ -3805,32 +4145,37 @@ static void do_inheritance(setup_command *cmd,
    // immediately below.
 
    // Fix special case of yoyo/generous/stingy.  HALF and LASTHALF are always considered to be heritable.
-   uint32 hhhh = fix_gensting_weirdness(cmd, defptr->modifiersh | INHERITFLAG_HALF | INHERITFLAG_LASTHALF);
+   heritflags hhhh = defptr->modifiersh;
+   hhhh |= INHERITFLAG_HALF | INHERITFLAG_LASTHALF | INHERITFLAG_QUARTER;
+   fix_gensting_weirdness(cmd, hhhh);
 
-   temp_concepts &= (~cmd->cmd_final_flags.herit | hhhh | extra_heritmask_bits);
+   temp_concepts &= (~cmd->cmd_final_flags.herit) | hhhh | extra_heritmask_bits;
 
    // Now turn on any "force" flags.  These are indicated by "modifiersh" on
    // and "callflagsh" off.
 
-   if (temp_concepts & defptr->modifiersh & ~callflagsh & (INHERITFLAG_HALF | INHERITFLAG_LASTHALF))
+   if (temp_concepts & defptr->modifiersh &
+       ~callflagsh & (INHERITFLAG_HALF | INHERITFLAG_LASTHALF | INHERITFLAG_QUARTER))
       fail("Can't do this with this fraction.");   // "force_half" was used when we already had "half" coming in.
 
-   if (((INHERITFLAG_REVERSE | INHERITFLAG_LEFT) & callflagsh) == 0)
+   if ((callflagsh & (INHERITFLAG_REVERSE | INHERITFLAG_LEFT)) == 0) {
       // If neither of the "reverse_means_mirror" or "left_means_mirror" bits is on,
       // we allow forcing of left or reverse.
       temp_concepts |= forcing_concepts;
-   else
+   }
+   else {
       // Otherwise, we only allow the other bits.
-      temp_concepts |= forcing_concepts & ~(INHERITFLAG_REVERSE | INHERITFLAG_LEFT);
+      temp_concepts |= (forcing_concepts & ~(INHERITFLAG_REVERSE | INHERITFLAG_LEFT));
+   }
 
    cmd->cmd_final_flags.herit = (heritflags) temp_concepts;
    cmd->callspec = base_calls[defptr->call_id];
 }
 
-extern void process_number_insertion(uint32 mod_word)
+extern void process_number_insertion(uint32_t mod_word)
 {
    if (mod_word & DFM1_NUM_INSERT_MASK) {
-      uint32 insertion_num = (mod_word & DFM1_NUM_INSERT_MASK) / DFM1_NUM_INSERT_BIT;
+      uint32_t insertion_num = (mod_word & DFM1_NUM_INSERT_MASK) / DFM1_NUM_INSERT_BIT;
 
       if ((mod_word & DFM1_FRACTAL_INSERT) && (insertion_num & ~2) == 1)
          insertion_num ^= 2;
@@ -3853,7 +4198,7 @@ extern bool get_real_subcall(
    const setup_command *cmd_in,
    const calldefn *parent_call,
    bool forbid_flip,
-   uint32 extra_heritmask_bits,
+   heritflags extra_heritmask_bits,
    setup_command *cmd_out) THROW_DECL   // We fill in just the parseptr, callspec, cmd_final_flags fields.
 {
    parse_block *search;
@@ -3863,17 +4208,14 @@ extern bool get_real_subcall(
    // The flags, heritable and otherwise, with which the parent call was invoked.
    // Some of these may be inherited to the subcall.
    final_and_herit_flags new_final_concepts = cmd_in->cmd_final_flags;
-   uint32 mods1 = item->modifiers1;
+   uint32_t mods1 = item->modifiers1;
    call_with_name *orig_call = base_calls[item_id];
    bool this_is_tagger =
       item_id >= base_call_tagger0 && item_id < base_call_tagger0+NUM_TAGGER_CLASSES;
    bool this_is_tagger_circcer = this_is_tagger || item_id == base_call_circcer;
-   call_conc_option_state save_state = current_options;
 
-   if (!(new_final_concepts.test_heritbit(INHERITFLAG_FRACTAL)))
+   if (!new_final_concepts.bool_test_heritbits(INHERITFLAG_FRACTAL))
       mods1 &= ~DFM1_FRACTAL_INSERT;
-
-   process_number_insertion(mods1);
 
    // Fill in defaults in case we choose not to get a replacement call.
 
@@ -3899,12 +4241,14 @@ extern bool get_real_subcall(
       xx->no_check_call_level = true;
       xx->call_to_print = xx->call;
 
-      if (current_options.star_turn_option >= 0)
+      if (current_options.star_turn_option >= 0) {
          xx->options.number_fields += current_options.star_turn_option;
+         xx->options.howmanynumbers = 1;
+      }
 
       cmd_out->parseptr = xx;
       cmd_out->callspec = (call_with_name *) 0;
-      goto ret_true;
+      return true;
    }
 
    /* If this subcall invocation does not permit modification under any value of the
@@ -3927,7 +4271,7 @@ extern bool get_real_subcall(
       proceed with the search. */
 
    if (!(mods1 & DFM1_CALL_MOD_MASK) && !this_is_tagger_circcer)
-      goto ret_false;
+      return false;
 
    /* See if we had something from before.  This avoids embarassment if a call is actually
       done multiple times.  We want to query the user just once and use that result everywhere.
@@ -3949,13 +4293,13 @@ extern bool get_real_subcall(
       if (snumber == (DFM1_CALL_MOD_MAND_ANYCALL/DFM1_CALL_MOD_BIT) &&
           (cmd_in->cmd_misc3_flags & CMD_MISC3__NO_ANYTHINGERS_SUBST) &&
           item_id == base_call_circulate) {
-         goto ret_false;
+         return false;
       }
       else if (snumber == (DFM1_CALL_MOD_ANYCALL/DFM1_CALL_MOD_BIT) &&
           (cmd_in->cmd_misc3_flags & CMD_MISC3__NO_ANYTHINGERS_SUBST) &&
                item_id == base_call_circcer) {
          cmd_out->callspec = base_calls[base_call_circulate];
-         goto ret_true;
+         return true;
       }
 
       while ((search = *newsearch) != (parse_block *) 0) {
@@ -3968,7 +4312,7 @@ extern bool get_real_subcall(
 
             // If the pointer is nil, we already asked about this call, and the reply was no.
             if (!subsidiary_ptr)
-               goto ret_false;
+               return false;
 
             cmd_out->parseptr = subsidiary_ptr;
 
@@ -3988,7 +4332,7 @@ extern bool get_real_subcall(
                if (snumber == (DFM1_CALL_MOD_MAND_ANYCALL/DFM1_CALL_MOD_BIT) ||
                    snumber == (DFM1_CALL_MOD_MAND_SECONDARY/DFM1_CALL_MOD_BIT)) {
                   if (search->concept->kind == concept_supercall) {
-                     cmd_out->cmd_final_flags.herit = (heritflags) cmd_in->restrained_super8flags;
+                     cmd_out->cmd_final_flags.herit = cmd_in->restrained_super8flags;
                      cmd_out->cmd_misc2_flags &= ~CMD_MISC2_RESTRAINED_SUPER;
                   }
                }
@@ -3998,7 +4342,7 @@ extern bool get_real_subcall(
                }
             }
 
-            goto ret_true;
+            return true;
          }
 
          newsearch = &search->next;
@@ -4007,30 +4351,38 @@ extern bool get_real_subcall(
    else if (parseptr->concept->kind != marker_end_of_list)
       fail_no_retry("wrong marker in get_real_subcall???");
 
-   if (do_subcall_query(snumber, parseptr, newsearch,
-                        this_is_tagger, this_is_tagger_circcer, orig_call))
-      goto ret_false;
+   // To be sure any query shows the actual number ("replace the cast off 3/4"
+   // rather than "replace the cast off <N/4>", do an unnecessary number insertion.
+   // Then throw it way; the actual insertion will occur later.
+   {
+      call_conc_option_state save_state = current_options;
+      process_number_insertion(mods1);
+      bool bbb = do_subcall_query(snumber, parseptr, newsearch,
+                                  this_is_tagger, this_is_tagger_circcer, orig_call);
+         current_options = save_state;
+      if (bbb) return false;
+   }
 
    cmd_out->parseptr = (*newsearch)->subsidiary_root;
    // We THROW AWAY the alternate call, because we want our user
    // to get it from the concept list.
    cmd_out->callspec = (call_with_name *) 0;
    cmd_out->cmd_final_flags.clear_all_herit_and_final_bits();
-
- ret_true:
-   current_options = save_state;
    return true;
-
- ret_false:
-
-   current_options = save_state;
-   return false;
 }
+
+static void anycall_promote_restrained_fraction(const by_def_item *source_def, setup_command *result_obj) {
+   if (((source_def->modifiers1 & DFM1_CALL_MOD_MASK) == DFM1_CALL_MOD_MAND_ANYCALL) ||
+       ((source_def->modifiers1 & DFM1_CALL_MOD_MASK) == DFM1_CALL_MOD_MAND_SECONDARY)) {
+      result_obj->promote_restrained_fraction();
+   }
+}
+
 
 
 static void divide_diamonds(setup *ss, setup *result) THROW_DECL
 {
-   uint32 ii;
+   uint32_t ii;
 
    if (ss->kind == s3x4) expand::compress_setup(s_qtg_3x4, ss);
 
@@ -4150,19 +4502,21 @@ void reduce_fraction(int &a, int &b)
       When "N" is zero, the key must be zero (which happens to be CMD_FRAC_CODE_ONLY,
       but it doesn't matter.)
 
-      CMD_FRAC_CODE_ONLY
+      (0) CMD_FRAC_CODE_ONLY
                Do part N only.  Do 1 part.  For a 5-part call ABCDE:
                   ONLY(1) means do A
                   ONLY(4) means do D
+               If K is nonzero, give the RESULTFLAG__DID_LAST_PART signal
+               that many parts early.
          (When N is zero, the whole word must be zero,
          and it means that this mechanism is not being used.)
 
-      CMD_FRAC_CODE_ONLYREV
+      (1) CMD_FRAC_CODE_ONLYREV
                Do part N from the end.  Do 1 part.  For a 5-part call ABCDE:
                   ONLYREV(1) means do E
                   ONLYREV(4) means do B
 
-      CMD_FRAC_CODE_FROMTO
+      (2) CMD_FRAC_CODE_FROMTO
                   do parts from K+1 up through N, inclusive,
                   that is, K+1, K+2, K+3, .... N.  Relative to the region.
                   K is the "secondary part number".  If K=0, this does N parts:
@@ -4172,7 +4526,7 @@ void reduce_fraction(int &a, int &b)
                   FROMTO(K=0,N=4) means do ABCD
                   FROMTO(K=1,N=4) means do BCD
 
-      CMD_FRAC_CODE_FROMTOREV
+      (3) CMD_FRAC_CODE_FROMTOREV
                Do parts from N up through size-K, inclusive.
                That is, skip N-1 parts at the start, do the main body in forward order,
                and skip K parts at the end.
@@ -4185,7 +4539,7 @@ void reduce_fraction(int &a, int &b)
                   FROMTOREV(K=3,N=2) means do B
                   FROMTOREV(K=4,N=1) means do A
 
-      CMD_FRAC_CODE_FROMTOREVREV
+      (4) CMD_FRAC_CODE_FROMTOREVREV
                Do parts from size-N-1 up through size-K, inclusive.
                Do N-K parts -- the last N parts, but omitting the last K parts.
                For a 5-part call ABCDE:
@@ -4197,17 +4551,23 @@ void reduce_fraction(int &a, int &b)
                   FROMTOREVREV(K=3,N=4) means do B
                   FROMTOREVREV(K=4,N=5) means do A
 
-      CMD_FRAC_CODE_FROMTOMOST
+      (5) CMD_FRAC_CODE_FROMTOMOST
                   Same as FROMTO, but leave early from the last part.
                   Do just the first half of it.
                   For a 5-part call ABCDE:
                   FROMTO(K=1,N=4) means do BC and the first half of D
 
-      CMD_FRAC_CODE_LATEFROMTOREV
+      (6) CMD_FRAC_CODE_LATEFROMTOREV
                   Same as FROMTOREV, but get a late start on the first part.
                   Do just the last half of it.
                For a 5-part call ABCDE:
                   LATEFROMTOREV(K=1,N=2) means do the last half of B, then CD
+
+      (7) CMD_FRAC_CODE_SKIP_K_MINUS_HALF
+                  Same as CMD_FRAC_CODE_FROMTOREV, but do only half of the last part.
+               Do parts from N up through size-K, but only half of part size-K.
+               For a 5-part call ABCDE:
+                  CMD_FRAC_CODE_SKIP_K_MINUS_HALF(K=0,N=1) means do ABCD plus half of E
 
    The output of this procedure, after digesting the above, is a "fraction_info"
    structure, whose important items are:
@@ -4300,12 +4660,12 @@ void fraction_command::process_fractions(int start, int end,
 
 void fraction_info::get_fraction_info(
    fraction_command frac_stuff,
-   uint32 part_visibility_info,
+   uint32_t part_visibility_info,
    revert_weirdness_type doing_weird_revert,
    parse_block **restrained_concept_p /* = (parse_block **) 0 */ ) THROW_DECL
 {
-   uint32 last_half_stuff = 0;
-   uint32 first_half_stuff = 0;
+   uint32_t last_half_stuff = 0;
+   uint32_t first_half_stuff = 0;
 
    int available_initial_fractions = 0;
    int available_final_fractions = 0;
@@ -4400,7 +4760,7 @@ void fraction_info::get_fraction_info(
 
    // Check for "reverse order".
    if (frac_stuff.flags & CMD_FRAC_REVERSE) {
-      uint32 orig_last = m_do_last_half_of_first_part;
+      uint32_t orig_last = m_do_last_half_of_first_part;
       bool dont_clobber = false;
 
       m_reverse_order = true;
@@ -4427,7 +4787,7 @@ void fraction_info::get_fraction_info(
 
    if (this_part != 0) {
       int highdel;
-      uint32 kvalue = ((frac_stuff.flags & CMD_FRAC_PART2_MASK) / CMD_FRAC_PART2_BIT);
+      uint32_t kvalue = ((frac_stuff.flags & CMD_FRAC_PART2_MASK) / CMD_FRAC_PART2_BIT);
 
       // In addition to everything else, we are picking out a specific part
       // of whatever series we have decided upon.
@@ -4459,6 +4819,7 @@ void fraction_info::get_fraction_info(
                fail("The indicated part number doesn't exist.");
          }
 
+         m_highlimit -= kvalue;
          break;
       case CMD_FRAC_CODE_ONLYREV:
          m_instant_stop = 1;
@@ -4473,7 +4834,7 @@ void fraction_info::get_fraction_info(
          break;
       case CMD_FRAC_CODE_FROMTO:
 
-         /* We are doing parts from (K+1) through N. */
+         // We are doing parts from (K+1) through N.
 
          if (m_reverse_order) {
             highdel = my_start_point-this_part+1;
@@ -4506,7 +4867,7 @@ void fraction_info::get_fraction_info(
          break;
       case CMD_FRAC_CODE_FROMTOREV:
 
-         /* We are doing parts from N through (end-K). */
+         // We are doing parts from N through (end-K).
 
          if (m_reverse_order) {
             int lowdel = 1-this_part;
@@ -4514,9 +4875,9 @@ void fraction_info::get_fraction_info(
             m_highlimit += kvalue;
             my_start_point += lowdel;
 
-            /* Be sure that enough parts are visible, and that we are within bounds.
-               If lowdel is zero, we weren't cutting the upper limit, so it's
-               allowed to be beyond the limit of part visibility. */
+            // Be sure that enough parts are visible, and that we are within bounds.
+            // If lowdel is zero, we weren't cutting the upper limit, so it's
+            // allowed to be beyond the limit of part visibility.
 
             if (my_start_point > m_client_total)
                fail("The indicated part number doesn't exist.");
@@ -4529,9 +4890,9 @@ void fraction_info::get_fraction_info(
             m_highlimit -= kvalue;
             my_start_point += this_part-1;
 
-            /* Be sure that enough parts are visible, and that we are within bounds.
-               If kvalue is zero, we weren't cutting the upper limit, so it's
-               allowed to be beyond the limit of part visibility. */
+            // Be sure that enough parts are visible, and that we are within bounds.
+            // If kvalue is zero, we weren't cutting the upper limit, so it's
+            // allowed to be beyond the limit of part visibility.
 
             if ((m_highlimit < m_client_total-available_final_fractions && kvalue != 0) ||
                 my_start_point > available_initial_fractions)
@@ -4543,7 +4904,7 @@ void fraction_info::get_fraction_info(
          break;
       case CMD_FRAC_CODE_FROMTOREVREV:
 
-         /* We are doing parts from (end-N+1 through (end-K). */
+         // We are doing parts from (end-N+1 through (end-K).
 
          if (m_reverse_order) {
             int highdel = my_start_point+1-m_highlimit-this_part;
@@ -4551,9 +4912,9 @@ void fraction_info::get_fraction_info(
             m_highlimit += kvalue;
             my_start_point -= highdel;
 
-            /* Be sure that enough parts are visible, and that we are within bounds.
-               If lowhdel is zero, we weren't cutting the upper limit, so it's
-               allowed to be beyond the limit of part visibility. */
+            // Be sure that enough parts are visible, and that we are within bounds.
+            // If lowhdel is zero, we weren't cutting the upper limit, so it's
+            // allowed to be beyond the limit of part visibility.
 
             if (my_start_point > m_client_total)
                fail("The indicated part number doesn't exist.");
@@ -4566,9 +4927,9 @@ void fraction_info::get_fraction_info(
             my_start_point = m_highlimit-this_part;
             m_highlimit -= kvalue;
 
-            /* Be sure that enough parts are visible, and that we are within bounds.
-               If kvalue is zero, we weren't cutting the upper limit, so it's
-               allowed to be beyond the limit of part visibility. */
+            // Be sure that enough parts are visible, and that we are within bounds.
+            // If kvalue is zero, we weren't cutting the upper limit, so it's
+            // allowed to be beyond the limit of part visibility.
 
             if ((m_highlimit > available_initial_fractions && kvalue != 0) ||
                 my_start_point > available_initial_fractions)
@@ -4580,7 +4941,7 @@ void fraction_info::get_fraction_info(
          break;
       case CMD_FRAC_CODE_FROMTOMOST:
 
-         /* We are doing parts from (K+1) through N, but only doing half of part N. */
+         // We are doing parts from (K+1) through N, but only doing half of part N.
 
          if (m_reverse_order) {
             highdel = (my_start_point-this_part+1);
@@ -4596,7 +4957,7 @@ void fraction_info::get_fraction_info(
                fail("This call can't be fractionalized.");
             if (my_start_point > m_client_total)
                fail("The indicated part number doesn't exist.");
-            /* Be sure that we actually do the part that we take half of. */
+            // Be sure that we actually do the part that we take half of.
             if (my_start_point < m_highlimit)
                fail("This call can't be fractionalized this way.");
          }
@@ -4613,7 +4974,7 @@ void fraction_info::get_fraction_info(
                fail("This call can't be fractionalized.");
             if (m_highlimit > m_client_total || my_start_point > m_client_total)
                fail("The indicated part number doesn't exist.");
-            /* Be sure that we actually do the part that we take half of. */
+            // Be sure that we actually do the part that we take half of.
             if (my_start_point >= m_highlimit)
                fail("This call can't be fractionalized this way.");
          }
@@ -4621,7 +4982,7 @@ void fraction_info::get_fraction_info(
          break;
       case CMD_FRAC_CODE_LATEFROMTOREV:
 
-         /* Like FROMTOREV, but get a late start on the first part. */
+         // Like FROMTOREV, but get a late start on the first part.
 
          if (m_reverse_order) {
             int lowdel = 1-this_part;
@@ -4630,9 +4991,9 @@ void fraction_info::get_fraction_info(
             my_start_point += lowdel;
             m_do_half_of_last_part = FRAC_FRAC_LASTHALF_VALUE;
 
-            /* Be sure that enough parts are visible, and that we are within bounds.
-               If lowdel is zero, we weren't cutting the upper limit, so it's
-               allowed to be beyond the limit of part visibility. */
+            // Be sure that enough parts are visible, and that we are within bounds.
+            // If lowdel is zero, we weren't cutting the upper limit, so it's
+            // allowed to be beyond the limit of part visibility.
 
             if (my_start_point > m_client_total)
                fail("The indicated part number doesn't exist.");
@@ -4640,7 +5001,7 @@ void fraction_info::get_fraction_info(
             if ((my_start_point >= available_initial_fractions && lowdel != 0) ||
                 m_highlimit > available_initial_fractions)
                fail("This call can't be fractionalized.");
-            /* Be sure that we actually do the part that we take half of. */
+            // Be sure that we actually do the part that we take half of.
             if (my_start_point < m_highlimit)
                fail("This call can't be fractionalized this way.");
          }
@@ -4649,19 +5010,39 @@ void fraction_info::get_fraction_info(
             my_start_point += this_part-1;
             m_do_last_half_of_first_part = FRAC_FRAC_LASTHALF_VALUE;
 
-            /* Be sure that enough parts are visible, and that we are within bounds.
-               If kvalue is zero, we weren't cutting the upper limit, so it's
-               allowed to be beyond the limit of part visibility. */
+            // Be sure that enough parts are visible, and that we are within bounds.
+            // If kvalue is zero, we weren't cutting the upper limit, so it's
+            // allowed to be beyond the limit of part visibility.
 
             if ((m_highlimit > available_initial_fractions && kvalue != 0) ||
                 my_start_point > available_initial_fractions)
                fail("This call can't be fractionalized.");
             if (m_highlimit > m_client_total || my_start_point > m_client_total)
                fail("The indicated part number doesn't exist.");
-            /* Be sure that we actually do the part that we take half of. */
+            // Be sure that we actually do the part that we take half of.
             if (my_start_point >= m_highlimit)
                fail("This call can't be fractionalized with this fraction.");
          }
+         break;
+      case CMD_FRAC_CODE_SKIP_K_MINUS_HALF:
+
+         // We are doing parts from N through (end-K), but only half of (end-K).
+
+         if (m_reverse_order)
+            fail("This call can't be fractionalized.");
+
+         m_highlimit -= kvalue;
+         my_start_point += this_part-1;
+
+         // Be sure that enough parts are visible, and that we are within bounds.
+
+         if ((m_highlimit < m_client_total-available_final_fractions) ||
+             my_start_point > available_initial_fractions)
+            fail("This call can't be fractionalized.");
+         if (m_highlimit > m_client_total || my_start_point > m_client_total)
+            fail("The indicated part number doesn't exist.");
+
+         m_do_half_of_last_part = FRAC_FRAC_HALF_VALUE;
          break;
       default:
          fail("Internal error: bad fraction code.");
@@ -4771,8 +5152,7 @@ void fraction_info::get_fraction_info(
           m_do_last_half_of_first_part != 0 ||
           m_do_half_of_last_part != (fracfrac) 0)
          fail("Can't do this.");
-
-      if ((*restrained_concept_p)->concept->kind == concept_meta &&
+      else if ((*restrained_concept_p)->concept->kind == concept_meta &&
           (*restrained_concept_p)->concept->arg1 == meta_key_revorder) {
          // Swap my_start_point and m_end_point.  They are inclusive integer limits.
          int t = my_start_point;
@@ -4849,7 +5229,7 @@ fracfrac fraction_info::get_fracs_for_this_part()
 }
 
 
-bool fraction_info::query_instant_stop(uint32 & result_flag_wordmisc) const
+bool fraction_info::query_instant_stop(uint32_t & result_flag_wordmisc) const
 {
    if (m_instant_stop != 99) {
       // Check whether we honored the last possible request.  That is,
@@ -4876,7 +5256,8 @@ int try_to_get_parts_from_parse_pointer(setup const *ss, parse_block const *pp) 
          CMD_MISC2__INVERT_MYSTIC | CMD_MISC2__CTR_END_MASK)) ||
        (!pp || pp->concept->kind != marker_end_of_list) ||
        (pp->call->the_defn.schema != schema_sequential) ||
-       (ss->cmd.cmd_final_flags.herit & (INHERITFLAG_HALF | INHERITFLAG_REWIND | INHERITFLAG_LASTHALF)))
+       (ss->cmd.cmd_final_flags.herit & (INHERITFLAG_HALF | INHERITFLAG_REWIND |
+                                         INHERITFLAG_LASTHALF | INHERITFLAG_QUARTER)) != 0ULL)
       return -1;
    return pp->call->the_defn.stuff.seq.howmanyparts;
 }
@@ -4950,14 +5331,8 @@ void impose_assumption_and_move(setup *ss, setup *result, bool suppress_fudgy_2x
       case CMD_MISC__VERIFY_2FL:           t.assumption = cr_2fl_only;      break;
       case CMD_MISC__VERIFY_DMD_LIKE:      t.assumption = cr_diamond_like;  break;
       case CMD_MISC__VERIFY_QTAG_LIKE:     t.assumption = cr_qtag_like;     break;
-      case CMD_MISC__VERIFY_1_4_TAG:
-         t.assumption = cr_qtag_like;
-         t.assump_both = 1;
-         break;
-      case CMD_MISC__VERIFY_3_4_TAG:
-         t.assumption = cr_qtag_like;
-         t.assump_both = 2;
-         break;
+      case CMD_MISC__VERIFY_1_4_TAG:       t.assumption = cr_qtag_like; t.assump_both = 1; break;
+      case CMD_MISC__VERIFY_3_4_TAG:       t.assumption = cr_qtag_like; t.assump_both = 2; break;
       case CMD_MISC__VERIFY_REAL_1_4_TAG:  t.assumption = cr_real_1_4_tag;  break;
       case CMD_MISC__VERIFY_REAL_3_4_TAG:  t.assumption = cr_real_3_4_tag;  break;
       case CMD_MISC__VERIFY_REAL_1_4_LINE: t.assumption = cr_real_1_4_line; break;
@@ -4997,82 +5372,334 @@ void impose_assumption_and_move(setup *ss, setup *result, bool suppress_fudgy_2x
 }
 
 
+void pre_process_seq_assumptions(setup *result, const assumption_thing *fix_next_assumption_p)
+{
+   result->cmd.cmd_assume.assumption = fix_next_assumption_p->assumption;
+
+   if (fix_next_assumption_p->assumption != cr_none) {
+      result->cmd.cmd_assume.assump_col = fix_next_assumption_p->assump_col;
+      result->cmd.cmd_assume.assump_both = fix_next_assumption_p->assump_both;
+      result->cmd.cmd_assume.assump_cast = 0;
+      result->cmd.cmd_assume.assump_live = 0;
+      result->cmd.cmd_assume.assump_negate = 0;
+
+      // If we just put in an "assume 1/4 tag" type of thing, we presumably
+      // did a "scoot back to a wave" as part of a "scoot reaction".  Now, if
+      // there were phantoms in the center after the call, the result could
+      // have gotten changed (by the normalization stuff deep within
+      // "fix_n_results" or whatever) to a 2x4.  However, if we are doing a
+      // scoot reaction, we really want the 1/4 tag.  So change it back.
+      // It happens that code in "divide_the_setup" would do this anyway,
+      // but we don't like assumptions in place on setups for which they
+      // are meaningless.
+
+      if (fix_next_assumption_p->assumption == cr_jleft ||
+          fix_next_assumption_p->assumption == cr_jright ||
+          fix_next_assumption_p->assumption == cr_real_1_4_tag ||
+          fix_next_assumption_p->assumption == cr_real_3_4_tag ||
+          fix_next_assumption_p->assumption == cr_real_1_4_line ||
+          fix_next_assumption_p->assumption == cr_real_3_4_line) {
+         if (result->kind == s2x4 &&
+             (result->people[1].id1 | result->people[2].id1 |
+              result->people[5].id1 | result->people[6].id1) == 0) {
+            expand::expand_setup(s_qtg_2x4, result);
+         }
+         else if (result->kind == s2x3 &&
+                  (result->people[1].id1 | result->people[4].id1) == 0) {
+            expand::expand_setup(s_qtg_2x3, result);
+         }
+         else if (result->kind == s3x4 &&
+                  (result->people[0].id1 | result->people[3].id1 |
+                   result->people[6].id1 | result->people[9].id1) == 0) {
+            expand::compress_setup(s_qtg_3x4, result);
+         }
+      }
+   }
+}
 
 
-static void do_stuff_inside_sequential_call(
+
+static void propagate_seq_assumptions(const assumption_thing incoming_assumption,
+                                      const setup *result,
+                                      assumption_thing *fix_next_assumption_p)
+{
+   call_restriction old_assumption = incoming_assumption.assumption;
+   int old_assump_col = incoming_assumption.assump_col;
+   int old_assump_both = incoming_assumption.assump_both;
+
+   call_with_name *this_call = result->cmd.callspec;
+   if (!this_call) this_call = result->cmd.parseptr->call;
+   if (!result->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF |
+                                                        INHERITFLAG_LASTHALF |
+                                                        INHERITFLAG_QUARTER)) {
+      if (this_call == base_calls[base_call_chreact_1]) {
+
+         // If we are starting a chain reaction, and the assumption was some form
+         // of 1/4 tag or 1/4 line (all of the above indicate such a thing --
+         // the outsides are a couple looking in), then, whether it was a plain
+         // chain reaction or a cross chain reaction, the result will have the
+         // checkpointers in miniwaves.  Pass that assumption on, so that they can hinge.
+
+         if (((old_assumption == cr_jleft ||
+               old_assumption == cr_ijleft ||
+               old_assumption == cr_jright ||
+               old_assumption == cr_ijright) && old_assump_both == 2) ||
+             (old_assumption == cr_qtag_like && old_assump_both == 1) ||
+             old_assumption == cr_real_1_4_tag ||
+             old_assumption == cr_real_1_4_line)
+            fix_next_assumption_p->assumption = cr_ckpt_miniwaves;
+      }
+      else if (this_call == base_calls[base_call_inrollcirc] ||
+               this_call == base_calls[base_call_outrollcirc]) {
+         if (old_assumption == cr_2fl_only) {
+            fix_next_assumption_p->assumption = cr_magic_only;
+         }
+         else if (old_assumption == cr_wave_only) {
+            fix_next_assumption_p->assumption = cr_wave_only;
+            fix_next_assumption_p->assump_both = old_assump_both;
+         }
+      }
+      else if (this_call == base_calls[base_call_jaywalk] && result->kind == s_qtag) {
+         if (old_assumption == cr_real_1_4_tag) {
+            fix_next_assumption_p->assumption = cr_real_3_4_tag;
+         }
+         else if (old_assumption == cr_real_1_4_line) {
+            fix_next_assumption_p->assumption = cr_real_3_4_line;
+         }
+         else if (old_assumption == cr_jright && old_assump_both == 2) {
+            fix_next_assumption_p->assumption = cr_jright;
+            fix_next_assumption_p->assump_both = 1;
+         }
+         else if (old_assumption == cr_jleft && old_assump_both == 2) {
+            fix_next_assumption_p->assumption = cr_jleft;
+            fix_next_assumption_p->assump_both = 1;
+         }
+      }
+      else if (this_call == base_calls[base_call_tradethewave]) {
+         if (old_assumption == cr_wave_only)
+            fix_next_assumption_p->assumption = cr_wave_only;
+      }
+      else if (this_call == base_calls[base_call_scootback] ||
+               this_call == base_calls[base_call_qtagscootback]) {
+         if (result->kind == s_qtag) {
+            if (old_assumption == cr_jright && old_assump_both == 2) {
+               // Jright:2 is left 1/4 tag, change to left 3/4 tag.
+               fix_next_assumption_p->assumption = cr_jleft;
+               fix_next_assumption_p->assump_both = 1;
+            }
+            else if (old_assumption == cr_jleft && old_assump_both == 2) {
+               // Jleft:2 is right 1/4 tag, change to right 3/4 tag.
+               fix_next_assumption_p->assumption = cr_jright;
+               fix_next_assumption_p->assump_both = 1;
+            }
+         }
+      }
+      else if (this_call == base_calls[base_call_scoottowave]) {
+         if (result->kind == s2x4 &&
+             !result->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_YOYOETCMASK)) {
+            if ((result->people[0].id1 & d_mask) == d_north ||
+                (result->people[1].id1 & d_mask) == d_south ||
+                (result->people[2].id1 & d_mask) == d_north ||
+                (result->people[3].id1 & d_mask) == d_south ||
+                (result->people[4].id1 & d_mask) == d_south ||
+                (result->people[5].id1 & d_mask) == d_north ||
+                (result->people[6].id1 & d_mask) == d_south ||
+                (result->people[7].id1 & d_mask) == d_north) {
+               fix_next_assumption_p->assumption = cr_jleft;
+               fix_next_assumption_p->assump_both = 2;
+            }
+            else if ((result->people[0].id1 & d_mask) == d_south ||
+                     (result->people[1].id1 & d_mask) == d_north ||
+                     (result->people[2].id1 & d_mask) == d_south ||
+                     (result->people[3].id1 & d_mask) == d_north ||
+                     (result->people[4].id1 & d_mask) == d_north ||
+                     (result->people[5].id1 & d_mask) == d_south ||
+                     (result->people[6].id1 & d_mask) == d_north ||
+                     (result->people[7].id1 & d_mask) == d_south) {
+               fix_next_assumption_p->assumption = cr_jright;
+               fix_next_assumption_p->assump_both = 2;
+            }
+         }
+      }
+      else if (this_call == base_calls[base_call_makepass_1] ||
+               this_call == base_calls[base_call_nuclear_1]) {
+
+         // If we are starting a "make a pass", and the assumption was some form
+         // of 1/4 tag, then we will have a 2-faced line in the center.  Pass that
+         // assumption on, so that they can cast off 3/4.  If it was a 1/4 line,
+         // the result will be a wave in the center.
+
+         if (((old_assumption == cr_jleft || old_assumption == cr_jright) &&
+              old_assump_both == 2) ||
+             old_assumption == cr_real_1_4_tag)
+            fix_next_assumption_p->assumption = cr_ctr_couples;
+         else if (((old_assumption == cr_ijleft || old_assumption == cr_ijright) &&
+                   old_assump_both == 2) ||
+                  old_assumption == cr_real_1_4_line)
+            fix_next_assumption_p->assumption = cr_ctr_miniwaves;
+         else if (old_assumption == cr_qtag_like &&
+                  old_assump_both == 1 &&
+                  result->kind == s_qtag &&
+                  (result->people[2].id1 & d_mask & ~2) == d_north &&
+                  ((result->people[2].id1 ^ result->people[6].id1) & d_mask) == 2 &&
+                  ((result->people[3].id1 ^ result->people[7].id1) & d_mask) == 2) {
+            if (((result->people[2].id1 ^ result->people[3].id1) & d_mask) == 0)
+               fix_next_assumption_p->assumption = cr_ctr_miniwaves;
+            else if (((result->people[2].id1 ^ result->people[3].id1) & d_mask) == 2)
+               fix_next_assumption_p->assumption = cr_ctr_couples;
+         }
+      }
+      else if (this_call == base_calls[base_call_circulate]) {
+         // If we are doing a circulate in columns, and the assumption was
+         // "8 chain" or "trade by", change it to the other assumption.
+         // Similarly for facing lines and back-to-back lines.
+
+         if (old_assumption == cr_li_lo &&
+             (old_assump_col & (~1)) == 0 &&
+             ((old_assump_both - 1) & (~1)) == 0) {
+            fix_next_assumption_p->assumption = cr_li_lo;
+            fix_next_assumption_p->assump_col = old_assump_col;
+            fix_next_assumption_p->assump_both = old_assump_both ^ 3;
+         }
+      }
+      else if ((this_call == base_calls[base_call_slither] ||
+                (this_call == base_calls[base_call_maybegrandslither] &&
+                 !result->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_GRAND))) &&
+               old_assump_col == 0 &&
+               old_assump_both == 0) {
+         switch (old_assumption) {
+         case cr_2fl_only:
+            fix_next_assumption_p->assumption = cr_wave_only;
+            break;
+         case cr_wave_only:
+            fix_next_assumption_p->assumption = cr_2fl_only;
+            break;
+         case cr_miniwaves:
+            fix_next_assumption_p->assumption = cr_couples_only;
+            break;
+         case cr_couples_only:
+            fix_next_assumption_p->assumption = cr_miniwaves;
+            break;
+         }
+      }
+      else if (this_call == base_calls[base_base_prepare_to_drop]) {
+         if (result->kind == sdmd && old_assump_col == 4) {
+            if ((result->people[0].id1 & d_mask) == d_north ||
+                (result->people[2].id1 & d_mask) == d_south) {
+               if (old_assumption == cr_jright) {
+                  fix_next_assumption_p->assumption = cr_dmd_ctrs_mwv;
+                  fix_next_assumption_p->assump_col = 0;
+                  fix_next_assumption_p->assump_both = 1;
+               }
+               else if (old_assumption == cr_jleft) {
+                  fix_next_assumption_p->assumption = cr_dmd_ctrs_mwv;
+                  fix_next_assumption_p->assump_col = 0;
+                  fix_next_assumption_p->assump_both = 2;
+               }
+            }
+            else if ((result->people[0].id1 & d_mask) == d_south ||
+                     (result->people[2].id1 & d_mask) == d_north) {
+               if (old_assumption == cr_jright) {
+                  fix_next_assumption_p->assumption = cr_dmd_ctrs_mwv;
+                  fix_next_assumption_p->assump_col = 0;
+                  fix_next_assumption_p->assump_both = 2;
+               }
+               else if (old_assumption == cr_jleft) {
+                  fix_next_assumption_p->assumption = cr_dmd_ctrs_mwv;
+                  fix_next_assumption_p->assump_col = 0;
+                  fix_next_assumption_p->assump_both = 1;
+               }
+            }
+         }
+      }
+      else if (this_call == base_calls[base_call_lockit] &&
+               old_assump_col == 0 &&
+               old_assump_both == 0) {
+         switch (old_assumption) {
+         case cr_2fl_only:
+         case cr_wave_only:
+            fix_next_assumption_p->assumption = old_assumption;
+            break;
+         }
+      }
+      else if (this_call == base_calls[base_call_disband1] &&
+               result->kind == s2x4 &&
+               old_assump_col == 1 &&
+               old_assump_both == 0) {
+         switch (old_assumption) {
+         case cr_wave_only:
+            fix_next_assumption_p->assumption = cr_magic_only;
+            fix_next_assumption_p->assump_col = 1;
+            break;
+         case cr_magic_only:
+            fix_next_assumption_p->assumption = cr_wave_only;
+            fix_next_assumption_p->assump_col = 1;
+            break;
+         }
+      }
+      else if (this_call == base_calls[base_call_trade] &&
+               (result->kind == s2x4 || result->kind == s1x8 || result->kind == s1x4) &&
+               old_assumption == cr_wave_only &&
+               old_assump_col == 0) {
+         fix_next_assumption_p->assumption = cr_wave_only;
+         fix_next_assumption_p->assump_col = 0;
+      }
+      else if (this_call == base_calls[base_call_trade] &&
+               (result->kind == s_qtag) &&
+               old_assumption == cr_qtag_like &&
+               old_assump_col == 0 &&
+               ((old_assump_both + 1) & 2) != 0) {
+         fix_next_assumption_p->assumption = cr_qtag_like;
+         fix_next_assumption_p->assump_col = 0;
+         fix_next_assumption_p->assump_both = old_assump_both ^ 3;
+      }
+      else if (this_call == base_calls[base_call_check_cross_counter]) {
+         // Just pass everything directly -- this call does nothing.
+         fix_next_assumption_p->assumption = old_assumption;
+         fix_next_assumption_p->assump_col = old_assump_col;
+         fix_next_assumption_p->assump_both = old_assump_both;
+      }
+      else if (this_call == base_calls[base_call_armturn_n4] && result->kind == s2x4) {
+         if (old_assumption == cr_wave_only)
+            fix_next_assumption_p->assumption = old_assumption;
+      }
+      else if (this_call == base_calls[base_call_ctrarmturn_n4_utb] &&
+               result->kind == s2x4 &&
+               (result->cmd.parseptr->options.number_fields & 1) != 0 &&
+               (result->people[1].id1 | result->people[2].id1 |
+                result->people[5].id1 | result->people[6].id1) == 0) {
+         if (old_assumption == cr_wave_only)
+            fix_next_assumption_p->assumption = cr_diamond_like;
+      }
+   }
+   else if ((result->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF))) {
+      if (this_call == base_calls[base_call_circulate]) {
+         // If we are doing a 1/2 circulate in a 2x2 that assumes lines facing in or out,
+         // result is a wave.
+
+         if (old_assumption == cr_li_lo && result->kind == s2x2 && old_assump_col == 0) {
+            fix_next_assumption_p->assumption = cr_wave_only;
+            fix_next_assumption_p->assump_col = 0;
+            fix_next_assumption_p->assump_both = 2;   // Left-handed.  *******
+         }
+      }
+   }
+}
+
+
+void do_stuff_inside_sequential_call(
    setup *result,
-   uint32 this_mod1,
-   bool first_call,    // First call in logical definition.
-   bool first_time,    // First thing we are doing, in temporal sequence.
-   call_restriction *fix_next_assumption_p,
-   int *fix_next_assump_col_p,
-   int *fix_next_assump_both_p,
+   uint32_t this_mod1,
+   assumption_thing *fix_next_assumption_p,
    int *remembered_2x2_elongation_p,
    final_and_herit_flags new_final_concepts,
-   uint32 cmd_misc_flags,
+   uint32_t cmd_misc_flags,
    bool reverse_order,
    bool recompute_id,
    bool qtfudged,
    bool setup_is_elongated) THROW_DECL
 {
-   // We don't supply these; they get filled in by the call.
-   result->cmd.cmd_misc_flags &= ~(DFM1_CONCENTRICITY_FLAG_MASK | CMD_MISC__NO_CHECK_MOD_LEVEL);
-
-   if (this_mod1 & DFM1_NO_CHECK_MOD_LEVEL)
-      result->cmd.cmd_misc_flags |= CMD_MISC__NO_CHECK_MOD_LEVEL;
-
-   if (this_mod1 & DFM1_FINISH_THIS) {
-      if (!result->cmd.cmd_fraction.is_null())
-         fail("Can't fractionalize this call this way.");
-
-      result->cmd.cmd_fraction.set_to_null_with_flags(FRACS(CMD_FRAC_CODE_FROMTOREV,2,0));
-   }
-
-   if (!first_call) {    // Is this right, or should we be using "first_time" here also?
-      // Stop checking unless we are really serious.
-      if (!setup_is_elongated && (result->kind == s2x2 || result->kind == s_short6))
-         result->cmd.cmd_misc_flags |= CMD_MISC__NO_CHK_ELONG;
-
-      result->cmd.cmd_misc2_flags &= ~CMD_MISC2__REQUEST_Z;
-   }
-
-   if (!first_time) {
-      result->cmd.cmd_assume.assumption = *fix_next_assumption_p;
-
-      if (*fix_next_assumption_p != cr_none) {
-         result->cmd.cmd_assume.assump_col = *fix_next_assump_col_p;
-         result->cmd.cmd_assume.assump_both = *fix_next_assump_both_p;
-         result->cmd.cmd_assume.assump_cast = 0;
-         result->cmd.cmd_assume.assump_live = 0;
-         result->cmd.cmd_assume.assump_negate = 0;
-
-         /* If we just put in an "assume 1/4 tag" type of thing, we presumably
-            did a "scoot back to a wave" as part of a "scoot reaction".  Now, if
-            there were phantoms in the center after the call, the result could
-            have gotten changed (by the normalization stuff deep within
-            "fix_n_results" or whatever) to a 2x4.  However, if we are doing a
-            scoot reaction, we really want the 1/4 tag.  So change it back.
-            It happens that code in "divide_the_setup" would do this anyway,
-            but we don't like assumptions in place on setups for which they
-            are meaningless. */
-
-         if (*fix_next_assump_both_p == 2 &&
-             (*fix_next_assumption_p == cr_jleft || *fix_next_assumption_p == cr_jright) &&
-             result->kind == s2x4 &&
-             (result->people[1].id1 | result->people[2].id1 |
-              result->people[5].id1 | result->people[6].id1) == 0) {
-            expand::expand_setup(s_qtg_2x4, result);
-         }
-      }
-   }
-
-   *fix_next_assumption_p = cr_none;
-   *fix_next_assump_col_p = 0;
-   *fix_next_assump_both_p = 0;
-
-   call_restriction old_assumption = result->cmd.cmd_assume.assumption;
-   int old_assump_col = result->cmd.cmd_assume.assump_col;
-   int old_assump_both = result->cmd.cmd_assume.assump_both;
+   assumption_thing incoming_assumption = result->cmd.cmd_assume;
 
    setup_kind oldk = result->kind;
 
@@ -5083,208 +5710,7 @@ static void do_stuff_inside_sequential_call(
    // dancers really do track an awareness of the formation.
 
    if (result->cmd.cmd_fraction.is_null()) {
-      if (!(result->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_HALF | INHERITFLAG_LASTHALF))) {
-         if (result->cmd.callspec == base_calls[base_call_chreact_1]) {
-
-            /* If we are starting a chain reaction, and the assumption was some form
-               of 1/4 tag or 1/4 line (all of the above indicate such a thing --
-               the outsides are a couple looking in), then, whether it was a plain
-               chain reaction or a cross chain reaction, the result will have the
-               checkpointers in miniwaves.  Pass that assumption on, so that they can hinge. */
-
-            if (((old_assumption == cr_jleft ||
-                  old_assumption == cr_ijleft ||
-                  old_assumption == cr_jright ||
-                  old_assumption == cr_ijright) && old_assump_both == 2) ||
-                (old_assumption == cr_qtag_like && old_assump_both == 1) ||
-                old_assumption == cr_real_1_4_tag ||
-                old_assumption == cr_real_1_4_line)
-               *fix_next_assumption_p = cr_ckpt_miniwaves;
-         }
-         else if (result->cmd.callspec == base_calls[base_call_scootback]) {
-            if (result->kind == s_qtag) {
-               if (old_assumption == cr_jright && old_assump_both == 2) {
-                  // Jright:2 is left 1/4 tag, change to left 3/4 tag.
-                  *fix_next_assumption_p = cr_jleft;
-                  *fix_next_assump_both_p = 1;
-               }
-               else if (old_assumption == cr_jleft && old_assump_both == 2) {
-                  // Jleft:2 is right 1/4 tag, change to right 3/4 tag.
-                  *fix_next_assumption_p = cr_jright;
-                  *fix_next_assump_both_p = 1;
-               }
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_call_scoottowave]) {
-            if (result->kind == s2x4 &&
-                !result->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_YOYOETCMASK)) {
-               if ((result->people[0].id1 & d_mask) == d_north ||
-                   (result->people[1].id1 & d_mask) == d_south ||
-                   (result->people[2].id1 & d_mask) == d_north ||
-                   (result->people[3].id1 & d_mask) == d_south ||
-                   (result->people[4].id1 & d_mask) == d_south ||
-                   (result->people[5].id1 & d_mask) == d_north ||
-                   (result->people[6].id1 & d_mask) == d_south ||
-                   (result->people[7].id1 & d_mask) == d_north) {
-                  *fix_next_assumption_p = cr_jleft;
-                  *fix_next_assump_both_p = 2;
-               }
-               else if ((result->people[0].id1 & d_mask) == d_south ||
-                        (result->people[1].id1 & d_mask) == d_north ||
-                        (result->people[2].id1 & d_mask) == d_south ||
-                        (result->people[3].id1 & d_mask) == d_north ||
-                        (result->people[4].id1 & d_mask) == d_north ||
-                        (result->people[5].id1 & d_mask) == d_south ||
-                        (result->people[6].id1 & d_mask) == d_north ||
-                        (result->people[7].id1 & d_mask) == d_south) {
-                  *fix_next_assumption_p = cr_jright;
-                  *fix_next_assump_both_p = 2;
-               }
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_call_makepass_1] ||
-                  result->cmd.callspec == base_calls[base_call_nuclear_1]) {
-
-            // If we are starting a "make a pass", and the assumption was some form
-            // of 1/4 tag, then we will have a 2-faced line in the center.  Pass that
-            // assumption on, so that they can cast off 3/4.  If it was a 1/4 line,
-            // the result will be a wave in the center.
-
-            if (((old_assumption == cr_jleft || old_assumption == cr_jright) &&
-                 old_assump_both == 2) ||
-                old_assumption == cr_real_1_4_tag)
-               *fix_next_assumption_p = cr_ctr_couples;
-            else if (((old_assumption == cr_ijleft || old_assumption == cr_ijright) &&
-                      old_assump_both == 2) ||
-                     old_assumption == cr_real_1_4_line)
-               *fix_next_assumption_p = cr_ctr_miniwaves;
-            else if (old_assumption == cr_qtag_like &&
-                     old_assump_both == 1 &&
-                     oldk == s_qtag &&
-                     (result->people[2].id1 & d_mask & ~2) == d_north &&
-                     ((result->people[2].id1 ^ result->people[6].id1) & d_mask) == 2 &&
-                     ((result->people[3].id1 ^ result->people[7].id1) & d_mask) == 2) {
-               if (((result->people[2].id1 ^ result->people[3].id1) & d_mask) == 0)
-                  *fix_next_assumption_p = cr_ctr_miniwaves;
-               else if (((result->people[2].id1 ^ result->people[3].id1) & d_mask) == 2)
-                  *fix_next_assumption_p = cr_ctr_couples;
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_call_circulate]) {
-            // If we are doing a circulate in columns, and the assumption was
-            // "8 chain" or "trade by", change it to the other assumption.
-            // Similarly for facing lines and back-to-back lines.
-
-            if (old_assumption == cr_li_lo &&
-                (old_assump_col & (~1)) == 0 &&
-                ((old_assump_both - 1) & (~1)) == 0) {
-               *fix_next_assumption_p = cr_li_lo;
-               *fix_next_assump_col_p = old_assump_col;
-               *fix_next_assump_both_p = old_assump_both ^ 3;
-            }
-         }
-         else if ((result->cmd.callspec == base_calls[base_call_slither] ||
-                   (result->cmd.callspec == base_calls[base_call_maybegrandslither] &&
-                    !result->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_GRAND))) &&
-                  old_assump_col == 0 &&
-                  old_assump_both == 0) {
-            switch (old_assumption) {
-            case cr_2fl_only:
-               *fix_next_assumption_p = cr_wave_only;
-               break;
-            case cr_wave_only:
-               *fix_next_assumption_p = cr_2fl_only;
-               break;
-            case cr_miniwaves:
-               *fix_next_assumption_p = cr_couples_only;
-               break;
-            case cr_couples_only:
-               *fix_next_assumption_p = cr_miniwaves;
-               break;
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_base_prepare_to_drop]) {
-            if (result->kind == sdmd && old_assump_col == 4) {
-               if ((result->people[0].id1 & d_mask) == d_north ||
-                   (result->people[2].id1 & d_mask) == d_south) {
-                  if (old_assumption == cr_jright) {
-                     *fix_next_assumption_p = cr_dmd_ctrs_mwv;
-                     *fix_next_assump_col_p = 0;
-                     *fix_next_assump_both_p = 1;
-                  }
-                  else if (old_assumption == cr_jleft) {
-                     *fix_next_assumption_p = cr_dmd_ctrs_mwv;
-                     *fix_next_assump_col_p = 0;
-                     *fix_next_assump_both_p = 2;
-                  }
-               }
-               else if ((result->people[0].id1 & d_mask) == d_south ||
-                        (result->people[2].id1 & d_mask) == d_north) {
-                  if (old_assumption == cr_jright) {
-                     *fix_next_assumption_p = cr_dmd_ctrs_mwv;
-                     *fix_next_assump_col_p = 0;
-                     *fix_next_assump_both_p = 2;
-                  }
-                  else if (old_assumption == cr_jleft) {
-                     *fix_next_assumption_p = cr_dmd_ctrs_mwv;
-                     *fix_next_assump_col_p = 0;
-                     *fix_next_assump_both_p = 1;
-                  }
-               }
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_call_lockit] &&
-                  old_assump_col == 0 &&
-                  old_assump_both == 0) {
-            switch (old_assumption) {
-            case cr_2fl_only:
-            case cr_wave_only:
-               *fix_next_assumption_p = old_assumption;
-               break;
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_call_disband1] &&
-                  result->kind == s2x4 &&
-                  old_assump_col == 1 &&
-                  old_assump_both == 0) {
-            switch (old_assumption) {
-            case cr_wave_only:
-               *fix_next_assumption_p = cr_magic_only;
-               *fix_next_assump_col_p = 1;
-               break;
-            case cr_magic_only:
-               *fix_next_assumption_p = cr_wave_only;
-               *fix_next_assump_col_p = 1;
-               break;
-            }
-         }
-         else if (result->cmd.callspec == base_calls[base_call_trade] &&
-                  (result->kind == s2x4 || result->kind == s1x8 || result->kind == s1x4) &&
-                  old_assumption == cr_wave_only &&
-                  old_assump_col == 0) {
-            *fix_next_assumption_p = cr_wave_only;
-            *fix_next_assump_col_p = 0;
-         }
-         else if (result->cmd.callspec == base_calls[base_call_check_cross_counter]) {
-            /* Just pass everything directly -- this call does nothing. */
-            *fix_next_assumption_p = old_assumption;
-            *fix_next_assump_col_p = old_assump_col;
-            *fix_next_assump_both_p = old_assump_both;
-         }
-      }
-      else if ((result->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_HALF))) {
-         if (result->cmd.callspec == base_calls[base_call_circulate]) {
-            // If we are doing a 1/2 circulate in a 2x2 that assumes lines facing in or out,
-            // result is a wave.
-
-            if (old_assumption == cr_li_lo && result->kind == s2x2 && old_assump_col == 0) {
-               *fix_next_assumption_p = cr_wave_only;
-               *fix_next_assump_col_p = 0;
-               //               *fix_next_assump_both_p = 1;   // Right-handed.
-               *fix_next_assump_both_p = 2;   // Left-handed.  *******
-            }
-         }
-      }
+      propagate_seq_assumptions(incoming_assumption, result, fix_next_assumption_p);
    }
 
    if (DFM1_CPLS_UNLESS_SINGLE & this_mod1) {
@@ -5297,11 +5723,11 @@ static void do_stuff_inside_sequential_call(
    if ((this_mod1 & DFM1_ROLL_TRANSPARENT_IF_Z) != 0)
       result->cmd.cmd_misc3_flags |= CMD_MISC3__ROLL_TRANSP_IF_Z;
 
-   uint32 stuff = do_call_in_series(
+   uint32_t stuff = do_call_in_series(
                      result,
                      reverse_order,
                      ((cmd_misc_flags & CMD_MISC__EXPLICIT_MATRIX) == 0 &&
-                      (new_final_concepts.test_heritbits(INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX)) == 0 &&
+                      !new_final_concepts.bool_test_heritbits(INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX) &&
                       (recompute_id || (this_mod1 & DFM1_SEQ_NORMALIZE) != 0)),
                      qtfudged);
 
@@ -5322,17 +5748,22 @@ static void do_sequential_call(
    const calldefn *callspec,
    bool qtfudged,
    bool *mirror_p,
-   uint32 extra_heritmask_bits,
+   heritflags extra_heritmask_bits,
    setup *result) THROW_DECL
 {
    // We prefer fraction information in the fraction field rather than the herit bits.
    // (Under certain circumstances if might get changed back later.)
-   if (ss->cmd.cmd_fraction.is_null() && ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_HALF)) {
+   if (ss->cmd.cmd_fraction.is_null() && ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF)) {
       ss->cmd.cmd_fraction.set_to_firsthalf_with_flags(0);
       ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_HALF);
    }
 
-   if (ss->cmd.cmd_fraction.is_null() && ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_LASTHALF)) {
+   if (ss->cmd.cmd_fraction.is_null() && ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_QUARTER)) {
+      ss->cmd.cmd_fraction.set_to_firstquarter_with_flags(0);
+      ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_QUARTER);
+   }
+
+   if (ss->cmd.cmd_fraction.is_null() && ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_LASTHALF)) {
       ss->cmd.cmd_fraction.set_to_lasthalf_with_flags(0);
       ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_LASTHALF);
    }
@@ -5340,16 +5771,16 @@ static void do_sequential_call(
    bool forbid_flip = ss->cmd.callspec == base_calls[base_call_basetag0_noflip];
    final_and_herit_flags new_final_concepts = ss->cmd.cmd_final_flags;
    parse_block *parseptr = ss->cmd.parseptr;
-   uint32 callflags1 = callspec->callflags1;
+   uint32_t callflags1 = callspec->callflags1;
    calldef_schema this_schema = callspec->schema;
    bool this_schema_is_rem_or_alt =
       this_schema == schema_sequential_remainder ||
       this_schema == schema_sequential_alternate;
    bool first_call = true;    // First call in logical definition.
    bool first_time = true;    // First thing we are doing, in temporal sequence.
-   call_restriction fix_next_assumption = cr_none;
-   int fix_next_assump_col = 0;
-   int fix_next_assump_both = 0;
+   bool use_incoming_assumption = true;  // Normally turned off after first round; only 1st call get the assumption.
+   assumption_thing fix_next_assumption;
+
    // This tells whether the setup was genuinely elongated when it came in.
    // We keep track of pseudo-elongation during the call even when it wasn't,
    // but sometimes we really need to know.
@@ -5363,10 +5794,10 @@ static void do_sequential_call(
 
    fraction_command saved_fracs = ss->cmd.cmd_fraction;
    bool feeding_fractions_through =
-      (callspec->callflagsh & (INHERITFLAG_HALF|INHERITFLAG_LASTHALF)) != 0;
+      (callspec->callflagsherit & (INHERITFLAG_HALF|INHERITFLAG_QUARTER|INHERITFLAG_LASTHALF)) != 0;
 
    // If rewinding, do the parts in reverse order.
-   if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_REWIND)) {
+   if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_REWIND)) {
       ss->cmd.cmd_fraction.flags ^= CMD_FRAC_REVERSE;
       ss->cmd.cmd_fraction.flags |= CMD_FRAC_FORCE_VIS;
    }
@@ -5385,16 +5816,14 @@ static void do_sequential_call(
 
       for (ii=0 ; ii<callspec->stuff.seq.howmanyparts ; ii++) {
          by_def_item *this_item = &callspec->stuff.seq.defarray[ii];
-         uint32 this_mod1 = this_item->modifiers1;
+         uint32_t this_mod1 = this_item->modifiers1;
 
          if (this_mod1 & (DFM1_SEQ_REPEAT_N | DFM1_SEQ_REPEAT_NM1)) {
-            uint32 this_count = current_options.number_fields & NUMBER_FIELD_MASK;
-
-            delta += this_count-1;  // Why -1?  Because we're counting *extra* parts.
+            delta += (current_options.number_fields & NUMBER_FIELD_MASK)-1;  // Why -1?  Because we're counting *extra* parts.
 
             if ((this_mod1 & DFM1_SEQ_REPEAT_NM1) || this_schema == schema_sequential_alternate) {
                delta--;
-               if (this_count == 0) fail("Can't give number zero.");
+               if ((current_options.number_fields & NUMBER_FIELD_MASK) == 0) fail("Can't give number zero.");
             }
 
             if (this_mod1 & DFM1_SEQ_DO_HALF_MORE) {
@@ -5405,6 +5834,13 @@ static void do_sequential_call(
 
             if (this_schema_is_rem_or_alt)
                break;
+         }
+
+         if (this_mod1 & (DFM1_SEQ_REPEAT_NOVER2)) {
+            delta = ((current_options.number_fields & NUMBER_FIELD_MASK) - 1) >> 1;
+         }
+         else if (this_mod1 & (DFM1_SEQ_REPEAT_NOVER4)) {
+            delta = ((current_options.number_fields & NUMBER_FIELD_MASK) - 1) >> 2;
          }
       }
 
@@ -5446,7 +5882,7 @@ static void do_sequential_call(
       // are referring to.
       ss->cmd.cmd_misc_flags &= ~DFM1_CONCENTRICITY_FLAG_MASK;
 
-      uint32 revertflags = ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_REVERTMASK);
+      uint64_t revertflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_REVERTMASK);
 
       // Watch for "revert flip the line 1/2" stuff.
       // We look for a 3 part call, with fractions not visible, whose
@@ -5461,11 +5897,10 @@ static void do_sequential_call(
 
       // Also, look for call whose first part is "_real @v tag base".
 
-      uint32 visibility_info = (callflags1 & CFLAG1_VISIBLE_FRACTION_MASK) / CFLAG1_VISIBLE_FRACTION_BIT;
+      uint32_t visibility_info = (callflags1 & CFLAG1_VISIBLE_FRACTION_MASK) / CFLAG1_VISIBLE_FRACTION_BIT;
 
       if (zzz.m_client_total == 3 &&    // Sorry, can't do tag the star.
-          (revertflags == INHERITFLAGRVRTK_REVERT ||
-           revertflags == INHERITFLAGRVRTK_REFLECT) &&
+          (revertflags == INHERITFLAGRVRTK_REVERT || revertflags == INHERITFLAGRVRTK_REFLECT) &&
           (callflags1 & CFLAG1_NUMBER_MASK) == CFLAG1_NUMBER_BIT &&
           current_options.howmanynumbers == 1 &&
           current_options.number_fields == 2 &&
@@ -5478,8 +5913,7 @@ static void do_sequential_call(
       }
       else if ((callspec->stuff.seq.defarray[0].call_id == base_call_basetag0 ||
                 callspec->stuff.seq.defarray[0].call_id == base_call_basetag0_noflip) &&
-          (revertflags == INHERITFLAGRVRTK_REVERT ||
-           revertflags == INHERITFLAGRVRTK_REFLECT)) {
+          (revertflags == INHERITFLAGRVRTK_REVERT || revertflags == INHERITFLAGRVRTK_REFLECT)) {
          // Treat it as though it had an extra part
          zzz.m_client_total++;
 
@@ -5549,7 +5983,7 @@ static void do_sequential_call(
        !(ss->cmd.restrained_concept &&
          (ss->cmd.cmd_misc3_flags & CMD_MISC3__SUPERCALL))) {
 
-      if (new_final_concepts.test_heritbit(INHERITFLAG_LEFT)) {
+      if (new_final_concepts.bool_test_heritbits(INHERITFLAG_LEFT)) {
          if (!*mirror_p) mirror_this(ss);
          *mirror_p = true;
       }
@@ -5574,7 +6008,7 @@ static void do_sequential_call(
       }
       else if (ss->kind == s3x4) {
          for (i=0; i<12; i++) {
-            uint32 jjj = i+1;
+            uint32_t jjj = i+1;
             if (jjj>6) jjj+=2;
             if (ss->people[i].id1) ss->people[i].id2 |= (jjj&2) ? ID2_CENTER : ID2_END;
          }
@@ -5589,19 +6023,20 @@ static void do_sequential_call(
    if (*mirror_p) mirror_this(ss);
    *mirror_p = false;
 
-   prepare_for_call_in_series(result, ss);
-   uint32 remember_elongation = 0;
+   prepare_for_call_in_series(result, ss, false);
+   uint32_t remember_elongation = 0;
    int remembered_2x2_elongation = 0;
    int subpart_count = 0;
 
    for (;;) {
       by_def_item *this_item = &callspec->stuff.seq.defarray[0];
-      uint32 this_mod1 = this_item->modifiers1;
+      uint32_t this_mod1 = this_item->modifiers1;
       by_def_item *alt_item = this_item;
       bool recompute_id = false;
-      uint32 saved_number_fields = current_options.number_fields;
+      uint32_t saved_number_fields = current_options.number_fields;
       int saved_num_numbers = current_options.howmanynumbers;
-      uint32 herit_bits_to_clear = 0;
+      heritflags herit_bits_to_clear = 0ULL;
+      setup_command foo1, foo2;
 
       /* Now the "index" values (zzz.m_fetch_index and zzz.m_client_index) contain the
          number of parts we have completed.  That is, they point (in 0-based
@@ -5638,8 +6073,6 @@ static void do_sequential_call(
       }
 
       zzz.demand_this_part_exists();
-
-      setup_command foo1, foo2;
 
       {
          setup_command foobar = ss->cmd;
@@ -5694,13 +6127,10 @@ static void do_sequential_call(
          // Turn on the expiration mechanism.
          result->cmd.prior_expire_bits |= RESULTFLAG__EXPIRATION_ENAB;
 
-         {
-            bool zzy = get_real_subcall(parseptr, this_item, &foobar,
-                                        callspec, forbid_flip, extra_heritmask_bits, &foo1);
-            if (zzy) {
-               result->cmd.prior_expire_bits &= ~RESULTFLAG__EXPIRATION_ENAB;
-               recompute_id = true;
-            }
+         if (get_real_subcall(parseptr, this_item, &foobar,
+                              callspec, forbid_flip, extra_heritmask_bits, &foo1)) {
+            result->cmd.prior_expire_bits &= ~RESULTFLAG__EXPIRATION_ENAB;
+            recompute_id = true;
          }
 
          // We allow stepping (or rearing back) again.
@@ -5718,14 +6148,25 @@ static void do_sequential_call(
 
       // If this subcall invocation involves inserting or shifting the numbers, do so.
 
-      if (!(new_final_concepts.test_heritbit(INHERITFLAG_FRACTAL)))
+      if (!new_final_concepts.bool_test_heritbits(INHERITFLAG_FRACTAL))
          this_mod1 &= ~DFM1_FRACTAL_INSERT;
 
       process_number_insertion(this_mod1);
 
       // Check for special repetition stuff.
-      if (this_schema_is_rem_or_alt || (this_mod1 & (DFM1_SEQ_REPEAT_N | DFM1_SEQ_REPEAT_NM1))) {
+      if (this_schema_is_rem_or_alt || (this_mod1 & (DFM1_SEQ_REPEAT_N | DFM1_SEQ_REPEAT_NM1 |
+                                                     DFM1_SEQ_REPEAT_NOVER4 | DFM1_SEQ_REPEAT_NOVER2))) {
          int count_to_use = current_options.number_fields & NUMBER_FIELD_MASK;
+         if (this_mod1 & DFM1_SEQ_REPEAT_NOVER2) {
+            count_to_use = ((current_options.number_fields & NUMBER_FIELD_MASK) + 1) >> 1;
+            if ((current_options.number_fields & 1) != 0)
+               zzz.m_do_half_of_last_part = (fracfrac) (NUMBER_FIELDS_1_0_2_0 + (current_options.number_fields & 1));
+         }
+         else if (this_mod1 & DFM1_SEQ_REPEAT_NOVER4) {
+            count_to_use = ((current_options.number_fields & NUMBER_FIELD_MASK) + 3) >> 2;
+            if ((current_options.number_fields & 3) != 0)
+               zzz.m_do_half_of_last_part = (fracfrac) (NUMBER_FIELDS_1_0_4_0 + (current_options.number_fields & 3));
+         }
 
          number_used = true;
          if (this_mod1 & DFM1_SEQ_DO_HALF_MORE) count_to_use++;
@@ -5738,11 +6179,11 @@ static void do_sequential_call(
              zzz.m_fetch_index+zzz.m_subcall_incr == zzz.m_highlimit) {
             just_use_half_of_count = true;
          }
-         else if (new_final_concepts.test_heritbit(INHERITFLAG_HALF)) {
+         else if (new_final_concepts.bool_test_heritbits(INHERITFLAG_HALF)) {
             herit_bits_to_clear = INHERITFLAG_HALF;
             just_use_half_of_count = true;
          }
-         else if (new_final_concepts.test_heritbit(INHERITFLAG_LASTHALF)) {
+         else if (new_final_concepts.bool_test_heritbits(INHERITFLAG_LASTHALF)) {
             herit_bits_to_clear = INHERITFLAG_LASTHALF;
             just_use_half_of_count = true;
          }
@@ -5780,8 +6221,8 @@ static void do_sequential_call(
       if (zzz.ran_off_active_section()) break;
 
       {
-         uint32 remember_expire = result->cmd.prior_expire_bits;
-         uint32 remember_save_3x1_herit = result->cmd.cmd_heritflags_to_save_from_mxn_expansion;
+         uint32_t remember_expire = result->cmd.prior_expire_bits;
+         heritflags remember_save_3x1_herit = result->cmd.cmd_heritflags_to_save_from_mxn_expansion;
          result->cmd = ss->cmd;
          result->cmd.prior_expire_bits = remember_expire;
          result->cmd.cmd_heritflags_to_save_from_mxn_expansion = remember_save_3x1_herit;
@@ -5812,6 +6253,11 @@ static void do_sequential_call(
          result->cmd.cmd_fraction.fraction = zzz.get_fracs_for_this_part();
       }
 
+      if ((result->cmd.cmd_misc2_flags & CMD_MISC2_RESTRAINED_SUPER) &&
+          (this_mod1 & DFM1_CALL_MOD_MAND_ANYCALL)) {
+         result->cmd.promote_restrained_fraction();
+      }
+
       if (doing_weird_revert == weirdness_otherstuff) {
          if (zzz.m_client_index == 0) {
             zzz.m_fetch_index--;
@@ -5830,20 +6276,74 @@ static void do_sequential_call(
       result->cmd.cmd_final_flags = fooptr->cmd_final_flags;
       result->cmd.cmd_final_flags.clear_heritbits(herit_bits_to_clear);
 
-      if (result->cmd.cmd_heritflags_to_save_from_mxn_expansion != 0 &&
+      if (result->cmd.cmd_heritflags_to_save_from_mxn_expansion != 0ULL &&
           result->cmd.cmd_heritflags_to_save_from_mxn_expansion ==
-          (((uint32) result->cmd.cmd_final_flags.herit) & (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK))) {
+          ((result->cmd.cmd_final_flags.herit) & (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK))) {
 
-         result->cmd.cmd_final_flags.herit = (heritflags)
+         result->cmd.cmd_final_flags.herit = 
             ((result->cmd.cmd_final_flags.herit & ~(INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK)) |
              (INHERITFLAGNXNK_3X3|INHERITFLAG_12_MATRIX));
       }
 
+      // We don't supply these; they get filled in by the call.
+      result->cmd.cmd_misc_flags &= ~(DFM1_CONCENTRICITY_FLAG_MASK | CMD_MISC__NO_CHECK_MOD_LEVEL);
+
+      if (this_mod1 & DFM1_NO_CHECK_MOD_LEVEL)
+         result->cmd.cmd_misc_flags |= CMD_MISC__NO_CHECK_MOD_LEVEL;
+
+      if (this_mod1 & DFM1_FINISH_THIS) {
+         if (!result->cmd.cmd_fraction.is_null())
+            fail("Can't fractionalize this call this way.");
+
+         result->cmd.cmd_fraction.set_to_null_with_flags(FRACS(CMD_FRAC_CODE_FROMTOREV,2,0));
+      }
+
+      if (!first_call) {    // Is this right, or should we be using "first_time" here also?
+         // Stop checking unless we are really serious.
+         if (!setup_is_elongated && (result->kind == s2x2 || result->kind == s_short6))
+            result->cmd.cmd_misc_flags |= CMD_MISC__NO_CHK_ELONG;
+
+         result->cmd.cmd_misc2_flags &= ~CMD_MISC2__REQUEST_Z;
+      }
+
+      if (!use_incoming_assumption) {
+         pre_process_seq_assumptions(result, &fix_next_assumption);
+      }
+
+      fix_next_assumption.clean();
+
+      if (this_schema == schema_split_sequential &&
+          (result->cmd.cmd_final_flags.herit & (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK)) == 0ULL) {
+         //         result->cmd.cmd_misc_flags &= ~(CMD_MISC__MUST_SPLIT_HORIZ|CMD_MISC__MUST_SPLIT_VERT);
+         switch (result->kind) {
+         case s2x4: case s1x8: case s_qtag: case s_ptpd: case s3x4: case s_bone: case s_rigger: case s_bone6:
+            if ((result->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) == CMD_MISC__MUST_SPLIT_VERT) {
+               result->result_flags.split_info[0] = 0;
+               result->result_flags.split_info[1] = 1;
+            }
+            else if ((result->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) == CMD_MISC__MUST_SPLIT_HORIZ) {
+               result->result_flags.split_info[0] = 1;
+               result->result_flags.split_info[1] = 0;
+            }
+
+            break;
+         case s_short6:
+            if ((result->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) == CMD_MISC__MUST_SPLIT_VERT) {
+               result->result_flags.split_info[0] = 1;
+               result->result_flags.split_info[1] = 0;
+            }
+            else if ((result->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) == CMD_MISC__MUST_SPLIT_HORIZ) {
+               result->result_flags.split_info[0] = 0;
+               result->result_flags.split_info[1] = 1;
+            }
+
+            break;
+         }
+      }
+
       do_stuff_inside_sequential_call(
-         result, this_mod1, first_call, first_time,
+         result, this_mod1,
          &fix_next_assumption,
-         &fix_next_assump_col,
-         &fix_next_assump_both,
          &remembered_2x2_elongation,
          new_final_concepts,
          ss->cmd.cmd_misc_flags,
@@ -5869,7 +6369,7 @@ static void do_sequential_call(
 
       ss->cmd.cmd_misc_flags |= result->cmd.cmd_misc_flags & ~DFM1_CONCENTRICITY_FLAG_MASK;
 
-      if (DFM1_SEQ_REENABLE_ELONG_CHK & this_mod1)
+      if (this_mod1 & DFM1_SEQ_REENABLE_ELONG_CHK)
          ss->cmd.cmd_misc_flags &= ~CMD_MISC__NO_CHK_ELONG;
 
       current_options.number_fields = saved_number_fields;
@@ -5882,6 +6382,8 @@ static void do_sequential_call(
 
       first_call = false;
       first_time = false;
+      if ((this_mod1 & DFM1_ASSUMPTION_TRANSPARENT) == 0)
+         use_incoming_assumption = false;
 
       // If we are being asked to do just one part of a call,
       // exit now.  Also, fill in bits in result->result_flags.
@@ -5889,6 +6391,17 @@ static void do_sequential_call(
       if (zzz.query_instant_stop(result->result_flags.misc)) break;
 
    go_to_next_cycle:
+
+      // Are we someplace where absolute location bits are known?  That is, are we not
+      // under some other operation that could get the bits wrong?  If so, clear those
+      // bits and put in new ones.  Just sample one person.
+
+      if ((this_mod1 & DFM1_SEQ_NO_RE_EVALUATE) == 0 &&
+          attr::slimit(result) >= 0 &&
+          (result->people[0].id3 & ID3_ABSOLUTE_PROXIMITY_BITS) != 0) {
+         clear_absolute_proximity_and_facing_bits(result);
+         put_in_absolute_proximity_and_facing_bits(result);
+      }
 
       // Increment for next cycle.
       fetching_remainder_for_this_cycle = true;
@@ -5908,11 +6421,11 @@ static bool do_misc_schema(
    setup *ss,
    calldef_schema the_schema,
    calldefn *callspec,
-   uint32 callflags1,
+   uint32_t callflags1,
    setup_command *foo1p,
-   uint32 override_concentric_rules,
+   uint32_t override_concentric_rules,
    selector_kind *special_selectorp,
-   uint32 *special_modifiersp,
+   uint32_t *special_modifiersp,
    selective_key *special_indicatorp,
    setup *result) THROW_DECL
 {
@@ -5920,6 +6433,10 @@ static bool do_misc_schema(
    const by_def_item *innerdef = &callspec->stuff.conc.innerdef;
    const by_def_item *outerdef = &callspec->stuff.conc.outerdef;
    parse_block *parseptr = ss->cmd.parseptr;
+
+   who_list sel;
+   sel.initialize();
+   heritflags zeroherit = 0ULL;
 
    // Must be some form of concentric, or a "sel_XXX" schema.
 
@@ -5929,19 +6446,22 @@ static bool do_misc_schema(
    }
 
    get_real_subcall(parseptr, innerdef,
-                    &ss->cmd, callspec, false, 0, foo1p);
+                    &ss->cmd, callspec, false, zeroherit, foo1p);
 
    get_real_subcall(parseptr, outerdef,
-                    &ss->cmd, callspec, false, 0, &foo2);
+                    &ss->cmd, callspec, false, zeroherit, &foo2);
 
    foo1p->cmd_fraction = ss->cmd.cmd_fraction;
+   anycall_promote_restrained_fraction(innerdef, foo1p);
    foo2.cmd_fraction = ss->cmd.cmd_fraction;
+   anycall_promote_restrained_fraction(outerdef, &foo2);
    ss->cmd.cmd_misc3_flags |= CMD_MISC3__DOING_YOUR_PART;
 
    if (the_schema == schema_select_leads) {
+      sel.who[0] = selector_leads;
       inner_selective_move(ss, foo1p, &foo2,
                            selective_key_plain, 1, 0, false, 0,
-                           selector_leads,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
@@ -5949,7 +6469,7 @@ static bool do_misc_schema(
    else if (the_schema == schema_select_headliners) {
       inner_selective_move(ss, foo1p, &foo2,
                            selective_key_plain, 1, 0, false, 0x80000008U,
-                           selector_uninitialized,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
@@ -5957,7 +6477,7 @@ static bool do_misc_schema(
    else if (the_schema == schema_select_sideliners) {
       inner_selective_move(ss, foo1p, &foo2,
                            selective_key_plain, 1, 0, false, 0x80000001U,
-                           selector_uninitialized,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
@@ -5988,7 +6508,7 @@ static bool do_misc_schema(
       return true;
    }
    else if (the_schema == schema_select_who_can) {
-      uint32 result_mask = 0xFFFFFF;   // Everyone.
+      uint32_t result_mask = 0xFFFFFF;   // Everyone.
       switch (ss->kind) {
       case sdmd: result_mask = 0xA; break;
       case s_short6: result_mask = 055; break;
@@ -6009,13 +6529,13 @@ static bool do_misc_schema(
       }
       inner_selective_move(ss, foo1p, (setup_command *) 0,
                            selective_key_plain, 0, 0, false, result_mask | 0x400000,
-                           selector_uninitialized,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
    }
    else if (the_schema == schema_select_who_did) {
-      uint32 result_mask = 0;
+      uint32_t result_mask = 0;
       int i, j;
 
       for (i=0,j=1; i<=attr::slimit(ss); i++,j<<=1) {
@@ -6024,14 +6544,14 @@ static bool do_misc_schema(
 
       inner_selective_move(ss, foo1p, (setup_command *) 0,
                            selective_key_plain, 0, 0, false, result_mask | 0x400000,
-                           selector_uninitialized,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
    }
    else if (the_schema == schema_select_who_didnt) {
-      uint32 sourcemask = 0;
-      uint32 result_mask = 0xFFFFFF;   // Everyone.
+      uint32_t sourcemask = 0;
+      uint32_t result_mask = 0xFFFFFF;   // Everyone.
       int i, j;
 
       for (i=0,j=1; i<=attr::slimit(ss); i++,j<<=1) {
@@ -6059,27 +6579,18 @@ static bool do_misc_schema(
          if (sourcemask == 0x88) result_mask = 0xCC;
          else result_mask = 0x88;
          break;
-         /*
-      case s_2x1dmd: result_mask = 033; break;
-      case s3x1dmd: result_mask = 0x77; break;
-      case s_spindle: result_mask = 0x77; break;
-      case s_hrglass: result_mask = 0x88; break;
-      case s_dhrglass: result_mask = 0xBB; break;
-      case s_ptpd: result_mask = 0xEE; break;
-      case s_galaxy: result_mask = 0xAA; break;
-         */
       default: fail("Can't do this call from this setup.");
       }
 
       inner_selective_move(ss, foo1p, (setup_command *) 0,
                            selective_key_plain, 0, 0, false, result_mask | 0x400000,
-                           selector_uninitialized,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
    }
    else if (the_schema == schema_select_who_did_and_didnt) {
-      uint32 result_mask = 0;
+      uint32_t result_mask = 0;
       int i, j;
 
       for (i=0,j=1; i<=attr::slimit(ss); i++,j<<=1) {
@@ -6088,7 +6599,7 @@ static bool do_misc_schema(
 
       inner_selective_move(ss, foo1p, &foo2,
                            selective_key_plain_no_live_subsets, 1, 0, false, result_mask | 0x400000,
-                           selector_uninitialized,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
@@ -6106,9 +6617,10 @@ static bool do_misc_schema(
       return true;
    }
    else if (the_schema == schema_select_those_facing_both_live) {
+      sel.who[0] = selector_thosefacing;
       inner_selective_move(ss, foo1p, &foo2,
                            selective_key_plain_from_id_bits, 1, 0, true, 0,
-                           selector_thosefacing,
+                           sel,
                            innerdef->modifiers1,
                            outerdef->modifiers1,
                            result);
@@ -6210,8 +6722,8 @@ static bool do_misc_schema(
             /* We need to orient the setup so that it is vertical with respect
                to the way we want to pick out the outer 1x4's. */
 
-            uint32 t1 = ss->people[1].id1 | ss->people[2].id1 | ss->people[9].id1 | ss->people[10].id1;
-            uint32 t2 = ss->people[5].id1 | ss->people[6].id1 | ss->people[13].id1 | ss->people[14].id1;
+            uint32_t t1 = ss->people[1].id1 | ss->people[2].id1 | ss->people[9].id1 | ss->people[10].id1;
+            uint32_t t2 = ss->people[5].id1 | ss->people[6].id1 | ss->people[13].id1 | ss->people[14].id1;
 
             if (t1 && !t2)      rot = 1;              /* It has to be left-to-right. */
             else if (t2 && !t1) ;                     /* It has to be top-to-bottom. */
@@ -6219,7 +6731,7 @@ static bool do_misc_schema(
             else {
                /* This "O" spots are unoccupied.  Try to figure it out from the orientation of the
                   people in the corners, so that we have lines. */
-               uint32 t3 = ss->people[0].id1 | ss->people[4].id1 | ss->people[8].id1 | ss->people[12].id1;
+               uint32_t t3 = ss->people[0].id1 | ss->people[4].id1 | ss->people[8].id1 | ss->people[12].id1;
                if ((t3 & 011) == 011) fail("Can't pick out outside lines.");
                else if (t3 & 1)        rot = 1;
                /* Otherwise, it either needs a vertical orientaion, or only the center 2x2 is occupied,
@@ -6231,7 +6743,7 @@ static bool do_misc_schema(
          }
          break;
       case schema_3x3_concentric:
-         if (!(ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_12_MATRIX)) &&
+         if (!(ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_12_MATRIX)) &&
              !(ss->cmd.cmd_misc_flags & CMD_MISC__EXPLICIT_MATRIX))
             fail("You must specify a matrix.");
 
@@ -6243,7 +6755,7 @@ static bool do_misc_schema(
          break;
       case schema_4x4_lines_concentric:
       case schema_4x4_cols_concentric:
-         if (!(ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_16_MATRIX)) &&
+         if (!(ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_16_MATRIX)) &&
              !(ss->cmd.cmd_misc_flags & CMD_MISC__EXPLICIT_MATRIX))
             fail("You must specify a matrix.");
 
@@ -6269,7 +6781,7 @@ static bool do_misc_schema(
          just the center 4, so that the illegal information won't affect anything. */
 
       if (normalize_strongly)
-         normalize_setup(result, normalize_after_triple_squash, false);
+         normalize_setup(result, normalize_after_triple_squash, qtag_compress);
 
       if (DFM1_SUPPRESS_ELONGATION_WARNINGS & outerdef->modifiers1)
          configuration::clear_multiple_warnings(conc_elong_warnings);
@@ -6282,7 +6794,7 @@ static bool do_misc_schema(
 
 
 static calldef_schema get_real_callspec_and_schema(setup *ss,
-   uint32 herit_concepts,
+   heritflags herit_concepts,
    calldef_schema the_schema) THROW_DECL
 {
    // Check for a schema that we weren't sure about,
@@ -6290,38 +6802,43 @@ static calldef_schema get_real_callspec_and_schema(setup *ss,
 
    switch (the_schema) {
    case schema_maybe_single_concentric:
-      return (herit_concepts & INHERITFLAG_SINGLE) ?
+      return ((herit_concepts & INHERITFLAG_SINGLE) != 0 || (attr::slimit(ss) == 3)) ?
          schema_single_concentric : schema_concentric;
    case schema_maybe_single_cross_concentric:
-      return (herit_concepts & INHERITFLAG_SINGLE) ?
+      return ((herit_concepts & INHERITFLAG_SINGLE) != 0 || (attr::slimit(ss) == 3)) ?
          schema_single_cross_concentric : schema_cross_concentric;
+   case schema_concentric_6p_or_normal_maybe_single:
+      return ((herit_concepts & INHERITFLAG_SINGLE) != 0) ? schema_single_concentric : schema_concentric_6p_or_normal;
+   case schema_maybe_6x2_single_conc_together:
+      return ((herit_concepts & INHERITFLAG_GRAND) != 0) ?
+         schema_concentric_6_2 : schema_single_concentric_together;
    case schema_maybe_grand_single_concentric:
-      if (herit_concepts & INHERITFLAG_GRAND) {
-         if (herit_concepts & INHERITFLAG_SINGLE)
+      if ((herit_concepts & INHERITFLAG_GRAND) != 0) {
+         if ((herit_concepts & INHERITFLAG_SINGLE) != 0)
             return schema_grand_single_concentric;
          else
             fail("You must not use \"grand\" without \"single\".");
       }
       else {
-         return (herit_concepts & INHERITFLAG_SINGLE) ?
+         return ((herit_concepts & INHERITFLAG_SINGLE) != 0) ?
             schema_single_concentric : schema_concentric;
       }
    case schema_grand_single_or_matrix_concentric:
-      if (herit_concepts & INHERITFLAG_GRAND) {
-         if (herit_concepts & (INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX))
+      if ((herit_concepts & INHERITFLAG_GRAND) != 0) {
+         if ((herit_concepts & (INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX)) != 0)
             fail("You must not use \"grand\" with \"12 matrix\" or \"16 matrix\".");
-         else if (herit_concepts & INHERITFLAG_SINGLE)
+         else if ((herit_concepts & INHERITFLAG_SINGLE) != 0)
             return schema_grand_single_concentric;
          else
             fail("You must not use \"grand\" without \"single\".");
       }
       else {
-         if (herit_concepts & INHERITFLAG_12_MATRIX)
+         if ((herit_concepts & INHERITFLAG_12_MATRIX) != 0)
             return schema_conc_12;
-         else if (herit_concepts & INHERITFLAG_16_MATRIX)
+         else if ((herit_concepts & INHERITFLAG_16_MATRIX) != 0)
             return schema_conc_16;
          else
-            return (herit_concepts & INHERITFLAG_SINGLE) ?
+            return ((herit_concepts & INHERITFLAG_SINGLE) != 0) ?
                schema_single_concentric : schema_concentric;
       }
    case schema_maybe_grand_single_cross_concentric:
@@ -6344,7 +6861,7 @@ static calldef_schema get_real_callspec_and_schema(setup *ss,
       // in three pairs.
 
       if (herit_concepts & INHERITFLAG_SINGLE) {
-         if (herit_concepts & (INHERITFLAG_GRAND | INHERITFLAG_NXNMASK))
+         if ((herit_concepts & (INHERITFLAG_GRAND | INHERITFLAG_NXNMASK)) != 0)
             return schema_concentric_others;
          else
             return schema_single_concentric;
@@ -6369,8 +6886,7 @@ static calldef_schema get_real_callspec_and_schema(setup *ss,
       }
       break;
    case schema_maybe_nxn_lines_concentric:
-      switch (herit_concepts &
-              (INHERITFLAG_SINGLE | INHERITFLAG_NXNMASK | INHERITFLAG_MXNMASK)) {
+      switch (herit_concepts & (INHERITFLAG_SINGLE | INHERITFLAG_NXNMASK | INHERITFLAG_MXNMASK)) {
       case INHERITFLAG_SINGLE:
          return schema_single_concentric;
       case INHERITFLAGMXNK_1X3:
@@ -6409,8 +6925,9 @@ static calldef_schema get_real_callspec_and_schema(setup *ss,
       }
       break;
    case schema_maybe_nxn_1331_lines_concentric:
-      switch (herit_concepts &
-              (INHERITFLAG_SINGLE | INHERITFLAG_NXNMASK | INHERITFLAG_MXNMASK)) {
+   case schema_concentric_ctrbox:
+      // Various 1x3 etc. concepts override any "center box" stuff.
+      switch (herit_concepts & (INHERITFLAG_SINGLE | INHERITFLAG_NXNMASK | INHERITFLAG_MXNMASK)) {
       case INHERITFLAG_SINGLE:
          return schema_single_concentric;
       case INHERITFLAGNXNK_3X3:
@@ -6423,13 +6940,16 @@ static calldef_schema get_real_callspec_and_schema(setup *ss,
       case INHERITFLAGMXNK_1X2:
       case INHERITFLAGMXNK_2X1:
          return schema_1221_concentric;
-      case 0:
-         return schema_concentric;
+      default:
+         if (the_schema == schema_maybe_nxn_1331_lines_concentric)
+            return schema_concentric;
+         else if (ss->kind != s2x6)
+            return schema_concentric;
+         warn(warn_controversial);
+         return the_schema;
       }
-      break;
    case schema_maybe_nxn_1331_cols_concentric:
-      switch (herit_concepts &
-              (INHERITFLAG_SINGLE | INHERITFLAG_NXNMASK | INHERITFLAG_MXNMASK)) {
+      switch (herit_concepts & (INHERITFLAG_SINGLE | INHERITFLAG_NXNMASK | INHERITFLAG_MXNMASK)) {
       case INHERITFLAG_SINGLE:
          return schema_single_concentric;
       case INHERITFLAGNXNK_3X3:
@@ -6516,6 +7036,40 @@ static calldef_schema get_real_callspec_and_schema(setup *ss,
    return the_schema;   // Won't actually happen.
 }
 
+static void matrixmovewrapper(setup *ss,
+                              calldef_schema the_schema,
+                              uint32_t flags,
+                              const uint32_t *callstuff,
+                              bool mirror_this_one,
+                              setup *result)
+{
+   // If two-couple calling and in a 1/4 tag with outsides missing, the
+   // user can't possibly want two diamonds or two single 1/4 tags.
+   if (ss->kind == s_qtag && two_couple_calling &&
+       (ss->people[2].id1 || ss->people[6].id1) == 0 &&
+       (ss->people[3].id1 || ss->people[7].id1) != 0) {
+      expand::compress_setup(s_qtg_2x3, ss);
+   }
+
+   int alldelta = (the_schema == schema_partner_matrix || the_schema == schema_partner_partial_matrix) ?
+      partner_matrixmove(ss, the_schema, flags, callstuff, result) :
+      matrixmove(ss, the_schema, flags, callstuff, result);
+
+   // If the invocation of this call is "roll transparent", restore roll info
+   // from before the call for those people that are marked as roll-neutral.
+   fix_roll_transparency_stupidly(ss, result);
+
+   if (alldelta == 0) {
+      // No one moves, so it's maximally split.  And it isn't a space-invader.
+      if (the_schema != schema_counter_rotate)   // But on a counter rotate everyone mixes around.
+         result->result_flags.maximize_split_info();
+   }
+   else if (!(flags & MTX_NOT_TRUE_INVADER))
+      result->result_flags.misc |= RESULTFLAG__INVADED_SPACE;
+
+   if (mirror_this_one)
+      mirror_this(result);
+}
 
 
 void really_inner_move(
@@ -6523,22 +7077,25 @@ void really_inner_move(
    bool qtfudged,
    calldefn *callspec,
    calldef_schema the_schema,
-   uint32 callflags1,
-   uint32 callflagsf,
-   uint32 override_concentric_rules,
+   uint32_t callflags1,
+   uint32_t callflagsf,
+   uint32_t override_concentric_rules,
    bool did_4x4_expansion,
-   uint32 imprecise_rotation_result_flagmisc,
+   uint32_t imprecise_rotation_result_flagmisc,
    bool mirror,
    setup *result) THROW_DECL
 {
+   who_list sel;
+   sel.initialize();
+
    if (callflagsf & CFLAG2_NO_RAISE_OVERCAST)
       ss->clear_all_overcasts();
 
    selector_kind special_selector = selector_none;
    selective_key special_indicator = selective_key_plain;
-   uint32 special_modifiers = 0;
+   uint32_t special_modifiers = 0;
    // These two are always heritable.
-   uint32 callflagsh = callspec->callflagsh|INHERITFLAG_HALF|INHERITFLAG_LASTHALF;
+   heritflags callflagsh = callspec->callflagsherit | INHERITFLAG_HALF|INHERITFLAG_LASTHALF;
 
    // If the "matrix" concept is on and we get here,
    // that is, we haven't acted on a "split" command, it is illegal.
@@ -6549,7 +7106,7 @@ void really_inner_move(
    // Look for empty starting setup.  If definition is by array,
    // we go ahead with the call anyway.
 
-   uint32 tbonetest = 0;
+   uint32_t tbonetest = 0;
    if (attr::slimit(ss) >= 0) {
       tbonetest = or_all_people(ss);
       if (!(tbonetest & 011) && the_schema != schema_by_array) {
@@ -6566,6 +7123,10 @@ void really_inner_move(
             break;
          }
 
+         if (the_schema == schema_counter_rotate && result->result_flags.misc != 0) {
+            result->result_flags.misc ^= 3;   // Counter rotate requires the other way.
+         }
+
          return;
       }
    }
@@ -6579,8 +7140,8 @@ void really_inner_move(
    setup_command foo1;
 
    if ((callflags1 & CFLAG1_FUNNY_MEANS_THOSE_FACING) &&
-       ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_FUNNY)) {
-      ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_FUNNY);
+       ss->cmd.cmd_final_flags.herit & INHERITFLAG_FUNNY) {
+      ss->cmd.cmd_final_flags.herit &= ~INHERITFLAG_FUNNY;
 
       // We have to do this -- we need to know who is facing *now*.
       update_id_bits(ss);
@@ -6589,11 +7150,44 @@ void really_inner_move(
       goto do_special_select_stuff;
    }
 
+   // If we have been told to counter rotate in triangles, and the setup isn't triangles.  Split it.
+   if (the_schema == schema_counter_rotate && (ss->cmd.cmd_misc3_flags & CMD_MISC3__SAID_TRIANGLE)) {
+      uint32_t division_code = ~0U;
+
+      if (ss->kind == s_bone6) {
+         division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_SPLIT,1,s_trngl,0x7);
+      }
+      else if (ss->kind == s_short6) {
+         division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_SPLIT,1,s_trngl,0x8);
+      }
+      else if (ss->kind == s_ntrgl6cw) {
+         division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_SPLIT,0,s_trngl,0x2);
+      }
+      else if (ss->kind == s_ntrgl6ccw) {
+         division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_SPLIT,0,s_trngl,0x8);
+      }
+      else if (ss->kind == s_nftrgl6cw) {
+         division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_OFFS_R_HALF,0,s_trngl,0x2);
+      }
+      else if (ss->kind == s_nftrgl6ccw) {
+         division_code = HETERO_MAPCODE(s_trngl,2,MPKIND__HET_OFFS_L_HALF,0,s_trngl,0x8);
+      }
+
+      if (division_code != ~0U) {
+         ss->cmd.prior_elongation_bits = 0;
+         ss->cmd.prior_expire_bits = 0;
+         divided_setup_move(ss, division_code, phantest_ok,
+                            (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) != 0, result);
+         goto foobarf;
+      }
+   }
+
    switch (the_schema) {
    case schema_nothing:
    case schema_nothing_noroll:
    case schema_nothing_other_elong:
-      if ((ss->cmd.cmd_final_flags.test_heritbits(~(INHERITFLAG_HALF|INHERITFLAG_LASTHALF|FINAL__UNDER_RANDOM_META))))
+      if ((ss->cmd.cmd_final_flags.test_finalbits(~FINAL__UNDER_RANDOM_META) != 0) ||
+          (ss->cmd.cmd_final_flags.bool_test_heritbits(~(INHERITFLAG_HALF|INHERITFLAG_LASTHALF))))
          fail("Illegal concept for this call.");
       *result = *ss;
       result->suppress_all_rolls(the_schema == schema_nothing);
@@ -6606,55 +7200,96 @@ void really_inner_move(
          result->result_flags.misc ^= 3;
       break;
    case schema_recenter:
-      if ((ss->cmd.cmd_final_flags.test_heritbits(~(INHERITFLAG_HALF|INHERITFLAG_LASTHALF))) |
-          (ss->cmd.cmd_final_flags.test_finalbits(~FINAL__UNDER_RANDOM_META)))
+      if ((ss->cmd.cmd_final_flags.test_finalbits(~FINAL__UNDER_RANDOM_META) != 0) ||
+          (ss->cmd.cmd_final_flags.bool_test_heritbits(~(INHERITFLAG_HALF|INHERITFLAG_LASTHALF))))
          fail("Illegal concept for this call.");
       *result = *ss;
-      normalize_setup(result, normalize_recenter, false);
+      normalize_setup(result, normalize_recenter, qtag_compress);
       if (ss->kind == result->kind)
          fail("This setup can't be recentered.");
       break;
+   case schema_counter_rotate:
+      if ((ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) != 0) {
+         if (!do_simple_split(ss, split_command_none, result))
+            return;
+      }
+
+      // FALL THROUGH!
    case schema_matrix:
    case schema_partner_matrix:
    case schema_partner_partial_matrix:
+      // FELL THROUGH!
       {
+         selector_kind local_selector = current_options.who.who[0];
+
+         // For fairly hairy reasons "<anyone> trade" is given as a matrix call.  That
+         // code can't deal with concentric setups, which are presumably setups with
+         // centers and ends at 45 degress to each other.  If the <anyone> are the
+         // centers or the ends, we may be able to use the concentric mechanism.
+         if (ss->kind == s_normal_concentric && (callspec->stuff.matrix.matrix_flags & MTX_FIND_TRADERS)) {
+            if (local_selector == selector_centers) {
+               current_options.who.who[0] = selector_all;
+               concentric_move(ss, &ss->cmd, (setup_command *) 0, schema_concentric,
+                               0, 0, true, false, ~0U, result);
+               current_options.who.who[0] = local_selector;
+               return;
+            }
+            else if (local_selector == selector_ends || local_selector == selector_outsides) {
+               current_options.who.who[0] = selector_all;
+               concentric_move(ss, (setup_command *) 0, &ss->cmd, schema_concentric,
+                               0, 0, true, false, ~0U, result);
+               current_options.who.who[0] = local_selector;
+               return;
+            }
+         }
+
          bool expanded = false;
          static const expand::thing exp_from_2x2_stuff = {{12, 0, 4, 8}, s2x2, s4x4, 0};
+         static const expand::thing exp_from_2x2_stuffh = {{8, 9, 10, 12, 0, 1, 2, 4}, s2x4, s4x4, 1};
+         static const expand::thing exp_from_2x2_stuffv = {{12, 13, 14, 0, 4, 5, 6, 8}, s2x4, s4x4, 0};
          static const expand::thing exp_back_to_2x6_stuff = {{0, 1, 4, 5, 6, 7, 10, 11}, s2x4, s2x6, 0};
 
          // The "reverse" concept might mean mirror, as in "reverse truck".
          // The "left" concept might also mean mirror, as in "left anchor".
-         if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_REVERSE) &&
-             (callflagsh & INHERITFLAG_REVERSE)) {
+         if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_REVERSE) &&
+             (callflagsh & INHERITFLAG_REVERSE) != 0) {
             mirror_this(ss);
             mirror = true;
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_REVERSE);
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_REVERSE);
          }
-         else if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_LEFT) &&
-             (callflagsh & INHERITFLAG_LEFT)) {
+         else if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_LEFT) &&
+             (callflagsh & INHERITFLAG_LEFT) != 0) {
             mirror_this(ss);
             mirror = true;
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_LEFT);
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_LEFT);
          }
 
          if (ss->kind == s_qtag &&
-             ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_12_MATRIX)) {
+             ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_12_MATRIX)) {
             do_matrix_expansion(ss, CONCPROP__NEEDK_3X4, true);
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_12_MATRIX);
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_12_MATRIX);
          }
          else if (ss->kind == s2x2 &&
                   // The elongation field can contain spurious stuff.  It is only
                   // meaningful if the setup is known to be distorted.
                   (ss->cmd.cmd_misc_flags & CMD_MISC__DISTORTED) &&
                   (ss->cmd.prior_elongation_bits & 3) != 0 &&
-                  the_schema != schema_partner_partial_matrix) {
-            expanded = true;
-            if (ss->cmd.prior_elongation_bits == 3)
-               expand::expand_setup(exp_from_2x2_stuff, ss);
-            else if (ss->cmd.prior_elongation_bits == 1)
-               expand::expand_setup(s_2x2_2x4_ends, ss);
-            else
-               expand::expand_setup(s_2x2_2x4_endsb, ss);
+                  the_schema != schema_counter_rotate) {
+            // If we already know we are doing the ends, we don't need to
+            // explicitly expand the 2x2, unless it's a matrix call, including squeeze.
+            // Matrix calls need to know where the people really are.
+            if ((ss->cmd.cmd_misc3_flags & CMD_MISC3__DOING_ENDS) == 0 ||
+                the_schema == schema_matrix || the_schema == schema_partner_matrix) {
+               expanded = true;
+               if (ss->cmd.prior_elongation_bits == 3)
+                  expand::expand_setup(exp_from_2x2_stuff, ss);
+               else if (ss->cmd.prior_elongation_bits == 1)
+                  expand::expand_setup(s_2x2_2x4_ends, ss);
+               else if (ss->cmd.prior_elongation_bits == 2)
+                  expand::expand_setup(s_2x2_2x4_endsb, ss);
+               else
+                  expanded = false;
+            }
 
             // Since we are reconstructing the original setup,
             // we think it is reasonable to say that the setup is
@@ -6663,7 +7298,8 @@ void really_inner_move(
             ss->cmd.cmd_misc_flags &= ~CMD_MISC__DISTORTED;
          }
 
-         remove_z_distortion(ss);
+         if (the_schema != schema_counter_rotate)   // Counter rotate in a Z is done just as it is.
+            remove_z_distortion(ss);
 
          // Not sure what this is about.  How can these flags appear?
          ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_16_MATRIX|INHERITFLAG_12_MATRIX);
@@ -6671,57 +7307,116 @@ void really_inner_move(
          if (ss->cmd.cmd_final_flags.test_finalbits(~FINAL__UNDER_RANDOM_META))
             fail("Illegal concept for this call.");
 
-         uint32 flags = callspec->stuff.matrix.matrix_flags;
+         uint32_t flags = callspec->stuff.matrix.matrix_flags;
          if ((flags & MTX_ONLY_IN) && current_options.where != direction_in) fail("Can't use this selector.");
          if ((flags & MTX_ONLY_OUT) && current_options.where != direction_out) fail("Can't use this selector.");
          matrix_def_block *base_block = callspec->stuff.matrix.matrix_def_list;
 
+         if (the_schema == schema_counter_rotate && ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF)) {
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_HALF);
+            flags |= MTX_DO_HALF_OF_CTR_ROT;
+         }
+
          for ( ;; ) {
-            if (base_block->alternate_def_flags == (uint32) ss->cmd.cmd_final_flags.herit)
+            if (base_block->alternate_def_flags == ss->cmd.cmd_final_flags.herit)
                break;
             base_block = base_block->next;
             if (!base_block) fail("Illegal concept for this call.");
          }
 
-         const uint32 *callstuff = base_block->matrix_def_items;
+         const uint32_t *callstuff = base_block->matrix_def_items;
 
-         int alldelta = (the_schema == schema_partner_matrix || the_schema == schema_partner_partial_matrix) ?
-            partner_matrixmove(ss, flags, callstuff, result) :
-            matrixmove(ss, flags, callstuff, result);
+         setup the_setups[2], the_results[2];
+         the_setups[0] = *ss;              // centers if doing mystic, else everyone.
+         the_setups[1] = *ss;              // outsides.
+         int which_to_mirror = 1;          // So if we're not doing mystic it won't mirror anything.
+         int doing_mystic = 0;             // will be 1 if doing mystic.
 
-         // If the invocation of this call is "roll transparent", restore roll info
-         // from before the call for those people that are marked as roll-neutral.
-         fix_roll_transparency_stupidly(ss, result);
+         if (ss->cmd.cmd_misc2_flags & CMD_MISC2__CTR_END_MASK) {
+            if ((ss->cmd.cmd_misc2_flags & (CMD_MISC2__CTR_END_MASK & ~CMD_MISC2__INVERT_MYSTIC)) !=
+                 CMD_MISC2__CENTRAL_MYSTIC)
+               fail("Can't do \"central/snag\" with this call.");
 
-         if (alldelta == 0) {
-            // No one moves, so it's maximally split.  And it isn't a space-invader.
-            result->result_flags.maximize_split_info();
+            if (ss->cmd.cmd_misc2_flags & CMD_MISC2__INVERT_MYSTIC)
+               which_to_mirror = 0;
+            int sizem1 = attr::slimit(ss);
+            who_list saved_selector = current_options.who;
+            current_options.who.who[0] = selector_centers;
+
+            for (int i=0; i<=sizem1; i++)
+               the_setups[(ss->kind == s1x8) ? ((~i>>1) & 1) : (selectp(ss, i) ? 0 : 1)].clear_person(i);
+
+            current_options.who = saved_selector;
+            doing_mystic = 1;
+            the_setups[0].cmd.cmd_misc_flags &= ~CMD_MISC__DISTORTED;  // Turn off this error
+            the_setups[1].cmd.cmd_misc_flags &= ~CMD_MISC__DISTORTED;
+            normalize_setup(&the_setups[0], normalize_before_merge, qtag_compress);
+            normalize_setup(&the_setups[1], normalize_before_merge, qtag_compress);
+            mirror_this(&the_setups[which_to_mirror]);
          }
-         else if (!(flags & MTX_NOT_TRUE_INVADER)) {
-            result->result_flags.misc |= RESULTFLAG__INVADED_SPACE;
+
+         for (int i=0; i<=doing_mystic; i++) {
+            // If this is a 2x2dmd setup ("twin phantom diamonds" or 1/4 tags), the operator
+            // must want a matrix setup.  It will fit into a 4x6.  (If it would fit into
+            // something smaller, it won't matter; it's a matrix call.)
+            // If it doesn't successfully turn into a 4x6, that's too bad.
+            // When done, we will not attempt to turn it back into a 2x2dmd.  Leave it as it was.
+            // Try it first directly as the s2x2dmd.
+
+            setup tempsetup = the_setups[i];
+
+            try {
+               matrixmovewrapper(&the_setups[i], the_schema, flags, callstuff, i == which_to_mirror, &the_results[i]);
+            }
+            catch(error_flag_type foo) {
+               if (the_setups[i].kind != s2x2dmd)
+                  throw foo;
+
+               // Expand to 4x6 matrix and try again.
+               the_setups[i] = tempsetup;
+               do_matrix_expansion(&the_setups[i], CONCPROP__NEEDK_4X6, false);
+
+               matrixmovewrapper(&the_setups[i], the_schema, flags, callstuff, i == which_to_mirror, &the_results[i]);
+            }
          }
+
+         *result = the_results[0];
+
+         if (doing_mystic != 0) {
+            result->result_flags = get_multiple_parallel_resultflags(the_results, 2);
+            merge_table::merge_setups(&the_results[1], merge_c1_phantom, result);
+         }
+
+         // Be sure we bring back the CMD_MISC3__DID_Z_COMPRESSMASK info.
+         ss->cmd.cmd_misc3_flags = the_setups[0].cmd.cmd_misc3_flags;
 
          if (expanded) {
+            // If the outsides invaded space, but only did so perpendicular to the
+            // elongation that we are making to stay clear of the centers, compress
+            // out the extra space.
+            uint32_t dirjunk;
+            uint32_t livemask;
+
             result->result_flags.misc &= ~3;
-            if (result->kind == s4x4 &&
-                     !(result->people[15].id1 | result->people[3].id1 |
-                       result->people[7].id1 | result->people[11].id1 |
-                       result->people[13].id1 | result->people[14].id1 |
-                       result->people[5].id1 | result->people[6].id1 |
-                       result->people[10].id1 | result->people[9].id1 |
-                       result->people[1].id1 | result->people[2].id1)) {
+            big_endian_get_directions32(result, dirjunk, livemask);
+
+            if (result->kind == s4x4 && (livemask & 0x3F3F3F3F) == 0) {
                result->result_flags.misc |= 3;
                expand::compress_setup(exp_from_2x2_stuff, result);
             }
-            else if (result->kind == s2x4 &&
-                     !(result->people[1].id1 | result->people[2].id1 |
-                       result->people[5].id1 | result->people[6].id1)) {
+            else if (result->kind == s4x4 && (livemask & 0x033F033F) == 0) {
+               result->result_flags.misc |= 1;
+               expand::compress_setup(exp_from_2x2_stuffh, result);
+            }
+            else if (result->kind == s4x4 && (livemask & 0x3F033F03) == 0) {
+               result->result_flags.misc |= 2;
+               expand::compress_setup(exp_from_2x2_stuffv, result);
+            }
+            else if (result->kind == s2x4 && (livemask & 0x3C3C) == 0) {
                result->result_flags.misc |= (result->rotation & 1) + 1;
                expand::compress_setup(s_2x2_2x4_ends, result);
             }
-            else if (result->kind == s2x6 &&
-                     !(result->people[2].id1 | result->people[3].id1 |
-                       result->people[8].id1 | result->people[9].id1)) {
+            else if (result->kind == s2x6 && (livemask & 0x0F00F0) == 0) {
                result->result_flags.misc |= (result->rotation & 1) + 1;
                expand::compress_setup(exp_back_to_2x6_stuff, result);
             }
@@ -6730,7 +7425,7 @@ void really_inner_move(
 
       break;
    case schema_roll:
-      if ((ss->cmd.cmd_final_flags.test_heritbits(~0)) |
+      if ((ss->cmd.cmd_final_flags.bool_test_heritbits(~0ULL)) ||
           (ss->cmd.cmd_final_flags.test_finalbits(~FINAL__UNDER_RANDOM_META)))
          fail("Illegal concept for this call.");
       remove_z_distortion(ss);
@@ -6745,26 +7440,26 @@ void really_inner_move(
       // Dispose of the "left" concept first -- it can only mean mirror.  If it is on,
       // mirroring may already have taken place.
 
-      if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_LEFT)) {
+      if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_LEFT)) {
          /* ***** why isn't this particular error test taken care of more generally elsewhere? */
-         if (!(callflagsh & INHERITFLAG_LEFT))
+         if ((callflagsh & INHERITFLAG_LEFT) == 0ULL)
             fail("Can't do this call 'left'.");
          if (!mirror) mirror_this(ss);
          mirror = true;
          ss->cmd.cmd_misc_flags |= CMD_MISC__DID_LEFT_MIRROR;
-         ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_LEFT);
+         ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_LEFT);
       }
 
       // The "reverse" concept might mean mirror, or it might be genuine.
 
-      if ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_REVERSE)) &&
-          (callflagsh & INHERITFLAG_REVERSE)) {
+      if ((ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_REVERSE)) &&
+          (callflagsh & INHERITFLAG_REVERSE) != 0ULL) {
          // This "reverse" just means mirror.
-         if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_LEFT))
+         if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_LEFT))
             fail("Can't do this call 'left' and 'reverse'.");
          if (!mirror) mirror_this(ss);
          mirror = true;
-         ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_REVERSE);
+         ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_REVERSE);
       }
 
       // If the "reverse" flag is still set in cmd_final_flags, it means a genuine
@@ -6794,15 +7489,16 @@ void really_inner_move(
       // letting the call deal with the resulting "3x3".  In both cases,
       // "divide_for_magic" will deal with it.
 
-      uint32 extra_heritmask_bits = 0;
+      heritflags extra_heritmask_bits = 0ULL;
 
       {
          // Fix special case of yoyo/generous/stingy.
-         uint32 hhhh = fix_gensting_weirdness(&ss->cmd, callflagsh);
+         heritflags hhhh = callflagsh;
+         fix_gensting_weirdness(&ss->cmd, hhhh);
 
-         uint32 unaccepted_flags =
-            ss->cmd.cmd_final_flags.test_heritbits(~hhhh);
-
+         heritflags unaccepted_flags;
+         unaccepted_flags = ss->cmd.cmd_final_flags.herit & ~hhhh;
+             
          // Special case:  Some calls do not specify "magic" inherited
          // to their children, but can nevertheless be executed magically.
          // In such a case, the whole setup is divided into magic lines
@@ -6830,11 +7526,11 @@ void really_inner_move(
          //
          // This stuff applies to interlocked and similar things also.
 
-         if (unaccepted_flags != 0) {
+         if (unaccepted_flags != 0ULL) {
             if ((unaccepted_flags &
                  ~(INHERITFLAG_INTLK | INHERITFLAG_MAGIC |
                    INHERITFLAG_MXNMASK | INHERITFLAG_NXNMASK |
-                   INHERITFLAG_SINGLEFILE)) == 0 &&
+                   INHERITFLAG_SINGLEFILE)) == 0ULL &&
                 the_schema == schema_sequential &&
                 (ss->cmd.cmd_fraction.flags & CMD_FRAC_PART_MASK) != 0 &&
                 (((ss->cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) == CMD_FRAC_CODE_ONLY) ||
@@ -6853,7 +7549,7 @@ void really_inner_move(
       }
 
       if (the_schema >= schema_sequential) {
-         uint32 misc2 = ss->cmd.cmd_misc2_flags;
+         uint32_t misc2 = ss->cmd.cmd_misc2_flags;
 
          if ((misc2 & CMD_MISC2__CENTRAL_SNAG) &&
              ((ss->cmd.cmd_fraction.flags & CMD_FRAC_PART_MASK) == 0 ||
@@ -6871,7 +7567,7 @@ void really_inner_move(
             {
                int i;
                int m, j;
-               uint32 ssmask;
+               uint32_t ssmask;
                setup the_setups[2], the_results[2];
                int sizem1 = attr::slimit(ss);
                int crossconc = (misc2 & CMD_MISC2__INVERT_SNAG) ? 0 : 1;
@@ -6898,7 +7594,7 @@ void really_inner_move(
                if (m < 0) fail("Can't identify centers and ends.");
 
                for (j=0; j<=m; j++) {
-                  uint32 p = result->people[j].id1;
+                  uint32_t p = result->people[j].id1;
 
                   if (p & BIT_PERSON) {
                      for (i=0; i<=sizem1; i++) {
@@ -6916,7 +7612,7 @@ void really_inner_move(
                      of the call, and the_setups[1] has original ends, also after completion.
                      We will have the_setups[0] proceed with the rest of the call. */
 
-               normalize_setup(&the_setups[0], normalize_before_isolated_call, false);
+               normalize_setup(&the_setups[0], normalize_before_isolated_call, qtag_compress);
                warning_info saved_warnings = configuration::save_warnings();
 
                the_setups[0].cmd = ss->cmd;
@@ -6945,17 +7641,18 @@ void really_inner_move(
             if ((ss->cmd.cmd_misc2_flags & CMD_MISC2__CENTRAL_MYSTIC) && ss->cmd.cmd_fraction.is_null()) {
                ss->cmd.cmd_misc3_flags |= CMD_MISC3__DOING_YOUR_PART;
                setup_command conc_cmd = ss->cmd;
+               sel.who[0] = selector_centers;
 
                inner_selective_move(ss, &conc_cmd, &conc_cmd, selective_key_dyp,
-                                    1, 0, false, 0, selector_centers, 0, 0, result);
+                                    1, 0, false, 0, sel, 0, 0, result);
             }
             else
                do_sequential_call(ss, callspec, qtfudged, &mirror, extra_heritmask_bits, result);
          }
 
          if (the_schema == schema_split_sequential && result->kind == s2x6 &&
-             ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_MXNMASK)) == INHERITFLAGMXNK_1X3 ||
-              (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_MXNMASK)) == INHERITFLAGMXNK_3X1)) {
+             ((ss->cmd.cmd_final_flags.herit & INHERITFLAG_MXNMASK) == INHERITFLAGMXNK_1X3 ||
+              (ss->cmd.cmd_final_flags.herit & INHERITFLAG_MXNMASK) == INHERITFLAGMXNK_3X1)) {
             switch(little_endian_live_mask(result)) {
             case 02727:
                expand::compress_setup(exp27, result);
@@ -6968,10 +7665,6 @@ void really_inner_move(
       }
       else {
          foo1 = ss->cmd;
-
-         // *********** this is of course bogus LINES LINES LINES LINES
-         if (ss->cmd.cmd_misc2_flags & CMD_MISC2_RESTRAINED_SUPER)
-            foo1.extraspecialsuperduper_misc2flags |= ss->cmd.restrained_misc2flags;
 
          if (do_misc_schema(ss, the_schema, callspec, callflags1, &foo1, override_concentric_rules, &special_selector,
                             &special_modifiers, &special_indicator, result))
@@ -6986,10 +7679,11 @@ void really_inner_move(
  do_special_select_stuff:
 
    if (special_selector == selector_none) fail("Can't do this call in this formation.");
+   sel.who[0] = special_selector;
 
    inner_selective_move(ss, &foo1, (setup_command *) 0,
                         special_indicator, 0, 0, false, 0,
-                        special_selector, special_modifiers, 0, result);
+                        sel, special_modifiers, 0, result);
 
  foobarf:
 
@@ -7017,7 +7711,7 @@ void really_inner_move(
       outer_inners[1].kind = nothing;
       clear_result_flags(&outer_inners[1]);
       normalize_concentric(ss, schema_conc_o, 1, outer_inners, 1, 0, result);
-      normalize_setup(result, simple_normalize, false);
+      normalize_setup(result, simple_normalize, qtag_compress);
       if (result->kind == s2x4) {
          if (result->people[1].id1 | result->people[2].id1 |
              result->people[5].id1 | result->people[6].id1)
@@ -7049,7 +7743,7 @@ static bool do_forced_couples_stuff(
    }
 
    ss->cmd.cmd_misc3_flags &= ~CMD_MISC3__DO_AS_COUPLES;
-   uint32 mxnflags = ss->cmd.do_couples_her8itflags &
+   uint64_t mxnflags = ss->cmd.do_couples_her8itflags &
       (INHERITFLAG_SINGLE | INHERITFLAG_MXNMASK | INHERITFLAG_NXNMASK);
 
    // Mxnflags now has the "single" bit, or any "1x3" stuff.  If it is the "single"
@@ -7059,7 +7753,7 @@ static bool do_forced_couples_stuff(
    ss->cmd.do_couples_her8itflags &= ~mxnflags;
 
    if (mxnflags != INHERITFLAG_SINGLE) {
-      tandem_couples_move(ss, selector_uninitialized, 0, 0, 0,
+      tandem_couples_move(ss, who_uninit_thing, 0, 0, 0,
                           tandem_key_cpls, mxnflags, true, result);
       return true;
    }
@@ -7070,8 +7764,8 @@ static bool do_forced_couples_stuff(
 
 fraction_command::includes_first_part_enum fraction_command::includes_first_part()
 {
-   uint32 fracflags = flags;
-   uint32 fracfrac = fraction;
+   uint32_t fracflags = flags;
+   uint32_t fracfrac = fraction;
 
    // If doing fractions, we can't (yet) be bothered to figure this out.
    if (fracfrac != FRAC_FRAC_NULL_VALUE)
@@ -7122,7 +7816,7 @@ static void move_with_real_call(
    if ((ss->cmd.cmd_misc2_flags & CMD_MISC2__DO_CENTRAL) && ss->cmd.cmd_final_flags.final)
          fail("This concept not allowed here.");
 
-   uint32 herit_concepts = ss->cmd.cmd_final_flags.herit;
+   heritflags herit_concepts = ss->cmd.cmd_final_flags.herit;
 
    calldefn *this_defn = &ss->cmd.callspec->the_defn;
    calldefn *deferred_array_defn = (calldefn *) 0;
@@ -7141,13 +7835,13 @@ static void move_with_real_call(
       *ss = saved_ss;
       result->clear_people();
       clear_result_flags(result, RESULTFLAG__REALLY_NO_REEVALUATE);   // In case we bail out.
-      uint32 imprecise_rotation_result_flagmisc = 0;
+      uint32_t imprecise_rotation_result_flagmisc = 0;
       split_command_kind force_split = split_command_none;
       bool mirror = false;
-      uint32 callflags1 = this_defn->callflags1;
+      uint32_t callflags1 = this_defn->callflags1;
       // These two are always heritable.
-      uint32 callflagsh = this_defn->callflagsh|INHERITFLAG_HALF|INHERITFLAG_LASTHALF;
-      uint32 callflagsf = this_defn->callflagsf;
+      heritflags callflagsh = this_defn->callflagsherit | INHERITFLAG_HALF|INHERITFLAG_LASTHALF;
+      uint32_t callflagsf = this_defn->callflagsf;
 
       calldef_schema the_schema =
          get_real_callspec_and_schema(ss, herit_concepts, this_defn->schema);
@@ -7163,21 +7857,21 @@ static void move_with_real_call(
       }
 
       if ((callflags1 & CFLAG1_YOYO_FRACTAL_NUM)) {
-         if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_FRACTAL)) {
+         if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_FRACTAL)) {
             if ((current_options.number_fields & (NUMBER_FIELD_MASK ^ 2)) == 1)
                current_options.number_fields ^= 2;
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_FRACTAL);
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_FRACTAL);
          }
-         else if ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_YOYOETCMASK)) == INHERITFLAG_YOYOETCK_YOYO) {
+         else if ((ss->cmd.cmd_final_flags.herit & INHERITFLAG_YOYOETCMASK) == INHERITFLAG_YOYOETCK_YOYO) {
             if ((current_options.number_fields & NUMBER_FIELD_MASK) == 2)
                current_options.number_fields++;
             ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_YOYOETCMASK);
          }
-         else if ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_YOYOETCMASK)) == INHERITFLAG_YOYOETCK_GENEROUS) {
+         else if ((ss->cmd.cmd_final_flags.herit & INHERITFLAG_YOYOETCMASK) == INHERITFLAG_YOYOETCK_GENEROUS) {
             current_options.number_fields++;
             ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_YOYOETCMASK);
          }
-         else if ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_YOYOETCMASK)) == INHERITFLAG_YOYOETCK_STINGY &&
+         else if (((ss->cmd.cmd_final_flags.herit & INHERITFLAG_YOYOETCMASK) == INHERITFLAG_YOYOETCK_STINGY) &&
                   current_options.number_fields > 0) {
             current_options.number_fields--;
             ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_YOYOETCMASK);
@@ -7209,18 +7903,10 @@ static void move_with_real_call(
          // appropriate flag set saying that the concept is legal and will
          // be inherited to the children.  Unless it is defined by array.
          if (the_schema != schema_by_array) {
-            callflagsh = fix_gensting_weirdness(&ss->cmd, callflagsh);
+            fix_gensting_weirdness(&ss->cmd, callflagsh);
 
-            if (ss->cmd.cmd_final_flags.test_heritbits(~callflagsh))
+            if ((ss->cmd.cmd_final_flags.bool_test_heritbits(~callflagsh)))
                fail("Can't do this call with this concept.");
-         }
-
-         if (ss->cmd.cmd_misc2_flags & CMD_MISC2_RESTRAINED_SUPER &&
-             !(ss->cmd.cmd_misc3_flags & CMD_MISC3__DONE_WITH_REST_SUPER)) {
-            // *********** LINES LINES LINES LINES LINES
-            ss->cmd.cmd_misc_flags &= ~CMD_MISC__MUST_SPLIT_MASK;
-            ss->cmd.cmd_misc2_flags &= ~CMD_MISC2__DO_CENTRAL;
-            ss->cmd.cmd_misc3_flags |= CMD_MISC3__DONE_WITH_REST_SUPER;
          }
 
          if (ss->cmd.cmd_misc2_flags & CMD_MISC2__DO_CENTRAL) {
@@ -7234,10 +7920,12 @@ static void move_with_real_call(
             // being followed.  The test is straight central interlocked little.
 
             if (attr::slimit(ss) == 7 &&
-                ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_NXNMASK)) != INHERITFLAGNXNK_4X4) &&
-                ((ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_STRAIGHT)) == 0)) {
-               ss->cmd.cmd_misc_flags |=
-                  (ss->rotation & 1) ? CMD_MISC__MUST_SPLIT_VERT : CMD_MISC__MUST_SPLIT_HORIZ;
+                ((ss->cmd.cmd_final_flags.herit & INHERITFLAG_NXNMASK) != INHERITFLAGNXNK_4X4) &&
+                (!ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_STRAIGHT))) {
+               if (!(ss->cmd.cmd_misc2_flags & CMD_MISC2__DO_CENTRAL) ||
+                   !(ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_DIAMOND)))
+                  ss->cmd.cmd_misc_flags |=
+                     (ss->rotation & 1) ? CMD_MISC__MUST_SPLIT_VERT : CMD_MISC__MUST_SPLIT_HORIZ;
             }
 
             // If it is sequential, we just pass it through.  Otherwise, we handle it here.
@@ -7246,14 +7934,18 @@ static void move_with_real_call(
                 the_schema != schema_sequential_with_fraction &&
                 the_schema != schema_sequential_with_split_1x8_id) {
                const by_def_item *defptr;
-               uint32 inv_bits = ss->cmd.cmd_misc2_flags &
+               uint32_t inv_bits = ss->cmd.cmd_misc2_flags &
                   (CMD_MISC2__INVERT_CENTRAL | CMD_MISC2__SAID_INVERT);
 
                ss->cmd.cmd_misc2_flags &=
                   ~(CMD_MISC2__DO_CENTRAL | CMD_MISC2__INVERT_CENTRAL | CMD_MISC2__SAID_INVERT);
 
-               if ((schema_attrs[the_schema].attrs &
-                    (SCA_CENTRALCONC|SCA_CROSS)) == SCA_CENTRALCONC) {
+               if (((schema_attrs[the_schema].attrs & (SCA_CENTRALCONC|SCA_CROSS)) == SCA_CENTRALCONC) ||
+                   (((schema_attrs[the_schema].attrs & (SCA_CENTRALCONC|SCA_CROSS)) == (SCA_CENTRALCONC|SCA_CROSS)) &&
+                    two_couple_calling)) {
+                  // As a very special case, we allow the use of "central" with a cross-concentrically-defined
+                  // call, if writing two-couple material.  This would not normally be allowed.
+
                   // We used to include "schema_cross_concentric_6p_or_normal"
                   // in this clause.  It must have been related to some call definition
                   // that wasn't done correctly at that time.  It is no longer needed,
@@ -7267,7 +7959,8 @@ static void move_with_real_call(
                   // to get the ends' part of the inverted call, so we just get the
                   // centers' part as usual.
                   if (inv_bits == CMD_MISC2__INVERT_CENTRAL ||
-                      inv_bits == CMD_MISC2__SAID_INVERT)
+                      inv_bits == CMD_MISC2__SAID_INVERT ||
+                      (schema_attrs[the_schema].attrs & SCA_CROSS) != 0)
                      defptr = &this_defn->stuff.conc.outerdef;
                   else
                      defptr = &this_defn->stuff.conc.innerdef;
@@ -7283,7 +7976,7 @@ static void move_with_real_call(
                      fail("You can't select that part of the call.");
                   }
 
-                  do_inheritance(&ss->cmd, this_defn, defptr, 0);
+                  do_inheritance(&ss->cmd, this_defn, defptr, 0ULL);
                   process_number_insertion(defptr->modifiers1);
 
                   if (ss->cmd.callspec == base_calls[base_call_null_second])
@@ -7296,7 +7989,7 @@ static void move_with_real_call(
                         the_schema == schema_select_ctr4) {
                   // Just leave the definition in place.  We will split the 8-person setup
                   // into two 4-person setups, and then pick out the center 2 from them.
-                  force_split = split_command_1x4;
+                  force_split = split_command_1x4_dmd;
                }
                else
                   fail("Can't do \"central\" with this call.");
@@ -7323,31 +8016,74 @@ static void move_with_real_call(
          case schema_matrix:
          case schema_partner_matrix:
          case schema_partner_partial_matrix:
+         case schema_counter_rotate:
             // We allow the fractions "1/2" and "last 1/2" to be given.
             // Basic_move or matrixmove will handle them.
 
-            // We also allow any incoming fraction to alter the given number,
-            // if the call is of the kind that allows that.
-
-            // But we skip all of this if the incoming setup is empty.
-
+            // We skip all of this if the incoming setup is empty.
             if (attr::slimit(ss) < 0 || or_all_people(ss) != 0) {
-               heritflags bit_to_set = (heritflags) 0;
+               heritflags bit_to_set = 0ULL;
 
                if ((callflagsf & CFLAG2_FRACTIONAL_NUMBERS) &&
                    (ss->cmd.cmd_fraction.flags & ~CMD_FRAC_BREAKING_UP) == 0 &&
                    current_options.howmanynumbers == 1) {
-                  fraction_info zzz(current_options.number_fields & NUMBER_FIELD_MASK);
 
+                  // This call has been given a numeric argument, and normally acts on
+                  // that argument with clauses like "qualifier num 1".  Such clauses
+                  // don't normally know how to do arithmetic on the numeric argument.
+                  // But, since it has the "fractional_numbers" property, that says that
+                  // the number is related to some notion of how much to do.  (In
+                  // general, the numeric argument has nothing to do with how much to
+                  // do, as in "take <n>", so applying an incoming fraction would not be
+                  // meaningful.)  So we may need to alter the incoming number based on
+                  // how much of the call we are requested to do.
+
+                  // So the first thing we do is create a fictional fraction_info object
+                  // for a fictional call that has a fictional number of parts equal to
+                  // the incoming number.  Then we tell that fictional call that it has
+                  // been given the requested fraction.
+
+                  fraction_info zzz(current_options.number_fields & NUMBER_FIELD_MASK);
                   zzz.get_fraction_info(ss->cmd.cmd_fraction,
                                         CFLAG1_VISIBLE_FRACTION_MASK / CFLAG1_VISIBLE_FRACTION_BIT,
                                         weirdness_off);
 
-                  if ((zzz.m_do_half_of_last_part |
-                       zzz.m_do_last_half_of_first_part |
-                       zzz.m_fetch_index) == 0) {
-                     current_options.number_fields = zzz.m_highlimit;
+                  // Now the "m_highlimit" field of that fraction_info object tells how
+                  // many parts have effectively been requested.  We plug that number in
+                  // for the incoming numeric argument.
+
+                  // But if we were requested to do the last part, and the reult is an
+                  // integral number of iterations, just do it.  Handle this by
+                  // subtracting the "m_fetch_index" (normally 0, but could be more)
+                  // from the "m_highlimit".
+                  current_options.number_fields = zzz.m_highlimit - zzz.m_fetch_index;
+
+                  // But there's an added twist.  If the incoming fraction was such
+                  // that the modified number would not be an integer (e.g. 1-1/2),
+                  // the fraction_info object will show that by setting the
+                  // "m_do_half_of_last_part" property.  This effectively says "I am
+                  // indicating a number of 3, but the number I actually want is
+                  // 2-1/2".
+                  if ((zzz.m_do_half_of_last_part|zzz.m_do_last_half_of_first_part) == 0) {
                      goto done;
+                  }
+                  else if (!ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF|INHERITFLAG_LASTHALF)) {
+
+                     // Calls with the "fractional_numbers" property can be coded so
+                     // that they can take the "half" or "lasthalf" modifier and thereby do
+                     // half-integer values of the incoming number.  Such calls
+                     // presumably obey Fermi-Dirac statistics.
+
+                     if ((zzz.m_do_half_of_last_part) != 0) {
+                        ss->cmd.cmd_final_flags.set_heritbits(INHERITFLAG_HALF);
+                        current_options.number_fields = current_options.number_fields*2 - 1;
+                        goto done;
+                     }
+                     else {
+                        ss->cmd.cmd_final_flags.set_heritbits(INHERITFLAG_LASTHALF);
+                        current_options.number_fields = current_options.number_fields*2 - 1;
+                        goto done;
+                     }
                   }
                }
 
@@ -7363,7 +8099,7 @@ static void move_with_real_call(
 
                if (bit_to_set == 0 &&
                    ((callflags1 & CFLAG1_NUMBER_MASK) == CFLAG1_NUMBER_MASK) &&
-                   !(ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_HALF|INHERITFLAG_LASTHALF))) {
+                   !(ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF|INHERITFLAG_LASTHALF))) {
 
                   int n = ss->cmd.cmd_fraction.fraction - NUMBER_FIELDS_1_0_4_0;
                   if (n >= 0 && n <= 3) {
@@ -7374,9 +8110,9 @@ static void move_with_real_call(
                   }
                }
 
-               if (bit_to_set == 0 || ss->cmd.cmd_final_flags.test_heritbit(bit_to_set))
+               if (bit_to_set == 0 || ss->cmd.cmd_final_flags.bool_test_heritbits(bit_to_set))
                   fail("This call can't be fractionalized this way.");
-               ss->cmd.cmd_final_flags.set_heritbit(bit_to_set);
+               ss->cmd.cmd_final_flags.set_heritbits(bit_to_set);
 
             done: ;
             }
@@ -7411,11 +8147,11 @@ static void move_with_real_call(
 
                if (ss->cmd.cmd_fraction.is_firsthalf()) {
                   ss->cmd.cmd_fraction.set_to_null();
-                  ss->cmd.cmd_final_flags.set_heritbit(INHERITFLAG_HALF);
+                  ss->cmd.cmd_final_flags.set_heritbits(INHERITFLAG_HALF);
                }
                else if (ss->cmd.cmd_fraction.is_lasthalf()) {
                   ss->cmd.cmd_fraction.set_to_null();
-                  ss->cmd.cmd_final_flags.set_heritbit(INHERITFLAG_LASTHALF);
+                  ss->cmd.cmd_final_flags.set_heritbits(INHERITFLAG_LASTHALF);
                }
                else {
                   fail("This call can't be fractionalized this way.");
@@ -7429,7 +8165,7 @@ static void move_with_real_call(
       // If the "diamond" concept has been given and the call doesn't want it, we do
       // the "diamond single wheel" variety.
 
-      if (ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_DIAMOND & ~callflagsh))  {
+      if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_DIAMOND & ~callflagsh))  {
          // If the call is sequentially or concentrically defined, the top level flag is required
          // before the diamond concept can be inherited.  Since that flag is off, it is an error.
          if (the_schema != schema_by_array)
@@ -7441,11 +8177,11 @@ static void move_with_real_call(
          ss->cmd.cmd_misc_flags |= CMD_MISC__NO_EXPAND_MATRIX;
 
          if (ss->kind == sdmd) {
-            uint32 resflagsmisc = 0;
+            uint32_t resflagsmisc = 0;
             if (ss->cmd.cmd_misc3_flags & CMD_MISC3__NEED_DIAMOND)
                resflagsmisc |= RESULTFLAG__NEED_DIAMOND;
 
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_DIAMOND);
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_DIAMOND);
             ss->clear_all_overcasts();
             divided_setup_move(ss, MAPCODE(s1x2,2,MPKIND__NONISOTROPDMD,0),
                                phantest_ok, true, result);
@@ -7459,8 +8195,8 @@ static void move_with_real_call(
             // is also present, we don't.  We let basic_move deal with
             // it.  It will come back here after it has done what it needs to.
 
-            if (!(ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_MAGIC|INHERITFLAG_INTLK))) {
-               /* Divide into diamonds and try again.  Note that we do not clear the concept. */
+            if (!(ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_MAGIC|INHERITFLAG_INTLK))) {
+               // Divide into diamonds and try again.  Note that we do not clear the concept.
                divide_diamonds(ss, result);
                return;
             }
@@ -7471,9 +8207,9 @@ static void move_with_real_call(
       // This is only legal if the flag forbidding same is off.
       // Furthermore, if certain modifiers have been given, we don't allow it.
 
-      if ((ss->cmd.cmd_final_flags.test_heritbits(
+      if (ss->cmd.cmd_final_flags.bool_test_heritbits(
             INHERITFLAG_MAGIC | INHERITFLAG_INTLK |
-            INHERITFLAG_12_MATRIX | INHERITFLAG_16_MATRIX | INHERITFLAG_FUNNY)))
+            INHERITFLAG_12_MATRIX | INHERITFLAG_16_MATRIX | INHERITFLAG_FUNNY))
          ss->cmd.cmd_misc_flags |= CMD_MISC__NO_STEP_TO_WAVE;
 
       /* But, alas, if fractionalization is on, we can't do it yet, because we don't
@@ -7491,9 +8227,10 @@ static void move_with_real_call(
             if (!(ss->cmd.cmd_misc_flags & (CMD_MISC__NO_STEP_TO_WAVE |
                                             CMD_MISC__ALREADY_STEPPED |
                                             CMD_MISC__MUST_SPLIT_MASK))) {
-               if ((((callflagsh & INHERITFLAG_LEFT) || (callflags1 & CFLAG1_LEFT_MEANS_TOUCH_OR_CHECK)) &&
-                    ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_LEFT)) ||
-                   ((callflagsh & INHERITFLAG_REVERSE) && ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_REVERSE))) {
+               if ((((callflagsh & INHERITFLAG_LEFT) != 0 || (callflags1 & CFLAG1_LEFT_MEANS_TOUCH_OR_CHECK)) &&
+                    ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_LEFT)) ||
+                   ((callflagsh & INHERITFLAG_REVERSE) != 0 &&
+                    ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_REVERSE))) {
                   mirror_this(ss);
                   mirror = true;
                }
@@ -7515,13 +8252,13 @@ static void move_with_real_call(
             // Actually, turning off the "left" flag is more global than that.
 
             if (callflags1 & CFLAG1_LEFT_MEANS_TOUCH_OR_CHECK) {
-               ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_LEFT);
+               ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_LEFT);
             }
             break;
          case fraction_command::no:
             // If we're doing the rest of the call, just turn all that stuff off.
             if (callflags1 & CFLAG1_LEFT_MEANS_TOUCH_OR_CHECK) {
-               ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_LEFT);
+               ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_LEFT);
             }
             break;
          }
@@ -7534,7 +8271,7 @@ static void move_with_real_call(
          If so, be sure the setup is divided into 1x4's or diamonds.
          But don't do it if something like "magic" is still unprocessed. */
 
-      if ((ss->cmd.cmd_final_flags.test_heritbits(~callflagsh)) == 0) {
+      if ((ss->cmd.cmd_final_flags.test_heritbits(~(callflagsh|INHERITFLAG_YOYOETCMASK))) == 0) {
          // Some schemata change if the given number is odd.  For touch by N x <call>.
          if (current_options.howmanynumbers != 0 && (current_options.number_fields & 1)) {
             if (the_schema == schema_single_concentric_together_if_odd)
@@ -7544,34 +8281,39 @@ static void move_with_real_call(
          }
 
          switch (the_schema) {
+         case schema_concentric_2_4_or_single:
+            // If this is going to be turned into a schema_single_concentric, split it now.
+            if (ss->kind == s1x8)
+               force_split = split_command_1x4_dmd;
+            break;
          case schema_single_concentric:
          case schema_single_cross_concentric:
-            force_split = split_command_1x4;
+            force_split = split_command_1x4_dmd;
             break;
          case schema_single_concentric_together_if_odd:
          case schema_single_cross_concentric_together_if_odd:
-            force_split = split_command_1x4;
+            force_split = split_command_1x4_dmd;
             break;
          case schema_single_concentric_together:
          case schema_single_cross_concentric_together:
             if (ss->kind == s2x6) {
-               uint32 mask = little_endian_live_mask(ss);
+               uint32_t mask = little_endian_live_mask(ss);
                if (mask == 01717 || mask == 07474)
-                  force_split = split_command_1x4;
+                  force_split = split_command_1x4_dmd;
             }
             // FALL THROUGH!!!!!
          case schema_concentric_6p_or_sgltogether:
             // FELL THROUGH!!
             switch (ss->kind) {
-            case s1x8: case s_ptpd:
-               force_split = split_command_1x4;
+            case s2x8: case s1x8: case s_ptpd:
+               force_split = (ss->kind == s2x8) ? split_command_1x8_ptpd : split_command_1x4_dmd;
             case s2x4:
                // If this is "crazy" or "central" (i.e. some split bit is on)
                // and the schema is something like "schema_single_concentric_together"
                // (e.g. the call is "you all"), and the setup is a 2x4, we force a split
                // into 1x4's.  If that makes the call illegal, that's too bad.
                if (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK)
-                  force_split = split_command_1x4;
+                  force_split = split_command_1x4_dmd;
             }
             break;
          case schema_sgl_in_out_triple_squash:
@@ -7585,7 +8327,7 @@ static void move_with_real_call(
          case schema_select_original_hubs:
             switch (ss->kind) {
             case s1x8: case s_ptpd:
-               force_split = split_command_1x8;     // This tells it not to recompute ID.
+               force_split = split_command_1x8_ptpd;     // This tells it not to recompute ID.
                break;
             }
             break;
@@ -7642,14 +8384,11 @@ static void move_with_real_call(
                local_4x4_exp = true;
             }
 
-            do_inheritance(&ss->cmd, this_defn, &this_defn->stuff.conc.outerdef, 0);
+            do_inheritance(&ss->cmd, this_defn, &this_defn->stuff.conc.outerdef, 0ULL);
             move_with_real_call(ss, qtfudged, local_4x4_exp, result);
             return;
          }
       }
-
-      /* ******** We did this before, but maybe that was too early!!!!  Need to do it again
-         after pulling out the "doing ends" stuff. */
 
       // Do some quick error checking for visible fractions.  For now,
       // any flag is acceptable.  Later, we will distinguish among the various flags.
@@ -7661,11 +8400,11 @@ static void move_with_real_call(
             // Basic_move will handle them.
             if (ss->cmd.cmd_fraction.is_firsthalf()) {
                ss->cmd.cmd_fraction.set_to_null();
-               ss->cmd.cmd_final_flags.set_heritbit(INHERITFLAG_HALF);
+               ss->cmd.cmd_final_flags.set_heritbits(INHERITFLAG_HALF);
             }
             else if (ss->cmd.cmd_fraction.is_lasthalf()) {
                ss->cmd.cmd_fraction.set_to_null();
-               ss->cmd.cmd_final_flags.set_heritbit(INHERITFLAG_LASTHALF);
+               ss->cmd.cmd_final_flags.set_heritbits(INHERITFLAG_LASTHALF);
             }
             else
                fail("This call can't be fractionalized this way.");
@@ -7727,37 +8466,53 @@ static void move_with_real_call(
       // We may need to undo this.
 
       // If this is the "split sequential" schema and we have not already done so,
-      // cause splitting to take place.
+      // cause splitting to take place.  The MUST_SPLIT bits might already be present due to
+      // some concept like central or crazy, or because an earlier step involved splitting
+      // and we have to continue to honor that split direction.
 
-      if (the_schema == schema_split_sequential) {
-         uint32 nxnflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_NXNMASK);
-         uint32 mxnflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_MXNMASK);
+      if (the_schema == schema_split_sequential && (ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK) == 0) {
+         uint64_t nxnflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_NXNMASK);
+         uint64_t mxnflags = ss->cmd.cmd_final_flags.test_heritbits(INHERITFLAG_MXNMASK);
          int limits = attr::slimit(ss);
-         uint32 mask = little_endian_live_mask(ss);
+         uint32_t mask = little_endian_live_mask(ss);
+
+         // ***** This of course needs a lot more work.
+         if (ss->kind == s_galaxy || ss->kind == s_hrglass || ss->kind == s_crosswave)
+            fail("Can't split the setup.");
 
          if ((limits == 7 && nxnflags != INHERITFLAGNXNK_3X3 && nxnflags != INHERITFLAGNXNK_4X4) ||
              (limits == 11 && (mxnflags == INHERITFLAGMXNK_1X3 ||
                                mxnflags == INHERITFLAGMXNK_3X1 ||
                                nxnflags == INHERITFLAGNXNK_3X3)) ||
              ((limits == 15 && nxnflags == INHERITFLAGNXNK_4X4))) {
-            if (!(ss->cmd.cmd_misc_flags & CMD_MISC__MUST_SPLIT_MASK)) {
-               if (ss->rotation & 1)
-                  ss->cmd.cmd_misc_flags |= CMD_MISC__MUST_SPLIT_VERT;
-               else
-                  ss->cmd.cmd_misc_flags |= CMD_MISC__MUST_SPLIT_HORIZ;
-            }
+            // Set the split info based on the short axis -- 2x4 splits into 2x2's,
+            // qtag splits into single diamonds, etc.
+            // Setups for which that won't work (e.g. galaxies) have presumably been taken care of above.
+            ss->cmd.cmd_misc_flags |= (ss->rotation & 1) ? CMD_MISC__MUST_SPLIT_VERT : CMD_MISC__MUST_SPLIT_HORIZ;
          }
          else if (ss->kind == s3x4) {
-            // These setups and populations (clumps in a 3x4 or 4x4, Z's in a 2x6)
-            // don't require and 3x3-like modifiers.
-            if (mask == 0xF3C || mask == 0xCF3)
-               ss->cmd.cmd_misc_flags |= CMD_MISC__MUST_SPLIT_HORIZ;
+            warn(warn__each2x2);
+            if (mask == 07474) {
+               divided_setup_move(ss, MAPCODE(s2x2,2,MPKIND__OFFS_L_HALF,0), phantest_ok, true, result);
+               return;
+            }
+            else if (mask == 06363) {
+               divided_setup_move(ss, MAPCODE(s2x2,2,MPKIND__OFFS_R_HALF,0), phantest_ok, true, result);
+               return;
+            }
             else
                fail("Can't split this setup.");
          }
          else if (ss->kind == s4x4) {
-            if (mask == 0x4B4B || mask == 0xB4B4)
-               ss->cmd.cmd_misc_flags |= CMD_MISC__MUST_SPLIT_HORIZ;
+            warn(warn__each2x2);
+            if (mask == 0x4B4B) {
+               divided_setup_move(ss, MAPCODE(s2x2,2,MPKIND__OFFS_L_FULL,0), phantest_ok, true, result);
+               return;
+            }
+            else if (mask == 0xB4B4) {
+               divided_setup_move(ss, MAPCODE(s2x2,2,MPKIND__OFFS_R_FULL,0), phantest_ok, true, result);
+               return;
+            }
             else
                fail("Can't split this setup.");
          }
@@ -7777,7 +8532,7 @@ static void move_with_real_call(
       // If the split concept is still present, do it.
 
       if (ss->cmd.cmd_final_flags.test_finalbit(FINAL__SPLIT)) {
-         uint32 split_map;
+         uint32_t split_map;
 
          if (ss->cmd.cmd_misc2_flags & CMD_MISC2__CTR_END_MASK)
             fail("Can't do \"invert/central/snag/mystic\" with the \"split\" concept.");
@@ -7835,7 +8590,7 @@ static void move_with_real_call(
          normalize_setup(result,
                          (result->kind == sbigdmd || result->kind == sbigptpd) ?
                          normalize_compress_bigdmd : normalize_after_exchange_boxes,
-                         false);
+                         qtag_compress);
    }
    catch(error_flag_type foo) {
       if (foo < error_flag_no_retry && this_defn != deferred_array_defn) {
@@ -7844,7 +8599,7 @@ static void move_with_real_call(
             // specified and the call has the special flag.  This is for recycle.
             if (this_defn->compound_part->schema != schema_sequential ||
                 !(this_defn->compound_part->callflagsf & CFLAG2_NO_SEQ_IF_NO_FRAC) ||
-                !ss->cmd.cmd_fraction.is_null() || ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_HALF)) {
+                !ss->cmd.cmd_fraction.is_null() || ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_HALF)) {
                this_defn = this_defn->compound_part;
                goto try_next_callspec;
             }
@@ -7862,12 +8617,12 @@ static void move_with_real_call(
 }
 
 
-static void handle_expiration(setup *ss, uint32 *bit_to_set)
+static void handle_expiration(setup *ss, uint32_t *bit_to_set)
 {
    if (ss->cmd.prior_expire_bits & RESULTFLAG__EXPIRATION_ENAB) {
-      if (ss->cmd.cmd_final_flags.test_heritbit(INHERITFLAG_TWISTED)) {
+      if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_TWISTED)) {
          if (ss->cmd.prior_expire_bits & RESULTFLAG__TWISTED_EXPIRED)
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_TWISTED);   // Already did that.
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_TWISTED);   // Already did that.
          *bit_to_set |= RESULTFLAG__TWISTED_EXPIRED;
       }
 
@@ -7942,10 +8697,10 @@ void move(
    if (current_options.number_fields == 1)
       ss->cmd.cmd_misc3_flags |= CMD_MISC3__PARENT_COUNT_IS_ONE;
 
-   result->result_flags.res_heritflags_to_save_from_mxn_expansion = 0;
+   result->result_flags.res_heritflags_to_save_from_mxn_expansion = 0ULL;
    parse_block *saved_magic_diamond = (parse_block *) 0;
    parse_block *parseptr = ss->cmd.parseptr;
-   uint32 resultflags_to_put_inmisc = 0;
+   uint32_t resultflags_to_put_inmisc = 0;
    final_and_herit_flags save_incoming_final;
 
    /* This shouldn't be necessary, but there have been occasional reports of the
@@ -7953,7 +8708,7 @@ void move(
       if the incoming 4x4 did not have its rotation field equal to zero, as is required
       when in canonical form.  So we check this. */
 
-   if (setup_attrs[ss->kind].four_way_symmetry && ss->rotation != 0)
+   if ((setup_attrs[ss->kind].setup_props & SPROP_4_WAY_SYMMETRY) != 0 && ss->rotation != 0)
       fail("There is a bug in 4 way canonicalization -- please report this sequence.");
 
    // See if there is a restrained concept that has been released.
@@ -7985,6 +8740,10 @@ void move(
          }
 
          parse_block p1 = *t;
+
+         if (!p1.next || !p1.next->subsidiary_root)
+            fail("Can't do this.");
+
          parse_block p2 = *p1.next;
          parse_block p3 = *(p2.subsidiary_root);
 
@@ -7993,6 +8752,7 @@ void move(
          p2.subsidiary_root = &p3;
          p3.call = ss->cmd.callspec;
          p3.call_to_print = p3.call;
+
 
          if (p3.concept->kind != concept_another_call_next_mod) {
             p3.concept = &concept_mark_end_of_list;
@@ -8006,8 +8766,6 @@ void move(
          ss->cmd.restrained_super8flags = ss->cmd.cmd_final_flags.herit;
          ss->cmd.restrained_miscflags = ss->cmd.cmd_misc_flags;
          ss->cmd.restrained_misc2flags = ss->cmd.cmd_misc2_flags;
-         //  ****************** change for the "init lines [central little more] thru" bug LINES LINES LINES LINES
-         //         ss->cmd.cmd_misc2_flags &= ~CMD_MISC2__CTR_END_MASK;
          ss->cmd.cmd_misc2_flags |= CMD_MISC2_RESTRAINED_SUPER;
          ss->cmd.cmd_final_flags.clear_all_heritbits();
          move(ss, false, result);
@@ -8046,8 +8804,8 @@ void move(
 
          parse_block *ssparseptrsave = ss->cmd.parseptr;
          call_with_name *sscallsave = ss->cmd.callspec;
-         uint32 savemisc = ss->cmd.cmd_misc_flags;
-         uint32 savemisc3 = ss->cmd.cmd_misc3_flags;
+         uint32_t savemisc = ss->cmd.cmd_misc_flags;
+         uint32_t savemisc3 = ss->cmd.cmd_misc3_flags;
          final_and_herit_flags ssheritsave = ss->cmd.cmd_final_flags;
          parse_block **save_restr_fin = ss->cmd.restrained_final;
          parse_block *save_restr_fin_ptr = *ss->cmd.restrained_final;
@@ -8139,7 +8897,7 @@ void move(
    if (ss->cmd.cmd_misc2_flags & CMD_MISC2__ANY_WORK) {
       skipped_concept_info foo(ss->cmd.parseptr);
 
-      if (foo.m_heritflag != 0) {
+      if (foo.m_heritflag != 0ULL) {
          parseptrcopy = foo.m_concept_with_root;
          ss->cmd.skippable_heritflags = foo.m_heritflag;
       }
@@ -8196,7 +8954,8 @@ void move(
          case schema_concentric_or_2_6:
          case schema_concentric_or_6_2:
          case schema_concentric_2_4_or_normal:
-         case schema_concentric_or_6_2_line:
+         case schema_concentric_2_4_or_single:
+         case schema_concentric_or_2_6_line:
          case schema_concentric_6p:
          case schema_concentric_6p_or_sgltogether:
          case schema_concentric_6p_or_normal:
@@ -8243,7 +9002,7 @@ void move(
             case schema_concentric_or_2_6:
             case schema_concentric_or_6_2:
             case schema_concentric_4_2_or_normal:
-            case schema_concentric_or_6_2_line:
+            case schema_concentric_or_2_6_line:
             case schema_concentric_6p:
             case schema_concentric_6p_or_sgltogether:
             case schema_concentric_6p_or_normal:
@@ -8261,7 +9020,7 @@ void move(
 
       // The "anyone work" stuff will need this, along with the
       // CMD_MISC2__ANY_WORK_CALL_CROSSED bit that we set above.
-      if ((ss->cmd.cmd_misc2_flags & CMD_MISC2__ANY_WORK) && (ss->cmd.skippable_heritflags == 0))
+      if ((ss->cmd.cmd_misc2_flags & CMD_MISC2__ANY_WORK) && (ss->cmd.skippable_heritflags == 0ULL))
          ss->cmd.skippable_concept = ss->cmd.parseptr;
 
       /* We must read the selector, direction, and number out of the concept list and use them
@@ -8275,6 +9034,7 @@ void move(
 
       ss->cmd.parseptr = parseptrcopy;
       ss->cmd.callspec = this_call;
+      ss->cmd.options = parseptrcopy->options;
       current_options = parseptrcopy->options;
 
       if (((dance_level) this_call->the_defn.level) > calling_level &&
@@ -8284,7 +9044,7 @@ void move(
       if (ss->cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_MODIFIERS) {
          ss->cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_MODIFIERS;
 
-         if (do_heritflag_merge((uint32 *) &ss->cmd.cmd_final_flags.herit, ss->cmd.restrained_super8flags))
+         if (do_heritflag_merge(ss->cmd.cmd_final_flags.herit, ss->cmd.restrained_super8flags))
             fail("Illegal combination of call modifiers.");
 
          ss->cmd.do_couples_her8itflags = ss->cmd.restrained_super9flags;
@@ -8305,6 +9065,59 @@ void move(
       current_options = saved_options;
    }
    else {
+
+      // If we are about to have a restraint lifted on a supercall with a concept, lift the restraint now.
+
+      if ((ss->cmd.cmd_misc3_flags & (CMD_MISC3__SUPERCALL|CMD_MISC3__RESTRAIN_CRAZINESS)) ==
+          (CMD_MISC3__SUPERCALL|CMD_MISC3__RESTRAIN_CRAZINESS) &&
+          (((ss->cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) == CMD_FRAC_CODE_ONLYREV) ||
+           ((ss->cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) == CMD_FRAC_CODE_ONLY))) {
+
+         ss->cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_CRAZINESS;
+         parse_block *t = ss->cmd.restrained_concept;
+         ss->cmd.restrained_concept = (parse_block *) 0;
+         remove_z_distortion(ss);
+
+         if (ss->cmd.cmd_misc2_flags & CMD_MISC2_RESTRAINED_SUPER)
+            fail("Can't nest meta-concepts and supercalls.");
+
+         if (t->concept->kind != concept_another_call_next_mod)
+            fail("Can't nest meta-concepts and supercalls.");
+
+         if (ss->cmd.callspec == 0) {
+            // We need to fill in the call.  This requires that things be nice.
+            parse_block *parseptrtemp = process_final_concepts(parseptr, true, &ss->cmd.cmd_final_flags, true, false);
+            ss->cmd.parseptr = parseptrtemp;
+            ss->cmd.callspec = parseptrtemp->call;
+         }
+
+         parse_block p1 = *t;
+
+         if (!p1.next || !p1.next->subsidiary_root)
+            fail("Can't do this.");
+
+         parse_block p2 = *p1.next;
+         parse_block p3 = *(p2.subsidiary_root);
+
+         p1.next = &p2;
+         p2.concept = &concept_marker_concept_supercall;
+         p2.subsidiary_root = &p3;
+
+         p3.no_check_call_level = true;
+         ss->cmd.parseptr = &p1;
+         ss->cmd.callspec = (call_with_name *) 0;
+         ss->cmd.restrained_super8flags = ss->cmd.cmd_final_flags.herit;
+         ss->cmd.restrained_miscflags = ss->cmd.cmd_misc_flags;
+         ss->cmd.restrained_misc2flags = ss->cmd.cmd_misc2_flags;
+         ss->cmd.restrained_fraction.set_to_null_with_flags(ss->cmd.cmd_fraction.flags);
+         ss->cmd.cmd_fraction.set_to_null();
+         ss->cmd.cmd_misc2_flags |= CMD_MISC2_RESTRAINED_SUPER;
+         ss->cmd.cmd_final_flags.clear_all_heritbits();
+         move(ss, false, result);
+         goto getout;
+      }
+
+
       /* We now know that there are "non-final" (virtual setup) concepts present. */
 
       /* If we have a pending "centers/ends work <concept>" concept,
@@ -8341,24 +9154,25 @@ void move(
 
       parse_block artificial_parse_block;
 
-      uint32 extraheritmods = ss->cmd.cmd_final_flags.test_heritbits(
-          INHERITFLAG_REVERSE|INHERITFLAG_LEFT|INHERITFLAG_GRAND|INHERITFLAG_CROSS|
-          INHERITFLAG_SINGLE|INHERITFLAG_INTLK|INHERITFLAG_DIAMOND);
-      uint32 extrafinalmods = ss->cmd.cmd_final_flags.test_finalbit(FINAL__SPLIT);
+      uint64_t extraheritmods = ss->cmd.cmd_final_flags.herit & (INHERITFLAG_REVERSE|INHERITFLAG_LEFT|
+                                                                 INHERITFLAG_GRAND|INHERITFLAG_CROSS|
+                                                                 INHERITFLAG_SINGLE|INHERITFLAG_INTLK|
+                                                                 INHERITFLAG_DIAMOND);
+      uint32_t extrafinalmods = ss->cmd.cmd_final_flags.final & FINAL__SPLIT;
 
       if (extraheritmods | extrafinalmods) {
          // This can only be legal if we find a translation in the table.
 
-         const concept_fixer_thing *p;
+         const concept_fixer_thing_r *p;
 
-         for (p=concept_fixer_table ; p->newheritmods | p->newfinalmods ; p++) {
+         for (p=concept_fixer_table_r ; p->newheritmods | p->newfinalmods ; p++) {
             if (p->newheritmods == extraheritmods && p->newfinalmods == extrafinalmods &&
                 &concept_descriptor_table[useful_concept_indices[p->before]] == ss->cmd.parseptr->concept) {
                artificial_parse_block = *ss->cmd.parseptr;
                artificial_parse_block.concept = &concept_descriptor_table[useful_concept_indices[p->after]];
                ss->cmd.parseptr = &artificial_parse_block;
                parseptrcopy = ss->cmd.parseptr;
-               ss->cmd.cmd_final_flags.clear_heritbits(extraheritmods);   /* Take out those mods. */
+               ss->cmd.cmd_final_flags.clear_heritbits(extraheritmods);   // Take out those mods.
                ss->cmd.cmd_final_flags.clear_finalbits(extrafinalmods);
                goto found_new_concept;
             }
@@ -8376,21 +9190,21 @@ void move(
       // If concept does not accept "magic" or "interlocked", we have to take
       // such modifiers seriously, and divide the setup magically.
       // Otherwise, we just do the concept.
-      uint32 foobar = 0;
-      uint32 fooble = 0;
+      heritflags foobar = 0ULL;
+      uint32_t fooble = 0;
 
       const concept_descriptor *ddd = ss->cmd.parseptr->concept;
 
       if (!(concept_table[ddd->kind].concept_prop & CONCPROP__PERMIT_MODIFIERS)) {
-         foobar = INHERITFLAG_HALF | INHERITFLAG_LASTHALF | INHERITFLAG_DIAMOND |
-            INHERITFLAG_MAGIC | INHERITFLAG_INTLK | INHERITFLAG_REVERSE;
+         foobar |= (INHERITFLAG_HALF | INHERITFLAG_LASTHALF | INHERITFLAG_DIAMOND |
+                    INHERITFLAG_MAGIC | INHERITFLAG_INTLK | INHERITFLAG_REVERSE);
          fooble = ~0U;
 
          if (ddd->kind == concept_meta) {
              if (ddd->arg1 != meta_key_finally &&
                  ddd->arg1 != meta_key_nth_part_work &&
                  ddd->arg1 != meta_key_initially_and_finally)
-            foobar &= ~(INHERITFLAG_MAGIC | INHERITFLAG_INTLK);
+                foobar &= ~(INHERITFLAG_MAGIC | INHERITFLAG_INTLK);
          }
 
          if (concept_table[ddd->kind].concept_prop & CONCPROP__PERMIT_REVERSE)
@@ -8399,7 +9213,8 @@ void move(
 
       // If there are no modifier bits that the concept can't accept, do the concept.
 
-      if (((check_concepts.test_heritbits(foobar)) | (check_concepts.test_finalbits(fooble))) == 0) {
+      if ((check_concepts.herit & foobar) == 0ULL &&
+          (check_concepts.test_finalbits(fooble)) == 0) {
          if (do_big_concept(ss, ss->cmd.parseptr, true, result)) {
             canonicalize_rotation(result);
             saved_magic_diamond = (parse_block *) 0;
@@ -8432,8 +9247,8 @@ void move(
       // We can tolerate the "matrix" flag if we are going to do "split".
       // For anything else, "matrix" is illegal.
 
-      if (check_concepts.final == FINAL__SPLIT && check_concepts.herit == 0) {
-         uint32 split_map;
+      if (check_concepts.final == FINAL__SPLIT && check_concepts.herit == 0ULL) {
+         uint32_t split_map;
 
          ss->cmd.cmd_misc_flags |= CMD_MISC__SAID_SPLIT;
 
@@ -8450,16 +9265,16 @@ void move(
          if (ss->cmd.cmd_misc_flags & CMD_MISC__MATRIX_CONCEPT)
             fail("\"Matrix\" concept must be followed by applicable concept.");
 
-         if (divide_for_magic(
-               ss,
-               check_concepts.test_heritbits(~INHERITFLAG_DIAMOND),
-               result)) {
+         heritflags arg2 = check_concepts.herit & ~INHERITFLAG_DIAMOND;
+
+         if (divide_for_magic(ss, arg2, result)) {
          }
-         else if (check_concepts.herit == INHERITFLAG_DIAMOND && check_concepts.final == 0) {
-            ss->cmd.cmd_final_flags.clear_heritbit(INHERITFLAG_DIAMOND);
+         else if (check_concepts.herit == INHERITFLAG_DIAMOND &&
+                  check_concepts.final == 0) {
+            ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_DIAMOND);
 
             if (ss->kind == sdmd) {
-               uint32 resflagsmisc = 0;
+               uint32_t resflagsmisc = 0;
                if (ss->cmd.cmd_misc3_flags & CMD_MISC3__NEED_DIAMOND)
                   resflagsmisc |= RESULTFLAG__NEED_DIAMOND;
                divided_setup_move(ss, MAPCODE(s1x2,2,MPKIND__NONISOTROPDMD,0),
@@ -8502,11 +9317,9 @@ void move(
       if (result->kind == sfudgy2x6l || result->kind == sfudgy2x6r) {
          result->kind = s1p5x8;
       }
-      else if (result->kind == sfudgy2x3l || result->kind == sfudgy2x3r) {
-         result->kind = s1p5x4;
-      }
    }
-   else if (!(ss->cmd.cmd_misc_flags & (CMD_MISC__DISTORTED|CMD_MISC__OFFSET_Z|CMD_MISC__SAID_PG_OFFSET))) {
+   else if (!(ss->cmd.cmd_misc_flags & (CMD_MISC__DISTORTED|CMD_MISC__OFFSET_Z|CMD_MISC__SAID_PG_OFFSET)) &&
+            !(ss->cmd.cmd_misc3_flags & CMD_MISC3__NO_FUDGY_2X3_FIX)) {
       // If no parallelogram-like concepts were given at this level, we allow the
       // special "1p5" setups, and turn them, with a "controversial" warning,
       // into the appropriate "fudgy" setups.

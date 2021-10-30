@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2010  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -16,63 +16,63 @@
 //    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 //    License for more details.
 //
-//    You should have received a copy of the GNU General Public License
-//    along with Sd; if not, write to the Free Software Foundation, Inc.,
-//    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//    You should have received a copy of the GNU General Public License,
+//    in the file COPYING.txt, along with Sd.  See
+//    http://www.gnu.org/licenses/
 //
-//    This is for version 37.
+//    ===================================================================
 
 #include "sd.h"
 
 
 // These combinations are not allowed.
 
-#define FORBID1 (INHERITFLAG_FRACTAL|INHERITFLAG_YOYOETCMASK)
-#define FORBID2 (INHERITFLAG_SINGLEFILE|INHERITFLAG_SINGLE)
-#define FORBID3 (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK)
-#define FORBID4 (INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX)
+#define FORBID1R (INHERITFLAG_FRACTAL|INHERITFLAG_YOYOETCMASK)
+#define FORBID2R (INHERITFLAG_SINGLEFILE|INHERITFLAG_SINGLE)
+#define FORBID3R (INHERITFLAG_MXNMASK|INHERITFLAG_NXNMASK)
+#define FORBID4R (INHERITFLAG_12_MATRIX|INHERITFLAG_16_MATRIX)
 
 
-bool do_heritflag_merge(uint32 *dest, uint32 source)
+bool do_heritflag_merge(heritflags & dest, heritflags source)
 {
-   uint32 revertsource = source & INHERITFLAG_REVERTMASK;
+   uint64_t revertsource = source & INHERITFLAG_REVERTMASK;
 
-   if (revertsource) {
+   if (revertsource != 0ULL) {
       // If the source is a revert/reflect bit, things are complicated.
 
-      uint32 revertdest = *dest & INHERITFLAG_REVERTMASK;
+      uint64_t revertdest = dest & INHERITFLAG_REVERTMASK;
 
-      if (!revertdest) {
+      if (revertdest == 0) {
          goto good;
       }
       else if (revertsource == INHERITFLAGRVRTK_REVERT &&
                revertdest == INHERITFLAGRVRTK_REFLECT) {
-         *dest &= ~INHERITFLAG_REVERTMASK;
-         *dest |= INHERITFLAGRVRTK_RFV;
+         dest &= ~INHERITFLAG_REVERTMASK;
+         dest |= INHERITFLAGRVRTK_RFV;
          return false;
       }
       else if (revertsource == INHERITFLAGRVRTK_REFLECT &&
                revertdest == INHERITFLAGRVRTK_REVERT) {
-         *dest &= ~INHERITFLAG_REVERTMASK;
-         *dest |= INHERITFLAGRVRTK_RVF;
+         dest &= ~INHERITFLAG_REVERTMASK;
+         dest |= INHERITFLAGRVRTK_RVF;
          return false;
       }
       else if (revertsource == INHERITFLAGRVRTK_REFLECT &&
                revertdest == INHERITFLAGRVRTK_REFLECT) {
-         *dest &= ~INHERITFLAG_REVERTMASK;
-         *dest |= INHERITFLAGRVRTK_RFF;
+         dest &= ~INHERITFLAG_REVERTMASK;
+         dest |= INHERITFLAGRVRTK_RFF;
          return false;
       }
       else if (revertsource == INHERITFLAGRVRTK_REVERT &&
                revertdest == INHERITFLAGRVRTK_RVF) {
-         *dest &= ~INHERITFLAG_REVERTMASK;
-         *dest |= INHERITFLAGRVRTK_RVFV;
+         dest &= ~INHERITFLAG_REVERTMASK;
+         dest |= INHERITFLAGRVRTK_RVFV;
          return false;
       }
       else if (revertsource == INHERITFLAGRVRTK_REFLECT &&
                revertdest == INHERITFLAGRVRTK_RFV) {
-         *dest &= ~INHERITFLAG_REVERTMASK;
-         *dest |= INHERITFLAGRVRTK_RFVF;
+         dest &= ~INHERITFLAG_REVERTMASK;
+         dest |= INHERITFLAGRVRTK_RFVF;
          return false;
       }
       else
@@ -82,18 +82,18 @@ bool do_heritflag_merge(uint32 *dest, uint32 source)
    // Check for plain redundancy.  If this is a bit in one of the complex
    // fields, this simple test may not catch the error, but the next one will.
 
-   if (*dest & source)
+   if ((dest & source) != 0ULL)
       return true;
 
-   if (((*dest & FORBID1) && (source & FORBID1)) ||
-       ((*dest & FORBID2) && (source & FORBID2)) ||
-       ((*dest & FORBID3) && (source & FORBID3)) ||
-       ((*dest & FORBID4) && (source & FORBID4)))
+   if (((dest & FORBID1R) != 0ULL && (source & FORBID1R) != 0ULL) ||
+       ((dest & FORBID2R) != 0ULL && (source & FORBID2R) != 0ULL) ||
+       ((dest & FORBID3R) != 0ULL && (source & FORBID3R) != 0ULL) ||
+       ((dest & FORBID4R) != 0ULL && (source & FORBID4R) != 0ULL))
       return true;
 
    good:
 
-   *dest |= source;
+   dest |= source;
 
    return false;
 }
@@ -249,12 +249,34 @@ int begin_sizes[] = {
    12,         // b_p3ptpd
    16,         // b_4ptpd
    16,         // b_p4ptpd
+   16,         // b_2x2dmd
+   16,         // b_p2x2dmd
    16,         // b_hqtag
    16,         // b_phqtag
    12,         // b_hsqtag
    12,         // b_phsqtag
    8,          // b_wingedstar
    8,          // b_pwingedstar
+   8,          // ntrgl6cw
+   8,          // pntrgl6cw
+   8,          // ntrgl6ccw
+   8,          // pntrgl6ccw
+   8,          // nftrgl6cw
+   8,          // pnftrgl6cw
+   8,          // nftrgl6ccw
+   8,          // pnftrgl6ccw
+   8,          // ntrglcw
+   8,          // pntrglcw
+   8,          // ntrglccw
+   8,          // pntrglccw
+   8,          // nptrglcw
+   8,          // pnptrglcw
+   8,          // nptrglccw
+   8,          // pnptrglccw
+   8,          // nxtrglcw
+   8,          // pnxtrglcw
+   8,          // nxtrglccw
+   8,          // pnxtrglccw
    8,          // b_323
    8,          // b_p323
    10,         // b_343
@@ -265,6 +287,10 @@ int begin_sizes[] = {
    12,         // b_p525
    14,         // b_545
    14,         // b_p545
+   15,         // b_3x5
+   15,         // b_p3x5
+   11,         // b_434
+   11,         // b_p434
    14,         // bh545
    14,         // bhp545
    12,         // b_23232

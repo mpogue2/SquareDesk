@@ -9,6 +9,7 @@
 // return opened POSIX file descriptors to the callee.  If this is statically
 // part of a DLL, but is not exported from the DLL, that's OK.
 
+#define _CRT_SECURE_NO_WARNINGS
 #include "mapcachefile.h"
 #include <string.h>
 #include <sys/stat.h>
@@ -142,7 +143,7 @@ MAPPED_CACHE_FILE::MAPPED_CACHE_FILE(int numsourcefiles,
 
 #if defined(WIN32)
    innards->maphandle = (HANDLE) 0;
-   innards->filehandle = CreateFileA(innards->mapfilename, GENERIC_READ,
+   innards->filehandle = CreateFile(innards->mapfilename, GENERIC_READ,
                                     FILE_SHARE_READ, 0, OPEN_EXISTING,
                                     FILE_ATTRIBUTE_NORMAL, 0);
 
@@ -235,7 +236,7 @@ void MAPPED_CACHE_FILE::map_for_writing(int clientmapfilesizeinbytes)
 
    // Open the map file again, this time for writing.
 
-   innards->filehandle = CreateFileA(innards->mapfilename, GENERIC_READ|GENERIC_WRITE,
+   innards->filehandle = CreateFile(innards->mapfilename, GENERIC_READ|GENERIC_WRITE,
                                     0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 
    if (!innards->filehandle) return;
@@ -305,7 +306,7 @@ void MAPPED_CACHE_FILE::map_for_writing(int clientmapfilesizeinbytes)
    int i;
    for (i=0 ; i<innards->numsourcefiles ; i++) {
       innards->map_address[3+2*i] = innards->source_stats[i].st_size;
-      innards->map_address[4+2*i] = innards->source_stats[i].st_mtime;
+      innards->map_address[4+2*i] = (int) innards->source_stats[i].st_mtime;
    }
 
    client_address = innards->map_address + innards->header_size_in_words;

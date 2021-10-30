@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1994-2012  William B. Ackerman.
+//    Copyright (C) 1994-2021  William B. Ackerman.
 //
 
 /*
@@ -27,8 +27,6 @@
  * Type SPC to complete the current word.
  * Type TAB to complete as much as possible.
  * Type Control-U to clear the line.
- *
- * For use with version 38 of the Sd program.
  *
  * The version of this file is as shown immediately below.  This string
  * gets displayed at program startup, as the "ui" part of the complete
@@ -63,8 +61,6 @@
 //    http://www.gnu.org/licenses/
 //
 //    ===================================================================
-//
-//    This is for version 38.
 
 #define UI_VERSION_STRING "1.13"
 #define UI_TIME_STAMP "wba@alum.mit.edu  5 Jul 2005 $"
@@ -86,6 +82,7 @@ and the following other variables:
 */
 
 
+#define _CRT_SECURE_NO_WARNINGS
 // For "sprintf" and some IO stuff (fflush, printf, stdout) that we use
 // during the "database tick" printing before the actual IO package is started.
 // During normal operation, we don't do any IO at all in this file.
@@ -94,9 +91,7 @@ and the following other variables:
 #include <ctype.h>
 #include <stdlib.h>
 
-extern void exit(int code);
-
-#include "sdui.h"
+#include "sd.h"
 
 // See comments in sdmain.cpp regarding this string.
 static const char id[] = "@(#)$He" "ader: Sd: sdui-tty.c " UI_VERSION_STRING "  " UI_TIME_STAMP;
@@ -125,6 +120,8 @@ const char *iofull::version_string()
 static resolver_display_state resolver_happiness = resolver_display_failed;
 
 
+// This is the top-level entry for Sdtty, on any Unix-like system, including the
+// Sdtty program on Windows.  The OS should invoke this when the command is given.
 int main(int argc, char *argv[])
 {
    // In Sdtty, the defaults are reverse video (white-on-black) and pastel colors.
@@ -547,7 +544,7 @@ static bool prompt_for_more_output()
    }
 }
 
-void iofull::show_match(int frequency_to_show)
+void iofull::show_match()
 {
    if (get_utils_ptr()->matcher_p->m_showing_has_stopped) return;  // Showing has been turned off.
 
@@ -560,7 +557,7 @@ void iofull::show_match(int frequency_to_show)
       }
    }
 
-   get_utils_ptr()->show_match_item(frequency_to_show);
+   get_utils_ptr()->show_match_item();
 }
 
 
@@ -1181,7 +1178,7 @@ int iofull::do_tagger_popup(int tagger_class)
 
 int iofull::do_circcer_popup()
 {
-   uint32 retval;
+   uint32_t retval;
    matcher_class &matcher = *gg77->matcher_p;
 
    if (interactivity == interactivity_verify) {
@@ -1212,7 +1209,7 @@ int iofull::do_circcer_popup()
    return retval;
 }
 
-uint32 iofull::get_one_number(matcher_class &matcher)
+uint32_t iofull::get_one_number(matcher_class &matcher)
 {
    for (;;) {
       char buffer[200];
@@ -1238,7 +1235,7 @@ uint32 iofull::get_one_number(matcher_class &matcher)
  * is volatile, so we must copy it if we need it to stay around.
  */
 
-void iofull::add_new_line(const char the_line[], uint32 drawing_picture)
+void iofull::add_new_line(const char the_line[], uint32_t drawing_picture)
 {
     put_line(the_line);
     put_line("\n");

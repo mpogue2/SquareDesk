@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2012  William B. Ackerman.
+//    Copyright (C) 1990-2021  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -16,11 +16,11 @@
 //    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
 //    License for more details.
 //
-//    You should have received a copy of the GNU General Public License
-//    along with Sd; if not, write to the Free Software Foundation, Inc.,
-//    59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//    You should have received a copy of the GNU General Public License,
+//    in the file COPYING.txt, along with Sd.  See
+//    http://www.gnu.org/licenses/
 //
-//    This is for version 37.
+//    ===================================================================
 
 /* This defines the following functions:
    parse_level
@@ -36,9 +36,14 @@
    conzept::translate_concept_names
    configuration::startinfolist
    configuration::initialize
-   start_stats_file_from_GLOB_stats_filename
    open_session
 and the following external variables:
+   null_options
+   who_centers_thing
+   who_center6_thing
+   who_outer6_thing
+   who_some_thing
+   who_uninit_thing
    selector_for_initialize
    direction_for_initialize
    number_for_initialize
@@ -46,6 +51,10 @@ and the following external variables:
    color_randomizer
 */
 
+#if defined(WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 #include <stdlib.h>
 #include <algorithm>
 #include <sys/types.h>
@@ -56,7 +65,6 @@ and the following external variables:
 #include <ctype.h>
 
 #include "sd.h"
-#include "sdui.h"
 #include "sort.h"
 #include "mapcachefile.h"
 
@@ -67,9 +75,12 @@ int *color_index_list;
 int color_randomizer[4];
 
 
+call_conc_option_state null_options;
+
+
 // This gets temporarily allocated.  It persists through the entire initialization.
 //
-static uint32 *global_temp_call_indices;
+static uint32_t *global_temp_call_indices;
 static int global_callcount;     /* Index into the above. */
 
 
@@ -199,14 +210,14 @@ bool iterate_over_sel_dir_num(
 
    if (number_used && enable_number_iteration) {
 
-      /* Try again with a different number, until we run out of ideas. */
+      // Try again with a different number, until we run out of ideas.
 
       if (number_for_initialize < 4) {
-         /* We try all numbers from 1 to 4.  We need to do 1-4 to get
-            "exchange the boxes N/4" on the waves menu.
-            Getting calls like "N-N-N-N change the web" and
-            "N-N-N-N relay the top" requires that we play games
-            with the list, setting the second item odd. */
+         // We try all numbers from 1 to 4.  We need to do 1-4 to get
+         // "exchange the boxes N/4" on the waves menu.
+         // Getting calls like "N-N-N-N change the web" and
+         // "N-N-N-N relay the top" requires that we play games
+         // with the list, setting the second item odd.
          number_for_initialize++;
          selector_for_initialize = selector_beaus;
          direction_for_initialize = direction_right;
@@ -273,8 +284,8 @@ static void test_starting_setup(call_list_kind cl, const setup & test_setup)
    // "hinge by I x J x K" work from columns.  But if the indicated number is 7,
    // that doesn't count.  So we do the calculation by adding 1, letting it
    // wrap around, and checking that the result is >= 4.
-   if (((test_call->the_defn.callflags1+1) & ((uint32) CFLAG1_NUMBER_MASK)) >=
-       4*((uint32) CFLAG1_NUMBER_BIT))
+   if (((test_call->the_defn.callflags1+1) & ((uint32_t) CFLAG1_NUMBER_MASK)) >=
+       4*((uint32_t) CFLAG1_NUMBER_BIT))
       goto accept;
 
    // If the call has the "matrix" schema, and it is sex-dependent, we accept it,
@@ -285,10 +296,14 @@ static void test_starting_setup(call_list_kind cl, const setup & test_setup)
        test_call->the_defn.stuff.matrix.matrix_def_list->matrix_def_items[1])
       goto accept;
 
+   // Accept counter rotate.
+   if (test_call->the_defn.schema == schema_counter_rotate)
+      goto accept;
+
    // We also accept "<ATC> your neighbor" and "<ANYTHING> motivate" calls,
    // since we don't know what the tagging call will be.
    if (test_call->the_defn.callflagsf &
-       (CFLAGH__TAG_CALL_RQ_MASK | CFLAGH__CIRC_CALL_RQ_BIT | CFLAG2_ACCEPT_IN_ALL_MENUS))
+       (CFLAGH__TAG_CALL_RQ_MASK | CFLAGH__CIRC_CALL_RQ_BIT))
       goto accept;
 
    // Do the call.  An error will signal and go to try_again.
@@ -368,7 +383,7 @@ static void test_starting_setup(call_list_kind cl, const setup & test_setup)
 
    memcpy(main_call_lists[cl],
           global_temp_call_indices,
-          global_callcount*sizeof(uint32));
+          global_callcount*sizeof(uint32_t));
 }
 
 
@@ -475,7 +490,7 @@ static void create_misc_call_lists(call_list_kind cl)
             goto accept;    // We don't understand it.
 
          callarray *deflist = callq->the_defn.stuff.arr.def_list->callarray_list;
-         uint32 touch_flags = callq->the_defn.callflags1 & CFLAG1_STEP_REAR_MASK;
+         uint32_t touch_flags = callq->the_defn.callflags1 & CFLAG1_STEP_REAR_MASK;
 
          switch (touch_flags) {
          case CFLAG1_REAR_BACK_FROM_QTAG:
@@ -517,13 +532,13 @@ static void create_misc_call_lists(call_list_kind cl)
 
    memcpy(main_call_lists[cl],
           global_temp_call_indices,
-          callcount*sizeof(uint32));
+          callcount*sizeof(uint32_t));
 }
 
 
 // These are used by the database reading stuff.
 
-static uint32 last_datum, last_12;
+static uint32_t last_datum, last_12;
 static call_with_name *call_root;
 static callarray *tp;
 // This shows the highest index we have seen so far.  It must never exceed max_base_calls-1.
@@ -538,18 +553,17 @@ static int session_line_state = 0;
 static char rewrite_filename_as_star[2] = { '\0' , '\0' };  // First char could be "*" or "+".
 static FILE *database_file;
 static FILE *abridge_file;
-static FILE *stats_file = (FILE *) 0;
 
 
-static uint32 read_8_from_database()
+static uint32_t read_8_from_database()
 {
    return fgetc(database_file) & 0xFF;
 }
 
 
-static uint32 read_16_from_database()
+static uint32_t read_16_from_database()
 {
-   uint32 bar;
+   uint32_t bar;
 
    bar = (read_8_from_database() & 0xFF) << 8;
    bar |= read_8_from_database() & 0xFF;
@@ -603,8 +617,18 @@ static void read_halfword()
 
 static void read_fullword()
 {
-   uint32 t = read_16_from_database();
+   uint32_t t = read_16_from_database();
    last_datum = t << 16 | read_16_from_database();
+}
+
+
+static uint64_t read_hugeword()
+{
+   read_fullword();
+   uint64_t righthalf = (uint64_t) last_datum;
+   read_fullword();
+   uint64_t lefthalf = (uint64_t) last_datum;
+   return (lefthalf << 32) | righthalf;
 }
 
 
@@ -642,12 +666,12 @@ static void read_array_def_blocks(calldef_block *where_to_put)
 
    while (last_datum & 0x8000) {
       begin_kind this_start_setup;
-      uint32 this_qualifierstuff;
+      uint32_t this_qualifierstuff;
       call_restriction this_restriction;
       setup_kind end_setup;
       setup_kind end_setup_out;
       int this_start_size;
-      uint32 these_flags;
+      uint32_t these_flags;
       int extra;
       const char *prederrmsg;
 
@@ -702,16 +726,16 @@ static void read_array_def_blocks(calldef_block *where_to_put)
       current_call_block = tp;
       tp->callarray_flags = these_flags;
       tp->qualifierstuff = this_qualifierstuff;
-      tp->start_setup = (uint8) this_start_setup;
+      tp->start_setup = (uint8_t) this_start_setup;
       tp->restriction = this_restriction;
 
       if (these_flags & CAF__CONCEND) {      // See if "concendsetup" was used.
-         tp->end_setup = (uint8) s_normal_concentric;
-         tp->end_setup_in = (uint8) end_setup;
-         tp->end_setup_out = (uint8) end_setup_out;
+         tp->end_setup = (uint8_t) s_normal_concentric;
+         tp->end_setup_in = (uint8_t) end_setup;
+         tp->end_setup_out = (uint8_t) end_setup_out;
       }
       else {
-         tp->end_setup = (uint8) end_setup;
+         tp->end_setup = (uint8_t) end_setup;
       }
 
       if (these_flags & CAF__PREDS) {
@@ -759,7 +783,7 @@ static void read_array_def_blocks(calldef_block *where_to_put)
 
             for (j=0; j < this_start_size; j++) {
                read_halfword();
-               temp_predlist->array_pred_def[j] = (uint16) last_datum;
+               temp_predlist->array_pred_def[j] = (uint16_t) last_datum;
             }
 
             temp_predlist->next = this_predlist;
@@ -781,7 +805,7 @@ static void read_array_def_blocks(calldef_block *where_to_put)
       else {
          for (j=0; j < this_start_size; j++) {
             read_halfword();
-            tp->stuff.array_no_pred_def[j] = (uint16) last_datum;
+            tp->stuff.array_no_pred_def[j] = (uint16_t) last_datum;
          }
          read_halfword();
       }
@@ -867,14 +891,14 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
 
    int j;
    int lim = 16;
-   uint32 left_half;
+   uint32_t left_half;
 
    read_halfword();
 
    switch (root_to_use->schema) {
    case schema_alias:
       check_tag(last_12);
-      root_to_use->stuff.conc.innerdef.call_id = (uint16) last_12;
+      root_to_use->stuff.conc.innerdef.call_id = (uint16_t) last_12;
       read_halfword();
       break;
    case schema_nothing:
@@ -884,6 +908,7 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
    case schema_recenter:
       break;
    case schema_matrix:
+   case schema_counter_rotate:
       lim = 2;
       // !!!! FALL THROUGH !!!!
    case schema_partner_matrix:
@@ -896,22 +921,22 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
             ((left_half & 0xFFFF) << 16) | (last_datum & 0xFFFF);
 
          if (root_to_use->stuff.matrix.matrix_flags & MTX_USE_SELECTOR)
-            root_to_use->callflagsh |= CFLAGH__REQUIRES_SELECTOR;
+            root_to_use->callflagsf |= CFLAGH__REQUIRES_SELECTOR;
          if (root_to_use->stuff.matrix.matrix_flags & MTX_USE_NUMBER)
             root_to_use->callflags1 |= CFLAG1_NUMBER_BIT;
 
          matrix_def_block *this_matrix_block =
-            (matrix_def_block *) ::operator new(sizeof(matrix_def_block) + sizeof(uint32)*(lim-2));
+            (matrix_def_block *) ::operator new(sizeof(matrix_def_block) + sizeof(uint32_t)*(lim-2));
          root_to_use->stuff.matrix.matrix_def_list = this_matrix_block;
 
          this_matrix_block->modifier_level = calling_level;
-         this_matrix_block->alternate_def_flags = 0;
+         this_matrix_block->alternate_def_flags = 0ULL;
          this_matrix_block->next = (matrix_def_block *) 0;
 
       next_matrix_clause:
 
          for (j=0; j<lim; j++) {
-            uint32 firstpart;
+            uint32_t firstpart;
 
             read_halfword();
             firstpart = last_datum & 0xFFFF;
@@ -930,12 +955,11 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
          // Check for compound definition, that is, level 2 group.
          if ((last_datum & 0xE000) == 0x4000) {
             this_matrix_block->next = (matrix_def_block *)
-               ::operator new(sizeof(matrix_def_block) + sizeof(uint32)*(lim-2));
+               ::operator new(sizeof(matrix_def_block) + sizeof(uint32_t)*(lim-2));
 
             this_matrix_block = this_matrix_block->next;
             this_matrix_block->modifier_level = (dance_level) (last_datum & 0xFFF);
-            read_fullword();
-            this_matrix_block->alternate_def_flags = last_datum;
+            this_matrix_block->alternate_def_flags = read_hugeword();
             this_matrix_block->next = (matrix_def_block *) 0;
             goto next_matrix_clause;
          }
@@ -948,7 +972,7 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
 
          zz = new calldef_block;
          zz->next = 0;
-         zz->modifier_seth = 0;
+         zz->modifier_seth = 0ULL;
          zz->modifier_level = l_mainstream;
          root_to_use->stuff.arr.def_list = zz;
 
@@ -960,8 +984,7 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
             zz = yy;
             zz->modifier_level = (dance_level) (last_datum & 0xFF);
             zz->next = 0;
-            read_fullword();
-            zz->modifier_seth = last_datum;
+            zz->modifier_seth = read_hugeword();
             read_halfword();
             read_array_def_blocks(zz);
          }
@@ -983,11 +1006,10 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
 
          while ((last_datum & 0xE000) == 0x4000) {
             check_tag(last_12);
-            templist[next_definition_index].call_id = (uint16) last_12;
+            templist[next_definition_index].call_id = (uint16_t) last_12;
             read_fullword();
             templist[next_definition_index].modifiers1 = (mods1_word) last_datum;
-            read_fullword();
-            templist[next_definition_index++].modifiersh = last_datum;
+            templist[next_definition_index++].modifiersh = read_hugeword();
             read_halfword();
          }
 
@@ -1005,18 +1027,16 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
          database_error_exit("database phase error 7");
 
       check_tag(last_12);
-      root_to_use->stuff.conc.innerdef.call_id = (uint16) last_12;
+      root_to_use->stuff.conc.innerdef.call_id = (uint16_t) last_12;
       read_fullword();
       root_to_use->stuff.conc.innerdef.modifiers1 = (mods1_word) last_datum;
-      read_fullword();
-      root_to_use->stuff.conc.innerdef.modifiersh = last_datum;
+      root_to_use->stuff.conc.innerdef.modifiersh = read_hugeword();
       read_halfword();
       check_tag(last_12);
-      root_to_use->stuff.conc.outerdef.call_id = (uint16) last_12;
+      root_to_use->stuff.conc.outerdef.call_id = (uint16_t) last_12;
       read_fullword();
       root_to_use->stuff.conc.outerdef.modifiers1 = (mods1_word) last_datum;
-      read_fullword();
-      root_to_use->stuff.conc.outerdef.modifiersh = last_datum;
+      root_to_use->stuff.conc.outerdef.modifiersh = read_hugeword();
       read_halfword();
       break;
    }
@@ -1031,22 +1051,20 @@ static void read_in_call_definition(calldefn *root_to_use, int char_count)
       calldefn *recursed_call_root = new calldefn;
 
       read_halfword();       // Get level (not really) and 16 bits of "callflags2" stuff.
-      uint32 saveflags1overflow = last_datum;
+      uint32_t saveflags1overflow = last_datum;
       read_fullword();       // Get top level flags, first word.
                              // This is the "callflags1" stuff.
-      uint32 saveflags1 = last_datum;
-      read_fullword();       // Get top level flags, second word.
-                             // This is the "heritflags" stuff.
-      uint32 saveflagsh = last_datum;
+      uint32_t saveflags1 = last_datum;
+      // The "heritflags" stuff, two full words, right then left.
+      heritflags saveflagsherit = read_hugeword();
       read_halfword();       // Get char count (ignore same) and schema.
       call_schema = (calldef_schema) (last_datum & 0xFF);
-      recursed_call_root->frequency = 0;
       recursed_call_root->level = 0;
       recursed_call_root->schema = call_schema;
       recursed_call_root->callflags1 = saveflags1;
       recursed_call_root->callflagsf = saveflags1overflow << 16;
       // Will get "CFLAGH" and "ESCAPE_WORD" bits later.
-      recursed_call_root->callflagsh = saveflagsh;
+      recursed_call_root->callflagsherit = saveflagsherit;
       read_in_call_definition(recursed_call_root, 0);    // Recurse.
       root_to_use->compound_part = recursed_call_root;
    }
@@ -1214,25 +1232,12 @@ extern void prepare_to_read_menus()
       gg77->iob88.fatal_error_exit(1, "Insufficient setupkind space", "program has been compiled incorrectly.");
    else if (NUM_PLAINMAP_KINDS > 252)
       gg77->iob88.fatal_error_exit(1, "Insufficient mapkind space", "program has been compiled incorrectly.");
-   else if (sizeof(uint32) > sizeof(void *)) // Need this because of horrible cheating we do with main_call_lists.
+   else if (sizeof(uint32_t) > sizeof(void *)) // Need this because of horrible cheating we do with main_call_lists.
       gg77->iob88.fatal_error_exit(1, "Incorrect pointer size", "program has been compiled incorrectly.");
    else if (UINT16_C(0xFFFFFFFF) != 0xFFFF)  // Must have UINT16_C convert to uint16_t, chopping bits as needed.
       gg77->iob88.fatal_error_exit(1, "Incorrect type coercion 1", "program has been compiled incorrectly.");
    else if (UINT16_C(~0) != 0xFFFF)          // Do it this way also.
       gg77->iob88.fatal_error_exit(1, "Incorrect type coercion 2", "program has been compiled incorrectly.");
-
-   // We need to take away the "zig-zag" directions if the level is below A2, and "the music" if below C3A.
-
-   if (calling_level < zig_zag_level) {
-      last_direction_kind = direction_zigzag-1;
-      direction_names[direction_zigzag].name = (Cstring) 0;
-      direction_names[direction_zigzag].name_uc = (Cstring) 0;
-   }
-   else if (calling_level < face_the_music_level) {
-      last_direction_kind = direction_the_music-1;
-      direction_names[direction_the_music].name = (Cstring) 0;
-      direction_names[direction_the_music].name_uc = (Cstring) 0;
-   }
 
    if (glob_abridge_mode < abridge_mode_writing_only) {   // Not writing out a list, actually running the program.
       int i;
@@ -1326,7 +1331,6 @@ extern int process_session_info(Cstring *error_msg)
       }
 
       Cstring breakpos = 0;
-      Cstring statspos = 0;
 
       if (!parse_level(session_levelstring, &breakpos)) {
          *error_msg = "Bad level given in session file.";
@@ -1337,8 +1341,6 @@ extern int process_session_info(Cstring *error_msg)
       // separated by a minus sign and/or colon.
       if (breakpos && *breakpos == '-') {
          int len = strlen(breakpos+1);
-         statspos = strchr(breakpos+1, ':');
-         if (statspos) len = statspos-breakpos-1;
 
          // If there is already a file name, the operator is overriding
          // the name from the session.  Use the override.  Don't take
@@ -1361,11 +1363,6 @@ extern int process_session_info(Cstring *error_msg)
                abridge_mode_none : abridge_mode_abridging;
          }
       }
-      else
-         statspos = breakpos;  // Maybe there is a stats name but not an abridge name.
-
-      if (GLOB_stats_filename[0] == 0 && statspos)
-         strncpy(GLOB_stats_filename, statspos+1, MAX_TEXT_LINE_LENGTH);
 
       if (num_fields_parsed == 4)
          strncpy(header_comment, line+ccount, MAX_TEXT_LINE_LENGTH);
@@ -1418,12 +1415,6 @@ static int write_back_session_line(FILE *wfile)
       strcat(level_and_abridge_name, abridge_filename);
    }
 
-   // Write the stats file name.
-   if (GLOB_doing_frequency && GLOB_stats_filename[0]) {
-      strcat(level_and_abridge_name, ":");
-      strcat(level_and_abridge_name, GLOB_stats_filename);
-   }
-
    if (header_comment[0])
       return
          fprintf(wfile, "%-20s %-11s %6d      %s\n",
@@ -1449,157 +1440,175 @@ static void rewrite_init_file()
       FILE *wfile;
       int i;
 
+      // Rename sd.ini to sd2.ini, then copy sd2.ini, with our modifications, to sd.ini.
+      // Sd2.ini will be left around as a backup for the customer's use.
+      // But if the rename fails, create a temporary file, copy sd.ini to it, and use that
+      // as the source for the copy+modify.  In that case the customer will not receive a
+      // backup.
+
       remove(SESSION2_FILENAME);
 
       if (rename(SESSION_FILENAME, SESSION2_FILENAME)) {
          strncpy(errmsg, "Failed to save file '" SESSION_FILENAME
                  "' in '" SESSION2_FILENAME "':\n",
                  MAX_TEXT_LINE_LENGTH);
-         strncat(errmsg, get_errstring(), MAX_FILENAME_LENGTH-141);
-         strncat(errmsg, ".", MAX_FILENAME_LENGTH);
+         strncat(errmsg, get_errstring(), MAX_FILENAME_LENGTH-160);
+         strncat(errmsg, ", not saving backup.",
+                 MAX_TEXT_LINE_LENGTH);
          gg77->iob88.serious_error_print(errmsg);
-      }
-      else {
-         if (!(rfile = fopen(SESSION2_FILENAME, "r"))) {
-            strncpy(errmsg, "Failed to open '" SESSION2_FILENAME "'.",
-                    MAX_TEXT_LINE_LENGTH);
+
+#if defined(WIN32)
+         char tmpname[_MAX_PATH+1];
+         GetTempFileName(".", "", 0, tmpname);
+
+         if (!CopyFile(SESSION_FILENAME, tmpname, false)) {
+            strncpy(errmsg, "Failed to copy to temp file.", MAX_TEXT_LINE_LENGTH);
             gg77->iob88.serious_error_print(errmsg);
+            return;
+         }
+
+         if (!(rfile = fopen(tmpname, "r"))) {
+            strncpy(errmsg, "Failed to read temp file.", MAX_TEXT_LINE_LENGTH);
+            gg77->iob88.serious_error_print(errmsg);
+            return;
+         }
+#else
+         if (!(rfile = tmpfile())) {
+            strncpy(errmsg, "Failed to open temp file.", MAX_TEXT_LINE_LENGTH);
+            gg77->iob88.serious_error_print(errmsg);
+            return;
+         }
+
+         FILE *tfile;
+
+         // Open sd.ini, which we will later write the result to, for reading.
+         if (!(tfile = fopen(SESSION_FILENAME, "r"))) {
+            strncpy(errmsg, "Failed to read file '" SESSION_FILENAME "'\n", MAX_TEXT_LINE_LENGTH);
+            gg77->iob88.serious_error_print(errmsg);
+            return;
+         }
+
+         // Now rfile, which, being the temp file, is writeable.  Copy sd.ini to it,
+         // and then read it back for the edit step.
+         while (!feof(tfile))
+            fputc(fgetc(tfile), rfile);
+         fflush(rfile);
+         fclose(tfile);
+         rewind(rfile);   // Has contents of sd.ini, ready for reading.
+#endif
+      }
+      else if (!(rfile = fopen(SESSION2_FILENAME, "r"))) {
+         strncpy(errmsg, "Failed to open '" SESSION2_FILENAME "'.",
+                 MAX_TEXT_LINE_LENGTH);
+         gg77->iob88.serious_error_print(errmsg);
+         return;
+      }
+
+      if (!(wfile = fopen(SESSION_FILENAME, "w"))) {
+         strncpy(errmsg, "Failed to open '" SESSION_FILENAME "'.",
+                 MAX_TEXT_LINE_LENGTH);
+         gg77->iob88.serious_error_print(errmsg);
+         fclose(rfile);
+         return;
+      }
+
+      bool more_stuff = false;
+
+      if (rewrite_with_new_style_filename) {
+         // Search for the "[Options]" indicator, copying stuff that we skip.
+
+         for (;;) {
+            if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) goto copy_done;
+            if (fputs(line, wfile) == EOF) goto copy_failed;
+            if (!strncmp(line, "[Options]", 9)) break;
+            else if (!strncmp(line, "[Sessions]", 10)) goto got_sessions;
+         }
+
+         bool got_the_command = false;
+
+         for (;;) {
+            if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) goto copy_done;
+
+            if (!strncmp(line, "new_style_filename", 18))
+               got_the_command = true;
+
+            if (line[0] == '\n' || !strncmp(line, "[Sessions]", 10)) {
+               // At the end of the section.
+               if (!got_the_command) {
+                  if (fputs("new_style_filename\n", wfile) == EOF) goto copy_failed;
+               }
+
+               if (fputs("\n", wfile) == EOF) goto copy_failed;
+
+               if (line[0] == '\n')
+                  goto search_for_sessions;
+               else
+                  goto got_sessions;
+            }
+
+            // Don't copy this line is it is "old_style".
+            if (strncmp(line, "old_style_filename", 18)) {
+               if (fputs(line, wfile) == EOF) goto copy_failed;
+            }
+         }
+      }
+
+      // Search for the "[Sessions]" indicator, copying stuff that we skip.
+
+   search_for_sessions:
+
+      for (;;) {
+         if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) goto copy_done;
+         if (fputs(line, wfile) == EOF) goto copy_failed;
+         if (!strncmp(line, "[Sessions]", 10)) goto got_sessions;
+      }
+
+   got_sessions:
+
+      for (i=0 ; ; i++) {
+         if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) break;
+         if (line[0] == '\n') { more_stuff = true; break; }
+
+         if (i == session_index-1) {
+            if (write_back_session_line(wfile) < 0)
+               goto copy_failed;
+         }
+         else if (i == -session_index-1) {
          }
          else {
-            if (!(wfile = fopen(SESSION_FILENAME, "w"))) {
-               strncpy(errmsg, "Failed to open '" SESSION_FILENAME "'.",
-                       MAX_TEXT_LINE_LENGTH);
-               gg77->iob88.serious_error_print(errmsg);
-            }
-            else {
-               bool more_stuff = false;
-
-               if (rewrite_with_new_style_filename) {
-                  // Search for the "[Options]" indicator, copying stuff that we skip.
-
-                  for (;;) {
-                     if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) goto copy_done;
-                     if (fputs(line, wfile) == EOF) goto copy_failed;
-                     if (!strncmp(line, "[Options]", 9)) break;
-                     else if (!strncmp(line, "[Sessions]", 10)) goto got_sessions;
-                  }
-
-                  bool got_the_command = false;
-
-                  for (;;) {
-                     if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) goto copy_done;
-
-                     if (!strncmp(line, "new_style_filename", 18))
-                        got_the_command = true;
-
-                     if (line[0] == '\n' || !strncmp(line, "[Sessions]", 10)) {
-                        // At the end of the section.
-                        if (!got_the_command) {
-                           if (fputs("new_style_filename\n", wfile) == EOF) goto copy_failed;
-                        }
-
-                        if (fputs("\n", wfile) == EOF) goto copy_failed;
-
-                        if (line[0] == '\n')
-                           goto search_for_sessions;
-                        else
-                           goto got_sessions;
-                     }
-
-                     // Don't copy this line is it is "old_style".
-                     if (strncmp(line, "old_style_filename", 18)) {
-                        if (fputs(line, wfile) == EOF) goto copy_failed;
-                     }
-                  }
-               }
-
-               // Search for the "[Sessions]" indicator, copying stuff that we skip.
-
-            search_for_sessions:
-
-               for (;;) {
-                  if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) goto copy_done;
-                  if (fputs(line, wfile) == EOF) goto copy_failed;
-                  if (!strncmp(line, "[Sessions]", 10)) goto got_sessions;
-               }
-
-            got_sessions:
-
-               for (i=0 ; ; i++) {
-                  if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) break;
-                  if (line[0] == '\n') { more_stuff = true; break; }
-
-                  if (i == session_index-1) {
-                     if (write_back_session_line(wfile) < 0)
-                        goto copy_failed;
-                  }
-                  else if (i == -session_index-1) {
-                  }
-                  else {
-                     if (fputs(line, wfile) == EOF) goto copy_failed;
-                  }
-               }
-
-               if (i < session_index) {
-                  // User has requested a line number larger than the file.
-                  // Append a new line.
-                  if (write_back_session_line(wfile) < 0)
-                     goto copy_failed;
-               }
-
-               if (more_stuff) {
-                  if (fputs("\n", wfile) == EOF) goto copy_failed;
-                  for (;;) {
-                     if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) break;
-                     if (fputs(line, wfile) == EOF) goto copy_failed;
-                  }
-               }
-
-               goto copy_done;
-
-            copy_failed:
-
-               strncpy(errmsg, "Failed to write to '" SESSION_FILENAME "'.",
-                       MAX_TEXT_LINE_LENGTH);
-               gg77->iob88.serious_error_print(errmsg);
-
-            copy_done:
-
-               fclose(wfile);
-            }
-
-            fclose(rfile);
-
-            // Write out the stats file if there is one.
-
-            if (GLOB_doing_frequency && GLOB_stats_filename[0]) {
-               stats_file = fopen(GLOB_decorated_stats_filename, "w");
-
-               if (stats_file) {     // If it's gone, don't do anything.
-                  for (i=0 ; i<number_of_calls[call_list_any] ; i++) {
-                     if (main_call_lists[call_list_any][i]->the_defn.frequency > 0) {
-                        fprintf(stats_file, "%-4d %s\n",
-                                main_call_lists[call_list_any][i]->the_defn.frequency,
-                                main_call_lists[call_list_any][i]->menu_name);
-                     }
-                  }
-
-                  for (i=0 ; concept_descriptor_table[i].kind != concept_diagnose ; i++) {
-                     if (concept_descriptor_table[i].frequency > 0) {
-                        fprintf(stats_file, "%-4d %s\n",
-                                concept_descriptor_table[i].frequency,
-                                concept_descriptor_table[i].menu_name);
-                     }
-                  }
-
-                  fclose(stats_file);
-               }
-            }
+            if (fputs(line, wfile) == EOF) goto copy_failed;
          }
       }
+
+      if (i < session_index) {
+         // User has requested a line number larger than the file.
+         // Append a new line.
+         if (write_back_session_line(wfile) < 0)
+            goto copy_failed;
+      }
+
+      if (more_stuff) {
+         if (fputs("\n", wfile) == EOF) goto copy_failed;
+         for (;;) {
+            if (!fgets(line, MAX_FILENAME_LENGTH, rfile)) break;
+            if (fputs(line, wfile) == EOF) goto copy_failed;
+         }
+      }
+
+      goto copy_done;
+
+   copy_failed:
+
+      strncpy(errmsg, "Failed to write to '" SESSION_FILENAME "'.",
+              MAX_TEXT_LINE_LENGTH);
+      gg77->iob88.serious_error_print(errmsg);
+
+   copy_done:
+
+      fclose(rfile);
+      fclose(wfile);
    }
 }
-
 
 extern void general_final_exit(int code)
 {
@@ -1611,8 +1620,9 @@ extern void general_final_exit(int code)
    // "sdtty -help".  In that case, "rewrite_init_file", will do nothing,
    // so it won't matter that "ttu_initialize" wasn't called.
 
-   if (glob_abridge_mode < abridge_mode_writing_only)   // Not writing out a list, actually running the program.
+   if (glob_abridge_mode < abridge_mode_writing_only) {   // Not writing out a list, actually running the program.
       rewrite_init_file();
+   }
 
    // If this is Sdtty, this next procedure will call "ttu_terminate".
    // If we had just been printing command-line help, "ttu_initialize"
@@ -1665,16 +1675,16 @@ static void build_database_1(abridge_mode_t abridge_mode)
 
    number_of_circcers = 0;
    number_of_circcers_allocated = 0;
-   circcer_calls = (call_with_name **) 0;
+   circcer_calls = (circcer_object *) 0;
 
    // This list will be permanent.
    base_calls = new call_with_name *[max_base_calls];
 
    // This one is temporary.  It lasts through the entire initialization process.
-   // It has the indices, packed as uint32 (which we know is <= the size of a pointer)
+   // It has the indices, packed as uint32_t (which we know is <= the size of a pointer)
    // which we will, in a shameless case of misusing the type system, copy onto some of
    // the main_call_lists arrays.  Those arrays are supposed to contain "call_with_name *" items.
-   global_temp_call_indices = new uint32[abs_max_calls];
+   global_temp_call_indices = new uint32_t[abs_max_calls];
    // This one is also temporary to the initialization.
    local_call_list = new call_with_name *[abs_max_calls];
 
@@ -1702,15 +1712,20 @@ static void build_database_1(abridge_mode_t abridge_mode)
       dance_level this_calls_level = (dance_level) (read_8_from_database() & 0xFF);
 
       read_halfword();       // Get 16 bits of "callflags1"  overflow stuff.
-      uint32 saveflags1overflow = last_datum;
+      uint32_t saveflags1overflow = last_datum;
 
-      read_fullword();       // Get top level flags, first word.
-                             // This is the "callflags1" stuff.
-      uint32 saveflags1 = last_datum;
+      // This is the "callflags1" stuff.
+      read_fullword();
+      uint32_t saveflags1 = last_datum;
 
-      read_fullword();       // Get top level flags, second word.
-                             // This is the "heritflags" stuff.
-      uint32 saveflagsh = last_datum;
+      // Deal with the special "base_circ_call" / phony "force" info.
+      heritflags phonyheritbit = 0ULL;
+      if (saveflags1 & CFLAG1_BASE_CIRC_CALL) {
+         phonyheritbit = read_hugeword();
+      }
+
+      // The "heritflags" stuff, 64-bit "hugeword".
+      heritflags saveflagsherit = read_hugeword();
 
       read_halfword();       // Get char count and schema.
       call_schema = (calldef_schema) (last_datum & 0xFF);
@@ -1730,13 +1745,13 @@ static void build_database_1(abridge_mode_t abridge_mode)
          base_calls[savetag] = call_root;
       }
 
-      call_root->the_defn.frequency = 0;
       call_root->the_defn.level = (int) this_calls_level;
       call_root->the_defn.schema = call_schema;
       call_root->the_defn.callflags1 = saveflags1;
       call_root->the_defn.callflagsf = saveflags1overflow << 16;
       // Will get "CFLAGH" and "ESCAPE_WORD" bits later.
-      call_root->the_defn.callflagsh = saveflagsh;
+      call_root->the_defn.callflagsherit = saveflagsherit;
+
       read_in_call_definition(&call_root->the_defn, char_count);
 
       // We accept a call if:
@@ -1775,7 +1790,7 @@ static void build_database_1(abridge_mode_t abridge_mode)
                   memcpy(new_call, call_root, sizeof(call_with_name) + char_count - 3);
                   /* Fix it up. */
                   new_call->the_defn.callflagsf =
-                     (new_call->the_defn.callflagsf & !CFLAGH__TAG_CALL_RQ_MASK) |
+                     (new_call->the_defn.callflagsf & ~CFLAGH__TAG_CALL_RQ_MASK) |
                      CFLAGH__TAG_CALL_RQ_BIT*(xxx+1);
                   create_new_tagger(xxx, new_call);
                }
@@ -1785,6 +1800,27 @@ static void build_database_1(abridge_mode_t abridge_mode)
             if (local_callcount >= abs_max_calls)
                database_error_exit("Too many base calls -- mkcalls made an error");
             local_call_list[local_callcount++] = call_root;
+
+            // If this is a base circulate call, create and fill in the circcer_object for it.
+            // These are structs with pointers to the call and heritflag items
+            // (taken from the "force_XXX" declarations.)  This is done in two stages--
+            // grab the herit info now, and the call pointer later, after translating aliases.
+
+            if (call_root->the_defn.callflags1 & CFLAG1_BASE_CIRC_CALL) {
+               // See whether we need to reallocate these lists.
+               if (number_of_circcers >= number_of_circcers_allocated) {
+                  number_of_circcers_allocated = number_of_circcers_allocated*2 + 5;
+                  circcer_object *new_circcers = new circcer_object[number_of_circcers_allocated];
+
+                  if (circcer_calls) {
+                     memcpy(new_circcers, circcer_calls, number_of_circcers*sizeof(circcer_object));
+                     delete [] circcer_calls;
+                  }
+                  circcer_calls = new_circcers;
+               }
+
+               circcer_calls[number_of_circcers++].the_herit_thing = phonyheritbit;
+            }
          }
       }
    }
@@ -1802,9 +1838,53 @@ static void build_database_1(abridge_mode_t abridge_mode)
    // Translate the aliases.
 
    for (i=0 ; i<local_callcount ; i++) {
-      while (local_call_list[i]->the_defn.schema == schema_alias) {
-         local_call_list[i]->the_defn =
-            base_calls[local_call_list[i]->the_defn.stuff.conc.innerdef.call_id]->the_defn;
+      call_with_name *t = local_call_list[i];
+
+      while (t->the_defn.schema == schema_alias) {
+         // Demand that the aliaser and the aliasee have the same base_circ_call status.
+         if ((t->the_defn.callflags1 ^
+             base_calls[t->the_defn.stuff.conc.innerdef.call_id]->the_defn.callflags1) & CFLAG1_BASE_CIRC_CALL)
+            gg77->iob88.fatal_error_exit(1, "Aliaser and the aliasee have the same base_circ_call status", t->name);
+         t->the_defn = base_calls[t->the_defn.stuff.conc.innerdef.call_id]->the_defn;
+      }
+   }
+
+   // Pass 2 of handling the circcers.
+
+   uint32_t number_of_circcers_pass2 = 0;   // Start the count over.
+
+   for (i=0 ; i<local_callcount ; i++) {
+      call_with_name *t = local_call_list[i];
+      if (t->the_defn.callflags1 & CFLAG1_BASE_CIRC_CALL) {
+         if (number_of_circcers_pass2 >= number_of_circcers)
+            gg77->iob88.fatal_error_exit(1, "Base_circ_call list out of phase", "1");
+         // This is what all the fuss was about.
+         t->the_defn.circcer_index = number_of_circcers_pass2;
+         circcer_calls[number_of_circcers_pass2++].the_circcer = t;
+      }
+   }
+
+   if (number_of_circcers_pass2 != number_of_circcers)
+      gg77->iob88.fatal_error_exit(1, "Base_circ_call list out of phase", "2");
+
+   unsigned int gg, jj, kk;
+
+   for (gg = 0 ; gg < number_of_circcers ; gg++) {
+      circcer_calls[gg].the_concept = (concept_descriptor *) 0;   // In case we don't find anything.
+
+      for (kk = 0 ; kk <= LAST_SIMPLE_HERIT_CONCEPT-FIRST_SIMPLE_HERIT_CONCEPT ; kk++) {
+         if (simple_herit_bits_table[kk] == circcer_calls[gg].the_herit_thing) {
+            for (jj = 0 ; concept_descriptor_table[jj].kind != marker_end_of_list ; jj++) {
+               if (concept_descriptor_table[jj].kind == kk+FIRST_SIMPLE_HERIT_CONCEPT) {
+                  circcer_calls[gg].the_concept = &concept_descriptor_table[jj];
+                  break;
+               }
+            }
+
+            if (concept_descriptor_table[jj].kind == marker_end_of_list)
+               gg77->iob88.fatal_error_exit(1, "Failed to set up base_call data", "1");
+            break;
+         }
       }
    }
 }
@@ -1825,7 +1905,7 @@ static void build_database_1(abridge_mode_t abridge_mode)
    simply re-uses the stored string where it can, and allocates fresh memory
    if a substitution took place. */
 
-static const char *translate_menu_name(const char *orig_name, uint32 *escape_bits_p)
+static const char *translate_menu_name(const char *orig_name, uint32_t *escape_bits_p)
 {
    int j;
    char c;
@@ -1896,13 +1976,11 @@ static const char *translate_menu_name(const char *orig_name, uint32 *escape_bit
 void conzept::translate_concept_names()
 {
    int i;
-   uint32 escape_bit_junk;
+   uint32_t escape_bit_junk;
 
    for (i=0; conzept::unsealed_concept_descriptor_table[i].kind != marker_end_of_list; i++) {
       unsealed_concept_descriptor_table[i].menu_name =
          translate_menu_name(unsealed_concept_descriptor_table[i].name, &escape_bit_junk);
-
-      unsealed_concept_descriptor_table[i].frequency = 0;
    }
 
    // "Seal" the concept table.  It will be made visible outside of the
@@ -1911,8 +1989,8 @@ void conzept::translate_concept_names()
    concept_descriptor_table = conzept::unsealed_concept_descriptor_table;
 }
 
-/* BEWARE!!  This list is keyed to the definition of "start_select_kind" in sd.h. */
-startinfo configuration::startinfolist[start_select_as_they_are+1];
+// BEWARE!!  This list is keyed to the definition of "start_select_kind" in sd.h.
+startinfo configuration::startinfolist[start_select_two_couple+1];
 
 void configuration::initialize()
 {
@@ -1920,35 +1998,41 @@ void configuration::initialize()
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
 
    configuration::initialize_startinfolist_item(start_select_h1p2p, "Heads 1P2P", false, new setup(s2x4, 1,
-      0300|d_south,ID3_G2, 0200|d_south,ID3_B2,
-      0100|d_south,ID3_G1, 0000|d_south,ID3_B1,
-      0700|d_north,ID3_G4, 0600|d_north,ID3_B4,
-      0500|d_north,ID3_G3, 0400|d_north,ID3_B3));
+      0300|d_south,ID2_G2, 0200|d_south,ID2_B2,
+      0100|d_south,ID2_G1, 0000|d_south,ID2_B1,
+      0700|d_north,ID2_G4, 0600|d_north,ID2_B4,
+      0500|d_north,ID2_G3, 0400|d_north,ID2_B3));
 
    configuration::initialize_startinfolist_item(start_select_s1p2p, "Sides 1P2P", false, new setup(s2x4, 0,
-      0500|d_south,ID3_G3, 0400|d_south,ID3_B3,
-      0300|d_south,ID3_G2, 0200|d_south,ID3_B2,
-      0100|d_north,ID3_G1, 0000|d_north,ID3_B1,
-      0700|d_north,ID3_G4, 0600|d_north,ID3_B4));
+      0500|d_south,ID2_G3, 0400|d_south,ID2_B3,
+      0300|d_south,ID2_G2, 0200|d_south,ID2_B2,
+      0100|d_north,ID2_G1, 0000|d_north,ID2_B1,
+      0700|d_north,ID2_G4, 0600|d_north,ID2_B4));
 
    configuration::initialize_startinfolist_item(start_select_heads_start, "HEADS", true, new setup(s2x4, 0,
-      0600|d_east,ID3_B4,  0500|d_south,ID3_G3,
-      0400|d_south,ID3_B3, 0300|d_west,ID3_G2,
-      0200|d_west,ID3_B2,  0100|d_north,ID3_G1,
-      0000|d_north,ID3_B1, 0700|d_east,ID3_G4));
+      0600|d_east,ID2_B4,  0500|d_south,ID2_G3,
+      0400|d_south,ID2_B3, 0300|d_west,ID2_G2,
+      0200|d_west,ID2_B2,  0100|d_north,ID2_G1,
+      0000|d_north,ID2_B1, 0700|d_east,ID2_G4));
 
    configuration::initialize_startinfolist_item(start_select_sides_start, "SIDES", true, new setup(s2x4, 1,
-      0400|d_east,ID3_B3,  0300|d_south,ID3_G2,
-      0200|d_south,ID3_B2, 0100|d_west,ID3_G1,
-      0000|d_west,ID3_B1,  0700|d_north,ID3_G4,
-      0600|d_north,ID3_B4, 0500|d_east,ID3_G3));
+      0400|d_east,ID2_B3,  0300|d_south,ID2_G2,
+      0200|d_south,ID2_B2, 0100|d_west,ID2_G1,
+      0000|d_west,ID2_B1,  0700|d_north,ID2_G4,
+      0600|d_north,ID2_B4, 0500|d_east,ID2_G3));
 
    configuration::initialize_startinfolist_item(start_select_as_they_are, "From squared set", false, new setup(s4x4, 0,
-      0000|d_north,ID3_B1, 0100|d_north,ID3_G1,
-      0200|d_west,ID3_B2,  0300|d_west,ID3_G2,
-      0400|d_south,ID3_B3, 0500|d_south,ID3_G3,
-      0600|d_east,ID3_B4,  0700|d_east,ID3_G4,
+      0000|d_north,ID2_B1, 0100|d_north,ID2_G1,
+      0200|d_west,ID2_B2,  0300|d_west,ID2_G2,
+      0400|d_south,ID2_B3, 0500|d_south,ID2_G3,
+      0600|d_east,ID2_B4,  0700|d_east,ID2_G4,
       0x9ADE1256));
+
+   configuration::initialize_startinfolist_item(start_select_two_couple, "Two couples only", false, new setup(s2x2, 0,
+      0500|d_south,ID2_G3, 0400|d_south,ID2_B3,
+      0100|d_north,ID2_G1, 0000|d_north,ID2_B1,
+      0200|d_west,ID2_B2,  0300|d_west,ID2_G2,
+      0600|d_east,ID2_B4,  0700|d_east,ID2_G4));
 }
 
 
@@ -1979,26 +2063,22 @@ static int couple_colors_rgyb[8] = {2, 2, 3, 3, 4, 4, 5, 5};
 static int couple_colors_ygrb[8] = {4, 4, 3, 3, 2, 2, 5, 5};
 
 
+who_list who_centers_thing(selector_centers);
+who_list who_center6_thing(selector_center6);
+who_list who_outer6_thing(selector_outer6);
+who_list who_some_thing(selector_some);
+who_list who_uninit_thing(selector_uninitialized);
+
+
 int useful_concept_indices[UC_extent];
-
-
-void start_stats_file_from_GLOB_stats_filename()
-{
-   GLOB_doing_frequency = true;
-   strncpy(GLOB_decorated_stats_filename, GLOB_stats_filename, MAX_TEXT_LINE_LENGTH);
-   if (!strchr(GLOB_stats_filename, '.'))
-      strncat(GLOB_decorated_stats_filename, ".txt", MAX_FILENAME_LENGTH);
-}
 
 
 bool open_session(int argc, char **argv)
 {
    int i, j;
-   uint32 uj;
+   uint32_t uj;
    int argno;
    char line[MAX_FILENAME_LENGTH+1];
-
-   GLOB_stats_filename[0] = 0;
 
    // Copy the arguments, so that we can grow the list if we see options in the init file.
 
@@ -2068,8 +2148,6 @@ bool open_session(int argc, char **argv)
    glob_abridge_mode = abridge_mode_none;
    calling_level = l_nonexistent_concept;    /* Mark it uninitialized. */
 
-//   printf("found %d args\n", nargs);
-//   fflush(stdout);
    for (argno=1; argno < nargs; argno++) {
       if (args[argno][0] == '-') {
          if (strcmp(&args[argno][1], "write_list") == 0) {
@@ -2091,12 +2169,7 @@ bool open_session(int argc, char **argv)
 	     if (argno+1 < nargs) new_outfile_string = args[argno+1];
          }
          else if (strcmp(&args[argno][1], "db") == 0) {
-//             printf("found a -db flag...\n");
-            if (argno+1 < nargs) {
-                database_filename = args[argno+1];
-//                printf("database_filename: '%s'\n", database_filename);
-            }
-//            fflush(stdout);
+            if (argno+1 < nargs) database_filename = args[argno+1];
          }
          else if (strcmp(&args[argno][1], "output_prefix") == 0) {
             if (argno+1 < nargs) strncpy(outfile_prefix, args[argno+1], MAX_FILENAME_LENGTH);
@@ -2115,8 +2188,16 @@ bool open_session(int argc, char **argv)
          }
          else if (strcmp(&args[argno][1], "resolve_test") == 0) {
             if (argno+1 < nargs) {
+               // If this option isn't last, it could consume whatever is next.
                if (sscanf(args[argno+1], "%d", &ui_options.resolve_test_minutes) != 1)
                   gg77->iob88.bad_argument("Bad number", args[argno+1], 0);
+               ui_options.resolve_test_random_seed = ui_options.resolve_test_minutes;
+
+               if (argno+2 < nargs) {
+                  argno++;
+                  if (sscanf(args[argno+1], "%d", &ui_options.resolve_test_random_seed) != 1)
+                     gg77->iob88.bad_argument("Bad number", args[argno+1], 0);
+               }
             }
          }
          else if (strcmp(&args[argno][1], "print_length") == 0) {
@@ -2208,6 +2289,7 @@ bool open_session(int argc, char **argv)
    delete [] args;
 
    general_initialize();
+   null_options.initialize();
 
    /* If we have a calling level at this point, fill in the output file name.
       If we do not have a calling level, we will either get it from the session
@@ -2239,7 +2321,7 @@ bool open_session(int argc, char **argv)
 
    // Set up the color translations based on the user's options.
 
-   color_index_list = couple_colors_rgby;   // Default = color_by_couple.
+   color_index_list = couple_colors_rgby;   // Default (plain "color_by_couple") = RGBY.
 
    switch (ui_options.color_scheme) {
    case color_by_gender: case no_color:
@@ -2332,8 +2414,6 @@ bool open_session(int argc, char **argv)
    // abs_max_calls and max_base_calls.
    // Must do before telling the uims so any open failure messages
    // come out first.
-//   printf("TRYING TO OPEN: '%s'\n", database_filename);  // I'm gonna leave this one in here temporarily.
-//   fflush(stdout);
 
    const char *sourcenames[2] = {database_filename, abridge_filename};
    bool binaryfileflags[2] = {true, false};
@@ -2350,6 +2430,7 @@ bool open_session(int argc, char **argv)
       char cachename[MAX_TEXT_LINE_LENGTH];
       strncpy(cachename, getout_strings[calling_level], MAX_TEXT_LINE_LENGTH);
       strcat(cachename, "cache");
+      uint32_t escape_bit_junk;
 
       MAPPED_CACHE_FILE cache_stuff((glob_abridge_mode == abridge_mode_abridging) ? 2 : 1,
                                     sourcenames, database_input_files,
@@ -2377,6 +2458,7 @@ bool open_session(int argc, char **argv)
       // "any" menu.  It calls init_step(init_calibrate_tick), which calibrates
       // the progress bar.
       build_database_1(glob_abridge_mode);
+
       fclose(database_file);
 
       // Make the cardinal/ordinal tables.
@@ -2447,21 +2529,10 @@ bool open_session(int argc, char **argv)
                translate_menu_name(base_calls[i]->name, &base_calls[i]->the_defn.callflagsf);
       }
 
-      // Process the circulate calls.
-
+      // Translate the base circulate calls.
       for (i=0 ; i<local_callcount ; i++) {
          call_with_name *t = local_call_list[i];
          if (t->the_defn.callflags1 & CFLAG1_BASE_CIRC_CALL) {
-            if (number_of_circcers >= number_of_circcers_allocated) {
-               number_of_circcers_allocated = number_of_circcers_allocated*2 + 5;
-               call_with_name **new_circcers = new call_with_name *[number_of_circcers_allocated];
-               if (circcer_calls) {
-                  memcpy(new_circcers, circcer_calls, number_of_circcers*sizeof(call_with_name *));
-                  delete [] circcer_calls;
-               }
-               circcer_calls = new_circcers;
-            }
-            circcer_calls[number_of_circcers++] = t;
             t->menu_name = translate_menu_name(t->name, &t->the_defn.callflagsf);
          }
       }
@@ -2470,7 +2541,7 @@ bool open_session(int argc, char **argv)
 
       // Create the tagger menu lists.
 
-      uint32 ui;
+      uint32_t ui;
 
       for (i=0 ; i<NUM_TAGGER_CLASSES ; i++) {
          tagger_menu_list[i] = new Cstring [number_of_taggers[i]+1];
@@ -2487,7 +2558,7 @@ bool open_session(int argc, char **argv)
       selector_menu_list = new Cstring [selector_INVISIBLE_START];
 
       for (i=0; i<selector_INVISIBLE_START-1; i++)
-         selector_menu_list[i] = selector_list[i+1].name;
+         selector_menu_list[i] = translate_menu_name(selector_list[i+1].name, &escape_bit_junk);
 
       selector_menu_list[selector_INVISIBLE_START-1] = (Cstring) 0;
 
@@ -2503,7 +2574,7 @@ bool open_session(int argc, char **argv)
       circcer_menu_list = new Cstring[number_of_circcers+1];
 
       for (ui=0; ui<number_of_circcers; ui++)
-         circcer_menu_list[ui] = circcer_calls[ui]->menu_name;
+         circcer_menu_list[ui] = circcer_calls[ui].the_circcer->menu_name;
 
       circcer_menu_list[number_of_circcers] = (Cstring) 0;
 
@@ -2643,6 +2714,12 @@ bool open_session(int argc, char **argv)
                global_cache_miss_reason[0] = jj+1;
                global_cache_miss_reason[1] = mapped_cache[jj];
                global_cache_miss_reason[2] = cache_keys[jj];
+
+               // More diagnostic stuff -- num_calls[any], and checksum.
+               global_cache_miss_reason[3] = mapped_cache[0];
+               global_cache_miss_reason[4] = cache_keys[0];
+               global_cache_miss_reason[5] = mapped_cache[4];
+               global_cache_miss_reason[6] = cache_keys[4];
             }
          }
       }
@@ -2681,91 +2758,93 @@ bool open_session(int argc, char **argv)
             SOUT = (d_south|PERSON_MOVED|ROLL_IS_L)
          };
 
+         expanding_database = true;
+
          // RH tidal wave
          test_starting_setup(call_list_1x8,
                              setup(s1x8, 0,
-                                   0600|NORT,ID3_B4, 0500|SOUT,ID3_G3, 0400|SOUT,ID3_B3, 0700|NORT,ID3_G4,
-                                   0200|SOUT,ID3_B2, 0100|NORT,ID3_G1, 0000|NORT,ID3_B1, 0300|SOUT,ID3_G2));
+                                   0600|NORT,ID2_B4, 0500|SOUT,ID2_G3, 0400|SOUT,ID2_B3, 0700|NORT,ID2_G4,
+                                   0200|SOUT,ID2_B2, 0100|NORT,ID2_G1, 0000|NORT,ID2_B1, 0300|SOUT,ID2_G2));
 
          // LH tidal wave
          test_starting_setup(call_list_l1x8,
                              setup(s1x8, 0,
-                                   0600|SOUT,ID3_B4, 0500|NORT,ID3_G3, 0400|NORT,ID3_B3, 0700|SOUT,ID3_G4,
-                                   0200|NORT,ID3_B2, 0100|SOUT,ID3_G1, 0000|SOUT,ID3_B1, 0300|NORT,ID3_G2));
+                                   0600|SOUT,ID2_B4, 0500|NORT,ID2_G3, 0400|NORT,ID2_B3, 0700|SOUT,ID2_G4,
+                                   0200|NORT,ID2_B2, 0100|SOUT,ID2_G1, 0000|SOUT,ID2_B1, 0300|NORT,ID2_G2));
 
 
 
          // DPT
          test_starting_setup(call_list_dpt,
                              setup(s2x4, 0,
-                                   0300|EAST,ID3_G2, 0400|EAST,ID3_B3, 0500|WEST,ID3_G3, 0200|WEST,ID3_B2,
-                                   0700|WEST,ID3_G4, 0000|WEST,ID3_B1, 0100|EAST,ID3_G1, 0600|EAST,ID3_B4));
+                                   0300|EAST,ID2_G2, 0400|EAST,ID2_B3, 0500|WEST,ID2_G3, 0200|WEST,ID2_B2,
+                                   0700|WEST,ID2_G4, 0000|WEST,ID2_B1, 0100|EAST,ID2_G1, 0600|EAST,ID2_B4));
 
          // completed DPT
          test_starting_setup(call_list_cdpt,
                              setup(s2x4, 0,
-                                   0700|WEST,ID3_G4, 0500|WEST,ID3_G3, 0400|EAST,ID3_B3, 0600|EAST,ID3_B4,
-                                   0300|EAST,ID3_G2, 0100|EAST,ID3_G1, 0000|WEST,ID3_B1, 0200|WEST,ID3_B2));
+                                   0700|WEST,ID2_G4, 0500|WEST,ID2_G3, 0400|EAST,ID2_B3, 0600|EAST,ID2_B4,
+                                   0300|EAST,ID2_G2, 0100|EAST,ID2_G1, 0000|WEST,ID2_B1, 0200|WEST,ID2_B2));
 
          // RCOL
          test_starting_setup(call_list_rcol,
                              setup(s2x4, 0,
-                                   0600|EAST,ID3_B4, 0500|EAST,ID3_G3, 0400|EAST,ID3_B3, 0700|EAST,ID3_G4,
-                                   0200|WEST,ID3_B2, 0100|WEST,ID3_G1, 0000|WEST,ID3_B1, 0300|WEST,ID3_G2));
+                                   0600|EAST,ID2_B4, 0500|EAST,ID2_G3, 0400|EAST,ID2_B3, 0700|EAST,ID2_G4,
+                                   0200|WEST,ID2_B2, 0100|WEST,ID2_G1, 0000|WEST,ID2_B1, 0300|WEST,ID2_G2));
 
          // LCOL
          test_starting_setup(call_list_lcol,
                              setup(s2x4, 0,
-                                   0300|WEST,ID3_G2, 0000|WEST,ID3_B1, 0100|WEST,ID3_G1, 0200|WEST,ID3_B2,
-                                   0700|EAST,ID3_G4, 0400|EAST,ID3_B3, 0500|EAST,ID3_G3, 0600|EAST,ID3_B4));
+                                   0300|WEST,ID2_G2, 0000|WEST,ID2_B1, 0100|WEST,ID2_G1, 0200|WEST,ID2_B2,
+                                   0700|EAST,ID2_G4, 0400|EAST,ID2_B3, 0500|EAST,ID2_G3, 0600|EAST,ID2_B4));
 
          // 8CH
          test_starting_setup(call_list_8ch,
                              setup(s2x4, 0,
-                                   0600|EAST,ID3_B4, 0500|WEST,ID3_G3, 0400|EAST,ID3_B3, 0700|WEST,ID3_G4,
-                                   0200|WEST,ID3_B2, 0100|EAST,ID3_G1, 0000|WEST,ID3_B1, 0300|EAST,ID3_G2));
+                                   0600|EAST,ID2_B4, 0500|WEST,ID2_G3, 0400|EAST,ID2_B3, 0700|WEST,ID2_G4,
+                                   0200|WEST,ID2_B2, 0100|EAST,ID2_G1, 0000|WEST,ID2_B1, 0300|EAST,ID2_G2));
 
          // TBY
          test_starting_setup(call_list_tby,
                              setup(s2x4, 0,
-                                   0500|WEST,ID3_G3, 0600|EAST,ID3_B4, 0700|WEST,ID3_G4, 0400|EAST,ID3_B3,
-                                   0100|EAST,ID3_G1, 0200|WEST,ID3_B2, 0300|EAST,ID3_G2, 0000|WEST,ID3_B1));
+                                   0500|WEST,ID2_G3, 0600|EAST,ID2_B4, 0700|WEST,ID2_G4, 0400|EAST,ID2_B3,
+                                   0100|EAST,ID2_G1, 0200|WEST,ID2_B2, 0300|EAST,ID2_G2, 0000|WEST,ID2_B1));
 
          // LIN
          test_starting_setup(call_list_lin,
                              setup(s2x4, 0,
-                                   0300|SOUT,ID3_G2, 0000|SOUT,ID3_B1, 0100|SOUT,ID3_G1, 0200|SOUT,ID3_B2,
-                                   0700|NORT,ID3_G4, 0400|NORT,ID3_B3, 0500|NORT,ID3_G3, 0600|NORT,ID3_B4));
+                                   0300|SOUT,ID2_G2, 0000|SOUT,ID2_B1, 0100|SOUT,ID2_G1, 0200|SOUT,ID2_B2,
+                                   0700|NORT,ID2_G4, 0400|NORT,ID2_B3, 0500|NORT,ID2_G3, 0600|NORT,ID2_B4));
 
          // LOUT
          test_starting_setup(call_list_lout,
                              setup(s2x4, 0,
-                                   0600|NORT,ID3_B4, 0500|NORT,ID3_G3, 0400|NORT,ID3_B3, 0700|NORT,ID3_G4,
-                                   0200|SOUT,ID3_B2, 0100|SOUT,ID3_G1, 0000|SOUT,ID3_B1, 0300|SOUT,ID3_G2));
+                                   0600|NORT,ID2_B4, 0500|NORT,ID2_G3, 0400|NORT,ID2_B3, 0700|NORT,ID2_G4,
+                                   0200|SOUT,ID2_B2, 0100|SOUT,ID2_G1, 0000|SOUT,ID2_B1, 0300|SOUT,ID2_G2));
 
          // RWV
          test_starting_setup(call_list_rwv,
                              setup(s2x4, 0,
-                                   0600|NORT,ID3_B4, 0500|SOUT,ID3_G3, 0700|NORT,ID3_G4, 0400|SOUT,ID3_B3,
-                                   0200|SOUT,ID3_B2, 0100|NORT,ID3_G1, 0300|SOUT,ID3_G2, 0000|NORT,ID3_B1));
+                                   0600|NORT,ID2_B4, 0500|SOUT,ID2_G3, 0700|NORT,ID2_G4, 0400|SOUT,ID2_B3,
+                                   0200|SOUT,ID2_B2, 0100|NORT,ID2_G1, 0300|SOUT,ID2_G2, 0000|NORT,ID2_B1));
 
          // LWV
          test_starting_setup(call_list_lwv,
                              setup(s2x4, 0,
-                                   0600|SOUT,ID3_B4, 0500|NORT,ID3_G3, 0700|SOUT,ID3_G4, 0400|NORT,ID3_B3,
-                                   0200|NORT,ID3_B2, 0100|SOUT,ID3_G1, 0300|NORT,ID3_G2, 0000|SOUT,ID3_B1));
+                                   0600|SOUT,ID2_B4, 0500|NORT,ID2_G3, 0700|SOUT,ID2_G4, 0400|NORT,ID2_B3,
+                                   0200|NORT,ID2_B2, 0100|SOUT,ID2_G1, 0300|NORT,ID2_G2, 0000|SOUT,ID2_B1));
 
          // R2FL
          test_starting_setup(call_list_r2fl,
                              setup(s2x4, 0,
-                                   0600|NORT,ID3_B4, 0500|NORT,ID3_G3, 0700|SOUT,ID3_G4, 0400|SOUT,ID3_B3,
-                                   0200|SOUT,ID3_B2, 0100|SOUT,ID3_G1, 0300|NORT,ID3_G2, 0000|NORT,ID3_B1));
+                                   0600|NORT,ID2_B4, 0500|NORT,ID2_G3, 0700|SOUT,ID2_G4, 0400|SOUT,ID2_B3,
+                                   0200|SOUT,ID2_B2, 0100|SOUT,ID2_G1, 0300|NORT,ID2_G2, 0000|NORT,ID2_B1));
 
          // L2FL
          test_starting_setup(call_list_l2fl,
                              setup(s2x4, 0,
-                                   0500|SOUT,ID3_G3, 0600|SOUT,ID3_B4, 0400|NORT,ID3_B3, 0700|NORT,ID3_G4,
-                                   0100|NORT,ID3_G1, 0200|NORT,ID3_B2, 0000|SOUT,ID3_B1, 0300|SOUT,ID3_G2));
+                                   0500|SOUT,ID2_G3, 0600|SOUT,ID2_B4, 0400|NORT,ID2_B3, 0700|NORT,ID2_G4,
+                                   0100|NORT,ID2_G1, 0200|NORT,ID2_B2, 0000|SOUT,ID2_B1, 0300|SOUT,ID2_G2));
 
          // tidal column
          create_misc_call_lists(call_list_gcol);
@@ -2806,15 +2885,17 @@ bool open_session(int argc, char **argv)
          }
          else
             global_cache_failed_flag = true;
+
+         expanding_database = false;
       }
 
       // Repair the damage to the call lists, that is, turn them from
       // indices into pointers.  Then create the menus.
 
       for (cl = call_list_1x8; cl < call_list_extent ; cl = (call_list_kind) (cl+1)) {
-         // We have to do this downward, in case the pointers are bigger than uint32.
+         // We have to do this downward, in case the pointers are bigger than uint32_t.
          for (i=number_of_calls[cl]-1; i >= 0 ; i--)
-            main_call_lists[cl][i] = main_call_lists[call_list_any][((uint32 *) main_call_lists[cl])[i]];
+            main_call_lists[cl][i] = main_call_lists[call_list_any][((uint32_t *) main_call_lists[cl])[i]];
          gg77->iob88.create_menu(cl);
       }
    }
@@ -2830,56 +2911,6 @@ bool open_session(int argc, char **argv)
 
    gg77->iob88.init_step(tick_end, 0);
    matcher_initialize();
-
-   // Read in the "stats" file.
-   // If the fopen fails, leave it at zero.  We won't read, but we will write it back with fresh data.
-   // If the given name doesn't have a suffix, use ".txt".
-   if (GLOB_stats_filename[0]) {
-      start_stats_file_from_GLOB_stats_filename();
-      stats_file = fopen(GLOB_decorated_stats_filename, "r");
-   }
-
-   if (stats_file) {
-      char stats_call[MAX_TEXT_LINE_LENGTH];
-
-      while (fgets(stats_call, 99, stats_file)) {
-         // Remove the newline character.
-         int ll;
-         while ((ll = strlen(stats_call)-1) >= 0 && stats_call[ll] == '\n')
-            stats_call[ll] = '\0';
-
-         int frequency, ccount;
-         char junk[MAX_TEXT_LINE_LENGTH];
-
-         if (sscanf(stats_call, "%d %n%s", &frequency, &ccount, junk) == 2) {
-
-            // Search through the call name list for this call.
-            // Why don't we use a more efficient search, based on the fact
-            // that the call list has been alphabetized?  Because it was
-            // alphabetized before the '@' escapes were expanded.  It
-            // is no longer in alphabetical order.
-            for (i=0 ; i<number_of_calls[call_list_any] ; i++) {
-               if (!strcmp(stats_call+ccount, main_call_lists[call_list_any][i]->menu_name)) {
-                  main_call_lists[call_list_any][i]->the_defn.frequency = frequency;
-                  break;
-               }
-            }
-
-            // If that failed, search for concepts.
-            if (i == number_of_calls[call_list_any]) {
-               for (i=0 ; concept_descriptor_table[i].kind != concept_diagnose ; i++) {
-                  if (!strcmp(stats_call+ccount, concept_descriptor_table[i].menu_name)) {
-                     concept_descriptor_table[i].frequency = frequency;
-                     break;
-                  }
-               }
-            }
-         }
-      }
-
-      if (fclose(stats_file))
-         gg77->iob88.fatal_error_exit(1, "Can't close stats file");
-   }
 
    // Make the status bar show that we are processing accelerators.
    gg77->iob88.init_step(do_accelerator, 0);
@@ -2913,6 +2944,20 @@ bool open_session(int argc, char **argv)
    }
 
    close_init_file();
+
+   // We need to take away the "zig-zag" directions if the level is below A2, and "the music" if below C3A.
+
+   if (calling_level < zig_zag_level) {
+      last_direction_kind = direction_zigzag-1;
+      direction_names[direction_zigzag].name = (Cstring) 0;
+      direction_names[direction_zigzag].name_uc = (Cstring) 0;
+   }
+   else if (calling_level < face_the_music_level) {
+      last_direction_kind = direction_the_music-1;
+      direction_names[direction_the_music].name = (Cstring) 0;
+      direction_names[direction_the_music].name_uc = (Cstring) 0;
+   }
+
    gg77->iob88.final_initialize();
    return false;
 }

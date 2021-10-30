@@ -29,7 +29,7 @@
 
 #include <signal.h>
 #include <string.h>
-#include "sdui.h"
+#include "sd.h"
 
 
 
@@ -50,8 +50,7 @@ static colorspec color_translations[8] = {
    {6, "35"},  // 6 - magenta
    {7, "36"}}; // 7 - cyan
 
-static void csetmode(int mode)             /* 1 means raw, no echo, one character at a time;
-                                                0 means normal. */
+static void csetmode(int mode) // 1 means raw, no echo, one character at a time; 0 means normal.
 {
     static cc_t orig_eof = '\004';
     struct termios term;
@@ -62,9 +61,9 @@ static void csetmode(int mode)             /* 1 means raw, no echo, one characte
 
     tcgetattr(fd, &term);
     if (mode == 1) {
-       orig_eof = term.c_cc[VEOF]; /* VMIN may clobber */
-       term.c_cc[VMIN] = 1;	/* 1 char at a time */
-       term.c_cc[VTIME] = 0;	/* no time limit on input */
+       orig_eof = term.c_cc[VEOF]; // VMIN may clobber
+       term.c_cc[VMIN] = 1;        // 1 char at a time
+       term.c_cc[VTIME] = 0;       // no time limit on input
        term.c_lflag &= ~(ICANON|ECHO);
     }
     else {
@@ -244,23 +243,11 @@ extern int get_char()
    int nc = getchar();
 
    if (nc == 0x1B) {
-
-      /*
-      char foob[20];
-      printf("\nGot an escape character, reading.\n");
-      foob[0] = getchar();
-      foob[1] = getchar();
-      foob[2] = getchar();
-      foob[3] = getchar();
-      foob[4] = getchar();
-      printf("Result of read is: buffer is 0x%X 0x%X 0x%X 0x%X 0x%X.\n",
-             foob[0], foob[1], foob[2], foob[3], foob[4]);
-      */
-
       int ec = getchar();
 
       if (ec == 0x1B) {
-         // Need to type escape twice on Linux.  Just return same.
+         // Need to type escape twice on Linux.  (It has to do with the behavior of the
+         // VT100 thin-wire terminal device.  Aren't you glad you asked?)  Just return same.
       }
       else if (ec == 0x4F) {
          ec = getchar();
@@ -343,7 +330,7 @@ extern void get_string(char *dest, int max)
 {
    int size;
 
-   csetmode(0);         /* Regular full-line mode with system echo. */
+   csetmode(0);         // Regular full-line mode with system echo.
    if (!fgets(dest, max, stdin)) return;
    size = strlen(dest);
 
@@ -360,11 +347,8 @@ extern void ttu_bell()
    putchar('\007');
 }
 
-/*
- * signal handling
- */
+// signal handling
 
-/* ARGSUSED */
 static void stop_handler(int n)
 {
    csetmode(0);
@@ -375,7 +359,6 @@ static void stop_handler(int n)
 // Need a forward declaration.
 void initialize_signal_handlers();
 
-/* ARGSUSED */
 static void cont_handler(int n)
 {
    initialize_signal_handlers();	// restore signal handlers
