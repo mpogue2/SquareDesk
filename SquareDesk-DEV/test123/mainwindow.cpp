@@ -27,7 +27,7 @@
 #include <QColorDialog>
 #include <QCoreApplication>
 #include <QDateTime>
-#include <QDesktopWidget>
+//#include <QDesktopWidget>
 #include <QElapsedTimer>
 #include <QHostInfo>
 #include <QMap>
@@ -914,15 +914,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sortIndicatorChanged,
             this, &MainWindow::columnHeaderSorted);
 
-    resize(QDesktopWidget().availableGeometry(this).size() * 0.7);  // initial size is 70% of screen
+    QSize availableSize = QGuiApplication::screens()[0]->geometry().size();
+    QSize newSize = QSize(availableSize.width()*0.7, availableSize.height()*0.7);
 
     setGeometry(
         QStyle::alignedRect(
             Qt::LeftToRight,
             Qt::AlignCenter,
-            size(),
-//            qApp->desktop()->availableGeometry()
+            newSize,
             QGuiApplication::screens()[0]->geometry()
+
         )
     );
 
