@@ -79,7 +79,7 @@
 #endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-#include "JlCompress.h"
+//#include "JlCompress.h"
 #endif
 
 class InvisibleTableWidgetItem : public QTableWidgetItem {
@@ -206,8 +206,14 @@ using namespace TagLib;
 // Toggle between Music/Lyrics  T
 
 // GLOBALS:
-extern bass_audio cBass;  // make this accessible to PreferencesDialog
-bass_audio cBass;
+
+// All other platforms:
+//extern bass_audio cBass;  // make this accessible to PreferencesDialog
+//bass_audio cBass;
+
+// M1:
+extern flexible_audio cBass;  // make this accessible to PreferencesDialog
+flexible_audio cBass;
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
@@ -248,8 +254,9 @@ public:
 
     int styleHint(QStyle::StyleHint hint, const QStyleOption* option = nullptr, const QWidget* widget = nullptr, QStyleHintReturn* returnData = nullptr) const
     {
-        if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
-            return (Qt::LeftButton | Qt::MidButton | Qt::RightButton);
+        if (hint == QStyle::SH_Slider_AbsoluteSetButtons) {
+            return (Qt::LeftButton | Qt::MiddleButton | Qt::RightButton);
+        }
         return QProxyStyle::styleHint(hint, option, widget, returnData);
     }
 };
@@ -2115,98 +2122,100 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 
 
 QString MainWindow::tidyHTML(QString cuesheet) {
+    QString cuesheet_tidied = cuesheet; // FIX
+
 //    qDebug() << "tidyHTML";
 //    qDebug().noquote() << "************\ncuesheet in:" << cuesheet;
 
-    // first get rid of <L> and </L>.  Those are ILLEGAL.
-    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
+//    // first get rid of <L> and </L>.  Those are ILLEGAL.
+//    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
 
-    // then get rid of <NOBR> and </NOBR>, NOT SUPPORTED BY W3C.
-    cuesheet.replace("<NOBR>","",Qt::CaseInsensitive).replace("</NOBR>","",Qt::CaseInsensitive);
+//    // then get rid of <NOBR> and </NOBR>, NOT SUPPORTED BY W3C.
+//    cuesheet.replace("<NOBR>","",Qt::CaseInsensitive).replace("</NOBR>","",Qt::CaseInsensitive);
 
-    // and &nbsp; too...let the layout engine do its thing.
-    cuesheet.replace("&nbsp;"," ");
+//    // and &nbsp; too...let the layout engine do its thing.
+//    cuesheet.replace("&nbsp;"," ");
 
-    // convert to a c_string, for HTML-TIDY
-    char* tidyInput;
-    string csheet = cuesheet.toStdString();
-    tidyInput = new char [csheet.size()+1];
-    strcpy( tidyInput, csheet.c_str() );
+//    // convert to a c_string, for HTML-TIDY
+//    char* tidyInput;
+//    string csheet = cuesheet.toStdString();
+//    tidyInput = new char [csheet.size()+1];
+//    strcpy( tidyInput, csheet.c_str() );
 
-////    qDebug().noquote() << "\n***** TidyInput:\n" << QString((char *)tidyInput);
+//////    qDebug().noquote() << "\n***** TidyInput:\n" << QString((char *)tidyInput);
 
-    TidyBuffer output;// = {0};
-    TidyBuffer errbuf;// = {0};
-    tidyBufInit(&output);
-    tidyBufInit(&errbuf);
-    int rc = -1;
-    Bool ok;
+//    TidyBuffer output;// = {0};
+//    TidyBuffer errbuf;// = {0};
+//    tidyBufInit(&output);
+//    tidyBufInit(&errbuf);
+//    int rc = -1;
+//    Bool ok;
 
-    // TODO: error handling here...using GOTO!
+//    // TODO: error handling here...using GOTO!
 
-    TidyDoc tdoc = tidyCreate();
-    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
-    }
+//    TidyDoc tdoc = tidyCreate();
+//    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
 //    if (ok) {
-//        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
+//        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
 //    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
-    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
-    }
-    if (ok) {
-        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
-    }
-    if (ok) {
-        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
-    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
-    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
-    }
-    if (ok) {
-        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
-    }
-    if ( ok )
-        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
-    if ( rc >= 0 )
-        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
-    if ( rc >= 0 )
-        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
-    if ( rc >= 0 )
-        rc = tidyRunDiagnostics( tdoc );               // Kvetch
-    if ( rc > 1 )                                    // If error, force output.
-        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
-    if ( rc >= 0 )
-        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
+////    if (ok) {
+////        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
+////    }
+//    if (ok) {
+//        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
+//    }
+//    if (ok) {
+//        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
+//    }
+//    if (ok) {
+//        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
+//    }
+//    if (ok) {
+//        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
+//    }
+//    if (ok) {
+//        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
+//    }
+//    if (ok) {
+//        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
+//    }
+//    if (ok) {
+//        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
+//    }
+//    if ( ok )
+//        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
+//    if ( rc >= 0 )
+//        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
+//    if ( rc >= 0 )
+//        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
+//    if ( rc >= 0 )
+//        rc = tidyRunDiagnostics( tdoc );               // Kvetch
+//    if ( rc > 1 )                                    // If error, force output.
+//        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+//    if ( rc >= 0 )
+//        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
 
-    QString cuesheet_tidied;
-    if ( rc >= 0 )
-    {
-        if ( rc > 0 ) {
-//            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
-//            qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
-        }
-        cuesheet_tidied = QString(reinterpret_cast<char *>(output.bp));
-    }
-    else {
-        qDebug() << "***** Severe error:" << rc;
-    }
+//    QString cuesheet_tidied;
+//    if ( rc >= 0 )
+//    {
+//        if ( rc > 0 ) {
+////            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
+////            qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
+//        }
+//        cuesheet_tidied = QString(reinterpret_cast<char *>(output.bp));
+//    }
+//    else {
+//        qDebug() << "***** Severe error:" << rc;
+//    }
 
-    tidyBufFree( &output );
-    tidyBufFree( &errbuf );
-    tidyRelease( tdoc );
+//    tidyBufFree( &output );
+//    tidyBufFree( &errbuf );
+//    tidyRelease( tdoc );
 
-//    // get rid of TIDY cruft
-////    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
+////    // get rid of TIDY cruft
+//////    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
 
-//    qDebug().noquote() << "************\ncuesheet out:" << cuesheet_tidied;
+////    qDebug().noquote() << "************\ncuesheet out:" << cuesheet_tidied;
 
     return(cuesheet_tidied);
 }
@@ -2379,16 +2388,17 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             QTextStream in(&f1);
             cuesheet = in.readAll();  // read the entire CSS file, if it exists
 
-            if (cuesheet.contains("charset=windows-1252") || cuesheetFilename.contains("GP 956")) {  // WARNING: HACK HERE
-                // this is very likely to be an HTML file converted from MS WORD,
-                //   and it still uses windows-1252 encoding.
+            // FIX: Qt6.2 does not support QTextCodec anymore.  Commenting out for now.
+//            if (cuesheet.contains("charset=windows-1252") || cuesheetFilename.contains("GP 956")) {  // WARNING: HACK HERE
+//                // this is very likely to be an HTML file converted from MS WORD,
+//                //   and it still uses windows-1252 encoding.
 
-                f1.seek(0);  // go back to the beginning of the file
+//                f1.seek(0);  // go back to the beginning of the file
 
-                QByteArray win1252bytes(f1.readAll());  // and read it again (as bytes this time)
-                QTextCodec *codec = QTextCodec::codecForName("windows-1252");  // FROM win-1252 bytes
-                cuesheet = codec->toUnicode(win1252bytes);                     // TO Unicode QString
-            }
+//                QByteArray win1252bytes(f1.readAll());  // and read it again (as bytes this time)
+//                QTextCodec *codec = QTextCodec::codecForName("windows-1252");  // FROM win-1252 bytes
+//                cuesheet = codec->toUnicode(win1252bytes);                     // TO Unicode QString
+//            }
 
 //            qDebug() << "Cuesheet: " << cuesheet;
             cuesheet.replace("\xB4","'");  // replace wacky apostrophe, which doesn't display well in QEditText
@@ -8436,6 +8446,11 @@ void MainWindow::pocketSphinx_started()
 }
 
 void MainWindow::initReftab() {
+
+    return;  // FIX: turned off right now for M1 Mac, because of error messages like:
+//    [8121:17667:1031/151459.045273:ERROR:channel_mac.cc(499)] mach_msg receive: (ipc/rcv) msg too large (0x10004004)
+//    [8119:259:1031/151459.066135:ERROR:network_service_instance_impl.cc(330)] Network service crashed, restarting service.
+
     numWebviews = 0;
     
     documentsTab = new QTabWidget();
