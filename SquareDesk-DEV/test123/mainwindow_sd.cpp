@@ -2050,7 +2050,8 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
                    RANDOMCOLOR5, RANDOMCOLOR6, RANDOMCOLOR7, RANDOMCOLOR8};
         int indexes[8] ={0,1,2,3,4,5,6,7};
 
-        std::random_shuffle(std::begin(indexes), std::end(indexes)); // randomize colors
+//        std::random_shuffle(std::begin(indexes), std::end(indexes)); // randomize colors
+        std::shuffle(std::begin(indexes), std::end(indexes), std::mt19937(std::random_device()())); // >= C++17
 
         sdpeople[COUPLE1 * 2 + 0].setColor(randomColors[indexes[0]]);
         sdpeople[COUPLE1 * 2 + 1].setColor(randomColors[indexes[1]]);
