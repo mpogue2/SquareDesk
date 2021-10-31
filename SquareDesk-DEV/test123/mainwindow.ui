@@ -259,7 +259,7 @@
             </property>
             <property name="font">
              <font>
-              <family>.SF NS Text</family>
+              <family>Arial</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -326,7 +326,7 @@
             </property>
             <property name="font">
              <font>
-              <family>.SF NS Text</family>
+              <family>Arial</family>
               <pointsize>9</pointsize>
              </font>
             </property>
