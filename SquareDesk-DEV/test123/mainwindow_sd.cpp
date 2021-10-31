@@ -1343,17 +1343,21 @@ void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(QListWidgetItem *item)
 }
 
 // WARNING: making these statically allocated makes this not thread safe, because we use the matchedLength() property!
+// NOTE: now dynamically allocated, now that we're using QRegularExpression.
 
-static QRegExp regexEnteredNth("(\\d+(st|nd|rd|th)?)");
-static QRegExp regexCallNth("<Nth>");
-static QRegExp regexEnteredN("(\\d+)");
-static QRegExp regexCallN("<N>");
+static QRegularExpression regexEnteredNth("(\\d+(st|nd|rd|th)?)");
+static QRegularExpression regexCallNth("<Nth>");
+static QRegularExpression regexEnteredN("(\\d+)");
+static QRegularExpression regexCallN("<N>");
 
 static int compareEnteredCallToCall(const QString &enteredCall, const QString &call, QString *maxCall = nullptr)
 {
     
     int enteredCallPos = 0;
     int callPos = 0;
+
+    QRegularExpressionMatch enteredCallMatch;
+    QRegularExpressionMatch callMatch;
 
     while (enteredCallPos < enteredCall.length() && callPos < call.length())
     {
@@ -1362,17 +1366,29 @@ static int compareEnteredCallToCall(const QString &enteredCall, const QString &c
             enteredCallPos ++;
             callPos ++;
         }
-        else if (enteredCallPos == enteredCall.indexOf(regexEnteredNth, enteredCallPos)
-                 && callPos == call.indexOf(regexCallNth, callPos))
+//        else if (enteredCallPos == enteredCall.indexOf(regexEnteredNth, enteredCallPos)
+//                 && callPos == call.indexOf(regexCallNth, callPos))
+//        {
+//            enteredCallPos += regexEnteredNth.matchedLength();
+//            callPos += regexCallNth.matchedLength();
+//        }
+//        else if (enteredCallPos == enteredCall.indexOf(regexEnteredN, enteredCallPos)
+//                 && callPos == call.indexOf(regexCallN, callPos))
+//        {
+//            enteredCallPos += regexEnteredN.matchedLength();
+//            callPos += regexCallN.matchedLength();
+//        }
+        else if (enteredCallPos == enteredCall.indexOf(regexEnteredNth, enteredCallPos, &enteredCallMatch)
+                 && callPos == call.indexOf(regexCallNth, callPos, &callMatch))
         {
-            enteredCallPos += regexEnteredNth.matchedLength();
-            callPos += regexCallNth.matchedLength();
+            enteredCallPos += enteredCallMatch.capturedLength();
+            callPos += callMatch.capturedLength();
         }
-        else if (enteredCallPos == enteredCall.indexOf(regexEnteredN, enteredCallPos)
-                 && callPos == call.indexOf(regexCallN, callPos))
+        else if (enteredCallPos == enteredCall.indexOf(regexEnteredN, enteredCallPos, &enteredCallMatch)
+                 && callPos == call.indexOf(regexCallN, callPos, &callMatch))
         {
-            enteredCallPos += regexEnteredN.matchedLength();
-            callPos += regexCallN.matchedLength();
+            enteredCallPos += enteredCallMatch.capturedLength();
+            callPos += callMatch.capturedLength();
         }
         else
         {
@@ -1571,7 +1587,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     // handle optional words at the beginning
 
     cmd = cmd.replace("do the centers", "DOTHECENTERS");  // special case "do the centers part of load the boat"
-    cmd = cmd.replace(QRegExp("^go "),"").replace(QRegExp("^do a "),"").replace(QRegExp("^do "),"");
+    cmd = cmd.replace(QRegularExpression("^go "),"").replace(QRegularExpression("^do a "),"").replace(QRegularExpression("^do "),"");
     cmd = cmd.replace("DOTHECENTERS", "do the centers");  // special case "do the centers part of load the boat"
 
     // handle specialized sd spelling of flutter wheel, and specialized wording of reverse flutter wheel
@@ -1579,16 +1595,16 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     cmd = cmd.replace("reverse the flutter","reverse flutter wheel");
 
     // handle specialized sd wording of first go *, next go *
-    cmd = cmd.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
-    cmd = cmd.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
-    cmd = cmd.replace(QRegExp("first[a-z ]* go left[a-z ]* next[a-z ]* go left"),"first couple go left, next go left");
-    cmd = cmd.replace(QRegExp("first[a-z ]* go right[a-z ]* next[a-z ]* go right"),"first couple go right, next go right");
+    cmd = cmd.replace(QRegularExpression("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
+    cmd = cmd.replace(QRegularExpression("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
+    cmd = cmd.replace(QRegularExpression("first[a-z ]* go left[a-z ]* next[a-z ]* go left"),"first couple go left, next go left");
+    cmd = cmd.replace(QRegularExpression("first[a-z ]* go right[a-z ]* next[a-z ]* go right"),"first couple go right, next go right");
 
     // handle "single circle to an ocean wave" -> "single circle to a wave"
     cmd = cmd.replace("single circle to an ocean wave","single circle to a wave");
 
     // handle manually-inserted brackets
-    cmd = cmd.replace(QRegExp("left bracket\\s+"), "[").replace(QRegExp("\\s+right bracket"),"]");
+    cmd = cmd.replace(QRegularExpression("left bracket\\s+"), "[").replace(QRegularExpression("\\s+right bracket"),"]");
 
     // handle "single hinge" --> "hinge", "single file circulate" --> "circulate", "all 8 circulate" --> "circulate" (quirk of sd)
     cmd = cmd.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
@@ -1608,7 +1624,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     cmd = cmd.replace("separate go around", "separate around");
 
     // handle "dixie style [to a wave|to an ocean wave]" --> "dixie style to a wave"
-    cmd = cmd.replace(QRegExp("dixie style.*"), "dixie style to a wave");
+    cmd = cmd.replace(QRegularExpression("dixie style.*"), "dixie style to a wave");
 
     // handle the <anything> and roll case
     //   NOTE: don't do anything, if we added manual brackets.  The user is in control in that case.
@@ -1616,10 +1632,12 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
 
         // TODO: might want to make this A-level specific?
         if (!cmd.contains("pass and roll")) {  // at A-level, "Pass and Roll" must not be turned into "[Pass] and Roll"
-            QRegExp andRollCall("(.*) and roll.*");
-            if (cmd.indexOf(andRollCall) != -1) {
-                cmd = "[" + andRollCall.cap(1) + "] and roll";
-            }
+            QRegularExpression andRollCall("(.*) and roll.*");
+//            if (cmd.indexOf(andRollCall) != -1) {
+//                cmd = "[" + andRollCall.cap(1) + "] and roll";
+//            }
+
+            cmd.replace(andRollCall, "[ \\1 ] and roll");
         }
 
         // explode must be handled *after* roll, because explode binds tightly with the call
@@ -1629,24 +1647,29 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
         // first, handle both: "explode and <anything> and roll"
         //  by the time we're here, it's already "[explode and <anything>] and roll", because
         //  we've already done the roll processing.
-        QRegExp explodeAndRollCall("\\[explode and (.*)\\] and roll");
-        QRegExp explodeAndNotRollCall("^explode and (.*)");
+        QRegularExpression explodeAndRollCall("\\[explode and (.*)\\] and roll");
+        QRegularExpression explodeAndNotRollCall("^explode and (.*)");
 
-        if (cmd.indexOf(explodeAndRollCall) != -1) {
-            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll";
-        } else if (cmd.indexOf(explodeAndNotRollCall) != -1) {
-            // not a roll, for sure.  Must be a naked "explode and <anything>"
-            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]";
-        } else {
-        }
+//        if (cmd.indexOf(explodeAndRollCall) != -1) {
+//            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll";
+//        } else if (cmd.indexOf(explodeAndNotRollCall) != -1) {
+//            // not a roll, for sure.  Must be a naked "explode and <anything>"
+//            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]";
+//        } else {
+//        }
+
+        cmd.replace(explodeAndRollCall, "[ explode and \\1 ] and roll");
+        cmd.replace(explodeAndNotRollCall, "explode and [ \\1 ]");
+
     }
 
     // handle <ANYTHING> and spread
     if (!cmd.contains("[")) {
-        QRegExp andSpreadCall("(.*) and spread");
-        if (cmd.indexOf(andSpreadCall) != -1) {
-            cmd = "[" + andSpreadCall.cap(1) + "] and spread";
-        }
+        QRegularExpression andSpreadCall("(.*) and spread");
+//        if (cmd.indexOf(andSpreadCall) != -1) {
+//            cmd = "[" + andSpreadCall.cap(1) + "] and spread";
+//        }
+        cmd.replace(andSpreadCall, "[ \\1 ] and spread");
     }
 
     // handle "undo [that]" --> "undo last call"
@@ -1662,10 +1685,10 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     cmd = cmd.replace("veer to the", "veer");
 
     // handle the <anything> and sweep case
-    // FIX: this needs to add center boys, etc, but that messes up the QRegExp
+    // FIX: this needs to add center boys, etc, but that messes up the QRegularExpression
 
     // <ANYTHING> AND SWEEP (A | ONE) QUARTER [MORE]
-    QRegExp andSweepPart(" and sweep.*");
+    QRegularExpression andSweepPart(" and sweep.*");
     int found = cmd.indexOf(andSweepPart);
     if (found != -1) {
         if (cmd.contains("[")) {
@@ -1815,7 +1838,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
                 bool inAvailableCalls = false;
                 if (sdAvailableCalls.length() > 0)
                 {
-                    static QRegExp regexpReplaceableParts("<.*?>");
+                    static QRegularExpression regexpReplaceableParts("<.*?>");
                     QString callName = ui->listWidgetSDOptions->item(i)->text();
                     QStringList callParts(callName.split(regexpReplaceableParts, Qt::SkipEmptyParts));
                     

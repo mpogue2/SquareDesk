@@ -647,10 +647,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    // let's watch for changes in the musicDir
 //    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
-    QRegExp ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
+    QRegularExpression ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
     while (it.hasNext()) {
         QString aPath = it.next();
-        if (ignoreTheseDirs.indexIn(aPath) == -1) {
+//        if (ignoreTheseDirs.indexIn(aPath) == -1) {
+        if (aPath.indexOf(ignoreTheseDirs) == -1) {
             musicRootWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
 //            qDebug() << "adding to musicRootWatcher: " << aPath;
         }
@@ -1807,11 +1808,11 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
 //        qDebug() << "\n***** initial selection (HTML): " << selected;
 
         // Qt gives us a whole HTML doc here.  Strip off all the parts we don't want.
-        QRegExp startSpan("<span.*>");
-        startSpan.setMinimal(true);  // don't be greedy!
+        QRegularExpression startSpan("<span.*>", QRegularExpression::InvertedGreedinessOption);  // don't be greedy!
+//        startSpan.setMinimal(true);  // don't be greedy!
 
-        selected.replace(QRegExp("<.*<!--StartFragment-->"),"")
-                .replace(QRegExp("<!--EndFragment-->.*</html>"),"")
+        selected.replace(QRegularExpression("<.*<!--StartFragment-->"),"")
+                .replace(QRegularExpression("<!--EndFragment-->.*</html>"),"")
                 .replace(startSpan,"")
                 .replace("</span>","")
                 ;
@@ -2223,19 +2224,19 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // line-height:100%;
     // KEEP: background-color:#ffffe0;
     cuesheet
-            .replace(QRegExp("margin-top:[0-9]+px;"), "")
-            .replace(QRegExp("margin-bottom:[0-9]+px;"), "")
-            .replace(QRegExp("margin-left:[0-9]+px;"), "")
-            .replace(QRegExp("margin-right:[0-9]+px;"), "")
-            .replace(QRegExp("text-indent:[0-9]+px;"), "")
-            .replace(QRegExp("line-height:[0-9]+%;"), "")
-            .replace(QRegExp("-qt-block-indent:[0-9]+;"), "")
+            .replace(QRegularExpression("margin-top:[0-9]+px;"), "")
+            .replace(QRegularExpression("margin-bottom:[0-9]+px;"), "")
+            .replace(QRegularExpression("margin-left:[0-9]+px;"), "")
+            .replace(QRegularExpression("margin-right:[0-9]+px;"), "")
+            .replace(QRegularExpression("text-indent:[0-9]+px;"), "")
+            .replace(QRegularExpression("line-height:[0-9]+%;"), "")
+            .replace(QRegularExpression("-qt-block-indent:[0-9]+;"), "")
             ;
 
     // get rid of unwanted QTextEdit tags
-    QRegExp styleRegExp("(<STYLE.*</STYLE>)|(<META.*>)");
-    styleRegExp.setMinimal(true);
-    styleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    QRegularExpression styleRegExp("(<STYLE.*</STYLE>)|(<META.*>)", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
+//    styleRegExp.setMinimal(true);
+//    styleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
     cuesheet.replace(styleRegExp,"");  // don't be greedy
 
 //    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
@@ -2246,22 +2247,22 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // TODO: allow embedded NL (due to line wrapping)
     // NOTE: background color is optional here, because I got rid of the the spec for it in BODY
     // <SPAN style="font-family:'Verdana'; font-size:x-large; color:#ff0002; background-color:#ffffe0;">
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0002;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:x-large; color:#ff0002;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"hdr\">");
     // <SPAN style="font-family:'Verdana'; font-size:large; color:#030303; background-color:#ffc0cb;">
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#030303; background-color:#ffc0cb;\">"),  // background-color required for lyrics
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large; color:#030303; background-color:#ffc0cb;\">"),  // background-color required for lyrics
                              "<SPAN class=\"lyrics\">");
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"label\">");
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"artist\">");
     // <SPAN style="font-family:'Arial Black'; font-size:x-large; color:#010101; background-color:#ffffe0;">
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Arial Black'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#010101;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Arial Black'; font-size:x-large;[\\s\n]*(font-weight:600;)*[\\s\n]*color:#010101;[\\s\n]*(background-color:#ffffe0;)*\">"),
                              "<SPAN class=\"title\">");
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
                                      "<SPAN style=\"font-weight: Bold;\">");
     // <SPAN style="font-family:'Verdana'; font-size:large; font-style:italic; color:#000000;">
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-style:italic;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-style:italic;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
                                      "<SPAN style=\"font-style: Italic;\">");
 
     cuesheet3.replace("<P style=\"\">","<P>");
@@ -2269,31 +2270,31 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace("<BODY bgcolor=\"#FFFFE0\" style=\"font-family:'.SF NS Text'; font-size:13pt; font-weight:400; font-style:normal;\">","<BODY>");  // must go back to USER'S choices in cuesheet2.css
 
     // now replace <SPAN bold...>foo</SPAN> --> <B>foo</B>
-    QRegExp boldRegExp("<SPAN style=\"font-weight: Bold;\">(.*)</SPAN>");
-    boldRegExp.setMinimal(true);
-    boldRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    QRegularExpression boldRegExp("<SPAN style=\"font-weight: Bold;\">(.*)</SPAN>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption);
+//    boldRegExp.setMinimal(true);
+//    boldRegExp.setCaseSensitivity(Qt::CaseInsensitive);
     cuesheet3.replace(boldRegExp,"<B>\\1</B>");  // don't be greedy, and replace <SPAN bold> -> <B>
 
     // now do the same for Italic...
     // "<SPAN style=\"font-style: Italic;\">"
-    QRegExp italicRegExp("<SPAN style=\"font-style: Italic;\">(.*)</SPAN>");
-    italicRegExp.setMinimal(true);
-    italicRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    QRegularExpression italicRegExp("<SPAN style=\"font-style: Italic;\">(.*)</SPAN>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption);
+//    italicRegExp.setMinimal(true);
+//    italicRegExp.setCaseSensitivity(Qt::CaseInsensitive);
     cuesheet3.replace(italicRegExp,"<I>\\1</I>");  // don't be greedy, and replace <SPAN italic> -> <B>
 
 
     // multi-step replacement
 //    qDebug().noquote() << "***** REALLY BEFORE:\n" << cuesheet3;
     //      <SPAN style="font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffffe0;">
-    cuesheet3.replace(QRegExp("\"font-family:'Verdana'; font-size:large; color:#000000;( background-color:#ffffe0;)*\""),"\"XXXXX\""); // must go back to USER'S choices in cuesheet2.css
+    cuesheet3.replace(QRegularExpression("\"font-family:'Verdana'; font-size:large; color:#000000;( background-color:#ffffe0;)*\""),"\"XXXXX\""); // must go back to USER'S choices in cuesheet2.css
 //    qDebug().noquote() << "***** BEFORE:\n" << cuesheet3;
-    cuesheet3.replace(QRegExp("<SPAN style=[\\s\n]*\"XXXXX\">"),"<SPAN>");
+    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"XXXXX\">"),"<SPAN>");
 //    qDebug().noquote() << "***** AFTER:\n" << cuesheet3;
 
     // now replace null SPAN tags
-    QRegExp nullStyleRegExp("<SPAN>(.*)</SPAN>");
-    nullStyleRegExp.setMinimal(true);
-    nullStyleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
+    QRegularExpression nullStyleRegExp("<SPAN>(.*)</SPAN>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption);
+//    nullStyleRegExp.setMinimal(true);
+//    nullStyleRegExp.setCaseSensitivity(Qt::CaseInsensitive);
     cuesheet3.replace(nullStyleRegExp,"\\1");  // don't be greedy, and replace <SPAN>foo</SPAN> with foo
 
     // TODO: bold -- <SPAN style="font-family:'Verdana'; font-size:large; font-weight:600; color:#000000;">
@@ -4453,7 +4454,7 @@ static bool CompareCuesheetWithRanking(CuesheetWithRanking *a, CuesheetWithRanki
 // -----------------------------------------------------------------
 QStringList splitIntoWords(const QString &str)
 {
-    static QRegExp regexNotAlnum(QRegExp("\\W+"));
+    static QRegularExpression regexNotAlnum(QRegularExpression("\\W+"));
 
     QStringList words = str.split(regexNotAlnum);
 
@@ -5486,7 +5487,7 @@ bool filterContains(QString str, const QStringList &list)
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
-    QRegExp rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
+    QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
 
     QStringList label = ui->labelSearch->text().split(rx);
     QStringList type = ui->typeSearch->text().split(rx);
@@ -5784,11 +5785,11 @@ QString processSequence(QString sequence,
 
     return sequence.trimmed();
 
-//    QRegExp regexpAmp("&");
-//    QRegExp regexpLt("<");
-//    QRegExp regexpGt(">");
-//    QRegExp regexpApos("'");
-//    QRegExp regexpNewline("\n");
+//    QRegularExpression regexpAmp("&");
+//    QRegularExpression regexpLt("<");
+//    QRegularExpression regexpGt(">");
+//    QRegularExpression regexpApos("'");
+//    QRegularExpression regexpNewline("\n");
 //
 //    sequence = sequence.replace(regexpAmp, "&amp;");
 //    sequence = sequence.replace(regexpLt, "&lt;");
@@ -6053,7 +6054,8 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
         QString s = iter.next();
 
         // Dance Program file names must begin with 0 then exactly 2 numbers followed by a dot, followed by the dance program name, dot text.
-        if (QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
+//        if (QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
+        if (s.indexOf(QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption)) != -1)  // matches the Dance Program files in /reference
         {
             //qDebug() << "Dance Program Match:" << s;
             QStringList sl1 = s.split("#!#");
@@ -8115,7 +8117,7 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
     QString css = getResourceFile("cuesheet2.css");
 
     text = text.toHtmlEscaped();  // convert ">" to "&gt;" etc
-    text = text.replace(QRegExp("[\r|\n]"),"<br/>\n");
+    text = text.replace(QRegularExpression("[\r|\n]"),"<br/>\n");
 
     QString HTML;
     HTML += "<HTML>\n";
@@ -8411,7 +8413,7 @@ void MainWindow::readPSData()
     //
     QString s2 = str.toLower();
     s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
-    s2.replace(QRegExp("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
+    s2.replace(QRegularExpression("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
     s2 = s2.simplified();
 
     if (s2 == "erase" || s2 == "erase that") {
@@ -8461,7 +8463,7 @@ void MainWindow::initReftab() {
             if (info2.exists()) {
 //                qDebug() << "    FOUND INDEX.HTML";
                 tabname = filename.split("/").last();
-                tabname.remove(QRegExp("^1[0-9][0-9]\\."));  // 101.foo/index.html -> "foo"
+                tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));  // 101.foo/index.html -> "foo"
                 HTMLfolderExists = true;
                 whichHTM = "/index.html";
             } else {
@@ -8469,7 +8471,7 @@ void MainWindow::initReftab() {
                 if (info3.exists()) {
 //                    qDebug() << "    FOUND INDEX.HTM";
                     tabname = filename.split("/").last();
-                    tabname.remove(QRegExp("^1[0-9][0-9]\\."));  // 101.foo/index.htm -> "foo"
+                    tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));  // 101.foo/index.htm -> "foo"
                     HTMLfolderExists = true;
                     whichHTM = "/index.htm";
                 }
@@ -8493,10 +8495,11 @@ void MainWindow::initReftab() {
                 numWebviews++;
             }
         } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
-                   QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
+//                   QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
+            filename.indexOf(QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption)) == -1) {
 //                qDebug() << "    FOUND TXT FILE";
-                tabname = filename.split("/").last().remove(QRegExp(".txt$"));
-                tabname.remove(QRegExp("^1[0-9][0-9]\\."));  // 122.bar.txt -> "bar"
+                tabname = filename.split("/").last().remove(QRegularExpression(".txt$"));
+                tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));  // 122.bar.txt -> "bar"
 
 //                qDebug() << "    tabname:" << tabname;
 
@@ -8516,7 +8519,7 @@ void MainWindow::initReftab() {
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
-                tabname = filename.split("/").last().remove(QRegExp(".[Mm][Dd]$"));
+                tabname = filename.split("/").last().remove(QRegularExpression(".[Mm][Dd]$"));
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
 #else
@@ -8563,8 +8566,8 @@ void MainWindow::initReftab() {
 
 //                webview[numWebviews]->setUrl(QUrl(pdf_path));
                 QFileInfo fInfo(filename);
-                tabname = filename.split("/").last().remove(QRegExp(".pdf$"));      // get basename, remove .pdf
-                tabname.remove(QRegExp("^1[0-9][0-9]\\."));                         // 122.bar.txt -> "bar"  // remove optional 1##. at front
+                tabname = filename.split("/").last().remove(QRegularExpression(".pdf$"));      // get basename, remove .pdf
+                tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));                         // 122.bar.txt -> "bar"  // remove optional 1##. at front
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         }
@@ -9022,7 +9025,7 @@ void MainWindow::maybeInstallReferencefiles() {
             QString s2 = it.next();
             QString s1 = it.fileName();
             // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
-            if (s1.contains(QRegExp("^[0-9]+\\.SD.pdf")) || s1.contains(QRegExp("^SD.pdf"))) {
+            if (s1.contains(QRegularExpression("^[0-9]+\\.SD.pdf")) || s1.contains(QRegularExpression("^SD.pdf"))) {
                hasSDpdf = true;
             }
         }
@@ -9041,7 +9044,7 @@ void MainWindow::maybeInstallReferencefiles() {
             QString s2 = it2.next();
             QString s1 = it2.fileName();
             // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
-            if (s1.contains(QRegExp("^[0-9]+\\.SDESK.pdf")) || s1.contains(QRegExp("^SDESK.pdf"))) {
+            if (s1.contains(QRegularExpression("^[0-9]+\\.SDESK.pdf")) || s1.contains(QRegularExpression("^SDESK.pdf"))) {
                hasSDESKpdf = true;
             }
         }
@@ -9815,7 +9818,7 @@ QString MainWindow::filepath2SongType(QString MP3Filename)
 {
     // returns the type (as a string).  patter, hoedown -> "patter", as per user prefs
 
-    MP3Filename.replace(QRegExp("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
+    MP3Filename.replace(QRegularExpression("^" + musicRootPath),"");  // delete the <path to musicDir> from the front of the pathname
     QStringList parts = MP3Filename.split("/");
 
     if (parts.length() <= 1) {
@@ -9926,7 +9929,7 @@ void MainWindow::on_actionFilePrint_triggered()
         foreach (const PlaylistExportRecord &rec, exports)
         {
             QString baseName = rec.title;
-            baseName.replace(QRegExp("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
+            baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
 
             sprintf(buf, "%02d: %s\n", rec.index, baseName.toLatin1().data());
             toBePrinted += buf;
@@ -9983,8 +9986,8 @@ void MainWindow::saveLyricsAs()
         // choose the next name in the series (this won't be done, if we came from a template)
         QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
         QString cuesheetBase = loadedCuesheetNameWithPath
-                .replace(QRegExp(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
-                .replace(QRegExp("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
+                .replace(QRegularExpression(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
+                .replace(QRegularExpression("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
 
         // find an appropriate not-already-used filename to save to
         bool done = false;
@@ -11102,18 +11105,24 @@ void MainWindow::MP3Gain_finished(int exitCode) {
 
     // extract the value we want, that looks like this:
     //   Recommended "Track" dB change: -3.780000
-    QRegExp rx("(\\r|\\n)"); // RegEx for '\r' or '\n'
-    QStringList query = resultStr.split(QRegExp("\\r|\\n")).filter("Recommended \"Track\" dB change:");
+    QRegularExpression rx("(\\r|\\n)"); // RegEx for '\r' or '\n'
+    QStringList query = resultStr.split(QRegularExpression("\\r|\\n")).filter("Recommended \"Track\" dB change:");
 
     if (query.length() > 0) {
         // if there's a line that looks like the one we want
         qDebug() << "mp3gain: " << query[0];
 
         // extract the numeric result
-        QRegExp number_input("([-+]?[0-9]*\\.?[0-9]+)");
-        if(number_input.indexIn(query[0]) != -1) {
-            mp3gainResult_dB = number_input.cap(1).toDouble();
+//        QRegExp number_input("([-+]?[0-9]*\\.?[0-9]+)");
+//        if(number_input.indexIn(query[0]) != -1) {
+//            mp3gainResult_dB = number_input.cap(1).toDouble();
+//        }
+        QRegularExpression number_input("([-+]?[0-9]*\\.?[0-9]+)");
+        QRegularExpressionMatch match;
+        if (query[0].indexOf(number_input, 0, &match) != -1) {
+            mp3gainResult_dB = match.captured().toDouble(); // if it matched, convert the matched portion to a double
         }
+
     } else {
         mp3gainResult_dB = 0.0;  // no result, so no ReplayGain correction
     }

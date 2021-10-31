@@ -79,6 +79,7 @@
 #include <QScrollBar>
 #include <QtCore/QDebug>
 #include <QApplication>
+#include <QRegularExpression>
 
 Console::Console(QWidget *parent)
     : QPlainTextEdit(parent)
@@ -113,7 +114,7 @@ void Console::putData(const QByteArray &data)
     bool done = false;
     while (!done) {
         int beforeLength = data2s.length();
-        data2s.replace(QRegExp(".\b \b"),""); // if coming in as bulk text, delete one char
+        data2s.replace(QRegularExpression(".\b \b"),""); // if coming in as bulk text, delete one char
         int afterLength = data2s.length();
         done = (beforeLength == afterLength);
     }

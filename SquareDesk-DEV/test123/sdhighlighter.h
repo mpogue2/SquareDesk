@@ -27,6 +27,7 @@
 #define SDHIGHLIGHTER_H
 
 #include <QSyntaxHighlighter>
+#include <QRegularExpression>
 #include "common.h"
 
 class Highlighter : public QSyntaxHighlighter
@@ -42,7 +43,7 @@ protected:
 private:
     struct HighlightingRule
     {
-        QRegExp pattern;
+        QRegularExpression pattern;
         QTextCharFormat format;
     };
 
