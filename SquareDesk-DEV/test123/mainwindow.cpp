@@ -8164,11 +8164,11 @@ void MainWindow::on_newVolumeMounted() {
     if (lastKnownVolumeList.length() < newVolumeList.length()) {
         // ONE OR MORE VOLUMES APPEARED
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S NEW (if more than 1)
-#if QT_VERSION >= 0x051400
+//#if QT_VERSION >= 0x051400
         newVolumes = QSet<QString>(newVolumeList.begin(), newVolumeList.end()).subtract(QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()));
-#else
-        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
-#endif
+//#else
+//        newVolumes = newVolumeList.toSet().subtract(lastKnownVolumeList.toSet());
+//#endif
         foreach (const QString &item, newVolumes) {
             newVolume = item;  // first item is the volume added
         }
@@ -8229,11 +8229,11 @@ void MainWindow::on_newVolumeMounted() {
     } else if (lastKnownVolumeList.length() > newVolumeList.length()) {
         // ONE OR MORE VOLUMES WENT AWAY
         //   ONLY LOOK AT THE LAST ONE IN THE LIST THAT'S GONE
-#if QT_VERSION >= 0x051400
+//#if QT_VERSION >= 0x051400
         goneVolumes = QSet<QString>(lastKnownVolumeList.begin(), lastKnownVolumeList.end()).subtract(QSet<QString>(newVolumeList.begin(), newVolumeList.end()));
-#else
-        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
-#endif
+//#else
+//        goneVolumes = lastKnownVolumeList.toSet().subtract(newVolumeList.toSet());
+//#endif
         foreach (const QString &item, goneVolumes) {
             goneVolume = item;
         }

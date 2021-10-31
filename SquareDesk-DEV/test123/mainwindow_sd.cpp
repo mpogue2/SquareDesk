@@ -1006,7 +1006,7 @@ void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidg
 
 QString toCamelCase(const QString& s)
 {
-    QStringList parts = s.split(' ', SKIP_EMPTY_PARTS);
+    QStringList parts = s.split(' ', Qt::SkipEmptyParts);
     for (int i = 0; i < parts.size(); ++i)
         parts[i].replace(0, 1, parts[i][0].toUpper());
 
@@ -1817,7 +1817,7 @@ void MainWindow::on_lineEditSDInput_textChanged()
                 {
                     static QRegExp regexpReplaceableParts("<.*?>");
                     QString callName = ui->listWidgetSDOptions->item(i)->text();
-                    QStringList callParts(callName.split(regexpReplaceableParts, SKIP_EMPTY_PARTS));
+                    QStringList callParts(callName.split(regexpReplaceableParts, Qt::SkipEmptyParts));
                     
                     for (auto call : sdAvailableCalls)
                     {

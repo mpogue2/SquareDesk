@@ -130,7 +130,7 @@ HEADERS += $$PWD/toolkit/trefcounter.h
 HEADERS += $$PWD/toolkit/tstring.h
 HEADERS += $$PWD/toolkit/tstringlist.h
 HEADERS += $$PWD/toolkit/tutils.h
-HEADERS += $$PWD/toolkit/unicode.h
+#HEADERS += $$PWD/toolkit/unicode.h
 HEADERS += $$PWD/trueaudio/trueaudiofile.h
 HEADERS += $$PWD/trueaudio/trueaudioproperties.h
 HEADERS += $$PWD/wavpack/wavpackfile.h
@@ -193,7 +193,7 @@ SOURCES += $$PWD/mpeg/id3v2/frames/commentsframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/eventtimingcodesframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/generalencapsulatedobjectframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/ownershipframe.cpp
-SOURCES += $$PWD/mpeg/id3v2/frames/podcastframe.cpp
+#SOURCES += $$PWD/mpeg/id3v2/frames/podcastframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/popularimeterframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/privateframe.cpp
 SOURCES += $$PWD/mpeg/id3v2/frames/relativevolumeframe.cpp
@@ -243,7 +243,7 @@ SOURCES += $$PWD/wavpack/wavpackproperties.cpp
 SOURCES += $$PWD/xm/xmfile.cpp
 SOURCES += $$PWD/xm/xmproperties.cpp
 
-HEADERS += $$PWD/../config.h
+#HEADERS += $$PWD/../config.h
 HEADERS += $$PWD/../taglib_config.h
 
 
