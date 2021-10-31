@@ -123,11 +123,18 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     if (revisionNumber > 2)
         return keyMappings;
     
-    keyMappings[QKeySequence(Qt::Key_A|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDSquareYourSets;
-    keyMappings[QKeySequence(Qt::Key_S|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsStart;
-    keyMappings[QKeySequence(Qt::Key_B|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
-    keyMappings[QKeySequence(Qt::Key_L|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeads1p2p;
-    
+//    keyMappings[QKeySequence(Qt::Key_A|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDSquareYourSets;
+//    keyMappings[QKeySequence(Qt::Key_S|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsStart;
+//    keyMappings[QKeySequence(Qt::Key_B|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
+//    keyMappings[QKeySequence(Qt::Key_L|Qt::MetaModifier|Qt::ControlModifier).toString()] = &keyaction_KeyActionSDHeads1p2p;
+
+    // The old way (above) is deprecated as of Qt6.  Don't ask me how doing it the below way gets rid of this warning:
+    //   warning: 'operator int' is deprecated: Use QKeyCombination instead of int [-Wdeprecated-declarations]
+    keyMappings[QKeySequence(Qt::CTRL | Qt::META | Qt::Key_A).toString()] = &keyaction_KeyActionSDSquareYourSets;
+    keyMappings[QKeySequence(Qt::CTRL | Qt::META | Qt::Key_S).toString()] = &keyaction_KeyActionSDHeadsStart;
+    keyMappings[QKeySequence(Qt::CTRL | Qt::META | Qt::Key_B).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
+    keyMappings[QKeySequence(Qt::CTRL | Qt::META | Qt::Key_L).toString()] = &keyaction_KeyActionSDHeads1p2p;
+
     if (revisionNumber > 1)
         return keyMappings;
     
