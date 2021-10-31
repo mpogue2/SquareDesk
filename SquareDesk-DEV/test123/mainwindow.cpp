@@ -741,19 +741,19 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // define type names (before reading in the music filenames!) ------------------
     QString value;
     value = prefsManager.GetMusicTypeSinging();
-    songTypeNamesForSinging = value.toLower().split(";", KEEP_EMPTY_PARTS);
+    songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypePatter();
-    songTypeNamesForPatter = value.toLower().split(";", KEEP_EMPTY_PARTS);
+    songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypeExtras();
-    songTypeNamesForExtras = value.toLower().split(';', KEEP_EMPTY_PARTS);
+    songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
 
     value = prefsManager.GetMusicTypeCalled();
-    songTypeNamesForCalled = value.toLower().split(';', KEEP_EMPTY_PARTS);
+    songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
 
     value = prefsManager.GetToggleSingingPatterSequence();
-    songTypeToggleList = value.toLower().split(';', KEEP_EMPTY_PARTS);
+    songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
 
     t.elapsed(__LINE__);
 
@@ -6502,19 +6502,19 @@ void MainWindow::on_actionPreferences_triggered()
         {
             QString value;
             value = prefsManager.GetMusicTypeSinging();
-            songTypeNamesForSinging = value.toLower().split(";", KEEP_EMPTY_PARTS);
+            songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypePatter();
-            songTypeNamesForPatter = value.toLower().split(";", KEEP_EMPTY_PARTS);
+            songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypeExtras();
-            songTypeNamesForExtras = value.toLower().split(";", KEEP_EMPTY_PARTS);
+            songTypeNamesForExtras = value.toLower().split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetMusicTypeCalled();
-            songTypeNamesForCalled = value.split(";", KEEP_EMPTY_PARTS);
+            songTypeNamesForCalled = value.split(";", Qt::KeepEmptyParts);
 
             value = prefsManager.GetToggleSingingPatterSequence();
-            songTypeToggleList = value.toLower().split(';', KEEP_EMPTY_PARTS);
+            songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         }
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
@@ -8715,19 +8715,19 @@ void MainWindow::on_actionStartup_Wizard_triggered()
 
         QString value;
         value = prefsManager.GetMusicTypeSinging();
-        songTypeNamesForSinging = value.toLower().split(";", KEEP_EMPTY_PARTS);
+        songTypeNamesForSinging = value.toLower().split(";", Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypePatter();
-        songTypeNamesForPatter = value.toLower().split(";", KEEP_EMPTY_PARTS);
+        songTypeNamesForPatter = value.toLower().split(";", Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypeExtras();
-        songTypeNamesForExtras = value.toLower().split(';', KEEP_EMPTY_PARTS);
+        songTypeNamesForExtras = value.toLower().split(';', Qt::KeepEmptyParts);
 
         value = prefsManager.GetMusicTypeCalled();
-        songTypeNamesForCalled = value.toLower().split(';', KEEP_EMPTY_PARTS);
+        songTypeNamesForCalled = value.toLower().split(';', Qt::KeepEmptyParts);
 
         value = prefsManager.GetToggleSingingPatterSequence();
-        songTypeToggleList = value.toLower().split(';', KEEP_EMPTY_PARTS);
+        songTypeToggleList = value.toLower().split(';', Qt::KeepEmptyParts);
         
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
