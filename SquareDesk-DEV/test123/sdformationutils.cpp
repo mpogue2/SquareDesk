@@ -38,7 +38,7 @@ Order whichOrder(double p1_x, double p1_y, double p2_x, double p2_y) {
     double p12 = p2_deg - p1_deg;  // from boy 1 to boy 2
 
     if (BETWEEN(p12, -1, 1) || BETWEEN(p12, 179, 181) || BETWEEN(p12, -181, -179) || (p12 >= 359) || p12 <= -359) {
-        qDebug() << "Person order UNKNOWN (colinear)" << p12;
+//        qDebug() << "Person order UNKNOWN (colinear)" << p12;
         return(UnknownOrder);
     } else if (BETWEEN(p12, 0, 180) || BETWEEN(p12, -360, -180)) {
 //        qDebug() << "Person order IN ORDER" << p12;
