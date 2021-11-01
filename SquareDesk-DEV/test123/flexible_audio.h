@@ -27,6 +27,8 @@
 #include "flexible_audio.h"
 
 #include <QTimer>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 // indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
 #define FREQ_KHZ 0
@@ -68,6 +70,8 @@ public:
 
     unsigned long           startPoint_bytes;
     unsigned long           endPoint_bytes;     // jump to point.  If 0, don't jump at all.
+
+    QMediaPlayer *player;
 
 //---------------------------------------------------------
     //constructors
@@ -132,7 +136,6 @@ public:
     int  currentSoundEffectID;
 
 private:
-    // NOTHING YET....
-
+    QAudioOutput  *audioOutput;
 };
 

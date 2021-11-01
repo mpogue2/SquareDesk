@@ -44,8 +44,9 @@ float gStream_replayGain = 1.0f;    // replayGain
 // ------------------------------------------------------------------
 flexible_audio::flexible_audio(void)
 {
-//    Stream = (HSTREAM)NULL;
-//    FXStream = (HSTREAM)NULL;  // also initialize the FX stream
+      player = new QMediaPlayer;
+      audioOutput = new QAudioOutput;
+      player->setAudioOutput(audioOutput);
 
 //    Stream_State = (HSTREAM)NULL;
     Stream_Volume = 100; ///10000 (multipled on output)
@@ -96,10 +97,11 @@ void flexible_audio::Exit(void)
 }
 
 // ------------------------------------------------------------------
-void flexible_audio::SetVolume(int inVolume)
+void flexible_audio::SetVolume(int inVolume)  // inVolume range: {0, 100}
 {
     qDebug() << "Setting new volume: " << inVolume;
     Stream_Volume = inVolume;
+    audioOutput->setVolume(inVolume/100.0); // float range: {0.0, 1.0}
 }
 
 // uses the STREAM volume, rather than global volume
@@ -179,7 +181,8 @@ void flexible_audio::songStartDetector(const char *filepath, double  *pSongStart
 // ------------------------------------------------------------------
 void flexible_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, double  *pSongEnd_sec, double intro1_frac, double outro1_frac)
 {
-    qDebug() << "StreamCreate: " << *filepath << *pSongStart_sec << *pSongEnd_sec << intro1_frac << outro1_frac;
+    qDebug() << "StreamCreate: " << filepath << *pSongStart_sec << *pSongEnd_sec << intro1_frac << outro1_frac;
+    player->setSource(QUrl::fromLocalFile(filepath));
 }
 
 // ------------------------------------------------------------------
@@ -192,26 +195,38 @@ bool flexible_audio::isPaused(void)
 void flexible_audio::StreamSetPosition(double Position_sec)
 {
     qDebug() << "StreamSetPosition:" << Position_sec;
+    player->setPosition((qint64)(Position_sec * 1000.0));
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::StreamGetLength(void)
 {
-    qDebug() << "StreamGetLength:";
-    FileLength = 100.0;  // FIX
+    qint64 duration_ms = player->duration();
+    FileLength = (double)duration_ms / 1000.0;
+//    FileLength = 100.0;  // FIX FIX FIX
+
+    qDebug() << "StreamGetLength:" << FileLength;
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::StreamGetPosition(void)
 {
-    qDebug() << "StreamGetPosition";
-    Current_Position = 50.0;  // FIX
+    qint64 position_ms = player->position();
+    Current_Position = (double)position_ms/1000.0;
+    qDebug() << "StreamGetPosition:" << Current_Position;
 }
 
 // always asks the engine what the state is (NOT CACHED), then returns one of:
 //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
 uint32_t flexible_audio::currentStreamState() {
-    return(BASS_ACTIVE_STOPPED); // FIX
+    QMediaPlayer::PlaybackState state = player->playbackState(); // StoppedState, PlayingState, PausedState
+
+    switch (state) {
+    case QMediaPlayer::StoppedState: return(BASS_ACTIVE_STOPPED);
+    case QMediaPlayer::PlayingState: return(BASS_ACTIVE_PLAYING);
+    case QMediaPlayer::PausedState:  return(BASS_ACTIVE_PAUSED);
+    default: return(BASS_ACTIVE_STALLED);  // should never happen
+    }
 }
 
 // ------------------------------------------------------------------
@@ -251,6 +266,7 @@ void flexible_audio::SetMono(bool on)
 void flexible_audio::Play(void)
 {
     qDebug() << "Play";
+    player->play();
     bPaused = false;
     StreamGetPosition();  // tell the position bar in main window where we are
 }
@@ -259,6 +275,7 @@ void flexible_audio::Play(void)
 void flexible_audio::Stop(void)
 {
     qDebug() << "Stop";
+    player->stop();
     StreamSetPosition(0);
     StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;
@@ -268,6 +285,7 @@ void flexible_audio::Stop(void)
 void flexible_audio::Pause(void)
 {
     qDebug() << "Pause";
+    player->pause();
     StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;
 }

@@ -345,6 +345,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 {
     Q_UNUSED(splash)
 
+#ifdef M1MAC
+    void InitializeSeekBar(MySlider *seekBar);  // forward decl
+
+    connect(cBass.player, &QMediaPlayer::durationChanged, this, [&](qint64 dur) {
+        qDebug() << "StreamCreate duration now available = " << dur;
+        cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
+        InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
+        InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
+    });
+#endif
+
     lyricsCopyIsAvailable = false;
 
     mp3gain = nullptr; // must not count on this being initialized to zero
