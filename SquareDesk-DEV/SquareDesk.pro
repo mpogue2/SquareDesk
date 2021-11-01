@@ -1,7 +1,8 @@
 TEMPLATE = subdirs
 
 #SUBDIRS = html-tidy taglib test123 sdlib #\
-SUBDIRS = taglib test123 sdlib #\
+SUBDIRS = taglib test123 sdlib
+    #kfr
     #mp3gain
 
 mac {
