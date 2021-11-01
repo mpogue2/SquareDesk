@@ -392,7 +392,7 @@ macx {
 
     # ZLIB ------------------------------------------
     #  do "brew install zlib"
-    LIBS += /usr/lib/libz.dylib
+    # LIBS += /usr/lib/libz.dylib
     LIBS += /usr/local/opt/zlib/lib/libz.dylib
 
     # PS --------------------------------------------

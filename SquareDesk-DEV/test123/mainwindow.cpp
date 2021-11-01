@@ -79,7 +79,9 @@
 #endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-//#include "JlCompress.h"
+#ifndef M1MAC
+#include "JlCompress.h"
+#endif
 #endif
 
 class InvisibleTableWidgetItem : public QTableWidgetItem {
@@ -207,13 +209,15 @@ using namespace TagLib;
 
 // GLOBALS:
 
+#ifndef M1MAC
 // All other platforms:
-//extern bass_audio cBass;  // make this accessible to PreferencesDialog
-//bass_audio cBass;
-
-// M1:
+extern bass_audio cBass;  // make this accessible to PreferencesDialog
+bass_audio cBass;
+#else
+// M1 Silicon Mac only:
 extern flexible_audio cBass;  // make this accessible to PreferencesDialog
 flexible_audio cBass;
+#endif
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
@@ -8447,9 +8451,11 @@ void MainWindow::pocketSphinx_started()
 
 void MainWindow::initReftab() {
 
+#ifdef M1MAC
     return;  // FIX: turned off right now for M1 Mac, because of error messages like:
 //    [8121:17667:1031/151459.045273:ERROR:channel_mac.cc(499)] mach_msg receive: (ipc/rcv) msg too large (0x10004004)
 //    [8119:259:1031/151459.066135:ERROR:network_service_instance_impl.cc(330)] Network service crashed, restarting service.
+#endif
 
     numWebviews = 0;
     
