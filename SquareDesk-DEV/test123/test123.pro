@@ -36,9 +36,10 @@ TEMPLATE = app
 DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
-#    AppleMusicLibraryXMLReader.cpp \
-        mainwindow.cpp \
-    bass_audio.cpp \
+#    AppleMusicLibraryXMLReader.cpp \  # no longer need this
+    flexible_audio.cpp \
+#    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
+    mainwindow.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     importdialog.cpp \
@@ -89,6 +90,7 @@ HEADERS  += mainwindow.h \
     bass.h \
     bass_fx.h \
     bass_audio.h \
+    flexible_audio.h \
     myslider.h \
     bassmix.h \
     importdialog.h \
@@ -240,77 +242,54 @@ win32:CONFIG(release, debug|release): {
     QMAKE_EXTRA_TARGETS += copydata0a copydata0b copydata0c
 }
 
+# USE THIS ONE FOR ALL MACS **********************************************
 macx {
-    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
-    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    #LIBS += $$PWD/libquazip.1.dylib
-    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-    LIBS += $$PWD/../local/lib/libtidy.5.dylib
-    LIBS += -framework CoreFoundation
-    LIBS += -framework AppKit
+LIBS += -framework CoreFoundation
+LIBS += -framework AppKit
 
-    mylib.path = Contents/MacOS
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
-    #mylib.files += $$PWD/libquazip.1.dylib
-    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-    QMAKE_BUNDLE_DATA += mylib
+# TAGLIB ----------------------------------------
+LIBS += -L$$OUT_PWD/../taglib -ltaglib
+INCLUDEPATH += $$PWD/../taglib/binaries/include
+INCLUDEPATH += $$PWD/../taglib
+INCLUDEPATH += $$PWD/../taglib/taglib
+INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
+INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 
-    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
-    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
-    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
+# SDLIB ------------------------------------------
+LIBS += -L$$OUT_PWD/../sdlib -lsdlib
 
-    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
+# ICONS, ALLCALLS.CSV ---------------------------
+ICON = $$PWD/desk1d.icns
+DISTFILES += desk1d.icns
+DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
 
-    # TAGLIB ----------------------------------------
-    LIBS += -L$$OUT_PWD/../taglib -ltaglib
-    INCLUDEPATH += $$PWD/../taglib/binaries/include
-    INCLUDEPATH += $$PWD/../taglib
-    INCLUDEPATH += $$PWD/../taglib/taglib
-    INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
-    INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
+# ERROR: Could not resolve SDK Path for 'macosx10.14'
+# https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
+# Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
+#   in Terminal and change the QMAKE_MAC_SDK variable below accordingly.
+#
+# NOTE: this has to be done every time that Apple updates the SDK.
+#
+# If you get an error message, like "could not find Squaredesk", you'll want to run qmake again on everything.
+# You will almost certainly have to clear the .qmake* files first, like the error message says:
+# cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Debug; rm .qmake*
+# cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Release; rm .qmake*
+# Then, Build > Clean All Projects.  Then rebuild everything.
+#
+# NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
+#   stale .qmake.stash file in the BUILD directory.  This file is supposed to be regenerated when the kit changes,
+#   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
+#   You must delete that file manually right now, when the MAC SDK version changes.
+#   See: https://bugreports.qt.io/browse/QTBUG-43015
+#
+# So far, it looks like we can ignore this warning:
+#    Project WARNING: Qt has only been tested with version 10.15 of the platform SDK, you're using 11.1.
+#    Project WARNING: This is an unsupported configuration. You may experience build issues, and by using
+#    Project WARNING: the 11.1 SDK you are opting in to new features that Qt has not been prepared for.
+#    Project WARNING: Please downgrade the SDK you use to build your app to version 10.15, or configure
+#    Project WARNING: with CONFIG+=sdk_no_version_check when running qmake to silence this warning.
 
-    # ZLIB ------------------------------------------
-    #  do "brew install zlib"
-#    LIBS += /usr/lib/libz.dylib
-    LIBS += /usr/local/opt/zlib/lib/libz.dylib
-
-    # SDLIB ------------------------------------------
-    LIBS += -L$$OUT_PWD/../sdlib -lsdlib
-
-    # ICONS, ALLCALLS.CSV ---------------------------
-    ICON = $$PWD/desk1d.icns
-    DISTFILES += desk1d.icns
-    DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they are
-
-    # ERROR: Could not resolve SDK Path for 'macosx10.14'
-    # https://forum.qt.io/topic/58926/solved-xcode-7-and-qt-error/2
-    # Every time you get this error, do "ls /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/"
-    #   in Terminal and change the QMAKE_MAC_SDK variable below accordingly.
-    #
-    # NOTE: this has to be done every time that Apple updates the SDK.
-    #
-    # If you get an error message, like "could not find Squaredesk", you'll want to run qmake again on everything.
-    # You will almost certainly have to clear the .qmake* files first, like the error message says:
-    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Debug; rm .qmake*
-    # cd ~/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_5_15_2_clang_64bit-Release; rm .qmake*
-    # Then, Build > Clean All Projects.  Then rebuild everything.
-    #
-    # NOTE: if you get errors like "string.h not found" or "IOKit/IOReturn.h not found", you probably have a
-    #   stale .qmake.stash file in the BUILD directory.  This file is supposed to be regenerated when the kit changes,
-    #   but it's one level higher than the Mac OS X SDK selector (which is in test123), so it doesn't get regenerated.
-    #   You must delete that file manually right now, when the MAC SDK version changes.
-    #   See: https://bugreports.qt.io/browse/QTBUG-43015
-    #
-    # So far, it looks like we can ignore this warning:
-    #    Project WARNING: Qt has only been tested with version 10.15 of the platform SDK, you're using 11.1.
-    #    Project WARNING: This is an unsupported configuration. You may experience build issues, and by using
-    #    Project WARNING: the 11.1 SDK you are opting in to new features that Qt has not been prepared for.
-    #    Project WARNING: Please downgrade the SDK you use to build your app to version 10.15, or configure
-    #    Project WARNING: with CONFIG+=sdk_no_version_check when running qmake to silence this warning.
-
-    # NOTE: TEMPORARY TURNING OFF THE VERSION CHECK
+# NOTE: TEMPORARY TURNING OFF THE VERSION CHECK
 
 # The following SDK must exist in /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/
 # If it does not exist, change the following to match the SDK you want to compile with.
@@ -323,23 +302,98 @@ QMAKE_MAC_SDK = macosx12.0
 # the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
 # "If using Qt Creator, you have to uncheck the Add build library search path to DYLD_LIBRARY_PATH and DYLD_FRAMEWORK_PATH option from the Run section in the Projects tab:"
 
-    # LYRICS AND PATTER TEMPLATES --------------------------------------------
-    # Copy the lyrics.template.html and patter.template.html files to the right place
-    copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
-    copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
-    copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+# LYRICS AND PATTER TEMPLATES --------------------------------------------
+# Copy the lyrics.template.html and patter.template.html files to the right place
+copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
-    # SD --------------------------------------------
-    # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
-    #  (inside the SquareDesk.app bundle)
-    # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
-    # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
-    copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata2.commands = $(COPY_DIR) $$PWD/../sd/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
-    copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
+# SD --------------------------------------------
+# Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
+#  (inside the SquareDesk.app bundle)
+# Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
+# This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
+copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
+copydata2.commands = $(COPY_DIR) $$PWD/../sd/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
-    # SquareDesk Manual (PDF)
-    copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
+# SquareDesk Manual (PDF)
+copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
+
+# SOUNDFX STARTER SET --------------------------------------------
+copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11f2.commands = $(COPY_DIR) $$PWD/soundfx/7.short_bell.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11f3.commands = $(COPY_DIR) $$PWD/soundfx/8.ding_ding.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
+
+first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+
+export(first.depends)
+export(copydata10.commands)
+export(copydata11a.commands)
+export(copydata11b.commands)
+export(copydata11c.commands)
+export(copydata11d.commands)
+export(copydata11e.commands)
+export(copydata11f.commands)
+export(copydata11f2.commands)
+export(copydata11f3.commands)
+export(copydata11g.commands)
+export(copydata11h.commands)
+export(copydata12h.commands)
+
+QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+
+# For the Mac OS X DMG installer build, we need exactly 2 files stuck into the results directory ---------
+installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command
+installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
+first.depends += installer1 installer2
+export(first.depends)
+export(installer1.commands)
+export(installer2.commands)
+QMAKE_EXTRA_TARGETS += installer1 installer2
+
+}
+
+# ************************************************************************************
+# USE THIS ONE FOR STUFF THAT IS FOR M1 MACS ONLY *************
+#macx {
+#    # M1MAC: comment this section out on X86 Mac builds
+#    DEFINES += M1MAC=1
+#}
+
+# USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
+macx {
+    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
+    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
+    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
+    LIBS += $$PWD/../local/lib/libtidy.5.dylib
+
+    mylib.path = Contents/MacOS
+    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
+    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
+    QMAKE_BUNDLE_DATA += mylib
+
+    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
+    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
+    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
+
+    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
+
+    # ZLIB ------------------------------------------
+    #  do "brew install zlib"
+    LIBS += /usr/lib/libz.dylib
+    LIBS += /usr/local/opt/zlib/lib/libz.dylib
 
     # PS --------------------------------------------
     # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
@@ -380,38 +434,6 @@ QMAKE_MAC_SDK = macosx12.0
 
     QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
-    # SOUNDFX STARTER SET --------------------------------------------
-    copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11a.commands = $(COPY_DIR) $$PWD/soundfx/1.whistle.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11b.commands = $(COPY_DIR) $$PWD/soundfx/2.clown_honk.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11c.commands = $(COPY_DIR) $$PWD/soundfx/3.submarine.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11d.commands = $(COPY_DIR) $$PWD/soundfx/4.applause.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11e.commands = $(COPY_DIR) $$PWD/soundfx/5.fanfare.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11f.commands = $(COPY_DIR) $$PWD/soundfx/6.fade.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11f2.commands = $(COPY_DIR) $$PWD/soundfx/7.short_bell.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11f3.commands = $(COPY_DIR) $$PWD/soundfx/8.ding_ding.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11g.commands = $(COPY_DIR) $$PWD/soundfx/break_over.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata11h.commands = $(COPY_DIR) $$PWD/soundfx/long_tip.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-    copydata12h.commands = $(COPY_DIR) $$PWD/soundfx/thirty_second_warning.mp3 $$OUT_PWD/SquareDesk.app/Contents/soundfx
-
-    first.depends += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
-
-    export(first.depends)
-    export(copydata10.commands)
-    export(copydata11a.commands)
-    export(copydata11b.commands)
-    export(copydata11c.commands)
-    export(copydata11d.commands)
-    export(copydata11e.commands)
-    export(copydata11f.commands)
-    export(copydata11f2.commands)
-    export(copydata11f3.commands)
-    export(copydata11g.commands)
-    export(copydata11h.commands)
-    export(copydata12h.commands)
-
-    QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
-
     # For the PDF viewer -----------------
     copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
     copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
@@ -437,15 +459,6 @@ QMAKE_MAC_SDK = macosx12.0
     export(copydata2q.commands)
     export(copydata3q.commands)
     QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
-
-    # For the Mac OS X DMG installer build, we need exactly 2 files stuck into the results directory ---------
-    installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command
-    installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
-    first.depends += installer1 installer2
-    export(first.depends)
-    export(installer1.commands)
-    export(installer2.commands)
-    QMAKE_EXTRA_TARGETS += installer1 installer2
 
     # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
     #   then, copies over the dependency (libmpg123) from /usr/local/opt (assumed installed via BREW)
@@ -696,4 +709,3 @@ DISTFILES += \
     PackageIt.command
 
 CONFIG += c++11
-

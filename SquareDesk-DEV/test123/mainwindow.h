@@ -71,7 +71,13 @@
 #include "sdredostack.h"
 
 #include "math.h"
-#include "bass_audio.h"
+
+#if M1MAC
+#include "flexible_audio.h"  // M1 Mac OS only
+#else
+#include "bass_audio.h"      // all other platforms
+#endif
+
 #include "myslider.h"
 #include "preferencesdialog.h"
 #include "levelmeter.h"

@@ -6,15 +6,14 @@ SUBDIRS = taglib test123 sdlib #\
 
 mac {
 # quazip is Mac OS X only right now, for downloading and unpacking lyrics files...
-#SUBDIRS += sd sdApp quazip
-SUBDIRS += quazip # mp3gain
-#sd.subdir = sd
-#sdApp.subdir = sdApp
+
+# USE THIS LINE FOR X86_64 MAC BUILDS ONLY
+#SUBDIRS += quazip
+
+# M1MAC: USE THIS LINE FOR M1 Silicon BUILDS ONLY
+SUBDIRS += # quazip # mp3gain
 
 ## what subproject depends on others -- test123 and sdApp depend on sd, test123 also depends on taglib and html-tidy
-#sdApp.depends = sd
-#test123.depends = sd taglib html-tidy sdlib
-#test123.depends = taglib html-tidy sdlib
 test123.depends = taglib sdlib
 
 # TEMPORARILY TURN OFF THE VERSION CHECK FOR MACOS 11
