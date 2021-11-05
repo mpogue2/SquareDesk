@@ -37,13 +37,43 @@ DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
 #    AppleMusicLibraryXMLReader.cpp \  # no longer need this
+    audiodecoder.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
     mainwindow.cpp \
+#    miniBPM/MiniBpm.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
+#    rubberband/single/RubberBandSingle.cpp \
+#    rubberband/src/RubberBandStretcher.cpp \
+#    rubberband/src/StretchCalculator.cpp \
+#    rubberband/src/StretcherChannelData.cpp \
+#    rubberband/src/StretcherImpl.cpp \
+#    rubberband/src/StretcherProcess.cpp \
+#    rubberband/src/audiocurves/CompoundAudioCurve.cpp \
+#    rubberband/src/audiocurves/ConstantAudioCurve.cpp \
+#    rubberband/src/audiocurves/HighFrequencyAudioCurve.cpp \
+#    rubberband/src/audiocurves/PercussiveAudioCurve.cpp \
+#    rubberband/src/audiocurves/SilentAudioCurve.cpp \
+#    rubberband/src/audiocurves/SpectralDifferenceAudioCurve.cpp \
+#    rubberband/src/base/Profiler.cpp \
+#    rubberband/src/dsp/AudioCurveCalculator.cpp \
+#    rubberband/src/dsp/BQResampler.cpp \
+#    rubberband/src/dsp/FFT.cpp \
+#    rubberband/src/dsp/Resampler.cpp \
+#    rubberband/src/getopt/getopt.c \
+#    rubberband/src/getopt/getopt_long.c \
+#    rubberband/src/jni/RubberBandStretcherJNI.cpp \
+#    rubberband/src/kissfft/kiss_fft.c \
+#    rubberband/src/kissfft/kiss_fftr.c \
+#    rubberband/src/rubberband-c.cpp \
+#    rubberband/src/speex/resample.c \
+#    rubberband/src/system/Allocators.cpp \
+#    rubberband/src/system/Thread.cpp \
+#    rubberband/src/system/VectorOpsComplex.cpp \
+#    rubberband/src/system/sysutils.cpp \
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
     tablenumberitem.cpp \
@@ -87,14 +117,54 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@
 }
 
 HEADERS  += mainwindow.h \
+    ../miniBPM/MiniBpm.h \
+    audiodecoder.h \
     bass.h \
     bass_fx.h \
     bass_audio.h \
     flexible_audio.h \
+    miniBPM/MiniBpm.h \
     myslider.h \
     bassmix.h \
     importdialog.h \
     exportdialog.h \
+    rubberband/rubberband/RubberBandStretcher.h \
+    rubberband/rubberband/rubberband-c.h \
+    rubberband/src/StretchCalculator.h \
+    rubberband/src/StretcherChannelData.h \
+    rubberband/src/StretcherImpl.h \
+    rubberband/src/audiocurves/CompoundAudioCurve.h \
+    rubberband/src/audiocurves/ConstantAudioCurve.h \
+    rubberband/src/audiocurves/HighFrequencyAudioCurve.h \
+    rubberband/src/audiocurves/PercussiveAudioCurve.h \
+    rubberband/src/audiocurves/SilentAudioCurve.h \
+    rubberband/src/audiocurves/SpectralDifferenceAudioCurve.h \
+    rubberband/src/base/Profiler.h \
+    rubberband/src/base/RingBuffer.h \
+    rubberband/src/base/Scavenger.h \
+    rubberband/src/dsp/AudioCurveCalculator.h \
+    rubberband/src/dsp/BQResampler.h \
+    rubberband/src/dsp/FFT.h \
+    rubberband/src/dsp/MovingMedian.h \
+    rubberband/src/dsp/Resampler.h \
+    rubberband/src/dsp/SampleFilter.h \
+    rubberband/src/dsp/SincWindow.h \
+    rubberband/src/dsp/Window.h \
+    rubberband/src/float_cast/float_cast.h \
+    rubberband/src/getopt/getopt.h \
+    rubberband/src/getopt/unistd.h \
+    rubberband/src/kissfft/_kiss_fft_guts.h \
+    rubberband/src/kissfft/kiss_fft.h \
+    rubberband/src/kissfft/kiss_fft_log.h \
+    rubberband/src/kissfft/kiss_fftr.h \
+    rubberband/src/pommier/neon_mathfun.h \
+    rubberband/src/pommier/sse_mathfun.h \
+    rubberband/src/speex/speex_resampler.h \
+    rubberband/src/system/Allocators.h \
+    rubberband/src/system/Thread.h \
+    rubberband/src/system/VectorOps.h \
+    rubberband/src/system/VectorOpsComplex.h \
+    rubberband/src/system/sysutils.h \
     sessioninfo.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
@@ -365,120 +435,121 @@ QMAKE_EXTRA_TARGETS += installer1 installer2
 
 # ************************************************************************************
 # USE THIS ONE FOR STUFF THAT IS FOR M1 MACS ONLY *************
-#macx {
-#    # M1MAC: comment this section out on X86 Mac builds
-#    DEFINES += M1MAC=1
-#}
+macx {
+    # M1MAC: comment this section out on X86 Mac builds
+    DEFINES += M1MAC=1
+    QT += multimedia
+}
 
 # USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
-macx {
-    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
-    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-    LIBS += $$PWD/../local/lib/libtidy.5.dylib
+#macx {
+#    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
+#    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
+#    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+#    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
+#    LIBS += $$PWD/../local/lib/libtidy.5.dylib
 
-    mylib.path = Contents/MacOS
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
-    QMAKE_BUNDLE_DATA += mylib
+#    mylib.path = Contents/MacOS
+#    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+#    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
+#    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
+#    QMAKE_BUNDLE_DATA += mylib
 
-    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
-    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
-    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
+#    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
+#    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
+#    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
 
-    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
+#    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
 
-    # ZLIB ------------------------------------------
-    #  do "brew install zlib"
-    # LIBS += /usr/lib/libz.dylib
-    LIBS += /usr/local/opt/zlib/lib/libz.dylib
+#    # ZLIB ------------------------------------------
+#    #  do "brew install zlib"
+#    # LIBS += /usr/lib/libz.dylib
+#    LIBS += /usr/local/opt/zlib/lib/libz.dylib
 
-    # PS --------------------------------------------
-    # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
-    #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
-    #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
-    #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
-    #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
-    #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
+#    # PS --------------------------------------------
+#    # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
+#    #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
+#    #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
+#    #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
+#    #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
+#    #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
 
-    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
-    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata5.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDesk.app/Contents
+#    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
+#    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
+#    copydata4.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    copydata5.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDesk.app/Contents
 
-    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/models/en-us
-    copydata6b.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDesk.app/Contents/models
+#    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/models/en-us
+#    copydata6b.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDesk.app/Contents/models
 
-    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
+#    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+#    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
-    #export(first.depends)
-    export(copydata0a.commands)
-    export(copydata0b.commands)
-    export(copydata0c.commands)
-    export(copydata1.commands)
-    export(copydata2.commands)
-    export(copydata2b.commands)
-    export(copydata3.commands)
-    export(copydata4.commands)
-    export(copydata5.commands)
-    export(copydata6a.commands)
-    export(copydata6b.commands)
-    export(copydata7.commands)
-    export(copydata8.commands)
+#    #export(first.depends)
+#    export(copydata0a.commands)
+#    export(copydata0b.commands)
+#    export(copydata0c.commands)
+#    export(copydata1.commands)
+#    export(copydata2.commands)
+#    export(copydata2b.commands)
+#    export(copydata3.commands)
+#    export(copydata4.commands)
+#    export(copydata5.commands)
+#    export(copydata6a.commands)
+#    export(copydata6b.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+#    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
 
-    # For the PDF viewer -----------------
-    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
-    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
+#    # For the PDF viewer -----------------
+#    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+#    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+#    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+#    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
 
-    first.depends += copydata1p copydata2p copydata3p copydata4p
-    export(first.depends)
-    export(copydata1p.commands)
-    export(copydata2p.commands)
-    export(copydata3p.commands)
-    export(copydata4p.commands)
-    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
+#    first.depends += copydata1p copydata2p copydata3p copydata4p
+#    export(first.depends)
+#    export(copydata1p.commands)
+#    export(copydata2p.commands)
+#    export(copydata3p.commands)
+#    export(copydata4p.commands)
+#    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
 
-    # For the QUAZIP library -- we need exactly the right name on the library -----------------
-    # yes, this is a rename.  I don't know how to do this in QMake directly.
-    copydata1q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
-    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
-    copydata3q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib
-    first.depends += copydata1q copydata2q copydata3q
-    export(first.depends)
-    export(copydata1q.commands)
-    export(copydata2q.commands)
-    export(copydata3q.commands)
-    QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
+#    # For the QUAZIP library -- we need exactly the right name on the library -----------------
+#    # yes, this is a rename.  I don't know how to do this in QMake directly.
+#    copydata1q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
+#    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
+#    copydata3q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib
+#    first.depends += copydata1q copydata2q copydata3q
+#    export(first.depends)
+#    export(copydata1q.commands)
+#    export(copydata2q.commands)
+#    export(copydata3q.commands)
+#    QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
 
-    # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
-    #   then, copies over the dependency (libmpg123) from /usr/local/opt (assumed installed via BREW)
-    #   then, the library reference is changed in the mp3gain executable to point at the LOCAL version of libmpg123
-    #   then, the lib reference is changed to point at the local QCore framework
-    #   finally, otool is used to double check that the library reference is correct
-    mp3gain1.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    mp3gain2.commands = $(COPY) /usr/local/opt/mpg123/lib/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    mp3gain3.commands = install_name_tool -change /usr/local/opt/mpg123/lib/libmpg123.0.dylib @executable_path/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
-    mp3gain4.commands = install_name_tool -change @rpath/QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
-    mp3gain5.commands = otool -L $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
-    first.depends += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
-    export(first.depends)
-    export(mp3gain1.commands)
-    export(mp3gain2.commands)
-    export(mp3gain3.commands)
-    export(mp3gain4.commands)
-    export(mp3gain5.commands)
-    QMAKE_EXTRA_TARGETS += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
-}
+#    # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
+#    #   then, copies over the dependency (libmpg123) from /usr/local/opt (assumed installed via BREW)
+#    #   then, the library reference is changed in the mp3gain executable to point at the LOCAL version of libmpg123
+#    #   then, the lib reference is changed to point at the local QCore framework
+#    #   finally, otool is used to double check that the library reference is correct
+#    mp3gain1.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    mp3gain2.commands = $(COPY) /usr/local/opt/mpg123/lib/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    mp3gain3.commands = install_name_tool -change /usr/local/opt/mpg123/lib/libmpg123.0.dylib @executable_path/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+#    mp3gain4.commands = install_name_tool -change @rpath/QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+#    mp3gain5.commands = otool -L $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
+#    first.depends += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
+#    export(first.depends)
+#    export(mp3gain1.commands)
+#    export(mp3gain2.commands)
+#    export(mp3gain3.commands)
+#    export(mp3gain4.commands)
+#    export(mp3gain5.commands)
+#    QMAKE_EXTRA_TARGETS += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
+#}
 
 win32:CONFIG(debug, debug|release): {
     # PS --------------------------------------------
@@ -707,5 +778,7 @@ DISTFILES += \
     cuesheet2.css \
     lyrics.template.html \
     PackageIt.command
+#    rubberband/src/kissfft/COPYING \
+#    rubberband/src/speex/COPYING
 
 CONFIG += c++11

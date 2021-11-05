@@ -24,11 +24,19 @@
 ****************************************************************************/
 
 #pragma once
-#include "flexible_audio.h"
+//#include "flexible_audio.h"
 
 #include <QTimer>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QAudioBuffer>
+#include <QAudioDevice>
+#include <QAudioDecoder>
+#include <QAudioFormat>
+#include <QMediaDevices>
+#include <QFile>
+#include <QBuffer>
+#include "perftimer.h"
 
 // indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
 #define FREQ_KHZ 0
@@ -41,8 +49,10 @@
 #define BASS_ACTIVE_STALLED 2
 #define BASS_ACTIVE_PAUSED  3
 
-class flexible_audio
+class flexible_audio : public QIODevice
 {
+    Q_OBJECT
+
     //-------------------------------------------------------------
 public:
     //---------------------------------------------------------
@@ -76,7 +86,7 @@ public:
 //---------------------------------------------------------
     //constructors
     flexible_audio(void);
-    ~flexible_audio(void);
+    virtual ~flexible_audio(void);
     //---------------------------------------------------------
     //System
     void Init(void);
@@ -137,5 +147,23 @@ public:
 
 private:
     QAudioOutput  *audioOutput;
+
+    QFile m_file;
+    QBuffer m_input;
+    QByteArray m_data;
+    QAudioDecoder m_decoder;
+
+    int totalBytes;
+
+protected:
+    qint64 readData(char* data, qint64 maxlen) override;
+    qint64 writeData(const char* data, qint64 len) override;
+
+private slots:
+    void bufferReady();
+    void finished();
+    void decoder_error();
+    void posChanged(qint64);
+    void durChanged(qint64);
 };
 

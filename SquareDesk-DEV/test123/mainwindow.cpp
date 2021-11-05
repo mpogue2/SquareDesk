@@ -4858,6 +4858,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
 
 double MainWindow::getID3BPM(QString MP3FileName) {
+/*
     MPEG::File *mp3file;
     ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
 
@@ -4877,7 +4878,8 @@ double MainWindow::getID3BPM(QString MP3FileName) {
 
     }
 
-    return(theBPM);
+    return(theBPM); */  // M1MAC FIX
+    return(0.0);
 }
 
 void MainWindow::reloadCurrentMP3File() {
@@ -5185,7 +5187,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     songLoaded = true;  // now seekBar can be updated
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_MACXXX
     // TODO: HOW TO FORCE RECALC OF REPLAYGAIN ON A FILE?
     songLoadedReplayGain_dB = 0.0;
     bool songHasReplayGain = settings1.isSetReplayGain();
