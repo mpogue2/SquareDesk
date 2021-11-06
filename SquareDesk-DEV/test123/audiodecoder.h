@@ -58,6 +58,9 @@
 #include <QWaveDecoder>
 #include <QBuffer>
 #include <QByteArray>
+#include <QTimer>
+#include <QAudioDevice>
+#include <QAudioSink>
 
 class AudioDecoder : public QObject
 {
@@ -72,6 +75,17 @@ public:
     void stop();
     QAudioDecoder::Error getError();
 
+    // MUSIC PLAYER ------
+    void Play();
+    void Pause();
+    void Stop();
+    bool isPlaying();
+
+    unsigned int playPosition_samples;
+
+    QTimer *playTimer;
+    bool activelyPlaying;
+
 signals:
     void done();
 
@@ -83,9 +97,14 @@ public slots:
 
 private slots:
     void updateProgress();
+//    void pushPlayBuffer();
 
 private:
     QAudioDecoder m_decoder;
+
+    QAudioSink   *m_audioSink;
+    QIODevice    *m_audioDevice;
+    unsigned int  m_audioBufferSize;
 
     qreal m_progress;
 

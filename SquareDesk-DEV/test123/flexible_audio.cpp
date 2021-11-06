@@ -215,8 +215,11 @@ void flexible_audio::StreamCreate(const char *filepath, double  *pSongStart_sec,
 //    // ***** TEST OF AUDIODECODER.CPP *****
 //    //QObject::connect(&decoder, &AudioDecoder::done,
 //    //                 &app, &QCoreApplication::quit);
-    decoder.setSource("/Users/mpogue/Google Drive/__squareDanceMusic/archive.org/ARCH1 - JacksonsHornpipe (Jackson).mp3");
-//    decoder.setSource(filepath);  // this guy will also read the file (THIS DOES NOT WORK.  MUST BE DIFFERENT FILE.)
+//    decoder.setSource("/Users/mpogue/Google Drive/__squareDanceMusic/archive.org/ARCH1 - JacksonsHornpipe (Jackson).mp3");
+//    decoder.setSource("/Users/mpogue/Google Drive/__squareDanceMusic/archive.org/silence10s.mp3");
+//    decoder.setSource("/Users/mpogue/Google Drive/__squareDanceMusic/archive.org/tone10s.mp3");
+//    decoder.setSource("/Users/mpogue/Google Drive/__squareDanceMusic/archive.org/ARCH1 - JacksonsHornpipe (Jackson).mp3");  // WORKS
+    decoder.setSource(filepath);  // this guy will also read the file (THIS DOES NOT WORK.  MUST BE DIFFERENT FILE.)
     qDebug() << "Stopping the decoder to make sure its read head is back at zero...";
     decoder.stop();
     qDebug() << "starting the decoder....";
@@ -372,18 +375,18 @@ void flexible_audio::StreamGetPosition(void)
 // always asks the engine what the state is (NOT CACHED), then returns one of:
 //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
 uint32_t flexible_audio::currentStreamState() {
-#ifdef USEMEDIAPLAYER
-    QMediaPlayer::PlaybackState state = player->playbackState(); // StoppedState, PlayingState, PausedState
+//#ifdef USEMEDIAPLAYER
+//    QMediaPlayer::PlaybackState state = player->playbackState(); // StoppedState, PlayingState, PausedState
 
-    switch (state) {
-    case QMediaPlayer::StoppedState: return(BASS_ACTIVE_STOPPED);
-    case QMediaPlayer::PlayingState: return(BASS_ACTIVE_PLAYING);
-    case QMediaPlayer::PausedState:  return(BASS_ACTIVE_PAUSED);
-    default: return(BASS_ACTIVE_STALLED);  // should never happen
-    }
-#else
+//    switch (state) {
+//    case QMediaPlayer::StoppedState: return(BASS_ACTIVE_STOPPED);
+//    case QMediaPlayer::PlayingState: return(BASS_ACTIVE_PLAYING);
+//    case QMediaPlayer::PausedState:  return(BASS_ACTIVE_PAUSED);
+//    default: return(BASS_ACTIVE_STALLED);  // should never happen
+//    }
+//#else
     return(BASS_ACTIVE_STALLED);
-#endif
+//#endif
 }
 
 // ------------------------------------------------------------------
@@ -423,9 +426,15 @@ void flexible_audio::SetMono(bool on)
 void flexible_audio::Play(void)
 {
     qDebug() << "Play";
-#ifdef USEMEDIAPLAYER
-    player->play();
-#endif
+//#ifdef USEMEDIAPLAYER
+//    player->play();
+//#else
+    if (decoder.isPlaying()) {
+        decoder.Pause();
+    } else {
+        decoder.Play();
+    }
+//#endif
     bPaused = false;
     StreamGetPosition();  // tell the position bar in main window where we are
 }
@@ -434,9 +443,11 @@ void flexible_audio::Play(void)
 void flexible_audio::Stop(void)
 {
     qDebug() << "Stop";
-#ifdef USEMEDIAPLAYER
-    player->stop();
-#endif
+//#ifdef USEMEDIAPLAYER
+//    player->stop();
+//#else
+    decoder.Stop();
+//#endif
     StreamSetPosition(0);
     StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;
@@ -446,9 +457,11 @@ void flexible_audio::Stop(void)
 void flexible_audio::Pause(void)
 {
     qDebug() << "Pause";
-#ifdef USEMEDIAPLAYER
-    player->pause();
-#endif
+//#ifdef USEMEDIAPLAYER
+//    player->pause();
+//#else
+    decoder.Pause();
+//#endif
     StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;
 }
