@@ -80,6 +80,8 @@ public:
     void Pause();
     void Stop();
     bool isPlaying();
+    void setVolume(unsigned int v);
+    void setPan(double p);
 
     unsigned int playPosition_samples;
 

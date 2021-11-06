@@ -123,16 +123,17 @@ void flexible_audio::Exit(void)
 void flexible_audio::SetVolume(int inVolume)  // inVolume range: {0, 100}
 {
     qDebug() << "Setting new volume: " << inVolume;
-    Stream_Volume = inVolume;
+//    Stream_Volume = inVolume;
 #ifdef USEMEDIAPLAYER
-    audioOutput->setVolume(inVolume/100.0); // float range: {0.0, 1.0}
+//    audioOutput->setVolume(inVolume/100.0); // float range: {0.0, 1.0}
 #endif
+    decoder.setVolume(inVolume);
 }
 
 // uses the STREAM volume, rather than global volume
 void flexible_audio::SetReplayGainVolume(double replayGain_dB)
 {
-    qDebug() << "SetReplayGainVolume" << replayGain_dB;
+    qDebug() << "OBSOLETE: SetReplayGainVolume" << replayGain_dB;
 }
 
 // ------------------------------------------------------------------
@@ -150,10 +151,11 @@ void flexible_audio::SetPitch(int newPitch)
 }
 
 // ------------------------------------------------------------------
-void flexible_audio::SetPan(double newPan)
+void flexible_audio::SetPan(double newPan)  // range: {-1.0,1.0}
 {
     qDebug() << "Setting new pan: " << newPan;
-    gStream_Pan = static_cast<float>(newPan);
+//    gStream_Pan = static_cast<float>(newPan);
+    decoder.setPan(newPan);
 }
 
 // ------------------------------------------------------------------

@@ -10,8 +10,6 @@ QElapsedTimer timer1;
 
 // TODO: BUG: the play button isn't changing properly when paused.
 // TODO: STREAM POSITIONS, so that the GUI can be updated, and so I can click to jump forward. *********
-// TODO: VOLUME *********
-// TODO: FORCE TO MONO *********
 // TODO: EQ *********
 // TODO: PITCH/TEMPO ********
 
@@ -25,6 +23,7 @@ public:
         playPosition_samples = 0;
         activelyPlaying = false;
         threadDone = false;
+        m_volume = 100;
     }
 
     virtual ~PlayerThread() {
@@ -53,7 +52,9 @@ public:
                 }
 
                 if (bytesToWrite > 0) {
-                    m_audioDevice->write(p_data, bytesToWrite);  // just write up to the end
+                    processDSP(p_data, bytesToWrite);  // processes it to *processedData
+//                    m_audioDevice->write(p_data, bytesToWrite);  // just write up to the end; original PCM audio
+                    m_audioDevice->write((const char *)&processedData, bytesToWrite);  // DSP processed audio
                     playPosition_samples += bytesToWrite/4;      // move the data pointer to the next place to read from
                                                                  // if at the end, this will point just beyond the last sample
                 } else {
@@ -81,12 +82,50 @@ public:
         activelyPlaying = false;
     }
 
+    void setVolume(unsigned int vol) {
+            m_volume = vol;
+    }
+
+    unsigned int getVolume() {
+        return(m_volume);
+    }
+
+    void setPan(double pan) {
+            m_pan = pan;
+    }
+
+    void processDSP(const char *inData, unsigned int inLength_bytes) {
+        const short *inDataInt16 = (const short *)inData;
+              short *outDataInt16 =      (short *)(&processedData);
+        const unsigned int inLength_frames = inLength_bytes/4;
+
+        // PAN --------
+        const float PI_OVER_2 = 3.14159265f/2.0f;
+        float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
+        float KL = cos(theta);
+        float KR = sin(theta);
+
+        // FORCE MONO, VOLUME (0-100), and PAN/MIX -------
+        float scaleFactor = m_volume/(100.0*2.0);  // the 2.0 is from the Force Mono function
+        for (unsigned int i = 0; i < inLength_frames; i++) {
+            outDataInt16[2*i] = outDataInt16[2*i+1] = (short)(scaleFactor*KL*inDataInt16[2*i] + scaleFactor*KR*inDataInt16[2*i+1]); // stereo to mono + volume + pan without overflow
+        }
+//        for (unsigned int i = 0; i < 80; i++) {
+//            qDebug() << i << inDataInt16[2*i] << inDataInt16[2*i+1] << outDataInt16[2*i] << outDataInt16[2*i+1];
+//        }
+//        qDebug() << "stop here";
+    }
+
+    unsigned int m_volume;
+    double m_pan;
+
     bool activelyPlaying;
     unsigned int   playPosition_samples;
     unsigned int   totalSamplesInSong;
     QIODevice      *m_audioDevice;
     QAudioSink     *m_audioSink;
     unsigned char  *m_data;
+    unsigned char  processedData[8192 * 4]; // make it biggest ever expected (FIX: bufferSize)
     bool threadDone;
 };
 
@@ -329,3 +368,10 @@ bool AudioDecoder::isPlaying() {
     return(myPlayer.activelyPlaying);
 }
 
+void AudioDecoder::setVolume(unsigned int v) {
+    myPlayer.setVolume(v);
+}
+
+void AudioDecoder::setPan(double p) {
+    myPlayer.setPan(p);
+}
