@@ -249,6 +249,7 @@ public slots:
 
     void LyricsCopyAvailable(bool yes);
     void customLyricsMenuRequested(QPoint pos);
+    void haveDuration2(void);
 
 protected:
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;

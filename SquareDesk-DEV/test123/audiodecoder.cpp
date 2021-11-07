@@ -94,6 +94,15 @@ public:
             m_pan = pan;
     }
 
+    void setStreamPosition(double p) {
+            playPosition_samples = (unsigned int)(44100.0 * p); // this should be atomic
+    }
+
+    double getStreamPosition() {
+        return((double)(playPosition_samples/44100.0));  // returns current position in seconds as double
+    }
+
+
     void processDSP(const char *inData, unsigned int inLength_bytes) {
         const short *inDataInt16 = (const short *)inData;
               short *outDataInt16 =      (short *)(&processedData);
@@ -279,7 +288,7 @@ void AudioDecoder::error(QAudioDecoder::Error error)
         break;
     }
 
-    emit done();
+//    emit done();  // I'm not sure that this is right, so commenting out.
 }
 
 void AudioDecoder::isDecodingChanged(bool isDecoding)
@@ -293,15 +302,17 @@ void AudioDecoder::isDecodingChanged(bool isDecoding)
 
 void AudioDecoder::finished()
 {
+    qDebug() << "AudioDecoder::finished()";
     qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
     qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
-    emit done();
 
     unsigned char *p_data = (unsigned char *)(m_data->data());
     myPlayer.m_data = p_data;  // we are done decoding, so tell the player where the data is
 
     myPlayer.totalSamplesInSong = m_data->size()/4;  // TODO: 4 is numbytes per frame (make this a variable)
-    qDebug() << "** totalSamplesInSong: " << myPlayer.totalSamplesInSong;
+    qDebug() << "** totalSamplesInSong: " << myPlayer.totalSamplesInSong;  // TODO: this is really frames
+
+    emit done();
 }
 
 void AudioDecoder::updateProgress()
@@ -374,4 +385,16 @@ void AudioDecoder::setVolume(unsigned int v) {
 
 void AudioDecoder::setPan(double p) {
     myPlayer.setPan(p);
+}
+
+void AudioDecoder::setStreamPosition(double p) {
+    myPlayer.setStreamPosition(p);
+}
+
+double AudioDecoder::getStreamPosition() {
+    return(myPlayer.getStreamPosition());
+}
+
+double AudioDecoder::getStreamLength() {
+    return(myPlayer.totalSamplesInSong/44100.0);
 }

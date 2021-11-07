@@ -54,14 +54,14 @@ flexible_audio::flexible_audio(void) :
     m_input(&m_data)
 {
 //#ifdef USEMEDIAPLAYER
-      player = new QMediaPlayer;
-      audioOutput = new QAudioOutput;
-      player->setAudioOutput(audioOutput);
+//      player = new QMediaPlayer;
+//      audioOutput = new QAudioOutput;
+//      player->setAudioOutput(audioOutput);
 //#else
 
 #ifndef USEMEDIAPLAYER
 
-      connect(&m_decoder, SIGNAL(finished()), this, SLOT(finished()));  // PROBLEM: NEVER GET THIS MESSAGE
+      connect(&m_decoder, SIGNAL(finished()), this, SLOT(finished()));  //
       connect(&m_decoder, SIGNAL(bufferReady()), this, SLOT(bufferReady()));
       // WEIRD:  I don't get calls to bufferReady, unless the finished function is connected.
 
@@ -70,6 +70,8 @@ flexible_audio::flexible_audio(void) :
       connect(&m_decoder, SIGNAL(positionChanged(qint64)), this, SLOT(posChanged(qint64)));
       connect(&m_decoder, SIGNAL(durationChanged(qint64)), this, SLOT(durChanged(qint64)));
 #endif
+
+      connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
 
 //    Stream_State = (HSTREAM)NULL;
     Stream_Volume = 100; ///10000 (multipled on output)
@@ -310,6 +312,12 @@ void flexible_audio::durChanged(qint64 a)
     qDebug() << "***** durChanged" << a;
 }
 
+void flexible_audio::decoderDone() // SLOT
+{
+    qDebug() << "flexible_audio::decoder_done() time to alert the cBass!";
+    emit haveDuration();  // tell others that we have a valid duration now
+}
+
 void flexible_audio::bufferReady() // SLOT
 {
 #ifndef USEMEDIAPLAYER
@@ -349,29 +357,32 @@ bool flexible_audio::isPaused(void)
 void flexible_audio::StreamSetPosition(double Position_sec)
 {
     qDebug() << "StreamSetPosition:" << Position_sec;
-#ifdef USEMEDIAPLAYER
-    player->setPosition((qint64)(Position_sec * 1000.0));
-#endif
+//#ifdef USEMEDIAPLAYER
+//    player->setPosition((qint64)(Position_sec * 1000.0));
+//#endif
+    decoder.setStreamPosition(Position_sec);  // tell the decoder, which will tell myPlayer
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::StreamGetLength(void)
 {
-#ifdef USEMEDIAPLAYER
-    qint64 duration_ms = player->duration();
-    FileLength = (double)duration_ms / 1000.0;
-#endif
+//#ifdef USEMEDIAPLAYER
+//    qint64 duration_ms = player->duration();
+//    FileLength = (double)duration_ms / 1000.0;
+//#endif
+    FileLength = decoder.getStreamLength();
     qDebug() << "StreamGetLength:" << FileLength;
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::StreamGetPosition(void)
 {
-#ifdef USEMEDIAPLAYER
-    qint64 position_ms = player->position();
-    Current_Position = (double)position_ms/1000.0;
-#endif
-    qDebug() << "StreamGetPosition:" << Current_Position << "isDecoding:" << m_decoder.isDecoding() << "errorStr:" << m_decoder.errorString();
+//#ifdef USEMEDIAPLAYER
+//    qint64 position_ms = player->position();
+//    Current_Position = (double)position_ms/1000.0;
+//#endif
+    Current_Position = decoder.getStreamPosition(); // double in seconds
+    qDebug() << "StreamGetPosition:" << Current_Position << ", isDecoding:" << m_decoder.isDecoding() << ", errorStr:" << m_decoder.errorString();
 }
 
 // always asks the engine what the state is (NOT CACHED), then returns one of:

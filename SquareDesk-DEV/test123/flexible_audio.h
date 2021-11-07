@@ -159,11 +159,17 @@ protected:
     qint64 readData(char* data, qint64 maxlen) override;
     qint64 writeData(const char* data, qint64 len) override;
 
+signals:
+    void haveDuration();
+
 private slots:
     void bufferReady();
-    void finished();
+    void finished();  // decode finished
     void decoder_error();
     void posChanged(qint64);
     void durChanged(qint64);
+
+public slots:
+    void decoderDone();
 };
 

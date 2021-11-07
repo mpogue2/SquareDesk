@@ -83,6 +83,13 @@ public:
     void setVolume(unsigned int v);
     void setPan(double p);
 
+    void setStreamPosition(double p);
+    double getStreamPosition();
+    double getStreamLength();
+
+//    void callMeBackWithDuration(void(*moo)()) { pMoo = moo; }
+//    void(*pMoo)(); // pMoo is a pointer to a function taking no args, and returning nothing.
+
     unsigned int playPosition_samples;
 
     QTimer *playTimer;

@@ -313,6 +313,14 @@ void MainWindow::LyricsCopyAvailable(bool yes) {
     lyricsCopyIsAvailable = yes;
 }
 
+void InitializeSeekBar(MySlider *seekBar);  // forward decl
+
+void MainWindow::haveDuration2(void) {
+    qDebug() << "MainWindow::haveDuration -- StreamCreate duration now available! *****";
+    cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
+    InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
+    InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
+}
 
 // ----------------------------------------------------------------------
 MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
@@ -346,14 +354,27 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     Q_UNUSED(splash)
 
 #ifdef M1MAC
-    void InitializeSeekBar(MySlider *seekBar);  // forward decl
+//    void InitializeSeekBar(MySlider *seekBar);  // forward decl
 
-    connect(cBass.player, &QMediaPlayer::durationChanged, this, [&](qint64 dur) {
-        qDebug() << "StreamCreate duration now available = " << dur;
-        cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
-        InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
-        InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
-    });
+//    // this is for the QMediaPlayer impl
+//    connect(cBass.player, &QMediaPlayer::durationChanged, this, [&](qint64 dur) {
+//        qDebug() << "StreamCreate duration now available = " << dur;
+//        cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
+//        InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
+//        InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
+//    });
+
+//    cBass.callMeBackWithDuration(&MainWindow::haveDuration);
+
+// THIS IS FOR THE AUDIODECODER IMPL
+//    connect(&cBass, SIGNAL(haveDuration()), this, [&]() {
+//        qDebug() << "StreamCreate duration now available = ";
+//        cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
+//        InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
+//        InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
+//    });
+
+    connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));
 #endif
 
     lyricsCopyIsAvailable = false;
@@ -4858,6 +4879,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
 
 double MainWindow::getID3BPM(QString MP3FileName) {
+    Q_UNUSED(MP3FileName)
 /*
     MPEG::File *mp3file;
     ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
