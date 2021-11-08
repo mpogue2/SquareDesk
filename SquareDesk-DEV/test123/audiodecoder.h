@@ -62,6 +62,12 @@
 #include <QAudioDevice>
 #include <QAudioSink>
 
+// BASS_ChannelIsActive return values
+#define BASS_ACTIVE_STOPPED 0
+#define BASS_ACTIVE_PLAYING 1
+#define BASS_ACTIVE_STALLED 2
+#define BASS_ACTIVE_PAUSED  3
+
 class AudioDecoder : public QObject
 {
     Q_OBJECT
@@ -82,13 +88,13 @@ public:
     bool isPlaying();
     void setVolume(unsigned int v);
     void setPan(double p);
+    void setMono(bool on);
 
-    void setStreamPosition(double p);
+    void   setStreamPosition(double p);
     double getStreamPosition();
     double getStreamLength();
 
-//    void callMeBackWithDuration(void(*moo)()) { pMoo = moo; }
-//    void(*pMoo)(); // pMoo is a pointer to a function taking no args, and returning nothing.
+    unsigned char getCurrentState();
 
     unsigned int playPosition_samples;
 
@@ -106,7 +112,6 @@ public slots:
 
 private slots:
     void updateProgress();
-//    void pushPlayBuffer();
 
 private:
     QAudioDecoder m_decoder;

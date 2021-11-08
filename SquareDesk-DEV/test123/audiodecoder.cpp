@@ -8,8 +8,6 @@
 
 QElapsedTimer timer1;
 
-// TODO: BUG: the play button isn't changing properly when paused.
-// TODO: STREAM POSITIONS, so that the GUI can be updated, and so I can click to jump forward. *********
 // TODO: EQ *********
 // TODO: PITCH/TEMPO ********
 
@@ -22,6 +20,7 @@ public:
     PlayerThread()  {
         playPosition_samples = 0;
         activelyPlaying = false;
+        currentState = BASS_ACTIVE_STOPPED;
         threadDone = false;
         m_volume = 100;
     }
@@ -71,15 +70,18 @@ public:
     void Play() {
         qDebug() << "PlayerThread::Play";
         activelyPlaying = true;
+        currentState = BASS_ACTIVE_PLAYING;
     }
     void Stop() {
         qDebug() << "PlayerThread::Stop";
         activelyPlaying = false;
         playPosition_samples = 0;
+        currentState = BASS_ACTIVE_STOPPED;
     }
     void Pause() {
         qDebug() << "PlayerThread::Pause";
         activelyPlaying = false;
+        currentState = BASS_ACTIVE_PAUSED;
     }
 
     void setVolume(unsigned int vol) {
@@ -94,6 +96,10 @@ public:
             m_pan = pan;
     }
 
+    void setMono(bool on) {
+            m_mono = on;
+    }
+
     void setStreamPosition(double p) {
             playPosition_samples = (unsigned int)(44100.0 * p); // this should be atomic
     }
@@ -102,6 +108,9 @@ public:
         return((double)(playPosition_samples/44100.0));  // returns current position in seconds as double
     }
 
+    unsigned char getCurrentState() {
+        return(currentState);  // returns current state as int {0,3}
+    }
 
     void processDSP(const char *inData, unsigned int inLength_bytes) {
         const short *inDataInt16 = (const short *)inData;
@@ -127,8 +136,11 @@ public:
 
     unsigned int m_volume;
     double m_pan;
+    bool   m_mono;  // true when Force Mono is on
 
+    unsigned int currentState;
     bool activelyPlaying;
+
     unsigned int   playPosition_samples;
     unsigned int   totalSamplesInSong;
     QIODevice      *m_audioDevice;
@@ -144,16 +156,6 @@ PlayerThread myPlayer;  // singleton
 AudioDecoder::AudioDecoder()
 {
     qDebug() << "In AudioDecoder() constructor";
-
-//    // create a timer
-//    playTimer = new QTimer(this);
-
-//    // setup signal and slot
-//    connect(playTimer, SIGNAL(timeout()),
-//            this,      SLOT(pushPlayBuffer()));
-
-//    playPosition_samples = 0;  // start at the beginning
-//    activelyPlaying = false;
 
     // we want a format that will be no resampling for 99% of the MP3 files
 
@@ -199,7 +201,7 @@ AudioDecoder::AudioDecoder()
     myPlayer.m_audioSink = m_audioSink;
     myPlayer.m_data = (unsigned char *)(m_data->data());
 
-    myPlayer.start();
+    myPlayer.start();  // starts the playback thread (in STOPPED mode)
 }
 
 AudioDecoder::~AudioDecoder()
@@ -233,14 +235,14 @@ void AudioDecoder::setSource(const QString &fileName)
 
 void AudioDecoder::start()
 {
-    qDebug() << "starting...";
+    qDebug() << "AudioDecoder::start -- starting to decode...";
     if (!m_input->isOpen()) {
         qDebug() << "\thad to open m_input...";
         m_input->open(QIODeviceBase::ReadWrite);
     }
     m_progress = -1;  // reset the progress bar to the beginning, because we're about to start.
     timer1.start();
-    m_decoder.start();
+    m_decoder.start(); // starts the decode process
 }
 
 void AudioDecoder::stop()
@@ -329,53 +331,23 @@ void AudioDecoder::updateProgress()
     }
 }
 
-//void AudioDecoder::pushPlayBuffer() {
-
-////    QAudio::State state = m_audioSink->state();
-////    qDebug() << "audio state: " << state;
-////    qDebug() << "audio format being used: " << m_audioSink->format();
-//    unsigned int bytesFree = m_audioSink->bytesFree();
-////    qDebug() << "pushPlayBuffer, current position: " << playPosition_samples << "bytesFree:" << bytesFree;
-
-//    if ( bytesFree >= 0) {
-//        const char *p_data = (const char *)(m_data->data()) + (4 * playPosition_samples);
-////        QString t = QString("0x%1").arg((quintptr)p_data, QT_POINTER_SIZE * 2, 16, QChar('0'));
-////        qDebug() << "p_data before write:" << t;
-
-//        m_audioDevice->write(p_data, bytesFree);
-
-//        playPosition_samples += bytesFree/4; // push m_audioBufferSize/4 samples each time
-//        qDebug() << "wrote " << bytesFree << " bytes";
-
-////        p_data = (const char *)(m_data) + (4 * playPosition_samples);
-////        QString t2 = QString("0x%1").arg((quintptr)p_data, QT_POINTER_SIZE * 2, 16, QChar('0'));
-////        qDebug() << "p_data  after write:" << t2;
-//    }
-//}
-
+// --------------------------------------------------------------------------------
 void AudioDecoder::Play() {
-    qDebug() << "AudioDecoder::PLAY";
-//    activelyPlaying = true;
-//    playTimer->start(20);  // check for buffer write every 20ms; probably should do this in a thread instead.
+    qDebug() << "AudioDecoder::Play";
     myPlayer.Play();
 }
 
 void AudioDecoder::Pause() {
-    qDebug() << "AudioDecoder::PAUSE";
-//    playTimer->stop();
-//    activelyPlaying = false;
+    qDebug() << "AudioDecoder::Pause";
     myPlayer.Pause();
 }
 
 void AudioDecoder::Stop() {
-    qDebug() << "AudioDecoder::STOP";
-//    Pause(); // also sets activelyPlaying to false
-//    playPosition_samples = 0;
+    qDebug() << "AudioDecoder::Stop";
     myPlayer.Stop();
 }
 
 bool AudioDecoder::isPlaying() {
-//    return(activelyPlaying);
     return(myPlayer.activelyPlaying);
 }
 
@@ -385,6 +357,10 @@ void AudioDecoder::setVolume(unsigned int v) {
 
 void AudioDecoder::setPan(double p) {
     myPlayer.setPan(p);
+}
+
+void AudioDecoder::setMono(bool on) {
+    myPlayer.setMono(on);
 }
 
 void AudioDecoder::setStreamPosition(double p) {
@@ -397,4 +373,9 @@ double AudioDecoder::getStreamPosition() {
 
 double AudioDecoder::getStreamLength() {
     return(myPlayer.totalSamplesInSong/44100.0);
+}
+
+unsigned char AudioDecoder::getCurrentState() {
+    unsigned int currentState = myPlayer.getCurrentState();
+    return(currentState);
 }
