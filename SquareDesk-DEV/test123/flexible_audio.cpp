@@ -107,6 +107,20 @@ void flexible_audio::SetEq(int band, double val)
 {
     qDebug() << "Setting new EQ: " << band << val;
     Stream_Eq[band] = val;
+
+    switch (band) {
+    case 0:
+        decoder.setBassBoost(val);
+        break;
+    case 1:
+        decoder.setMidBoost(val);
+        break;
+    case 2:
+        decoder.setTrebleBoost(val);
+        break;
+    default:
+        qDebug() << "BAD EQ BAND: " << band << ", val:" << val;
+    }
 }
 
 // ------------------------------------------------------------------

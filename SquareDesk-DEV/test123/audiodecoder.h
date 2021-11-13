@@ -90,6 +90,10 @@ public:
     void setPan(double p);
     void setMono(bool on);
 
+    void setBassBoost(float b);
+    void setMidBoost(float m);
+    void setTrebleBoost(float t);
+
     void   setStreamPosition(double p);
     double getStreamPosition();
     double getStreamLength();

@@ -16,7 +16,6 @@ using namespace kfr;
 
 QElapsedTimer timer1;
 
-// TODO: EQ *********
 // TODO: PITCH/TEMPO ********
 // TODO: VU METER ********
 // TODO: LOOPS ********
@@ -40,13 +39,11 @@ public:
         sampleRate = 0;
 
         // EQ settings
-        bassBoost_dB   =  0.0;
-        midBoost_dB    =  0.0;
-        trebleBoost_dB =  0.0;
-
-        bq[0] = biquad_peak( 125.0/44100.0,  4.0,   bassBoost_dB);    // tweaked Q to match Intel version
-        bq[1] = biquad_peak(1000.0/44100.0,  0.9,   midBoost_dB);     // tweaked Q to match Intel version
-        bq[2] = biquad_peak(8000.0/44100.0,  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
+        bassBoost_dB   =  0.0;  // +/-15dB
+        midBoost_dB    =  0.0;  // +/-15dB
+        trebleBoost_dB =  0.0;  // +/-15dB
+        intelligibilityBoost_dB = 0.0;  // +/-10dB
+        updateEQ();  // update the bq[], based on the current *Boost_dB settings
     }
 
     virtual ~PlayerThread() {
@@ -111,7 +108,7 @@ public:
     }
 
     void setVolume(unsigned int vol) {
-            m_volume = vol;
+        m_volume = vol;
     }
 
     unsigned int getVolume() {
@@ -119,15 +116,15 @@ public:
     }
 
     void setPan(double pan) {
-            m_pan = pan;
+        m_pan = pan;
     }
 
     void setMono(bool on) {
-            m_mono = on;
+        m_mono = on;
     }
 
     void setStreamPosition(double p) {
-            playPosition_samples = (unsigned int)(sampleRate * p); // this should be atomic
+        playPosition_samples = (unsigned int)(sampleRate * p); // this should be atomic
     }
 
     double getStreamPosition() {
@@ -136,6 +133,39 @@ public:
 
     unsigned char getCurrentState() {
         return(currentState);  // returns current state as int {0,3}
+    }
+
+    // EQ --------------------------------------------------------------------------------
+    void updateEQ() {
+        // given bassBoost_dB, etc., recreate the bq's.
+        bq[0] = biquad_peak( 125.0/44100.0,  4.0,   bassBoost_dB);    // tweaked Q to match Intel version
+        bq[1] = biquad_peak(1000.0/44100.0,  0.9,   midBoost_dB);     // tweaked Q to match Intel version
+        bq[2] = biquad_peak(8000.0/44100.0,  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
+        bq[3] = biquad_peak(1600.0/44100.0,  0.9,   intelligibilityBoost_dB);  //
+
+        if (filter != NULL) {
+            delete filter;
+        }
+        filter = new biquad_filter<float>(bq);  // (re)initialize the filter from the latest bq coefficients
+        qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << ")";
+    }
+
+    void setBassBoost(double b) {
+        qDebug() << "new BASS EQ value: " << b;
+        bassBoost_dB = b;
+        updateEQ();
+    }
+
+    void setMidBoost(double m) {
+        qDebug() << "new MID EQ value: " << m;
+        midBoost_dB = m;
+        updateEQ();
+    }
+
+    void setTrebleBoost(double t) {
+        qDebug() << "new TREBLE EQ value: " << t;
+        trebleBoost_dB = t;
+        updateEQ();
     }
 
     // ================================================================================
@@ -175,53 +205,13 @@ public:
             outDataFloatL[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to mono + volume + pan
         }
 
-        // EQ and RUBBERBAND HERE (these work right now on deinterleaved mono data = one 4 byte float per frame, at outDataFloatL)
-        //
-        //
+        // EQ (including Intelligibility Boost) --------------------------------------------------------------------
+        // TODO: this holds context, yet it's getting destroyed repeatedly.
+        //   MUST ADD THIS TO THE SINGLETON, SO THAT IT STICKS AROUND **********
+        filter->apply(outDataFloatL, inLength_frames);   // applies IN PLACE
 
-        // EQ params for BiQuad from: https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html
-        // something like this from: https://www.kfrlib.com/blog/biquad-filters-cpp-using-kfr/
-//#include <kfr/math.hpp>
-//#include <kfr/dsp/biquad.hpp>
-
-//using namespace kfr;
-//        filter.apply(data);  // also maintains state.  do filter.reset() to start over and reinitialize state
-//        // perform the filtering and write the result back to data
-//            // under the hood the following steps will have been performed:
-//            // 1. create expression_biquads<1, double, univector<double>>
-//            // 2. call process(data, <created expression>)
-//            // The first argument can also be a static array of biquad_params<> structures
-//            data = biquad(bq, data);
-
-//  More info here: https://github.com/kfrlib/kfr/issues/59
-//    std::unique_ptr<biquad_filter<float>> bqfilter;
-
-//    void initialize()
-//    {
-//        // initialize chebyshev2 filter of order 8
-//        zpk<float> filt                       = iir_lowpass(chebyshev2<float>(8, 80), 0.09);
-//        // convert to 2nd order sections (suitable for biquad filter) or provide your own coefficients in bqs
-//        std::vector<biquad_params<float>> bqs = to_sos(filt);
-//        // create filter object
-//        bqfilter.reset(new biquad_filter<float>(bqs.data(), bqs.size()));
-//    }
-
-//    void process_buffer(float* dest, float* source, size_t numSamples)
-//    {
-//        // this applies filter to source and writes to dest
-//        bqfilter->apply(dest, source, numSamples);
-//        // inplace variant: bqfilter->apply(buffer, numSamples)
-//    }
-
-        // MAYBE ALSO: https://cpp.hotexamples.com/site/file?hash=0x87e134c23323e9e5ea81df507e8244a643f67857be7ab0dc676e4771dd06203c&fullName=kfr-master/include/kfr/ebu.hpp&project=dlevin256/kfr
-
-// ******************************************
-// MAYBE BEST ********, from biquads.cpp
-
-        biquad_filter<float> filter(bq);                // filter initialization (also holds context between apply calls)
-        filter.apply(outDataFloatL, inLength_frames);   // applies IN PLACE
-
-        // Now reinterleave, so that we can send to the speakers
+        // REINTERLEAVE --------------------------------------------------------------------------------------------
+        // ... so that we can send to the speakers
         float *outDataFloat  = (float *)(&processedData);
         for (unsigned int i = 0; i < inLength_frames; i++) {
             outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloatL[i];  // result is mono in stereo interleaved (8 bytes per frame) format
@@ -241,8 +231,10 @@ public:
     float bassBoost_dB = 0.0;
     float midBoost_dB = 0.0;
     float trebleBoost_dB = 0.0;
+    float intelligibilityBoost_dB = 0.0;
 
-    biquad_params<float> bq[3];
+    biquad_params<float> bq[4];
+    biquad_filter<float> *filter;  // filter initialization (also holds context between apply calls)
 
 private:
     unsigned int m_volume;
@@ -506,4 +498,16 @@ double AudioDecoder::getStreamLength() {
 unsigned char AudioDecoder::getCurrentState() {
     unsigned int currentState = myPlayer.getCurrentState();
     return(currentState);
+}
+
+void AudioDecoder::setBassBoost(float b) {
+    myPlayer.setBassBoost(b);
+}
+
+void AudioDecoder::setMidBoost(float m) {
+    myPlayer.setMidBoost(m);
+}
+
+void AudioDecoder::setTrebleBoost(float t) {
+    myPlayer.setTrebleBoost(t);
 }
