@@ -81,14 +81,14 @@ void flexible_audio::SetReplayGainVolume(double replayGain_dB)
 }
 
 // ------------------------------------------------------------------
-void flexible_audio::SetTempo(int newTempo)
+void flexible_audio::SetTempo(int newTempo)  // range: {80, 120}
 {
     qDebug() << "Setting new tempo: " << newTempo;
     Stream_Tempo = newTempo;
 }
 
 // ------------------------------------------------------------------
-void flexible_audio::SetPitch(int newPitch)
+void flexible_audio::SetPitch(int newPitch)  // range: {-5, 5}
 {
     qDebug() << "Setting new pitch: " << newPitch;
     Stream_Pitch = newPitch;
@@ -226,13 +226,13 @@ void flexible_audio::StreamGetLength(void)
 void flexible_audio::StreamGetPosition(void)
 {
     Current_Position = decoder.getStreamPosition(); // double in seconds
-    qDebug() << "StreamGetPosition:" << Current_Position << ", isDecoding:" << m_decoder.isDecoding() << ", errorStr:" << m_decoder.errorString();
+//    qDebug() << "StreamGetPosition:" << Current_Position << ", isDecoding:" << m_decoder.isDecoding() << ", errorStr:" << m_decoder.errorString();
 }
 
 // always asks the engine what the state is (NOT CACHED), then returns one of:
 //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
 uint32_t flexible_audio::currentStreamState() {
-    qDebug() << "flexible_audio::currentStreamState()";
+//    qDebug() << "flexible_audio::currentStreamState()";
     return(decoder.getCurrentState());
 }
 
@@ -288,7 +288,7 @@ void flexible_audio::Play(void)
 
 void flexible_audio::Stop(void)
 {
-    qDebug() << "Stop";
+    qDebug() << "flexible_audio::Stop";
     decoder.Stop();
     StreamSetPosition(0);
     StreamGetPosition();  // tell the position bar in main window where we are
@@ -297,7 +297,7 @@ void flexible_audio::Stop(void)
 
 void flexible_audio::Pause(void)
 {
-    qDebug() << "Pause";
+    qDebug() << "flexible_audio::Pause";
     decoder.Pause();
     StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;

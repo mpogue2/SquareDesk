@@ -325,6 +325,10 @@ INCLUDEPATH += $$PWD/../taglib/taglib
 INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
 INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 
+# KFR for filters -----------------------------------
+INCLUDEPATH += $$PWD/../kfr/include
+#LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
+
 # SDLIB ------------------------------------------
 LIBS += -L$$OUT_PWD/../sdlib -lsdlib
 
