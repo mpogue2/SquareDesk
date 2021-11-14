@@ -22,12 +22,11 @@ using namespace breakfastquay;
 
 QElapsedTimer timer1;
 
-// TODO: PITCH/TEMPO ********
-// TODO: VU METER ********
-// TODO: LOOPS ********
-// TODO: SOUND EFFECTS ********
-// TODO: allow changing the output device *****
-// TODO: sample accurate loops
+// TODO: PITCH/TEMPO (rubberband) ********
+// TODO: VU METER (kfr) ********
+// TODO: LOOPS/sample accurate loops (myPlayer)
+// TODO: SOUND EFFECTS (later) ********
+// TODO: allow changing the output device (new feature!) *****
 
 // ===========================================================================
 class PlayerThread : public QThread
@@ -53,17 +52,15 @@ public:
     }
 
     virtual ~PlayerThread() {
-//        this->quit();
         threadDone = true;
-        msleep(100);  // HACK? -- give run() time to wake up and exit normally, to avoid a crash.
 
-//  TODO: I think we maybe want to do cancel and wait, like this.
-//        if (m_fileReadThread) {
-//            m_fileReadThread->cancel();
-//            m_fileReadThread->wait();
-//            delete m_fileReadThread;
-//            m_fileReadThread = 0;
-//        }
+        // from: https://stackoverflow.com/questions/28660852/qt-qthread-destroyed-while-thread-is-still-running-during-closing
+        if(!this->wait(300))    // Wait until it actually has terminated (max. 300 msec)
+        {
+            qDebug() << "force terminating the PlayerThread";
+            this->terminate();  // Thread didn't exit in time, probably deadlocked, terminate it!
+            this->wait();       // We have to wait again here!
+        }
     }
 
     void run() override {
