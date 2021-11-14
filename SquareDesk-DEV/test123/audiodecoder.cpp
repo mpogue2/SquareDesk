@@ -6,6 +6,7 @@
 #include <QElapsedTimer>
 #include <QThread>
 
+// EQ ----------
 #include <kfr/base.hpp>
 #include <kfr/dsp.hpp>
 #include <kfr/io.hpp>
@@ -13,6 +14,11 @@
 #include <kfr/dsp/biquad.hpp>
 
 using namespace kfr;
+
+// BPM detection --------
+#include "MiniBpm.h"
+
+using namespace breakfastquay;
 
 QElapsedTimer timer1;
 
@@ -350,6 +356,7 @@ void AudioDecoder::start()
     }
     m_progress = -1;  // reset the progress bar to the beginning, because we're about to start.
     timer1.start();
+    BPM = -1.0;  // -1 means "no BPM yet"
     m_decoder.start(); // starts the decode process
 }
 
@@ -434,6 +441,30 @@ void AudioDecoder::finished()
     myPlayer.totalSamplesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
     qDebug() << "** totalSamplesInSong: " << myPlayer.totalSamplesInSong;  // TODO: this is really frames
 
+    // BPM detection -------
+    //   this estimate will be based on mono mixed-down samples from T={10,20} sec
+    const float *songPointer = (const float *)p_data;
+
+    float songLength_sec = myPlayer.totalSamplesInSong/44100.0;
+    float start_sec =  (songLength_sec >= 10.0 ? 10.0 : 0.0);
+    float end_sec   =  (songLength_sec >= start_sec + 10.0 ? start_sec + 10.0 : songLength_sec );
+
+    unsigned int offsetIntoSong_samples = 44100 * start_sec;            // start looking at time T = 10 sec
+    unsigned int numSamplesToLookAt = 44100 * (end_sec - start_sec);    //   look at 10 sec of samples
+
+    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
+
+    float monoBuffer[numSamplesToLookAt];
+    for (unsigned int i = 0; i < numSamplesToLookAt; i++) {
+        // mixdown to mono
+        monoBuffer[i] = 0.5*songPointer[2*(i+offsetIntoSong_samples)] + 0.5*songPointer[2*(i+offsetIntoSong_samples)+1];
+    }
+
+    MiniBPM BPMestimator(44100.0);
+    BPMestimator.setBPMRange(125.0-25.0, 125.0+25.0);  // limited range for square dance songs, else use percent
+    BPM = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
+    qDebug() << "***** BPM RESULT: " << BPM;  // -1 = overwritten by here, 0 = undetectable, else double
+
     emit done();
 }
 
@@ -510,4 +541,8 @@ void AudioDecoder::setMidBoost(float m) {
 
 void AudioDecoder::setTrebleBoost(float t) {
     myPlayer.setTrebleBoost(t);
+}
+
+double AudioDecoder::getBPM() {
+    return (BPM);  // -1 = no BPM yet, 0 = out of range or undetectable, else returns a BPM
 }

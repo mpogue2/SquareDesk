@@ -42,6 +42,7 @@ SOURCES += main.cpp\
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
+    miniBPM/MiniBpm.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     importdialog.cpp \
@@ -117,7 +118,7 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@
 }
 
 HEADERS  += mainwindow.h \
-    ../miniBPM/MiniBpm.h \
+#    ../miniBPM/MiniBpm.h \
     audiodecoder.h \
     bass.h \
     bass_fx.h \
@@ -328,6 +329,9 @@ INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 # KFR for filters -----------------------------------
 INCLUDEPATH += $$PWD/../kfr/include
 #LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
+
+# MiniBPM for BPM detection -----------------------------------
+INCLUDEPATH += $$PWD/miniBPM
 
 # SDLIB ------------------------------------------
 LIBS += -L$$OUT_PWD/../sdlib -lsdlib

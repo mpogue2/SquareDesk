@@ -167,6 +167,7 @@ void flexible_audio::StreamCreate(const char *filepath, double  *pSongStart_sec,
 {
     qDebug() << "flexible_audio::StreamCreate: " << filepath << *pSongStart_sec << *pSongEnd_sec << intro1_frac << outro1_frac;
     decoder.setSource(filepath);  // decode THIS file
+    Stream_BPM = -1;  // means "not available yet"
     decoder.start();              // start the decode
 }
 
@@ -204,7 +205,8 @@ void flexible_audio::durChanged(qint64 a)
 void flexible_audio::decoderDone() // SLOT
 {
     qDebug() << "flexible_audio::decoder_done() time to alert the cBass!";
-    emit haveDuration();  // tell others that we have a valid duration now
+    Stream_BPM = decoder.getBPM();  // -1 = not ready yet, 0 = undetectable, else returns double
+    emit haveDuration();  // tell others that we have a valid duration and Stream_BPM now
 }
 
 void flexible_audio::bufferReady() // SLOT

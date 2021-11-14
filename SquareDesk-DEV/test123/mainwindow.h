@@ -205,6 +205,8 @@ public:
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
 
+    void handleDurationBPM();  // when duration and BPM are ready, call this to setup tempo slider, et.al.
+
     void stopSFX();
     void playSFX(QString which);
 

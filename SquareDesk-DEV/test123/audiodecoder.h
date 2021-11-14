@@ -98,6 +98,8 @@ public:
     double getStreamPosition();
     double getStreamLength();
 
+    double getBPM();
+
     unsigned char getCurrentState();
 
     unsigned int playPosition_samples;
@@ -128,6 +130,8 @@ private:
 
     QBuffer *m_input;
     QByteArray *m_data;
+
+    double BPM;
 };
 
 #endif // AUDIODECODER_H
