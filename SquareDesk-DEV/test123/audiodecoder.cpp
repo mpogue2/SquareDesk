@@ -60,8 +60,9 @@ public:
 
         stretcher = new RubberBandStretcher(44100,  // sample rate
                                             1,      // channels
-                                            RubberBand::RubberBandStretcher::OptionProcessRealTime |   // options bitwise-OR'd
-                                            RubberBand::RubberBandStretcher::OptionPitchHighQuality,   // or OptionPitchHighSpeed
+                                            RubberBand::RubberBandStretcher::OptionProcessRealTime  |  // options bitwise-OR'd
+                                            RubberBand::RubberBandStretcher::OptionPitchHighQuality |  // or OptionPitchHighSpeed
+                                            RubberBand::RubberBandStretcher::OptionTransientsSmooth,   // don't use standard
                                             timeRatio,
                                             pitchRatio);
         stretcher->setMaxProcessSize(8192);  // I THINK that we'll get smaller requests, but not sure...
