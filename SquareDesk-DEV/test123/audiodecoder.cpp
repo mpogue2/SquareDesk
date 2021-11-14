@@ -149,10 +149,7 @@ public:
         bq[2] = biquad_peak(8000.0/44100.0,  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
         bq[3] = biquad_peak(1600.0/44100.0,  0.9,   intelligibilityBoost_dB);  //
 
-        if (filter != NULL) {
-            delete filter;
-        }
-        filter = new biquad_filter<float>(bq);  // (re)initialize the filter from the latest bq coefficients
+        newFilterNeeded = true;
         qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << ")";
     }
 
@@ -211,6 +208,17 @@ public:
             outDataFloatL[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to mono + volume + pan
         }
 
+        // if the EQ has changed, make a new filter, but do it here only, just before it's used,
+        //   to avoid crashing the thread when EQ is changed.
+        if (newFilterNeeded) {
+            qDebug() << "making a new filter...";
+            if (filter != NULL) {
+                delete filter;
+            }
+            filter = new biquad_filter<float>(bq);  // (re)initialize the filter from the latest bq coefficients
+            newFilterNeeded = false;
+        }
+
         // EQ (including Intelligibility Boost) --------------------------------------------------------------------
         // TODO: this holds context, yet it's getting destroyed repeatedly.
         //   MUST ADD THIS TO THE SINGLETON, SO THAT IT STICKS AROUND **********
@@ -258,6 +266,8 @@ private:
 
     // interleaved
     unsigned char  processedData[8192 * 2 * sizeof(float)];
+
+    bool newFilterNeeded;
 
     bool threadDone;
 };
