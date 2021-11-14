@@ -85,6 +85,7 @@ void flexible_audio::SetTempo(int newTempo)  // range: {80, 120}
 {
     qDebug() << "Setting new tempo: " << newTempo;
     Stream_Tempo = newTempo;
+    decoder.setTempo(newTempo);
 }
 
 // ------------------------------------------------------------------
@@ -92,6 +93,7 @@ void flexible_audio::SetPitch(int newPitch)  // range: {-5, 5}
 {
     qDebug() << "Setting new pitch: " << newPitch;
     Stream_Pitch = newPitch;
+    decoder.setPitch(newPitch);
 }
 
 // ------------------------------------------------------------------

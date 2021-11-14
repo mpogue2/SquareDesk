@@ -94,6 +94,9 @@ public:
     void setMidBoost(float m);
     void setTrebleBoost(float t);
 
+    void setPitch(float p);
+    void setTempo(float t);
+
     void   setStreamPosition(double p);
     double getStreamPosition();
     double getStreamLength();

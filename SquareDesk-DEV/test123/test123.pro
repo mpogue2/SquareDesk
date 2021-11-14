@@ -75,6 +75,7 @@ SOURCES += main.cpp\
 #    rubberband/src/system/Thread.cpp \
 #    rubberband/src/system/VectorOpsComplex.cpp \
 #    rubberband/src/system/sysutils.cpp \
+    rubberband/single/RubberBandSingle.cpp \
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
     tablenumberitem.cpp \
@@ -317,6 +318,7 @@ win32:CONFIG(release, debug|release): {
 macx {
 LIBS += -framework CoreFoundation
 LIBS += -framework AppKit
+LIBS += -framework Accelerate  # needed just for RubberBand, for vDSP FFT
 
 # TAGLIB ----------------------------------------
 LIBS += -L$$OUT_PWD/../taglib -ltaglib

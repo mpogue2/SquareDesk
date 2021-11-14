@@ -20,6 +20,10 @@ using namespace kfr;
 
 using namespace breakfastquay;
 
+// RubberBand -----------
+#include <rubberband/rubberband/RubberBandStretcher.h>
+using namespace RubberBand;
+
 QElapsedTimer timer1;
 
 // TODO: PITCH/TEMPO (rubberband) ********
@@ -49,6 +53,18 @@ public:
         trebleBoost_dB =  0.0;  // +/-15dB
         intelligibilityBoost_dB = 0.0;  // +/-10dB
         updateEQ();  // update the bq[], based on the current *Boost_dB settings
+
+        // PITCH/TEMPO ---------
+        timeRatio = 1.0;  // 2.0 makes the audio twice as long, i.e. slows it down
+        pitchRatio = 0.8; // 2.0 makes it an octave higher; set to pow(2.0, S / 12.0) where S = semitones up
+
+        stretcher = new RubberBandStretcher(44100,  // sample rate
+                                            1,      // channels
+                                            RubberBand::RubberBandStretcher::OptionProcessRealTime |   // options bitwise-OR'd
+                                            RubberBand::RubberBandStretcher::OptionPitchHighQuality,   // or OptionPitchHighSpeed
+                                            timeRatio,
+                                            pitchRatio);
+        stretcher->setMaxProcessSize(8192);  // I THINK that we'll get smaller requests, but not sure...
     }
 
     virtual ~PlayerThread() {
@@ -67,8 +83,6 @@ public:
         while (!threadDone) {
             unsigned int bytesFree = m_audioSink->bytesFree();
             if ( activelyPlaying && bytesFree > 0) {
-//                QString t = QString("0x%1").arg((quintptr)(m_data), QT_POINTER_SIZE * 2, 16, QChar('0'));
-//                qDebug() << "audio data is at:" << t << "bytesFree:" << bytesFree << "playPosition_samples: " << playPosition_samples;
                 const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_samples);
 
                 // write the smaller of bytesFree and how much we have left in the song
@@ -78,8 +92,7 @@ public:
                 }
 
                 if (bytesToWrite > 0) {
-                    processDSP(p_data, bytesToWrite);  // processes 8-byte-per-frame stereo to 4-byte-per-frame *processedData (mono)
-//                    m_audioDevice->write(p_data, bytesToWrite);  // just write up to the end; original PCM audio
+                    processDSP(p_data, bytesToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
                     m_audioDevice->write((const char *)&processedData, bytesToWrite);  // DSP processed audio is 8 bytes/frame floats
                     playPosition_samples += bytesToWrite/bytesPerFrame;      // move the data pointer to the next place to read from
                                                                  // if at the end, this will point just beyond the last sample
@@ -93,6 +106,15 @@ public:
 
     void Play() {
         qDebug() << "PlayerThread::Play";
+
+        // flush the state ------
+        if (filter != NULL) {
+            filter->reset();
+        }
+        if (stretcher != NULL) {
+            stretcher->reset();
+        }
+
         activelyPlaying = true;
         currentState = BASS_ACTIVE_PLAYING;
     }
@@ -102,6 +124,14 @@ public:
         activelyPlaying = false;
         playPosition_samples = 0;
         currentState = BASS_ACTIVE_STOPPED;
+
+        // flush the state ------
+        if (filter != NULL) {
+            filter->reset();
+        }
+        if (stretcher != NULL) {
+            stretcher->reset();
+        }
     }
 
     void Pause() {
@@ -168,26 +198,24 @@ public:
         updateEQ();
     }
 
+    void setPitch(float newPitchSemitones) {
+        qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
+        stretcher->setPitchScale(pow(2.0, newPitchSemitones / 12.0));
+    }
+
+    void setTempo(float newTempo) {
+        qDebug() << "UNIMPLEMENTED: new Tempo value: " << newTempo;
+        stretcher->setTimeRatio(1.0);
+    }
+
     // ================================================================================
     void processDSP(const char *inData, unsigned int inLength_bytes) {
+
         // PAN --------
         const float PI_OVER_2 = 3.14159265f/2.0f;
         float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
         float KL = cos(theta);
         float KR = sin(theta);
-
-//        // INS and OUTS ----------
-//        const short *inDataInt16 = (const short *)inData;
-//              short *outDataInt16 =      (short *)(&processedData);
-//        const unsigned int inLength_frames = inLength_bytes/bytesPerFrame;
-
-//        // FORCE MONO, VOLUME (0-100), and PAN/MIX -------
-//        // TODO: MONO needs to be split into two sides of an if statement, ON and OFF
-//        float scaleFactor = m_volume/(100.0*2.0);  // the 2.0 is from the Force Mono function
-//        for (unsigned int i = 0; i < inLength_frames; i++) {
-//            // right now the output format is stereo
-//            outDataInt16[2*i] = outDataInt16[2*i+1] = (short)(scaleFactor*KL*inDataInt16[2*i] + scaleFactor*KR*inDataInt16[2*i+1]); // stereo to mono + volume + pan without overflow
-//        }
 
         // INS and OUTS ----------
         const float *inDataFloat   = (const float *)inData; // input is stereo interleaved (8 bytes per frame)
@@ -199,8 +227,6 @@ public:
         // TODO: MONO needs to be split into two sides of an if statement, ON and OFF
         float scaleFactor = m_volume/(100.0*2.0);  // the 2.0 is from the Force Mono function
         for (unsigned int i = 0; i < inLength_frames; i++) {
-            // OLD: right now the output format is stereo interleaved (both channels identical, so sounds like mono)
-//            outDataFloat[2*i] = outDataFloat[2*i+1] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to mono + volume + pan
             // NEW: output is mono (post-mixdown), use only L channel for now
             outDataFloatL[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to mono + volume + pan
         }
@@ -216,18 +242,32 @@ public:
             newFilterNeeded = false;
         }
 
-        // EQ (including Intelligibility Boost) --------------------------------------------------------------------
-        // TODO: this holds context, yet it's getting destroyed repeatedly.
-        //   MUST ADD THIS TO THE SINGLETON, SO THAT IT STICKS AROUND **********
+        // APPLY EQ (4 biquads, including B/M/T and Intelligibility Boost) --------------------------------------------------------------------
         filter->apply(outDataFloatL, inLength_frames);   // applies IN PLACE
 
-        // REINTERLEAVE --------------------------------------------------------------------------------------------
-        // ... so that we can send to the speakers
-        float *outDataFloat  = (float *)(&processedData);
-        for (unsigned int i = 0; i < inLength_frames; i++) {
-            outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloatL[i];  // result is mono in stereo interleaved (8 bytes per frame) format
-        }
+        // APPLY PITCH/TEMPO ---------------
+        //   outDataFloatL is the input here, already downmixed to mono, vol and EQ applied
+        //
+        float *inBuf[1] = {outDataFloatL};
+        float outBuffer[8192];
+        float *outBuf[1] = {outBuffer};
 
+        stretcher->process(inBuf, inLength_frames, false);  // set to true if last one, pass in one block at a time
+        qDebug() << "stretcher given: " << inLength_frames << " frames";
+
+        if ((const unsigned int)(stretcher->available()) > inLength_frames) {
+            // now have more than can be accepted by the speaker
+            qDebug() << "Stretcher available: " << stretcher->available();
+            stretcher->retrieve(outBuf, inLength_frames);  // pull out as many as the speaker can take
+
+            // REINTERLEAVE --------------------------------------------------------------------------------------------
+            // ... so that we can send to the speakers
+            float *outDataFloat  = (float *)(&processedData);
+            for (unsigned int i = 0; i < inLength_frames; i++) {
+    //            outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloatL[i];  // result is mono in stereo interleaved (8 bytes per frame) format
+                outDataFloat[2*i] = outDataFloat[2*i+1] = outBuffer[i];  // result is mono in stereo interleaved (8 bytes per frame) format
+            }
+        }
 }
 
 public:
@@ -239,6 +279,7 @@ public:
     unsigned int bytesPerFrame;
     unsigned int sampleRate;
 
+    // EQ -----------------
     float bassBoost_dB = 0.0;
     float midBoost_dB = 0.0;
     float trebleBoost_dB = 0.0;
@@ -246,6 +287,11 @@ public:
 
     biquad_params<float> bq[4];
     biquad_filter<float> *filter;  // filter initialization (also holds context between apply calls)
+
+    // PITCH/TEMPO ---------
+    RubberBandStretcher *stretcher;
+    double timeRatio = 1.0;
+    double pitchRatio = 1.0;
 
 private:
     unsigned int m_volume;
@@ -552,4 +598,18 @@ void AudioDecoder::setTrebleBoost(float t) {
 
 double AudioDecoder::getBPM() {
     return (BPM);  // -1 = no BPM yet, 0 = out of range or undetectable, else returns a BPM
+}
+
+// ------------------------------------------------------------------
+void AudioDecoder::setTempo(float newTempoBPM)
+{
+    qDebug() << "AudioDecoder::setTempo: " << newTempoBPM;
+    myPlayer.setTempo(newTempoBPM);
+}
+
+// ------------------------------------------------------------------
+void AudioDecoder::setPitch(float newPitchSemitones)
+{
+    qDebug() << "AudioDecoder::setPitch: " << newPitchSemitones << " semitones";
+    myPlayer.setPitch(newPitchSemitones);
 }
