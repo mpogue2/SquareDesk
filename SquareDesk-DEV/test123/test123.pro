@@ -78,6 +78,20 @@ SOURCES += main.cpp\
     rubberband/single/RubberBandSingle.cpp \
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
+    soundtouch/source/SoundTouch/AAFilter.cpp \
+    soundtouch/source/SoundTouch/BPMDetect.cpp \
+    soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
+    soundtouch/source/SoundTouch/FIRFilter.cpp \
+    soundtouch/source/SoundTouch/InterpolateCubic.cpp \
+    soundtouch/source/SoundTouch/InterpolateLinear.cpp \
+    soundtouch/source/SoundTouch/InterpolateShannon.cpp \
+    soundtouch/source/SoundTouch/PeakFinder.cpp \
+    soundtouch/source/SoundTouch/RateTransposer.cpp \
+    soundtouch/source/SoundTouch/SoundTouch.cpp \
+    soundtouch/source/SoundTouch/TDStretch.cpp \
+    soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
+    soundtouch/source/SoundTouch/mmx_optimized.cpp \
+    soundtouch/source/SoundTouch/sse_optimized.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
     levelmeter.cpp \
@@ -171,6 +185,21 @@ HEADERS  += mainwindow.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
     choreosequencedialog.h \
+    soundtouch/include/BPMDetect.h \
+    soundtouch/include/FIFOSampleBuffer.h \
+    soundtouch/include/FIFOSamplePipe.h \
+    soundtouch/include/STTypes.h \
+    soundtouch/include/SoundTouch.h \
+    soundtouch/include/soundtouch_config.h \
+    soundtouch/source/SoundTouch/AAFilter.h \
+    soundtouch/source/SoundTouch/FIRFilter.h \
+    soundtouch/source/SoundTouch/InterpolateCubic.h \
+    soundtouch/source/SoundTouch/InterpolateLinear.h \
+    soundtouch/source/SoundTouch/InterpolateShannon.h \
+    soundtouch/source/SoundTouch/PeakFinder.h \
+    soundtouch/source/SoundTouch/RateTransposer.h \
+    soundtouch/source/SoundTouch/TDStretch.h \
+    soundtouch/source/SoundTouch/cpu_detect.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \
@@ -334,6 +363,9 @@ INCLUDEPATH += $$PWD/../kfr/include
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM
+
+# SoundTouch for pitch/tempo changing -----------------------------------
+INCLUDEPATH += $$PWD/soundtouch/include
 
 # SDLIB ------------------------------------------
 LIBS += -L$$OUT_PWD/../sdlib -lsdlib
@@ -787,7 +819,8 @@ DISTFILES += \
     LICENSE.GPL2 \
     cuesheet2.css \
     lyrics.template.html \
-    PackageIt.command
+    PackageIt.command \
+    soundtouch/include/soundtouch_config.h.in
 #    rubberband/src/kissfft/COPYING \
 #    rubberband/src/speex/COPYING
 
