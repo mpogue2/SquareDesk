@@ -93,7 +93,12 @@ public:
                 }
 
                 if (bytesToWrite > 0) {
-                    processDSP(p_data, bytesToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+                    unsigned int bytesAvailableToWrite = processDSP(p_data, bytesToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+
+                    // HERE IS A BUG:  if processDSP doesn't create any samples, then we will write stuff anyway.
+                    //   processDSP needs to return how many samples are valid, and if 0, don't do the m_audioDevice->write()
+
+//                    m_audioDevice->write((const char *)&processedData, bytesToWrite);  // DSP processed audio is 8 bytes/frame floats
                     m_audioDevice->write((const char *)&processedData, bytesToWrite);  // DSP processed audio is 8 bytes/frame floats
                     playPosition_samples += bytesToWrite/bytesPerFrame;      // move the data pointer to the next place to read from
                                                                  // if at the end, this will point just beyond the last sample
@@ -204,13 +209,15 @@ public:
         stretcher->setPitchScale(pow(2.0, newPitchSemitones / 12.0));
     }
 
-    void setTempo(float newTempo) {
-        qDebug() << "UNIMPLEMENTED: new Tempo value: " << newTempo;
-        stretcher->setTimeRatio(1.0);
+    void setTempo(float newTempoPercent) {
+//        qDebug() << "UNIMPLEMENTED: new Tempo value: " << newTempo;
+        qDebug() << "new Tempo value: " << newTempoPercent;
+        stretcher->setTimeRatio(100.0/newTempoPercent);  // the ratio is a TIME ratio, but tempoPercent is a SPEED/BPM ratio
     }
 
     // ================================================================================
-    void processDSP(const char *inData, unsigned int inLength_bytes) {
+    unsigned int processDSP(const char *inData, unsigned int inLength_bytes) {
+        // returns number of bytes that are valid and can be written to audio device
 
         // PAN --------
         const float PI_OVER_2 = 3.14159265f/2.0f;
@@ -254,11 +261,11 @@ public:
         float *outBuf[1] = {outBuffer};
 
         stretcher->process(inBuf, inLength_frames, false);  // set to true if last one, pass in one block at a time
-        qDebug() << "stretcher given: " << inLength_frames << " frames";
+//        qDebug() << "stretcher given: " << inLength_frames << " frames";
 
         if ((const unsigned int)(stretcher->available()) > inLength_frames) {
             // now have more than can be accepted by the speaker
-            qDebug() << "Stretcher available: " << stretcher->available();
+            // qDebug() << "Stretcher available: " << stretcher->available();
             stretcher->retrieve(outBuf, inLength_frames);  // pull out as many as the speaker can take
 
             // REINTERLEAVE --------------------------------------------------------------------------------------------
@@ -269,6 +276,8 @@ public:
                 outDataFloat[2*i] = outDataFloat[2*i+1] = outBuffer[i];  // result is mono in stereo interleaved (8 bytes per frame) format
             }
         }
+
+        return(4 * inLength_frames);
 }
 
 public:
@@ -602,10 +611,10 @@ double AudioDecoder::getBPM() {
 }
 
 // ------------------------------------------------------------------
-void AudioDecoder::setTempo(float newTempoBPM)
+void AudioDecoder::setTempo(float newTempoPercent)
 {
-    qDebug() << "AudioDecoder::setTempo: " << newTempoBPM;
-    myPlayer.setTempo(newTempoBPM);
+    qDebug() << "AudioDecoder::setTempo: " << newTempoPercent << "%";
+    myPlayer.setTempo(newTempoPercent);
 }
 
 // ------------------------------------------------------------------

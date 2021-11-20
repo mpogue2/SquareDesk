@@ -81,11 +81,11 @@ void flexible_audio::SetReplayGainVolume(double replayGain_dB)
 }
 
 // ------------------------------------------------------------------
-void flexible_audio::SetTempo(int newTempo)  // range: {80, 120}
+void flexible_audio::SetTempo(int newTempoPercent)  // range: {80, 120}
 {
-    qDebug() << "Setting new tempo: " << newTempo;
-    Stream_Tempo = newTempo;
-    decoder.setTempo(newTempo);
+    qDebug() << "Setting new tempo: " << newTempoPercent << "%";
+    Stream_Tempo = newTempoPercent;
+    decoder.setTempo(newTempoPercent);
 }
 
 // ------------------------------------------------------------------
