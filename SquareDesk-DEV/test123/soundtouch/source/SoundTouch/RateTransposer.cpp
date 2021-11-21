@@ -79,6 +79,8 @@ void RateTransposer::enableAAFilter(bool newMode)
     // Disable Anti-alias filter if desirable to avoid click at rate change zero value crossover
     bUseAAFilter = newMode;
     clear();
+#else
+    (void)newMode;  // Q_UNUSED
 #endif
 }
 

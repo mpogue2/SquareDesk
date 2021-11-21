@@ -180,6 +180,9 @@ public:
         if (filter != NULL) {
             filter->reset();
         }
+        if (filterR != NULL) {
+            filterR->reset();
+        }
 #ifdef USE_SOUND_TOUCH
 #else
         if (stretcher != NULL) {
@@ -202,6 +205,9 @@ public:
         // flush the state ------
         if (filter != NULL) {
             filter->reset();
+        }
+        if (filterR != NULL) {
+            filterR->reset();
         }
 #ifdef USE_SOUND_TOUCH
 #else
@@ -304,50 +310,72 @@ public:
         // returns 0
 
         // INS and OUTS ----------
-        const float *inDataFloat   = (const float *)inData;      // input is stereo float interleaved (8 bytes per frame)
-              float *outDataFloat  = (float *)(&processedData);  // output is stereo float interleaved (8 bytes per frame)
+        const float *inDataFloat   = (const float *)inData;     // input is stereo float interleaved (8 bytes per frame)
+        float *outDataFloat  = (float *)(&processedData);       // final output is stereo float interleaved (8 bytes per frame), also used as intermediate
+        float *outDataFloatR  = (float *)(&processedDataR);     // intermediate output is R channel mono float (4 bytes per frame)
 
         const unsigned int inLength_frames = inLength_bytes/bytesPerFrame;  // pre-mixdown frames are 8 bytes
 
-        // PAN/VOLUME/FORCE MONO --------
+        // PAN/VOLUME/FORCE MONO/EQ --------
         const float PI_OVER_2 = 3.14159265f/2.0f;
         float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
         float KL = cos(theta);
         float KR = sin(theta);
 
-        float scaleFactor;
+        float scaleFactor;  // volume and mono scaling
+
+        // EQ -----------
+        // if the EQ has changed, make a new filter, but do it here only, just before it's used,
+        //   to avoid crashing the thread when EQ is changed.
+        if (newFilterNeeded) {
+            qDebug() << "making a new filter...";
+            if (filter != NULL) {
+                delete filter;
+            }
+            filter = new biquad_filter<float>(bq);  // (re)initialize the mono/L filter from the latest bq coefficients
+            if (filterR != NULL) {
+                delete filterR;
+            }
+            filterR = new biquad_filter<float>(bq);  // (re)initialize the R filter from the latest bq coefficients
+            newFilterNeeded = false;
+        }
 
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow
-            for (unsigned int i = 0; i < inLength_frames; i++) {
-                // output data is stereo interleaved ("dual mono")
-                outDataFloat[2*i] = outDataFloat[2*i+1] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
+
+            for (int i = 0; i < (int)inLength_frames; i++) {
+                // output data is MONO (de-interleaved)
+                outDataFloat[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
+            }
+
+            // APPLY EQ TO MONO (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
+            filter->apply(outDataFloat, inLength_frames);   // NOTE: applies IN PLACE
+
+            // output data is INTERLEAVED DUAL MONO (Stereo with L and R identical) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
+            for (int i = inLength_frames-1; i >= 0; i--) {
+                outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloat[i];
             }
         } else {
             // stereo (Force Mono is DISABLED)
             scaleFactor = m_volume/(100.0);
             for (unsigned int i = 0; i < inLength_frames; i++) {
-                // output data is true LR stereo
-                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
-                outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R: stereo to 2ch stereo + volume + pan
+                // output data is de-interleaved into first and second half of outDataFloat buffer
+//                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
+//                outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R: stereo to 2ch stereo + volume + pan
+                outDataFloat[i]  = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L:
+                outDataFloatR[i] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R:
+            }
+            // APPLY EQ TO EACH CHANNEL SEPARATELY (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
+            filter->apply(outDataFloat,   inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
+            filterR->apply(outDataFloatR, inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
+
+            // output data is INTERLEAVED STEREO (normal LR stereo) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
+            for (int i = inLength_frames-1; i >= 0; i--) {
+                outDataFloat[2*i]   = outDataFloat[i];  // L
+                outDataFloat[2*i+1] = outDataFloatR[i]; // R
             }
         }
-
-        // EQ -----------
-        // if the EQ has changed, make a new filter, but do it here only, just before it's used,
-        //   to avoid crashing the thread when EQ is changed.
-//        if (newFilterNeeded) {
-//            qDebug() << "making a new filter...";
-//            if (filter != NULL) {
-//                delete filter;
-//            }
-//            filter = new biquad_filter<float>(bq);  // (re)initialize the filter from the latest bq coefficients
-//            newFilterNeeded = false;
-//        }
-
-//        // APPLY EQ (4 biquads, including B/M/T and Intelligibility Boost) --------------------------------------------------------------------
-//        filter->apply(outDataFloat, inLength_frames);   // NOTE: applies IN PLACE
 
         // SOUNDTOUCH PITCH/TEMPO -----------
 //#define NO_SOUNDTOUCH
@@ -456,7 +484,8 @@ public:
     float intelligibilityBoost_dB = 0.0;
 
     biquad_params<float> bq[4];
-    biquad_filter<float> *filter;  // filter initialization (also holds context between apply calls)
+    biquad_filter<float> *filter;   // filter initialization (also holds context between apply calls), for mono and L stereo
+    biquad_filter<float> *filterR;  // filter initialization (also holds context between apply calls), for R stereo only
 
     // PITCH/TEMPO ============
 #ifdef USE_SOUND_TOUCH
@@ -481,7 +510,8 @@ private:
     unsigned int   playPosition_samples;
 
 #ifdef USE_SOUND_TOUCH
-    float        processedData[8192];
+    float       processedData[8192];
+    float       processedDataR[8192];
     unsigned int numProcessedFrames;   // number of frames in the processedData array that are VALID
     unsigned int sourceFramesConsumed; // number of source (input) frames used to create those processed (output) frames
 #else
