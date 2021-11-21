@@ -3695,7 +3695,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
 
         analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
 //    } else if (cBass.Stream_State == BASS_ACTIVE_PAUSED) {
-    } else if (Stream_State == BASS_ACTIVE_PAUSED) {
+    } else if (Stream_State == BASS_ACTIVE_PAUSED || Stream_State == BASS_ACTIVE_STOPPED) {  // TODO: Check to make sure it doesn't mess up X86.
         // if we paused due to FADE, for example...
         // FIX: this could be factored out, it's used twice.
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY

@@ -15,18 +15,31 @@
 
 using namespace kfr;
 
-// BPM detection --------
-#include "MiniBpm.h"
+// BPM Estimation ==========
 
+// #include "BPMDetect.h"
+// BreakfastQuay BPM detection --------
+
+#include "MiniBpm.h"
 using namespace breakfastquay;
 
+// PITCH/TEMPO ==============
+#define USE_SOUND_TOUCH
+
+#ifdef USE_SOUND_TOUCH
+// SoundTouch BPM detection and pitch/tempo changing --------
+#include "SoundTouch.h"
+// Processing chunk size (size chosen to be divisible by 2, 4, 6, etc. channels ...)
+#define SOUNDTOUCH_BUFF_SIZE           6720
+using namespace soundtouch;
+#else
 // RubberBand -----------
 #include <rubberband/rubberband/RubberBandStretcher.h>
 using namespace RubberBand;
+#endif
 
 QElapsedTimer timer1;
 
-// TODO: PITCH/TEMPO (rubberband) ********
 // TODO: VU METER (kfr) ********
 // TODO: LOOPS/sample accurate loops (myPlayer)
 // TODO: SOUND EFFECTS (later) ********
@@ -55,6 +68,20 @@ public:
         updateEQ();  // update the bq[], based on the current *Boost_dB settings
 
         // PITCH/TEMPO ---------
+#ifdef USE_SOUND_TOUCH
+        tempoSpeedup_percent = 0.0;
+        pitchUp_semitones = 0.0;
+
+        soundTouch.setSampleRate(44100);
+        soundTouch.setChannels(2);  // we are already setup for stereo processing, just don't copy-to-mono.
+
+        soundTouch.setTempoChange(tempoSpeedup_percent);  // this is in PERCENT
+        soundTouch.setPitchSemiTones(pitchUp_semitones); // this is in SEMITONES
+        soundTouch.setRateChange(0.0);   // this is in PERCENT (always ZERO, because no sample rate change
+
+        soundTouch.setSetting(SETTING_USE_QUICKSEEK, false);  // NO QUICKSEEK (better quality)
+        soundTouch.setSetting(SETTING_USE_AA_FILTER, true);   // USE AA FILTER (better quality)
+#else
         timeRatio = 1.0;  // 2.0 makes the audio twice as long, i.e. slows it down
         pitchRatio = 0.8; // 2.0 makes it an octave higher; set to pow(2.0, S / 12.0) where S = semitones up
 
@@ -66,6 +93,7 @@ public:
                                             timeRatio,
                                             pitchRatio);
         stretcher->setMaxProcessSize(8192);  // I THINK that we'll get smaller requests, but not sure...
+#endif
     }
 
     virtual ~PlayerThread() {
@@ -80,9 +108,46 @@ public:
         }
     }
 
+#ifdef USE_SOUND_TOUCH
+    // SOUNDTOUCH LOOP
     void run() override {
         while (!threadDone) {
-            unsigned int bytesFree = m_audioSink->bytesFree();
+            unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
+            if ( activelyPlaying && bytesFree > 0) {
+                const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_samples);  // next samples to play
+
+                // write the smaller of bytesFree and how much we have left in the song
+                unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
+                if (bytesPerFrame * (totalSamplesInSong - playPosition_samples) < bytesFree) {
+                    // but if the song ends sooner than that, just send the last samples in the song
+                    bytesNeededToWrite = bytesPerFrame * (totalSamplesInSong - playPosition_samples);
+                }
+
+                if (bytesNeededToWrite > 0) {
+                    // if we need bytes, let's go get them.  BUT, if processDSP only gives us less than that, then write just those.
+                    numProcessedFrames = 0;
+                    sourceFramesConsumed = 0;
+                    processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+
+                    playPosition_samples += sourceFramesConsumed; // move the data pointer to the next place to read from
+                                                                  // if at the end, this will point just beyond the last sample
+                                                                  // these were consumed (sent to soundTouch) in any case.
+
+                    if (numProcessedFrames > 0) {  // but, maybe we didn't get any back from soundTouch.
+                        m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
+                    }
+                } else {
+                    Stop(); // we reached the end, so reset the player back to the beginning (disable the writing, move playback position to 0)
+                }
+            } // activelyPlaying
+            msleep(5); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink  // CHECK THIS!
+        } // while
+    }
+#else
+    // RUBBERBAND LOOP
+    void run() override {
+        while (!threadDone) {
+            unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
             if ( activelyPlaying && bytesFree > 0) {
                 const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_samples);
 
@@ -94,11 +159,8 @@ public:
 
                 if (bytesToWrite > 0) {
                     unsigned int bytesAvailableToWrite = processDSP(p_data, bytesToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+                    (void)bytesAvailableToWrite;  // Q_UNUSED (right now)
 
-                    // HERE IS A BUG:  if processDSP doesn't create any samples, then we will write stuff anyway.
-                    //   processDSP needs to return how many samples are valid, and if 0, don't do the m_audioDevice->write()
-
-//                    m_audioDevice->write((const char *)&processedData, bytesToWrite);  // DSP processed audio is 8 bytes/frame floats
                     m_audioDevice->write((const char *)&processedData, bytesToWrite);  // DSP processed audio is 8 bytes/frame floats
                     playPosition_samples += bytesToWrite/bytesPerFrame;      // move the data pointer to the next place to read from
                                                                  // if at the end, this will point just beyond the last sample
@@ -109,6 +171,7 @@ public:
             msleep(10); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink
         }
     }
+#endif
 
     void Play() {
         qDebug() << "PlayerThread::Play";
@@ -117,10 +180,12 @@ public:
         if (filter != NULL) {
             filter->reset();
         }
+#ifdef USE_SOUND_TOUCH
+#else
         if (stretcher != NULL) {
             stretcher->reset();
         }
-
+#endif
         activelyPlaying = true;
         currentState = BASS_ACTIVE_PLAYING;
     }
@@ -128,6 +193,9 @@ public:
     void Stop() {
         qDebug() << "PlayerThread::Stop";
         activelyPlaying = false;
+#ifdef USE_SOUND_TOUCH
+        clearSoundTouch = true;  // at next opportunity, flush all the soundTouch buffers, because we're stopped now.
+#endif
         playPosition_samples = 0;
         currentState = BASS_ACTIVE_STOPPED;
 
@@ -135,9 +203,12 @@ public:
         if (filter != NULL) {
             filter->reset();
         }
+#ifdef USE_SOUND_TOUCH
+#else
         if (stretcher != NULL) {
             stretcher->reset();
         }
+#endif
     }
 
     void Pause() {
@@ -206,19 +277,96 @@ public:
 
     void setPitch(float newPitchSemitones) {
         qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
+#ifdef USE_SOUND_TOUCH
+        soundTouch.setPitchSemiTones(newPitchSemitones);
+        clearSoundTouch = true;  // clear at next opportunity
+#else
         stretcher->setPitchScale(pow(2.0, newPitchSemitones / 12.0));
+#endif
     }
 
     void setTempo(float newTempoPercent) {
 //        qDebug() << "UNIMPLEMENTED: new Tempo value: " << newTempo;
         qDebug() << "new Tempo value: " << newTempoPercent;
+#ifdef USE_SOUND_TOUCH
+        soundTouch.setTempo(newTempoPercent/100.0);
+        clearSoundTouch = true;  // clear at next opportunity
+#else
         stretcher->setTimeRatio(100.0/newTempoPercent);  // the ratio is a TIME ratio, but tempoPercent is a SPEED/BPM ratio
+#endif
     }
 
     // ================================================================================
     unsigned int processDSP(const char *inData, unsigned int inLength_bytes) {
-        // returns number of bytes that are valid and can be written to audio device
 
+#ifdef USE_SOUND_TOUCH
+        // returns 0
+
+        // INS and OUTS ----------
+        const float *inDataFloat   = (const float *)inData;      // input is stereo float interleaved (8 bytes per frame)
+              float *outDataFloat  = (float *)(&processedData);  // output is stereo float interleaved (8 bytes per frame)
+
+        const unsigned int inLength_frames = inLength_bytes/bytesPerFrame;  // pre-mixdown frames are 8 bytes
+
+        // PAN/VOLUME/FORCE MONO --------
+        const float PI_OVER_2 = 3.14159265f/2.0f;
+        float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
+        float KL = cos(theta);
+        float KR = sin(theta);
+
+//        float scaleFactor = m_volume/(100.0*2.0);  // the 2.0 is from the Force Mono function
+        float scaleFactor = m_volume/(100.0);
+        for (unsigned int i = 0; i < inLength_frames; i++) {
+            // output data is stereo interleaved ("dual mono")
+//            outDataFloat[2*i] = outDataFloat[2*i+1] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
+            outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // stereo to 2ch stereo + volume + pan
+            outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch stereo + volume + pan
+        }
+
+        // EQ -----------
+        // if the EQ has changed, make a new filter, but do it here only, just before it's used,
+        //   to avoid crashing the thread when EQ is changed.
+//        if (newFilterNeeded) {
+//            qDebug() << "making a new filter...";
+//            if (filter != NULL) {
+//                delete filter;
+//            }
+//            filter = new biquad_filter<float>(bq);  // (re)initialize the filter from the latest bq coefficients
+//            newFilterNeeded = false;
+//        }
+
+//        // APPLY EQ (4 biquads, including B/M/T and Intelligibility Boost) --------------------------------------------------------------------
+//        filter->apply(outDataFloat, inLength_frames);   // NOTE: applies IN PLACE
+
+        // SOUNDTOUCH PITCH/TEMPO -----------
+//#define NO_SOUNDTOUCH
+#ifdef NO_SOUNDTOUCH
+        // get ready to return --------------
+        // output is "dual mono" (8 bytes per frame)
+        numProcessedFrames   = inLength_frames;     // it gave us this many frames back
+        sourceFramesConsumed = inLength_frames;     // we consumed all the frames we were given
+#else
+        if (clearSoundTouch) {
+            // don't try to clear while the soundTouch buffers are in use.  Clear HERE, which is safe, because
+            //   we know we're NOT currently using the soundTouch buffers until putSamples() point in time.
+            soundTouch.clear();
+            clearSoundTouch = false;
+        }
+
+//        qDebug() << "inOutRatio:" << soundTouch.getInputOutputSampleRatio();
+        soundTouch.putSamples(outDataFloat, inLength_frames);  // Feed the samples into SoundTouch processor
+                                                               //  NOTE: it always takes ALL of them in, so outDataFloat is now unused.
+
+        qDebug() << "unprocessed: " << soundTouch.numUnprocessedSamples() << ", ready: " << soundTouch.numSamples();
+        int nFrames = soundTouch.receiveSamples(outDataFloat, inLength_frames);
+        qDebug() << "    room to write: " << inLength_frames <<  ", received: " << nFrames;
+        // get ready to return --------------
+        numProcessedFrames   = nFrames;         // it gave us this many frames back
+        sourceFramesConsumed = inLength_frames; // we consumed all the frames we were given
+#endif
+        return(0);
+#else
+        // returns number of bytes that are valid and can be written to audio device
         // PAN --------
         const float PI_OVER_2 = 3.14159265f/2.0f;
         float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
@@ -278,6 +426,7 @@ public:
         }
 
         return(4 * inLength_frames);
+#endif
 }
 
 public:
@@ -298,30 +447,42 @@ public:
     biquad_params<float> bq[4];
     biquad_filter<float> *filter;  // filter initialization (also holds context between apply calls)
 
-    // PITCH/TEMPO ---------
-    RubberBandStretcher *stretcher;
+    // PITCH/TEMPO ============
+#ifdef USE_SOUND_TOUCH
+    SoundTouch soundTouch;  // SoundTouch
+    float tempoSpeedup_percent = 0.0;
+    float pitchUp_semitones    = 0.0;
+    bool clearSoundTouch = false;
+#else
+    RubberBandStretcher *stretcher;  // RubberBand
     double timeRatio = 1.0;
     double pitchRatio = 1.0;
+#endif
 
 private:
     unsigned int m_volume;
-    double m_pan;
-    bool   m_mono;  // true when Force Mono is on
+    double       m_pan;
+    bool         m_mono;  // true when Force Mono is on
 
     unsigned int currentState;
     bool activelyPlaying;
 
     unsigned int   playPosition_samples;
 
+#ifdef USE_SOUND_TOUCH
+    float        processedData[8192];
+    unsigned int numProcessedFrames;   // number of frames in the processedData array that are VALID
+    unsigned int sourceFramesConsumed; // number of source (input) frames used to create those processed (output) frames
+#else
     // deinterleaved
     unsigned char  processedDataL[8192 * sizeof(float)];  // biggest possible is 8192 floats
 //    unsigned char  processedDataR[8192 * sizeof(float)];  // this will be used later when Force Mono is OFF
 
     // interleaved
     unsigned char  processedData[8192 * 2 * sizeof(float)];
+#endif
 
     bool newFilterNeeded;
-
     bool threadDone;
 };
 
@@ -556,7 +717,7 @@ void AudioDecoder::Pause() {
     myPlayer.Pause();
 }
 
-void AudioDecoder::Stop() {
+void AudioDecoder::Stop() {  // FIX: why are there 2 of these, stop and Stop?
     qDebug() << "AudioDecoder::Stop";
     myPlayer.Stop();
 }
