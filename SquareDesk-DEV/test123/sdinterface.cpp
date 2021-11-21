@@ -1127,7 +1127,7 @@ void SDThread::run()
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
     char *levelString = strdup(const_cast<char *>(dance_program_name.toStdString().c_str())); // make a copy of the string
-    qDebug() << "database:" << p;
+//    qDebug() << "database:" << p;
     char *argv[] = {const_cast<char *>("SquareDesk"),
                     const_cast<char *>("-db"), //
                     const_cast<char *>(p),

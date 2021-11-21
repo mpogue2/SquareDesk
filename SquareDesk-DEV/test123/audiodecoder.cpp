@@ -230,6 +230,7 @@ public:
     }
 
     void setMono(bool on) {
+        qDebug() << "PlayerThread::setMono" << on;
         m_mono = on;
     }
 
@@ -314,13 +315,23 @@ public:
         float KL = cos(theta);
         float KR = sin(theta);
 
-//        float scaleFactor = m_volume/(100.0*2.0);  // the 2.0 is from the Force Mono function
-        float scaleFactor = m_volume/(100.0);
-        for (unsigned int i = 0; i < inLength_frames; i++) {
-            // output data is stereo interleaved ("dual mono")
-//            outDataFloat[2*i] = outDataFloat[2*i+1] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
-            outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // stereo to 2ch stereo + volume + pan
-            outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch stereo + volume + pan
+        float scaleFactor;
+
+        if (m_mono) {
+            // Force Mono is ENABLED
+            scaleFactor = m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow
+            for (unsigned int i = 0; i < inLength_frames; i++) {
+                // output data is stereo interleaved ("dual mono")
+                outDataFloat[2*i] = outDataFloat[2*i+1] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
+            }
+        } else {
+            // stereo (Force Mono is DISABLED)
+            scaleFactor = m_volume/(100.0);
+            for (unsigned int i = 0; i < inLength_frames; i++) {
+                // output data is true LR stereo
+                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
+                outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R: stereo to 2ch stereo + volume + pan
+            }
         }
 
         // EQ -----------
@@ -357,9 +368,9 @@ public:
         soundTouch.putSamples(outDataFloat, inLength_frames);  // Feed the samples into SoundTouch processor
                                                                //  NOTE: it always takes ALL of them in, so outDataFloat is now unused.
 
-        qDebug() << "unprocessed: " << soundTouch.numUnprocessedSamples() << ", ready: " << soundTouch.numSamples();
+//        qDebug() << "unprocessed: " << soundTouch.numUnprocessedSamples() << ", ready: " << soundTouch.numSamples();
         int nFrames = soundTouch.receiveSamples(outDataFloat, inLength_frames);
-        qDebug() << "    room to write: " << inLength_frames <<  ", received: " << nFrames;
+//        qDebug() << "    room to write: " << inLength_frames <<  ", received: " << nFrames;
         // get ready to return --------------
         numProcessedFrames   = nFrames;         // it gave us this many frames back
         sourceFramesConsumed = inLength_frames; // we consumed all the frames we were given
