@@ -279,7 +279,7 @@ public:
         qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
 #ifdef USE_SOUND_TOUCH
         soundTouch.setPitchSemiTones(newPitchSemitones);
-        clearSoundTouch = true;  // clear at next opportunity
+        //clearSoundTouch = true;  // clear at next opportunity
 #else
         stretcher->setPitchScale(pow(2.0, newPitchSemitones / 12.0));
 #endif
@@ -290,7 +290,7 @@ public:
         qDebug() << "new Tempo value: " << newTempoPercent;
 #ifdef USE_SOUND_TOUCH
         soundTouch.setTempo(newTempoPercent/100.0);
-        clearSoundTouch = true;  // clear at next opportunity
+        //clearSoundTouch = true;  // clear at next opportunity
 #else
         stretcher->setTimeRatio(100.0/newTempoPercent);  // the ratio is a TIME ratio, but tempoPercent is a SPEED/BPM ratio
 #endif
