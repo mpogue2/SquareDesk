@@ -58,32 +58,33 @@ flexible_audio::~flexible_audio(void)
 // ------------------------------------------------------------------
 void flexible_audio::Init(void)
 {
-    qDebug() << "flexible_audio::Init()";
+//    qDebug() << "flexible_audio::Init()";
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::Exit(void)
 {
-    qDebug() << "flexible_audio::Exit()";
+//    qDebug() << "flexible_audio::Exit()";
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::SetVolume(int inVolume)  // inVolume range: {0, 100}
 {
-    qDebug() << "Setting new volume: " << inVolume;
+//    qDebug() << "Setting new volume: " << inVolume;
     decoder.setVolume(inVolume);
 }
 
 // uses the STREAM volume, rather than global volume
 void flexible_audio::SetReplayGainVolume(double replayGain_dB)
 {
-    qDebug() << "OBSOLETE: SetReplayGainVolume" << replayGain_dB;
+    Q_UNUSED(replayGain_dB)
+//    qDebug() << "OBSOLETE: SetReplayGainVolume" << replayGain_dB;
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::SetTempo(int newTempoPercent)  // range: {80, 120}
 {
-    qDebug() << "Setting new tempo: " << newTempoPercent << "%";
+//    qDebug() << "Setting new tempo: " << newTempoPercent << "%";
     Stream_Tempo = newTempoPercent;
     decoder.setTempo(newTempoPercent);
 }
@@ -91,7 +92,7 @@ void flexible_audio::SetTempo(int newTempoPercent)  // range: {80, 120}
 // ------------------------------------------------------------------
 void flexible_audio::SetPitch(int newPitch)  // range: {-5, 5}
 {
-    qDebug() << "Setting new pitch: " << newPitch;
+//    qDebug() << "Setting new pitch: " << newPitch;
     Stream_Pitch = newPitch;
     decoder.setPitch(newPitch);
 }
@@ -99,7 +100,7 @@ void flexible_audio::SetPitch(int newPitch)  // range: {-5, 5}
 // ------------------------------------------------------------------
 void flexible_audio::SetPan(double newPan)  // range: {-1.0,1.0}
 {
-    qDebug() << "Setting new pan: " << newPan;
+//    qDebug() << "Setting new pan: " << newPan;
     decoder.setPan(newPan);
 }
 
@@ -107,7 +108,7 @@ void flexible_audio::SetPan(double newPan)  // range: {-1.0,1.0}
 // SetEq (band = 0,1,2), value = -15..15 (double)
 void flexible_audio::SetEq(int band, double val)
 {
-    qDebug() << "Setting new EQ: " << band << val;
+//    qDebug() << "Setting new EQ: " << band << val;
     Stream_Eq[band] = val;
 
     switch (band) {
@@ -139,6 +140,7 @@ void flexible_audio::SetCompressionEnabled(bool enable) {
 // which = (FREQ_KHZ, BW_OCT, GAIN_DB)
 void flexible_audio::SetIntelBoost(unsigned int which, float val)
 {
+    Global_IntelBoostEq[which] = val;
     qDebug() << "NOT IMPLEMENTED: SetIntelBoost:" << which << val;
 }
 
@@ -154,7 +156,7 @@ void flexible_audio::SetGlobals()
     //   before that, there is no Stream to set EQ on.
     // So, call this from loadMP3File() after song is loaded, so that global EQ is set, too,
     //   from the Global_IntelBoostEq parameters.
-    qDebug() << "NOT IMPLEMENTED: SetGlobals:";
+//    qDebug() << "NOT IMPLEMENTED: SetGlobals:";
     SetIntelBoost(FREQ_KHZ, Global_IntelBoostEq[FREQ_KHZ]);
     SetIntelBoost(BW_OCT, Global_IntelBoostEq[BW_OCT]);
     SetIntelBoost(GAIN_DB, Global_IntelBoostEq[GAIN_DB]);
@@ -167,7 +169,12 @@ void flexible_audio::songStartDetector(const char *filepath, double  *pSongStart
 // ------------------------------------------------------------------
 void flexible_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, double  *pSongEnd_sec, double intro1_frac, double outro1_frac)
 {
-    qDebug() << "flexible_audio::StreamCreate: " << filepath << *pSongStart_sec << *pSongEnd_sec << intro1_frac << outro1_frac;
+    Q_UNUSED(pSongStart_sec)
+    Q_UNUSED(pSongEnd_sec)
+    Q_UNUSED(intro1_frac)
+    Q_UNUSED(outro1_frac)
+
+//    qDebug() << "flexible_audio::StreamCreate: " << filepath << *pSongStart_sec << *pSongEnd_sec << intro1_frac << outro1_frac;
     decoder.setSource(filepath);  // decode THIS file
     Stream_BPM = -1;  // means "not available yet"
     decoder.start();              // start the decode
@@ -206,19 +213,19 @@ void flexible_audio::durChanged(qint64 a)
 
 void flexible_audio::decoderDone() // SLOT
 {
-    qDebug() << "flexible_audio::decoder_done() time to alert the cBass!";
+//    qDebug() << "flexible_audio::decoder_done() time to alert the cBass!";
     Stream_BPM = decoder.getBPM();  // -1 = not ready yet, 0 = undetectable, else returns double
     emit haveDuration();  // tell others that we have a valid duration and Stream_BPM now
 }
 
 void flexible_audio::bufferReady() // SLOT
 {
-    qDebug() << "***** flexible_audio::bufferReady()";
+//    qDebug() << "***** flexible_audio::bufferReady()";
 }
 
 void flexible_audio::finished() // SLOT
 {
-    qDebug() << "***** flexible_audio::finished()";
+//    qDebug() << "***** flexible_audio::finished()";
 }
 // ------------------------------------------------------------------
 bool flexible_audio::isPaused(void)
@@ -229,7 +236,7 @@ bool flexible_audio::isPaused(void)
 // ------------------------------------------------------------------
 void flexible_audio::StreamSetPosition(double Position_sec)
 {
-    qDebug() << "StreamSetPosition:" << Position_sec;
+//    qDebug() << "StreamSetPosition:" << Position_sec;
     decoder.setStreamPosition(Position_sec);  // tell the decoder, which will tell myPlayer
 }
 
@@ -237,7 +244,7 @@ void flexible_audio::StreamSetPosition(double Position_sec)
 void flexible_audio::StreamGetLength(void)
 {
     FileLength = decoder.getStreamLength();
-    qDebug() << "StreamGetLength:" << FileLength;
+//    qDebug() << "StreamGetLength:" << FileLength;
 }
 
 // ------------------------------------------------------------------
@@ -261,7 +268,7 @@ int flexible_audio::StreamGetVuMeter(void)
     uint32_t Stream_State = currentStreamState();
 
     if (Stream_State == BASS_ACTIVE_PLAYING) {
-        return(16000);  // FIX: 1/2 way up
+        return(decoder.getPeakLevel());
     }
     else {
         return 0;
@@ -271,7 +278,7 @@ int flexible_audio::StreamGetVuMeter(void)
 // ------------------------------------------------------------------
 void flexible_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
 {
-    qDebug() << "flexible_audio::SetLoop: (" << fromPoint_sec << "," << toPoint_sec << ")";
+//    qDebug() << "flexible_audio::SetLoop: (" << fromPoint_sec << "," << toPoint_sec << ")";
     loopFromPoint_sec = fromPoint_sec;
     loopToPoint_sec = toPoint_sec;
 
@@ -280,7 +287,7 @@ void flexible_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
 
 void flexible_audio::ClearLoop()
 {
-    qDebug() << "flexible_audio::ClearLoop";
+//    qDebug() << "flexible_audio::ClearLoop";
     loopFromPoint_sec = loopToPoint_sec = 0.0;  // both 0.0 means disabled
     decoder.clearLoop();
 }
@@ -289,14 +296,14 @@ void flexible_audio::ClearLoop()
 void flexible_audio::SetMono(bool on)
 {
 //    gStream_Mono = on;
-    qDebug() << "flexible_audio::SetMono()";
+//    qDebug() << "flexible_audio::SetMono()";
     decoder.setMono(on);
 }
 
 // ------------------------------------------------------------------
 void flexible_audio::Play(void)
 {
-    qDebug() << "flexible_audio::Play";
+//    qDebug() << "flexible_audio::Play";
     if (decoder.isPlaying()) {
         decoder.Pause();
     } else {
@@ -308,7 +315,7 @@ void flexible_audio::Play(void)
 
 void flexible_audio::Stop(void)
 {
-    qDebug() << "flexible_audio::Stop";
+//    qDebug() << "flexible_audio::Stop";
     decoder.Stop();
     StreamSetPosition(0);
     StreamGetPosition();  // tell the position bar in main window where we are
@@ -317,7 +324,7 @@ void flexible_audio::Stop(void)
 
 void flexible_audio::Pause(void)
 {
-    qDebug() << "flexible_audio::Pause";
+//    qDebug() << "flexible_audio::Pause";
     decoder.Pause();
     StreamGetPosition();  // tell the position bar in main window where we are
     bPaused = true;

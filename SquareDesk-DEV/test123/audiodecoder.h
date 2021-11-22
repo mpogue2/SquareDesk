@@ -105,6 +105,8 @@ public:
     double getStreamPosition();
     double getStreamLength();
 
+    double getPeakLevel(); // for VU meter
+
     double getBPM();
 
     unsigned char getCurrentState();

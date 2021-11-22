@@ -316,12 +316,12 @@ void MainWindow::LyricsCopyAvailable(bool yes) {
 void InitializeSeekBar(MySlider *seekBar);  // forward decl
 
 void MainWindow::haveDuration2(void) {
-    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
+//    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
     cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
     InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
 
-    qDebug() << "haveDuration2 BPM = " << cBass.Stream_BPM;
+//    qDebug() << "haveDuration2 BPM = " << cBass.Stream_BPM;
 
     handleDurationBPM();  // finish up the UI stuff, when we know duration and BPM
 
@@ -4930,7 +4930,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     PerfTimer t("loadMP3File", __LINE__);
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
-    qDebug() << "MainWindow::loadMP3File: songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
+//    qDebug() << "MainWindow::loadMP3File: songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
 //    RecursionGuard recursion_guard(loadingSong);
     loadingSong = true;
     firstTimeSongIsPlayed = true;
@@ -5146,7 +5146,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 void MainWindow::secondHalfOfLoad(QString songTitle) {
     // This function is called when the files is actually loaded into memory, and the filelength is known.
-//    t.elapsed(__LINE__);
 
     // We are NOT doing automatic start-of-song finding right now.
     startOfSong_sec = 0.0;
@@ -5157,8 +5156,6 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     InitializeSeekBar(ui->seekBarCuesheet);
 
     Info_Seekbar(true);  // update the slider and all the text
-
-//    t.elapsed(__LINE__);
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
@@ -5180,6 +5177,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->pushButtonSetOutroTime->setEnabled(true);
     ui->pushButtonTestLoop->setEnabled(true);
 
+    // FIX FIX FIX:
 #ifndef M1MAC
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
@@ -5190,8 +5188,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     previousVolume = 100;
     Info_Volume();
 
-//    t.elapsed(__LINE__);
-
+    // FIX FIX FIX
 #ifndef M1MAC
     if (isPatter) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
@@ -5211,19 +5208,14 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     }
 #endif
 
-//    t.elapsed(__LINE__);
-
-    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
+//    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
     loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo
 
     loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
 
-//    t.elapsed(__LINE__);
-
     // NOTE: this needs to be down here, to override the tempo setting loaded by loadSettingsForSong()
     bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
     int initialBPM = prefsManager.GetinitialBPM();
-//    t.elapsed(__LINE__);
 
 //    qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
 
@@ -5233,7 +5225,6 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         //  iff the tempo is actually measured in BPM for this song
         ui->tempoSlider->setValue(initialBPM);
         ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-//        t.elapsed(__LINE__);
     }
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
@@ -7943,10 +7934,10 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 void MainWindow::saveCurrentSongSettings()
 {
     if (loadingSong) {
-        qDebug() << "***** ERROR: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
+//        qDebug() << "***** WARNING: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
         return;
     }
-    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
+//    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
     QString currentSong = ui->nowPlayingLabel->text();
 
     if (!currentSong.isEmpty()) {
@@ -7967,7 +7958,7 @@ void MainWindow::saveCurrentSongSettings()
         setting.setTempoIsPercent(!tempoIsBPM);
         setting.setIntroPos(ui->seekBarCuesheet->GetIntro());
         setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
-        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
+//        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
         setting.setIntroOutroIsTimeBased(false);
         setting.setCuesheetName(cuesheetFilename);
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
@@ -8055,12 +8046,12 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->tempoSlider->setValue(tempo);
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
-        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
+//        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
         ui->seekBarCuesheet->SetOutro(outro);
 
         QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
-        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
+//        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
         ui->dateTimeEditOutroTime->setTime(oTime);
 
@@ -10798,7 +10789,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     position_sec = fmax(0.0, fmin(position_sec, static_cast<int>(currentOutroTimeSec)-6) );
 
     // set in ms
-    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
+//    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
@@ -11283,7 +11274,7 @@ void MainWindow::revealLyricsFileInFinder() {
 }
 
 void MainWindow::handleDurationBPM() {
-    qDebug() << "***** handleDurationBPM()";
+//    qDebug() << "***** handleDurationBPM()";
     int length_sec = static_cast<int>(cBass.FileLength);
     int songBPM = static_cast<int>(round(cBass.Stream_BPM));  // libbass's idea of the BPM
 
@@ -11349,12 +11340,9 @@ void MainWindow::handleDurationBPM() {
     }
 
     // NOTE: we need to set the bounds BEFORE we set the actual positions
-    qDebug() << "MainWindow::handleDurationBPM: length_sec = " << length_sec;
-//#ifndef M1MAC
+//    qDebug() << "MainWindow::handleDurationBPM: length_sec = " << length_sec;
     ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
     ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-
-//#endif
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar

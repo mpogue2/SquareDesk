@@ -116,13 +116,13 @@ void MySlider::SetLoop(bool b)
 
 void MySlider::SetIntro(double intro)
 {
-    qDebug() << "MySlider::SetIntro: " << intro;
+//    qDebug() << "MySlider::SetIntro: " << intro;
     introPosition = intro;
 }
 
 void MySlider::SetOutro(double outro)
 {
-    qDebug() << "MySlider::SetOutro: " << outro;
+//    qDebug() << "MySlider::SetOutro: " << outro;
     outroPosition = outro;
 }
 

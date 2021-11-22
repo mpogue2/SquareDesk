@@ -101,7 +101,7 @@ public:
     void SetCompression(unsigned int which, float val);  // Global compressor parameters
     void SetCompressionEnabled(bool enable);             // Global compressor parameters
 
-    void SetIntelBoost(unsigned int which, float val);   // Global intelligibility boost parameters
+    void SetIntelBoost(unsigned int which, float val);    // Global intelligibility boost parameters
     void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
 
     void SetPitch(int newPitch);  // in semitones, -5 .. 5

@@ -140,7 +140,7 @@ public:
     }
 
     void Play() {
-        qDebug() << "PlayerThread::Play";
+//        qDebug() << "PlayerThread::Play";
 
         // flush the state ------
         if (filter != NULL) {
@@ -154,7 +154,7 @@ public:
     }
 
     void Stop() {
-        qDebug() << "PlayerThread::Stop";
+//        qDebug() << "PlayerThread::Stop";
         activelyPlaying = false;
         clearSoundTouch = true;  // at next opportunity, flush all the soundTouch buffers, because we're stopped now.
         playPosition_samples = 0;
@@ -170,7 +170,7 @@ public:
     }
 
     void Pause() {
-        qDebug() << "PlayerThread::Pause";
+//        qDebug() << "PlayerThread::Pause";
         activelyPlaying = false;
         currentState = BASS_ACTIVE_PAUSED;
     }
@@ -188,7 +188,7 @@ public:
     }
 
     void setMono(bool on) {
-        qDebug() << "PlayerThread::setMono" << on;
+//        qDebug() << "PlayerThread::setMono" << on;
         m_mono = on;
     }
 
@@ -202,6 +202,10 @@ public:
 
     unsigned char getCurrentState() {
         return(currentState);  // returns current state as int {0,3}
+    }
+
+    double getPeakLevel() {
+        return(m_peakLevel);  // for VU meter, calculated when music is playing in DSP
     }
 
     void setLoop(double from_sec, double to_sec) {
@@ -219,38 +223,37 @@ public:
         bq[0] = biquad_peak( 125.0/44100.0,  4.0,   bassBoost_dB);    // tweaked Q to match Intel version
         bq[1] = biquad_peak(1000.0/44100.0,  0.9,   midBoost_dB);     // tweaked Q to match Intel version
         bq[2] = biquad_peak(8000.0/44100.0,  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
-        bq[3] = biquad_peak(1600.0/44100.0,  0.9,   intelligibilityBoost_dB);  //
+//        bq[3] = biquad_peak(1600.0/44100.0,  0.9,   intelligibilityBoost_dB);  //  NO INTELLIGIBILITY BOOST RIGHT NOW
 
         newFilterNeeded = true;
-        qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << ")";
+//        qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << ")";
     }
 
     void setBassBoost(double b) {
-        qDebug() << "new BASS EQ value: " << b;
+//        qDebug() << "new BASS EQ value: " << b;
         bassBoost_dB = b;
         updateEQ();
     }
 
     void setMidBoost(double m) {
-        qDebug() << "new MID EQ value: " << m;
+//        qDebug() << "new MID EQ value: " << m;
         midBoost_dB = m;
         updateEQ();
     }
 
     void setTrebleBoost(double t) {
-        qDebug() << "new TREBLE EQ value: " << t;
+//        qDebug() << "new TREBLE EQ value: " << t;
         trebleBoost_dB = t;
         updateEQ();
     }
 
     void setPitch(float newPitchSemitones) {
-        qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
+//        qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
         soundTouch.setPitchSemiTones(newPitchSemitones);
     }
 
     void setTempo(float newTempoPercent) {
-//        qDebug() << "UNIMPLEMENTED: new Tempo value: " << newTempo;
-        qDebug() << "new Tempo value: " << newTempoPercent;
+//        qDebug() << "new Tempo value: " << newTempoPercent;
         soundTouch.setTempo(newTempoPercent/100.0);
     }
 
@@ -284,7 +287,7 @@ public:
         // if the EQ has changed, make a new filter, but do it here only, just before it's used,
         //   to avoid crashing the thread when EQ is changed.
         if (newFilterNeeded) {
-            qDebug() << "making a new filter...";
+//            qDebug() << "making a new filter...";
             if (filter != NULL) {
                 delete filter;
             }
@@ -296,6 +299,7 @@ public:
             newFilterNeeded = false;
         }
 
+        float thePeakLevel = 0.0;
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow
@@ -311,6 +315,7 @@ public:
             // output data is INTERLEAVED DUAL MONO (Stereo with L and R identical) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloat[i];
+                thePeakLevel = fmaxf(thePeakLevel, outDataFloat[i]);
             }
         } else {
             // stereo (Force Mono is DISABLED)
@@ -330,8 +335,10 @@ public:
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = outDataFloat[i];  // L
                 outDataFloat[2*i+1] = outDataFloatR[i]; // R
+                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[i] + outDataFloatR[i]) * 0.5);
             }
         }
+        m_peakLevel = 32768.0 * thePeakLevel;  // used by VU meter, this is the peak of the last 5 ms. (units assume 16-bit int samples)
 
         // SOUNDTOUCH PITCH/TEMPO -----------
         if (clearSoundTouch) {
@@ -368,7 +375,7 @@ public:
     float trebleBoost_dB = 0.0;
     float intelligibilityBoost_dB = 0.0;
 
-    biquad_params<float> bq[4];
+    biquad_params<float> bq[3];  // NO INTELLIGIBILITY BOOST RIGHT NOW
     biquad_filter<float> *filter;   // filter initialization (also holds context between apply calls), for mono and L stereo
     biquad_filter<float> *filterR;  // filter initialization (also holds context between apply calls), for R stereo only
 
@@ -382,6 +389,8 @@ private:
     unsigned int m_volume;
     double       m_pan;
     bool         m_mono;  // true when Force Mono is on
+
+    double       m_peakLevel;  // for VU meter
 
     unsigned int currentState;
     bool         activelyPlaying;
@@ -404,7 +413,7 @@ PlayerThread myPlayer;  // singleton
 // ===========================================================================
 AudioDecoder::AudioDecoder()
 {
-    qDebug() << "In AudioDecoder() constructor";
+//    qDebug() << "In AudioDecoder() constructor";
 
     // we want a format that will be no resampling for 99% of the MP3 files, but is float for kfr/rubberband processing
     QAudioFormat desiredAudioFormat; // = device.preferredFormat();  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
@@ -415,14 +424,14 @@ AudioDecoder::AudioDecoder()
     myPlayer.bytesPerFrame = 8;  // post-mixdown
     myPlayer.sampleRate = 44100;
 
-    qDebug() << "desiredAudioFormat: " << desiredAudioFormat << " )";
+//    qDebug() << "desiredAudioFormat: " << desiredAudioFormat << " )";
 
 //    QAudioDevice m_device = QMediaDevices::defaultAudioOutput();
     m_audioSink = new QAudioSink(desiredAudioFormat);
     m_audioDevice = m_audioSink->start();  // do write() to this to play music
 
     m_audioBufferSize = m_audioSink->bufferSize();
-    qDebug() << "BUFFER SIZE: " << m_audioBufferSize;
+//    qDebug() << "BUFFER SIZE: " << m_audioBufferSize;
 
     m_decoder.setAudioFormat(desiredAudioFormat);
 
@@ -465,30 +474,30 @@ AudioDecoder::~AudioDecoder()
 
 void AudioDecoder::setSource(const QString &fileName)
 {
-    qDebug() << "AudioDecoder:: setSource" << fileName;
+//    qDebug() << "AudioDecoder:: setSource" << fileName;
     if (m_decoder.isDecoding()) {
-        qDebug() << "\thad to stop decoding...";
+//        qDebug() << "\thad to stop decoding...";
         m_decoder.stop();
     }
     if (m_input->isOpen()) {
-        qDebug() << "\thad to close m_input...";
+//        qDebug() << "\thad to close m_input...";
         m_input->close();
     }
     if (!m_data->isEmpty()) {
-        qDebug() << "\thad to throw away m_data...";
+//        qDebug() << "\thad to throw away m_data...";
         delete(m_data);  // throw the whole thing away
         m_data = new QByteArray();
         m_input->setBuffer(m_data); // and make a new one (empty)
     }
-    qDebug() << "m_input now has " << m_input->size() << " bytes (should be zero).";
+//    qDebug() << "m_input now has " << m_input->size() << " bytes (should be zero).";
     m_decoder.setSource(QUrl::fromLocalFile(fileName));
 }
 
 void AudioDecoder::start()
 {
-    qDebug() << "AudioDecoder::start -- starting to decode...";
+//    qDebug() << "AudioDecoder::start -- starting to decode...";
     if (!m_input->isOpen()) {
-        qDebug() << "\thad to open m_input...";
+//        qDebug() << "\thad to open m_input...";
         m_input->open(QIODeviceBase::ReadWrite);
     }
     m_progress = -1;  // reset the progress bar to the beginning, because we're about to start.
@@ -499,14 +508,14 @@ void AudioDecoder::start()
 
 void AudioDecoder::stop()
 {
-    qDebug() << "stopping...";
+//    qDebug() << "stopping...";
     m_decoder.stop();
 //    m_input->close();
 }
 
 QAudioDecoder::Error AudioDecoder::getError()
 {
-    qDebug() << "getError...";
+//    qDebug() << "getError...";
     return m_decoder.error();
 }
 
@@ -536,7 +545,7 @@ void AudioDecoder::bufferReady()
 
 void AudioDecoder::error(QAudioDecoder::Error error)
 {
-    qDebug() << "audiodecoder:: error";
+//    qDebug() << "audiodecoder:: error";
     switch (error) {
     case QAudioDecoder::NoError:
         return;
@@ -560,15 +569,15 @@ void AudioDecoder::error(QAudioDecoder::Error error)
 void AudioDecoder::isDecodingChanged(bool isDecoding)
 {
     if (isDecoding) {
-        qDebug() << "Decoding...";
+//        qDebug() << "Decoding...";
     } else {
-        qDebug() << "Decoding stopped...";
+//        qDebug() << "Decoding stopped...";
     }
 }
 
 void AudioDecoder::finished()
 {
-    qDebug() << "AudioDecoder::finished()";
+//    qDebug() << "AudioDecoder::finished()";
     qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
     qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
 
@@ -589,7 +598,7 @@ void AudioDecoder::finished()
     unsigned int offsetIntoSong_samples = 44100 * start_sec;            // start looking at time T = 10 sec
     unsigned int numSamplesToLookAt = 44100 * (end_sec - start_sec);    //   look at 10 sec of samples
 
-    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
+//    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
 
     float monoBuffer[numSamplesToLookAt];
     for (unsigned int i = 0; i < numSamplesToLookAt; i++) {
@@ -614,24 +623,24 @@ void AudioDecoder::updateProgress()
         progress = position / (qreal)duration;
 
     if (progress >= m_progress + 0.1) {
-        qDebug() << "Decoding progress: " << (int)(progress * 100.0) << "%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
+//        qDebug() << "Decoding progress: " << (int)(progress * 100.0) << "%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
         m_progress = progress;
     }
 }
 
 // --------------------------------------------------------------------------------
 void AudioDecoder::Play() {
-    qDebug() << "AudioDecoder::Play";
+//    qDebug() << "AudioDecoder::Play";
     myPlayer.Play();
 }
 
 void AudioDecoder::Pause() {
-    qDebug() << "AudioDecoder::Pause";
+//    qDebug() << "AudioDecoder::Pause";
     myPlayer.Pause();
 }
 
 void AudioDecoder::Stop() {  // FIX: why are there 2 of these, stop and Stop?
-    qDebug() << "AudioDecoder::Stop";
+//    qDebug() << "AudioDecoder::Stop";
     myPlayer.Stop();
 }
 
@@ -687,26 +696,30 @@ double AudioDecoder::getBPM() {
 // ------------------------------------------------------------------
 void AudioDecoder::setTempo(float newTempoPercent)
 {
-    qDebug() << "AudioDecoder::setTempo: " << newTempoPercent << "%";
+//    qDebug() << "AudioDecoder::setTempo: " << newTempoPercent << "%";
     myPlayer.setTempo(newTempoPercent);
 }
 
 // ------------------------------------------------------------------
 void AudioDecoder::setPitch(float newPitchSemitones)
 {
-    qDebug() << "AudioDecoder::setPitch: " << newPitchSemitones << " semitones";
+//    qDebug() << "AudioDecoder::setPitch: " << newPitchSemitones << " semitones";
     myPlayer.setPitch(newPitchSemitones);
 }
 
 // ------------------------------------------------------------------
 void AudioDecoder::setLoop(double fromPoint_sec, double toPoint_sec)
 {
-    qDebug() << "AudioDecoder::SetLoop: (" << fromPoint_sec << "," << toPoint_sec << ")";
+//    qDebug() << "AudioDecoder::SetLoop: (" << fromPoint_sec << "," << toPoint_sec << ")";
     myPlayer.setLoop(fromPoint_sec, toPoint_sec);
 }
 
 void AudioDecoder::clearLoop()
 {
-    qDebug() << "AudioDecoder::ClearLoop";
+//    qDebug() << "AudioDecoder::ClearLoop";
     myPlayer.clearLoop();
+}
+
+double AudioDecoder::getPeakLevel() {
+    return(myPlayer.getPeakLevel());
 }
