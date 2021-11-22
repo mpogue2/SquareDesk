@@ -17,9 +17,10 @@ using namespace kfr;
 
 // BPM Estimation ==========
 
+// SoundTouch BPM estimation ----------
 // #include "BPMDetect.h"
-// BreakfastQuay BPM detection --------
 
+// BreakfastQuay BPM detection --------
 #include "MiniBpm.h"
 using namespace breakfastquay;
 
@@ -34,7 +35,6 @@ using namespace soundtouch;
 QElapsedTimer timer1;
 
 // TODO: VU METER (kfr) ********
-// TODO: LOOPS/sample accurate loops (myPlayer)
 // TODO: SOUND EFFECTS (later) ********
 // TODO: allow changing the output device (new feature!) *****
 
@@ -264,6 +264,14 @@ public:
 
         const unsigned int inLength_frames = inLength_bytes/bytesPerFrame;  // pre-mixdown frames are 8 bytes
 
+        // So, the AudioSink can take X frames, but after stretch/squish, we will have processed Y = K * X frames.
+        //    scaled_inLength_frames is how many frames we need to process, so that we get the request inLength_frames output (which
+        //    is what the AudioSink needs.  We have to scale the number of samples for BOTH the EQ processing (which has state)
+        //    and the SoundTouch processing (which also has state).
+        double inOutRatio = soundTouch.getInputOutputSampleRatio();
+        double scaled_inLength_frames = floor(((double)inLength_frames) / inOutRatio);
+//        qDebug() << "inOutRatio:" << inOutRatio;
+
         // PAN/VOLUME/FORCE MONO/EQ --------
         const float PI_OVER_2 = 3.14159265f/2.0f;
         float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
@@ -292,22 +300,22 @@ public:
             // Force Mono is ENABLED
             scaleFactor = m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow
 
-            for (int i = 0; i < (int)inLength_frames; i++) {
+            for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
                 outDataFloat[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
             }
 
             // APPLY EQ TO MONO (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
-            filter->apply(outDataFloat, inLength_frames);   // NOTE: applies IN PLACE
+            filter->apply(outDataFloat, scaled_inLength_frames);   // NOTE: applies IN PLACE
 
             // output data is INTERLEAVED DUAL MONO (Stereo with L and R identical) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
-            for (int i = inLength_frames-1; i >= 0; i--) {
+            for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloat[i];
             }
         } else {
             // stereo (Force Mono is DISABLED)
             scaleFactor = m_volume/(100.0);
-            for (unsigned int i = 0; i < inLength_frames; i++) {
+            for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
 //                outDataFloat[2*i+1] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R: stereo to 2ch stereo + volume + pan
@@ -315,11 +323,11 @@ public:
                 outDataFloatR[i] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R:
             }
             // APPLY EQ TO EACH CHANNEL SEPARATELY (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
-            filter->apply(outDataFloat,   inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
-            filterR->apply(outDataFloatR, inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
+            filter->apply(outDataFloat,   scaled_inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
+            filterR->apply(outDataFloatR, scaled_inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
 
             // output data is INTERLEAVED STEREO (normal LR stereo) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
-            for (int i = inLength_frames-1; i >= 0; i--) {
+            for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = outDataFloat[i];  // L
                 outDataFloat[2*i+1] = outDataFloatR[i]; // R
             }
@@ -333,16 +341,15 @@ public:
             clearSoundTouch = false;
         }
 
-//        qDebug() << "inOutRatio:" << soundTouch.getInputOutputSampleRatio();
-        soundTouch.putSamples(outDataFloat, inLength_frames);  // Feed the samples into SoundTouch processor
+        soundTouch.putSamples(outDataFloat, scaled_inLength_frames);  // Feed the samples into SoundTouch processor
                                                                //  NOTE: it always takes ALL of them in, so outDataFloat is now unused.
 
-//        qDebug() << "unprocessed: " << soundTouch.numUnprocessedSamples() << ", ready: " << soundTouch.numSamples();
-        int nFrames = soundTouch.receiveSamples(outDataFloat, inLength_frames);
+//        qDebug() << "unprocessed: " << soundTouch.numUnprocessedSamples() << ", ready: " << soundTouch.numSamples() << "scaled_frames: " << scaled_inLength_frames;
+        int nFrames = soundTouch.receiveSamples(outDataFloat, inLength_frames);  // this is how many frames the AudioSink wants
 //        qDebug() << "    room to write: " << inLength_frames <<  ", received: " << nFrames;
         // get ready to return --------------
-        numProcessedFrames   = nFrames;         // it gave us this many frames back
-        sourceFramesConsumed = inLength_frames; // we consumed all the frames we were given
+        numProcessedFrames   = nFrames;         // it gave us this many frames back (might be less thatn inLength_frames)
+        sourceFramesConsumed = scaled_inLength_frames; // we consumed all the input frames we were given
         return(0);
 }
 
