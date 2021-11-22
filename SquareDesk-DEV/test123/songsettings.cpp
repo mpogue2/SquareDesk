@@ -859,6 +859,8 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int id = getSongIDFromFilename(settings.getFilename(), filenameWithPathNormalized);
 
+    qDebug() << "saveSettings: id = " << id;
+
     QStringList fields;
     if (settings.isSetFilename()) { fields.append("songname" ); }
     if (settings.isSetPitch()) { fields.append("pitch" ); }
@@ -878,6 +880,8 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetMix()) { fields.append("loop"); }
     if (settings.isSetTags()) { fields.append("tags"); }
     if (settings.isSetReplayGain()) { fields.append("replayGain"); }
+
+    qDebug() << "saveSettings: " << fields;
 
     QSqlQuery q(m_db);
     if (id == -1)

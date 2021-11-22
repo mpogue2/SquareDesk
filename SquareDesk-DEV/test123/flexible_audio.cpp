@@ -244,7 +244,7 @@ void flexible_audio::StreamGetLength(void)
 void flexible_audio::StreamGetPosition(void)
 {
     Current_Position = decoder.getStreamPosition(); // double in seconds
-//    qDebug() << "StreamGetPosition:" << Current_Position << ", isDecoding:" << m_decoder.isDecoding() << ", errorStr:" << m_decoder.errorString();
+//    qDebug() << "flexible_audio::StreamGetPosition:" << Current_Position << ", isDecoding:" << m_decoder.isDecoding() << ", errorStr:" << m_decoder.errorString();
 }
 
 // always asks the engine what the state is (NOT CACHED), then returns one of:
@@ -271,16 +271,18 @@ int flexible_audio::StreamGetVuMeter(void)
 // ------------------------------------------------------------------
 void flexible_audio::SetLoop(double fromPoint_sec, double toPoint_sec)
 {
-    qDebug() << "NOT IMPLEMENTED: SetLoop" << fromPoint_sec << toPoint_sec;
+    qDebug() << "flexible_audio::SetLoop: (" << fromPoint_sec << "," << toPoint_sec << ")";
     loopFromPoint_sec = fromPoint_sec;
     loopToPoint_sec = toPoint_sec;
+
+    decoder.setLoop(loopFromPoint_sec, loopToPoint_sec);
 }
 
 void flexible_audio::ClearLoop()
 {
-    qDebug() << "NOT IMPLEMENTED: ClearLoop";
-    loopFromPoint_sec = loopToPoint_sec = 0.0;
-    startPoint_bytes = endPoint_bytes = 0;
+    qDebug() << "flexible_audio::ClearLoop";
+    loopFromPoint_sec = loopToPoint_sec = 0.0;  // both 0.0 means disabled
+    decoder.clearLoop();
 }
 
 // ------------------------------------------------------------------

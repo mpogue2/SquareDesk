@@ -60,6 +60,8 @@ public:
         bytesPerFrame = 0;
         sampleRate = 0;
 
+        clearLoop();
+
         // EQ settings
         bassBoost_dB   =  0.0;  // +/-15dB
         midBoost_dB    =  0.0;  // +/-15dB
@@ -120,7 +122,19 @@ public:
                 unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
                 if (bytesPerFrame * (totalSamplesInSong - playPosition_samples) < bytesFree) {
                     // but if the song ends sooner than that, just send the last samples in the song
-                    bytesNeededToWrite = bytesPerFrame * (totalSamplesInSong - playPosition_samples);
+                    bytesNeededToWrite = bytesPerFrame * (totalSamplesInSong - playPosition_samples);  // TODO: rename samples -> frames
+                }
+
+                unsigned int framesFree = bytesFree/bytesPerFrame;  // One frame = LR
+                unsigned int loopEndpoint_frames = 44100 * loopFrom_sec;
+                bool straddlingLoopFromPoint =
+                        !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&
+                        (playPosition_samples < loopEndpoint_frames) &&
+                        (playPosition_samples + framesFree) >= loopEndpoint_frames;
+
+                if (straddlingLoopFromPoint) {
+                    // but if the song loops here, just send the frames up to the loop point
+                    bytesNeededToWrite = bytesPerFrame * (loopEndpoint_frames - playPosition_samples);  // TODO: rename samples -> frames
                 }
 
                 if (bytesNeededToWrite > 0) {
@@ -129,10 +143,13 @@ public:
                     sourceFramesConsumed = 0;
                     processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
 
-                    playPosition_samples += sourceFramesConsumed; // move the data pointer to the next place to read from
-                                                                  // if at the end, this will point just beyond the last sample
-                                                                  // these were consumed (sent to soundTouch) in any case.
-
+                    if (straddlingLoopFromPoint) {
+                        playPosition_samples = (unsigned int)(loopTo_sec * 44100.0); // reset the playPosition to the loop start point
+                    } else {
+                        playPosition_samples += sourceFramesConsumed; // move the data pointer to the next place to read from
+                                                                      // if at the end, this will point just beyond the last sample
+                                                                      // these were consumed (sent to soundTouch) in any case.
+                    }
                     if (numProcessedFrames > 0) {  // but, maybe we didn't get any back from soundTouch.
                         m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
                     }
@@ -245,11 +262,20 @@ public:
     }
 
     double getStreamPosition() {
-        return((double)(playPosition_samples/sampleRate));  // returns current position in seconds as double
+        return((double)playPosition_samples/(double)sampleRate);  // returns current position in seconds as double
     }
 
     unsigned char getCurrentState() {
         return(currentState);  // returns current state as int {0,3}
+    }
+
+    void setLoop(double from_sec, double to_sec) {
+        loopFrom_sec = from_sec;
+        loopTo_sec   = to_sec;
+    }
+
+    void clearLoop() {
+        loopFrom_sec = loopTo_sec = 0.0;
     }
 
     // EQ --------------------------------------------------------------------------------
@@ -505,9 +531,11 @@ private:
     bool         m_mono;  // true when Force Mono is on
 
     unsigned int currentState;
-    bool activelyPlaying;
+    bool         activelyPlaying;
 
     unsigned int   playPosition_samples;
+    double       loopFrom_sec;  // when both From and To are zero, that means "no looping"
+    double       loopTo_sec;
 
 #ifdef USE_SOUND_TOUCH
     float       processedData[8192];
@@ -824,4 +852,17 @@ void AudioDecoder::setPitch(float newPitchSemitones)
 {
     qDebug() << "AudioDecoder::setPitch: " << newPitchSemitones << " semitones";
     myPlayer.setPitch(newPitchSemitones);
+}
+
+// ------------------------------------------------------------------
+void AudioDecoder::setLoop(double fromPoint_sec, double toPoint_sec)
+{
+    qDebug() << "AudioDecoder::SetLoop: (" << fromPoint_sec << "," << toPoint_sec << ")";
+    myPlayer.setLoop(fromPoint_sec, toPoint_sec);
+}
+
+void AudioDecoder::clearLoop()
+{
+    qDebug() << "AudioDecoder::ClearLoop";
+    myPlayer.clearLoop();
 }

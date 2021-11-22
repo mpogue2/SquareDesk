@@ -708,6 +708,8 @@ private:
 
     void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel);
+    void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
+
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());

@@ -324,6 +324,8 @@ void MainWindow::haveDuration2(void) {
     qDebug() << "haveDuration2 BPM = " << cBass.Stream_BPM;
 
     handleDurationBPM();  // finish up the UI stuff, when we know duration and BPM
+
+    secondHalfOfLoad(currentSongTitle);  // now that we have duration and BPM, can finish up asynchronous load.
 }
 
 // ----------------------------------------------------------------------
@@ -3189,6 +3191,8 @@ void MainWindow::on_mixSlider_valueChanged(int value)
 
     ui->currentMixLabel->setText(s);
     cBass.SetPan(value/100.0);
+
+    saveCurrentSongSettings();  // MIX should be persisted when changed
 }
 
 // ----------------------------------------------------------------------
@@ -3568,6 +3572,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
     double position, length;
     getCurrentPointInStream(&position, &length);
+    qDebug() << "MainWindow::on_pushButtonSetIntroTime_clicked: " << position << length;
 
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
@@ -3589,6 +3594,7 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 {
     double position, length;
     getCurrentPointInStream(&position, &length);
+    qDebug() << "MainWindow::on_pushButtonSetOutroTime_clicked: " << position << length;
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
@@ -4341,16 +4347,19 @@ void MainWindow::on_actionForce_Mono_Aahz_mode_triggered()
 void MainWindow::on_bassSlider_valueChanged(int value)
 {
     cBass.SetEq(0, static_cast<double>(value));
+    saveCurrentSongSettings();
 }
 
 void MainWindow::on_midrangeSlider_valueChanged(int value)
 {
     cBass.SetEq(1, static_cast<double>(value));
+    saveCurrentSongSettings();
 }
 
 void MainWindow::on_trebleSlider_valueChanged(int value)
 {
     cBass.SetEq(2, static_cast<double>(value));
+    saveCurrentSongSettings();
 }
 
 
@@ -4921,7 +4930,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     PerfTimer t("loadMP3File", __LINE__);
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
-//    qDebug() << "songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
+    qDebug() << "MainWindow::loadMP3File: songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
     RecursionGuard recursion_guard(loadingSong);
     firstTimeSongIsPlayed = true;
 
@@ -5132,7 +5141,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     cBass.Stop();
 
-    t.elapsed(__LINE__);
+}
+
+void MainWindow::secondHalfOfLoad(QString songTitle) {
+//    t.elapsed(__LINE__);
 
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
@@ -5140,7 +5152,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     Info_Seekbar(true);  // update the slider and all the text
 
-    t.elapsed(__LINE__);
+//    t.elapsed(__LINE__);
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
@@ -5171,7 +5183,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     previousVolume = 100;
     Info_Volume();
 
-    t.elapsed(__LINE__);
+//    t.elapsed(__LINE__);
 
 #ifndef M1MAC
     if (isPatter) {
@@ -5192,18 +5204,19 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
 #endif
 
-    t.elapsed(__LINE__);
+//    t.elapsed(__LINE__);
 
+    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
     loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo
 
     loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
 
-    t.elapsed(__LINE__);
+//    t.elapsed(__LINE__);
 
     // NOTE: this needs to be down here, to override the tempo setting loaded by loadSettingsForSong()
     bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
     int initialBPM = prefsManager.GetinitialBPM();
-    t.elapsed(__LINE__);
+//    t.elapsed(__LINE__);
 
 //    qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
 
@@ -5213,7 +5226,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         //  iff the tempo is actually measured in BPM for this song
         ui->tempoSlider->setValue(initialBPM);
         ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-        t.elapsed(__LINE__);
+//        t.elapsed(__LINE__);
     }
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
@@ -7920,9 +7933,11 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 // ----------------------------------------------------------------------
 void MainWindow::saveCurrentSongSettings()
 {
-    if (loadingSong)
+    if (loadingSong) {
+        qDebug() << "***** ERROR: MainWindow::saveCurrentSongSettings tried to save while loadingSong was true";
         return;
-
+    }
+    qDebug() << "MainWindow::saveCurrentSongSettings trying to save settings...";
     QString currentSong = ui->nowPlayingLabel->text();
 
     if (!currentSong.isEmpty()) {
@@ -7943,6 +7958,7 @@ void MainWindow::saveCurrentSongSettings()
         setting.setTempoIsPercent(!tempoIsBPM);
         setting.setIntroPos(ui->seekBarCuesheet->GetIntro());
         setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
+        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
         setting.setIntroOutroIsTimeBased(false);
         setting.setCuesheetName(cuesheetFilename);
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
@@ -8030,12 +8046,12 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->tempoSlider->setValue(tempo);
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
-//        qDebug() << "loadSettingsForSong: " << outro;
+        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
         ui->seekBarCuesheet->SetOutro(outro);
 
         QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
-//        qDebug() << "loadSettingsForSong: " << iTime << ", " << oTime;
+        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
         ui->dateTimeEditOutroTime->setTime(oTime);
 
@@ -10773,7 +10789,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     position_sec = fmax(0.0, fmin(position_sec, static_cast<int>(currentOutroTimeSec)-6) );
 
     // set in ms
-//    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
+    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
@@ -10782,7 +10798,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     ui->seekBar->SetIntro(frac);
 
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
-
+    saveCurrentSongSettings();
 }
 
 void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
@@ -10812,6 +10828,7 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
     ui->seekBar->SetOutro(frac);
 
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
+    saveCurrentSongSettings();
 }
 
 void MainWindow::on_pushButtonTestLoop_clicked()
@@ -11323,8 +11340,11 @@ void MainWindow::handleDurationBPM() {
     }
 
     // NOTE: we need to set the bounds BEFORE we set the actual positions
+    qDebug() << "MainWindow::handleDurationBPM: length_sec = " << length_sec;
+//#ifndef M1MAC
     ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
     ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+//#endif
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar

@@ -86,6 +86,10 @@ public:
     void Pause();
     void Stop();
     bool isPlaying();
+
+    void setLoop(double from, double to);
+    void clearLoop();
+
     void setVolume(unsigned int v);
     void setPan(double p);
     void setMono(bool on);
