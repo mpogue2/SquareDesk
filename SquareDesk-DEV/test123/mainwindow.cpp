@@ -4931,7 +4931,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
     qDebug() << "MainWindow::loadMP3File: songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
-    RecursionGuard recursion_guard(loadingSong);
+//    RecursionGuard recursion_guard(loadingSong);
+    loadingSong = true;
     firstTimeSongIsPlayed = true;
 
     currentMP3filenameWithPath = MP3FileName;
@@ -5157,11 +5158,12 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
-#ifndef M1MAC
+//#ifndef M1MAC
     // NOTE: we need to set the bounds BEFORE we set the actual positions
-    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-#endif
+//    int length_sec = static_cast<int>(cBass.FileLength); // secondHalfOfLoad isn't called until after gotDuratioBPM, which gives cBass the FileLength
+//    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+//    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+//#endif
 
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
@@ -5262,6 +5264,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 #endif
 
     setInOutButtonState();
+    loadingSong = false;
+
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
@@ -11344,6 +11348,7 @@ void MainWindow::handleDurationBPM() {
 //#ifndef M1MAC
     ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
     ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+
 //#endif
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
