@@ -47,35 +47,6 @@ SOURCES += main.cpp\
     choreosequencedialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
-#    rubberband/single/RubberBandSingle.cpp \
-#    rubberband/src/RubberBandStretcher.cpp \
-#    rubberband/src/StretchCalculator.cpp \
-#    rubberband/src/StretcherChannelData.cpp \
-#    rubberband/src/StretcherImpl.cpp \
-#    rubberband/src/StretcherProcess.cpp \
-#    rubberband/src/audiocurves/CompoundAudioCurve.cpp \
-#    rubberband/src/audiocurves/ConstantAudioCurve.cpp \
-#    rubberband/src/audiocurves/HighFrequencyAudioCurve.cpp \
-#    rubberband/src/audiocurves/PercussiveAudioCurve.cpp \
-#    rubberband/src/audiocurves/SilentAudioCurve.cpp \
-#    rubberband/src/audiocurves/SpectralDifferenceAudioCurve.cpp \
-#    rubberband/src/base/Profiler.cpp \
-#    rubberband/src/dsp/AudioCurveCalculator.cpp \
-#    rubberband/src/dsp/BQResampler.cpp \
-#    rubberband/src/dsp/FFT.cpp \
-#    rubberband/src/dsp/Resampler.cpp \
-#    rubberband/src/getopt/getopt.c \
-#    rubberband/src/getopt/getopt_long.c \
-#    rubberband/src/jni/RubberBandStretcherJNI.cpp \
-#    rubberband/src/kissfft/kiss_fft.c \
-#    rubberband/src/kissfft/kiss_fftr.c \
-#    rubberband/src/rubberband-c.cpp \
-#    rubberband/src/speex/resample.c \
-#    rubberband/src/system/Allocators.cpp \
-#    rubberband/src/system/Thread.cpp \
-#    rubberband/src/system/VectorOpsComplex.cpp \
-#    rubberband/src/system/sysutils.cpp \
-    rubberband/single/RubberBandSingle.cpp \
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
     soundtouch/source/SoundTouch/AAFilter.cpp \
@@ -144,43 +115,6 @@ HEADERS  += mainwindow.h \
     bassmix.h \
     importdialog.h \
     exportdialog.h \
-    rubberband/rubberband/RubberBandStretcher.h \
-    rubberband/rubberband/rubberband-c.h \
-    rubberband/src/StretchCalculator.h \
-    rubberband/src/StretcherChannelData.h \
-    rubberband/src/StretcherImpl.h \
-    rubberband/src/audiocurves/CompoundAudioCurve.h \
-    rubberband/src/audiocurves/ConstantAudioCurve.h \
-    rubberband/src/audiocurves/HighFrequencyAudioCurve.h \
-    rubberband/src/audiocurves/PercussiveAudioCurve.h \
-    rubberband/src/audiocurves/SilentAudioCurve.h \
-    rubberband/src/audiocurves/SpectralDifferenceAudioCurve.h \
-    rubberband/src/base/Profiler.h \
-    rubberband/src/base/RingBuffer.h \
-    rubberband/src/base/Scavenger.h \
-    rubberband/src/dsp/AudioCurveCalculator.h \
-    rubberband/src/dsp/BQResampler.h \
-    rubberband/src/dsp/FFT.h \
-    rubberband/src/dsp/MovingMedian.h \
-    rubberband/src/dsp/Resampler.h \
-    rubberband/src/dsp/SampleFilter.h \
-    rubberband/src/dsp/SincWindow.h \
-    rubberband/src/dsp/Window.h \
-    rubberband/src/float_cast/float_cast.h \
-    rubberband/src/getopt/getopt.h \
-    rubberband/src/getopt/unistd.h \
-    rubberband/src/kissfft/_kiss_fft_guts.h \
-    rubberband/src/kissfft/kiss_fft.h \
-    rubberband/src/kissfft/kiss_fft_log.h \
-    rubberband/src/kissfft/kiss_fftr.h \
-    rubberband/src/pommier/neon_mathfun.h \
-    rubberband/src/pommier/sse_mathfun.h \
-    rubberband/src/speex/speex_resampler.h \
-    rubberband/src/system/Allocators.h \
-    rubberband/src/system/Thread.h \
-    rubberband/src/system/VectorOps.h \
-    rubberband/src/system/VectorOpsComplex.h \
-    rubberband/src/system/sysutils.h \
     sessioninfo.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
@@ -821,7 +755,5 @@ DISTFILES += \
     lyrics.template.html \
     PackageIt.command \
     soundtouch/include/soundtouch_config.h.in
-#    rubberband/src/kissfft/COPYING \
-#    rubberband/src/speex/COPYING
 
 CONFIG += c++11
