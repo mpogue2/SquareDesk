@@ -5145,7 +5145,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 }
 
 void MainWindow::secondHalfOfLoad(QString songTitle) {
+    // This function is called when the files is actually loaded into memory, and the filelength is known.
 //    t.elapsed(__LINE__);
+
+    // We are NOT doing automatic start-of-song finding right now.
+    startOfSong_sec = 0.0;
+    endOfSong_sec = cBass.FileLength;  // used by setDefaultIntroOutroPositions below
 
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
