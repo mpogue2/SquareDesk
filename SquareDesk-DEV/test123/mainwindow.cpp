@@ -8501,6 +8501,8 @@ void MainWindow::initReftab() {
     return;  // FIX: turned off right now for M1 Mac, because of error messages like:
 //    [8121:17667:1031/151459.045273:ERROR:channel_mac.cc(499)] mach_msg receive: (ipc/rcv) msg too large (0x10004004)
 //    [8119:259:1031/151459.066135:ERROR:network_service_instance_impl.cc(330)] Network service crashed, restarting service.
+// Bug was reported to Qt on 2021.11.21, here: https://bugreports.qt.io/browse/QTBUG-98487?jql=text%20~%20%22(ipc%2Frcv)%20msg%20too%20large%22
+// SimpleBrowser example crashes in the same way.
 #endif
 
     numWebviews = 0;
