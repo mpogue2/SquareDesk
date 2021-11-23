@@ -314,8 +314,8 @@ public:
 
             // output data is INTERLEAVED DUAL MONO (Stereo with L and R identical) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
-                outDataFloat[2*i] = outDataFloat[2*i+1] = outDataFloat[i];
-                thePeakLevel = fmaxf(thePeakLevel, outDataFloat[i]);
+                outDataFloat[2*i] = outDataFloat[2*i+1] = max(min(1.0f, outDataFloat[i]),-1.0);  // hard limiter
+                thePeakLevel = fmaxf(thePeakLevel, outDataFloat[2*i]);
             }
         } else {
             // stereo (Force Mono is DISABLED)
@@ -333,11 +333,12 @@ public:
 
             // output data is INTERLEAVED STEREO (normal LR stereo) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
-                outDataFloat[2*i]   = outDataFloat[i];  // L
-                outDataFloat[2*i+1] = outDataFloatR[i]; // R
-                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[i] + outDataFloatR[i]) * 0.5);
+                outDataFloat[2*i]   = max(min(1.0f, outDataFloat[i]),-1.0);  // L + hard limiter
+                outDataFloat[2*i+1] = max(min(1.0f, outDataFloatR[i]),-1.0); // R + hard limiter
+                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[2*i] + outDataFloatR[2*i+1]) * 0.5);
             }
         }
+//        qDebug() << "peak: " << thePeakLevel;
         m_peakLevel = 32768.0 * thePeakLevel;  // used by VU meter, this is the peak of the last 5 ms. (units assume 16-bit int samples)
 
         // SOUNDTOUCH PITCH/TEMPO -----------
