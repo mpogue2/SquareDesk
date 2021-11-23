@@ -126,6 +126,7 @@ uint FIRFilter::evaluateFilterMono(SAMPLETYPE *dest, const SAMPLETYPE *src, uint
     // when using floating point samples, use a scaler instead of a divider
     // because division is much slower operation than multiplying.
     double dScaler = 1.0 / (double)resultDivider;
+    (void)dScaler;  // Q_UNUSED
 #endif
 
     // hint compiler autovectorization that loop length is divisible by 8
