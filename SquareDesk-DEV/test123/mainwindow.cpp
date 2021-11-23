@@ -360,27 +360,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     Q_UNUSED(splash)
 
 #ifdef M1MAC
-//    void InitializeSeekBar(MySlider *seekBar);  // forward decl
-
-//    // this is for the QMediaPlayer impl
-//    connect(cBass.player, &QMediaPlayer::durationChanged, this, [&](qint64 dur) {
-//        qDebug() << "StreamCreate duration now available = " << dur;
-//        cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
-//        InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
-//        InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
-//    });
-
-//    cBass.callMeBackWithDuration(&MainWindow::haveDuration);
-
-// THIS IS FOR THE AUDIODECODER IMPL
-//    connect(&cBass, SIGNAL(haveDuration()), this, [&]() {
-//        qDebug() << "StreamCreate duration now available = ";
-//        cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
-//        InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
-//        InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
-//    });
-
-    connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));
+    connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
 #endif
 
     lyricsCopyIsAvailable = false;
@@ -5009,6 +4989,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     this->setWindowTitle(fn + QString(" - SquareDesk MP3 Player/Editor"));
 
 #ifndef M1MAC
+    // THIS CODE IS ONLY HERE FOR X86.  M1MAC MOVES THIS DOWN TO secondHalfOfLoad().
     int length_sec = static_cast<int>(cBass.FileLength);
     int songBPM = static_cast<int>(round(cBass.Stream_BPM));  // libbass's idea of the BPM
 
@@ -5160,12 +5141,13 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
-//#ifndef M1MAC
+#ifndef M1MAC
+    // THIS IS ONLY FOR X86 BUILD RIGHT NOW.
     // NOTE: we need to set the bounds BEFORE we set the actual positions
-//    int length_sec = static_cast<int>(cBass.FileLength); // secondHalfOfLoad isn't called until after gotDuratioBPM, which gives cBass the FileLength
-//    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-//    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-//#endif
+    int length_sec = static_cast<int>(cBass.FileLength); // secondHalfOfLoad isn't called until after gotDuratioBPM, which gives cBass the FileLength
+    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+#endif
 
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
@@ -5190,6 +5172,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     // FIX FIX FIX
 #ifndef M1MAC
+    // On M1MAC, THIS IS RELOCATED TO handleDurationBPM()....
     if (isPatter) {
         on_loopButton_toggled(true); // default is to loop, if type is patter
 //        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
@@ -11283,17 +11266,7 @@ void MainWindow::handleDurationBPM() {
 
     bool isPatter = songTypeNamesForPatter.contains(currentSongType);
 
-//    bool isRiverboat = songLabel.startsWith(QString("riv"), Qt::CaseInsensitive);
-
-//    if (isRiverboat && isPatter) {
-//        // All Riverboat patter records are recorded at 126BPM, according to the publisher.
-//        // This can always be overridden using TBPM in the ID3 tag inside a specific patter song, if needed.
-//        //        qDebug() << "Riverboat patter detected!";
-//        songBPM = 126;
-//        tempoIsBPM = true;  // this song's tempo is BPM, not %
-//    }
-
-    // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
+// If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
 //    double songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
 
 //    if (songBPM_ID3 != 0.0) {
@@ -11302,8 +11275,6 @@ void MainWindow::handleDurationBPM() {
 //    }
 
     baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
-
-//    t.elapsed(__LINE__);
 
     // Intentionally compare against a narrower range here than BPM detection, because BPM detection
     //   returns a number at the limits, when it's actually out of range.
