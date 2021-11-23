@@ -281,7 +281,7 @@ win32:CONFIG(release, debug|release): {
 macx {
 LIBS += -framework CoreFoundation
 LIBS += -framework AppKit
-LIBS += -framework Accelerate  # needed just for RubberBand, for vDSP FFT
+#LIBS += -framework Accelerate  # needed just for RubberBand, for vDSP FFT
 
 # TAGLIB ----------------------------------------
 LIBS += -L$$OUT_PWD/../taglib -ltaglib
@@ -293,7 +293,7 @@ INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 
 # KFR for filters -----------------------------------
 INCLUDEPATH += $$PWD/../kfr/include
-#LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
+LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM
