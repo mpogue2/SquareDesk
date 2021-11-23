@@ -50,6 +50,8 @@ flexible_audio::flexible_audio(void)
       connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
 
       currentSoundEffectID = 0;
+      soundEffect.setAudioOutput(new QAudioOutput);
+      connect(&soundEffect, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(FXChannelStatusChanged(QMediaPlayer::MediaStatus)));
 }
 
 // ------------------------------------------------------------------
@@ -334,34 +336,48 @@ void flexible_audio::Pause(void)
 
 // ------------------------------------------------------------------
 void flexible_audio::FadeOutAndPause(void) {
-    qDebug() << "NOT IMPLEMENTED: FadeOutAndPause";
+    qDebug() << "FadeOutAndPause";
     decoder.fadeOutAndPause(0.0, 6.0);  // go to volume 0.0 in 6.0 seconds
 }
 
 // SOUND FX ------------------------------------------------------------------
 void flexible_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
-//    qDebug() << "NOT IMPLEMENTED: Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
-//    qDebug() << "NOT IMPLEMENTED: StartVolumeDucking volume set to: " << static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f;
+//    qDebug() << "Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
+//    qDebug() << "StartVolumeDucking volume set to: " << static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f;
 
     decoder.StartVolumeDucking(duckToPercent, forSeconds);
 }
 
 void flexible_audio::StopVolumeDucking() {
-//    qDebug() << "NOT IMPLEMENTED: StopVolumeducking, vol set to: " << Stream_MaxVolume;
+//    qDebug() << "StopVolumeducking, vol set to: " << Stream_MaxVolume;
     decoder.StopVolumeDucking();
 }
 
 void flexible_audio::FXChannelStartPlaying(const char *filename) {
-    qDebug() << "NOT IMPLEMENTED: FXChannelStartPlaying():" << *filename;
+//    qDebug() << "FXChannelStartPlaying():" << filename;
+    soundEffect.setSource(QUrl::fromLocalFile(filename));
+//    soundEffect.setVolume(1.0f);
+    soundEffect.play();
 }
 
 void flexible_audio::FXChannelStopPlaying() {
-    qDebug() << "NOT IMPLEMENTED: FXChannelStopPlaying()";
+//    qDebug() << "FXChannelStopPlaying()";
+    soundEffect.stop();
 }
 
 bool flexible_audio::FXChannelIsPlaying() {
-    qDebug() << "NOT IMPLEMENTED: FXChannelIsPlaying()";
-    return(false);
+//    qDebug() << "FXChannelIsPlaying()";
+//    return(soundEffect.isPlaying());
+    return(soundEffect.playbackState() == QMediaPlayer::PlayingState);
+}
+
+void flexible_audio::FXChannelStatusChanged(QMediaPlayer::MediaStatus status) {
+//    QMediaPlayer::MediaStatus status = soundEffect.mediaStatus();
+//    qDebug() << "flexible_audio::FXChannelStatusChange to: " << status;
+    if (status == QMediaPlayer::EndOfMedia) {
+//        qDebug() << "status change caused early stoppage of volume ducking";
+        StopVolumeDucking();  // stop ducking early, if media finishes before 2.0 seconds
+    }
 }
 
 void flexible_audio::PlayOrStopSoundEffect(int which, const char *filename, int volume) {
@@ -378,17 +394,17 @@ void flexible_audio::PlayOrStopSoundEffect(int which, const char *filename, int 
 
     FXChannelStartPlaying(filename);   // play sound effect file here...
 
-    double FXLength_seconds = 2.0;  // FIX FIX FIX: must use real length of the sound effect
+    double FXLength_seconds = 10.0;  // LONGEST EXPECTED SOUND FX EVER (failsafe)
     StartVolumeDucking(20, FXLength_seconds);   // duck music to 20%
     currentSoundEffectID = which;               // keep track of which sound effect is playing
 }
 
 void flexible_audio::StopAllSoundEffects() {
-    qDebug() << "NOT IMPLEMENTED: StopAllSoundEffects";
+//    qDebug() << "StopAllSoundEffects";
 
+    FXChannelStopPlaying();     // stop any in-progress sound FX
     StopVolumeDucking();        // stop ducking of music, if it was in effect...
     currentSoundEffectID = 0;   // no sound effect is playing now
-
 }
 
 #endif

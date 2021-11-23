@@ -34,6 +34,7 @@
 #include <QAudioDecoder>
 #include <QAudioFormat>
 #include <QMediaDevices>
+#include <QMediaPlayer>
 #include <QFile>
 #include <QBuffer>
 #include "perftimer.h"
@@ -159,6 +160,8 @@ private:
 
     int totalBytes;
 
+    QMediaPlayer soundEffect;  // dedicated player for sound effects
+
 protected:
     qint64 readData(char* data, qint64 maxlen) override;
     qint64 writeData(const char* data, qint64 len) override;
@@ -172,6 +175,7 @@ private slots:
     void decoder_error();
     void posChanged(qint64);
     void durChanged(qint64);
+    void FXChannelStatusChanged(QMediaPlayer::MediaStatus);
 
 public slots:
     void decoderDone();

@@ -52,7 +52,7 @@
 #define AUDIODECODER_H
 
 #include <QAudioDecoder>
-#include <QSoundEffect>
+#include <QMediaPlayer>
 #include <QTextStream>
 #include <QAudioDecoder>
 #include <QWaveDecoder>
