@@ -48,6 +48,8 @@ AudioDecoder decoder; // TEST of AudioDecoder from example, must call setSource!
 flexible_audio::flexible_audio(void)
 {
       connect(&decoder, SIGNAL(done()), this, SLOT(decoderDone()));  //
+
+      currentSoundEffectID = 0;
 }
 
 // ------------------------------------------------------------------
@@ -336,23 +338,57 @@ void flexible_audio::FadeOutAndPause(void) {
     decoder.fadeOutAndPause(0.0, 6.0);  // go to volume 0.0 in 6.0 seconds
 }
 
+// SOUND FX ------------------------------------------------------------------
 void flexible_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {
-    qDebug() << "NOT IMPLEMENTED: Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
-    qDebug() << "NOT IMPLEMENTED: StartVolumeDucking volume set to: " << static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f;
+//    qDebug() << "NOT IMPLEMENTED: Start volume ducking to: " << duckToPercent << " for " << forSeconds << " seconds...";
+//    qDebug() << "NOT IMPLEMENTED: StartVolumeDucking volume set to: " << static_cast<float>(Stream_MaxVolume * duckToPercent)/100.0f;
+
+    decoder.StartVolumeDucking(duckToPercent, forSeconds);
 }
 
 void flexible_audio::StopVolumeDucking() {
-    qDebug() << "NOT IMPLEMENTED: StopVolumeducking, vol set to: " << Stream_MaxVolume;
+//    qDebug() << "NOT IMPLEMENTED: StopVolumeducking, vol set to: " << Stream_MaxVolume;
+    decoder.StopVolumeDucking();
 }
 
+void flexible_audio::FXChannelStartPlaying(const char *filename) {
+    qDebug() << "NOT IMPLEMENTED: FXChannelStartPlaying():" << *filename;
+}
 
-// ------------------------------------------------------------------
+void flexible_audio::FXChannelStopPlaying() {
+    qDebug() << "NOT IMPLEMENTED: FXChannelStopPlaying()";
+}
+
+bool flexible_audio::FXChannelIsPlaying() {
+    qDebug() << "NOT IMPLEMENTED: FXChannelIsPlaying()";
+    return(false);
+}
+
 void flexible_audio::PlayOrStopSoundEffect(int which, const char *filename, int volume) {
-    qDebug() << "NOT IMPLEMENTED: PlayOrStopSoundEffect:" << which << *filename << volume;
+    Q_UNUSED(volume)
+
+    if (which == currentSoundEffectID &&
+        FXChannelIsPlaying()) {
+        // if the user pressed the same key again, while playing back...
+        FXChannelStopPlaying();      // stop the current FX stream
+        currentSoundEffectID = 0;    // nothing playing anymore
+        StopVolumeDucking();
+        return;
+    }
+
+    FXChannelStartPlaying(filename);   // play sound effect file here...
+
+    double FXLength_seconds = 2.0;  // FIX FIX FIX: must use real length of the sound effect
+    StartVolumeDucking(20, FXLength_seconds);   // duck music to 20%
+    currentSoundEffectID = which;               // keep track of which sound effect is playing
 }
 
 void flexible_audio::StopAllSoundEffects() {
     qDebug() << "NOT IMPLEMENTED: StopAllSoundEffects";
+
+    StopVolumeDucking();        // stop ducking of music, if it was in effect...
+    currentSoundEffectID = 0;   // no sound effect is playing now
+
 }
 
 #endif

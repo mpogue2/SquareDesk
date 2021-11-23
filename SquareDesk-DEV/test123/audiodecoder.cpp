@@ -56,6 +56,8 @@ public:
         currentFadeFactor = 1.0;
         fadeFactorDecrementPerFrame = 0.0;
 
+        StopVolumeDucking();
+
         clearLoop();
 
         // EQ settings
@@ -142,6 +144,7 @@ public:
         } // while
     }
 
+    // ---------------------
     void Play() {
 //        qDebug() << "PlayerThread::Play";
 
@@ -191,6 +194,7 @@ public:
         fadeFactorDecrementPerFrame = 0.0;
     }
 
+    // ---------------------
     void setVolume(unsigned int vol) {
         m_volume = vol;
     }
@@ -199,10 +203,32 @@ public:
         return(m_volume);
     }
 
+    void fadeOutAndPause(float finalVol, float secondsToGetThere) {
+        Q_UNUSED(finalVol)
+        currentFadeFactor           = 1.0;  // starts at 1.0 * m_volume, goes to 0.0 * m_volume
+        fadeFactorDecrementPerFrame = 1.0 / (secondsToGetThere * sampleRate);  // when non-zero, starts fading.  when 0.0, pauses and restores fade factor to 1.0
+    }
+
+    void fadeComplete() {
+        Pause();                            // pause (which also explicitly cancels and reinits fadeFactor and decrement)
+    }
+
+    void StartVolumeDucking(float duckToPercent, float forSeconds) {
+        currentDuckingFactor = ((float)duckToPercent)/100.0;
+        duckingFactorFramesRemaining = forSeconds * sampleRate;  // FIX: really FRAME rate
+    }
+
+    void StopVolumeDucking() {
+        currentDuckingFactor = 1.0;
+        duckingFactorFramesRemaining = 0.0;  // FIX: really FRAME rate
+    }
+
+    // ---------------------
     void setPan(double pan) {
         m_pan = pan;
     }
 
+    // ---------------------
     void setMono(bool on) {
 //        qDebug() << "PlayerThread::setMono" << on;
         m_mono = on;
@@ -318,7 +344,7 @@ public:
         float thePeakLevel = 0.0;
         if (m_mono) {
             // Force Mono is ENABLED
-            scaleFactor = currentFadeFactor*m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
+            scaleFactor = currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
 
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
@@ -335,7 +361,7 @@ public:
             }
         } else {
             // stereo (Force Mono is DISABLED)
-            scaleFactor = currentFadeFactor*m_volume/(100.0);
+            scaleFactor = currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
@@ -379,19 +405,14 @@ public:
         if (currentFadeFactor <= 0.0) {
             fadeComplete();  // if we reached final volume, pause the whole playback
         }
-        return(0);
+
+        duckingFactorFramesRemaining -= numProcessedFrames;  // it's assumed that we decrement one FrameRemaining for every frame processed (which is what we hear)
+        if (duckingFactorFramesRemaining <= 0) {
+            StopVolumeDucking();  // resets duckingFactor to 1.0, ducking stops
+        }
+
+        return(0);  // TODO: remove
 }
-
-    void fadeOutAndPause(float finalVol, float secondsToGetThere) {
-        Q_UNUSED(finalVol)
-        currentFadeFactor           = 1.0;  // starts at 1.0 * m_volume, goes to 0.0 * m_volume
-        fadeFactorDecrementPerFrame = 1.0 / (secondsToGetThere * sampleRate);  // when non-zero, starts fading.  when 0.0, pauses and restores fade factor to 1.0
-        // when m_volume
-    }
-
-    void fadeComplete() {
-        Pause();                            // pause (which also explicitly cancels and reinits fadeFactor and decrement)
-    }
 
 public:
     QIODevice      *m_audioDevice;
@@ -402,8 +423,11 @@ public:
     unsigned int bytesPerFrame;
     unsigned int sampleRate;  // rename - this is FRAME rate
 
-    float  currentFadeFactor;
-    float  fadeFactorDecrementPerFrame;
+    float  currentFadeFactor;               // goes from 1.0 to zero in say 6 seconds
+    float  fadeFactorDecrementPerFrame;     // decrements the fadeFactor, then resets itself
+
+    float  currentDuckingFactor;            // goes from 1.0 to something like 0.75 (75%), then resets to 1.0
+    float  duckingFactorFramesRemaining;    // decrements each until 0.0, then resets itself
 
     // EQ -----------------
     float bassBoost_dB = 0.0;
@@ -762,4 +786,12 @@ double AudioDecoder::getPeakLevel() {
 
 void AudioDecoder::fadeOutAndPause(float finalVol, float secondsToGetThere) {
     myPlayer.fadeOutAndPause(finalVol, secondsToGetThere);
+}
+
+void AudioDecoder::StartVolumeDucking(int duckToPercent, double forSeconds) {
+    myPlayer.StartVolumeDucking(duckToPercent, forSeconds);
+}
+
+void AudioDecoder::StopVolumeDucking() {
+    myPlayer.StopVolumeDucking();
 }

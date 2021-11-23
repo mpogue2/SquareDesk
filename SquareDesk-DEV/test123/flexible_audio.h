@@ -139,6 +139,10 @@ public:
     void StartVolumeDucking(int duckToPercent, double  forSeconds);
     void StopVolumeDucking();
 
+    void FXChannelStartPlaying(const char *filename);
+    void FXChannelStopPlaying();
+    bool FXChannelIsPlaying();
+
     // always asks the engine what the state is (NOT CACHED), then returns one of:
     //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
     uint32_t currentStreamState();

@@ -88,6 +88,8 @@ public:
     bool isPlaying();
 
     void fadeOutAndPause(float finalVol, float secondsToGetThere);
+    void StartVolumeDucking(int duckToPercent, double forSeconds);
+    void StopVolumeDucking();
 
     void setLoop(double from, double to);
     void clearLoop();
