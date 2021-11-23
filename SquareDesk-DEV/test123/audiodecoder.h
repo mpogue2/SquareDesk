@@ -111,7 +111,7 @@ public:
 
     unsigned char getCurrentState();
 
-    unsigned int playPosition_samples;
+    unsigned int playPosition_frames;
 
     QTimer *playTimer;
     bool activelyPlaying;

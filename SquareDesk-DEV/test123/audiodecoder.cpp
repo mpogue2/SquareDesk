@@ -45,7 +45,7 @@ class PlayerThread : public QThread
 
 public:
     PlayerThread()  {
-        playPosition_samples = 0;
+        playPosition_frames = 0;
         activelyPlaying = false;
         currentState = BASS_ACTIVE_STOPPED;
         threadDone = false;
@@ -94,25 +94,25 @@ public:
         while (!threadDone) {
             unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
             if ( activelyPlaying && bytesFree > 0) {
-                const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_samples);  // next samples to play
+                const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
 
                 // write the smaller of bytesFree and how much we have left in the song
                 unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
-                if (bytesPerFrame * (totalSamplesInSong - playPosition_samples) < bytesFree) {
+                if (bytesPerFrame * (totalFramesInSong - playPosition_frames) < bytesFree) {
                     // but if the song ends sooner than that, just send the last samples in the song
-                    bytesNeededToWrite = bytesPerFrame * (totalSamplesInSong - playPosition_samples);  // TODO: rename samples -> frames
+                    bytesNeededToWrite = bytesPerFrame * (totalFramesInSong - playPosition_frames);
                 }
 
                 unsigned int framesFree = bytesFree/bytesPerFrame;  // One frame = LR
                 unsigned int loopEndpoint_frames = 44100 * loopFrom_sec;
                 bool straddlingLoopFromPoint =
                         !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&
-                        (playPosition_samples < loopEndpoint_frames) &&
-                        (playPosition_samples + framesFree) >= loopEndpoint_frames;
+                        (playPosition_frames < loopEndpoint_frames) &&
+                        (playPosition_frames + framesFree) >= loopEndpoint_frames;
 
                 if (straddlingLoopFromPoint) {
                     // but if the song loops here, just send the frames up to the loop point
-                    bytesNeededToWrite = bytesPerFrame * (loopEndpoint_frames - playPosition_samples);  // TODO: rename samples -> frames
+                    bytesNeededToWrite = bytesPerFrame * (loopEndpoint_frames - playPosition_frames);
                 }
 
                 if (bytesNeededToWrite > 0) {
@@ -122,9 +122,9 @@ public:
                     processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
 
                     if (straddlingLoopFromPoint) {
-                        playPosition_samples = (unsigned int)(loopTo_sec * 44100.0); // reset the playPosition to the loop start point
+                        playPosition_frames = (unsigned int)(loopTo_sec * 44100.0); // reset the playPosition to the loop start point
                     } else {
-                        playPosition_samples += sourceFramesConsumed; // move the data pointer to the next place to read from
+                        playPosition_frames += sourceFramesConsumed; // move the data pointer to the next place to read from
                                                                       // if at the end, this will point just beyond the last sample
                                                                       // these were consumed (sent to soundTouch) in any case.
                     }
@@ -157,7 +157,7 @@ public:
 //        qDebug() << "PlayerThread::Stop";
         activelyPlaying = false;
         clearSoundTouch = true;  // at next opportunity, flush all the soundTouch buffers, because we're stopped now.
-        playPosition_samples = 0;
+        playPosition_frames = 0;
         currentState = BASS_ACTIVE_STOPPED;
 
         // flush the state ------
@@ -193,11 +193,11 @@ public:
     }
 
     void setStreamPosition(double p) {
-        playPosition_samples = (unsigned int)(sampleRate * p); // this should be atomic
+        playPosition_frames = (unsigned int)(sampleRate * p); // this should be atomic
     }
 
     double getStreamPosition() {
-        return((double)playPosition_samples/(double)sampleRate);  // returns current position in seconds as double
+        return((double)playPosition_frames/(double)sampleRate);  // returns current position in seconds as double
     }
 
     unsigned char getCurrentState() {
@@ -365,7 +365,7 @@ public:
     QIODevice      *m_audioDevice;
     QAudioSink     *m_audioSink;
     unsigned char  *m_data;
-    unsigned int   totalSamplesInSong;
+    unsigned int   totalFramesInSong;
 
     unsigned int bytesPerFrame;
     unsigned int sampleRate;
@@ -396,7 +396,7 @@ private:
     unsigned int currentState;
     bool         activelyPlaying;
 
-    unsigned int   playPosition_samples;
+    unsigned int   playPosition_frames;
     double       loopFrom_sec;  // when both From and To are zero, that means "no looping"
     double       loopTo_sec;
 
@@ -585,14 +585,14 @@ void AudioDecoder::finished()
     unsigned char *p_data = (unsigned char *)(m_data->data());
     myPlayer.m_data = p_data;  // we are done decoding, so tell the player where the data is
 
-    myPlayer.totalSamplesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
-    qDebug() << "** totalSamplesInSong: " << myPlayer.totalSamplesInSong;  // TODO: this is really frames
+    myPlayer.totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
+    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
     // BPM detection -------
     //   this estimate will be based on mono mixed-down samples from T={10,20} sec
     const float *songPointer = (const float *)p_data;
 
-    float songLength_sec = myPlayer.totalSamplesInSong/44100.0;
+    float songLength_sec = myPlayer.totalFramesInSong/44100.0;
     float start_sec =  (songLength_sec >= 10.0 ? 10.0 : 0.0);
     float end_sec   =  (songLength_sec >= start_sec + 10.0 ? start_sec + 10.0 : songLength_sec );
 
@@ -670,7 +670,7 @@ double AudioDecoder::getStreamPosition() {
 }
 
 double AudioDecoder::getStreamLength() {
-    return(myPlayer.totalSamplesInSong/44100.0);
+    return(myPlayer.totalFramesInSong/44100.0);
 }
 
 unsigned char AudioDecoder::getCurrentState() {
