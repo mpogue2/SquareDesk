@@ -191,8 +191,6 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
 
     ui->tabWidget->setCurrentIndex(0); // Music tab (not Experimental tab) is primary, regardless of last setting in Qt Designer
 
-    on_replayGainCheckbox_toggled(ui->replayGainCheckbox->isChecked());
-
     on_intelBoostEnabledCheckbox_toggled(ui->intelBoostEnabledCheckbox->isChecked());
 
 #ifdef WANTCOMPRESSOR
@@ -1121,10 +1119,11 @@ void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(bool checked)
 
     int delta = 60;
     int leftExtend = 20;
+    int yLoc = 40;
     if (checked) {
-        ui->intelBoostLine->setGeometry(330 - leftExtend - delta, 134, 390 + leftExtend + delta, 20);
+        ui->intelBoostLine->setGeometry(330 - leftExtend - delta, yLoc, 390 + leftExtend + delta, 20);
     } else {
-        ui->intelBoostLine->setGeometry(330 - leftExtend, 134, 390 + leftExtend, 20);
+        ui->intelBoostLine->setGeometry(330 - leftExtend, yLoc, 390 + leftExtend, 20);
     }
 
     cBass.SetIntelBoostEnabled(checked);

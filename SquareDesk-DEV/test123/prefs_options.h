@@ -150,8 +150,6 @@ CONFIG_ATTRIBUTE_SLIDER(gainDial, gain_dB, 0)
 CONFIG_ATTRIBUTE_SLIDER(attackDial, attack_ms, 10)
 CONFIG_ATTRIBUTE_SLIDER(releaseDial, release_ms, 200)
 
-CONFIG_ATTRIBUTE_BOOLEAN(replayGainCheckbox, replayGainIsEnabled, false)
-
 CONFIG_ATTRIBUTE_BOOLEAN(intelBoostEnabledCheckbox, intelBoostIsEnabled, false)
 CONFIG_ATTRIBUTE_SLIDER(intelCenterFreqDial, intelCenterFreq_KHz, 16)  // sliders are integers controlled by value()/setValue()
 CONFIG_ATTRIBUTE_SLIDER(intelWidthDial, intelWidth_oct, 20)

@@ -366,8 +366,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lyricsCopyIsAvailable = false;
     lyricsTabNumber = 1;
 
-    mp3gain = nullptr; // must not count on this being initialized to zero
-
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
     filewatcherShouldIgnoreOneFileSave = false;
@@ -1258,13 +1256,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     cBass.SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
     cBass.SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
     cBass.SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
-
-//#ifdef Q_OS_MAC
-//    QString testPath("/Users/mpogue/mp3gain-1_6_2-src/test1.mp3");
-//    if (!replayGain_dB(testPath)) {
-//        qDebug() << "ERROR: can't get ReplayGain for: " << testPath;
-//    }
-//#endif
 
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
     on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
@@ -6346,7 +6337,6 @@ void MainWindow::on_actionPreferences_triggered()
     trapKeypresses = true;
 
     QString oldMusicRootPath = prefsManager.GetmusicPath();
-    bool oldReplayGainEnabled = prefsManager.GetreplayGainIsEnabled();
 
     // act on dialog return code
     if(dialogCode == QDialog::Accepted) {
@@ -6373,15 +6363,6 @@ void MainWindow::on_actionPreferences_triggered()
             // 3) TODO: clear out the lyrics
             // 4) TODO: clear out the reference tab
             // 5) TODO: load the reference material from the new musicDirectory
-        }
-
-        bool newReplayGainEnabled = prefsManager.GetreplayGainIsEnabled();
-        if (!oldReplayGainEnabled && newReplayGainEnabled) {
-//            qDebug() << "TODO: force calculate replay gain for current song, if it doesn't have one yet";
-        }
-
-        if (!newReplayGainEnabled) {
-            ui->statusBar->clearMessage(); // clear out the old replaygain message, if ReplayGain is now off
         }
 
         // USER SAID "OK", SO HANDLE THE UPDATED PREFS ---------------
@@ -7998,17 +7979,6 @@ void MainWindow::loadSettingsForSong(QString songTitle)
             } else {
                 // DO NOTHING
             }
-        }
-
-        // if RPG is enabled, AND song has a RPG, then get the value and use it
-        if (prefsManager.GetreplayGainIsEnabled() && settings.isSetReplayGain()) {
-//            qDebug() << "******* loadSettingsForSong: SAVED replayGain used for" << songTitle << "was " << settings.getReplayGain() << "dB";
-            double currentReplayGain = settings.getReplayGain();
-            cBass.SetReplayGainVolume(currentReplayGain);
-            ui->statusBar->showMessage(QString("ReplayGain enabled: %1dB").arg(currentReplayGain));
-        } else {
-            ui->statusBar->clearMessage();
-//            qDebug() << "******* loadSettingsForSong: REPLAY GAIN for" << songTitle << "has not been set yet.";
         }
 
     }
@@ -10988,132 +10958,6 @@ void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered()
 }
 
 // ----------------------------------------------------------------------
-bool MainWindow::replayGain_dB(QString filepath) {
-    QFile musicFile(filepath);
-    if (!musicFile.exists(filepath)) {
-        qDebug() << "REPLAYGAIN ERROR: " << filepath << "does not exist.";
-        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
-        ui->statusBar->showMessage("Error: could not get ReplayGain");
-        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
-        return(false);  // error return
-    }
-
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
-    QString pathToMp3gain = appDir + "mp3gain";
-
-    QString pathToAACgain = appDir + "aacgain";
-    QFileInfo checkAACFile(pathToAACgain);
-    if (checkAACFile.exists(pathToAACgain)) {
-        pathToMp3gain = pathToAACgain;  // if aacgain exists in the same directory, use it instead (it's compatible with mp3gain)
-        qDebug() << "REPLAYGAIN: Found aacgain, so using it instead of mp3gain.";
-    }
-
-#if defined(Q_OS_WIN32)
-    pathToMp3gain += ".exe";   // executable has a different name on Win32
-#endif
-
-#else /* must be (Q_OS_LINUX) */
-    QString pathToMp3gain = "pocketsphinx_mp3gain";
-#endif
-
-    if (pathToMp3gain.endsWith("mp3gain") && filepath.endsWith("m4a", Qt::CaseInsensitive)) {
-        qDebug() << "REPLAYGAIN ERROR: can't get ReplayGain for M4A files yet.";
-        ui->statusBar->showMessage("ReplayGain not available for M4A file");
-        songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
-        cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
-        return(false);  // error return
-    }
-
-    QStringList mp3gainArgs;
-    mp3gainArgs << "-s" << "s" << filepath;  // do not modify file, just analyze it
-
-    if (mp3gain != nullptr) {
-        qDebug() << "ERROR: an mp3gain process was running...killing the old one.";
-        mp3gain->kill();  // kill any running instance, before starting another one
-    }
-
-    mp3gain = new QProcess(Q_NULLPTR);
-
-//    qDebug() << "mp3gain starting: " << pathToMp3gain << mp3gainArgs;
-
-    mp3gain->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
-    mp3gain->setProcessChannelMode(QProcess::MergedChannels);  // stdout and stderr go to the same place
-
-    connect(mp3gain, SIGNAL(errorOccurred(QProcess::ProcessError)), this, SLOT(MP3Gain_errorOccurred(QProcess::ProcessError)));
-    connect(mp3gain, SIGNAL(finished(int)), this, SLOT(MP3Gain_finished(int)));
-
-    mp3gainResult_filepath = filepath;  // results go here
-    mp3gainResult_dB = -1000.0;         //   -1000 = unknown correction
-
-    ui->statusBar->showMessage(QString("Calculating ReplayGain..."));
-
-    mp3gain->start(pathToMp3gain, mp3gainArgs); // start new process instance, with args
-
-    bool startedStatus = mp3gain->waitForStarted();
-    if (!startedStatus)
-    {
-        qDebug() << "startedStatus: " << startedStatus;
-        delete mp3gain;
-        mp3gain = nullptr;
-    }
-
-    return(true); // everything looks OK so far
-}
-
-void MainWindow::readMP3GainData() {
-}
-
-void MainWindow::MP3Gain_errorOccurred(QProcess::ProcessError error) {
-    Q_UNUSED(error)
-    songLoadedReplayGain_dB = mp3gainResult_dB = 0.0;
-    cBass.SetReplayGainVolume(0.0);  // Error: use 0.0dB
-    qDebug() << "MP3Gain_errorOccurred";
-}
-
-void MainWindow::MP3Gain_finished(int exitCode) {
-    Q_UNUSED(exitCode)
-
-    QByteArray ba = mp3gain->readAllStandardOutput(); // get all stdout/stderr output from mp3gain
-    QString resultStr = QString::fromUtf8(ba.data());
-
-    // extract the value we want, that looks like this:
-    //   Recommended "Track" dB change: -3.780000
-    QRegularExpression rx("(\\r|\\n)"); // RegEx for '\r' or '\n'
-    QStringList query = resultStr.split(QRegularExpression("\\r|\\n")).filter("Recommended \"Track\" dB change:");
-
-    if (query.length() > 0) {
-        // if there's a line that looks like the one we want
-        qDebug() << "mp3gain: " << query[0];
-
-        // extract the numeric result
-//        QRegExp number_input("([-+]?[0-9]*\\.?[0-9]+)");
-//        if(number_input.indexIn(query[0]) != -1) {
-//            mp3gainResult_dB = number_input.cap(1).toDouble();
-//        }
-        QRegularExpression number_input("([-+]?[0-9]*\\.?[0-9]+)");
-        QRegularExpressionMatch match;
-        if (query[0].indexOf(number_input, 0, &match) != -1) {
-            mp3gainResult_dB = match.captured().toDouble(); // if it matched, convert the matched portion to a double
-        }
-
-    } else {
-        mp3gainResult_dB = 0.0;  // no result, so no ReplayGain correction
-    }
-    qDebug() << "     ----> mp3gain result:" << mp3gainResult_dB << "dB\n";
-
-    mp3gain = nullptr; // process is gone now
-
-    songLoadedReplayGain_dB = mp3gainResult_dB;      // save for dynamic checkbox in preferences FIX FIX is this still needed?
-
-    // Now we can apply the ReplayGain correction to the current song, if it is enabled
-    bool replayGainIsEnabled = prefsManager.GetreplayGainIsEnabled();
-    if (replayGainIsEnabled) {
-        ui->statusBar->showMessage(QString("ReplayGain calculated: %1dB").arg(mp3gainResult_dB));
-        cBass.SetReplayGainVolume(mp3gainResult_dB);  // Let's do this!
-    }
-}
-
 void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
 {
 //    Q_UNUSED(showGroupStation)

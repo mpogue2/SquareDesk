@@ -70,7 +70,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>4</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
@@ -1842,45 +1842,11 @@ Click on a color square to change the color associated with that Music Type.  Se
           <bool>true</bool>
          </property>
         </widget>
-        <widget class="QCheckBox" name="replayGainCheckbox">
-         <property name="geometry">
-          <rect>
-           <x>50</x>
-           <y>20</y>
-           <width>191</width>
-           <height>30</height>
-          </rect>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>20</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>Enable ReplayGain</string>
-         </property>
-        </widget>
-        <widget class="QLabel" name="label_11">
-         <property name="geometry">
-          <rect>
-           <x>70</x>
-           <y>60</y>
-           <width>631</width>
-           <height>50</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>ReplayGain provides automatic volume leveling for your songs.  When enabled, loud songs will be made quieter, and quiet songs will be made louder, so that they all play at roughly the same perceived volume. Currently only works with MP3 files.</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
         <widget class="Line" name="intelBoostLine">
          <property name="geometry">
           <rect>
-           <x>310</x>
-           <y>134</y>
+           <x>300</x>
+           <y>40</y>
            <width>391</width>
            <height>20</height>
           </rect>
@@ -1893,7 +1859,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>240</x>
-           <y>134</y>
+           <y>40</y>
            <width>61</width>
            <height>20</height>
           </rect>
@@ -1924,7 +1890,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>50</x>
-           <y>126</y>
+           <y>30</y>
            <width>211</width>
            <height>31</height>
           </rect>
@@ -1945,7 +1911,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>80</x>
-           <y>160</y>
+           <y>70</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -1961,7 +1927,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>150</x>
-           <y>170</y>
+           <y>80</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -1992,7 +1958,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>80</x>
-           <y>170</y>
+           <y>80</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -2020,7 +1986,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>140</x>
-           <y>230</y>
+           <y>140</y>
            <width>70</width>
            <height>16</height>
           </rect>
@@ -2039,7 +2005,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>74</x>
-           <y>230</y>
+           <y>140</y>
            <width>61</width>
            <height>31</height>
           </rect>
@@ -2058,7 +2024,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>220</x>
-           <y>170</y>
+           <y>80</y>
            <width>50</width>
            <height>64</height>
           </rect>
@@ -2083,7 +2049,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>210</x>
-           <y>230</y>
+           <y>140</y>
            <width>70</width>
            <height>16</height>
           </rect>
@@ -2102,7 +2068,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>220</x>
-           <y>160</y>
+           <y>70</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -2118,7 +2084,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>150</x>
-           <y>160</y>
+           <y>70</y>
            <width>50</width>
            <height>16</height>
           </rect>
@@ -2134,7 +2100,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>450</x>
-           <y>170</y>
+           <y>80</y>
            <width>261</width>
            <height>71</height>
           </rect>
@@ -2159,7 +2125,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <property name="geometry">
           <rect>
            <x>300</x>
-           <y>190</y>
+           <y>100</y>
            <width>71</width>
            <height>32</height>
           </rect>

@@ -406,10 +406,6 @@ private slots:
     void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 
-    void readMP3GainData();
-    void MP3Gain_errorOccurred(QProcess::ProcessError error);
-    void MP3Gain_finished(int exitCode);
-
     void on_actionShow_All_Ages_triggered(bool checked);
 
 //    void on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */);
@@ -825,9 +821,6 @@ private:
     QString currentSDKeyboardLevel;
 
     QProcess *ps;       // pocketsphinx process
-    QProcess *mp3gain;  // mp3gain process
-    QString mp3gainResult_filepath;    // results of the mp3gain process
-    double  mp3gainResult_dB;   // results of the mp3gain process
 
     Highlighter *highlighter;
 //    RenderArea *renderArea;
