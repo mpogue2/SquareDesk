@@ -334,8 +334,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
     lastCuesheetSavePath(),
-    timerCountUp(nullptr),
-    timerCountDown(nullptr),
+//    timerCountUp(nullptr),
+//    timerCountDown(nullptr),
     trapKeypresses(true),
     ps(nullptr),
     firstTimeSongIsPlayed(false),
@@ -364,6 +364,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 #endif
 
     lyricsCopyIsAvailable = false;
+    lyricsTabNumber = 1;
 
     mp3gain = nullptr; // must not count on this being initialized to zero
 
@@ -837,11 +838,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->actionAutostart_playback->setChecked(prefsManager.Getautostartplayback());
     ui->actionViewTags->setChecked(prefsManager.GetshowSongTags());
 
-    // -----------
-
-    ui->checkBoxPlayOnEnd->setChecked(prefsManager.Getstartplaybackoncountdowntimer());
-    ui->checkBoxStartOnPlay->setChecked(prefsManager.Getstartcountuptimeronplay());
-
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
 
@@ -908,35 +904,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     inPreferencesDialog = false;
 
-    // save info about the experimental timers tab
-    // experimental timers tab is tab #1 (second tab)
-    // experimental lyrics tab is tab #2 (third tab)
-    tabmap.insert(1, QPair<QWidget *,QString>(ui->tabWidget->widget(1), ui->tabWidget->tabText(1)));
-    tabmap.insert(2, QPair<QWidget *,QString>(ui->tabWidget->widget(2), ui->tabWidget->tabText(2)));
-
-    bool timersEnabled = prefsManager.GetexperimentalTimersEnabled();
-    // ----------
-    showTimersTab = true;
-    if (!timersEnabled) {
-        ui->tabWidget->removeTab(1);  // it's remembered, don't worry!
-        showTimersTab = false;
-    }
-
     t.elapsed(__LINE__);
 
-    // ----------
-    bool lyricsEnabled = true;
-    showLyricsTab = true;
-    lyricsTabNumber = (showTimersTab ? 2 : 1);
-    if (!lyricsEnabled) {
-        ui->tabWidget->removeTab(timersEnabled ? 2 : 1);  // it's remembered, don't worry!
-        showLyricsTab = false;
-        lyricsTabNumber = -1;
-    }
     ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
     on_tabWidget_currentChanged(0);     // update the menu item names
 
-    ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
+//    ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 
     // ----------
 //    connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -2884,134 +2857,82 @@ void MainWindow::on_playButton_clicked()
         setNowPlayingLabelWithColor(currentSongTitle);
     }
 
-    if (ui->checkBoxStartOnPlay->isChecked()) {
-        on_pushButtonCountUpTimerStartStop_clicked();
-    }
 }
 
 // ----------------------------------------------------------------------
-bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
-{
-    if (timer) {
-        button->setText("Start");
-        timer->stop();
-        delete timer;
-        timer = nullptr;
-    }
-    else {
-        button->setText("Stop");
-        timer = new QTimer(this);
-        timer->start(1000);
-    }
-    return nullptr != timer;
-}
+//bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
+//{
+//    if (timer) {
+//        button->setText("Start");
+//        timer->stop();
+//        delete timer;
+//        timer = nullptr;
+//    }
+//    else {
+//        button->setText("Stop");
+//        timer = new QTimer(this);
+//        timer->start(1000);
+//    }
+//    return nullptr != timer;
+//}
 
 // ----------------------------------------------------------------------
-int MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
-{
-    QDateTime now(QDateTime::currentDateTime());
-    qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
-    int signedSeconds = static_cast<int>((timeNowEpochMs - timeZeroEpochMs) / 1000);
-    int seconds = signedSeconds;
-    char sign = ' ';
+//int MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
+//{
+//    QDateTime now(QDateTime::currentDateTime());
+//    qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
+//    int signedSeconds = static_cast<int>((timeNowEpochMs - timeZeroEpochMs) / 1000);
+//    int seconds = signedSeconds;
+//    char sign = ' ';
 
-    if (seconds < 0) {
-        sign = '-';
-        seconds = -seconds;
-    }
+//    if (seconds < 0) {
+//        sign = '-';
+//        seconds = -seconds;
+//    }
 
-    stringstream ss;
-    int hours = seconds / (60*60);
-    int minutes = (seconds / 60) % 60;
+//    stringstream ss;
+//    int hours = seconds / (60*60);
+//    int minutes = (seconds / 60) % 60;
 
-    ss << sign;
-    if (hours) {
-        ss << hours << ":" << setw(2);
-    }
-    ss << setfill('0') << minutes << ":" << setw(2) << setfill('0') << (seconds % 60);
-    string s(ss.str());
-    label->setText(s.c_str());
-    return signedSeconds;
-}
+//    ss << sign;
+//    if (hours) {
+//        ss << hours << ":" << setw(2);
+//    }
+//    ss << setfill('0') << minutes << ":" << setw(2) << setfill('0') << (seconds % 60);
+//    string s(ss.str());
+//    label->setText(s.c_str());
+//    return signedSeconds;
+//}
 
 // ----------------------------------------------------------------------
 void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
 {
-    if (timerStopStartClick(timerCountDown,
-                            ui->pushButtonCountDownTimerStartStop)) {
-        on_pushButtonCountDownTimerReset_clicked();
-        connect(timerCountDown, SIGNAL(timeout()), this, SLOT(timerCountDown_update()));
-    }
 }
 
 // ----------------------------------------------------------------------
 
-const qint64 timerJitter = 50;
-
 void MainWindow::on_pushButtonCountDownTimerReset_clicked()
 {
-    QString offset(ui->lineEditCountDownTimer->text());
-
-    int seconds = 0;
-    int minutes = 0;
-    bool found_colon = false;
-
-    for (int i = 0; i < offset.length(); ++i) {
-        int ch = offset[i].unicode();
-
-        if (ch >= '0' && ch <= '9') {
-            if (found_colon) {
-                seconds *= 10;
-                seconds += ch - '0';
-            }
-            else {
-                minutes *= 10;
-                minutes += ch - '0';
-            }
-        }
-        else if (ch == ':') {
-            found_colon = true;
-        }
-    }
-    timeCountDownZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
-    timeCountDownZeroMs += static_cast<qint64>(minutes * 60 + seconds) * static_cast<qint64>(1000) + timerJitter;
-    updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer);
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::on_pushButtonCountUpTimerStartStop_clicked()
 {
-    if (timerStopStartClick(timerCountUp,
-                            ui->pushButtonCountUpTimerStartStop)) {
-        on_pushButtonCountUpTimerReset_clicked();
-        connect(timerCountUp, SIGNAL(timeout()), this, SLOT(timerCountUp_update()));
-    }
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::on_pushButtonCountUpTimerReset_clicked()
 {
-    timeCountUpZeroMs = QDateTime::currentDateTime().currentMSecsSinceEpoch() + timerJitter;
-    updateTimer(timeCountUpZeroMs, ui->labelCountUpTimer);
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::timerCountUp_update()
 {
-    updateTimer(timeCountUpZeroMs, ui->labelCountUpTimer);
 }
 
 // ----------------------------------------------------------------------
 void MainWindow::timerCountDown_update()
 {
-    uint32_t Stream_State = cBass.currentStreamState();
-
-    if (updateTimer(timeCountDownZeroMs, ui->labelCountDownTimer) >= 0
-            && ui->checkBoxPlayOnEnd->isChecked()
-//            && currentState == kStopped) {
-            && Stream_State == BASS_ACTIVE_STOPPED) {
-        on_playButton_clicked();
-    }
 }
 
 // SONGTABLEREFACTOR
@@ -3929,7 +3850,6 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->dateTimeEditIntroTime->hasFocus() ||
                 ui->dateTimeEditOutroTime->hasFocus() ||
 
-                ui->lineEditCountDownTimer->hasFocus() ||
                 ui->lineEditSDInput->hasFocus() || 
                 ui->textBrowserCueSheet->hasFocus()) &&
                 (KeyEvent->key() == Qt::Key_Escape
@@ -6278,12 +6198,10 @@ void MainWindow::on_actionAutostart_playback_triggered()
 
 void MainWindow::on_checkBoxPlayOnEnd_clicked()
 {
-    prefsManager.Setstartplaybackoncountdowntimer(ui->checkBoxPlayOnEnd->isChecked());
 }
 
 void MainWindow::on_checkBoxStartOnPlay_clicked()
 {
-    prefsManager.Setstartcountuptimeronplay(ui->checkBoxStartOnPlay->isChecked());
 }
 
 
@@ -6485,22 +6403,6 @@ void MainWindow::on_actionPreferences_triggered()
         singingColorString = prefsManager.GetsingingColorString();
         calledColorString = prefsManager.GetcalledColorString();
         extrasColorString = prefsManager.GetextrasColorString();
-        // ----------------------------------------------------------------
-        // Show the Timers tab, if it is enabled now
-        if (prefsManager.GetexperimentalTimersEnabled()) {
-            if (!showTimersTab) {
-                // iff the tab was NOT showing, make it show up now
-                ui->tabWidget->insertTab(1, tabmap.value(1).first, tabmap.value(1).second);  // bring it back now!
-            }
-            showTimersTab = true;
-        }
-        else {
-            if (showTimersTab) {
-                // iff timers tab was showing, remove it
-                ui->tabWidget->removeTab(1);  // hidden, but we can bring it back later
-            }
-            showTimersTab = false;
-        }
 
         if (prefsManager.GetSwapSDTabInputAndAvailableCallsSides() != sdSliderSidesAreSwapped)
         {
@@ -6511,7 +6413,7 @@ void MainWindow::on_actionPreferences_triggered()
 
         // ----------------------------------------------------------------
         // Show the Lyrics tab, if it is enabled now
-        lyricsTabNumber = (showTimersTab ? 2 : 1);
+//        lyricsTabNumber = (showTimersTab ? 2 : 1);
 
         bool isPatter = songTypeNamesForPatter.contains(currentSongType);
 //        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;

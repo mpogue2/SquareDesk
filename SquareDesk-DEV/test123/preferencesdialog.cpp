@@ -252,7 +252,6 @@ void PreferencesDialog::setFontSizes()
     font.setPointSize(preferredSmallFontSize);
 
     ui->musicDirHelpLabel->setFont(font);
-    ui->timersHelpLabel->setFont(font);
     ui->clockColoringHelpLabel->setFont(font);
     ui->musicTypesHelpLabel->setFont(font);
     ui->musicFormatHelpLabel->setFont(font);

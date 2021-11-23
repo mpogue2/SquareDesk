@@ -762,18 +762,18 @@ private:
     QList<QString> *pathStack;
 
     // Experimental Timer stuff ----------
-    QTimer *timerCountUp;
-    qint64 timeCountUpZeroMs;
-    QTimer *timerCountDown;
-    qint64 timeCountDownZeroMs;
+//    QTimer *timerCountUp;
+//    qint64 timeCountUpZeroMs;
+//    QTimer *timerCountDown;
+//    qint64 timeCountDownZeroMs;
     bool trapKeypresses;
     QString reverseLabelTitle;
 
     void saveCheckBoxState(const char *key_string, QCheckBox *checkBox);
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox,
                               bool checkedDefault);
-    bool timerStopStartClick(QTimer *&timer, QPushButton *button);
-    int updateTimer(qint64 timeZero, QLabel *label);
+//    bool timerStopStartClick(QTimer *&timer, QPushButton *button);
+//    int updateTimer(qint64 timeZero, QLabel *label);
 
     QString removePrefix(QString prefix, QString s);
 
