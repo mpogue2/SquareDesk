@@ -53,6 +53,9 @@ public:
         bytesPerFrame = 0;
         sampleRate = 0;
 
+        currentFadeFactor = 1.0;
+        fadeFactorDecrementPerFrame = 0.0;
+
         clearLoop();
 
         // EQ settings
@@ -151,6 +154,11 @@ public:
         }
         activelyPlaying = true;
         currentState = BASS_ACTIVE_PLAYING;
+
+        // Play cancels FadeAndPause ------
+        currentFadeFactor = 1.0;
+        fadeFactorDecrementPerFrame = 0.0;
+
     }
 
     void Stop() {
@@ -167,12 +175,20 @@ public:
         if (filterR != NULL) {
             filterR->reset();
         }
+
+        // Stop cancels FadeAndPause ------
+        currentFadeFactor = 1.0;
+        fadeFactorDecrementPerFrame = 0.0;
     }
 
     void Pause() {
 //        qDebug() << "PlayerThread::Pause";
         activelyPlaying = false;
         currentState = BASS_ACTIVE_PAUSED;
+
+        // Pause cancels FadeAndPause ------
+        currentFadeFactor = 1.0;
+        fadeFactorDecrementPerFrame = 0.0;
     }
 
     void setVolume(unsigned int vol) {
@@ -302,7 +318,7 @@ public:
         float thePeakLevel = 0.0;
         if (m_mono) {
             // Force Mono is ENABLED
-            scaleFactor = m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow
+            scaleFactor = currentFadeFactor*m_volume/(100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
 
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
@@ -319,7 +335,7 @@ public:
             }
         } else {
             // stereo (Force Mono is DISABLED)
-            scaleFactor = m_volume/(100.0);
+            scaleFactor = currentFadeFactor*m_volume/(100.0);
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
@@ -358,8 +374,24 @@ public:
         // get ready to return --------------
         numProcessedFrames   = nFrames;         // it gave us this many frames back (might be less thatn inLength_frames)
         sourceFramesConsumed = scaled_inLength_frames; // we consumed all the input frames we were given
+
+        currentFadeFactor -= numProcessedFrames * fadeFactorDecrementPerFrame;  // fade takes place here
+        if (currentFadeFactor <= 0.0) {
+            fadeComplete();  // if we reached final volume, pause the whole playback
+        }
         return(0);
 }
+
+    void fadeOutAndPause(float finalVol, float secondsToGetThere) {
+        Q_UNUSED(finalVol)
+        currentFadeFactor           = 1.0;  // starts at 1.0 * m_volume, goes to 0.0 * m_volume
+        fadeFactorDecrementPerFrame = 1.0 / (secondsToGetThere * sampleRate);  // when non-zero, starts fading.  when 0.0, pauses and restores fade factor to 1.0
+        // when m_volume
+    }
+
+    void fadeComplete() {
+        Pause();                            // pause (which also explicitly cancels and reinits fadeFactor and decrement)
+    }
 
 public:
     QIODevice      *m_audioDevice;
@@ -368,7 +400,10 @@ public:
     unsigned int   totalFramesInSong;
 
     unsigned int bytesPerFrame;
-    unsigned int sampleRate;
+    unsigned int sampleRate;  // rename - this is FRAME rate
+
+    float  currentFadeFactor;
+    float  fadeFactorDecrementPerFrame;
 
     // EQ -----------------
     float bassBoost_dB = 0.0;
@@ -723,4 +758,8 @@ void AudioDecoder::clearLoop()
 
 double AudioDecoder::getPeakLevel() {
     return(myPlayer.getPeakLevel());
+}
+
+void AudioDecoder::fadeOutAndPause(float finalVol, float secondsToGetThere) {
+    myPlayer.fadeOutAndPause(finalVol, secondsToGetThere);
 }

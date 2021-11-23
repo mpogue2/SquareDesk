@@ -333,6 +333,7 @@ void flexible_audio::Pause(void)
 // ------------------------------------------------------------------
 void flexible_audio::FadeOutAndPause(void) {
     qDebug() << "NOT IMPLEMENTED: FadeOutAndPause";
+    decoder.fadeOutAndPause(0.0, 6.0);  // go to volume 0.0 in 6.0 seconds
 }
 
 void flexible_audio::StartVolumeDucking(int duckToPercent, double forSeconds) {

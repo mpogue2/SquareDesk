@@ -87,6 +87,8 @@ public:
     void Stop();
     bool isPlaying();
 
+    void fadeOutAndPause(float finalVol, float secondsToGetThere);
+
     void setLoop(double from, double to);
     void clearLoop();
 
