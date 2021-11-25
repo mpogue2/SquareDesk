@@ -148,7 +148,7 @@ private slots:
 
     void on_afterBreakAction_currentIndexChanged(int index);
 
-    void on_replayGainCheckbox_toggled(bool checked);
+//    void on_replayGainCheckbox_toggled(bool checked);
 
     void on_intelCenterFreqDial_valueChanged(int value);
 

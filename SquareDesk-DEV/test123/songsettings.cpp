@@ -879,7 +879,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetMix()) { fields.append("mix"); }
     if (settings.isSetMix()) { fields.append("loop"); }
     if (settings.isSetTags()) { fields.append("tags"); }
-    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
+//    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
 
 //    qDebug() << "saveSettings: " << fields;
 
@@ -951,7 +951,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":mix", settings.getMix());
     q.bindValue(":loop", settings.getLoop());
     q.bindValue(":tags", settings.getTags());
-    q.bindValue(":replayGain", settings.getReplayGain());
+//    q.bindValue(":replayGain", settings.getReplayGain());
 
     exec("saveSettings", q);
 }
@@ -975,13 +975,14 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
     if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
     if (!q.value(15).isNull()) { settings.setTags(q.value(15).toString()); }
-    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
+//    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
+//    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
 
 //    qDebug() << "********* DEBUG get/setSongMarkers **********";

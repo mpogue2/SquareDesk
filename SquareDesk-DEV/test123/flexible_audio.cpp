@@ -78,13 +78,6 @@ void flexible_audio::SetVolume(int inVolume)  // inVolume range: {0, 100}
     decoder.setVolume(inVolume);
 }
 
-// uses the STREAM volume, rather than global volume
-void flexible_audio::SetReplayGainVolume(double replayGain_dB)
-{
-    Q_UNUSED(replayGain_dB)
-//    qDebug() << "OBSOLETE: SetReplayGainVolume" << replayGain_dB;
-}
-
 // ------------------------------------------------------------------
 void flexible_audio::SetTempo(int newTempoPercent)  // range: {80, 120}
 {

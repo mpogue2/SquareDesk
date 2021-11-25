@@ -24,4 +24,4 @@ SONGSETTING_ELEMENT(int, Loop)
 
 SONGSETTING_ELEMENT(QString, Tags)
 
-SONGSETTING_ELEMENT(double, ReplayGain)
+//SONGSETTING_ELEMENT(double, ReplayGain)

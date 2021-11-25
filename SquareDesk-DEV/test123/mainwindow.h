@@ -197,7 +197,7 @@ public:
     explicit MainWindow(QSplashScreen *splash, QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    double songLoadedReplayGain_dB;
+//    double songLoadedReplayGain_dB;
 
     bool lyricsCopyIsAvailable;
 
@@ -966,7 +966,7 @@ private: // SD
     void set_sd_last_formation_name(const QString&);
     void set_sd_last_groupness(); // update groupness strings
 
-    bool replayGain_dB(QString filepath); // async call
+//    bool replayGain_dB(QString filepath); // async call
 
     bool compareRelative(QString s1, QString s2);  // compare pathnames relative to MusicDir
 

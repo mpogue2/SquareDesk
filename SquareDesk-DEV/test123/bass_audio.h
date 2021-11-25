@@ -43,7 +43,7 @@ public:
     double                  Current_Position;
     int                     Stream_Volume;
     double                  Stream_MaxVolume;       // used for ReplayGain, which sets this to something other then 1.0
-    double                  Stream_replayGain_dB;   // used for ReplayGain, which sets this to something other then 0.0
+//    double                  Stream_replayGain_dB;   // used for ReplayGain, which sets this to something other then 0.0
     int                     Stream_Tempo;
     double                  Stream_Eq[3];
 
@@ -75,7 +75,7 @@ public:
 
     //Settings
     void SetVolume(int inVolume);
-    void SetReplayGainVolume(double replayGain_dB);
+//    void SetReplayGainVolume(double replayGain_dB);
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
 

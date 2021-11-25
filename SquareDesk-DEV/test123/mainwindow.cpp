@@ -5116,32 +5116,32 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     songLoaded = true;  // now seekBar can be updated
 
-#ifdef Q_OS_MACXXX
-    // TODO: HOW TO FORCE RECALC OF REPLAYGAIN ON A FILE?
-    songLoadedReplayGain_dB = 0.0;
-    bool songHasReplayGain = settings1.isSetReplayGain();
-    if (songHasReplayGain) {
-//        qDebug() << "   loadMP3File: replayGain found in DB:" << settings1.getReplayGain();
-        songLoadedReplayGain_dB = settings1.getReplayGain();
-    }
-    if (!songHasReplayGain) // || (songLoadedReplayGain_dB == 0.0) )
-    {
-        // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
-        //   and song does NOT have replayGain
-        // //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
-        // //     failed the last time)  <-- this part disabled intentionally
-        bool replayGainCheckboxIsChecked = prefsManager.GetreplayGainIsEnabled();
-        if (replayGainCheckboxIsChecked) {
-            if (!replayGain_dB(MP3FileName)) {
-//                qDebug() << "ERROR: can't get ReplayGain for: " << MP3FileName;
-            } else {
-//                qDebug() << "Now calculating ReplayGain for: " << MP3FileName;
-            }
-        } else {
-//            qDebug() << "ReplayGain is currently disabled, so calculation will not be started.";
-        }
-    }
-#endif
+//#ifdef Q_OS_MACXXX
+//    // TODO: HOW TO FORCE RECALC OF REPLAYGAIN ON A FILE?
+//    songLoadedReplayGain_dB = 0.0;
+//    bool songHasReplayGain = settings1.isSetReplayGain();
+//    if (songHasReplayGain) {
+////        qDebug() << "   loadMP3File: replayGain found in DB:" << settings1.getReplayGain();
+//        songLoadedReplayGain_dB = settings1.getReplayGain();
+//    }
+//    if (!songHasReplayGain) // || (songLoadedReplayGain_dB == 0.0) )
+//    {
+//        // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
+//        //   and song does NOT have replayGain
+//        // //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
+//        // //     failed the last time)  <-- this part disabled intentionally
+//        bool replayGainCheckboxIsChecked = prefsManager.GetreplayGainIsEnabled();
+//        if (replayGainCheckboxIsChecked) {
+//            if (!replayGain_dB(MP3FileName)) {
+////                qDebug() << "ERROR: can't get ReplayGain for: " << MP3FileName;
+//            } else {
+////                qDebug() << "Now calculating ReplayGain for: " << MP3FileName;
+//            }
+//        } else {
+////            qDebug() << "ReplayGain is currently disabled, so calculation will not be started.";
+//        }
+//    }
+//#endif
 
     setInOutButtonState();
     loadingSong = false;
@@ -7832,15 +7832,15 @@ void MainWindow::saveCurrentSongSettings()
             setting.setLoop( -1 );
         }
 
-        // When it comes time to save the replayGain value, it should be done being calculated.
-        // So, save it, whatever it is.  This will fail, if the song is quickly clicked through.
-        // We guard against this by NOT saving, if it's exactly 0.0 dB (meaning not calculated yet).
-        if (cBass.Stream_replayGain_dB != 0.0) {
-//            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass.Stream_replayGain_dB;
-            setting.setReplayGain(cBass.Stream_replayGain_dB);
-        } else {
-//            qDebug() << "***** saveCurrentSongSettings: NOT saving replayGain value for" << currentSong << ", because it's 0.0dB, so not set yet";
-        }
+//        // When it comes time to save the replayGain value, it should be done being calculated.
+//        // So, save it, whatever it is.  This will fail, if the song is quickly clicked through.
+//        // We guard against this by NOT saving, if it's exactly 0.0 dB (meaning not calculated yet).
+//        if (cBass.Stream_replayGain_dB != 0.0) {
+////            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass.Stream_replayGain_dB;
+//            setting.setReplayGain(cBass.Stream_replayGain_dB);
+//        } else {
+////            qDebug() << "***** saveCurrentSongSettings: NOT saving replayGain value for" << currentSong << ", because it's 0.0dB, so not set yet";
+//        }
 
         songSettings.saveSettings(currentMP3filenameWithPath,
                                   setting);

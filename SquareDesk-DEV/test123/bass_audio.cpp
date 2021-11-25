@@ -35,7 +35,7 @@
 float  gStream_Pan = 0.0;
 bool gStream_Mono = false;
 HDSP gMono_dsp = 0;  // DSP handle (u32)
-float gStream_replayGain = 1.0f;    // replayGain
+//float gStream_replayGain = 1.0f;    // replayGain
 
 // ========================================================================
 // Mix/Pan, then optionally mix down to mono
@@ -70,7 +70,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             outL = KL * inL;
             outR = KR * inR;             // constant power pan
             mono = (outL + outR)/2.0f;  // mix down to mono for BOTH output channels
-            d[a] = d[a+1] = mono * gStream_replayGain;
+            d[a] = d[a+1] = mono; // * gStream_replayGain;
         }
 
     } else {
@@ -81,8 +81,8 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             inR = d[a+1];
             outL = KL * inL;
             outR = KR * inR;  // constant power pan
-            d[a] = outL * gStream_replayGain;
-            d[a+1] = outR * gStream_replayGain;
+            d[a] = outL; // * gStream_replayGain;
+            d[a+1] = outR; // * gStream_replayGain;
         }
     }
 }
@@ -156,32 +156,32 @@ void bass_audio::SetVolume(int inVolume)
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);  // this uses the GLOBAL volume control
 }
 
-// uses the STREAM volume, rather than global volume
-void bass_audio::SetReplayGainVolume(double replayGain_dB) {
-    if (!BASS_ChannelIsSliding(Stream, BASS_ATTRIB_VOL) &&
-            (BASS_ChannelIsActive(FXStream) != BASS_ACTIVE_PLAYING) ) {
-        // if we are not fading AND we are not ducked because of a sound effect
-        //   (in both cases, when playback starts again, it will go to current volume w/ReplayGain)
-        double voltageRatio = pow(10.0, replayGain_dB/20.0); // 0 = silent, 1.0 = normal, above 1.0 = amplification
-        Stream_replayGain_dB = replayGain_dB;  // for later restore
+//// uses the STREAM volume, rather than global volume
+//void bass_audio::SetReplayGainVolume(double replayGain_dB) {
+//    if (!BASS_ChannelIsSliding(Stream, BASS_ATTRIB_VOL) &&
+//            (BASS_ChannelIsActive(FXStream) != BASS_ACTIVE_PLAYING) ) {
+//        // if we are not fading AND we are not ducked because of a sound effect
+//        //   (in both cases, when playback starts again, it will go to current volume w/ReplayGain)
+//        double voltageRatio = pow(10.0, replayGain_dB/20.0); // 0 = silent, 1.0 = normal, above 1.0 = amplification
+//        Stream_replayGain_dB = replayGain_dB;  // for later restore
 
-//        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
-        Stream_MaxVolume = voltageRatio;
+////        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
+//        Stream_MaxVolume = voltageRatio;
 
-//        qDebug() << "   setReplayGainVolume: " << replayGain_dB << "dB, Voltage ratio (max volume): " << voltageRatio;
+////        qDebug() << "   setReplayGainVolume: " << replayGain_dB << "dB, Voltage ratio (max volume): " << voltageRatio;
 
-        gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
+//        gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
 
-//        if (!BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(voltageRatio))) {
-//            qDebug() << "ERROR: ChannelSetAttribute to" << voltageRatio << "failed. ";
-//            qDebug() << "   error code: " << BASS_ErrorGetCode();
-//        }  // LOCAL volume control of just the music stream
+////        if (!BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(voltageRatio))) {
+////            qDebug() << "ERROR: ChannelSetAttribute to" << voltageRatio << "failed. ";
+////            qDebug() << "   error code: " << BASS_ErrorGetCode();
+////        }  // LOCAL volume control of just the music stream
 
-//        float val;
-//        BASS_ChannelGetAttribute(Stream, BASS_ATTRIB_VOL, &val);
-//        qDebug() << "Channel GetAttribute Volume: " << val;
-    }
-}
+////        float val;
+////        BASS_ChannelGetAttribute(Stream, BASS_ATTRIB_VOL, &val);
+////        qDebug() << "Channel GetAttribute Volume: " << val;
+//    }
+//}
 
 // ------------------------------------------------------------------
 void bass_audio::SetTempo(int newTempo)
@@ -560,7 +560,7 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
     Q_UNUSED(handle)
 
-    SetReplayGainVolume(0.0);  // initialize the replayGain to "disabled", sets the LOCAL volume
+//    SetReplayGainVolume(0.0);  // initialize the replayGain to "disabled", sets the LOCAL volume
 }
 
 // ------------------------------------------------------------------
