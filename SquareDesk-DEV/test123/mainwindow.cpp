@@ -8370,6 +8370,7 @@ void MainWindow::pocketSphinx_started()
 void MainWindow::initReftab() {
 
 #ifdef M1MAC
+    ui->tabWidget->setTabVisible(4,false);  // turn off the References tab for now in the M1 build
     return;  // FIX: turned off right now for M1 Mac, because of error messages like:
 //    [8121:17667:1031/151459.045273:ERROR:channel_mac.cc(499)] mach_msg receive: (ipc/rcv) msg too large (0x10004004)
 //    [8119:259:1031/151459.066135:ERROR:network_service_instance_impl.cc(330)] Network service crashed, restarting service.
