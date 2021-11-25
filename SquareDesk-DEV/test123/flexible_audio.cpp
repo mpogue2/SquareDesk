@@ -131,16 +131,6 @@ void flexible_audio::SetEq(int band, double val)
 }
 
 // ------------------------------------------------------------------
-//
-void flexible_audio::SetCompression(unsigned int which, float val)
-{
-    qDebug() << "NOT IMPLEMENTED: Setting new Compression: " << which << val;
-}
-
-void flexible_audio::SetCompressionEnabled(bool enable) {
-    qDebug() << "NOT IMPLEMENTED: SetCompressionEnabled" << enable;
-}
-
 // which = (FREQ_KHZ, BW_OCT, GAIN_DB)
 void flexible_audio::SetIntelBoost(unsigned int which, float val)
 {

@@ -112,24 +112,6 @@ bass_audio::bass_audio(void)
 
     IntelBoostShouldBeEnabled = false;
 
-    // compressor initial settings (defaults to OFF)
-//    Stream_Compressor[0] = 0.0f;       // threshold (OFF)
-//    Stream_Compressor[1] = 4.0f;       // ratio
-//    Stream_Compressor[2] = 0.0f;       // gain
-//    Stream_Compressor[3] = 10.0f;      // attack
-//    Stream_Compressor[4] = 200.0f;     // release
-
-#ifdef WANTCOMPRESSOR
-    compressor.fThreshold = 0.0f;
-    compressor.fRatio = 4.0f;
-    compressor.fGain = 0.0f;
-    compressor.fAttack = 10.0f;
-    compressor.fRelease = 200.0f;
-    compressor.lChannel = BASS_BFX_CHANALL;  // compress all channels
-
-    compressorShouldBeEnabled = false;
-#endif
-
     FileLength = 0.0;
     Current_Position = 0.0;
     bPaused = false;
@@ -252,70 +234,6 @@ void bass_audio::SetEq(int band, double val)
 }
 
 // ------------------------------------------------------------------
-//
-void bass_audio::SetCompression(unsigned int which, float val)
-{
-
-#ifdef WANTCOMPRESSOR
-//    qDebug() << "SetCompression: " << which << "to: " << val;
-
-    switch (which) {
-        case 0: compressor.fThreshold = val; break;
-        case 1: compressor.fRatio     = val; break;
-        case 2: compressor.fGain      = val; break;
-        case 3: compressor.fAttack    = val; break;
-        case 4: compressor.fRelease   = val; break;
-        default: break;
-    }
-
-    if (fxCompressor != (HFX)NULL) {
-        // compressor exists, so go ahead and modify it!
-        BASS_FXSetParameters(fxCompressor, &compressor);
-//        qDebug() << "   Actual: " << compressor.fThreshold << compressor.fRatio << compressor.fGain << compressor.fAttack << compressor.fRelease;
-    }
-#else
-    Q_UNUSED(which)
-    Q_UNUSED(val)
-#endif
-
-}
-
-void bass_audio::SetCompressionEnabled(bool enable) {
-
-#ifdef WANTCOMPRESSOR
-    if (enable) {
-        // enabled
-//        qDebug() << "compressor should be enabled...";
-
-        if ((Stream != (HSTREAM)NULL) && (fxCompressor == (HFX)NULL)) {
-            // compressor doesn't exist yet, so create one and initialize it
-            // instantiate and init the compressor -----------------
-            fxCompressor = BASS_ChannelSetFX(Stream, BASS_FX_BFX_COMPRESSOR2, 0);  // 0 = after EQ
-            if (fxCompressor != (HFX)0) {
-//                qDebug() << "   compressor is up and running";
-                BASS_FXSetParameters(fxCompressor, &compressor);  // set parameters on compressor
-            } else {
-//                qDebug() << "error in turning on the compressor: " << BASS_ErrorGetCode();
-            }
-        }
-        compressorShouldBeEnabled = true;
-    } else {
-        // disabled
-//        qDebug() << "disabling compressor...";
-
-        if ((Stream != (HSTREAM)NULL) && (fxCompressor != (HFX)NULL)) {
-//            qDebug() << "   compressor is gone now...";
-            BASS_ChannelRemoveFX(Stream, fxCompressor);
-            fxCompressor = (HFX)NULL;  // compressor is gone now
-        }
-        compressorShouldBeEnabled = false;
-    }
-#else
-    Q_UNUSED(enable)
-#endif
-
-}
-
 // which = (FREQ_KHZ, BW_OCT, GAIN_DB)
 void bass_audio::SetIntelBoost(unsigned int which, float val)
 {
@@ -521,14 +439,6 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
             BASS_ChannelRemoveFX(Stream, fxEQ);  // remove the EQ
             fxEQ = (HFX)NULL;
         }
-#ifdef WANTCOMPRESSOR
-        if (fxCompressor != (HFX)NULL) {
-            // and there's a valid compressor
-            BASS_ChannelRemoveFX(Stream, fxCompressor);  // remove the compressor
-            fxCompressor = (HFX)NULL;  // other code looks at this to determine whether a compressor exists
-        }
-#endif
-
     }
     BASS_StreamFree(Stream);  // free the old stream
 
@@ -591,11 +501,6 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     eq.fCenter = 1600.0f;
     eq.fBandwidth = 2.0f;
     BASS_FXSetParameters(fxEQ, &eq);
-
-#ifdef WANTCOMPRESSOR
-    // instantiate and init the compressor, if it's not already -----------------
-    SetCompressionEnabled(compressorShouldBeEnabled);
-#endif
 
     // -------------------------------------------------------------
     bPaused = true;

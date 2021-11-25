@@ -1242,16 +1242,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->dateTimeEditIntroTime->setEnabled(false);
     ui->dateTimeEditOutroTime->setEnabled(false);
 
-    // should the compressor be enabled?  Even if it's not actually instantiated here and now,p
-    //   this will set compressorShouldBeEnabled, so that when a song is loaded, the compressor will
-    //   be instantiated, too.
-    cBass.SetCompressionEnabled(prefsManager.GetcompressorIsEnabled());
-    cBass.SetCompression(0, prefsManager.Getthreshold_dB()); // yes, we have to initialize these manually
-    cBass.SetCompression(1, prefsManager.Getratio_toOne());
-    cBass.SetCompression(2, prefsManager.Getgain_dB());
-    cBass.SetCompression(3, prefsManager.Getattack_ms());
-    cBass.SetCompression(4, prefsManager.Getrelease_ms());
-
     cBass.SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
     cBass.SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
     cBass.SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));

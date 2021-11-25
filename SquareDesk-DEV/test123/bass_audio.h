@@ -29,11 +29,6 @@
 
 #include <QTimer>
 
-// define this, if you want the compressor ---------------
-//#if defined(Q_OS_MAC)
-//#define WANTCOMPRESSOR 1
-//#endif
-
 // indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
 #define FREQ_KHZ 0
 #define BW_OCT  1
@@ -60,11 +55,6 @@ public:
 //    bool                    Stream_Mono;
     double                  Stream_BPM;
 
-#if defined(WANTCOMPRESSOR)
-    bool                    compressorShouldBeEnabled;
-    BASS_BFX_COMPRESSOR2    compressor;       // last compressor settings
-#endif
-
     bool                    bPaused;
 
     // LOOP stuff...
@@ -89,8 +79,8 @@ public:
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
 
-    void SetCompression(unsigned int which, float val);  // Global compressor parameters
-    void SetCompressionEnabled(bool enable);             // Global compressor parameters
+//    void SetCompression(unsigned int which, float val);  // Global compressor parameters
+//    void SetCompressionEnabled(bool enable);             // Global compressor parameters
 
     void SetIntelBoost(unsigned int which, float val);   // Global intelligibility boost parameters
     void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
@@ -145,9 +135,6 @@ private:
     HSTREAM                         FXStream;
 
     HFX fxEQ;           // dsp peaking eq handle
-#if defined(WANTCOMPRESSOR)
-    HFX fxCompressor;   // global compressor
-#endif
     HSYNC  syncHandle;
 };
 

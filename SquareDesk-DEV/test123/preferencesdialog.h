@@ -148,18 +148,6 @@ private slots:
 
     void on_afterBreakAction_currentIndexChanged(int index);
 
-    void on_thresholdDial_valueChanged(int value);
-
-    void on_ratioDial_valueChanged(int value);
-
-    void on_gainDial_valueChanged(int value);
-
-    void on_attackDial_valueChanged(int value);
-
-    void on_releaseDial_valueChanged(int value);
-
-    void on_compressorEnabledCheckbox_toggled(bool checked);
-
     void on_replayGainCheckbox_toggled(bool checked);
 
     void on_intelCenterFreqDial_valueChanged(int value);
