@@ -76,6 +76,8 @@ public:
     AudioDecoder();
     ~AudioDecoder();
 
+    void newSystemAudioOutputDevice();
+
     void setSource(const QString &fileName);
     void start();
     void stop();
@@ -148,6 +150,8 @@ private:
     QByteArray *m_data;
 
     double BPM;
+
+    QString m_currentAudioOutputDeviceName;
 };
 
 #endif // AUDIODECODER_H

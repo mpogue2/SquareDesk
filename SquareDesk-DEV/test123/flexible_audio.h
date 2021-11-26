@@ -173,6 +173,7 @@ private slots:
     void posChanged(qint64);
     void durChanged(qint64);
     void FXChannelStatusChanged(QMediaPlayer::MediaStatus);
+    void systemAudioOutputsChanged();
 
 public slots:
     void decoderDone();

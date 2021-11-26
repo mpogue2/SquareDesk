@@ -102,8 +102,9 @@ public:
     // SOUNDTOUCH LOOP
     void run() override {
         while (!threadDone) {
-            unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
-            if ( activelyPlaying && bytesFree > 0) {
+//            unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
+            unsigned int bytesFree = 0;
+            if ( activelyPlaying && (m_audioSink) && (bytesFree = m_audioSink->bytesFree()) > 0) {  // let's be careful not to dereference a null pointer
                 const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
 
                 // write the smaller of bytesFree and how much we have left in the song
@@ -507,26 +508,6 @@ AudioDecoder::AudioDecoder()
 {
 //    qDebug() << "In AudioDecoder() constructor";
 
-    // we want a format that will be no resampling for 99% of the MP3 files, but is float for kfr/rubberband processing
-    QAudioFormat desiredAudioFormat; // = device.preferredFormat();  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
-    desiredAudioFormat.setSampleRate(44100);
-    desiredAudioFormat.setChannelConfig(QAudioFormat::ChannelConfigStereo);
-    desiredAudioFormat.setSampleFormat(QAudioFormat::Float);  // Note: 8 bytes per frame
-
-    myPlayer.bytesPerFrame = 8;  // post-mixdown
-    myPlayer.sampleRate = 44100;
-
-//    qDebug() << "desiredAudioFormat: " << desiredAudioFormat << " )";
-
-//    QAudioDevice m_device = QMediaDevices::defaultAudioOutput();
-    m_audioSink = new QAudioSink(desiredAudioFormat);
-    m_audioDevice = m_audioSink->start();  // do write() to this to play music
-
-    m_audioBufferSize = m_audioSink->bufferSize();
-//    qDebug() << "BUFFER SIZE: " << m_audioBufferSize;
-
-    m_decoder.setAudioFormat(desiredAudioFormat);
-
     connect(&m_decoder, &QAudioDecoder::bufferReady,
             this, &AudioDecoder::bufferReady);
     connect(&m_decoder, QOverload<QAudioDecoder::Error>::of(&QAudioDecoder::error),
@@ -548,10 +529,12 @@ AudioDecoder::AudioDecoder()
 //    QString t = QString("0x%1").arg((quintptr)(m_data->data()), QT_POINTER_SIZE * 2, 16, QChar('0'));
 //    qDebug() << "audio data is at:" << t;
 
-    // give the data pointers to myPlayer
-    myPlayer.m_audioDevice = m_audioDevice;
-    myPlayer.m_audioSink = m_audioSink;
     myPlayer.m_data = (unsigned char *)(m_data->data());
+
+    m_audioSink = 0;                        // nothing yet
+    m_currentAudioOutputDeviceName = "";    // nothing yet
+
+    newSystemAudioOutputDevice();  // this will make m_audiosink and m_currentAudioOutputDeviceName valid
 
     myPlayer.start();  // starts the playback thread (in STOPPED mode)
 }
@@ -563,6 +546,50 @@ AudioDecoder::~AudioDecoder()
     }
     myPlayer.quit();
 }
+
+void AudioDecoder::newSystemAudioOutputDevice() {
+    // we want a format that will be no resampling for 99% of the MP3 files, but is float for kfr/rubberband processing
+    QAudioFormat desiredAudioFormat; // = device.preferredFormat();  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
+    desiredAudioFormat.setSampleRate(44100);
+    desiredAudioFormat.setChannelConfig(QAudioFormat::ChannelConfigStereo);
+    desiredAudioFormat.setSampleFormat(QAudioFormat::Float);  // Note: 8 bytes per frame
+
+    myPlayer.bytesPerFrame = 8;  // post-mixdown
+    myPlayer.sampleRate = 44100;
+
+//    qDebug() << "desiredAudioFormat: " << desiredAudioFormat << " )";
+
+    QString defaultADName = QMediaDevices::defaultAudioOutput().description();
+//    qDebug() << "newSystemAudioOutputDevice -- LAST AUDIO OUTPUT DEVICE NAME" << m_currentAudioOutputDeviceName << ", CURRENT AUDIO OUTPUT DEVICE NAME: " << defaultADName;
+
+    if (defaultADName != m_currentAudioOutputDeviceName) {
+        if (m_audioSink != 0) {
+            // if we already have an AudioSink, make a new one
+
+            m_audioSink->stop();
+            QAudioSink *oldOne = m_audioSink;
+//            qDebug() << "     making a new one atomically...";
+            m_audioSink = new QAudioSink(desiredAudioFormat);  // uses the current default audio device, ATOMIC
+            delete oldOne;
+        } else {
+//            qDebug() << "     making a new one for the first time...";
+            m_audioSink = new QAudioSink(desiredAudioFormat);  // uses the current default audio device, ATOMIC
+        }
+        m_currentAudioOutputDeviceName = defaultADName;    // assuming that succeeded, this is the one we are sending audio to
+    }
+
+    m_audioDevice = m_audioSink->start();  // do write() to this to play music
+
+    m_audioBufferSize = m_audioSink->bufferSize();
+//    qDebug() << "BUFFER SIZE: " << m_audioBufferSize;
+
+    m_decoder.setAudioFormat(desiredAudioFormat);
+
+    // give the data pointers to myPlayer
+    myPlayer.m_audioDevice = m_audioDevice;
+    myPlayer.m_audioSink   = m_audioSink;
+}
+
 
 void AudioDecoder::setSource(const QString &fileName)
 {
@@ -723,6 +750,15 @@ void AudioDecoder::updateProgress()
 // --------------------------------------------------------------------------------
 void AudioDecoder::Play() {
 //    qDebug() << "AudioDecoder::Play";
+
+    QString defaultADName = QMediaDevices::defaultAudioOutput().description();
+//    qDebug() << "AudioDecoder::Play -- LAST AUDIO OUTPUT DEVICE NAME" << m_currentAudioOutputDeviceName << ", CURRENT AUDIO OUTPUT DEVICE NAME: " << defaultADName;
+
+    if (defaultADName != m_currentAudioOutputDeviceName) {
+//        qDebug() << "AudioDecoder::Play -- making a new audio output device";
+        newSystemAudioOutputDevice();
+    }
+
     myPlayer.Play();
 }
 
