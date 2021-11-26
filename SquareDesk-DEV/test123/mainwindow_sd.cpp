@@ -25,7 +25,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "utility.h"
-//#include "renderarea.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -85,10 +84,6 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     static QRectF rect(-rectSize/2, -rectSize/2, rectSize, rectSize);
     static QRectF directionRect(-2,-rectSize / 2 - 4,4,4);
 
-//    QGraphicsItem *mainItem = boy ?
-//                dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]))
-//        :   dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
-
     // Now we have 2 items, and we only show one of them, depending on gender.  This allows for dynamic changing of gender via menu.
     QGraphicsItem *boyItem = dynamic_cast<QGraphicsItem*>(sdscene.addRect(rect, pen, coupleColorBrushes[number]));
     QGraphicsItem *girlItem = dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
@@ -127,7 +122,6 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     label->setTransform(labelTransform);
 
     QList<QGraphicsItem*> items;
-//    items.append(mainItem);
     items.append(boyItem);
     items.append(girlItem);
     items.append(hexItem);
@@ -136,7 +130,6 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     items.append(label);
     QGraphicsItemGroup *group = sdscene.createItemGroup(items);
     dancer.graphics = group;
-//    dancer.mainItem = mainItem;
     dancer.boyItem = boyItem;
     dancer.girlItem = girlItem;
     dancer.hexItem = hexItem;
@@ -376,10 +369,6 @@ void MainWindow::decode_formation_into_dancer_destinations(
 //    qDebug() << "Left Group: " << *lGroup;  // save for later display
 //    qDebug() << "Top Group: " << *tGroup;
 
-    // FIX: this is inefficient because we calculate them both each time.
-//    *bOrder = inOrder(dancers, Boys);
-//    *gOrder = inOrder(dancers, Girls);
-
     // determine order/sequence of boys and girls, sets boyOrder, girlOrder
     inOrder(dancers);
 
@@ -490,13 +479,11 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
     graphicsTextItemSDLeftGroupText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform2;
     statusBarTransform2.translate(-halfBackgroundSize/8, halfBackgroundSize*7/8);
-//    statusBarTransform2.scale(2,2);
     graphicsTextItemSDLeftGroupText->setTransform(statusBarTransform2);
 
     graphicsTextItemSDTopGroupText = sdscene.addText("", dancerLabelFont);
     QTransform statusBarTransform3;
     statusBarTransform3.translate(-halfBackgroundSize, -halfBackgroundSize/8);
-//    statusBarTransform3.scale(2,2);
     graphicsTextItemSDTopGroupText->setTransform(statusBarTransform3);
 
     for (double x = -halfBackgroundSize + gridSize;
@@ -774,12 +761,6 @@ void MainWindow::set_sd_last_groupness() {
     }
 }
 
-//void MainWindow::set_sd_last_order(Order bOrder, Order gOrder) {
-////    qDebug() << "updating SD order..." << bOrder << "," << gOrder;
-////    boyOrder = bOrder;
-////    girlOrder = gOrder;
-//}
-
 void MainWindow::SetAnimationSpeed(AnimationSpeed speed)
 {
     switch (speed)
@@ -833,7 +814,6 @@ void MainWindow::on_sd_update_status_bar(QString str)
         decode_formation_into_dancer_destinations(sdformation, sd_fixed_people);         // also sets L/Tgroup and B/Gorder
 
         set_sd_last_groupness(); // update groupness strings
-//        set_sd_last_order(boyOrder, girlOrder);     // update order strings
 
         set_sd_last_formation_name(str);  // this must be last to pull in the order strings (hack)
 
@@ -863,7 +843,6 @@ void MainWindow::on_sd_update_status_bar(QString str)
         QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row, kColCurrentSequenceCall);
         item->setData(Qt::UserRole, QVariant(formation));
 #endif /* ifdef NO_TIMING_INFO */
-        /* ui->listWidgetSDOutput->addItem(sdformation.join("\n")); */
     }
 //    sdformation.clear(); // not needed.  If here, it prevents updates when group menu item is toggled.
 }
@@ -1180,7 +1159,6 @@ void MainWindow::render_sd_item_data(QTableWidgetItem *item)
             {
                 decode_formation_into_dancer_destinations(formationList, sd_animation_people);  // also sets L/Tgroup and B/Gorder
                 set_sd_last_groupness(); // update groupness strings
-//                set_sd_last_order(boyOrder, girlOrder);     // update order strings
 
                 set_sd_last_formation_name(formationList[0]); // must be last
                 formationList.removeFirst();
@@ -1331,7 +1309,6 @@ void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
             {
                 decode_formation_into_dancer_destinations(formationList, sd_animation_people);   // also sets L/Tgroup and B/Gorder
                 set_sd_last_groupness(); // update groupness strings
-//                set_sd_last_order(boyOrder, girlOrder); // update groupness strings
 
                 set_sd_last_formation_name(formationList[0]); // must be last
                 formationList.removeFirst();
@@ -1372,18 +1349,6 @@ static int compareEnteredCallToCall(const QString &enteredCall, const QString &c
             enteredCallPos ++;
             callPos ++;
         }
-//        else if (enteredCallPos == enteredCall.indexOf(regexEnteredNth, enteredCallPos)
-//                 && callPos == call.indexOf(regexCallNth, callPos))
-//        {
-//            enteredCallPos += regexEnteredNth.matchedLength();
-//            callPos += regexCallNth.matchedLength();
-//        }
-//        else if (enteredCallPos == enteredCall.indexOf(regexEnteredN, enteredCallPos)
-//                 && callPos == call.indexOf(regexCallN, callPos))
-//        {
-//            enteredCallPos += regexEnteredN.matchedLength();
-//            callPos += regexCallN.matchedLength();
-//        }
         else if (enteredCallPos == enteredCall.indexOf(regexEnteredNth, enteredCallPos, &enteredCallMatch)
                  && callPos == call.indexOf(regexCallNth, callPos, &callMatch))
         {
@@ -1516,9 +1481,6 @@ void MainWindow::SDDebug(const QString &str, bool bold) {
 
 void MainWindow::on_lineEditSDInput_returnPressed()
 {
-//    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
-//    while (redoRow >= 0 && redoRow < sd_redo_stack->length())
-//        sd_redo_stack->erase(sd_redo_stack->begin() + redoRow);
     QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
     if (cmd.startsWith("debug "))
     {
@@ -2000,13 +1962,6 @@ void MainWindow::on_actionFormation_Thumbnails_triggered()
 
 void SDDancer::setColor(const QColor &color)
 {
-//    QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(mainItem);
-//    QGraphicsEllipseItem* ellipseItem = dynamic_cast<QGraphicsEllipseItem*>(mainItem);
-////    QGraphicsPolygonItem* polygonItem = dynamic_cast<QGraphicsPolygonItem*>(mainItem);  // HEXAGON
-//    if (rectItem) rectItem->setBrush(QBrush(color));
-//    if (ellipseItem) ellipseItem->setBrush(QBrush(color));
-////    if (polygonItem) polygonItem->setBrush(QBrush(color));   // HEXAGON
-
     QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(boyItem);
     rectItem->setBrush(QBrush(color));
 
@@ -2021,12 +1976,6 @@ void SDDancer::setColor(const QColor &color)
 
 static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &colorScheme)
 {
-//    bool showDancerLabels = (colorScheme == "Normal") || (colorScheme == "Random");
-//    for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
-//    {
-//        sdpeople[dancerNum].label->setVisible(showDancerLabels);
-//    }
-
     // New colors are: "Normal", "Mental Image", "Sight", "Randomize"
     if (colorScheme == "Normal" || colorScheme == "Color only") {
         sdpeople[COUPLE1 * 2 + 0].setColor(COUPLE1COLOR);
@@ -2063,7 +2012,6 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
                    RANDOMCOLOR5, RANDOMCOLOR6, RANDOMCOLOR7, RANDOMCOLOR8};
         int indexes[8] ={0,1,2,3,4,5,6,7};
 
-//        std::random_shuffle(std::begin(indexes), std::end(indexes)); // randomize colors
         std::shuffle(std::begin(indexes), std::end(indexes), std::mt19937(std::random_device()())); // >= C++17
 
         sdpeople[COUPLE1 * 2 + 0].setColor(randomColors[indexes[0]]);
@@ -2278,7 +2226,6 @@ QString MainWindow::render_image_item_as_html(QTableWidgetItem *imageItem, QGrap
             else
             {
                 decode_formation_into_dancer_destinations(formationList, people);   // also sets L/Tgroup and B/Gorder
-//                set_sd_last_groupness(lGroup, tGroup); // update groupness strings
                 move_dancers(people, 1);
                 QBuffer svgText;
                 svgText.open(QBuffer::ReadWrite);
