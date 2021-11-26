@@ -219,7 +219,7 @@ extern flexible_audio cBass;  // make this accessible to PreferencesDialog
 flexible_audio cBass;
 #endif
 
-static const char *music_file_extensions[] = { "mp3", "wav", "m4a" };     // NOTE: must use Qt::CaseInsensitive compares for these
+static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };     // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[] = { "htm", "html", "txt" }; // NOTE: must use Qt::CaseInsensitive compares for these
 static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
 static QString title_tags_suffix(" </span>");
