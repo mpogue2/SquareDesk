@@ -128,13 +128,13 @@ void flexible_audio::SetEq(int band, double val)
 void flexible_audio::SetIntelBoost(unsigned int which, float val)
 {
     Global_IntelBoostEq[which] = val;
-    qDebug() << "NOT IMPLEMENTED: SetIntelBoost:" << which << val;
+    decoder.SetIntelBoost(which, val);
 }
 
 void flexible_audio::SetIntelBoostEnabled(bool enable)
 {
-    qDebug() << "NOT IMPLEMENTED: SetIntelBoostEnabled";
     IntelBoostShouldBeEnabled = enable;
+    decoder.SetIntelBoostEnabled(enable);
 }
 
 void flexible_audio::SetGlobals()

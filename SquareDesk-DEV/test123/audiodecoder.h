@@ -102,6 +102,9 @@ public:
     void setMidBoost(float m);
     void setTrebleBoost(float t);
 
+    void SetIntelBoost(unsigned int which, float val);
+    void SetIntelBoostEnabled(bool enable);
+
     void setPitch(float p);
     void setTempo(float t);
 

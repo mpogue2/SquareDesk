@@ -64,8 +64,13 @@ public:
         bassBoost_dB   =  0.0;  // +/-15dB
         midBoost_dB    =  0.0;  // +/-15dB
         trebleBoost_dB =  0.0;  // +/-15dB
-        intelligibilityBoost_dB = 0.0;  // +/-10dB
-        updateEQ();  // update the bq[], based on the current *Boost_dB settings
+
+        intelligibilityBoost_fKHz = 1.6;
+        intelligibilityBoost_widthOctaves = 2.0;
+        intelligibilityBoost_dB = 0.0;  // also turns this off
+        intelligibilityBoost_enabled = false;
+
+        updateEQ();  // update the bq[4], based on the current *Boost_* settings
 
         // PITCH/TEMPO ---------
         tempoSpeedup_percent = 0.0;
@@ -265,7 +270,11 @@ public:
         bq[0] = biquad_peak( 125.0/44100.0,  4.0,   bassBoost_dB);    // tweaked Q to match Intel version
         bq[1] = biquad_peak(1000.0/44100.0,  0.9,   midBoost_dB);     // tweaked Q to match Intel version
         bq[2] = biquad_peak(8000.0/44100.0,  0.9,   trebleBoost_dB);  // tweaked Q to match Intel version
-//        bq[3] = biquad_peak(1600.0/44100.0,  0.9,   intelligibilityBoost_dB);  //  NO INTELLIGIBILITY BOOST RIGHT NOW
+
+        float W0 = 2 * 3.14159265 * (1000.0 * intelligibilityBoost_fKHz/sampleRate);
+        float Q = 1/(2.0 * sinhf( (logf(2.0)/2.0) * intelligibilityBoost_widthOctaves * (W0/sinf(W0)) ) );
+//        qDebug() << "Q: " << Q << ", boost_dB: " << intelligibilityBoost_dB;
+        bq[3] = biquad_peak(1000.0 * intelligibilityBoost_fKHz/44100.0, Q, intelligibilityBoost_dB);
 
         newFilterNeeded = true;
 //        qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << ")";
@@ -286,6 +295,24 @@ public:
     void setTrebleBoost(double t) {
 //        qDebug() << "new TREBLE EQ value: " << t;
         trebleBoost_dB = t;
+        updateEQ();
+    }
+
+    void SetIntelBoost(unsigned int which, float val) {
+//        qDebug() << "INTEL BOOST: (" << which << ", " << val << ")";
+
+        switch (which) {
+            case 0: intelligibilityBoost_fKHz            = val;  break;
+            case 1: intelligibilityBoost_widthOctaves    = val;  break;
+            case 2: intelligibilityBoost_dB              = -val; break; // NOTE MINUS SIGN (control is positive, but Boost is negative (suppression)
+            default: qDebug() << "ERROR: UNKNOWN INTEL BOOST: (" << which << ", " << val << ")"; break;
+        }
+        updateEQ();
+    }
+
+    void SetIntelBoostEnabled(bool enable) {
+//        qDebug() << "INTEL BOOST ENABLED: " << enable;
+        intelligibilityBoost_enabled = enable;
         updateEQ();
     }
 
@@ -433,9 +460,14 @@ public:
     float bassBoost_dB = 0.0;
     float midBoost_dB = 0.0;
     float trebleBoost_dB = 0.0;
-    float intelligibilityBoost_dB = 0.0;
 
-    biquad_params<float> bq[3];  // NO INTELLIGIBILITY BOOST RIGHT NOW
+    // INTELLIGIBILITY BOOST ----------
+    float intelligibilityBoost_fKHz = 1.6;
+    float intelligibilityBoost_widthOctaves = 2.0;
+    float intelligibilityBoost_dB = 0.0;
+    bool  intelligibilityBoost_enabled = false;
+
+    biquad_params<float> bq[4];
     biquad_filter<float> *filter;   // filter initialization (also holds context between apply calls), for mono and L stereo
     biquad_filter<float> *filterR;  // filter initialization (also holds context between apply calls), for R stereo only
 
@@ -747,6 +779,14 @@ void AudioDecoder::setMidBoost(float m) {
 
 void AudioDecoder::setTrebleBoost(float t) {
     myPlayer.setTrebleBoost(t);
+}
+
+void AudioDecoder::SetIntelBoost(unsigned int which, float val) {
+    myPlayer.SetIntelBoost(which, val);
+}
+
+void AudioDecoder::SetIntelBoostEnabled(bool enable) {
+    myPlayer.SetIntelBoostEnabled(enable);
 }
 
 double AudioDecoder::getBPM() {
