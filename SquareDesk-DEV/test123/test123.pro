@@ -511,30 +511,30 @@ win32:CONFIG(debug, debug|release): {
     # PS --------------------------------------------
     # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/debug)
-    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/debug)
-    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/debug)
+#    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/debug)
+#    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/debug)
+#    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/debug)
 
-    copydata7.commands = if not exist $$shell_path($$OUT_PWD/debug/models/en-us) mkdir $$shell_path($$OUT_PWD/debug/models/en-us)
-    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
-    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/debug/models/en-us)
+#    copydata7.commands = if not exist $$shell_path($$OUT_PWD/debug/models/en-us) mkdir $$shell_path($$OUT_PWD/debug/models/en-us)
+#    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
+#    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/debug/models/en-us)
 
     # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/debug)
-    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/debug)
+#    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/debug)
+#    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/debug)
 
-    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
-    export(first.depends)
-    export(copydata4.commands)
-    export(copydata5.commands)
-    export(copydata6.commands)
-    export(copydata7.commands)
-    export(copydata8.commands)
-    export(copydata9.commands)
-    export(copydata10.commands)
+#    export(first.depends)
+#    export(copydata4.commands)
+#    export(copydata5.commands)
+#    export(copydata6.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
+#    export(copydata9.commands)
+#    export(copydata10.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
     # SOUNDFX STARTER SET --------------------------------------------
     copydata10b.commands = if not exist $$shell_path($$OUT_PWD/debug/soundfx) mkdir $$shell_path($$OUT_PWD/debug/soundfx)
@@ -586,47 +586,48 @@ win32:CONFIG(debug, debug|release): {
     # To get around the "app failed to start because...platform plugin "windows" in "" problem
     # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
     #   rename is so that there is only one .exe in the directory for windeployqt.exe
-    fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+#    fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
     fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
-    fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+#    fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
 
-    first.depends += fixbug1 fixbug2 fixbug3
+#first.depends += fixbug1 fixbug2 fixbug3
+    first.depends += fixbug2
     export(first.depends)
-    export(fixbug1.commands)
+#    export(fixbug1.commands)
     export(fixbug2.commands)
-    export(fixbug3.commands)
-    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
-
+#    export(fixbug3.commands)
+#    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+    QMAKE_EXTRA_TARGETS += fixbug2
 }
 
 win32:CONFIG(release, debug|release): {
     # PS --------------------------------------------
     # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/release)
-    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/release)
-    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/release)
+#    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/release)
+#    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/release)
+#    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/release)
 
-    copydata7.commands = if not exist $$shell_path($$OUT_PWD/release/models/en-us) mkdir $$shell_path($$OUT_PWD/release/models/en-us)
-    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
-    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/release/models/en-us)
+#    copydata7.commands = if not exist $$shell_path($$OUT_PWD/release/models/en-us) mkdir $$shell_path($$OUT_PWD/release/models/en-us)
+#    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
+#    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/release/models/en-us)
 
     # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/release)
-    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/release)
+#    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/release)
+#    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/release)
 
-    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
-    export(first.depends)
-    export(copydata4.commands)
-    export(copydata5.commands)
-    export(copydata6.commands)
-    export(copydata7.commands)
-    export(copydata8.commands)
-    export(copydata9.commands)
-    export(copydata10.commands)
+#    export(first.depends)
+#    export(copydata4.commands)
+#    export(copydata5.commands)
+#    export(copydata6.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
+#    export(copydata9.commands)
+#    export(copydata10.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
     # SOUNDFX STARTER SET --------------------------------------------
     copydata10b.commands = if not exist $$shell_path($$OUT_PWD/release/soundfx) mkdir $$shell_path($$OUT_PWD/release/soundfx)
@@ -674,48 +675,54 @@ win32:CONFIG(release, debug|release): {
     # To get around the "app failed to start because...platform plugin "windows" in "" problem
     # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
     #   rename is so that there is only one .exe in the directory for windeployqt.exe
-    fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+#    fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
     fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
-    fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+#    fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
 
-    first.depends += fixbug1 fixbug2 fixbug3
+#    first.depends += fixbug1 fixbug2 fixbug3
+    first.depends += fixbug2
     export(first.depends)
-    export(fixbug1.commands)
+#    export(fixbug1.commands)
     export(fixbug2.commands)
-    export(fixbug3.commands)
-    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+#    export(fixbug3.commands)
+    QMAKE_EXTRA_TARGETS += fixbug2
+#    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
 }
 
 win32:CONFIG(debug, debug|release): {
     # MISC FILES --------------------------------------
     ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/debug)
     quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/debug)
-    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/debug)
+#    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/debug)
     manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/debug/SquareDeskManual.pdf)
 
-    first.depends += ico quaz pstest manual
+#    first.depends += ico quaz pstest manual
+    first.depends += ico quaz manual
     export(first.depends)
     export(ico.commands)
     export(quaz.commands)
-    export(pstest.commands)
+#    export(pstest.commands)
     export(manual.commands)
-    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+#    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+    QMAKE_EXTRA_TARGETS += ico quaz manual
 }
 
 win32:CONFIG(release, debug|release): {
     # MISC FILES --------------------------------------
     ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/release)
     quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/release)
-    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/release)
+#    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/release)
     manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/release/SquareDeskManual.pdf)
 
-    first.depends += ico quaz pstest manual
+#    first.depends += ico quaz pstest manual
+    first.depends += ico quaz manual
     export(first.depends)
     export(ico.commands)
     export(quaz.commands)
-    export(pstest.commands)
+#    export(pstest.commands)
     export(manual.commands)
-    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+#    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+    QMAKE_EXTRA_TARGETS += ico quaz manual
 }
 
 RESOURCES += resources.qrc

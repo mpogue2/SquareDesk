@@ -333,13 +333,13 @@ private slots:
     void on_actionExport_Play_Data_triggered();
     
     void on_pushButtonClearTaughtCalls_clicked();
-    void on_pushButtonCountDownTimerStartStop_clicked();
-    void on_pushButtonCountDownTimerReset_clicked();
-    void on_pushButtonCountUpTimerStartStop_clicked();
-    void on_pushButtonCountUpTimerReset_clicked();
+//    void on_pushButtonCountDownTimerStartStop_clicked();
+//    void on_pushButtonCountDownTimerReset_clicked();
+//    void on_pushButtonCountUpTimerStartStop_clicked();
+//    void on_pushButtonCountUpTimerReset_clicked();
 
-    void on_checkBoxPlayOnEnd_clicked();
-    void on_checkBoxStartOnPlay_clicked();
+//    void on_checkBoxPlayOnEnd_clicked();
+//    void on_checkBoxStartOnPlay_clicked();
 
     void getCurrentPointInStream(double *pos, double *len);
     void on_pushButtonSetIntroTime_clicked();
@@ -366,9 +366,9 @@ private slots:
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
     void setInOutButtonState();
-    // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
-    void timerCountUp_update();
-    void timerCountDown_update();
+//    // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
+//    void timerCountUp_update();
+//    void timerCountDown_update();
 
     void on_actionLoad_Playlist_triggered();
     void on_actionSave_Playlist_triggered();
@@ -398,12 +398,12 @@ private slots:
 
     void on_tabWidget_currentChanged(int index);
 
-    void readPSData();
-    void readPSStdErr();
-    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
-    void pocketSphinx_started();
+//    void readPSData();
+//    void readPSStdErr();
+//    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
+//    void pocketSphinx_started();
 
-    void on_actionEnable_voice_input_toggled(bool arg1);
+//    void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
 
     void on_actionShow_All_Ages_triggered(bool checked);
@@ -820,7 +820,7 @@ private:
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
 
-    QProcess *ps;       // pocketsphinx process
+//    QProcess *ps;       // pocketsphinx process
 
     Highlighter *highlighter;
 //    RenderArea *renderArea;

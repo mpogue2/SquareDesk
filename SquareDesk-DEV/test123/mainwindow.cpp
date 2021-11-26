@@ -337,7 +337,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    timerCountUp(nullptr),
 //    timerCountDown(nullptr),
     trapKeypresses(true),
-    ps(nullptr),
+//    ps(nullptr),
     firstTimeSongIsPlayed(false),
     loadingSong(false),
     cuesheetEditorReactingToCursorMovement(false),
@@ -845,8 +845,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     on_actionTempo_toggled(prefsManager.GetshowTempoColumn());
 
 // voice input is only available on MAC OS X and Win32 right now...
-    on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
-    voiceInputEnabled = prefsManager.Getenablevoiceinput();
+//    on_actionEnable_voice_input_toggled(prefsManager.Getenablevoiceinput());
+//    voiceInputEnabled = prefsManager.Getenablevoiceinput();
 
     t.elapsed(__LINE__);
 
@@ -2637,9 +2637,9 @@ MainWindow::~MainWindow()
     {
         sdthread->finishAndShutdownSD();
     }
-    if (ps) {
-        ps->kill();
-    }
+//    if (ps) {
+//        ps->kill();
+//    }
 
     if (prefsManager.GetenableAutoAirplaneMode()) {
         airplaneMode(false);
@@ -2885,36 +2885,36 @@ void MainWindow::on_playButton_clicked()
 //    return signedSeconds;
 //}
 
-// ----------------------------------------------------------------------
-void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
-{
-}
+//// ----------------------------------------------------------------------
+//void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
+//{
+//}
 
-// ----------------------------------------------------------------------
+//// ----------------------------------------------------------------------
 
-void MainWindow::on_pushButtonCountDownTimerReset_clicked()
-{
-}
+//void MainWindow::on_pushButtonCountDownTimerReset_clicked()
+//{
+//}
 
-// ----------------------------------------------------------------------
-void MainWindow::on_pushButtonCountUpTimerStartStop_clicked()
-{
-}
+//// ----------------------------------------------------------------------
+//void MainWindow::on_pushButtonCountUpTimerStartStop_clicked()
+//{
+//}
 
-// ----------------------------------------------------------------------
-void MainWindow::on_pushButtonCountUpTimerReset_clicked()
-{
-}
+//// ----------------------------------------------------------------------
+//void MainWindow::on_pushButtonCountUpTimerReset_clicked()
+//{
+//}
 
-// ----------------------------------------------------------------------
-void MainWindow::timerCountUp_update()
-{
-}
+//// ----------------------------------------------------------------------
+//void MainWindow::timerCountUp_update()
+//{
+//}
 
-// ----------------------------------------------------------------------
-void MainWindow::timerCountDown_update()
-{
-}
+//// ----------------------------------------------------------------------
+//void MainWindow::timerCountDown_update()
+//{
+//}
 
 // SONGTABLEREFACTOR
 int MainWindow::getSelectionRowForFilename(const QString &filePath)
@@ -3743,13 +3743,18 @@ void MainWindow::aboutBox()
     QMessageBox msgBox;
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("(Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
-                   QString("Uses: <a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
+                   QString("Uses: ") +
+#ifndef M1MAC
+                   QString("<a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
                    QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
+#endif
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
-                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
+//                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
-                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, and ") +
-                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>.") +
+                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
+                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
+                   QString("<a href=\"https://www.kfrlib.com\">kfr</a>, and ") +
+                   QString("<a href=\"https://www.surina.net/soundtouch/\">SoundTouch</a>.") +
                    QString("<p>Thanks to: <a href=\"http://all8.com\">all8.com</a>"));
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
@@ -6177,14 +6182,13 @@ void MainWindow::on_actionAutostart_playback_triggered()
     prefsManager.Setautostartplayback(ui->actionAutostart_playback->isChecked());
 }
 
-void MainWindow::on_checkBoxPlayOnEnd_clicked()
-{
-}
+//void MainWindow::on_checkBoxPlayOnEnd_clicked()
+//{
+//}
 
-void MainWindow::on_checkBoxStartOnPlay_clicked()
-{
-}
-
+//void MainWindow::on_checkBoxStartOnPlay_clicked()
+//{
+//}
 
 void MainWindow::on_actionImport_triggered()
 {
@@ -8261,101 +8265,105 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 }
 
 void MainWindow::microphoneStatusUpdate() {
-    bool killVoiceInput(true);
+//    bool killVoiceInput(true);
 
-    int index = ui->tabWidget->currentIndex();
+//    int index = ui->tabWidget->currentIndex();
 
-    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
-    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
+//    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
+//    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    if (ui->tabWidget->tabText(index) == "SD"
-        || ui->tabWidget->tabText(index) == "SD 2") {
-        if (voiceInputEnabled &&
-            currentApplicationState == Qt::ApplicationActive) {
-            if (!ps) {
-                initSDtab();
-            }
-        }
-        if (voiceInputEnabled && ps &&
-            currentApplicationState == Qt::ApplicationActive) {
-            micStatusLabel->setStyleSheet("color: red");
-            micStatusLabel->setText(micsON);
-            killVoiceInput = false;
-        } else {
-            micStatusLabel->setStyleSheet("color: black");
-            micStatusLabel->setText(micsOFF);
-        }
-    } else {
-        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
-            micStatusLabel->setStyleSheet("color: black");
-            micStatusLabel->setText(micsOFF);
-        } else {
-            micStatusLabel->setStyleSheet("color: black");
-            micStatusLabel->setText(micsOFF);
-        }
-    }
-    if (killVoiceInput && ps)
-    {
-        ps->kill();
-        delete ps;
-        ps = nullptr;
-    }
+    QString kybdStatus("Kybd:" + currentSDKeyboardLevel);
+    micStatusLabel->setStyleSheet("color: black");
+    micStatusLabel->setText(kybdStatus);
+
+//    if (ui->tabWidget->tabText(index) == "SD"
+//        || ui->tabWidget->tabText(index) == "SD 2") {
+//        if (voiceInputEnabled &&
+//            currentApplicationState == Qt::ApplicationActive) {
+//            if (!ps) {
+//                initSDtab();
+//            }
+//        }
+//        if (voiceInputEnabled && ps &&
+//            currentApplicationState == Qt::ApplicationActive) {
+//            micStatusLabel->setStyleSheet("color: red");
+//            micStatusLabel->setText(micsON);
+//            killVoiceInput = false;
+//        } else {
+//            micStatusLabel->setStyleSheet("color: black");
+//            micStatusLabel->setText(micsOFF);
+//        }
+//    } else {
+//        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
+//            micStatusLabel->setStyleSheet("color: black");
+//            micStatusLabel->setText(micsOFF);
+//        } else {
+//            micStatusLabel->setStyleSheet("color: black");
+//            micStatusLabel->setText(micsOFF);
+//        }
+//    }
+//    if (killVoiceInput && ps)
+//    {
+//        ps->kill();
+//        delete ps;
+//        ps = nullptr;
+//    }
 }
 
 
-void MainWindow::readPSStdErr()
-{
-    QByteArray s(ps->readAllStandardError());
-    QString str = QString::fromUtf8(s.data());
-}
+//void MainWindow::readPSStdErr()
+//{
+//    QByteArray s(ps->readAllStandardError());
+//    QString str = QString::fromUtf8(s.data());
+//}
 
-void MainWindow::readPSData()
-{
-    // ASR --------------------------------------------
-    // pocketsphinx has a valid string, send it to sd
-    QByteArray s = ps->readAllStandardOutput();
-    QString str = QString::fromUtf8(s.data());
-    if (str.startsWith("INFO: "))
-        return;
+//void MainWindow::readPSData()
+//{
+//    // ASR --------------------------------------------
+//    // pocketsphinx has a valid string, send it to sd
+//    QByteArray s = ps->readAllStandardOutput();
+//    QString str = QString::fromUtf8(s.data());
+//    if (str.startsWith("INFO: "))
+//        return;
 
-//    qDebug() << "PS str: " << str;
+////    qDebug() << "PS str: " << str;
 
-    int index = ui->tabWidget->currentIndex();
-    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
-        ((ui->tabWidget->tabText(index) != "SD" && ui->tabWidget->tabText(index) != "SD 2"))) {
-        // if voiceInput is explicitly disabled, or the app is not Active, we're not on the sd tab, then voiceInput is disabled,
-        //  and we're going to read the data from PS and just throw it away.
-        // This is a cheesy way to do it.  We really should disable the mics somehow.
-        return;
-    }
+//    int index = ui->tabWidget->currentIndex();
+//    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
+//        ((ui->tabWidget->tabText(index) != "SD" && ui->tabWidget->tabText(index) != "SD 2"))) {
+//        // if voiceInput is explicitly disabled, or the app is not Active, we're not on the sd tab, then voiceInput is disabled,
+//        //  and we're going to read the data from PS and just throw it away.
+//        // This is a cheesy way to do it.  We really should disable the mics somehow.
+//        return;
+//    }
 
-    // NLU --------------------------------------------
-    // This section does the impedance match between what you can say and the exact wording that sd understands.
-    // TODO: put this stuff into an external text file, read in at runtime?
-    //
-    QString s2 = str.toLower();
-    s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
-    s2.replace(QRegularExpression("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
-    s2 = s2.simplified();
+//    // NLU --------------------------------------------
+//    // This section does the impedance match between what you can say and the exact wording that sd understands.
+//    // TODO: put this stuff into an external text file, read in at runtime?
+//    //
+//    QString s2 = str.toLower();
+//    s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
+//    s2.replace(QRegularExpression("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
+//    s2 = s2.simplified();
 
-    if (s2 == "erase" || s2 == "erase that") {
-        ui->lineEditSDInput->clear();
-    }
-    else
-    {
-        ui->lineEditSDInput->setText(s2);
-        on_lineEditSDInput_returnPressed();
-    }
-}
+//    if (s2 == "erase" || s2 == "erase that") {
+//        ui->lineEditSDInput->clear();
+//    }
+//    else
+//    {
+//        ui->lineEditSDInput->setText(s2);
+//        on_lineEditSDInput_returnPressed();
+//    }
+//}
 
-void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
-{
-    Q_UNUSED(error)
-}
+//void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
+//{
+//    Q_UNUSED(error)
+//}
 
-void MainWindow::pocketSphinx_started()
-{
-}
+//void MainWindow::pocketSphinx_started()
+//{
+//}
 
 void MainWindow::initReftab() {
 
@@ -8512,92 +8520,92 @@ void MainWindow::initReftab() {
 void MainWindow::initSDtab() {
 //    console->setFixedHeight(150);
 
-    // POCKET_SPHINX -------------------------------------------
-    //    WHICH=5365
-    //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
-    // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
-    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDesk/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDesk.app/Contents/MacOS
-    // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
-    //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
-    // TEST SD MANUALLY: ./sd
-    unsigned int whichModel = 5365;
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
-    QString pathToPS = appDir + "pocketsphinx_continuous";
-#if defined(Q_OS_WIN32)
-    pathToPS += ".exe";   // executable has a different name on Win32
-#endif
+//    // POCKET_SPHINX -------------------------------------------
+//    //    WHICH=5365
+//    //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
+//    // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
+//    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDesk/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDesk.app/Contents/MacOS
+//    // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
+//    //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
+//    // TEST SD MANUALLY: ./sd
+//    unsigned int whichModel = 5365;
+//#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
+//    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
+//    QString pathToPS = appDir + "pocketsphinx_continuous";
+//#if defined(Q_OS_WIN32)
+//    pathToPS += ".exe";   // executable has a different name on Win32
+//#endif
 
-#else /* must be (Q_OS_LINUX) */
-    QString pathToPS = "pocketsphinx_continuous";
-#endif
-    // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
-    QString pathToDict = QString::number(whichModel) + "a.dic";
-    QString pathToJSGF = currentSDVUILevel + ".jsgf";
+//#else /* must be (Q_OS_LINUX) */
+//    QString pathToPS = "pocketsphinx_continuous";
+//#endif
+//    // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
+//    QString pathToDict = QString::number(whichModel) + "a.dic";
+//    QString pathToJSGF = currentSDVUILevel + ".jsgf";
 
-#if defined(Q_OS_MAC)
-    // The acoustic models are one level up in the models subdirectory on MAC
-    QString pathToHMM  = "../models/en-us";
-#endif
-#if defined(Q_OS_WIN32)
-    // The acoustic models are at the same level, but in the models subdirectory on MAC
-    QString pathToHMM  = "models/en-us";
-#endif
-#if defined(Q_OS_LINUX)
-    QString pathToHMM = "../pocketsphinx/binaries/win32/models/en-us/";
-#endif
+//#if defined(Q_OS_MAC)
+//    // The acoustic models are one level up in the models subdirectory on MAC
+//    QString pathToHMM  = "../models/en-us";
+//#endif
+//#if defined(Q_OS_WIN32)
+//    // The acoustic models are at the same level, but in the models subdirectory on MAC
+//    QString pathToHMM  = "models/en-us";
+//#endif
+//#if defined(Q_OS_LINUX)
+//    QString pathToHMM = "../pocketsphinx/binaries/win32/models/en-us/";
+//#endif
 
-    QStringList PSargs;
-    PSargs << "-dict" << pathToDict     // pronunciation dictionary
-           << "-jsgf" << pathToJSGF     // language model
-           << "-inmic" << "yes"         // use the built-in microphone
-           << "-remove_noise" << "yes"  // try turning on PS noise reduction
-           << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
+//    QStringList PSargs;
+//    PSargs << "-dict" << pathToDict     // pronunciation dictionary
+//           << "-jsgf" << pathToJSGF     // language model
+//           << "-inmic" << "yes"         // use the built-in microphone
+//           << "-remove_noise" << "yes"  // try turning on PS noise reduction
+//           << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
 
-    ps = new QProcess(Q_NULLPTR);
+//    ps = new QProcess(Q_NULLPTR);
 
 //    qDebug() << "PS start: " << pathToPS << PSargs;
 
-    ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
+//    ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
 //    ps->setProcessChannelMode(QProcess::MergedChannels);
 //    ps->setReadChannel(QProcess::StandardOutput);
-    connect(ps, SIGNAL(readyReadStandardOutput()),
-            this, SLOT(readPSData()));                 // output data from ps
-    connect(ps, SIGNAL(readyReadStandardError()),
-            this, SLOT(readPSStdErr()));                 // output data from ps
-    connect(ps, SIGNAL(errorOccurred(QProcess::ProcessError)),
-            this, SLOT(pocketSphinx_errorOccurred(QProcess::ProcessError)));
-    connect(ps, SIGNAL(started()),
-            this, SLOT(pocketSphinx_started()));
-    ps->start(pathToPS, PSargs);
+//    connect(ps, SIGNAL(readyReadStandardOutput()),
+//            this, SLOT(readPSData()));                 // output data from ps
+//    connect(ps, SIGNAL(readyReadStandardError()),
+//            this, SLOT(readPSStdErr()));                 // output data from ps
+//    connect(ps, SIGNAL(errorOccurred(QProcess::ProcessError)),
+//            this, SLOT(pocketSphinx_errorOccurred(QProcess::ProcessError)));
+//    connect(ps, SIGNAL(started()),
+//            this, SLOT(pocketSphinx_started()));
+//    ps->start(pathToPS, PSargs);
 
-    bool startedStatus = ps->waitForStarted();
-    if (!startedStatus)
-    {
-        delete ps;
-        ps = nullptr;
-    }
+//    bool startedStatus = ps->waitForStarted();
+//    if (!startedStatus)
+//    {
+//        delete ps;
+//        ps = nullptr;
+//    }
 
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 }
 
-void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
-{
-    if (checked) {
-        ui->actionEnable_voice_input->setChecked(true);
-        voiceInputEnabled = true;
-    }
-    else {
-        ui->actionEnable_voice_input->setChecked(false);
-        voiceInputEnabled = false;
-    }
+//void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
+//{
+//    if (checked) {
+//        ui->actionEnable_voice_input->setChecked(true);
+//        voiceInputEnabled = true;
+//    }
+//    else {
+//        ui->actionEnable_voice_input->setChecked(false);
+//        voiceInputEnabled = false;
+//    }
 
-    microphoneStatusUpdate();
+//    microphoneStatusUpdate();
 
-    // the Enable Voice Input setting is persistent across restarts of the application
-    prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
-}
+//    // the Enable Voice Input setting is persistent across restarts of the application
+//    prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
+//}
 
 void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
 {

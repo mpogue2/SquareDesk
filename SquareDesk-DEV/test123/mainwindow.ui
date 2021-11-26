@@ -1883,8 +1883,6 @@
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
     <addaction name="separator"/>
-    <addaction name="actionEnable_voice_input"/>
-    <addaction name="separator"/>
     <addaction name="menuColors"/>
     <addaction name="menuNumbers"/>
     <addaction name="menuGenders"/>
