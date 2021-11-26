@@ -30,11 +30,11 @@ WHICH=Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="0.9.5"  # <-- THIS IS THE ONE TO CHANGE
+VERSION="0.9.6"  # <-- THIS IS THE ONE TO CHANGE
 DMG_BACKGROUND_IMG="installer3.png"
 
-QTVERSION="5.9.3"
-QT_VERSION="5_9_3"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="6.2.1"
+QT_VERSION="6_2_1"   # same thing, but with underscores (yes, change both of them at the same time!)
 
 #MANUAL="SquareDeskManual.pdf"
 
