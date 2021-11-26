@@ -1573,7 +1573,9 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
 
     cmd = cmd.replace("four quarters","4/4");
     cmd = cmd.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
+    cmd = cmd.replace("halfway", "xyzzy123");
     cmd = cmd.replace("two quarters","2/4").replace("one half","1/2").replace("half","1/2");
+    cmd = cmd.replace("xyzzy123","halfway");  // protect "halfway" from being changed to "1/2way"
     cmd = cmd.replace("and a quarter more", "AND A QUARTER MORE");  // protect this.  Separate call, must NOT be "1/4"
     cmd = cmd.replace("one quarter", "1/4").replace("a quarter", "1/4").replace("quarter","1/4");
     cmd = cmd.replace("AND A QUARTER MORE", "and a quarter more");  // protect this.  Separate call, must NOT be "1/4"
@@ -1616,7 +1618,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     cmd = cmd.replace("single hinge", "hinge").replace("single file circulate", "circulate").replace("all 8 circulate", "circulate");
 
     // handle "men <anything>" and "ladies <anything>", EXCEPT for ladies chain
-    if (!cmd.contains("ladies chain") && !cmd.contains("men chain")) {
+    if (!cmd.contains("ladies chain") && !cmd.contains("men chain") && !cmd.contains("promenade")) {
         cmd = cmd.replace("men", "boys").replace("ladies", "girls");  // wacky sd!
     }
 
