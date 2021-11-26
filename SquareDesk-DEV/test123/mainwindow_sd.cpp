@@ -75,6 +75,7 @@ static const char *str_undo_last_call = "undo last call";
 static QFont dancerLabelFont;
 static QString stringClickableCall("clickable call!");
 
+static bool gTwoCouplesOnly = false;
 
 static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dancer, int number, bool boy)
 {
@@ -157,6 +158,11 @@ void move_dancers(QList<SDDancer> &sdpeople, double t)
                              dancer_y * dancerGridSize);
         transform.rotate(sdpeople[dancerNum].getDirection(t));
         sdpeople[dancerNum].graphics->setTransform(transform);
+
+        // in two couple dancing, only couples 1 and 3 exist, others are invisible
+        if (gTwoCouplesOnly && (dancerNum / 2) % 2 == 1) {
+            sdpeople[dancerNum].graphics->setVisible(false);
+        }
 
         // Gyrations to make sure that the text labels are always upright
         QTransform textTransform;
@@ -1707,14 +1713,19 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
     }
 
     // SD COMMANDS -------
+
+    qDebug() << "CMD: " << cmd;
+
     // square your|the set -> square thru 4
     if (cmd == "square the set" || cmd == "square your set"
         || cmd == str_square_your_sets) {
         sdthread->do_user_input(str_abort_this_sequence);
         sdthread->do_user_input("y");
     }
-    else
-    {
+    else if (cmd == "2 couples only") {
+        sdthread->do_user_input("two couples only");
+        gTwoCouplesOnly = true;
+    } else {
         if (ui->tableWidgetCurrentSequence->rowCount() == 0 && !cmd.contains("1p2p")) {
             if (cmd.startsWith("heads ")) {
                 sdthread->do_user_input("heads start");
