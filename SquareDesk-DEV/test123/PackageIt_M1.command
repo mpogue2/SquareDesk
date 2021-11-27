@@ -105,7 +105,7 @@ echo
 echo Making Staging Directory...
 mkdir -p "${STAGING_DIR}"
 
-echo "Copying in .app and renaming to ${APP_NAME}_${VERSION}.app..."
+echo "Copying .app to STAGING_DIR and renaming to ${APP_NAME}_${VERSION}.app..."
 cp -Rpf "${MIKEBUILDDIR}/test123/${APP_NAME}.app" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
 
 # ----------------
@@ -138,6 +138,14 @@ echo
 # fi
 
 # ... perform any other stripping/compressing of libs and executables
+
+# Locate all the Qt Universal libs, and strip out the x86_64 part, since this is an M1-only executable right now
+echo "----- Removing x86_64 stuff to make the M1-specific .app file much thinner...."
+ls -al ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Frameworks
+find ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Frameworks -type f -name "Qt*" -size +1k
+find ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Frameworks -type f -name "Qt*" -size +1k -exec mv {} {}.backup \; -exec lipo -remove x86_64 {}.backup -output {} \; -exec ls -al {} \; -exec ls -al {}.backup \; -exec rm {}.backup \;
+echo "----- DONE WITH LIPO ON QT FRAMEWORKS"
+echo 
 
 popd
 
