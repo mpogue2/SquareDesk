@@ -319,7 +319,8 @@ void MainWindow::decode_formation_into_dancer_destinations(
             case '\n':
                 break;
             default:
-                qDebug() << "Unknown character " << ch;
+                //qDebug() << "Unknown character in SD output" << ch;
+                break;
             }
             if (draw)
             {
