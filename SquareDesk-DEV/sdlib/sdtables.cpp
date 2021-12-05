@@ -4226,6 +4226,8 @@ conc_tables::cm_thing conc_tables::conc_init_table[] = {
              sdeep2x1dmd, s1x2,  1, 0, 2, 1,  0xAF5, schema_concentric},
    {sbigdmd,        schema_nothing, {9, 3,    0, 1, 2, 4, 5, 6, 7, 8, 10, 11},
              s1x2, sdeep2x1dmd,  1, 0, 2, 1,  0xAFD, schema_concentric},
+   {sdeep2x1dmd,    schema_nothing, {0, 1, 3, 4, 5, 6, 8, 9,    7, 2},
+             s2x4, s1x2,         0, 1, 2, 1,  0xAFD, schema_concentric},
    {sbighrgl,       schema_nothing, {9, 3,    0, 1, 2, 4, 5, 6, 7, 8, 10, 11},
              s1x2, sdeep2x1dmd,  0, 0, 2, 1,  0xAFE, schema_concentric},
    {sdeepxwv,       schema_concentric_8_4, {5, 4, 3, 2, 11, 10, 9, 8,    0, 1, 6, 7},
@@ -4466,6 +4468,22 @@ conc_tables::cm_thing conc_tables::conc_init_table[] = {
    {s2x5,           schema_concentric, {1, 2, 3, 6, 7, 8,     0, 4, 5, 9},
              s2x3,     s2x2,     0, 0, 1, 1,  0x8FE, schema_concentric},
 
+   {s1x8,           schema_first_only, {/* nothing for centers*/ 0, 1, 2, 3, 4, 5, 6, 7},
+             nothing,  s1x8,     0, 0, 1, 1,  0x800, schema_first_only},
+   {s1x6,           schema_first_only, {/* nothing for centers*/ 0, 1, 2, 3, 4, 5},
+             nothing,  s1x6,     0, 0, 1, 1,  0x800, schema_first_only},
+   // Need to allow both orientations of the empty inners.  Not so.
+   //   {s2x4,           schema_first_only, {/* nothing for centers*/ 0, 1, 2, 3, 4, 5, 6, 7},
+   //             nothing,  s2x4,     0, 0, 1, 1,  0x80A, schema_first_only},
+   {s2x4,           schema_first_only, {/* nothing for centers*/ 0, 1, 2, 3, 4, 5, 6, 7},
+             nothing,  s2x4,     1, 0, 1, 1,  0x805, schema_first_only},
+   {s2x3,           schema_first_only, {/* nothing for centers*/ 0, 1, 2, 3, 4, 5},
+             nothing,  s2x3,     1, 0, 1, 1,  0x805, schema_first_only},
+   {s2x3,           schema_second_only, {0, 1, 2, 3, 4, 5 /* nothing for ends*/},
+             s2x3,  nothing,     0, 0, 1, 1,  0x80A, schema_second_only},
+   {s2x4,           schema_second_only, {0, 1, 2, 3, 4, 5, 6, 7 /* nothing for ends*/},
+             s2x4,  nothing,     0, 0, 1, 1,  0x80A, schema_second_only},
+
    {s_spindle12,    schema_concentric, {0, 1, 2, 5, 6, 7,     8, 9, 3, 4},
              s2x3,     s1x4,     0, 0, 1, 1,  0x8FE, schema_concentric},
 
@@ -4684,6 +4702,8 @@ conc_tables::cm_thing conc_tables::conc_init_table[] = {
              s1x2,     s_short6, 0, 1, 2, 1,  0x8F7, schema_concentric},
    {s3x4,           schema_concentric_2_6, {11, 5,   9, 10, 0, 3, 4, 6},
              s1x2,     s2x3,     0, 1, 2, 1,  0x8F5, schema_concentric},
+   {s3x4,           schema_concentric_6_2, {8, 11, 1, 2, 5, 7,   10, 4},
+             s2x3,     s1x2,     1, 0, 0, 1,  0x8F5, schema_nothing},
    {s2x5,           schema_concentric_2_6, {7, 2,   0, 1, 3, 4, 5, 6, 8, 9},
              s1x2,     s2x4,     1, 0, 2, 1,  0x8F5, schema_concentric},
    {s1x8,           schema_concentric_2_6, {2, 6,    0, 1, 3, 4, 5, 7},
@@ -10671,7 +10691,7 @@ const schema_attr schema_attrs[] = {
    {0 | SCA_REMOVE_VERIFY,
     schema_nothing},                     // schema_concentric_or_2_6
    {0 | SCA_REMOVE_VERIFY,
-    schema_nothing},                     // schema_concentric_or_6_2
+    schema_nothing},                     // schema_concentric_with_number
    {0 | SCA_REMOVE_VERIFY,
     schema_nothing},                     // schema_concentric_8_4
    {0 | SCA_REMOVE_VERIFY,
@@ -10754,6 +10774,10 @@ const schema_attr schema_attrs[] = {
     schema_nothing},                     // schema_maybe_matrix_conc_star
    {0,
     schema_nothing},                     // schema_maybe_matrix_conc_bar
+   {0,
+    schema_nothing},                     // schema_first_only
+   {0,
+    schema_nothing},                     // schema_second_only
    {0,
     schema_nothing},                     // schema_checkpoint
    {0,

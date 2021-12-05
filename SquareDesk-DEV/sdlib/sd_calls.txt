@@ -55,7 +55,7 @@
 //    string is also required by paragraphs 2(a) and 2(c) of the GNU
 //    General Public License if you distribute the file.
 
-version "39.39"
+version "39.40"
 
 call "nothing" mainstream tag nullcall
             dont_use_in_resolve dont_raise_overcast
@@ -7759,6 +7759,20 @@ call "do-sa-do" mainstream
 
 call "touch" mainstream tag touch
             // The "rear back" property is required for square thru, etc.
+           /* rear_back_from_r_wave */ left_means_mirror
+   setup 2x1 1x2 rotate qualifier in in_or_out
+      array [ZM0W 0]
+   // This is for handling things from a triangle-become-box.  Cf. t42t.
+   setup 2x2 1x4 no_cutting_through qualifier in in_or_out
+      array [0 0 ZM3N ZM0N]
+            alternate_definition [twisted] c4
+   // This really should be marked controversial,
+   // but I'm too much of a wimp to do it.
+   setup 2x1 1x2 qualifier in in_or_out
+      array [CR1E 0]
+
+call "touch for square thru" dontshow tag touch_for_square_thru
+            // The "rear back" property is required for square thru, etc.
             rear_back_from_r_wave left_means_mirror
    setup 2x1 1x2 rotate qualifier in in_or_out
       array [ZM0W 0]
@@ -14164,13 +14178,6 @@ call "catch @0 @9" c3a
    seq nullcall [mandatory_anycall inherit_diamond]
    seq stepnfold [inherit_cross inherit_diamond]
 
-call "catch it @9 @0" c4
-            split_like_square_thru cross_is_inherited twisted_is_inherited diamond_is_legal
-            left_means_mirror neednumber visible_fractions
-   seq square_thru_to_wave [inherit_left inherit_twisted inherit_diamond]
-   seq nullcall [mandatory_anycall inherit_diamond]
-   seq stepnfold [inherit_cross inherit_diamond]
-
 call "catch lock @9" c3a
             split_like_square_thru twisted_is_inherited diamond_is_legal
             left_means_mirror neednumber visible_fractions
@@ -14192,7 +14199,7 @@ call "_centers step and fold" dontshow tag ctrsstepnfold
 call "catch @0 @9, only the resulting centers finish" c3a
             split_like_square_thru cross_is_inherited twisted_is_inherited
             left_means_mirror neednumber
-   seq touch [inherit_left inherit_twisted]
+   seq touch_for_square_thru [inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq nullcall [mandatory_anycall]
    seq ctrsstepnfold [inherit_cross]
@@ -14200,7 +14207,7 @@ call "catch @0 @9, only the resulting centers finish" c3a
 call "@eright@f on @9" c4
             split_like_square_thru left_means_mirror neednumber twisted_is_inherited
             fractal_is_inherited gen_sting_is_inherited
-   seq touch [inherit_left inherit_twisted]
+   seq touch_for_square_thru [inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq armturn_n4 [insert_number 3 inherit_gensting inherit_fractal]
    seq roll []
@@ -14208,7 +14215,7 @@ call "@eright@f on @9" c4
 call "@eright@f on @9 and @b" c4
             split_like_square_thru dont_use_in_resolve left_means_mirror need_two_numbers twisted_is_inherited
             fractal_is_inherited gen_sting_is_inherited
-   seq touch [inherit_left inherit_twisted]
+   seq touch_for_square_thru [inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq armturn_n4 [shift_one_number inherit_gensting inherit_fractal]
    seq roll []
@@ -14238,13 +14245,13 @@ call "funny @eright@f on @9 and @b" c4a
 
 call "square thru @9" mainstream tag square_thru_n
             split_like_square_thru left_means_mirror neednumber twisted_is_inherited
-   seq touch [permit_touch_or_rear_back inherit_left inherit_twisted]
+   seq touch_for_square_thru [permit_touch_or_rear_back inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq natstepthru []
 
 call "square thru, but on the @u hand, @0" mainstream
             split_like_square_thru left_means_mirror neednumber twisted_is_inherited
-   seq touch [permit_touch_or_rear_back inherit_left inherit_twisted]
+   seq touch_for_square_thru [permit_touch_or_rear_back inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq nullcall [permit_touch_or_rear_back mandatory_anycall]
 
@@ -14253,14 +14260,14 @@ call "square thru, but on the @u hand, @0" mainstream
 call "square thru @9 to a wave" c1 tag square_thru_to_wave
             split_like_square_thru left_means_mirror neednumber
             twisted_is_inherited diamond_is_legal
-   seq touch [permit_touch_or_rear_back inherit_left inherit_twisted inherit_diamond]
+   seq touch_for_square_thru [permit_touch_or_rear_back inherit_left inherit_twisted inherit_diamond]
    // This "inherit_diamond" is illegal on cross lockit, so this
    // will be legal only if the number is 1.
    seq crosslockit [repeat_nm1 inherit_diamond]
 
 call "square thru @9, @6 to a wave" c1
             split_like_square_thru left_means_mirror neednumber twisted_is_inherited
-   seq touch [permit_touch_or_rear_back inherit_left inherit_twisted]
+   seq touch_for_square_thru [permit_touch_or_rear_back inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq somedontstepthru []
 
@@ -14318,7 +14325,7 @@ call "funny square thru @9" c2
 call "square turn thru @9" c4a
             split_like_square_thru left_means_mirror yoyo_is_inherited gen_sting_is_inherited
             neednumber twisted_is_inherited
-   seq touch [inherit_left inherit_twisted]
+   seq touch_for_square_thru [inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq natturnthru [inherit_yoyo inherit_gensting]
 
@@ -14331,13 +14338,13 @@ call "funny square turn thru @9" c4a
 call "square turn thru @9 to a wave" c4a
             neednumber split_like_square_thru left_means_mirror
             yoyo_is_inherited gen_sting_is_inherited twisted_is_inherited
-   seq touch [inherit_left inherit_twisted]
+   seq touch_for_square_thru [inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq trade [inherit_yoyo inherit_gensting]
 
 call "square turn thru @9, @6 to a wave" c4a
             split_like_square_thru left_means_mirror neednumber twisted_is_inherited
-   seq touch [inherit_left inherit_twisted]
+   seq touch_for_square_thru [inherit_left inherit_twisted]
    seq crosslockit [repeat_nm1]
    seq somedontturnthru []
 
@@ -17841,16 +17848,86 @@ call "hang loose" c4a
 /* The next few items make clear how useful "criss cross" as a heritable
    modifier will be. */
 
-call "@9 steps at a time" c3
+call "@9 steps at a time part 1" dontshow tag 2steps_part_1
             neednumber
+   // For 8 people.
+   setup 4x2 2x4 restriction wave_only qualifier num 0 none
+      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+   setup 4x2 3x4 rotate restriction wave_only qualifier num 1 none
+      array [ZM8W ZM11W ZM1W AL0E CR3E ZM2W ZM5W ZM7W]
+   setup 4x2 2x6 rotate restriction wave_only qualifier num 2 none
+      array [ZM9W ZM2W AL1E AL0E CR5E CR4E ZM3W ZM8W]
+   setup 4x2 1x8 rotate restriction wave_only qualifier num 3 none
+      array [ZM2W AL3E AL1E AL0E CR4E CR5E CR7E ZM6W]
+   setup 4x2 1x8 rotate restriction wave_only qualifier num 4 none
+      array [AL2E AL3E AL1E AL0E CR4E CR5E CR7E CR6E]
+   // For 6 people.
+   setup 3x2 2x3 restriction wave_only qualifier num 0 none
+      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N]
+   setup 3x2 2x4 rotate restriction wave_only qualifier num 1 none
+      array [ZM6W ZM1W AL0E CR3E ZM2W ZM5W]
+   setup 3x2 1x6 rotate restriction wave_only qualifier num 2 none
+      array [ZM2W AL1E AL0E CR3E CR4E ZM5W]
+   setup 3x2 1x6 rotate restriction wave_only qualifier num 3 none
+      array [AL2E AL1E AL0E CR3E CR4E CR5E]
+            alternate_definition [cross] c3
+   // For 8 people.
+   setup 4x2 2x4 restriction wave_only qualifier num 0 none
+      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+   setup 4x2 3x4 rotate restriction wave_only qualifier num 1 none
+      array [ZM8W ZM11W ZM1W CR3E AL0E ZM2W ZM5W ZM7W]
+   setup 4x2 2x6 rotate restriction wave_only qualifier num 2 none
+      array [ZM9W ZM2W CR4E CR5E AL0E AL1E ZM3W ZM8W]
+   setup 4x2 1x8 rotate restriction wave_only qualifier num 3 none
+      array [ZM2W CR7E CR5E CR4E AL0E AL1E AL3E ZM6W]
+   setup 4x2 1x8 rotate restriction wave_only qualifier num 4 none
+      array [CR6E CR7E CR5E CR4E AL0E AL1E AL3E AL2E]
+   // For 6 people.
+   setup 3x2 2x3 restriction wave_only qualifier num 0 none
+      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N]
+   setup 3x2 2x4 rotate restriction wave_only qualifier num 1 none
+      array [ZM6W ZM1W CR3E AL0E ZM2W ZM5W]
+   setup 3x2 1x6 rotate restriction wave_only qualifier num 2 none
+      array [ZM2W CR4E CR3E AL0E AL1E ZM5W]
+   setup 3x2 1x6 rotate restriction wave_only qualifier num 3 none
+      array [CR5E CR4E CR3E AL0E AL1E AL2E]
+
+call "@9 steps at a time part 2" dontshow tag 2steps_part_2
+            neednumber
+   // For 8 people.
+   setup 4x2 2x4 qualifier num 0 none
+      array [CR7S CR6S CR5S CR4S AL3S AL2S AL1S AL0S]
+   setup 3x4 3x4 qualifier num 1 none
+      array [0 CR2S AL1S 0 0 AL11S ZM4N AL8S CR7S ZM10N 0 CR5S]
+   setup 2x6 rigger qualifier num 2 none
+      array [0 0 CR1S AL0S 0 0 ZM2N ZM3N AL5S CR4S ZM7N ZM6N]
+   setup 1x8 1x8 qualifier num 3 none
+      array [ZM0N ZM1N CR6S ZM3N ZM4N ZM5N AL2S ZM7N]
+   setup 1x8 1x8 qualifier num 4 none
+      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+   // For 6 people.
+   setup 3x2 2x3 qualifier num 0 none
+      array [CR5S CR4S CR3S AL2S AL1S AL0S]
+   setup 2x4 short6 rotate qualifier num 1 none
+      array [0 CR0E AL5E 0 ZM1W AL3E CR2E ZM4W]
+   setup 1x6 1x6 qualifier num 2 none
+      array [ZM0N ZM1N CR5S ZM3N ZM4N AL2S]
+   setup 1x6 1x6 qualifier num 3 none
+      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N]
+
+call "@9 steps at a time part 3" dontshow tag 2steps_part_3
+            neednumber
+   conc_with_number roll [] bendtheline [suppress_elongation_warnings]
+
+call "@9 steps at a time" c3
+            neednumber visible_fractions cross_is_inherited
+   seq 2steps_part_1 [inherit_cross]
+   seq 2steps_part_2 []
+   seq 2steps_part_3 []
+            neednumber
+/* Don't coddle these
    setup 4x2 2x4 restriction wave_only qualifier num 0 none
       array [CR7W CR6W CR5W CR4W AL3E AL2E AL1E AL0E]
-   setup 4x2 3x4 rotate restriction wave_only qualifier num 1 none
-      array [CR7S CR5S CR2S AL10N CR4S AL1N AL11N AL8N]
-   setup 4x2 2x4 rotate restriction wave_only qualifier num 2 none
-      array [CR5S CR2S AL0N AL7N CR4S CR3S AL1N AL6N]
-   setup 2x4 qtag qualifier num 2 none
-      array [0 0 0 0 AL3E CR2W AL6E CR7W]
    setup 4x2 3x4 rotate restriction wave_only qualifier num 3 none
       array [CR5S AL0N AL10N AL9N CR6S CR4S CR3S AL11N]
    setup 4x2 2x4 restriction wave_only qualifier num 4 none
@@ -17863,6 +17940,16 @@ call "@9 steps at a time" c3
       array [CR2S AL0N AL4N CR3S CR1S AL5N]
    setup 3x2 2x3 restriction wave_only qualifier num 3 none
       array [AL2E AL1E AL0E CR5W CR4W CR3W]
+*/
+   // Leave this is for ci03 -- wayward #1.
+   setup 4x2 3x4 rotate restriction wave_only qualifier num 1 none
+      array [CR7S CR5S CR2S AL10N CR4S AL1N AL11N AL8N]
+   // Leave this in for lo03 -- wayward outsides on 3rd part.
+   setup 4x2 2x4 rotate restriction wave_only qualifier num 2 none
+      array [CR5S CR2S AL0N AL7N CR4S CR3S AL1N AL6N]
+   setup 2x4 qtag qualifier num 2 none
+      array [0 0 0 0 AL3E CR2W AL6E CR7W]
+
    setup 2x2 2x2 restriction wave_only qualifier num 0 none
       array [CR1W AL0E AL3E CR2W]
    setup 2x2 1x4 restriction wave_only qualifier num 1 none
@@ -17870,13 +17957,15 @@ call "@9 steps at a time" c3
    setup 2x2 2x2 restriction wave_only qualifier num 2 none
       array [AL3E CR2W CR1W AL0E]
             alternate_definition [cross] c3
+/*
    setup 4x2 3x4 rotate restriction wave_only qualifier num 1 none
       array [CR7S CR5S CR2S CR4S AL10N AL1N AL11N AL8N]
    setup 4x2 2x4 rotate restriction wave_only qualifier num 2 none
       array [CR5S CR2S CR3S CR4S AL7N AL0N AL1N AL6N]
+*/
    setup 2x4 qtag qualifier num 2 none
       array [0 0 0 0 AL3E CR2W AL6E CR7W]
-   setup 4x2 3x4 rotate restriction wave_only qualifier num 3 none
+/*   setup 4x2 3x4 rotate restriction wave_only qualifier num 3 none
       array [CR5S CR3S CR4S CR6S AL9N AL10N AL0N AL11N]
    setup 4x2 2x4 restriction wave_only qualifier num 4 none
       array [CR4W CR5W CR6W CR7W AL0E AL1E AL2E AL3E]
@@ -17886,6 +17975,7 @@ call "@9 steps at a time" c3
       array [CR2S CR1S CR3S AL4N AL0N AL5N]
    setup 3x2 2x3 restriction wave_only qualifier num 3 none
       array [CR3W CR4W CR5W AL0E AL1E AL2E]
+*/
    setup 2x2 1x4 restriction wave_only qualifier num 1 none
       array [CR2W AL0E AL1E CR3W]
    setup 2x2 2x2 restriction wave_only qualifier num 2 none

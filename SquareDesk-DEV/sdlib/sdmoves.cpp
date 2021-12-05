@@ -1000,6 +1000,9 @@ extern bool divide_for_magic(
       ss->cmd.cmd_final_flags.set_heritbits(sixteen ? INHERITFLAG_16_MATRIX : INHERITFLAG_12_MATRIX);
 
    saved_warnings = configuration::save_warnings();
+   // If doing a 3x1/1x3 (not NOT a 3x3) squash out extras spots in subsetups.
+   if (heritflags_to_use & (INHERITFLAGMXNK_1X3|INHERITFLAGMXNK_3X1|INHERITFLAGMXNK_1X2|INHERITFLAGMXNK_2X1))
+       ss->cmd.cmd_misc2_flags |= CMD_MISC2__LOCAL_RECENTER;
    impose_assumption_and_move(ss, result);
    result->result_flags.misc |= RESULTFLAG__DID_MXN_EXPANSION;
 
@@ -7111,6 +7114,7 @@ void really_inner_move(
       tbonetest = or_all_people(ss);
       if (!(tbonetest & 011) && the_schema != schema_by_array) {
          result->kind = nothing;
+         result->rotation = result->eighth_rotation = 0;
          clear_result_flags(result);
 
          // We need to mark the result elongation, even though there aren't any people.
@@ -7807,6 +7811,7 @@ static void move_with_real_call(
          fail("Can't fractionalize a call if no one is doing it.");
 
       result->kind = nothing;
+      result->rotation = result->eighth_rotation = 0;
       clear_result_flags(result);   // Do we need this?
       return;
    }
@@ -8952,7 +8957,7 @@ void move(
          case schema_concentric_4_2:
          case schema_concentric_4_2_or_normal:
          case schema_concentric_or_2_6:
-         case schema_concentric_or_6_2:
+         case schema_concentric_with_number:
          case schema_concentric_2_4_or_normal:
          case schema_concentric_2_4_or_single:
          case schema_concentric_or_2_6_line:
@@ -9000,7 +9005,7 @@ void move(
             case schema_concentric_2_6:
             case schema_concentric_4_2:
             case schema_concentric_or_2_6:
-            case schema_concentric_or_6_2:
+            case schema_concentric_with_number:
             case schema_concentric_4_2_or_normal:
             case schema_concentric_or_2_6_line:
             case schema_concentric_6p:

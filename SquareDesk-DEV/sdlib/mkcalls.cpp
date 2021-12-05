@@ -727,7 +727,7 @@ const char *schematab[] = {
    "crossconc4_2",
    "conc4_2_or_normal",
    "conc_or_2_6",
-   "conc_or_6_2",
+   "conc_with_number",
    "???",
    "???",
    "conc2_6_or_2_4",
@@ -769,6 +769,8 @@ const char *schematab[] = {
    "maybematrix_conc",
    "maybematrix_conc_star",
    "maybematrix_conc_bar",
+   "???",    // schema_first_only
+   "???",    // schema_second_only
    "checkpoint",
    "checkpoint_spots",
    "checkpoint_mystic_ok",

@@ -4639,6 +4639,9 @@ static uint32_t do_actual_array_call(
       desired_elongation ^= 3;
 
    if (!newtb) {
+      if (ss->kind == s1x4 && linedefinition && linedefinition->get_end_setup() == s2x2)
+         result->result_flags.misc |= RESULTFLAG__EMPTY_1X4_TO_2X2;
+
       result->kind = nothing;   // Note that we get the benefit of the
                                 // "CFLAG1_PARALLEL_CONC_END" stuff here.
       return 0;                 // This means that a counter rotate in

@@ -1211,6 +1211,10 @@ extern void normalize_concentric(
    }
 
    switch (synthesizer) {
+   case schema_first_only:
+   case schema_second_only:
+      table_synthesizer = synthesizer;
+      break;
    case schema_checkpoint_spots:
       table_synthesizer = schema_rev_checkpoint;  // Yes, reverse_checkpoint tells how to go back.
       break;
@@ -1592,6 +1596,7 @@ static calldef_schema concentrify(
    calldef_schema & analyzer,
    int & crossing,   // This is int (0 or 1), not bool.
    int & inverting,  // This too.
+   setup_command *cmdout,
    bool enable_3x1_warn,
    bool impose_z_on_centers,
    setup inners[],
@@ -1619,6 +1624,7 @@ static calldef_schema concentrify(
    // Sometimes we want to copy the new schema only to "analyzer_result",
    // and sometimes we also want to copy it to "analyzer".  The purpose
    // of this distinction is lost in the mists of ancient history.
+   // But it makes the proram work.
 
    if (schema_attrs[analyzer_result].uncrossed != schema_nothing) {
       if (schema_attrs[analyzer_result].attrs & SCA_COPY_LYZER)
@@ -1872,11 +1878,47 @@ static calldef_schema concentrify(
       else
          analyzer_result = schema_concentric;
       break;
-   case schema_concentric_or_6_2:
-      if (ss->kind == s_spindle || ss->kind == s_qtag)
+   case schema_concentric_with_number:
+      if (ss->kind == s_spindle || ss->kind == s_qtag ||
+          (ss->kind == s3x4 && livemask == 06666)) {
          analyzer_result = schema_concentric_6_2;
-      else
-         analyzer_result = schema_concentric;
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 1)
+            if (cmdout) cmdout->cmd_final_flags.set_heritbits(INHERITFLAG_SINGLE);
+      }
+      else if (ss->kind == s_short6) {
+         analyzer_result = schema_concentric_4_2;
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 1)
+            if (cmdout) cmdout->cmd_final_flags.set_heritbits(INHERITFLAG_SINGLE);
+      }
+      else if (ss->kind == s1x8) {
+         analyzer_result = schema_concentric_2_6;
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 3) {
+            if (cmdout) cmdout->cmd_final_flags.set_heritbits(INHERITFLAGNXNK_3X3);
+         }
+         else if (current_options.howmanynumbers == 1 && current_options.number_fields == 4) {
+            if (cmdout) cmdout->cmd_final_flags.set_heritbits(INHERITFLAGNXNK_4X4);
+            analyzer = analyzer_result = schema_first_only;
+         }
+      }
+      else if (ss->kind == s1x6) {
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 3) {
+            if (cmdout) cmdout->cmd_final_flags.set_heritbits(INHERITFLAGNXNK_3X3);
+            analyzer = analyzer_result = schema_first_only;
+         }
+         else if (current_options.howmanynumbers == 1 && current_options.number_fields == 2) {
+            analyzer_result = schema_concentric_2_4;
+         }
+      }
+      else if (ss->kind == s2x4 || ss->kind == s2x3) {
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 0) {
+            analyzer = analyzer_result = schema_second_only;
+         }
+      }
+      else if (ss->kind == s_rigger) {
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 2) {
+            analyzer = analyzer_result = schema_concentric;
+         }
+      }
       break;
    case schema_concentric_6p_or_normal:
       if (attr::slimit(ss) == 5)
@@ -2509,6 +2551,7 @@ static bool fix_empty_outers(
       }
    }
    else {
+      uint32_t result_outer_result_flags_misc = result_outer->result_flags.misc;
       uint32_t orig_elong_flags = result_outer->result_flags.misc & 3;
 
       // We may be in serious trouble -- we have to figure out what setup the ends
@@ -2542,6 +2585,14 @@ static bool fix_empty_outers(
          // If a call starts in a 1x4 and has "force spots" or "force otherway" indicated,
          // it must go to a 2x2 with same elongation.
          result_outer->kind = s2x2;    // Take no further action.
+      }
+      else if (final_outers_start_kind == s1x4 &&
+               result_outer->kind == s1x4 &&
+               (result_outer_result_flags_misc & RESULTFLAG__EMPTY_1X4_TO_2X2) != 0) {
+         // If a call started in a 1x4 and would have gone to a 2x2 and had
+         // "parallel_conc_end" indicated, it must go to a 2x2 with same elongation.
+         result_outer->kind = s2x2;
+         result_outer->result_flags.misc = result_outer_result_flags_misc & 3;
       }
       else if (final_outers_start_kind == s1x4 &&
                !crossing &&
@@ -3326,7 +3377,7 @@ extern void concentric_move(
    bool imposing_z = cmdin && ((cmdin->cmd_misc3_flags & CMD_MISC3__IMPOSE_Z_CONCEPT) != 0);
 
    // This reads and writes to "analyzer" and "inverting", and writes to "crossing".
-   analyzer_result = concentrify(ss, analyzer, crossing, inverting, enable_3x1_warn,
+   analyzer_result = concentrify(ss, analyzer, crossing, inverting, cmdout, enable_3x1_warn,
                                  imposing_z,
                                  begin_inner, &begin_outer, &center_arity,
                                  &begin_outer_elongation, &begin_xconc_elongation);
@@ -4254,45 +4305,49 @@ extern void concentric_move(
          return;
       }
 
-      if (fix_empty_outers(ss->kind, final_outers_start_kind, localmods1,
-                           crossing, begin_outer_elongation, center_arity,
-                           analyzer, cmdin, cmdout, &begin_outer, &outer_inners[0],
-                           &outer_inners[1], result)) {
+      // No action if schema_first/second_only.
+      if (analyzer_result != schema_first_only && analyzer_result != schema_second_only) {
+         if (fix_empty_outers(ss->kind, final_outers_start_kind, localmods1,
+                              crossing, begin_outer_elongation, center_arity,
+                              analyzer, cmdin, cmdout, &begin_outer, &outer_inners[0],
+                              &outer_inners[1], result)) {
+            if (crossing &&
+                begin_outer.cmd.callspec == base_calls[base_call_plan_ctrtoend] &&
+                final_outers_finish_dirs == 0 &&
+                ss->cmd.cmd_assume.assumption == cr_li_lo &&
+                ss->cmd.cmd_assume.assump_col == 0) {
 
+               // This is "plan ahead" with an "assume facing lines".
+               // If no live people in the center, we infer their direction
+               // from the overall assumption, and set the final direction
+               // to what would have resulted.  We have only the assumption
+               // to tell us what to do.
+               //
+               // Q: wouldn't a smarter "inherit_conc_assumptions" have taken
+               //    care of this?
+               // A: No.  It correctly inherited the "facing lines" to "facing couples"
+               //    in each 2x2 before doing the call, but just knowing that the center
+               //    2x2 was in facing couples doesn't tell us what we really need to know --
+               //    that those couples were parallel to the overall 2x4.
 
-         if (crossing &&
-             begin_outer.cmd.callspec == base_calls[base_call_plan_ctrtoend] &&
-             final_outers_finish_dirs == 0 &&
-             ss->cmd.cmd_assume.assumption == cr_li_lo &&
-             ss->cmd.cmd_assume.assump_col == 0) {
-
-            // This is "plan ahead" with an "assume facing lines".
-            // If no live people in the center, we infer their direction
-            // from the overall assumption, and set the final direction
-            // to what would have resulted.  We have only the assumption
-            // to tell us what to do.
-            //
-            // Q: wouldn't a smarter "inherit_conc_assumptions" have taken
-            //    care of this?
-            // A: No.  It correctly inherited the "facing lines" to "facing couples"
-            //    in each 2x2 before doing the call, but just knowing that the center
-            //    2x2 was in facing couples doesn't tell us what we really need to know --
-            //    that those couples were parallel to the overall 2x4.
-
-            localmods1 = localmodsout1;   // Set it back to DFM1_CONC_FORCE_COLUMNS.
-            final_outers_finish_dirs = (~ss->cmd.cmd_assume.assump_col) & 1;
+               localmods1 = localmodsout1;   // Set it back to DFM1_CONC_FORCE_COLUMNS.
+               final_outers_finish_dirs = (~ss->cmd.cmd_assume.assump_col) & 1;
+            }
+            else
+               goto getout;
          }
-         else
-            goto getout;
       }
    }
    else if (outer_inners[1].kind == nothing) {
-      if (fix_empty_inners(orig_inners_start_kind, center_arity, begin_outer_elongation,
-                           analyzer, analyzer_result, &begin_inner[0],
-                           &outer_inners[0], &outer_inners[1],
-                           outer_inner_options[1],
-                           result))
-         goto getout;
+      // No action if schema_first/second_only.
+      if (analyzer_result != schema_first_only && analyzer_result != schema_second_only) {
+         if (fix_empty_inners(orig_inners_start_kind, center_arity, begin_outer_elongation,
+                              analyzer, analyzer_result, &begin_inner[0],
+                              &outer_inners[0], &outer_inners[1],
+                              outer_inner_options[1],
+                              result))
+            goto getout;
+      }
    }
 
    // The time has come to compute the elongation of the outsides in the final setup.
@@ -4344,6 +4399,8 @@ extern void concentric_move(
        analyzer != schema_concentric_zs &&
        analyzer != schema_intermediate_diamond &&
        analyzer != schema_outside_diamond &&
+       analyzer != schema_first_only &&
+       analyzer != schema_second_only &&
        analyzer != schema_conc_o &&
        analyzer != schema_conc_bar12 &&
        analyzer != schema_conc_bar16) {
@@ -4415,7 +4472,7 @@ extern void concentric_move(
 
                int newelong = outer_inners[0].result_flags.misc & 3;
 
-               if (newelong && final_outers_start_kind != s_star &&
+               if (newelong != 0 && final_outers_start_kind != s_star &&
                    !(DFM1_SUPPRESS_ELONGATION_WARNINGS & localmods1)) {
                   if ((final_elongation & (~CONTROVERSIAL_CONC_ELONG)) == newelong)
                      warn(concwarntable[2]);
@@ -4423,7 +4480,8 @@ extern void concentric_move(
                      warn(concwarntable[crossing]);
                }
 
-               final_elongation = newelong;
+               if (newelong != 0)
+                  final_elongation = newelong;
             }
 
             break;
@@ -8270,6 +8328,9 @@ extern void inner_selective_move(
    configuration::clear_multiple_warnings(dyp_each_warnings);
    if (indicator < selective_key_plain_no_live_subsets)
       configuration::clear_multiple_warnings(useless_phan_clw_warnings);
+   if (indicator == selective_key_own)
+      configuration::clear_multiple_warnings(conc_elong_warnings);
+
    configuration::set_multiple_warnings(saved_warnings);
 
    *result = the_results[1];

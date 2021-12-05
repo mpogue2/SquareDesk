@@ -404,9 +404,8 @@ void expand::expand_setup(const expand::thing & thing, setup *stuff) THROW_DECL
 // Turn a 3x4 into a 1/4 tag if the spots are occupied appropriately.  Otherwise do nothing.
 void expand::fix_3x4_to_qtag(setup *stuff) THROW_DECL
 {
-   static const expand::thing foo = {{1, 2, 4, 5, 7, 8, 10, 11}, s_qtag, s3x4, 0};
    if ((little_endian_live_mask(stuff) & 01111) == 0)
-      expand::compress_setup(foo, stuff);
+      expand::compress_setup(s_qtg_3x4, stuff);
 }
 
 
