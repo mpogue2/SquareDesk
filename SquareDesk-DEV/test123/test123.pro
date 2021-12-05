@@ -398,14 +398,16 @@ export(copydata12h.commands)
 
 QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
-# For the Mac OS X DMG installer build, we need exactly 2 files stuck into the results directory ---------
-installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command
+# For the Mac OS X DMG installer build, we need exactly 3 files stuck into the results directory ---------
+installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command          # INTEL
 installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
-first.depends += installer1 installer2
+installer3.commands = $(COPY) $$PWD/PackageIt_M1.command $$OUT_PWD/PackageIt_M1.command    # Apple Silicon M1
+first.depends += $(first) installer1 installer2 installer3
 export(first.depends)
 export(installer1.commands)
 export(installer2.commands)
-QMAKE_EXTRA_TARGETS += installer1 installer2
+export(installer3.commands)
+QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3
 
 }
 
@@ -415,6 +417,21 @@ macx {
     # M1MAC: comment this section out on X86 Mac builds
     DEFINES += M1MAC=1
     QT += multimedia
+
+    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+
+    # lyrics and patter templates
+    export(copydata0a.commands)
+    export(copydata0b.commands)
+    export(copydata0c.commands)
+
+    # sd_calls.dat, allcalls.csv, sd_doc.pdf
+    export(copydata1.commands)
+    export(copydata2.commands)
+    export(copydata2b.commands)
+    export(copydata3.commands)
+
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3
 }
 
 # USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
