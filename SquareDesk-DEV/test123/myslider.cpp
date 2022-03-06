@@ -216,14 +216,16 @@ void MySlider::paintEvent(QPaintEvent *e)
     }
 
     // SINGING CALL SECTION COLORS =====================
-    if (singingCall) {
+    if (singingCall && !previousSingingCall) {
         this->setStyleSheet( singer1 + s2 );
-    } else {
+    } else if (!singingCall && previousSingingCall) {
         this->setStyleSheet( else1 + s2 );
+    } else {
+        // no change, so do nothing.
     }
+    previousSingingCall = singingCall;  // cache this
 
     if (singingCall) {
-
         QPen pen;
         pen.setWidth(8);
 #if defined(Q_OS_WIN)

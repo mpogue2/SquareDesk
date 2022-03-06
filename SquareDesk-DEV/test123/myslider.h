@@ -60,7 +60,7 @@ protected:
 
 private:
     bool drawLoopPoints;
-    bool singingCall;
+    bool singingCall, previousSingingCall;  // previousSingingCall is what it was last time (cached)
     double introPosition;
     double outroPosition;
     int origin;  // reset to this point when double-clicked
