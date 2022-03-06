@@ -1069,7 +1069,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBoxCuesheetSelector"/>
+             <widget class="QComboBox" name="comboBoxCuesheetSelector">
+              <property name="maximumSize">
+               <size>
+                <width>900</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonSetOutroTime">
