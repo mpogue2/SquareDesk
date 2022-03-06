@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1008</width>
+    <width>1041</width>
     <height>582</height>
    </rect>
   </property>
@@ -98,9 +98,6 @@
             <property name="text">
              <string>Num</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
@@ -121,32 +118,20 @@
             <property name="text">
              <string>Recent</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Age</string>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
             </property>
            </column>
            <column>
             <property name="text">
              <string>Pitch</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Tempo</string>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
             </property>
            </column>
           </widget>
@@ -259,7 +244,6 @@
             </property>
             <property name="font">
              <font>
-              <family>Arial</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -326,7 +310,6 @@
             </property>
             <property name="font">
              <font>
-              <family>Arial</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -439,7 +422,10 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
             </property>
            </widget>
           </item>
@@ -500,7 +486,7 @@
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                 <property name="tickInterval">
                  <number>15</number>
@@ -551,7 +537,7 @@
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                 <property name="tickInterval">
                  <number>15</number>
@@ -592,7 +578,7 @@
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                 <property name="tickInterval">
                  <number>15</number>
@@ -761,7 +747,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>1</number>
@@ -832,7 +818,7 @@
              <bool>false</bool>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -897,7 +883,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -954,7 +940,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>1</number>
@@ -1153,9 +1139,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>13</pointsize>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -1186,7 +1170,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>11</pointsize>
                </font>
               </property>
@@ -1223,7 +1206,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>11</pointsize>
                </font>
               </property>
@@ -1255,7 +1237,6 @@
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
-                <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
@@ -1279,9 +1260,7 @@
                </sizepolicy>
               </property>
               <property name="font">
-               <font>
-                <family>Verdana</family>
-               </font>
+               <font/>
               </property>
               <property name="text">
                <string>Lyrics</string>
@@ -1311,9 +1290,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>12</pointsize>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -1347,7 +1324,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>12</pointsize>
                 <italic>true</italic>
                 <kerning>false</kerning>
@@ -1717,7 +1693,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1008</width>
+     <width>1041</width>
      <height>24</height>
     </rect>
    </property>

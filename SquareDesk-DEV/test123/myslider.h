@@ -67,6 +67,8 @@ private:
 
     bool drawMarkers;
     QSet<double> markers;
+
+    QString singer1, else1, s2;  // stylesheets for coloring sliders
 };
 
 #endif // MYSLIDER_H
