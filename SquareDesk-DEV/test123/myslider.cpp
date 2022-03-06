@@ -317,6 +317,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.drawLine(line3);
     }
 
+    // qDebug() << "tickInterval = " << tickInterval();  // TODO: draw our own ticks here, and setTickPosition to NoTicks
+
     // FINISH UP -------------------
 #ifndef Q_OS_LINUX
     QSlider::paintEvent(e);         // parent draws
