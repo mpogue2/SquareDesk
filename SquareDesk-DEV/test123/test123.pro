@@ -755,6 +755,7 @@ DISTFILES += \
     Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
+    PackageIt_M1.command \
     cuesheet2.css \
     lyrics.template.html \
     PackageIt.command \
