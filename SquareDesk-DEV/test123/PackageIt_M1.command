@@ -45,6 +45,7 @@ echo
 echo SOURCEDIR: ${SOURCEDIR}
 echo MIKEBUILDDIR: ${MIKEBUILDDIR}
 echo DMG_BACKGROUND_IMG: ${DMG_BACKGROUND_IMG}
+echo DYLD_FRAMEWORK_PATH: ${DYLD_FRAMEWORK_PATH}
 echo
 
 # ------------------------------------------------------------------------
@@ -61,7 +62,7 @@ echo WARNING: libquazip and libtidy not present in M1 build yet
 
 # ----------------------------------------------------------------------------------------
 echo Now running Mac Deploy Qt step...
-#   ~/Qt6.2/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+#   ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 echo Mac Deploy Qt step done.
 echo
 
