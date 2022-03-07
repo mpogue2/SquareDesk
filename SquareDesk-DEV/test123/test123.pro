@@ -193,8 +193,9 @@ FORMS    += mainwindow.ui \
     preferencesdialog.ui
 
 macx {
-INCLUDEPATH += $$PWD/ $$PWD/../local/include
-DEPENDPATH += $$PWD/ $$PWD/../local/include
+# This is just for libtidy at this point...
+INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
+DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
 }
 
 win32 {
@@ -409,6 +410,13 @@ export(installer2.commands)
 export(installer3.commands)
 QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3
 
+# LIBTIDY (for both X86 and M1 Macs)
+# http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
+#LIBS += $$PWD/../local_macosx/lib/libtidy.5.dylib
+
+#mylib.path = Contents/MacOS
+#mylib.files += $$PWD/../local_macosx/lib/libtidy.5.dylib
+#QMAKE_BUNDLE_DATA += mylib
 }
 
 # ************************************************************************************

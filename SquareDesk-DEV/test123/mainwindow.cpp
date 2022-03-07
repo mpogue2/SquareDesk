@@ -2098,100 +2098,103 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 
 
 QString MainWindow::tidyHTML(QString cuesheet) {
+#define NOTIDYYET
+#ifdef NOTIDYYET
     QString cuesheet_tidied = cuesheet; // FIX
-
-//    qDebug() << "tidyHTML";
+#else
+    qDebug() << "tidyHTML";
 //    qDebug().noquote() << "************\ncuesheet in:" << cuesheet;
 
-//    // first get rid of <L> and </L>.  Those are ILLEGAL.
-//    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
+    // first get rid of <L> and </L>.  Those are ILLEGAL.
+    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
 
-//    // then get rid of <NOBR> and </NOBR>, NOT SUPPORTED BY W3C.
-//    cuesheet.replace("<NOBR>","",Qt::CaseInsensitive).replace("</NOBR>","",Qt::CaseInsensitive);
+    // then get rid of <NOBR> and </NOBR>, NOT SUPPORTED BY W3C.
+    cuesheet.replace("<NOBR>","",Qt::CaseInsensitive).replace("</NOBR>","",Qt::CaseInsensitive);
 
-//    // and &nbsp; too...let the layout engine do its thing.
-//    cuesheet.replace("&nbsp;"," ");
+    // and &nbsp; too...let the layout engine do its thing.
+    cuesheet.replace("&nbsp;"," ");
 
-//    // convert to a c_string, for HTML-TIDY
-//    char* tidyInput;
-//    string csheet = cuesheet.toStdString();
-//    tidyInput = new char [csheet.size()+1];
-//    strcpy( tidyInput, csheet.c_str() );
+    // convert to a c_string, for HTML-TIDY
+    char* tidyInput;
+    string csheet = cuesheet.toStdString();
+    tidyInput = new char [csheet.size()+1];
+    strcpy( tidyInput, csheet.c_str() );
 
-//////    qDebug().noquote() << "\n***** TidyInput:\n" << QString((char *)tidyInput);
+////    qDebug().noquote() << "\n***** TidyInput:\n" << QString((char *)tidyInput);
 
-//    TidyBuffer output;// = {0};
-//    TidyBuffer errbuf;// = {0};
-//    tidyBufInit(&output);
-//    tidyBufInit(&errbuf);
-//    int rc = -1;
-//    Bool ok;
+    TidyBuffer output;// = {0};
+    TidyBuffer errbuf;// = {0};
+    tidyBufInit(&output);
+    tidyBufInit(&errbuf);
+    int rc = -1;
+    Bool ok;
 
-//    // TODO: error handling here...using GOTO!
+    // TODO: error handling here...using GOTO!
 
-//    TidyDoc tdoc = tidyCreate();
-//    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
+    TidyDoc tdoc = tidyCreate();
+    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
+    }
 //    if (ok) {
-//        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
+//        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
 //    }
-////    if (ok) {
-////        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
-////    }
-//    if (ok) {
-//        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
-//    }
-//    if (ok) {
-//        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
-//    }
-//    if (ok) {
-//        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
-//    }
-//    if (ok) {
-//        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
-//    }
-//    if (ok) {
-//        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
-//    }
-//    if (ok) {
-//        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
-//    }
-//    if (ok) {
-//        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
-//    }
-//    if ( ok )
-//        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
-//    if ( rc >= 0 )
-//        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
-//    if ( rc >= 0 )
-//        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
-//    if ( rc >= 0 )
-//        rc = tidyRunDiagnostics( tdoc );               // Kvetch
-//    if ( rc > 1 )                                    // If error, force output.
-//        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
-//    if ( rc >= 0 )
-//        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
+    }
+    if (ok) {
+        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
+    }
+    if (ok) {
+        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
+    }
+    if ( ok )
+        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
+    if ( rc >= 0 )
+        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
+    if ( rc >= 0 )
+        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
+    if ( rc >= 0 )
+        rc = tidyRunDiagnostics( tdoc );               // Kvetch
+    if ( rc > 1 )                                    // If error, force output.
+        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
+    if ( rc >= 0 )
+        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
 
-//    QString cuesheet_tidied;
-//    if ( rc >= 0 )
-//    {
-//        if ( rc > 0 ) {
-////            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
-////            qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
-//        }
-//        cuesheet_tidied = QString(reinterpret_cast<char *>(output.bp));
-//    }
-//    else {
-//        qDebug() << "***** Severe error:" << rc;
-//    }
+    QString cuesheet_tidied;
+    if ( rc >= 0 )
+    {
+        if ( rc > 0 ) {
+//            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
+//            qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
+        }
+        cuesheet_tidied = QString(reinterpret_cast<char *>(output.bp));
+    }
+    else {
+        qDebug() << "***** Severe error:" << rc;
+    }
 
-//    tidyBufFree( &output );
-//    tidyBufFree( &errbuf );
-//    tidyRelease( tdoc );
+    tidyBufFree( &output );
+    tidyBufFree( &errbuf );
+    tidyRelease( tdoc );
 
-////    // get rid of TIDY cruft
-//////    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
+//    // get rid of TIDY cruft
+////    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
 
-////    qDebug().noquote() << "************\ncuesheet out:" << cuesheet_tidied;
+//    qDebug().noquote() << "************\ncuesheet out:" << cuesheet_tidied;
+#endif
 
     return(cuesheet_tidied);
 }
