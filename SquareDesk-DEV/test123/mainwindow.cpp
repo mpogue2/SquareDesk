@@ -3765,6 +3765,8 @@ void MainWindow::aboutBox()
 }
 
 bool MainWindow::someWebViewHasFocus() {
+// #define WEBVIEWSWORK
+#ifdef WEBVIEWSWORK
 //    qDebug() << "numWebviews: " << numWebviews;
     bool hasFocus = false;
     for (unsigned int i=0; i<numWebviews && !hasFocus; i++) {
@@ -3773,6 +3775,9 @@ bool MainWindow::someWebViewHasFocus() {
     }
 //    qDebug() << "     returning: " << hasFocus;
     return(hasFocus);
+#else
+    return(false);
+#endif
 }
 
 
