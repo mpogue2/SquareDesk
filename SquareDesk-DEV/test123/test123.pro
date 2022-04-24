@@ -343,7 +343,7 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 #   QMAKE_MAC_SDK = macosx10.15
 #   QMAKE_MAC_SDK = macosx11.1
 # QMAKE_MAC_SDK = macosx11.3
-QMAKE_MAC_SDK = macosx12.1
+QMAKE_MAC_SDK = macosx12.3
 
 # If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
 # the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
@@ -366,6 +366,12 @@ copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app
 
 # SquareDesk Manual (PDF)
 copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
+
+# NOTE: If we get an error here, that MacOS already exists, it's probably because we just switched to a new version of
+#  Qt, and we have a new build directory, and within that build directory we have a new squaredesk.app/Contents,
+#  and the copy of sd_calls.dat tried to copy to SquareDesk.app/Contents/MacOS (the FILE), and it should have been
+#  an already-existing SquareDesk.app/Contents/MacOS (the FOLDER).  To fix this, just delete the MacOS FILE, and
+#  create a folder called MacOS in Contents.  Then, the build should finish properly.
 
 # SOUNDFX STARTER SET --------------------------------------------
 copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
