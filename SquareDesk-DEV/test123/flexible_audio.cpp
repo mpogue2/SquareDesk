@@ -158,7 +158,8 @@ void flexible_audio::SetEq(int band, double val)
         decoder.setTrebleBoost(val);
         break;
     default:
-        qDebug() << "BAD EQ BAND: " << band << ", val:" << val;
+//        qDebug() << "BAD EQ BAND: " << band << ", val:" << val;
+        break;
     }
 }
 
@@ -189,7 +190,10 @@ void flexible_audio::SetGlobals()
 }
 
 void flexible_audio::songStartDetector(const char *filepath, double  *pSongStart, double  *pSongEnd) {
-    qDebug() << "NOT IMPLEMENTED: songStartDetector:" << *filepath << *pSongStart << *pSongEnd;
+    Q_UNUSED(filepath)
+    Q_UNUSED(pSongStart)
+    Q_UNUSED(pSongEnd)
+//    qDebug() << "NOT IMPLEMENTED: songStartDetector:" << *filepath << *pSongStart << *pSongEnd;
 }
 
 // ------------------------------------------------------------------
@@ -210,7 +214,7 @@ qint64 flexible_audio::readData(char* data, qint64 maxlen)
 {
     Q_UNUSED(data);
     Q_UNUSED(maxlen);
-    qDebug() << "UNEXPECTED flexible_audio::readData()";
+//    qDebug() << "UNEXPECTED flexible_audio::readData()";
     return(0);
 }
 
@@ -218,23 +222,25 @@ qint64 flexible_audio::writeData(const char* data, qint64 len)
 {
     Q_UNUSED(data);
     Q_UNUSED(len);
-    qDebug() << "UNEXPECTED flexible_audio::writeData()";
+//    qDebug() << "UNEXPECTED flexible_audio::writeData()";
     return 0;
 }
 
 void flexible_audio::decoder_error()
 {
-    qDebug() << "***** flexible_audio::decoder_error";
+//    qDebug() << "***** flexible_audio::decoder_error";
 }
 
 void flexible_audio::posChanged(qint64 a)
 {
-    qDebug() << "***** flexible_audio::posChanged" << a;
+    Q_UNUSED(a)
+//    qDebug() << "***** flexible_audio::posChanged" << a;
 }
 
 void flexible_audio::durChanged(qint64 a)
 {
-    qDebug() << "***** flexible_audio::durChanged" << a;
+    Q_UNUSED(a)
+//    qDebug() << "***** flexible_audio::durChanged" << a;
 }
 
 void flexible_audio::decoderDone() // SLOT
@@ -361,7 +367,7 @@ void flexible_audio::Pause(void)
 
 // ------------------------------------------------------------------
 void flexible_audio::FadeOutAndPause(void) {
-    qDebug() << "FadeOutAndPause";
+//    qDebug() << "FadeOutAndPause";
     decoder.fadeOutAndPause(0.0, 6.0);  // go to volume 0.0 in 6.0 seconds
 }
 

@@ -84,7 +84,7 @@ void Highlighter::highlightBlock(const QString &text)
 //            index = expression.indexIn(text, index + length);
 //        }
         // Reference: https://stackoverflow.com/questions/22489723/qt-c-qregularexpression-multiple-matches
-        qDebug() << "highlightBlock START: " << text;
+//        qDebug() << "highlightBlock START: " << text;
         QRegularExpressionMatchIterator i = expression.globalMatch(text);
         while (i.hasNext()) {
             QRegularExpressionMatch match = i.next();
@@ -92,7 +92,7 @@ void Highlighter::highlightBlock(const QString &text)
                 setFormat(match.capturedStart(0), match.capturedLength(0), rule.format);
             }
         }
-        qDebug() << "highlightBlock END: " << text;
+//        qDebug() << "highlightBlock END: " << text;
 
     }
 }

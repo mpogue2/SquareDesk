@@ -93,7 +93,7 @@ public:
         // from: https://stackoverflow.com/questions/28660852/qt-qthread-destroyed-while-thread-is-still-running-during-closing
         if(!this->wait(300))    // Wait until it actually has terminated (max. 300 msec)
         {
-            qDebug() << "force terminating the PlayerThread";
+//            qDebug() << "force terminating the PlayerThread";
             this->terminate();  // Thread didn't exit in time, probably deadlocked, terminate it!
             this->wait();       // We have to wait again here!
         }
@@ -306,7 +306,9 @@ public:
             case 0: intelligibilityBoost_fKHz            = val;  break;
             case 1: intelligibilityBoost_widthOctaves    = val;  break;
             case 2: intelligibilityBoost_dB              = -val; break; // NOTE MINUS SIGN (control is positive, but Boost is negative (suppression)
-            default: qDebug() << "ERROR: UNKNOWN INTEL BOOST: (" << which << ", " << val << ")"; break;
+            default:
+//                qDebug() << "ERROR: UNKNOWN INTEL BOOST: (" << which << ", " << val << ")";
+                break;
         }
         updateEQ();
     }
@@ -697,14 +699,14 @@ void AudioDecoder::isDecodingChanged(bool isDecoding)
 void AudioDecoder::finished()
 {
 //    qDebug() << "AudioDecoder::finished()";
-    qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
-    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
+//    qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
+//    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
 
     unsigned char *p_data = (unsigned char *)(m_data->data());
     myPlayer.m_data = p_data;  // we are done decoding, so tell the player where the data is
 
     myPlayer.totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
-    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
+//    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
     // BPM detection -------
     //   this estimate will be based on mono mixed-down samples from T={10,20} sec
@@ -728,7 +730,7 @@ void AudioDecoder::finished()
     MiniBPM BPMestimator(44100.0);
     BPMestimator.setBPMRange(125.0-25.0, 125.0+25.0);  // limited range for square dance songs, else use percent
     BPM = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
-    qDebug() << "***** BPM RESULT: " << BPM;  // -1 = overwritten by here, 0 = undetectable, else double
+//    qDebug() << "***** BPM RESULT: " << BPM;  // -1 = overwritten by here, 0 = undetectable, else double
 
     emit done();
 }

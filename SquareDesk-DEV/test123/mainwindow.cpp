@@ -2054,7 +2054,7 @@ void MainWindow::writeCuesheet(QString filename)
     //                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
 
                 QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
-                qDebug().noquote() << "***** I AM THINKING ABOUT WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
+//                qDebug().noquote() << "***** I AM THINKING ABOUT WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
 #endif
 }
 
@@ -2452,7 +2452,7 @@ void MainWindow::tableWidgetCallList_checkboxStateChanged(int clickRow, int stat
     }
     if (row < 0 || row >= ui->tableWidgetCallList->rowCount())
     {
-        qDebug() << "call list row original call name not found, clickRow " << clickRow << " name " << callName << " row " << row;
+//        qDebug() << "call list row original call name not found, clickRow " << clickRow << " name " << callName << " row " << row;
         return;
     }
     
@@ -3199,11 +3199,11 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if ((currentPos_i == fileLen_i) && (currentPos_i > 5) && (fileLen_i > 5)) {  // NOTE: TRICKY, counts on -1 above in InitializeSeekBar()
             // avoids the problem of manual seek to max slider value causing auto-STOP
             if (!ui->actionContinuous_Play->isChecked()) {
-                qDebug() << "AUTO_STOP TRIGGERED (NORMAL): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
+//                qDebug() << "AUTO_STOP TRIGGERED (NORMAL): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
             }
             else {
-                qDebug() << "AUTO_STOP TRIGGERED (CONT PLAY): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
+//                qDebug() << "AUTO_STOP TRIGGERED (CONT PLAY): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 // figure out which row is currently selected
                 QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
                 QModelIndexList selected = selectionModel->selectedRows();
@@ -3457,7 +3457,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
     double position, length;
     getCurrentPointInStream(&position, &length);
-    qDebug() << "MainWindow::on_pushButtonSetIntroTime_clicked: " << position << length;
+//    qDebug() << "MainWindow::on_pushButtonSetIntroTime_clicked: " << position << length;
 
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
@@ -3479,7 +3479,7 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 {
     double position, length;
     getCurrentPointInStream(&position, &length);
-    qDebug() << "MainWindow::on_pushButtonSetOutroTime_clicked: " << position << length;
+//    qDebug() << "MainWindow::on_pushButtonSetOutroTime_clicked: " << position << length;
 
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;

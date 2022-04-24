@@ -1679,7 +1679,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
 
     // SD COMMANDS -------
 
-    qDebug() << "CMD: " << cmd;
+//    qDebug() << "CMD: " << cmd;
 
     // square your|the set -> square thru 4
     if (cmd == "square the set" || cmd == "square your set"
