@@ -227,7 +227,8 @@ public:
 
     QActionGroup *flashCallTimingActionGroup;
 
-    void checkLockFile();
+    QSplashScreen *theSplash;
+    void checkLockFile();  // implicitly accesses theSplash
     void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);

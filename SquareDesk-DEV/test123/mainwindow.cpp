@@ -357,7 +357,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
-    Q_UNUSED(splash)
+    //Q_UNUSED(splash)
 
 #ifdef M1MAC
     connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
@@ -372,6 +372,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     PerfTimer t("MainWindow::MainWindow", __LINE__);
 
+    theSplash = splash;
     checkLockFile(); // warn, if some other copy of SquareDesk has database open
 
     flashCallsVisible = false;
@@ -5286,6 +5287,8 @@ void MainWindow::checkLockFile() {
             msgBox.setInformativeText("If you continue, any changes might be lost.");
             msgBox.addButton(tr("&Continue anyway"), QMessageBox::AcceptRole);
             msgBox.addButton(tr("&Quit"), QMessageBox::RejectRole);
+            theSplash->close();  // if we have a lock problem, let's close the splashscreen before this dialog goes up,
+                              //   so splashscreen doesn't cover up the dialog.
             if (msgBox.exec() != QMessageBox::AcceptRole) {
                 exit(-1);
             }
