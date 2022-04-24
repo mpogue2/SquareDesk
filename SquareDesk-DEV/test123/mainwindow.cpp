@@ -2676,6 +2676,12 @@ void MainWindow::updateSongTableColumnView()
     headerView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
     headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
     headerView->setStretchLastSection(false);
+
+    ui->songTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->songTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->songTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->songTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->songTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
 }
 
 
