@@ -1319,13 +1319,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 void MainWindow::musicRootModified(QString s)
 {
     Q_UNUSED(s)
-    Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
-    int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
-    // reload the musicTable.  Note that it will switch to default sort order.
-    //   TODO: At some point, this probably should save the sort order, and then restore it.
-    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-    loadMusicList(); // and filter them into the songTable
-    ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+    if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
+        // qDebug() << "*** musicRootModified!!!";
+        Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
+        int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
+        // reload the musicTable.  Note that it will switch to default sort order.
+        //   TODO: At some point, this probably should save the sort order, and then restore it.
+        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+        loadMusicList(); // and filter them into the songTable
+        ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+    }
+    filewatcherShouldIgnoreOneFileSave = false;
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -6845,6 +6849,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     //     if no match, then error (dialog?)
     //   Then on Save Playlist, write out the NEW patter and the rest
 
+    filewatcherShouldIgnoreOneFileSave = true;  // I don't know why we have to do this, but rootDir is being watched, which causes this to be needed.
     QFile file(PlaylistFileName);
     if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
