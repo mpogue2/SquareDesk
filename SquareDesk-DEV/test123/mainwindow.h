@@ -595,6 +595,8 @@ public:
     void submit_lineEditSDInput_contents_to_sd();
 private:
 
+    QString lastAudioDeviceName;
+
     bool flashCallsVisible;
 
     int lastSongTableRowSelected;

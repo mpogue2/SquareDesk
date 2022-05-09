@@ -147,6 +147,8 @@ public:
 
     int  currentSoundEffectID;
 
+    QString currentAudioDevice;  // which audio device are we talking to?  intentionally public
+
 private:
     QAudioOutput  *audioOutput;
 

@@ -362,6 +362,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 #ifdef M1MAC
     connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
 #endif
+    lastAudioDeviceName = "";
 
     lyricsCopyIsAvailable = false;
     lyricsTabNumber = 1;
@@ -3678,6 +3679,14 @@ void MainWindow::on_UIUpdateTimerTick(void)
         on_newVolumeMounted();
     }
     lastKnownVolumeList = newVolumeList;
+
+    // check for Audio Device changes, and set UI status bar, if there's a change
+    if ((cBass.currentAudioDevice != lastAudioDeviceName)||(lastAudioDeviceName == "")) {
+//        qDebug() << "NEW CURRENT AUDIO DEVICE: " << cBass.currentAudioDevice;
+        lastAudioDeviceName = cBass.currentAudioDevice;
+        microphoneStatusUpdate();  // now also updates the audioOutputDevice status
+//        ui->statusBar->showMessage("Audio output: " + lastAudioDeviceName);
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -8290,7 +8299,7 @@ void MainWindow::microphoneStatusUpdate() {
 //    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 //    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    QString kybdStatus("Kybd:" + currentSDKeyboardLevel);
+    QString kybdStatus("Audio:" + lastAudioDeviceName + ", Kybd:" + currentSDKeyboardLevel);
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 

@@ -54,18 +54,22 @@ flexible_audio::flexible_audio(void)
     soundEffect.setAudioOutput(new QAudioOutput);
     connect(&soundEffect, SIGNAL(mediaStatusChanged(QMediaPlayer::MediaStatus)), this, SLOT(FXChannelStatusChanged(QMediaPlayer::MediaStatus)));
 
-//    QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
+    QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
 
 //    qDebug() << "AUDIO OUTPUT DEVICES:";
 //    QAudioDevice ad;
 //    foreach( ad, audioOutputList ) {
 //      qDebug() << ad.description();
 //    }
+    Q_UNUSED(audioOutputList)
 
-//    QAudioDevice defaultAD = QMediaDevices::defaultAudioOutput();
+    QAudioDevice defaultAD = QMediaDevices::defaultAudioOutput();
 //    qDebug() << "DEFAULT AUDIO DEVICE: " << defaultAD.description();
 
+    currentAudioDevice = defaultAD.description();  // this will show up in the statusBar
+
     bool b = connect(&md, SIGNAL(audioOutputsChanged()), this, SLOT(systemAudioOutputsChanged()));
+    Q_UNUSED(b)
 //    qDebug() << "Connection: " << b;
 }
 
@@ -79,22 +83,41 @@ void flexible_audio::systemAudioOutputsChanged()
 {
 //    qDebug() << "***** systemAudioOutputsChanged!";
 
-//    QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
+    QList<QAudioDevice> audioOutputList = QMediaDevices::audioOutputs();
+    Q_UNUSED(audioOutputList)
 
-//    // Qt BUG:  This function should be called whenever I change the default in the Sound Preferences panel.
-//    //   However, it actually only changes right now when the devices list itself in the Sound Preferences panel changes.
-//    //   This happens when I plug or unplug something into the headphone jack, but it does NOT happen when I change the default.
-//    //   It seems to me that this is a bug.
-//    //   Also, ALL of the isDefault() flags are false, regardless of what I do, headphones plugged in or not, and
-//    //     default device changed or not.  That's probably the root cause of the bug.
+    // Qt BUG:  This function should be called whenever I change the default in the Sound Preferences panel.
+    //   However, it actually only changes right now when the devices list itself in the Sound Preferences panel changes.
+    //   This happens when I plug or unplug something into the headphone jack, but it does NOT happen when I change the default.
+    //   It seems to me that this is a bug.
+    //   Also, ALL of the isDefault() flags are false, regardless of what I do, headphones plugged in or not, and
+    //     default device changed or not.  That's probably the root cause of the bug.
+
+    // The above is no longer true.  The isDefault appears to work.  BUT, sometimes when switching dynamically (while music is playing)
+    //   playback will switch to the new device, and sometimes it doesn't.
+
 //    qDebug() << "AUDIO OUTPUT DEVICES:";
 //    QAudioDevice ad;
 //    foreach( ad, audioOutputList ) {
 //      qDebug() << ad.description() << ad.isDefault();
 //    }
 
-//    QAudioDevice defaultAD = QMediaDevices::defaultAudioOutput();
+    QAudioDevice defaultAD = QMediaDevices::defaultAudioOutput();
 //    qDebug() << "DEFAULT AUDIO DEVICE IS NOW: " << defaultAD.description();
+
+    currentAudioDevice = defaultAD.description();
+
+    uint32_t currentState = currentStreamState();
+    if (currentState != BASS_ACTIVE_STOPPED) {
+        decoder.Pause();
+    }
+
+    // decoder must be stopped to do this, otherwise we risk a crash
+    decoder.newSystemAudioOutputDevice(); // this should switch us over, since we know we might need to switch
+
+    if (currentState == BASS_ACTIVE_PLAYING) {
+        decoder.Play();  // if it was playing, restart it.  If it was paused or stopped, we're already still paused/stopped.
+    }
 }
 
 
