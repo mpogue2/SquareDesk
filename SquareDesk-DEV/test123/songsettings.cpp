@@ -725,7 +725,7 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
                             bool omitEndDate,
                             QString endDate)
 {
-    QString sql("SELECT name, played_on, datetime(played_on,'localtime') FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    QString sql("SELECT name, played_on, datetime(played_on,'localtime'), filename, pitch, tempo, last_cuesheet FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
     QStringList whereClause;
     
     if (session_id)
@@ -761,7 +761,14 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     exec("songplayhistory", q);
     while (q.next())
     {
-        event(q.value(0).toString(), q.value(1).toString(), q.value(2).toString());
+        event(q.value(0).toString(), // name
+              q.value(1).toString(), // UTC time
+              q.value(2).toString(), // local time
+              q.value(3).toString(), // filename
+              q.value(4).toString(), // pitch (NOTE: current pitch, not necessarily the pitch at playback time - FIX)
+              q.value(5).toString(), // tempo (NOTE: current tempo, not necessarily the tempo at playback time - FIX)
+              removeRootDirs(q.value(6).toString())  // last_cuesheet (NOTE: current last_cuesheet, not necessarily the last_cuesheet at playback time - FIX)
+              );
     }
 }
 

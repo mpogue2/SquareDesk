@@ -81,13 +81,28 @@ class FileExportSongPlayEvent : public SongPlayEvent {
     QTextStream &stream;
 public:
     FileExportSongPlayEvent(QTextStream &stream) : stream(stream) {}
-    virtual void operator() (const QString &name, const QString &playedOnUTC, const QString &playedOnLocal)
+    virtual void operator() (const QString &name,
+                             const QString &playedOnUTC,
+                             const QString &playedOnLocal,
+                             const QString &playedOnFilename,
+                             const QString &playedOnPitch,
+                             const QString &playedOnTempo,
+                             const QString &playedOnLastCuesheet
+                             )
     {
         outputString(stream, name, true);
         stream << ",";
         outputString(stream, playedOnLocal, true);
         stream << ",";
         outputString(stream, playedOnUTC, true);
+        stream << ",";
+        outputString(stream, playedOnFilename, true);
+        stream << ",";
+        outputString(stream, playedOnPitch, true);
+        stream << ",";
+        outputString(stream, playedOnTempo, true);
+        stream << ",";
+        outputString(stream, playedOnLastCuesheet, true);
         stream << "\n";
     }
     virtual ~FileExportSongPlayEvent() {}
@@ -119,7 +134,7 @@ void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
         bool omitEndDate = ui->checkBoxOmitEnd->isChecked();
         int session_id = ui->comboBoxSession->currentIndex();
 
-        stream << "\"Song\",\"when played (local)\",\"when played (UTC)\"\n";
+        stream << "\"Song\",\"when played (local)\",\"when played (UTC)\",\"filename\",\"pitch\",\"tempo\",\"last_cuesheet\"\n"; // CSV HEADER
         settings.getSongPlayHistory(fespe, session_id,
                                     omitStartDate,
                                     startDate,
