@@ -1154,33 +1154,46 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+    ui->pushButtonCueSheetEditTitle->setStyleSheet("font-weight: bold;");
 
-    QPalette* palette1 = new QPalette();
-    palette1->setColor(QPalette::ButtonText, Qt::red);
-    ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
+    ui->pushButtonCueSheetEditBold->setStyleSheet("font-weight: bold;");
+    ui->pushButtonCueSheetEditItalic->setStyleSheet("font: italic;");
+
+//    QPalette* palette1 = new QPalette();
+//    palette1->setColor(QPalette::ButtonText, Qt::red);
+//    ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
+    ui->pushButtonCueSheetEditHeader->setStyleSheet("color: red");
 
     t.elapsed(__LINE__);
 
-    QPalette* palette2 = new QPalette();
-    palette2->setColor(QPalette::ButtonText, QColor("#0000FF"));
-    ui->pushButtonCueSheetEditArtist->setPalette(*palette2);
+//    QPalette* palette2 = new QPalette();
+//    palette2->setColor(QPalette::ButtonText, QColor("#0000FF"));
+//    ui->pushButtonCueSheetEditArtist->setPalette(*palette2);
+    ui->pushButtonCueSheetEditArtist->setStyleSheet("color: #0000FF");
 
     t.elapsed(__LINE__);
 
-    QPalette* palette3 = new QPalette();
-    palette3->setColor(QPalette::ButtonText, QColor("#60C060"));
-    ui->pushButtonCueSheetEditLabel->setPalette(*palette3);
+//    QPalette* palette3 = new QPalette();
+//    palette3->setColor(QPalette::ButtonText, QColor("#60C060"));
+//    ui->pushButtonCueSheetEditLabel->setPalette(*palette3);
+    ui->pushButtonCueSheetEditLabel->setStyleSheet("color: #60C060");
 
 //    QPalette* palette4 = new QPalette();
 //    palette4->setColor(QPalette::Background, QColor("#FFC0CB"));
 //    ui->pushButtonCueSheetEditLyrics->setPalette(*palette4);
 
-    ui->pushButtonCueSheetEditLyrics->setAutoFillBackground(true);
+//    ui->pushButtonCueSheetEditLyrics->setAutoFillBackground(true);
+//    ui->pushButtonCueSheetEditLyrics->setStyleSheet(
+//                "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
+//                "QPushButton:checked { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
+//                "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
+//                "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
+//                );
     ui->pushButtonCueSheetEditLyrics->setStyleSheet(
                 "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
                 "QPushButton:checked { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
                 "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
-                "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
+                "QPushButton:disabled { background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
                 );
 
     t.elapsed(__LINE__);
