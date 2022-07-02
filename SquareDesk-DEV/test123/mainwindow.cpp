@@ -7455,6 +7455,10 @@ void MainWindow::PlaylistItemMoveUp() {
     // moved an item, so we must enable saving of the playlist
     ui->actionSave->setEnabled(true);       // menu item Save is enabled now
     ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
+
+    // ensure that the selected row is still visible in the current songTable window
+    selectedRow = selectedSongRow();
+    ui->songTable->scrollToItem(ui->songTable->item(selectedRow, kNumberCol)); // EnsureVisible
 }
 
 // --------------------------------------------------------------------
@@ -7492,6 +7496,10 @@ void MainWindow::PlaylistItemMoveDown() {
     // moved an item, so we must enable saving of the playlist
     ui->actionSave->setEnabled(true);       // menu item Save is enabled now
     ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
+
+    // ensure that the selected row is still visible in the current songTable window
+    selectedRow = selectedSongRow();
+    ui->songTable->scrollToItem(ui->songTable->item(selectedRow, kNumberCol)); // EnsureVisible
 }
 
 // --------------------------------------------------------------------
