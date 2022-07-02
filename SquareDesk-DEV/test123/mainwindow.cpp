@@ -716,10 +716,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    lyricsWatcher.addPath(musicRootPath + "/lyrics");      // add the root lyrics directory itself
-    lyricsWatcher.addPath(musicRootPath + "/lyrics/downloaded");
+    // COMMENTING THESE OUT:  the lyrics watcher was only useful for drag copying in new lyrics files, which is done infrequently.
+    //   And, because of a bug, it was crashing.  So, commented out maybeLyricsChanged AND turned off the lyricsWatcher entirely for now.
+//    lyricsWatcher.addPath(musicRootPath + "/lyrics");      // add the root lyrics directory itself
+//    lyricsWatcher.addPath(musicRootPath + "/lyrics/downloaded");
 
-    QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
+//    QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
     // ---------------------------------------
     t.elapsed(__LINE__);
 
@@ -1319,7 +1321,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 void MainWindow::musicRootModified(QString s)
 {
     Q_UNUSED(s)
-//    qDebug() << "Music root changed: " << s;
+//    qDebug() << "Music root modified: " << s;
     if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
         // qDebug() << "*** musicRootModified!!!";
         Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
@@ -10621,17 +10623,18 @@ QList<QString> MainWindow::getListOfCuesheets() {
 }
 
 void MainWindow::maybeLyricsChanged() {
+//    qDebug() << "maybeLyricsChanged()";
     // AND, just in case the list of matching cuesheets for the current song has been
     //   changed by the recent addition of cuesheets...
-    if (!filewatcherShouldIgnoreOneFileSave) {
-        // don't rescan, if this is a SAVE or SAVE AS Lyrics (those get added manually to the pathStack)
-        // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
-        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-        loadMusicList(); // and filter them into the songTable
+//    if (!filewatcherShouldIgnoreOneFileSave) {
+//        // don't rescan, if this is a SAVE or SAVE AS Lyrics (those get added manually to the pathStack)
+//        // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS FILES (and music files that might match) ------------
+//        findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
+//        loadMusicList(); // and filter them into the songTable
 
-        // reload only if this isn't a SAVE LYRICS FILE
-        reloadCurrentMP3File();
-    }
+//        // reload only if this isn't a SAVE LYRICS FILE
+////        reloadCurrentMP3File();
+//    }
     filewatcherShouldIgnoreOneFileSave = false;
 }
 
