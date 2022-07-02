@@ -1057,5 +1057,29 @@ public:
     bool eventFilter(QObject *Object, QEvent *Event);
 };
 
+// ----------------------
+class SelectionRetainer {
+    QTextEdit *textEdit;
+    QTextCursor cursor;
+    int anchorPosition;
+    int cursorPosition;
+    // No inadvertent copies
+private:
+    SelectionRetainer() {};
+    SelectionRetainer(const SelectionRetainer &) {};
+public:
+    SelectionRetainer(QTextEdit *textEdit) : textEdit(textEdit), cursor(textEdit->textCursor())
+    {
+        anchorPosition = cursor.anchor();
+        cursorPosition = cursor.position();
+    }
+    ~SelectionRetainer() {
+        cursor.setPosition(anchorPosition);
+        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
+        textEdit->setTextCursor(cursor);
+    }
+};
+
+
 
 #endif // MAINWINDOW_H

@@ -40,6 +40,7 @@ SOURCES += main.cpp\
     audiodecoder.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
+    lyricsEditor.cpp \
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
     miniBPM/MiniBpm.cpp \
