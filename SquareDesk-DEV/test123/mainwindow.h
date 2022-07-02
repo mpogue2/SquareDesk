@@ -452,6 +452,7 @@ private slots:
     void makeProgress();
     void cancelProgress();
 
+    void fileWatcherTriggered();
     void musicRootModified(QString s);
     void maybeLyricsChanged();
 
@@ -792,6 +793,8 @@ private:
     // VU Meter support
     QTimer *UIUpdateTimer;
     QTimer *vuMeterTimer;
+
+    QTimer *fileWatcherTimer;  // after all changes are made, THEN reload the songTable.
 
     LevelMeter *vuMeter;
 

@@ -690,6 +690,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+    fileWatcherTimer = new QTimer();  // Retriggerable timer for file watcher events
+    QObject::connect(fileWatcherTimer, SIGNAL(timeout()), this, SLOT(fileWatcherTriggered())); // this calls musicRootModified again (one last time!)
+
+
 //    musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
     QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
 
@@ -1318,10 +1322,24 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             this, SLOT(LyricsCopyAvailable(bool)));
 }
 
+void MainWindow::fileWatcherTriggered() {
+//    qDebug() << "fileWatcherTriggered()";
+    musicRootModified(QString("DONE"));
+}
+
 void MainWindow::musicRootModified(QString s)
 {
-    Q_UNUSED(s)
-//    qDebug() << "Music root modified: " << s;
+//    Q_UNUSED(s)
+//    qDebug() << "musicRootModified() = " << s;
+    if (s != "DONE") {
+//        qDebug() << "(Re)triggering File Watcher for 3 seconds...";
+        fileWatcherTimer->start(std::chrono::milliseconds(500)); // wait 500ms for things to settle
+        return;
+    }
+
+    fileWatcherTimer->stop();  // 500ms expired, so we don't need to be notified again.
+
+//    qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
     if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
         // qDebug() << "*** musicRootModified!!!";
         Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
