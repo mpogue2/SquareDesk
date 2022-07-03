@@ -2034,7 +2034,7 @@
     <string>Skip Ahead 15 sec</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Right</string>
+    <string>Ctrl+Alt+Right</string>
    </property>
   </action>
   <action name="actionSkip_Back_15_sec">
@@ -2045,7 +2045,7 @@
     <string>Skip Back 15 sec</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Left</string>
+    <string>Ctrl+Alt+Left</string>
    </property>
   </action>
   <action name="actionVolume_Up">
