@@ -2773,6 +2773,9 @@ void MainWindow::on_UIUpdateTimerTick(void)
 //    }
 //#endif
 
+//    qDebug() << "VERTICAL SCROLL VALUE: " << ui->textBrowserCueSheet->verticalScrollBar()->value();
+
+
     Info_Seekbar(true);
 
     // update the session coloring analog clock
@@ -7273,42 +7276,6 @@ QString MainWindow::loadLyrics(QString MP3FileName)
 }
 
 // ------------------------------------------------------------------------
-QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
-    Q_UNUSED(filePathname)
-
-//    QStringList pieces = filePathname.split( "/" );
-//    pieces.pop_back(); // get rid of actual filename, keep the path
-//    QString filedir = pieces.join("/"); // FIX: MAC SPECIFIC?
-
-//    QString css("");
-//    bool fileIsOpen = false;
-//    QFile f1(filedir + "/cuesheet2.css");  // This is the SqView convention for a CSS file
-//    if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
-//        // if there's a "cuesheet2.css" file in the same directory as the .txt file,
-//        //   then we're going to embed it into the HTML representation of the .txt file,
-//        //   so that the font preferences therein apply.
-//        fileIsOpen = true;
-//        QTextStream in(&f1);
-//        css = in.readAll();  // read the entire CSS file, if it exists
-//    }
-
-    // get internal CSS file (we no longer let users change it in individual folders)
-    QString css = getResourceFile("cuesheet2.css");
-
-    text = text.toHtmlEscaped();  // convert ">" to "&gt;" etc
-    text = text.replace(QRegularExpression("[\r|\n]"),"<br/>\n");
-
-    QString HTML;
-    HTML += "<HTML>\n";
-    HTML += "<HEAD><STYLE>" + css + "</STYLE></HEAD>\n";
-    HTML += "<BODY>\n" + text + "</BODY>\n";
-    HTML += "</HTML>\n";
-
-//    if (fileIsOpen) {
-//        f1.close();
-//    }
-    return(HTML);
-}
 
 // ----------------------------------------------------------------------------
 QStringList MainWindow::getCurrentVolumes() {
@@ -9131,85 +9098,6 @@ void MainWindow::on_actionFilePrint_triggered()
         painter.drawText(20,20,500,500, Qt::AlignLeft|Qt::AlignTop, toBePrinted);
 
         painter.end();
-    }
-}
-
-void MainWindow::saveLyrics()
-{
-    // Save cuesheet to the current cuesheet filename...
-    RecursionGuard dialog_guard(inPreferencesDialog);
-
-    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
-    if (!cuesheetFilename.isNull())
-    {
-        // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
-        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-        ui->pushButtonCueSheetEditSaveAs->hide();
-        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-        ui->actionSave->setEnabled(false);  // save is disabled to start out
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
-
-        filewatcherShouldIgnoreOneFileSave = true;  // set flag
-        writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)
-
-        loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
-        saveCurrentSongSettings();
-    }
-    setInOutButtonState();
-
-}
-
-
-void MainWindow::saveLyricsAs()
-{
-    // Ask me where to save it...
-    RecursionGuard dialog_guard(inPreferencesDialog);
-    QFileInfo fi(currentMP3filenameWithPath);
-
-    if (lastCuesheetSavePath.isEmpty()) {
-        lastCuesheetSavePath = musicRootPath + "/lyrics";
-    }
-
-    loadedCuesheetNameWithPath = lastCuesheetSavePath + "/" + fi.baseName() + ".html";
-
-    QString maybeFilename = loadedCuesheetNameWithPath;
-    QFileInfo fi2(loadedCuesheetNameWithPath);
-    if (fi2.exists()) {
-        // choose the next name in the series (this won't be done, if we came from a template)
-        QString cuesheetExt = loadedCuesheetNameWithPath.split(".").last();
-        QString cuesheetBase = loadedCuesheetNameWithPath
-                .replace(QRegularExpression(cuesheetExt + "$"),"")  // remove extension, e.g. ".html"
-                .replace(QRegularExpression("[0-9]+\\.$"),"");      // remove .<number>, e.g. ".2"
-
-        // find an appropriate not-already-used filename to save to
-        bool done = false;
-        int which = 2;  // I suppose we could be smarter than this at some point.
-        while (!done) {
-            maybeFilename = cuesheetBase + QString::number(which) + "." + cuesheetExt;
-            QFileInfo maybeFile(maybeFilename);
-            done = !maybeFile.exists();  // keep going until a proposed filename does not exist (don't worry -- it won't spin forever)
-            which++;
-        }
-    }
-
-    QString filename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save"), // TODO: this could say Lyrics or Patter
-                                                    maybeFilename,
-                                                    tr("HTML (*.html *.htm)"));
-    if (!filename.isNull())
-    {
-        // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
-        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-        ui->pushButtonCueSheetEditSaveAs->hide();
-        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-        ui->actionSave->setEnabled(false);  // save is disabled to start out
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
-
-        filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
-        writeCuesheet(filename);            // this will NOT trigger FileWatcher
-
-        loadCuesheets(currentMP3filenameWithPath, filename);
-        saveCurrentSongSettings();
     }
 }
 
