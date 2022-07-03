@@ -56,8 +56,7 @@ void MainWindow::showHTML(QString fromWhere) {
     qDebug() << "***** showHTML(" << fromWhere << "):\n";
 
     QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-    QString tEditedCuesheet = tidyHTML(editedCuesheet);
-    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+    QString pEditedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
     qDebug().noquote() << "***** Post-processed HTML will be:\n" << pEditedCuesheet;
 }
 
@@ -427,8 +426,7 @@ void MainWindow::writeCuesheet(QString filename)
         {
             QTextStream stream( &file );
             QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
-            QString tEditedCuesheet = tidyHTML(editedCuesheet);
-            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+            QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
             stream << postProcessedCuesheet;
             stream.flush();
         }
@@ -452,10 +450,7 @@ void MainWindow::writeCuesheet(QString filename)
                 QString editedCuesheet = ui->textBrowserCueSheet->toHtml();
                 qDebug().noquote() << "***** editedCuesheet to write:\n" << editedCuesheet;
 
-//                QString tEditedCuesheet = tidyHTML(editedCuesheet);
-    //                qDebug().noquote() << "***** tidied editedCuesheet to write:\n" << tEditedCuesheet;
-
-//                QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(tEditedCuesheet);
+//                QString postProcessedCuesheet = postProcessHTMLtoSemanticHTML(editedCuesheet);
 //                qDebug().noquote() << "***** I AM THINKING ABOUT WRITING TO FILE postProcessed:\n" << postProcessedCuesheet;
 #endif
 }
@@ -498,109 +493,6 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 //    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
 }
 
-
-QString MainWindow::tidyHTML(QString cuesheet) {
-#define NOTIDYYET
-#ifdef NOTIDYYET
-    QString cuesheet_tidied = cuesheet; // FIX
-#else
-    qDebug() << "tidyHTML";
-//    qDebug().noquote() << "************\ncuesheet in:" << cuesheet;
-
-    // first get rid of <L> and </L>.  Those are ILLEGAL.
-    cuesheet.replace("<L>","",Qt::CaseInsensitive).replace("</L>","",Qt::CaseInsensitive);
-
-    // then get rid of <NOBR> and </NOBR>, NOT SUPPORTED BY W3C.
-    cuesheet.replace("<NOBR>","",Qt::CaseInsensitive).replace("</NOBR>","",Qt::CaseInsensitive);
-
-    // and &nbsp; too...let the layout engine do its thing.
-    cuesheet.replace("&nbsp;"," ");
-
-    // convert to a c_string, for HTML-TIDY
-    char* tidyInput;
-    string csheet = cuesheet.toStdString();
-    tidyInput = new char [csheet.size()+1];
-    strcpy( tidyInput, csheet.c_str() );
-
-////    qDebug().noquote() << "\n***** TidyInput:\n" << QString((char *)tidyInput);
-
-    TidyBuffer output;// = {0};
-    TidyBuffer errbuf;// = {0};
-    tidyBufInit(&output);
-    tidyBufInit(&errbuf);
-    int rc = -1;
-    Bool ok;
-
-    // TODO: error handling here...using GOTO!
-
-    TidyDoc tdoc = tidyCreate();
-    ok = tidyOptSetBool( tdoc, TidyHtmlOut, yes );  // Convert to XHTML
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyUpperCaseTags, yes );  // span -> SPAN
-    }
-//    if (ok) {
-//        ok = tidyOptSetInt( tdoc, TidyUpperCaseAttrs, TidyUppercaseYes );  // href -> HREF
-//    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyDropEmptyElems, yes );  // Discard empty elements
-    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyDropEmptyParas, yes );  // Discard empty p elements
-    }
-    if (ok) {
-        ok = tidyOptSetInt( tdoc, TidyIndentContent, TidyYesState );  // text/block level content indentation
-    }
-    if (ok) {
-        ok = tidyOptSetInt( tdoc, TidyWrapLen, 150 );  // text/block level content indentation
-    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyMark, no);  // do not add meta element indicating tidied doc
-    }
-    if (ok) {
-        ok = tidyOptSetBool( tdoc, TidyLowerLiterals, yes);  // Folds known attribute values to lower case
-    }
-    if (ok) {
-        ok = tidyOptSetInt( tdoc, TidySortAttributes, TidySortAttrAlpha);  // Sort attributes
-    }
-    if ( ok )
-        rc = tidySetErrorBuffer( tdoc, &errbuf );      // Capture diagnostics
-    if ( rc >= 0 )
-        rc = tidyParseString( tdoc, tidyInput );           // Parse the input
-    if ( rc >= 0 )
-        rc = tidyCleanAndRepair( tdoc );               // Tidy it up!
-    if ( rc >= 0 )
-        rc = tidyRunDiagnostics( tdoc );               // Kvetch
-    if ( rc > 1 )                                    // If error, force output.
-        rc = ( tidyOptSetBool(tdoc, TidyForceOutput, yes) ? rc : -1 );
-    if ( rc >= 0 )
-        rc = tidySaveBuffer( tdoc, &output );          // Pretty Print
-
-    QString cuesheet_tidied;
-    if ( rc >= 0 )
-    {
-        if ( rc > 0 ) {
-//            qDebug().noquote() << "\n***** Diagnostics:" << QString((char*)errbuf.bp);
-//            qDebug().noquote() << "\n***** TidyOutput:\n" << QString((char*)output.bp);
-        }
-        cuesheet_tidied = QString(reinterpret_cast<char *>(output.bp));
-    }
-    else {
-        qDebug() << "***** Severe error:" << rc;
-    }
-
-    tidyBufFree( &output );
-    tidyBufFree( &errbuf );
-    tidyRelease( tdoc );
-
-//    // get rid of TIDY cruft
-////    cuesheet_tidied.replace("<META NAME=\"generator\" CONTENT=\"HTML Tidy for HTML5 for Mac OS X version 5.5.31\">","");
-
-//    qDebug().noquote() << "************\ncuesheet out:" << cuesheet_tidied;
-#endif
-
-    return(cuesheet_tidied);
-}
-
 // ------------------------
 QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 //    qDebug() << "postProcessHTMLtoSemanticHTML";
@@ -630,7 +522,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet.replace(styleRegExp,"");  // don't be greedy
 
 //    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
-    QString cuesheet3 = tidyHTML(cuesheet);
+    QString cuesheet3 = cuesheet; // NOTE: no longer using libtidy here
 
     // now the semantic replacement.
     // assumes that QTextEdit spits out spans in a consistent way
@@ -817,10 +709,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
     cuesheet3.replace("<SPAN class=\"hdr\">", "\n    <SPAN class=\"hdr\">"); // a little extra space to make it easier to read
     cuesheet3.replace("    <BR/>\n</BODY>", "</BODY>"); // cleanup on aisle 7
-    // tidy it one final time before writing it to a file (gets rid of blank SPAN's, among other things)
-    QString cuesheet4 = tidyHTML(cuesheet3);
-//    qDebug().noquote() << "***** postProcess 2: " << cuesheet4;
-    return(cuesheet4);
+    return(cuesheet3);
 }
 
 void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
@@ -846,110 +735,6 @@ void MainWindow::maybeLoadCSSfileIntoTextBrowser() {
                   ".italic       { font-style: italic; }";
     ui->textBrowserCueSheet->document()->setDefaultStyleSheet(css);
 }
-
-//void MainWindow::loadCuesheet(const QString &cuesheetFilename)
-//{
-//    // THIS IS NOT QUITE RIGHT YET.  NORMAL SAVE TRIGGERS IT.  But, I'm leaving it here as
-//    //   a partial implementation for later.
-////    if ( ui->pushButtonEditLyrics->isChecked()
-////            // && ui->textBrowserCueSheet->document()->isModified()  // TODO: Hmmm...seems like it's always modified...
-////       ) {
-////        qDebug() << "YOU HAVE A CUESHEET OPEN FOR EDITING. ARE YOU SURE YOU WANT TO SWITCH TO A DIFFERENT CUESHEET (changes will be lost)?";
-////    }
-
-//    loadedCuesheetNameWithPath = ""; // nothing loaded yet
-
-//    QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));  // NOTE: can contain HTML that references a customer's cuesheet2.css
-//    if (cuesheetFilename.endsWith(".txt", Qt::CaseInsensitive)) {
-//        // text files are read in, converted to HTML, and sent to the Lyrics tab
-//        QFile f1(cuesheetFilename);
-//        f1.open(QIODevice::ReadOnly | QIODevice::Text);
-//        QTextStream in(&f1);
-//        QString html = txtToHTMLlyrics(in.readAll(), cuesheetFilename);
-//        ui->textBrowserCueSheet->setText(html);
-//        loadedCuesheetNameWithPath = cuesheetFilename;
-//        f1.close();
-//    }
-//    else if (cuesheetFilename.endsWith(".mp3", Qt::CaseInsensitive)) {
-////        qDebug() << "loadCuesheet():";
-//        QString embeddedID3Lyrics = loadLyrics(cuesheetFilename);
-////        qDebug() << "embLyrics:" << embeddedID3Lyrics;
-//        if (embeddedID3Lyrics != "") {
-//            QString HTMLlyrics = txtToHTMLlyrics(embeddedID3Lyrics, cuesheetFilename);
-////            qDebug() << "HTML:" << HTMLlyrics;
-//            QString html(HTMLlyrics);  // embed CSS, if found, since USLT is plain text
-//            ui->textBrowserCueSheet->setHtml(html);
-//            loadedCuesheetNameWithPath = cuesheetFilename;
-//        }
-//    } else {
-
-//        // read in the HTML for the cuesheet
-
-//        QFile f1(cuesheetFilename);
-//        QString cuesheet;
-//        if ( f1.open(QIODevice::ReadOnly | QIODevice::Text)) {
-//            QTextStream in(&f1);
-//            cuesheet = in.readAll();  // read the entire CSS file, if it exists
-
-//            // FIX: Qt6.2 does not support QTextCodec anymore.  Commenting out for now.
-////            if (cuesheet.contains("charset=windows-1252") || cuesheetFilename.contains("GP 956")) {  // WARNING: HACK HERE
-////                // this is very likely to be an HTML file converted from MS WORD,
-////                //   and it still uses windows-1252 encoding.
-
-////                f1.seek(0);  // go back to the beginning of the file
-
-////                QByteArray win1252bytes(f1.readAll());  // and read it again (as bytes this time)
-////                QTextCodec *codec = QTextCodec::codecForName("windows-1252");  // FROM win-1252 bytes
-////                cuesheet = codec->toUnicode(win1252bytes);                     // TO Unicode QString
-////            }
-
-////            qDebug() << "Cuesheet: " << cuesheet;
-//            cuesheet.replace("\xB4","'");  // replace wacky apostrophe, which doesn't display well in QEditText
-//            // NOTE: o-umlaut is already translated (incorrectly) here to \xB4, too.  There's not much we
-//            //   can do with non UTF-8 HTML files that aren't otherwise marked as to encoding.
-
-////#if defined(Q_OS_MAC) || defined(Q_OS_LINUX) || defined(Q_OS_WIN)
-//            // HTML-TIDY IT ON INPUT *********
-//            QString cuesheet_tidied = tidyHTML(cuesheet);
-////#else
-////            QString cuesheet_tidied = cuesheet;  // LINUX, WINDOWS
-////#endif
-
-//            // ----------------------
-//            // set the HTML for the cuesheet itself (must set CSS first)
-////            ui->textBrowserCueSheet->setHtml(cuesheet);
-////            qDebug() << "tidied: " << cuesheet_tidied;
-//            ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
-//            loadedCuesheetNameWithPath = cuesheetFilename;
-//            f1.close();
-////            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG
-//        }
-
-//    }
-//    ui->textBrowserCueSheet->document()->setModified(false);
-
-//    // -----------
-//    QTextCursor cursor = ui->textBrowserCueSheet->textCursor();     // cursor for this document
-//    cursor.movePosition(QTextCursor::Start);
-//    cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor); // select entire document
-
-//    QTextBlockFormat fmt;       // = cursor.blockFormat(); // get format of current block
-//    fmt.setTopMargin(0.0);
-//    fmt.setBottomMargin(0.0);   // modify it
-
-//    cursor.mergeBlockFormat(fmt); // set margins to zero for all blocks
-
-//    cursor.movePosition(QTextCursor::Start);  // move cursor back to the start of the document
-
-//    ui->pushButtonEditLyrics->setChecked(false);  // locked for editing, in case this is just a change in the dropdown
-
-//    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-//    ui->pushButtonCueSheetEditSaveAs->hide();
-//    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-//    ui->actionSave->setEnabled(false);  // save is disabled to start out
-//    ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
-//    setInOutButtonState();
-//}
 
 // Convert .txt file to .html string -------------------
 QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
@@ -1010,12 +795,8 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
             // NOTE: o-umlaut is already translated (incorrectly) here to \xB4, too.  There's not much we
             //   can do with non UTF-8 HTML files that aren't otherwise marked as to encoding.
 
-            // HTML-TIDY IT ON INPUT *********
-            QString cuesheet_tidied = tidyHTML(cuesheet);  // FIX: RIGHT NOW THIS IS A NOOP
-
             // set the HTML for the cuesheet itself (must set CSS first)
-//            qDebug() << "=============== tidied ================\n" << cuesheet_tidied;
-            ui->textBrowserCueSheet->setHtml(cuesheet_tidied);
+            ui->textBrowserCueSheet->setHtml(cuesheet);
             loadedCuesheetNameWithPath = cuesheetFilename;
             f1.close();
 //            showHTML(__FUNCTION__);  // DEBUG DEBUG DEBUG

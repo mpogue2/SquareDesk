@@ -18,7 +18,6 @@ echo $dir
 # cd to the app/Contents/MacOS
 # otool -L SquareDeskPlayer
 # install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
-# install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
 # otool -L SquareDeskPlayer
 #
 # These errors can be ignored, they are false dependencies:
@@ -44,11 +43,10 @@ MIKEBUILDDIR="/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_V
 echo Now running otool to fixup libraries...
 # Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
 pushd ${MIKEBUILDDIR}/test123/SquareDesk.app/Contents/MacOS
-otool -L SquareDesk | egrep "qua|tidy"
+otool -L SquareDesk | egrep "qua"
 install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
-install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
 echo Those two lines should now start with executable_path...
-otool -L SquareDesk | egrep "qua|tidy"
+otool -L SquareDesk | egrep "qua"
 popd
 
 # ---------------------------------------------------

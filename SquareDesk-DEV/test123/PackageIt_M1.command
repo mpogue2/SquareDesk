@@ -14,14 +14,9 @@
 # the macdeployqt step!
 # cd build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug/
 
-# if errors about can't find libs, execute these line MANUALLY:
-# cd to the app/Contents/MacOS
-# otool -L SquareDesk
-# install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
-# otool -L SquareDesk
-#
 # No longer needed:
 ## install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
+## install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
 #
 # These errors can be ignored, they are false dependencies:
 # ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
@@ -51,17 +46,15 @@ echo DYLD_FRAMEWORK_PATH: ${DYLD_FRAMEWORK_PATH}
 echo
 
 # ------------------------------------------------------------------------
-#echo WARNING: libquazip and libtidy not present in M1 build yet
 echo WARNING: libquazip not present in M1 build yet
 
 echo Now running otool to fixup libraries...
 # # Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
 pushd ${MIKEBUILDDIR}/test123/SquareDesk.app/Contents/MacOS
-otool -L SquareDesk | egrep "qua|tidy"
+otool -L SquareDesk | egrep "qua"
 # install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
-install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDesk
 echo Those two lines should now start with executable_path...
-otool -L SquareDesk | egrep "qua|tidy"
+otool -L SquareDesk | egrep "qua"
 popd
 
 # ----------------------------------------------------------------------------------------

@@ -91,8 +91,8 @@
 #include <stdio.h>
 #include <errno.h>
 #endif
-#include <tidy/tidy.h>
-#include <tidy/tidybuffio.h>
+//#include <tidy/tidy.h>
+//#include <tidy/tidybuffio.h>
 
 #include "sdinterface.h"
 
@@ -232,7 +232,7 @@ public:
     void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);
-    QString tidyHTML(QString s);  // return the tidied HTML
+//    QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected

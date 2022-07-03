@@ -194,7 +194,7 @@ FORMS    += mainwindow.ui \
     preferencesdialog.ui
 
 macx {
-# This is just for libtidy at this point...
+# This is just for libtidy at this point... (NOTE: libtidy no longer needed)
 INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
 DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
 }
@@ -212,8 +212,8 @@ LIBS += -L$$PWD/../sdlib -lsdlib
 
 
 # NOTE: there is no debug version of libbass
-win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy -lquazip
-else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
+win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -lquazip
+else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3
 # macx: see below...
 
 win32:CONFIG(debug, debug|release): {
@@ -416,14 +416,6 @@ export(installer1.commands)
 export(installer2.commands)
 export(installer3.commands)
 QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3
-
-# LIBTIDY (for both X86 and M1 Macs)
-# http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-#LIBS += $$PWD/../local_macosx/lib/libtidy.5.dylib
-
-#mylib.path = Contents/MacOS
-#mylib.files += $$PWD/../local_macosx/lib/libtidy.5.dylib
-#QMAKE_BUNDLE_DATA += mylib
 }
 
 # ************************************************************************************
@@ -455,12 +447,10 @@ macx {
 #    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
 #    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
 #    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-#    LIBS += $$PWD/../local/lib/libtidy.5.dylib
 
 #    mylib.path = Contents/MacOS
 #    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
 #    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-#    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
 #    QMAKE_BUNDLE_DATA += mylib
 
 #    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with

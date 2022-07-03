@@ -55,7 +55,13 @@
 #include <QPrintDialog>
 
 #include "analogclock.h"
+
+// Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#pragma clang diagnostic pop
+
 #include "ui_mainwindow.h"
 #include "utility.h"
 #include "perftimer.h"
@@ -2981,7 +2987,7 @@ void MainWindow::aboutBox()
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
 //                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
-                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
+//                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
                    QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
                    QString("<a href=\"https://www.kfrlib.com\">kfr</a>, and ") +
                    QString("<a href=\"https://www.surina.net/soundtouch/\">SoundTouch</a>.") +
