@@ -709,6 +709,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
     cuesheet3.replace("<SPAN class=\"hdr\">", "\n    <SPAN class=\"hdr\">"); // a little extra space to make it easier to read
     cuesheet3.replace("    <BR/>\n</BODY>", "</BODY>"); // cleanup on aisle 7
+    cuesheet3.replace("<BR/>\n</BODY>", "\n</BODY>"); // get rid of that last NL-equivalent at the end of the file (is this OK?)
     return(cuesheet3);
 }
 
