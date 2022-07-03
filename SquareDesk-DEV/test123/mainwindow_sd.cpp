@@ -1116,7 +1116,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 }
                 if (!callTiming.isEmpty())
                 {
-//                    lastCall += "\n<br><small>&nbsp;&nbsp;" + callTiming + "</small>";
+//                    lastCall += "\n<BR/><small>&nbsp;&nbsp;" + callTiming + "</small>";
                 }
                 QLabel *moveLabel(new SDSequenceCallLabel(this));
 //                moveLabel->setTextFormat(Qt::RichText);
@@ -2243,7 +2243,7 @@ QString MainWindow::render_image_item_as_html(QTableWidgetItem *imageItem, QGrap
                 }
                 svgText.seek(0);
                 QString s(svgText.readAll());
-                selection += "<br>" + s;
+                selection += "<BR/>" + s;
             }
         }
     }
