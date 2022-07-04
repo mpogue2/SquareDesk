@@ -3843,6 +3843,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
 
 //        qDebug() << "Comparing: " << completeBaseName << " to " << mp3CompleteBaseName;
+//        qDebug() << "           " << type;
 //        qDebug() << "           " << title << " to " << mp3Title;
 //        qDebug() << "           " << shortTitle << " to " << mp3ShortTitle;
 //        qDebug() << "    label: " << label << " to " << mp3Label <<
@@ -3873,7 +3874,7 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
                 + (labelnum.compare(mp3Labelnum, Qt::CaseInsensitive) == 0 ? 10 : 0)
                 + (labelnum_short.compare(mp3Labelnum_short, Qt::CaseInsensitive) == 0 ? 7 : 0)
                 + (mp3Label.compare(mp3Label, Qt::CaseInsensitive) == 0 ? 5 : 0);
-
+// qDebug() << "Candidate: " << filename << completeBaseName << score;
             CuesheetWithRanking *cswr = new CuesheetWithRanking();
             cswr->filename = filename;
             cswr->name = completeBaseName;
@@ -4447,15 +4448,17 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
         QString newType = (fi.path().replace(rootDir.path() + "/","").split("/"))[0];
         QStringList section = fi.path().split("/");
 
-//        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
+        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
 //                                                              // of where the alias is, not where the file is, and append "*" or not
-//        qDebug() << "FFR: " << fi.path() << rootDir.path() << type << newType;
         if (section[section.length()-1] != "soundfx") {
 //            qDebug() << "findFilesRecursively() adding " + type + "#!#" + resolvedFilePath + " to pathStack";
 //            pathStack->append(type + "#!#" + resolvedFilePath);
 
-            // add to the pathStack iff it's not a sound FX .mp3 file (those are internal)
-            pathStack->append(newType + "#!#" + resolvedFilePath);
+            // add to the pathStack iff it's not a sound FX .mp3 file (those are internal) AND iff it's not sd, choreography, or reference
+            if (newType != "sd" && newType != "choreography" && newType != "reference") {
+//                qDebug() << "FFR: " << fi.path() << resolvedFilePath << type << newType;
+                pathStack->append(newType + "#!#" + resolvedFilePath);
+            }
         } else {
             if (suffix != "*") {
                 // if it IS a sound FX file (and not GUEST MODE), then let's squirrel away the paths so we can play them later
