@@ -2977,7 +2977,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
-    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString("(Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
+    msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
 #ifndef M1MAC
@@ -2988,7 +2988,7 @@ void MainWindow::aboutBox()
 //                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
 //                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
-                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
+//                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
                    QString("<a href=\"https://www.kfrlib.com\">kfr</a>, and ") +
                    QString("<a href=\"https://www.surina.net/soundtouch/\">SoundTouch</a>.") +
                    QString("<p>Thanks to: <a href=\"http://all8.com\">all8.com</a>"));
