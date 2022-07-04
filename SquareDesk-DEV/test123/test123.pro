@@ -44,6 +44,7 @@ SOURCES += main.cpp\
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
     miniBPM/MiniBpm.cpp \
+    playlists.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     importdialog.cpp \

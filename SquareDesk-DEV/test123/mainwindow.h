@@ -1107,6 +1107,16 @@ public:
     }
 };
 
-
+// -----------------------
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+struct PlaylistExportRecord
+{
+    int index;
+    QString title;
+    QString pitch;
+    QString tempo;
+};
+#pragma clang diagnostic pop
 
 #endif // MAINWINDOW_H
