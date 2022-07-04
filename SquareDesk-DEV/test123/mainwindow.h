@@ -144,15 +144,42 @@ public:
     {
         return (source_x * (1 - t) + dest_x * t);
     }
+
     double getY(double t)
     {
         return (source_y * (1 - t) + dest_y * t);
     }
+
     double getDirection(double t)
     {
-        if (dest_direction < source_direction && t < 1.0)
-            return (source_direction * (1 - t) + (dest_direction + 360.0) * t);
-        return (source_direction * (1 - t) + dest_direction * t);
+        double src = source_direction;
+        double dest = dest_direction;
+        double result;
+
+        if (dest > src) {
+            if (dest - src <= 180) {
+                // go CCW, like normal, e.g. 0 -> 90
+            } else {
+                // go CW, e.g. 0 -> 270
+                dest -= 360.0;  // reflect, e.g. 0 -> -90
+            }
+        } else {
+            // dest < src
+            if (src - dest <= 180) {
+                // go CW, like normal, e.g. 90 -> 0
+            } else {
+                // go CCW, e.g. 270 -> 0
+                src -= 360.0;  // reflect, e.g. -90 -> 0
+            }
+        }
+
+        result = src * (1 - t) + dest * t;
+
+//        if (dest_direction < source_direction && t < 1.0)
+//            return (source_direction * (1 - t) + (dest_direction + 360.0) * t);
+//        return (source_direction * (1 - t) + dest_direction * t);
+
+        return(result);
     }
 
 private:
