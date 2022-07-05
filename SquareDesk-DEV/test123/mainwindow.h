@@ -493,6 +493,8 @@ private slots:
     void on_actionRecent2_triggered();
     void on_actionRecent3_triggered();
     void on_actionRecent4_triggered();
+    void on_actionRecent5_triggered();
+    void on_actionRecent6_triggered();
     void on_actionClear_Recent_List_triggered();
     void on_actionCheck_for_Updates_triggered();
 

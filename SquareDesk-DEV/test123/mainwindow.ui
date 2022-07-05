@@ -1799,6 +1799,8 @@
      <addaction name="actionRecent2"/>
      <addaction name="actionRecent3"/>
      <addaction name="actionRecent4"/>
+     <addaction name="actionRecent5"/>
+     <addaction name="actionRecent6"/>
      <addaction name="separator"/>
      <addaction name="actionClear_Recent_List"/>
     </widget>
@@ -3283,6 +3285,16 @@
    </property>
    <property name="text">
     <string>Randomize</string>
+   </property>
+  </action>
+  <action name="actionRecent5">
+   <property name="text">
+    <string>recent5</string>
+   </property>
+  </action>
+  <action name="actionRecent6">
+   <property name="text">
+    <string>recent6</string>
    </property>
   </action>
  </widget>
