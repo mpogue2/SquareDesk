@@ -6606,7 +6606,10 @@ void MainWindow::on_tabWidget_currentChanged(int index)
             ui->actionFilePrint->setText("Print Patter...");
         }
     } else if (ui->tabWidget->tabText(index) == "Music Player") {
-        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != ""));      // playlist can be saved if there are >0 lines and it was not current.m3u
+        bool playlistModified = ui->statusBar->currentMessage().endsWith("*");
+//        qDebug() << "tabWidget" << linesInCurrentPlaylist << lastSavedPlaylist << playlistModified;
+
+        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != "") && playlistModified);      // playlist can be saved if there are >0 lines and it was not current.m3u
         if (lastSavedPlaylist != "") {
             QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
             ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
