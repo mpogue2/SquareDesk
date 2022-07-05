@@ -4968,7 +4968,7 @@ void MainWindow::loadMusicList()
     } else if (guestMode == "both") {
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
-    ui->statusBar->showMessage(msg1);
+    ui->statusBar->showMessage(msg1, 4000);
 }
 
 QString processSequence(QString sequence,
@@ -5732,7 +5732,8 @@ QString MainWindow::removePrefix(QString prefix, QString s)
 bool MainWindow::compareRelative(QString relativePlaylistPath, QString absolutePathstackPath) {
     // compare paths with MusicDir stripped off of the left (relative compare to root of MusicDir)
     QString stripped2 = absolutePathstackPath.replace(musicRootPath, "");
-    return(relativePlaylistPath == stripped2);
+//    return(relativePlaylistPath == stripped2);
+    return(QString::compare(relativePlaylistPath, stripped2, Qt::CaseInsensitive) == 0); // 0 if they are equal -> return true
 }
 
 
@@ -5794,7 +5795,7 @@ void MainWindow::on_songTable_itemSelectionChanged()
 //        qDebug() << "songTableItemSelectionChanged:" << playlistItemCount;
         if ((playlistItemCount > 0) && (lastSavedPlaylist != "")) {
             ui->actionSave->setEnabled(true);
-            QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+            QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
             ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
             ui->actionSave_As->setEnabled(true);
         }
@@ -6516,7 +6517,7 @@ void MainWindow::on_newVolumeMounted() {
 
         guestRootPath += foundDirName;  // e.g. /Volumes/MIKE/squareDanceMusic, or E:\SquareDanceMUSIC
 
-        ui->statusBar->showMessage("SCANNING GUEST VOLUME: " + newVolume);
+        ui->statusBar->showMessage("SCANNING GUEST VOLUME: " + newVolume, 4000);
         QThread::sleep(1);  // FIX: not sure this is needed, but it sometimes hangs if not used, on first mount of a flash drive.
 
         findMusic(musicRootPath, guestRootPath, guestMode, false);  // get the filenames from the guest's directories
@@ -6532,7 +6533,7 @@ void MainWindow::on_newVolumeMounted() {
             goneVolume = item;
         }
 
-        ui->statusBar->showMessage("REMOVING GUEST VOLUME: " + goneVolume);
+        ui->statusBar->showMessage("REMOVING GUEST VOLUME: " + goneVolume, 4000);
         QApplication::beep();  // beep on MAC OS X and Win32
         QThread::sleep(1);  // FIX: not sure this is needed.
 
@@ -6603,11 +6604,12 @@ void MainWindow::on_tabWidget_currentChanged(int index)
     } else if (ui->tabWidget->tabText(index) == "Music Player") {
         ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != ""));      // playlist can be saved if there are >0 lines and it was not current.m3u
         if (lastSavedPlaylist != "") {
-            QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+            QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
             ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
         } else {
             ui->actionSave->setText(QString("Save Playlist")); // it doesn't have a name yet
         }
+//        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist;
         ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
         ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
 

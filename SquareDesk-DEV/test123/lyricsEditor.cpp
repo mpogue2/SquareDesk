@@ -488,6 +488,7 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
     ui->actionSave->setEnabled(false);  // save is disabled now
     ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+
     setInOutButtonState();
 
 //    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
@@ -826,8 +827,13 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
     ui->pushButtonCueSheetEditSaveAs->hide();
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
 
-    ui->actionSave->setEnabled(false);  // save is disabled to start out
-    ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    int index = ui->tabWidget->currentIndex();
+    if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
+                   ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
+        // only do this if we are on the Lyrics/Patter tab.  If on MusicPlayer, playlist load will turn ON Save As.
+        ui->actionSave->setEnabled(false);  // save is disabled to start out
+        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    }
 
     setInOutButtonState();
 }

@@ -217,6 +217,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 //        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
         if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
             // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
+//            qDebug() << "LOADED CORRECTLY. enabling Save As";
             ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
             ui->actionSave_As->setEnabled(true);  // save playlist as...
         }
@@ -229,10 +230,9 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
     return(firstBadSongLine);  // return error song (if any)
 }
 
-
 // PLAYLIST MANAGEMENT ===============================================
 void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
-
+//    qDebug() << "finishLoadingPlaylist::PlaylistFileName: " << PlaylistFileName;
     startLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, hide and sorting off
 
     // --------
@@ -256,13 +256,55 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     stopLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, sorting on again and show
 
-    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
+    // MAKE SHORT NAME FOR PLAYLIST FROM FILENAME -------
+//    qDebug() << "PlaylistFileName: " << PlaylistFileName;
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    QRegularExpressionMatch match = regex1.match(PlaylistFileName);
+    QString shortPlaylistName("ERROR 7");
+
+    if (match.hasMatch())
+    {
+        shortPlaylistName = match.captured(1);
+    }
+
+    ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
+
+//    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
+    QString msg1 = QString("Playlist: ") + shortPlaylistName;
     if (firstBadSongLine != "") {
         // if there was a non-matching path, tell the user what the first one of those was
-        msg1 = QString("ERROR: could not find '...") + firstBadSongLine + QString("'");
+        msg1 = QString("ERROR: missing '...") + firstBadSongLine + QString("'");
+        ui->statusBar->setStyleSheet("color: red");
+
         ui->songTable->clearSelection(); // select nothing, if error
+    } else {
+        ui->statusBar->setStyleSheet("color: black");
     }
     ui->statusBar->showMessage(msg1);
+
+//    qDebug() << "FINISHED LOADED CORRECTLY. enabling Save As";
+    ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
+    ui->actionSave_As->setEnabled(true);  // save playlist as...
+
+    lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded).
+}
+
+void MainWindow::markPlaylistModified(bool isModified) {
+//    qDebug() << "markPlaylistModified: " << isModified;
+    QString current = ui->statusBar->currentMessage();
+//    qDebug() << "current: " << current;
+    static QRegularExpression asteriskAtEndRegex("\\*$");
+    current.replace(asteriskAtEndRegex, "");  // delete the star at the end, if present
+//    qDebug() << "now current: " << current;
+    if (isModified) {
+//        qDebug() << "updating: " << current + "*";
+        ui->statusBar->showMessage(current + "*");
+        ui->actionSave->setEnabled(true);
+    } else {
+//        qDebug() << "updating: " << current;
+        ui->statusBar->showMessage(current);
+        ui->actionSave->setEnabled(false);
+    }
 }
 
 void MainWindow::on_actionLoad_Playlist_triggered()
@@ -360,6 +402,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
+            markPlaylistModified(false); // turn off the * in the status bar
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
@@ -378,6 +421,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             }
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
+            markPlaylistModified(false); // turn off the * in the status bar
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
@@ -385,33 +429,47 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     }
 }
 
-void MainWindow::savePlaylistAgain() // saves without asking for a filename
+void MainWindow::savePlaylistAgain() // saves without asking for a filename (File > Save)
 {
 //    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
-
+//    qDebug() << "savePlaylistAgain()";
     if (lastSavedPlaylist == "") {
         // nothing saved yet!
-//        qDebug() << "NOTHING SAVED YET.";
+        qDebug() << "NOTHING SAVED YET.";
         return;  // so just return without saving anything
     }
 
 //    qDebug() << "OK, SAVED TO: " << lastSavedPlaylist;
 
     // else use lastSavedPlaylist
+    qDebug() << "savePlaylistAgain::lastSavedPlaylist: " << lastSavedPlaylist;
     saveCurrentPlaylistToFile(lastSavedPlaylist);  // SAVE IT
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
-    QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+//    QString basefilename = lastSavedPlaylist.section("/",-1,-1);
+
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
+    QString shortPlaylistName("ERROR 7");
+
+    if (match.hasMatch())
+    {
+        shortPlaylistName = match.captured(1);
+    }
+
 //    qDebug() << "Basefilename: " << basefilename;
-    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
+    ui->statusBar->showMessage(QString("Playlist: ") + shortPlaylistName); // this message is under the next one
+//    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'", 4000); // on top for 4 sec
     // no need to remember it here, it's already the one we remembered.
 
 //    ui->actionSave->setEnabled(false);  // once saved, this is not reenabled, until you change it.
+
+    markPlaylistModified(false); // after File > Save, file is NOT modified
 }
 
 // TODO: strip off the root directory before saving...
-void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really misnamed, it's Save As.
+void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really misnamed, it's (File > Save As)
 {
 //    on_stopButton_clicked();  // if we're saving a new PLAYLIST file, stop current playback
 
@@ -451,14 +509,26 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
     //   no playlist was loaded), Save Playlist... should be greyed out.
-    QString basefilename = PlaylistFileName.section("/",-1,-1);
+//    QString basefilename = PlaylistFileName.section("/",-1,-1);
+
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    QRegularExpressionMatch match = regex1.match(PlaylistFileName);
+    QString shortPlaylistName("ERROR 7");
+
+    if (match.hasMatch())
+    {
+        shortPlaylistName = match.captured(1);
+    }
+
 //    qDebug() << "Basefilename: " << basefilename;
-    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'");
+    ui->statusBar->showMessage(QString("Playlist: ") + shortPlaylistName);
+//    ui->statusBar->showMessage(QString("Playlist saved as '") + basefilename + "'", 4000);
 
     lastSavedPlaylist = PlaylistFileName; // remember it, for the next SAVE operation (defaults to last saved in this session)
+//    qDebug() << "Save As::lastSavedPlaylist: " << lastSavedPlaylist;
 
-    ui->actionSave->setEnabled(true);  // now that we have Save As'd something, we can now Save that thing
-    ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
+    ui->actionSave->setEnabled(false);  // now that we have Save As'd something, we can't Save that thing until modified
+    ui->actionSave->setText(QString("Save Playlist") + " '" + shortPlaylistName + "'"); // and now it has a name
 }
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
@@ -628,6 +698,7 @@ void MainWindow::on_actionClear_Playlist_triggered()
     }
 
     linesInCurrentPlaylist = 0;
+    ui->actionSave->setText(QString("Save Playlist")); // and now it has no name, because not loaded
     ui->actionSave->setDisabled(true);
     ui->actionSave_As->setDisabled(true);
 
@@ -636,6 +707,9 @@ void MainWindow::on_actionClear_Playlist_triggered()
     stopLongSongTableOperation("on_actionClear_Playlist_triggered");  // for performance, sorting on again and show
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
+
+    ui->statusBar->showMessage("");  // no playlist at all right now
+    markPlaylistModified(false); // turn ON the * in the status bar
 }
 
 // ----------------------------------------------------------------------
@@ -713,6 +787,9 @@ void MainWindow::PlaylistItemToTop() {
     // ensure that the selected row is still visible in the current songTable window
     selectedRow = selectedSongRow();
     ui->songTable->scrollToItem(ui->songTable->item(selectedRow, kNumberCol)); // EnsureVisible
+
+    // mark playlist modified
+    markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // --------------------------------------------------------------------
@@ -764,6 +841,9 @@ void MainWindow::PlaylistItemToBottom() {
     // ensure that the selected row is still visible in the current songTable window
     selectedRow = selectedSongRow();
     ui->songTable->scrollToItem(ui->songTable->item(selectedRow, kNumberCol)); // EnsureVisible
+
+    // mark playlist modified
+    markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // --------------------------------------------------------------------
@@ -803,6 +883,9 @@ void MainWindow::PlaylistItemMoveUp() {
     // ensure that the selected row is still visible in the current songTable window
     selectedRow = selectedSongRow();
     ui->songTable->scrollToItem(ui->songTable->item(selectedRow, kNumberCol)); // EnsureVisible
+
+    // mark playlist modified
+    markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // --------------------------------------------------------------------
@@ -844,6 +927,10 @@ void MainWindow::PlaylistItemMoveDown() {
     // ensure that the selected row is still visible in the current songTable window
     selectedRow = selectedSongRow();
     ui->songTable->scrollToItem(ui->songTable->item(selectedRow, kNumberCol)); // EnsureVisible
+
+    // mark playlist modified
+//    qDebug() << "marking modified...";
+    markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // --------------------------------------------------------------------
@@ -879,6 +966,9 @@ void MainWindow::PlaylistItemRemove() {
     // removed an item, so we must enable saving of the playlist
     ui->actionSave->setEnabled(true);       // menu item Save is enabled now
     ui->actionSave_As->setEnabled(true);    // menu item Save as... is also enabled now
+
+    // mark playlist modified
+    markPlaylistModified(true); // turn ON the * in the status bar
 }
 
 // LOAD RECENT PLAYLIST --------------------------------------------------------------------
@@ -919,17 +1009,17 @@ void MainWindow::updateRecentPlaylistMenu() {
     QString playlistsPath = musicRootPath + "/playlists/";
 
     switch(numRecentPlaylists) {
-        case 6: ui->actionRecent6->setText(QString(recentFilePaths.at(5)).replace(playlistsPath,""));  // intentional fall-thru
+        case 6: ui->actionRecent6->setText(QString(recentFilePaths.at(5)).replace(playlistsPath,"").replace(".csv",""));  // intentional fall-thru
         OS_FALLTHROUGH;
-        case 5: ui->actionRecent5->setText(QString(recentFilePaths.at(4)).replace(playlistsPath,""));  // intentional fall-thru
+        case 5: ui->actionRecent5->setText(QString(recentFilePaths.at(4)).replace(playlistsPath,"").replace(".csv",""));  // intentional fall-thru
         OS_FALLTHROUGH;
-        case 4: ui->actionRecent4->setText(QString(recentFilePaths.at(3)).replace(playlistsPath,""));  // intentional fall-thru
+        case 4: ui->actionRecent4->setText(QString(recentFilePaths.at(3)).replace(playlistsPath,"").replace(".csv",""));  // intentional fall-thru
         OS_FALLTHROUGH;
-        case 3: ui->actionRecent3->setText(QString(recentFilePaths.at(2)).replace(playlistsPath,""));  // intentional fall-thru
+        case 3: ui->actionRecent3->setText(QString(recentFilePaths.at(2)).replace(playlistsPath,"").replace(".csv",""));  // intentional fall-thru
         OS_FALLTHROUGH;
-        case 2: ui->actionRecent2->setText(QString(recentFilePaths.at(1)).replace(playlistsPath,""));  // intentional fall-thru
+        case 2: ui->actionRecent2->setText(QString(recentFilePaths.at(1)).replace(playlistsPath,"").replace(".csv",""));  // intentional fall-thru
         OS_FALLTHROUGH;
-        case 1: ui->actionRecent1->setText(QString(recentFilePaths.at(0)).replace(playlistsPath,""));  // intentional fall-thru
+        case 1: ui->actionRecent1->setText(QString(recentFilePaths.at(0)).replace(playlistsPath,"").replace(".csv",""));  // intentional fall-thru
         OS_FALLTHROUGH;
         default: break;
     }

@@ -755,6 +755,8 @@ private:
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
 
+    void markPlaylistModified(bool isModified); // used to put * or not on the Playlist in statusBar
+
     int pointSizeToIndex(int pointSize);
     int indexToPointSize(int index);
 
