@@ -1145,20 +1145,23 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    int songCount = 0;
-    QString firstBadSongLine;
+    // LOAD INITIAL PLAYLIST ------------------
+    // FOR NOW, NO LOADING OF CURRENT.M3U or CURRENT.CSV - THESE WILL BE OBSOLETE SOON
+    //  to be replaced by loading of the previously loaded playlist (if there was one)
+//    int songCount = 0;
+//    QString firstBadSongLine;
 
-    QString oldCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
-    QString newCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
+//    QString oldCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
+//    QString newCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
 
-    if (QFileInfo::exists(newCurrentPlaylistFileName)) {
-        // if the V2 version exists, use it, and ignore the M3U file
-        firstBadSongLine = loadPlaylistFromFile(newCurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
-    } else if (QFileInfo::exists(oldCurrentPlaylistFileName)) {
-        // if we didn't find a new V2 version, look for an old M3U version, and it present, load it.
-        // when saved next time, it will become a V2 CSV version.
-        firstBadSongLine = loadPlaylistFromFile(oldCurrentPlaylistFileName, songCount);  // load "current.m3u" (if doesn't exist, do nothing)
-    }
+//    if (QFileInfo::exists(newCurrentPlaylistFileName)) {
+//        // if the V2 version exists, use it, and ignore the M3U file
+//        firstBadSongLine = loadPlaylistFromFile(newCurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
+//    } else if (QFileInfo::exists(oldCurrentPlaylistFileName)) {
+//        // if we didn't find a new V2 version, look for an old M3U version, and it present, load it.
+//        // when saved next time, it will become a V2 CSV version.
+//        firstBadSongLine = loadPlaylistFromFile(oldCurrentPlaylistFileName, songCount);  // load "current.m3u" (if doesn't exist, do nothing)
+//    }
 
     t.elapsed(__LINE__);
 
@@ -1834,11 +1837,12 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    // Just before the app quits, save the current playlist state in "current.csv", and it will be reloaded
-    //   when the app starts up again.
-    // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
-    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
-    saveCurrentPlaylistToFile(PlaylistFileName);
+    // SAVING OF CURRENT PLAYLIST IS CURRENTLY COMMENTED OUT, BECAUSE CURRENT.CSV IS OBSOLETE
+//    // Just before the app quits, save the current playlist state in "current.csv", and it will be reloaded
+//    //   when the app starts up again.
+//    // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
+//    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
+//    saveCurrentPlaylistToFile(PlaylistFileName);
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(nullptr);
@@ -6640,7 +6644,7 @@ void MainWindow::microphoneStatusUpdate() {
 //    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 //    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    QString kybdStatus("Audio:" + lastAudioDeviceName + ", Kybd:" + currentSDKeyboardLevel);
+    QString kybdStatus("Audio: " + lastAudioDeviceName + "  |  Kybd: " + currentSDKeyboardLevel);
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 
