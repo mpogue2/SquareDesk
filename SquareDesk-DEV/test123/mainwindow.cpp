@@ -822,6 +822,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
 
+    // watch for changes in the number column, which will cause renumbering
+    connect(ui->songTable,&QTableWidget::itemChanged,
+            this, &MainWindow::tableItemChanged);
+
     t.elapsed(__LINE__);
 
     ui->songTable->resizeColumnToContents(kTypeCol);  // and force resizing of column widths to match songs

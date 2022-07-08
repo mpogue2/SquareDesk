@@ -9,6 +9,7 @@
 #include "ui_mainwindow.h"
 #include "utility.h"
 #include "songlistmodel.h"
+#include "tablenumberitem.h"
 
 // FORWARD DECLS ---------
 extern QString getTitleColTitle(MyTableWidget *songTable, int row);
@@ -687,6 +688,7 @@ void MainWindow::on_nextSongButton_clicked()
 void MainWindow::on_actionClear_Playlist_triggered()
 {
     startLongSongTableOperation("on_actionClear_Playlist_triggered");  // for performance, hide and sorting off
+    ui->songTable->blockSignals(true); // no signals when we are modifying
 
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
@@ -704,7 +706,11 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     sortByDefaultSortOrder();
 
+    ui->songTable->blockSignals(false); // re-enable signals
     stopLongSongTableOperation("on_actionClear_Playlist_triggered");  // for performance, sorting on again and show
+
+    ui->songTable->clearSelection(); // when playlist is cleared, select no rows by default
+    ui->songTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
@@ -738,6 +744,8 @@ void MainWindow::PlaylistItemToTop() {
 
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
+
+    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
 
     if (currentNumberText == "") {
         // add to list, and make it the #1
@@ -778,6 +786,8 @@ void MainWindow::PlaylistItemToTop() {
         ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
     }
 
+    ui->songTable->blockSignals(false); // done updating.
+
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
     // moved an item, so we must enable saving of the playlist
@@ -804,6 +814,8 @@ void MainWindow::PlaylistItemToBottom() {
     int currentNumberInt = currentNumberText.toInt();
 
     int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
+
+    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
 
     if (currentNumberText == "") {
         // add to list, and make it the bottom
@@ -832,6 +844,9 @@ void MainWindow::PlaylistItemToBottom() {
         // and then set this one to #LAST
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
     }
+
+    ui->songTable->blockSignals(false); // done updating
+
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
     // moved an item, so we must enable saving of the playlist
@@ -860,6 +875,8 @@ void MainWindow::PlaylistItemMoveUp() {
     // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
     // TODO: turn off sorting
 
+    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         QString playlistIndex = theItem->text();  // this is the playlist #
@@ -874,6 +891,9 @@ void MainWindow::PlaylistItemMoveUp() {
 
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
     // TODO: turn on sorting again
+
+    ui->songTable->blockSignals(false); // done updating
+
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
     // moved an item, so we must enable saving of the playlist
@@ -903,6 +923,7 @@ void MainWindow::PlaylistItemMoveDown() {
 
     // Iterate over the entire songTable, find the item just BELOW this one, and move it UP (only)
     // TODO: turn off sorting
+    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
 
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
@@ -918,6 +939,9 @@ void MainWindow::PlaylistItemMoveDown() {
 
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
     // TODO: turn on sorting again
+
+    ui->songTable->blockSignals(false); // done updating
+
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
     // moved an item, so we must enable saving of the playlist
@@ -944,6 +968,8 @@ void MainWindow::PlaylistItemRemove() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
+    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+
     // already on the list
     // Iterate over the entire songTable, decrementing items BELOW this item
     // TODO: turn off sorting
@@ -961,6 +987,9 @@ void MainWindow::PlaylistItemRemove() {
     }
     // and then set this one to #LAST
     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
+
+    ui->songTable->blockSignals(false); // done updating
+
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
     // removed an item, so we must enable saving of the playlist
@@ -1070,4 +1099,125 @@ void MainWindow::on_actionRecent5_triggered()
 void MainWindow::on_actionRecent6_triggered()
 {
     loadRecentPlaylist(5);
+}
+
+// -------------------------
+void MainWindow::tableItemChanged(QTableWidgetItem* item) {
+    // return; // DEBUG
+    int col = ((TableNumberItem *)item)->column();
+    if (col != 0) {
+        return;  // ignore all except # column
+    }
+
+    ui->songTable->setSortingEnabled(false); // disable sorting
+
+    bool ok;
+    QString itemText = ((TableNumberItem *)item)->text();
+    int itemInteger = (itemText.toInt(&ok));
+//    itemText.toInt(&ok);  // just sets ok or not, throw away the itemInteger intentionally
+    int itemRow = ((TableNumberItem *)item)->row();
+
+    if (itemInteger <= 0) {
+        // user: don't try anything funny...
+        itemText = "1";
+        itemInteger = 1;
+        item->setText("1");
+    }
+
+    if ((itemText == "") || (ok && itemInteger >= 1)) { // if item was deleted by clearing it out manually, or if it was an integer, then renumber
+        // NOTE: the itemInteger >= 1 is just to turn off the warning about itemInteger not being read...
+//        qDebug() << "tableItemChanged row/col: " << itemRow << "," << col << " = " << itemText;
+
+        ui->songTable->blockSignals(true);  // block signals, so changes are not recursive
+
+        // Step 1: count up how many of each number we have in the # column
+        int numRows = ui->songTable->rowCount();
+        int *count = new int[numRows]();   // initialized to zero
+        int *renumberTo = new int[numRows]();
+        int minNum = 1E6;
+        int maxNum = -1000;
+        int numNums = 0;
+        for (int i = 0; i < numRows; i++) {
+            QTableWidgetItem *p = ui->songTable->item(i, 0); // get pointer to item
+            QString s = p->text();
+            if (s != "") {
+                // if there's a number in this cell...
+                int i1 = (s.toInt(&ok));
+                count[i1]++;  // bump the count
+                minNum = qMin(minNum, i1);
+                maxNum = qMax(maxNum, i1);
+                numNums++;
+            }
+        }
+
+        minNum = 1;  // this is true always, if everything is in order (which it should always be)
+
+        // Step 2: figure out which numbers are doubled (if any) and which are missing (if any)
+        int doubled = -1;
+        int missing = -1;
+        for (int i = minNum; i <= maxNum; i++) {
+            switch (count[i]) {
+                case 0: missing = i; break;
+                case 1: break;
+                case 2: doubled = i; break;
+                default: break;
+            }
+        }
+
+//        qDebug() << "Doubled: " << doubled << ", missing: " << missing;
+
+        // Step 3: figure out what to renumber each of the existing numbers to, to
+        //   have no dups and no gaps
+//        qDebug() << "numNums,minNum,maxNum = " << numNums << minNum << maxNum;
+        int j = 1;
+        for (int i = minNum; i <= maxNum; i++) {
+            switch (count[i]) {
+                case 0: break;
+                case 1: renumberTo[i] = j++; break;
+                case 2: if ((doubled < missing) || (doubled == -1) || (missing == -1)) {
+                            renumberTo[i] = ++j; j++; break; // moving UP the list or new item
+                        } else {
+                            renumberTo[i] = j; j += 2; break; // moving DOWN the list
+                        }
+                default: break;
+            }
+
+//            qDebug() << "  " << i << "=" << count[i] << " -> " << renumberTo[i];
+        }
+
+        // Step 4: renumber all the existing #'s as per the renumberTo table above
+        for (int i = 0; i < ui->songTable->rowCount(); i++) {
+            // iterate over all rows
+            QTableWidgetItem *p = ui->songTable->item(i, 0); // get pointer to item
+            QString s = p->text();
+            if (s != "") {
+                // if there's a number in this cell...
+                int thisInteger = (s.toInt(&ok));
+                if (itemRow != i) {
+                    // NOT the one the user changed, so it can't be a dup
+                    p->setText(QString::number(renumberTo[thisInteger]));
+                } else {
+                    if (count[thisInteger] == 2) {
+                        // dup, so what the user typed in was correct, do nothing
+                    } else {
+                        // NOT a dup, so what the user typed in might NOT be correct, so renumber it
+                        p->setText(QString::number(renumberTo[thisInteger]));
+                    }
+                }
+            }
+        }
+        ui->songTable->blockSignals(false);
+
+        delete[] count;
+        delete[] renumberTo;
+    } else {
+        item->setText(""); // if it's not a number, set to null string
+    }
+
+    ui->songTable->setSortingEnabled(true); // re-enable sorting
+
+    // mark playlist modified
+    markPlaylistModified(true); // turn ON the * in the status bar, because some # entry changed
+
+    // TODO: remove any non-numeric chars from the string before updating
 }

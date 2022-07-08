@@ -421,6 +421,8 @@ private slots:
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
 
+    void tableItemChanged(QTableWidgetItem* item);
+
     void on_warningLabel_clicked();
     void on_warningLabelCuesheet_clicked();
 
