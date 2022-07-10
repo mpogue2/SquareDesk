@@ -635,6 +635,7 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace("<span style=\" font-size:large; color:#000000;\">", "<span>");
     cuesheet3.replace("<span style=\" font-family:'Verdana'; font-size:large; color:#000000; background-color:#ffffe0;\">", "<span>"); // more crap
     cuesheet3.replace("<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">", "<span>");  // kludge at this point
+    cuesheet3.replace("<span style=\" font-size:25pt; color:#000000; background-color:#ffffe0;\">", "<span>");  // more kludge
     // <span style=" font-size:large; color:#000000; background-color:#ffffe0;">
     cuesheet3.replace("<span style=\" font-size:large; color:#000000; background-color:#ffffe0;\">", "<span>");  // kludge at this point
 
@@ -696,12 +697,6 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // TODO: get rid of style="background-color:#ffffe0;, yellowish, put at top once
     // TODO: get rid of these, use body: <SPAN style="font-family:'Verdana'; font-size:large; color:#000000;">
 
-    // put the <link rel="STYLESHEET" type="text/css" href="cuesheet2.css"> back in
-    if (!cuesheet3.contains("<link",Qt::CaseInsensitive)) {
-//        qDebug() << "Putting the <LINK> back in...";
-        cuesheet3.replace("</TITLE>","</TITLE>\n    <LINK rel=\"STYLESHEET\" type=\"text/css\" href=\"cuesheet2.css\">");
-    }
-
     QRegularExpression P2BRRegExp("<p>(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
     cuesheet3.replace(P2BRRegExp,"\\1<BR/>");  // don't be greedy, and replace the unneeded <P>...</P>
     cuesheet3.replace("<BR/>\n    \n", "<BR/>\n");
@@ -711,6 +706,57 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace("<SPAN class=\"hdr\">", "\n    <SPAN class=\"hdr\">"); // a little extra space to make it easier to read
     cuesheet3.replace("    <BR/>\n</BODY>", "</BODY>"); // cleanup on aisle 7
     cuesheet3.replace("<BR/>\n</BODY>", "\n</BODY>"); // get rid of that last NL-equivalent at the end of the file (is this OK?)
+
+    // Let's update the TITLE
+    QRegularExpressionMatch match2;
+    QRegularExpression oldTitle("<TITLE>(.*)</TITLE>", QRegularExpression::DotMatchesEverythingOption);
+    bool b2 = cuesheet3.contains(oldTitle, &match2);
+//    if (b2) {
+//        qDebug() << "Found TITLE: " << match2.captured(1);
+//    }
+
+    QString userTitle;
+    QRegularExpressionMatch match3;
+    bool b3 = cuesheet3.contains(QRegularExpression("<SPAN class=\"title\">(.*)</SPAN>",
+                                                    QRegularExpression::InvertedGreedinessOption),  // don't be greedy
+                                 &match3); // find user-selected Title
+    if (b3) {
+        userTitle = match3.captured(1);
+//        qDebug() << "Found userTitle: " << userTitle;
+    }
+
+    QString userLabel;
+    QRegularExpressionMatch match4;
+    bool b4 = cuesheet3.contains(QRegularExpression("<SPAN class=\"label\">(.*)</SPAN>",
+                                                    QRegularExpression::InvertedGreedinessOption),  // don't be greedy
+                                 &match4); // find user-selected Label
+    if (b4) {
+        userLabel= match4.captured(1);
+//        qDebug() << "Found userLabel: " << userLabel;
+    }
+
+    QString newTitleString = QString("<TITLE>") + userTitle + " " + userLabel + QString("</TITLE>");
+    if (b2) {
+        // if there was a TITLE section, replace it
+        cuesheet3.replace(oldTitle, newTitleString);
+    } else {
+        // else, add in a new TITLE section
+        cuesheet3.replace("<HEAD>", QString("<HEAD>\n    ") + newTitleString + "\n");
+    }
+
+    // put the <link rel="STYLESHEET" type="text/css" href="cuesheet2.css"> back in
+    // TODO: replace this with inline STYLE inside HEAD
+    if (!cuesheet3.contains("<link",Qt::CaseInsensitive)) {
+//        qDebug() << "Putting the <LINK> back in...";
+        cuesheet3.replace("</TITLE>","</TITLE>\n    <LINK rel=\"STYLESHEET\" type=\"text/css\" href=\"cuesheet2.css\">");
+    }
+
+    // let's always stick in a version number when we write, just in case we need to debug.
+//    qDebug() << "cuesheetSquareDeskVersion: " << cuesheetSquareDeskVersion; // version number of SquareDesk that wrote the file we read in
+    QString newVersionString = QString("<!-- squaredesk:version = ") + QString(VERSIONSTRING) + QString(" -->");
+//    qDebug() << "newVersionString: " << newVersionString; // current version of SquareDesk
+    cuesheet3.replace("<HEAD>", QString("<HEAD> ") + newVersionString); // always write version number
+
     return(cuesheet3);
 }
 
@@ -796,6 +842,13 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 
             // NOTE: o-umlaut is already translated (incorrectly) here to \xB4, too.  There's not much we
             //   can do with non UTF-8 HTML files that aren't otherwise marked as to encoding.
+
+            // detect that this was a SquareDesk cuesheet
+            QRegularExpressionMatch match1;
+            bool containsSquareDeskVersion = cuesheet.contains(QRegularExpression("<!-- squaredesk:version = (\\d+.\\d+.\\d+) -->"), &match1);
+            Q_UNUSED(containsSquareDeskVersion)
+            cuesheetSquareDeskVersion = match1.captured(1);
+//            qDebug() << "contains: " << containsSquareDeskVersion << match1.captured(1);
 
             // set the HTML for the cuesheet itself (must set CSS first)
             ui->textBrowserCueSheet->setHtml(cuesheet);

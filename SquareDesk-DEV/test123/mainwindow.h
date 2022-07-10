@@ -636,6 +636,7 @@ private:
     int lastSongTableRowSelected;
 
     // Lyrics editor -------
+    QString cuesheetSquareDeskVersion; // if the cuesheet that we loaded was written by SquareDesk, this will contain the version (e.g. 0.9.9)
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0}; // matches blue component of CSS definition
     charsType FG_BG_to_type(QColor fg, QColor bg);
     QTextCharFormat lastKnownTextCharFormat;
