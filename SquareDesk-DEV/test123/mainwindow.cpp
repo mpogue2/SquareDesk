@@ -366,6 +366,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sd_redo_stack(new SDRedoStack())
 {
     //Q_UNUSED(splash)
+    longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
 
 #ifdef M1MAC
     connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
@@ -439,6 +440,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
     ui->setupUi(this);
+
+    startLongSongTableOperation("MainWindow");
 
     t.elapsed(__LINE__);
     ui->statusBar->showMessage("");
@@ -1348,6 +1351,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
+
+    stopLongSongTableOperation("MainWindow");
+
 }
 
 void MainWindow::fileWatcherTriggered() {
@@ -7894,17 +7900,31 @@ void MainWindow::on_actionFade_Out_triggered()
 // finishLoadingPlaylist (50 items list)    3227ms     1154ms
 // clear playlist                           2119ms      147ms
 //
+// I also now disable signals on songTable, which will stop itemChanged from being called.
+//   I saw one crash where it looked like itemChanged was being called recursively at app startup
+//   time, and hopefully this will ensure that it can't happen again.  Plus, it should speed up
+//   app startup time.
 void MainWindow::startLongSongTableOperation(QString s) {
     Q_UNUSED(s)
+//    qDebug() << "startLongSongTableOperation: " << s;
+
+    longSongTableOperationCount++;
+
     ui->songTable->hide();
     ui->songTable->setSortingEnabled(false);
+    ui->songTable->blockSignals(true);  // block signals, so changes are not recursive
 }
 
 void MainWindow::stopLongSongTableOperation(QString s) {
     Q_UNUSED(s)
+//    qDebug() << "stopLongSongTableOperation: " << s;
 
-    ui->songTable->setSortingEnabled(true);
-    ui->songTable->show();
+    if (--longSongTableOperationCount == 0) {
+//        qDebug() << "unblocking all.";
+        ui->songTable->blockSignals(false);  // unblock signals
+        ui->songTable->setSortingEnabled(true);
+        ui->songTable->show();
+    }
 }
 
 

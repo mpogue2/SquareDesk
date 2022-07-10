@@ -226,6 +226,8 @@ public:
 
 //    double songLoadedReplayGain_dB;
 
+    int longSongTableOperationCount;
+
     bool lyricsCopyIsAvailable;
 
     Ui::MainWindow *ui;
