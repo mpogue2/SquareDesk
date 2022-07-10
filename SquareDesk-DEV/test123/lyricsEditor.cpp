@@ -525,6 +525,8 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 //    qDebug().noquote() << "***** postProcess 1: " << cuesheet;
     QString cuesheet3 = cuesheet; // NOTE: no longer using libtidy here
 
+    cuesheet3.replace("Arial Black", "Verdana"); // get rid of that!
+
     // now the semantic replacement.
     // assumes that QTextEdit spits out spans in a consistent way
     // TODO: allow embedded NL (due to line wrapping)
@@ -536,25 +538,36 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 //                             "<SPAN class=\"hdr\">");
 
     // <span    style=" font-size:x-large; color:#ff0002;    ">
-    QRegularExpression HeaderRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:x-large; color:#ff0002;[\\s\n]*\">",
+    // <span style=" font-size:25pt; color:#ff0002;">
+    // <span style=" font-size:25pt; color:#ff0002; background-color:#ffffe0;">
+    QRegularExpression HeaderRegExp1("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:(x-large|25pt); color:#ff0002;[\\s\n]*\">",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
-    cuesheet3.replace(HeaderRegExp, "<SPAN class=\"hdr\">");
+    cuesheet3.replace(HeaderRegExp1, "<SPAN class=\"hdr\">");
+    QRegularExpression HeaderRegExp2("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:(x-large|25pt); color:#ff0002;[\\s\n]*background-color:#ffffe0;\">",
+                                    QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
+    cuesheet3.replace(HeaderRegExp2, "<SPAN class=\"hdr\">");
 
     // LABEL ---------
 //    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#60c060;[\\s\n]*(background-color:#ffffe0;)*\">"),
 //                             "<SPAN class=\"label\">");
 
     // <span    style=" font-size:medium; color:#60c060;   ">
-    QRegularExpression LabelRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:medium; color:#60c060;[\\s\n]*\">",
+    // <span style=" font-size:25pt; color:#60c060;">
+    // <span style=" font-size:25pt; color:#60c060; background-color:#ffffe0;">
+    QRegularExpression LabelRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:(medium|25pt); color:#60c060;[\\s\n]*\">",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(LabelRegExp, "<SPAN class=\"label\">");
+    QRegularExpression LabelRegExp2("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:(medium|25pt); color:#60c060;[\\s\n]*background-color:#ffffe0;\">",
+                                    QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
+    cuesheet3.replace(LabelRegExp2, "<SPAN class=\"label\">");
 
     // ARTIST ---------
 //    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:medium; color:#0000ff;[\\s\n]*(background-color:#ffffe0;)*\">"),
 //                             "<SPAN class=\"artist\">");
 
     // <span    style=" font-size:medium; color:#0000ff;   ">
-    QRegularExpression ArtistRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:medium; color:#0000ff;[\\s\n]*\">",
+    // <span style=" font-size:25pt; color:#0000ff;">
+    QRegularExpression ArtistRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:(medium|25pt); color:#0000ff;[\\s\n]*\">",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(ArtistRegExp, "<SPAN class=\"artist\">");
 
@@ -564,7 +577,11 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 //                             "<SPAN class=\"title\">");
 
     // <span    style=" font-family:'Verdana'; font-size:x-large; font-weight:699; color:#010101;   ">
-    QRegularExpression TitleRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-family:'Verdana'; font-size:x-large; font-weight:699; color:#010101;[\\s\n]*\">",
+    // <span style=" font-size:25pt; font-weight:699; color:#010101;">
+    // <span style=" font-family:'Arial Black'; font-size:25pt; color:#010101;">
+//    QRegularExpression TitleRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-family:'Verdana'; font-size:x-large; font-weight:699; color:#010101;[\\s\n]*\">",
+//                                    QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
+    QRegularExpression TitleRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" .* font-weight:699; color:#010101;[\\s\n]*\">",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(TitleRegExp, "<SPAN class=\"title\">");
 
@@ -611,7 +628,8 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
     // <span    style=" font-size:large; color:#030303; background-color:#ffc0cb;">
     // <span    style=" font-size:large; color:#030303; background-color:#ffc0cb;">
-    QRegularExpression LyricsRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:large; color:#030303; background-color:#ffc0cb;[\\s\n]*\">",
+    // <span style=" font-size:25pt; color:#030303; background-color:#ffc0cb;">
+    QRegularExpression LyricsRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-size:(large|25pt); color:#030303; background-color:#ffc0cb;[\\s\n]*\">",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(LyricsRegExp, "<SPAN class=\"lyrics\">");
 
@@ -637,7 +655,10 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace("<span style=\" font-family:'Verdana'; font-size:large; color:#000000;\">", "<span>");  // kludge at this point
     cuesheet3.replace("<span style=\" font-size:25pt; color:#000000; background-color:#ffffe0;\">", "<span>");  // more kludge
     // <span style=" font-size:large; color:#000000; background-color:#ffffe0;">
-    cuesheet3.replace("<span style=\" font-size:large; color:#000000; background-color:#ffffe0;\">", "<span>");  // kludge at this point
+    cuesheet3.replace("<span style=\" font-size:(large|25pt); color:#000000; background-color:#ffffe0;\">", "<span>");  // kludge at this point
+    // <span style=" font-size:25pt; color:#000000;">
+    // <span style=" font-size:25pt; color:#000000;">
+    cuesheet3.replace("<span style=\" font-size:25pt; color:#000000;\">", "<span>");  // kludge at this point
 
     QRegularExpression spanRegExp("<span>(.*)</span>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
     cuesheet3.replace(spanRegExp,"\\1");  // don't be greedy, and replace <span>anything</span> with anything.  This gets rid of the crappy color:#000000 stuff.
@@ -646,9 +667,10 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // <p style="-qt-paragraph-type:empty;       font-size:large; color:#000000;"><BR/>    </p>
     // <p style="-qt-paragraph-type:empty;      "><BR/>   </p>
     // <p style="-qt-paragraph-type:empty;        font-family:'Verdana'; font-size:large; color:#000000;">
+    // <p style="-qt-paragraph-type:empty;        font-size:25pt; color:#000000; background-color:#ffffe0;">
     cuesheet3.replace("font-family:'Verdana';", ""); // this is specified elsewhere
-    QRegularExpression emptyRegExp1("<p style=\"-qt-paragraph-type:empty;[\\s\n]*font-size:large; color:#000000; background-color:#ffffe0;\">(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
-    cuesheet3.replace(emptyRegExp1,"\\1");  // don't be greedy, and replace <span>anything</span> with anything.  This gets rid of the crappy empty paragraph stuff.
+    QRegularExpression emptyRegExp1("<p style=\"-qt-paragraph-type:empty;[\\s\n]*font-size:(large|25pt); color:#000000; background-color:#ffffe0;\">(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
+    cuesheet3.replace(emptyRegExp1,"\\2");  // don't be greedy, and replace <span>anything</span> with anything.  This gets rid of the crappy empty paragraph stuff.
     QRegularExpression emptyRegExp2("<p style=\"-qt-paragraph-type:empty;[\\s\n]*font-size:large; color:#000000;\">(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
     cuesheet3.replace(emptyRegExp2,"\\1");  // don't be greedy, and replace <span>anything</span> with anything.  This gets rid of the crappy empty paragraph stuff.
     QRegularExpression emptyRegExp3("<p style=\"-qt-paragraph-type:empty;[\\s\n]*\">(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
