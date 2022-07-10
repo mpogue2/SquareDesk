@@ -1138,7 +1138,7 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
         int maxNum = -1000;
         int numNums = 0;
         for (int i = 0; i < numRows; i++) {
-            QTableWidgetItem *p = ui->songTable->item(i, 0); // get pointer to item
+            QTableWidgetItem *p = ui->songTable->item(i, kNumberCol); // get pointer to item
             QString s = p->text();
             if (s != "") {
                 // if there's a number in this cell...
@@ -1188,7 +1188,7 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
         // Step 4: renumber all the existing #'s as per the renumberTo table above
         for (int i = 0; i < ui->songTable->rowCount(); i++) {
             // iterate over all rows
-            QTableWidgetItem *p = ui->songTable->item(i, 0); // get pointer to item
+            QTableWidgetItem *p = ui->songTable->item(i, kNumberCol); // get pointer to item
             QString s = p->text();
             if (s != "") {
                 // if there's a number in this cell...
