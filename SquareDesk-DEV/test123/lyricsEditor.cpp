@@ -530,6 +530,9 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace("Helvetica Neue", "Verdana"); // yep.
     cuesheet3.replace("Minion", "Verdana");  // where did this one come from?
     cuesheet3.replace("Arial,Helvetica,sans-serif", "Verdana");
+    cuesheet3.replace("arial,sans-serif", "Verdana");
+    cuesheet3.replace("Menlo", "Verdana");
+    cuesheet3.replace("ArialMT", "Verdana");
 
     // now the semantic replacement.
     // assumes that QTextEdit spits out spans in a consistent way
@@ -590,9 +593,12 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     // <span style="  font-size:25pt; color:#010101;">
 //    QRegularExpression TitleRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" font-family:'Verdana'; font-size:x-large; font-weight:699; color:#010101;[\\s\n]*\">",
 //                                    QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
-    QRegularExpression TitleRegExp("<SPAN[\\s\n]*style=[\\s\n]*\" .* font-weight:699; color:#010101;[\\s\n]*\">",
+    QRegularExpression TitleRegExp("<SPAN[\\s\n]*style=[\\s\n]*\".* font-weight:699; color:#010101;[\\s\n]*\">",
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(TitleRegExp, "<SPAN class=\"title\">");
+    QRegularExpression TitleRegExp2("<SPAN[\\s\n]*style=[\\s\n]*\".* font-size:\\d+pt; color:#010101;[\\s\n]*\">",
+                                    QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
+    cuesheet3.replace(TitleRegExp2, "<SPAN class=\"title\">");
 
     // BOLD ---------
 //    cuesheet3.replace(QRegularExpression("<SPAN style=[\\s\n]*\"font-family:'Verdana'; font-size:large;[\\s\n]*font-weight:600;[\\s\n]*color:#000000;[\\s\n]*(background-color:#ffffe0;)*\">"),
