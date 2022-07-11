@@ -436,14 +436,14 @@ void MainWindow::savePlaylistAgain() // saves without asking for a filename (Fil
 //    qDebug() << "savePlaylistAgain()";
     if (lastSavedPlaylist == "") {
         // nothing saved yet!
-        qDebug() << "NOTHING SAVED YET.";
+//        qDebug() << "NOTHING SAVED YET.";
         return;  // so just return without saving anything
     }
 
 //    qDebug() << "OK, SAVED TO: " << lastSavedPlaylist;
 
     // else use lastSavedPlaylist
-    qDebug() << "savePlaylistAgain::lastSavedPlaylist: " << lastSavedPlaylist;
+//    qDebug() << "savePlaylistAgain::lastSavedPlaylist: " << lastSavedPlaylist;
     saveCurrentPlaylistToFile(lastSavedPlaylist);  // SAVE IT
 
     // TODO: if there are no songs specified in the playlist (yet, because not edited, or yet, because
@@ -486,7 +486,7 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
     QString preferred("CSV files (*.csv)");
     trapKeypresses = false;
 
-    QString startHere = startingPlaylistDirectory + "/playlist.csv";  // if we haven't saved yet
+    QString startHere = startingPlaylistDirectory + "/Untitled.csv";  // if we haven't saved yet
     if (lastSavedPlaylist != "") {
         startHere = lastSavedPlaylist;  // if we HAVE saved already, default to same file
     }

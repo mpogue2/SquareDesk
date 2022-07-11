@@ -284,6 +284,7 @@ public slots:
     void haveDuration2(void);
 
 protected:
+    bool maybeSave();
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);

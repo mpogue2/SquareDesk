@@ -2933,6 +2933,57 @@ void MainWindow::on_vuMeterTimerTick(void)
 }
 
 // --------------
+// follows this example: https://doc.qt.io/qt-6/qtwidgets-mainwindows-application-example.html
+bool MainWindow::maybeSave() {
+    QString current = ui->statusBar->currentMessage();
+    bool isModified = current.endsWith('*');
+    static QRegularExpression asteriskAtEndRegex("\\*$");
+    current.replace(asteriskAtEndRegex, "");  // delete the star at the end, if present
+    static QRegularExpression playlistColonAtStartRegex("^Playlist: ");
+    current.replace(playlistColonAtStartRegex, ""); // delete off the start of the string
+
+    if (!isModified) {
+//        qDebug() << "maybeSave() returning, because playlist has not been modified";
+        return true; // user wants application to close
+    }
+
+    if (current == "") {
+        current = "Untitled";
+    }
+
+    const QMessageBox::StandardButton ret
+        = QMessageBox::warning(this, "SquareDesk",
+                               QString("The playlist '") + current + "' has been modified.\n\nDo you want to save your changes?",
+                               QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+    switch (ret) {
+
+        case QMessageBox::Save:
+//            qDebug() << "User clicked SAVE";
+            if (current == "Untitled") {
+                // qDebug() << "No known filename, so asking for new filename now (Save As)";
+                on_actionSave_Playlist_triggered(); // File > Save As...
+            } else {
+//                qDebug() << "Saving as: " << current;
+                savePlaylistAgain(); // File > Save
+            }
+//            qDebug() << "Playlist SAVED (even if user clicked CANCEL on the Save As).";
+            return true; // all is well
+
+        case QMessageBox::Cancel:
+//            qDebug() << "User clicked CANCEL, returning FALSE";
+            return false;
+
+        default:
+//            qDebug() << "DEFAULT";
+            break;
+    }
+
+//    qDebug() << "RETURNING TRUE, ALL IS WELL.";
+    return true;
+}
+
+// --------------
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     // Work around bug: https://codereview.qt-project.org/#/c/125589/
@@ -2940,7 +2991,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();
         return;
     }
+
+    if (!maybeSave()) {
+//        qDebug() << "closeEvent ignored, because user cancelled.";
+        event->ignore();
+        return;
+    }
+
     closeEventHappened = true;
+
     if (/* DISABLES CODE */ (true)) {
         on_actionAutostart_playback_triggered();  // write AUTOPLAY setting back
         event->accept();  // OK to close, if user said "OK" or "SAVE"
@@ -4982,7 +5041,7 @@ void MainWindow::loadMusicList()
     } else if (guestMode == "both") {
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
-    ui->statusBar->showMessage(msg1, 4000);
+    ui->statusBar->showMessage(msg1, 3000);
 }
 
 QString processSequence(QString sequence,
