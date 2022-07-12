@@ -27,7 +27,7 @@ WHICH=Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="0.9.10"  # <-- THIS IS THE ONE TO CHANGE
+VERSION="0.9.10c"  # <-- THIS IS THE ONE TO CHANGE
 
 QTVERSION="6.3.0"
 QT_VERSION="6_3_0"   # same thing, but with underscores (yes, change both of them at the same time!)
@@ -105,8 +105,20 @@ echo
 echo Making Staging Directory...
 mkdir -p "${STAGING_DIR}"
 
+echo "================================================================"
+echo "Running xattr to clean up permissions... (no need for sudo here)"
+xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+xattr -cr "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+
 echo "Copying .app to STAGING_DIR and renaming to ${APP_NAME}_${VERSION}.app..."
 cp -Rpf "${MIKEBUILDDIR}/test123/${APP_NAME}.app" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+
+echo "Running xattr to clean up permissions, belt and suspenders...(no need for sudo here)"
+xattr -r "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+xattr -cr "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+xattr -r "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+echo "================================================================"
 
 # ----------------
 # I am not sure why the .plist file is not getting copied into the executable.
@@ -159,6 +171,7 @@ if [ $? -ne 0 ]; then
    exit
 fi
 
+echo "-------------------------"
 echo SIZE: ${SIZE} MB
 echo STAGING_DIR: ${STAGING_DIR}
 echo VOL_NAME: ${VOL_NAME}
@@ -245,5 +258,6 @@ rm -rf "${DMG_TMP}"
 #rm -rf "${STAGING_DIR}"     #  keep this one around, because it's useful for testing
 
 echo 'DONE.'
+echo "-------------------------"
 
 exit
