@@ -345,7 +345,10 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 #   QMAKE_MAC_SDK = macosx10.15
 #   QMAKE_MAC_SDK = macosx11.1
 # QMAKE_MAC_SDK = macosx11.3
-QMAKE_MAC_SDK = macosx12.3
+
+# NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
+#QMAKE_MAC_SDK = macosx12.3
+QMAKE_MAC_SDK = macosx12.1
 
 # If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
 # the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
