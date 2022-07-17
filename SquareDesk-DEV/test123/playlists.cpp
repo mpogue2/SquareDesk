@@ -254,10 +254,10 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     // select the very first row, and trigger a GO TO PREVIOUS, which will load row 0 (and start it, if autoplay is ON).
     // only do this, if there were no errors in loading the playlist numbers.
-    if (firstBadSongLine == "") {
-        ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
-//        on_actionPrevious_Playlist_Item_triggered();
-    }
+//    if (firstBadSongLine == "") {
+//        ui->songTable->selectRow(1); // select first row of newly loaded and sorted playlist!
+////        on_actionPrevious_Playlist_Item_triggered();
+//    }
 
     stopLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, sorting on again and show
 

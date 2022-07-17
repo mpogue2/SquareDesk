@@ -4465,6 +4465,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 //    qDebug() << "using targetPitch" << targetPitch;
     int pitchInt = targetPitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
+    ui->pitchSlider->valueChanged(pitchInt); // make sure that the on value changed code gets executed, even if this isn't really a change.
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
