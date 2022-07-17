@@ -141,14 +141,18 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                              (v2playlist && compareRelative(list1[0], pathToMP3))   // compare relative pathnames (better, new V2 way)
                            ) {
                             // qDebug() << "MATCH::" << list1[0] << pathToMP3;
+//                            qDebug() << "loadPlaylistFromFile: " << pathToMP3;
                             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
                             theItem->setText(QString::number(songCount));
+//                            qDebug() << "                     number: " << QString::number(songCount);
 
                             QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
                             theItem2->setText(list1[1].trimmed());
+//                            qDebug() << "                     pitch: " << list1[1].trimmed();
 
                             QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
                             theItem3->setText(list1[2].trimmed());
+//                            qDebug() << "                     tempo: " << list1[2].trimmed();
 
                             match = true;
                         }
@@ -252,7 +256,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     // only do this, if there were no errors in loading the playlist numbers.
     if (firstBadSongLine == "") {
         ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
-        on_actionPrevious_Playlist_Item_triggered();
+//        on_actionPrevious_Playlist_Item_triggered();
     }
 
     stopLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, sorting on again and show
@@ -293,6 +297,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 void MainWindow::markPlaylistModified(bool isModified) {
 //    qDebug() << "markPlaylistModified: " << isModified;
     QString current = ui->statusBar->currentMessage();
+    if (current == "") {
+        current = "Playlist: Untitled"; // if there is no playlist, called it "Untitled" when we add something for first time
+    }
 //    qDebug() << "current: " << current;
     static QRegularExpression asteriskAtEndRegex("\\*$");
     current.replace(asteriskAtEndRegex, "");  // delete the star at the end, if present
@@ -356,6 +363,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         QString songTitle = getTitleColTitle(ui->songTable, i);
         QString pitch = ui->songTable->item(i,kPitchCol)->text();
         QString tempo = ui->songTable->item(i,kTempoCol)->text();
+//        qDebug() << "saveCurrentPlaylistToFile: " << tempo;
 
         if (playlistIndex != "") {
             // item HAS an index (that is, it is on the list, and has a place in the ordering)

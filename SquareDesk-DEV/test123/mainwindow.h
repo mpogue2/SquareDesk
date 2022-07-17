@@ -706,6 +706,9 @@ private:
 
     bool tempoIsBPM;
     double baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
+    QString targetPitch;  // from songTable, this is what we want after load
+    QString targetTempo;  // from songTable, this is what we want after load
+    QString targetNumber;  // from songTable, this tells us if current song is on a playlist
     bool switchToLyricsOnPlay;
 
     void Info_Volume(void);

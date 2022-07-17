@@ -2197,6 +2197,13 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
         ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
     }
     ui->songTable->setSortingEnabled(true);
+
+    // special checking for playlist ------
+    if (targetNumber != "" && !loadingSong) {
+        // current song is on a playlist, AND we're not doing the initial load
+//        qDebug() << "current song is on playlist, and PITCH changed!";
+        markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -2282,13 +2289,21 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
     {
         if (tempoIsBPM) {
             ui->songTable->item(row, kTempoCol)->setText(QString::number(value));
+//            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value);
         }
         else {
             ui->songTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
+//            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value) + "%";
         }
     }
     ui->songTable->setSortingEnabled(true);
 
+    // special checking for playlist ------
+    if (targetNumber != "" && !loadingSong) {
+        // current song is on a playlist, AND we're not doing the initial load
+//        qDebug() << "current song is on playlist, and TEMPO changed!";
+        markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -4352,6 +4367,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
 void MainWindow::secondHalfOfLoad(QString songTitle) {
     // This function is called when the files is actually loaded into memory, and the filelength is known.
+//    qDebug() << "***** secondHalfOfLoad()";
 
     // We are NOT doing automatic start-of-song finding right now.
     startOfSong_sec = 0.0;
@@ -4417,7 +4433,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 #endif
 
 //    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
-    loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo
+    loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo from DB (not necessarily same as songTable if playlist loaded)
 
     loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
 
@@ -4433,7 +4449,22 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         //  iff the tempo is actually measured in BPM for this song
         ui->tempoSlider->setValue(initialBPM);
         ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+    } else {
+//        qDebug() << "using targetTempo" << targetTempo;
+        if (targetTempo != "0" && targetTempo != "0%") {
+            // iff tempo is known, then update the table
+            QString tempo2 = targetTempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
+            int tempoInt = tempo2.toInt();
+            if (tempoInt != 0)
+            {
+                ui->tempoSlider->setValue(tempoInt); // set slider to target BPM or percent, as per songTable (overriding DB)
+            }
+        }
     }
+
+//    qDebug() << "using targetPitch" << targetPitch;
+    int pitchInt = targetPitch.toInt();
+    ui->pitchSlider->setValue(pitchInt);
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
@@ -5014,6 +5045,7 @@ void MainWindow::loadMusicList()
 
         QString tempoStr = QString("%1").arg(tempo);
         if (loadedTempoIsPercent) tempoStr += "%";
+//        qDebug() << "loadMusicList() is setting the kTempoCol to: " << tempoStr;
         addStringToLastRowOfSongTable(textCol, ui->songTable,
                                       tempoStr,
                                       kTempoCol);
@@ -5454,6 +5486,13 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     // these must be up here to get the correct values...
     QString pitch = ui->songTable->item(row,kPitchCol)->text();
     QString tempo = ui->songTable->item(row,kTempoCol)->text();
+    QString number = ui->songTable->item(row, kNumberCol)->text();
+
+    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
+    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
+    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+
+//    qDebug() << "on_songTable_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo;
 
     t.elapsed(__LINE__);
 
@@ -6337,7 +6376,7 @@ void MainWindow::saveCurrentSongSettings()
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
     int pitch = ui->pitchSlider->value();
-    int tempo = ui->tempoSlider->value();
+    int tempo = ui->tempoSlider->value();  // qDebug() << "loadSettingsForSong, current tempo slider: " << tempo;
     int volume = ui->volumeSlider->value();
     double intro = ui->seekBarCuesheet->GetIntro();
     double outro = ui->seekBarCuesheet->GetOutro();
@@ -6357,7 +6396,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
                                   settings))
     {
         if (settings.isSetPitch()) { pitch = settings.getPitch(); }
-        if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); /*qDebug() << "loadSettingsForSong: " << tempo;*/ }
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
         if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
@@ -6379,7 +6418,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         // -----------------------------------------------------------------------------
 
         ui->pitchSlider->setValue(pitch);
-        ui->tempoSlider->setValue(tempo);
+        ui->tempoSlider->setValue(tempo); // qDebug() << "loadSettingsForSong: just set tempo slider to: " << tempo;
         ui->volumeSlider->setValue(volume);
         ui->seekBarCuesheet->SetIntro(intro);
 //        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
@@ -9303,6 +9342,7 @@ void MainWindow::handleDurationBPM() {
 //    qDebug() << "***** handleDurationBPM()";
     int length_sec = static_cast<int>(cBass.FileLength);
     int songBPM = static_cast<int>(round(cBass.Stream_BPM));  // libbass's idea of the BPM
+//    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
     bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
                          songTypeNamesForCalled.contains(currentSongType);
@@ -9331,7 +9371,7 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
 
-        ui->tempoSlider->setValue(songBPM);
+        ui->tempoSlider->setValue(songBPM);  // qDebug() << "handleDurationBPM set tempo slider to: " << songBPM;
         ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
 
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
