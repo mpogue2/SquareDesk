@@ -341,6 +341,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
+//    oldFocusWidgetPlayback(nullptr),
+    lastWidgetBeforePlaybackWasSongTable(false),
     lastCuesheetSavePath(),
 //    timerCountUp(nullptr),
 //    timerCountDown(nullptr),
@@ -2062,6 +2064,7 @@ void MainWindow::on_playButton_clicked()
         }
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != nullptr) {
+            lastWidgetBeforePlaybackWasSongTable = (QApplication::focusWidget() == ui->songTable); // for restore on STOP
             QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
                                                         //  or it will eat our keyboard shortcuts
         }
@@ -2077,6 +2080,13 @@ void MainWindow::on_playButton_clicked()
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
+
+        // restore focus
+        if (lastWidgetBeforePlaybackWasSongTable) {
+//            qDebug() << "restoring songTable focus...";
+            ui->songTable->setFocus();  // if STOP, restore the focus to widget that had it before PLAY began, IFF it was songTable
+        }
+
     }
 
 }
@@ -3379,8 +3389,9 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_Return:
         case Qt::Key_Enter:
 //            qDebug() << "Key RETURN/ENTER detected.";
-            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus()) {
-//                qDebug() << "   and search has focus.";
+            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus() ||
+                    ui->songTable->hasFocus()) { // also now allow pressing Return to load, if songTable has focus
+//                qDebug() << "   and search OR songTable has focus.";
 
                 // figure out which row is currently selected
                 QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
@@ -3397,17 +3408,18 @@ bool MainWindow::handleKeypress(int key, QString text)
                 }
 
                 on_songTable_itemDoubleClicked(ui->songTable->item(row,1));
-                ui->typeSearch->clearFocus();
-                ui->labelSearch->clearFocus();
-                ui->titleSearch->clearFocus();
+//                ui->typeSearch->clearFocus();
+//                ui->labelSearch->clearFocus();
+//                ui->titleSearch->clearFocus();
             }
             break;
 
         case Qt::Key_Down:
         case Qt::Key_Up:
 //            qDebug() << "Key up/down detected.";
-            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus()) {
-//                qDebug() << "   and search has focus.";
+            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus() ||
+                    ui->songTable->hasFocus()) {
+//                qDebug() << "   and search OR songTable has focus.";
                 if (key == Qt::Key_Up) {
                     // TODO: this same code appears FOUR times.  FACTOR IT
                     // on_actionPrevious_Playlist_Item_triggered();

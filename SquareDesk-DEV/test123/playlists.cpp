@@ -291,6 +291,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
     ui->actionSave_As->setEnabled(true);  // save playlist as...
 
+    ui->songTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0
+    ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
+
     lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded).
 }
 
