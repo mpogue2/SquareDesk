@@ -677,7 +677,6 @@ private:
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
 
-//    QWidget *oldFocusWidgetPlayback;  // last widget that had focus (or NULL, if none did), when PLAYBACK begins
     bool lastWidgetBeforePlaybackWasSongTable;
 
     bool justWentActive;

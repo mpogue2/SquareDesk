@@ -341,7 +341,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
-//    oldFocusWidgetPlayback(nullptr),
     lastWidgetBeforePlaybackWasSongTable(false),
     lastCuesheetSavePath(),
 //    timerCountUp(nullptr),
