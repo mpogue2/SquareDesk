@@ -295,6 +295,8 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
 
     lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded).
+
+    prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
 }
 
 void MainWindow::markPlaylistModified(bool isModified) {
@@ -727,6 +729,9 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     ui->statusBar->showMessage("");  // no playlist at all right now
     markPlaylistModified(false); // turn ON the * in the status bar
+
+    // if playlist cleared, save that fact in Preferences by setting to ""
+    prefsManager.SetlastPlaylistLoaded(""); // save the fact that no playlist was loaded
 }
 
 // ----------------------------------------------------------------------

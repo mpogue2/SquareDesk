@@ -1354,8 +1354,18 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
+    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+
+    if (loadThisPlaylist != "") {
+        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
+        finishLoadingPlaylist(fullPlaylistPath); // load it!
+    }
+
     stopLongSongTableOperation("MainWindow");
 
+    ui->songTable->selectRow(1); // These 2 lines are intentionally down here
+    ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
 }
 
 void MainWindow::fileWatcherTriggered() {
