@@ -79,6 +79,7 @@
 #include "makeflashdrivewizard.h"
 #include "downloadmanager.h"
 #include "songlistmodel.h"
+#include "mytablewidget.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "src/communicator.h"

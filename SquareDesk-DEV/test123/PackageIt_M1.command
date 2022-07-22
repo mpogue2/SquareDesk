@@ -27,10 +27,10 @@ WHICH=Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="0.9.10c"  # <-- THIS IS THE ONE TO CHANGE
+VERSION="0.9.11"  # <-- THIS IS THE ONE TO CHANGE
 
-QTVERSION="6.3.0"
-QT_VERSION="6_3_0"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="6.3.1"
+QT_VERSION="6_3_1"   # same thing, but with underscores (yes, change both of them at the same time!)
 
 SOURCEDIR="/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/test123"
 MIKEBUILDDIR="/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_${QT_VERSION}_for_macOS-${WHICH}"
