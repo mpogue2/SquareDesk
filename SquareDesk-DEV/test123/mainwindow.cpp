@@ -6864,9 +6864,9 @@ void MainWindow::microphoneStatusUpdate() {
 void MainWindow::initReftab() {
 
 #ifdef M1MAC
-    ui->tabWidget->setTabVisible(4,false);  // turn off the References tab for now in the M1 build
-    return;  // FIX: turned off right now for M1 Mac, because of crashes in the WebEngine on M1
-             // FIX: also seeing errors like this: [0306/194140.909675:ERROR:icu_util.cc(252)] Couldn't mmap icu data file, see issue #636
+//    ui->tabWidget->setTabVisible(4,false);  // turn off the References tab for now in the M1 build
+//    return;  // FIX: turned off right now for M1 Mac, because of crashes in the WebEngine on M1
+//             // FIX: also seeing errors like this: [0306/194140.909675:ERROR:icu_util.cc(252)] Couldn't mmap icu data file, see issue #636
 #endif
 
     numWebviews = 0;

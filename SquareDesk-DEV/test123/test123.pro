@@ -443,6 +443,20 @@ macx {
     export(copydata3.commands)
 
     QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3
+
+    # For the PDF viewer -----------------
+    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
+
+    first.depends += copydata1p copydata2p copydata3p copydata4p
+    export(first.depends)
+    export(copydata1p.commands)
+    export(copydata2p.commands)
+    export(copydata3p.commands)
+    export(copydata4p.commands)
+    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
 }
 
 # USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
