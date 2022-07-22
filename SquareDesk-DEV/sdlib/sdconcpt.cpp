@@ -4896,19 +4896,22 @@ static void do_concept_checkpoint(
    parse_block *parseptr,
    setup *result)
 {
-   if (process_brute_force_mxn(ss, parseptr, do_concept_checkpoint, result)) return;
-
    int reverseness = parseptr->concept->arg1;
 
-   if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_REVERSE)) {
-      if (reverseness) fail("Redundant 'REVERSE' modifiers.");
-      reverseness = 1;
-   }
+   // Don't all this fancy stuff for "checkpoint it by it".
+   if (reverseness != 2) {
+      if (process_brute_force_mxn(ss, parseptr, do_concept_checkpoint, result)) return;
 
-   ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_REVERSE);
-   // We don't allow other flags, like "cross".
-   if (ss->cmd.cmd_final_flags.test_for_any_herit_or_final_bit())
-      fail("Illegal modifier before \"checkpoint\".");
+      if (ss->cmd.cmd_final_flags.bool_test_heritbits(INHERITFLAG_REVERSE)) {
+         if (reverseness) fail("Redundant 'REVERSE' modifiers.");
+         reverseness = 1;
+      }
+
+      ss->cmd.cmd_final_flags.clear_heritbits(INHERITFLAG_REVERSE);
+      // We don't allow other flags, like "cross".
+      if (ss->cmd.cmd_final_flags.test_for_any_herit_or_final_bit())
+         fail("Illegal modifier before \"checkpoint\".");
+   }
 
    if (ss->cmd.cmd_misc3_flags & CMD_MISC3__META_NOCMD)
       warn(warn__meta_on_xconc);
@@ -4924,7 +4927,8 @@ static void do_concept_checkpoint(
       // call.  In this example, the 1/4 thru is affected but the
       // recycle is not.
       this_cmd.cmd_misc3_flags &= ~CMD_MISC3__PUT_FRAC_ON_FIRST;
-      this_cmd.cmd_fraction.set_to_null();
+      if (reverseness != 2)
+         this_cmd.cmd_fraction.set_to_null();
    }
    else {
       // If not under a meta-concept, we don't allow fractionalization.
@@ -4942,7 +4946,11 @@ static void do_concept_checkpoint(
    //    the Callerlab rule in preference to the "parallel_concentric_end" property
    //    on the call.
 
-   if (reverseness)
+   if (reverseness == 2) {
+      concentric_move(ss, &this_cmd, &this_cmd, schema_checkpoint,
+                      0, DFM1_CONC_FORCE_OTHERWAY, true, false, ~0U, result);
+   }
+   else if (reverseness)
       concentric_move(ss, &this_cmd, &subsid_cmd, schema_rev_checkpoint_concept,
                       0, 0, true, false, ~0U, result);
    else
@@ -9892,6 +9900,8 @@ const concept_table_item concept_table[] = {
     do_concept_double_offset},                              // concept_double_offset
    {CONCPROP__SECOND_CALL | CONCPROP__PERMIT_MODIFIERS,
     do_concept_checkpoint},                                 // concept_checkpoint
+   {0,
+    do_concept_checkpoint},                                 // concept_checkpoint_it_it
    {CONCPROP__SECOND_CALL | CONCPROP__NO_STEP,
     on_your_own_move},                                      // concept_on_your_own
    {CONCPROP__SECOND_CALL | CONCPROP__PERMIT_MODIFIERS | CONCPROP__NO_STEP,

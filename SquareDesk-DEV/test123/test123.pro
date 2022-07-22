@@ -366,7 +366,7 @@ copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDes
 # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
 # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
 copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
-copydata2.commands = $(COPY_DIR) $$PWD/../sd/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata2.commands = $(COPY_DIR) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SquareDesk Manual (PDF)

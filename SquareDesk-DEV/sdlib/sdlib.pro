@@ -7,7 +7,7 @@ QMAKE_CXXFLAGS += -std=c++11
 QMAKE_CXXFLAGS -= -std=gnu++1z
 
 HEADERS = database.h  mapcachefile.h  resource.h  sd.h       sdui.h \
-    deploy.h paths.h sdprint.h sort.h
+    deploy.h paths.h sdprint.h sort.h sdchars.h sdmatch.h
 #deploy.h    paths.h         sdbase.h    sdprint.h  sort.h
 
 SOURCES = sdmain.cpp sdutil.cpp sdbasic.cpp sdinit.cpp \

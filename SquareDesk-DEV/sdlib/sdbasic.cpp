@@ -580,6 +580,15 @@ static collision_map collision_map_table[] = {
     s2x2,        s2x4,        0, warn__none, 0},
 
    // Unsymmetrical collisions.
+   {3, 0x00000000, 0x0E, 0x04, {1, 3, 2},               {2, 6, 5},                {2, 6, 4},
+    s2x2,        s2x4,        0, warn_bad_collision, 0},
+   {3, 0x00000000, 0x0B, 0x01, {0, 1, 3},               {0, 2, 6},                {1, 2, 6},
+    s2x2,        s2x4,        0, warn_bad_collision, 0},
+   {3, 0x00000000, 0x07, 0x02, {0, 1, 2},               {1, 2, 5},                {1, 3, 5},
+    s2x2,        s2x4,        0, warn_bad_collision, 0},
+   {3, 0x00000000, 0x0D, 0x08, {0, 2, 3},               {1, 5, 7},                {1, 5, 6},
+    s2x2,        s2x4,        0, warn_bad_collision, 0},
+
    {3, 0x0002000B, 0x0B, 0x02, {0, 1, 3},            {6, 0, 5},             {6, 1, 5},
     s2x2,        s2x4,        1, warn__none, 0},
    {3, 0x0004000D, 0x0D, 0x04, {0, 2, 3},            {6, 2, 5},             {6, 3, 5},   
@@ -1917,9 +1926,10 @@ static bool handle_3x4_division(
        nxnbits == INHERITFLAGMXNK_3X1) {
 
       if ((!(newtb & 001) || assoc(b_2x3, ss, calldeflist)) &&
-          (!(newtb & 010) ||
-           assoc(b_3x2, ss, calldeflist) ||
-           ((callflagsf & CFLAG2_CAN_DO_IN_Z) && assoc(b_2x2, ss, calldeflist)))) {
+          (!(newtb & 010) || assoc(b_3x2, ss, calldeflist) ||
+           ((callflagsf & CFLAG2_CAN_DO_IN_Z) &&
+            (livemask == 06565 || livemask == 07272) && 
+            assoc(b_2x2, ss, calldeflist)))) {
          division_code = MAPCODE(s2x3,2,MPKIND__SPLIT,1);
          return true;
       }
@@ -3666,7 +3676,7 @@ static int divide_the_setup(
       if ((!(newtb & 010)) && (callflagsf & CFLAG2_CAN_DO_IN_Z) && assoc(b_2x2, ss, calldeflist)) {
          if ((livemask & 011) == 0)
             division_code = MAPCODE(s2x2,1,MPKIND__OFFS_R_HALF,1);
-         else if ((livemask == 044) == 0)
+         else if ((livemask & 044) == 0)
             division_code = MAPCODE(s2x2,1,MPKIND__OFFS_L_HALF,1);
          else
             break;
@@ -4762,6 +4772,7 @@ static uint32_t do_actual_array_call(
    if (!goodies) crash_print(__FILE__, __LINE__, newtb, ss);
 
    result->kind = goodies->get_end_setup();
+   result->rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
 
    // Normally, only matrix calls, not array calls, are space invaders.  This database
    // flag says to treat this as a space invader anyway.
@@ -4829,6 +4840,7 @@ static uint32_t do_actual_array_call(
       setup_kind tempkind;
 
       result->rotation = goodies->callarray_flags & CAF__ROT;
+      result->rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
       num = attr::slimit(ss)+1;
       halfnum = num >> 1;
       tempkind = result->kind;

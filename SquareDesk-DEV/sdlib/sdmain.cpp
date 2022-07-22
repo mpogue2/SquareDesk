@@ -2,7 +2,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2022  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //
@@ -44,8 +44,8 @@
 //    string is also required by paragraphs 2(a) and 2(c) of the GNU
 //    General Public License if you distribute the file.
 
-#define VERSION_STRING "39.40"
-#define TIME_STAMP "wba@alum.mit.edu Nov 5 2021 $"
+#define VERSION_STRING "39.45"
+#define TIME_STAMP "wba@alum.mit.edu Apr 25 2022 $"
 
 /* This defines the following functions:
    sd_version_string
@@ -105,7 +105,9 @@ and the following external variables:
 // weird things with dollar signs in them that one still occasionally sees
 // in software, are totally stupid.  But we leave it in for cultural enlightenment.
 
-static const char id[] = "@(#)$He" "ader: Sd: version " VERSION_STRING "  " TIME_STAMP;
+// Nope.  It's gone.  And the horse it rode in on.
+
+// static const char id[] = "@(#)$He" "ader: Sd: version " VERSION_STRING "  " TIME_STAMP;
 
 
 extern const char *sd_version_string()

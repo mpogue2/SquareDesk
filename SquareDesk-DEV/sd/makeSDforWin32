@@ -1,3 +1,0 @@
-make -f makefile.mingw sdtty.exe
-rm *.o
-echo DONE. sdtty.exe is the Win32 executable.

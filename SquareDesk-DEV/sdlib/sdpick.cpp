@@ -124,7 +124,7 @@ selector_kind do_selector_iteration(bool allow_iteration)
       selector_girls,
       selector_centers,
       selector_ends,
-      selector_leads,
+      selector_leaders,
       selector_trailers,
       selector_beaus,
       selector_belles,
@@ -151,7 +151,7 @@ selector_kind do_selector_iteration(bool allow_iteration)
          We only look for "boys", "girls", "centers", and "ends" in the first scan. */
       if (selector_iterator_table[selector_iterator] ==
           ((current_pick_type == pick_plain_nice_only) ?
-           selector_leads :
+           selector_leaders :
            ((calling_level < beau_belle_level) ?
             selector_beaus :
             selector_uninitialized)))

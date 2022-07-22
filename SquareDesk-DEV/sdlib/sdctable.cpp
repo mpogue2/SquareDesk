@@ -131,6 +131,16 @@ concept_descriptor conzept::unsealed_concept_descriptor_table[] = {
    {"MELDED TANDEM",                         concept_tandem,                  D, l_c4,
     UC_none, 0, 0,                    0x008, tandem_key_tand},
 
+   // New ones:
+   {"MELDED COUPLES OF 3",                   concept_tandem,                  D, l_c4,
+    UC_none, 0, 0,                    0x008, tandem_key_cpls3},
+   {"MELDED TANDEMS OF 3",                   concept_tandem,                  D, l_c4,
+    UC_none, 0, 0,                    0x008, tandem_key_tand3},
+   {"MELDED COUPLES OF 4",                   concept_tandem,                  D, l_c4,
+    UC_none, 0, 0,                    0x008, tandem_key_cpls4},
+   {"MELDED TANDEMS OF 4",                   concept_tandem,                  D, l_c4,
+    UC_none, 0, 0,                    0x008, tandem_key_tand4},
+
    {"MELDED COUPLES TWOSOME",                concept_tandem,                  D, l_c4,
     UC_none, 0, 0,                    0x018, tandem_key_cpls},
    {"MELDED TANDEM TWOSOME",                 concept_tandem,                  D, l_c4,
@@ -1780,6 +1790,8 @@ concept_descriptor conzept::unsealed_concept_descriptor_table[] = {
     UC_none, 0},
    {"REVERSE CHECKPOINT",                    concept_checkpoint,              0, l_c3,
     UC_none, 1},
+   {"CHECKPOINT IT BY IT",                   concept_checkpoint_it_it,        D, l_c4,
+    UC_none, 2},
    {"CHECKERBOARD",                          concept_checkerboard,            D, l_c3a,
     UC_none, s1x4, 0},
    {"CHECKERBOX",                            concept_checkerboard,            D, l_c3a,

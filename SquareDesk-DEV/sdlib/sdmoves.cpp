@@ -1159,7 +1159,7 @@ extern uint32_t do_call_in_series(
    // The test for this is [waves] initially twice initially once removed
    // hinge the lock.  We want the "once removed" to be re-evaluated.
 
-   if (qqqq.cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS &&
+   if ((qqqq.cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS) != 0 &&
        (qqqq.cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) == CMD_FRAC_CODE_ONLY) {
       if (qqqq.cmd.restrained_concept->concept->kind == concept_n_times_const) {
          qqqq.cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_CRAZINESS;
@@ -1168,7 +1168,7 @@ extern uint32_t do_call_in_series(
       }
    }
 
-   if (qqqq.cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS &&
+   if ((qqqq.cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS) != 0 &&
        (qqqq.cmd.cmd_fraction.flags & CMD_FRAC_CODE_MASK) == CMD_FRAC_CODE_ONLY) {
       if (qqqq.cmd.restrained_concept->concept->kind == concept_dbl_frac_crazy) {
          qqqq.cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_CRAZINESS;
@@ -5195,8 +5195,6 @@ void fraction_info::get_fraction_info(
          else
             fail("Can't do this.");
       }
-      else
-         fail("Can't do this.");
    }
 
    m_subcall_incr = m_reverse_order ? -1 : 1;
@@ -5930,7 +5928,7 @@ static void do_sequential_call(
       if (ss->cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS)
          restrained_concept_p = &ss->cmd.restrained_concept;
 
-      if (!feeding_fractions_through) zzz.get_fraction_info(ss->cmd.cmd_fraction,
+          if (!feeding_fractions_through) zzz.get_fraction_info(ss->cmd.cmd_fraction,
                                                             visibility_info,
                                                             weirdness_off,
                                                             restrained_concept_p);
@@ -6461,7 +6459,7 @@ static bool do_misc_schema(
    ss->cmd.cmd_misc3_flags |= CMD_MISC3__DOING_YOUR_PART;
 
    if (the_schema == schema_select_leads) {
-      sel.who[0] = selector_leads;
+      sel.who[0] = selector_leaders;
       inner_selective_move(ss, foo1p, &foo2,
                            selective_key_plain, 1, 0, false, 0,
                            sel,
@@ -7114,7 +7112,8 @@ void really_inner_move(
       tbonetest = or_all_people(ss);
       if (!(tbonetest & 011) && the_schema != schema_by_array) {
          result->kind = nothing;
-         result->rotation = result->eighth_rotation = 0;
+         result->rotation = 0;
+         result->eighth_rotation = 0;
          clear_result_flags(result);
 
          // We need to mark the result elongation, even though there aren't any people.
@@ -7811,7 +7810,8 @@ static void move_with_real_call(
          fail("Can't fractionalize a call if no one is doing it.");
 
       result->kind = nothing;
-      result->rotation = result->eighth_rotation = 0;
+      result->rotation = 0;
+      result->eighth_rotation = 0;
       clear_result_flags(result);   // Do we need this?
       return;
    }
@@ -8721,6 +8721,20 @@ void move(
    //   rg04\3286   t14\702   nf17\1449   t14\739
    //   ni03\2061  vg03\3285  ci04\3066  yh07\4161
 
+   bool metaconcept_is_fractional = ss->cmd.cmd_fraction.fraction != FRAC_FRAC_NULL_VALUE;
+
+   // And if it hasn't been released and this is a fractional meta-concept on a supercall,
+   // release it now.
+   if (metaconcept_is_fractional &&
+       ss->cmd.restrained_concept &&
+       ((ss->cmd.cmd_misc3_flags & (CMD_MISC3__RESTRAIN_CRAZINESS|CMD_MISC3__SUPERCALL)) == 
+        (CMD_MISC3__RESTRAIN_CRAZINESS|CMD_MISC3__SUPERCALL)) &&
+       (ss->cmd.cmd_fraction.flags & CMD_FRAC_PART_MASK) == 0) {
+      ss->cmd.cmd_misc3_flags &= ~CMD_MISC3__RESTRAIN_CRAZINESS;
+      ss->cmd.restrained_fraction = ss->cmd.cmd_fraction;
+      ss->cmd.cmd_fraction.set_to_null();
+   }
+
    if (ss->cmd.restrained_concept &&
        !(ss->cmd.cmd_misc3_flags & CMD_MISC3__RESTRAIN_CRAZINESS)) {
       parse_block *t = ss->cmd.restrained_concept;
@@ -8735,10 +8749,24 @@ void move(
 
          if (ss->cmd.callspec == 0) {
             // We need to fill in the call.  This requires that things be nice.
-            parse_block *parseptrtemp = process_final_concepts(parseptr, true, &ss->cmd.cmd_final_flags, true, false);
 
-            if (parseptrtemp->concept->kind > marker_end_of_list)
-               fail("Incomplete supercall.");
+            parse_block *parseptrtemp = parseptr;
+
+            if (metaconcept_is_fractional) {
+               parse_block *parseptrtailcheck = parseptrtemp;
+
+               while (parseptrtailcheck->next != 0 && parseptrtailcheck->call == 0)
+                  parseptrtailcheck = parseptrtailcheck->next;
+
+               if (parseptrtailcheck->concept->kind > marker_end_of_list)
+                  fail("Incomplete supercall.");
+            }
+            else {
+               parseptrtemp = process_final_concepts(parseptr, true, &ss->cmd.cmd_final_flags, true, false);
+
+               if (parseptrtemp->concept->kind > marker_end_of_list)
+                  fail("Incomplete supercall.");
+            }
 
             ss->cmd.parseptr = parseptrtemp;
             ss->cmd.callspec = parseptrtemp->call;
@@ -8758,8 +8786,7 @@ void move(
          p3.call = ss->cmd.callspec;
          p3.call_to_print = p3.call;
 
-
-         if (p3.concept->kind != concept_another_call_next_mod) {
+         if (!metaconcept_is_fractional && p3.concept->kind != concept_another_call_next_mod) {
             p3.concept = &concept_mark_end_of_list;
             p3.next = (parse_block *) 0;
          }
@@ -8768,6 +8795,7 @@ void move(
          p3.options = current_options;
          ss->cmd.parseptr = &p1;
          ss->cmd.callspec = (call_with_name *) 0;
+         ss->cmd.restrained_final = &p2.subsidiary_root;
          ss->cmd.restrained_super8flags = ss->cmd.cmd_final_flags.herit;
          ss->cmd.restrained_miscflags = ss->cmd.cmd_misc_flags;
          ss->cmd.restrained_misc2flags = ss->cmd.cmd_misc2_flags;

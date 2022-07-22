@@ -55,7 +55,7 @@
 //    string is also required by paragraphs 2(a) and 2(c) of the GNU
 //    General Public License if you distribute the file.
 
-version "39.40"
+version "39.45"
 
 call "nothing" mainstream tag nullcall
             dont_use_in_resolve dont_raise_overcast
@@ -898,6 +898,8 @@ call "counter@O rotate@P" c1 tag ctr_rot
             parallel_conc_end
             preserve_z_stuff
             dont_raise_overcast
+   // The "counter_rotate" schema should make all these array definitions
+   // unnecessary, right?  Wrong.  They could be invoked with "funny".
    simple_funny
    setup 2x4 2x4 rotate
       array [CR0N CR1N AL6S AL7S AL0S AL1S CR6N CR7N]
@@ -4184,7 +4186,7 @@ call "_prepare to drop @h" dontshow tag prepare_to_drop
          if leftp    [AL0W AL1W ZM2N ZM3N AL4W AL5W ZM6N ZM7N]
          if backp    [CR0S AL1S ZM2N ZM3N AL4S CR5S ZM6N ZM7N]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
-            alternate_definition [grand] c4a
+            alternate_definition [grand] c2
    setup short6 short6
       preds "Direction must be right, left, in, or out."
          if inp      [ZM0N    0 ZM2N ZM3N    0 ZM5N]
@@ -4227,7 +4229,7 @@ call "_drop nothing" dontshow tag finish_drop
       array [ZM0N ZM1N ZM2N 0]
    setup pmd 2x2 qualifier left dmd_ctrs_mwv
       array [ZM3N 0 ZM1N ZM2N]
-            alternate_definition [grand] c4a
+            alternate_definition [grand] c2
    setup short6 2x3 rotate qualifier right dmd_ctrs_mwv
       array [ZM5W ZM0W    0    0 ZM3W ZM4W]
    setup short6 2x3 rotate qualifier left dmd_ctrs_mwv
@@ -7159,6 +7161,7 @@ call "_maybe quarter @h" dontshow tag quarter_maybe
          if leftp [AL0W AL1W]
          if inp [CR0E AL1W]
          if outp [AL0W CR1E]
+         if backp    [CR0S AL1S]
          if no_dir_p [ZM0N ZM1N]
    setup dmd dmd    /* Need these for hinge and circulate. */
       preds "Direction must be right, left, in, or out."
@@ -7166,6 +7169,7 @@ call "_maybe quarter @h" dontshow tag quarter_maybe
          if leftp [AL0W AL1W AL2W AL3W]
          if inp [CR0E 0 AL2W 0]
          if outp [AL0W 0 CR2E 0]
+         if backp    [CR0S AL1S ZM2N ZM3N]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N]
    setup pmd dmd
       preds "Direction must be right, left, in, or out."
@@ -7173,11 +7177,13 @@ call "_maybe quarter @h" dontshow tag quarter_maybe
          if leftp [AL0W AL1W AL2W AL3W]
          if inp [0 CR1E 0 AL3W]
          if outp [0 AL1W 0 CR3E]
+         if backp    [CR0S AL1S ZM2N ZM3N]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N]
    setup 1x1 1x1
       preds "Direction must be right or left."
          if rightp [CR0E]
          if leftp [AL0W]
+         if backp    [CR0S]
          if no_dir_p [ZM0N]
    setup star star
       preds "Illegal direction."
@@ -7185,6 +7191,7 @@ call "_maybe quarter @h" dontshow tag quarter_maybe
          if leftp  [AL0W AL1W AL2W AL3W]
          if inp    [CR0E    0 AL2W    0]
          if outp   [AL0W    0 CR2E    0]
+         if backp    [CR0S AL1S ZM2N ZM3N]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N]
    setup galaxy galaxy
       preds "Illegal direction."
@@ -7192,6 +7199,7 @@ call "_maybe quarter @h" dontshow tag quarter_maybe
          if leftp  [AL0W AL1W AL2W AL3W AL4W AL5W AL6W AL7W]
          if inp    [CR0E CR1E    0 AL3W AL4W AL5W    0 CR7E]
          if outp   [AL0W AL1W    0 CR3E CR4E CR5E    0 AL7W]
+         if backp    [CR0S AL1S ZM2N ZM3N AL4S CR5S ZM6N ZM7N]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
 
 // This is the call to use after "tag the line".  It is also the second
@@ -7318,6 +7326,7 @@ call "face @h" mainstream tag face_dir
          if inp      [CR0E CR1E CR2E CR3E AL4W AL5W AL6W AL7W]
          if outp     [AL0W AL1W AL2W AL3W CR4E CR5E CR6E CR7E]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
    setup pptpd ptpd
       preds "Direction must be right, left, in, or out."
          if rightp   [CR0E CR1E CR2E CR3E CR4E CR5E CR6E CR7E]
@@ -7325,6 +7334,39 @@ call "face @h" mainstream tag face_dir
          if inp      [   0 CR1E    0 AL3W    0 AL5W    0 CR7E]
          if outp     [   0 AL1W    0 CR3E    0 CR5E    0 AL7W]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
+   setup bone bone
+      preds "Direction must be right, left, in, or out."
+         if rightp   [CR0E CR1E CR2E CR3E CR4E CR5E CR6E CR7E]
+         if leftp    [AL0W AL1W AL2W AL3W AL4W AL5W AL6W AL7W]
+         if inp      [CR0E CR1E CR2E CR3E AL4W AL5W AL6W AL7W]
+         if outp     [AL0W AL1W AL2W AL3W CR4E CR5E CR6E CR7E]
+         if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
+   setup pbone bone
+      preds "Direction must be right, left, in, or out."
+         if rightp   [CR0E CR1E CR2E CR3E CR4E CR5E CR6E CR7E]
+         if leftp    [AL0W AL1W AL2W AL3W AL4W AL5W AL6W AL7W]
+         if inp      [   0 CR1E    0 AL3W    0 AL5W    0 CR7E]
+         if outp     [   0 AL1W    0 CR3E    0 CR5E    0 AL7W]
+         if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
+   setup rigger rigger
+      preds "Direction must be right, left, in, or out."
+         if rightp   [CR0E CR1E CR2E CR3E CR4E CR5E CR6E CR7E]
+         if leftp    [AL0W AL1W AL2W AL3W AL4W AL5W AL6W AL7W]
+         if inp      [CR0E CR1E CR2E CR3E AL4W AL5W AL6W AL7W]
+         if outp     [AL0W AL1W AL2W AL3W CR4E CR5E CR6E CR7E]
+         if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
+   setup prigger rigger
+      preds "Direction must be right, left, in, or out."
+         if rightp   [CR0E CR1E CR2E CR3E CR4E CR5E CR6E CR7E]
+         if leftp    [AL0W AL1W AL2W AL3W AL4W AL5W AL6W AL7W]
+         if inp      [   0 CR1E    0 AL3W    0 AL5W    0 CR7E]
+         if outp     [   0 AL1W    0 CR3E    0 CR5E    0 AL7W]
+         if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
    setup 1x8 1x8
       preds "Direction must be right, left, in, or out."
          if rightp   [CR0E CR1E CR2E CR3E CR4E CR5E CR6E CR7E]
@@ -7332,6 +7374,7 @@ call "face @h" mainstream tag face_dir
          if inp      [CR0E CR1E CR2E CR3E AL4W AL5W AL6W AL7W]
          if outp     [AL0W AL1W AL2W AL3W CR4E CR5E CR6E CR7E]
          if no_dir_p [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+         if backp    [CR0S CR1S CR2S CR3S AL4S AL5S AL6S AL7S]
    setup 2x1 1x2
       preds "Illegal direction."
          if rightp   [CR0E CR1E]
@@ -11641,6 +11684,22 @@ call "dixie daisy to a wave" c4
    seq leftturnthru [inherit_left inherit_reverse inherit_twisted inherit_yoyo inherit_gensting]
    seq ctrs_pass_thru [force_half inherit_left inherit_reverse inherit_twisted]
 
+call "_split dixie grand 1" dontshow tag sdg1
+   setup 2x4 alamo qualifier tbone in independent_in_or_out restriction controversial alwaysfail
+      array [0 0 0 0 0W 2S 5E 1E]
+   setup 4x2 alamo qualifier tbone in independent_in_or_out restriction controversial alwaysfail
+      array [0N 0 3E 0 0 2W 0 3W]
+
+call "_split dixie grand 2" dontshow tag sdg2
+   setup alamo alamo plus_eighth_rotation qualifier in in_or_out
+      array [0  0  0 3N  0  0 6N  0]
+   setup alamo alamo                      qualifier out in_or_out
+      array [0  0 2N  0  0  0  0 7N]
+
+call "split dixie grand" c1
+   seq sdg1 []
+   seq sdg2 []
+
 call "dixie grand" plus
             rear_back_from_wave_or_qtag left_means_mirror
    setup 4x2 alamo plus_eighth_rotation qualifier 2fl_only
@@ -12259,7 +12318,7 @@ call "_ @B by the right" dontshow tag odd_frac_by_right
       array [ZM0N 0 ZM2N 0     0 ZM5N 0 ZM7N     ZM8N 0 ZM10N 0     0 ZM13N 0 ZM15N]
    setup c1phan c1phan qualifier num 1 none
       predscantdo
-         if can_swing_right [CR1E 0    0 0     0    0 0 CR4E        0 0 CR11E 0     0 CR14E 0     0]
+         if can_swing_right [CR1E 0 ZM2N 0     0 ZM5N 0 CR4E     ZM8N 0 CR11E 0     0 CR14E 0 ZM15N]
          if always          [ZM0N 0 ZM2N 0     0 ZM5N 0 ZM7N     ZM8N 0 ZM10N 0     0 ZM13N 0 ZM15N]
    setup c1phan c1phan qualifier num 2 none
       predscantdo
@@ -14175,6 +14234,20 @@ call "catch @0 @9" c3a
             split_like_square_thru cross_is_inherited twisted_is_inherited diamond_is_legal
             left_means_mirror neednumber visible_fractions
    seq square_thru_to_wave [inherit_left inherit_twisted inherit_diamond]
+   seq nullcall [mandatory_anycall inherit_diamond]
+   seq stepnfold [inherit_cross inherit_diamond]
+
+call "catch it @9 @0" c4
+            split_like_square_thru cross_is_inherited twisted_is_inherited diamond_is_legal
+            left_means_mirror neednumber visible_fractions
+   seq square_thru_to_wave [inherit_left inherit_twisted inherit_diamond]
+   seq nullcall [mandatory_anycall inherit_diamond]
+   seq stepnfold [inherit_cross inherit_diamond]
+
+call "left catch it @9 @0" c4
+            split_like_square_thru cross_is_inherited twisted_is_inherited diamond_is_legal
+            neednumber visible_fractions
+   seq square_thru_to_wave [force_left inherit_twisted inherit_diamond]
    seq nullcall [mandatory_anycall inherit_diamond]
    seq stepnfold [inherit_cross inherit_diamond]
 
@@ -16226,7 +16299,7 @@ call "circle by @b X @0" c1
 call "_touch tone 0 X 0" dontshow tag touchtone00
             left_means_mirror
    setup 2x4 1x8
-      array [AL1S AL1S CR4S CR4S ZM7N ZM6N ZM2N ZM3N]
+      array [AL1S AL0S CR4S CR5S ZM7N ZM6N ZM2N ZM3N]
 
 call "_finish touch tone @b X @b" dontshow tag fintouchtone
             need_two_numbers yoyo_is_inherited gen_sting_is_inherited
@@ -17902,18 +17975,18 @@ call "@9 steps at a time part 2" dontshow tag 2steps_part_2
    setup 2x6 rigger qualifier num 2 none
       array [0 0 CR1S AL0S 0 0 ZM2N ZM3N AL5S CR4S ZM7N ZM6N]
    setup 1x8 1x8 qualifier num 3 none
-      array [ZM0N ZM1N CR6S ZM3N ZM4N ZM5N AL2S ZM7N]
+      array [Z0N Z1N CR6S Z3N Z4N Z5N AL2S Z7N]
    setup 1x8 1x8 qualifier num 4 none
-      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N ZM6N ZM7N]
+      array [Z0N Z1N Z2N Z3N Z4N Z5N Z6N Z7N]
    // For 6 people.
    setup 3x2 2x3 qualifier num 0 none
       array [CR5S CR4S CR3S AL2S AL1S AL0S]
    setup 2x4 short6 rotate qualifier num 1 none
-      array [0 CR0E AL5E 0 ZM1W AL3E CR2E ZM4W]
+      array [0 CR0E AL5E 0 Z1W AL3E CR2E Z4W]
    setup 1x6 1x6 qualifier num 2 none
-      array [ZM0N ZM1N CR5S ZM3N ZM4N AL2S]
+      array [Z0N Z1N CR5S Z3N Z4N AL2S]
    setup 1x6 1x6 qualifier num 3 none
-      array [ZM0N ZM1N ZM2N ZM3N ZM4N ZM5N]
+      array [Z0N Z1N Z2N Z3N Z4N Z5N]
 
 call "@9 steps at a time part 3" dontshow tag 2steps_part_3
             neednumber
@@ -20464,7 +20537,7 @@ call "turn away" c4a
 call "hang a @eright@f" c4a
             left_means_mirror
    setup 4x2 2x4 rotate
-      array [0 0 CR3E CM4E CM5E CR2E 0 0]
+      array [0 0 CR3E CR4E CR5E CR2E 0 0]
             alternate_definition [single] c4
    setup 4x1 2x2
       array [0 0 CM3S CR2S]
@@ -20648,6 +20721,12 @@ call "_pass and roll 2" dontshow tag passnroll_2
             left_means_mirror
    setup 4x1 1x4
       array [0 CM1S CR2S 0]
+            alternate_definition [half] a2
+   setup 4x1 1x4
+      array [0 CR3E CR2E 0]
+            alternate_definition [lasthalf] a2
+   setup 1x4 1x4
+      array [CR0E CM3E 0 0]
             alternate_definition [grand] c3
    setup 6x1 1x6
       array [0 CM1S 0 CR3S 0 CM5S]

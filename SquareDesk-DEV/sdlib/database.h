@@ -5,7 +5,7 @@
 
 // SD -- square dance caller's helper.
 //
-//    Copyright (C) 1990-2021  William B. Ackerman.
+//    Copyright (C) 1990-2022  William B. Ackerman.
 //
 //    This file is part of "Sd".
 //

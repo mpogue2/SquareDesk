@@ -3554,23 +3554,23 @@ static bool check_for_supercall(parse_block *parseptrcopy)
             (CFLAGH__HAS_AT_ZERO|CFLAGH__HAS_AT_M)) == CFLAGH__HAS_AT_ZERO ||
            (parseptrcopy->call->the_defn.callflagsf &
             (CFLAGH__HAS_AT_ZERO|CFLAGH__HAS_AT_M)) == CFLAGH__HAS_AT_M)) {
-         by_def_item innerdef;
+         by_def_item subdef;
 
          if (parseptrcopy->call->the_defn.callflagsf & CFLAGH__HAS_AT_ZERO) {
-            innerdef.call_id = base_call_null;
-            innerdef.modifiers1 = DFM1_CALL_MOD_MAND_ANYCALL;
+            subdef.call_id = base_call_null;
+            subdef.modifiers1 = DFM1_CALL_MOD_MAND_ANYCALL;
          }
          else {
-            innerdef.call_id = base_call_null_second;
-            innerdef.modifiers1 = DFM1_CALL_MOD_MAND_SECONDARY;
+            subdef.call_id = base_call_null_second;
+            subdef.modifiers1 = DFM1_CALL_MOD_MAND_SECONDARY;
          }
 
-         innerdef.modifiersh = 0ULL;
+         subdef.modifiersh = 0ULL;
          setup_command bar;
          bar.cmd_final_flags.clear_all_herit_and_final_bits();
-         calldefn this_defn = base_calls[innerdef.call_id]->the_defn;
-         setup_command foo2;
-         get_real_subcall(parseptrcopy, &innerdef, &bar, &this_defn, false, zeroherit, &foo2);
+         calldefn this_defn = base_calls[subdef.call_id]->the_defn;
+         setup_command foo2junk;
+         get_real_subcall(parseptrcopy, &subdef, &bar, &this_defn, false, zeroherit, &foo2junk);
       }
 
       if (parseptrcopy->concept->kind == concept_another_call_next_mod &&
@@ -4933,7 +4933,7 @@ setup::setup(setup_kind k, int r,
              uint32_t P6, uint32_t I6,
              uint32_t P7, uint32_t I7,
              uint32_t little_endian_wheretheygo /* = 0x76543210 */) :
-   kind(k), rotation(r), eighth_rotation(0)
+   kind(k), rotation(r), rotation_offset_from_true_north(0), eighth_rotation(0)
 {
    clear_people();
    clear_result_flags(this);
@@ -6517,7 +6517,7 @@ extern void put_in_absolute_proximity_and_facing_bits(setup *ss)
       // Put in headliner/sideliner stuff if possible.
       for (i=0; i<=attr::slimit(ss); i++) {
          if (ss->people[i].id1 & BIT_PERSON) {
-            switch ((ss->people[i].id1 + ss->rotation) & 3) {
+            switch ((ss->people[i].id1 + ss->rotation + ss->rotation_offset_from_true_north) & 3) {
             case 0:
                ss->people[i].id3 |= ID3_FACEBACK;
                break;

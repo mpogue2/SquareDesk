@@ -278,29 +278,30 @@ bool conc_tables::analyze_this(
          int outlim = attr::klimit(lmap_ptr->outsetup)+1;
 
          *center_arity_p = lmap_ptr->center_arity;
+         mapelong = lmap_ptr->mapelong;
+         inner_rot = lmap_ptr->inner_rot;
+         outer_rot = lmap_ptr->outer_rot;
+
          outers->kind = lmap_ptr->outsetup;
-         outers->rotation = (-lmap_ptr->outer_rot) & 3;
+         outers->rotation = (-outer_rot) & 3;
+         outers->rotation_offset_from_true_north += (outer_rot + ss->rotation - 1) & 3;
          outers->eighth_rotation = 0;
 
          gather(outers, ss, &lmap_ptr->maps[inlim*lmap_ptr->center_arity],
-                outlim-1, lmap_ptr->outer_rot * 011);
+                outlim-1, outer_rot * 011);
 
          for (int m=0; m<lmap_ptr->center_arity; m++) {
-            uint32_t rr = lmap_ptr->inner_rot;
-
             // Need to flip alternating triangles upside down.
-            if (lmap_ptr->insetup == s_trngl && (m&1)) rr ^= 2;
+            int rr = (lmap_ptr->insetup == s_trngl && (m&1)) ? inner_rot^2 : inner_rot;
 
             inners[m].clear_people();
             inners[m].kind = lmap_ptr->insetup;
-            inners[m].rotation = (0-rr) & 3;
+            inners[m].rotation = (-rr) & 3;
+            inners[m].rotation_offset_from_true_north += (rr + ss->rotation - 1) & 3;
             inners[m].eighth_rotation = 0;
             gather(&inners[m], ss, &lmap_ptr->maps[m*inlim], inlim-1, rr * 011);
          }
 
-         mapelong = lmap_ptr->mapelong;
-         inner_rot = lmap_ptr->inner_rot;
-         outer_rot = lmap_ptr->outer_rot;
          return true;
       }
    not_this_one: ;
@@ -1892,7 +1893,10 @@ static calldef_schema concentrify(
       }
       else if (ss->kind == s1x8) {
          analyzer_result = schema_concentric_2_6;
-         if (current_options.howmanynumbers == 1 && current_options.number_fields == 3) {
+         if (current_options.howmanynumbers == 1 && current_options.number_fields == 2) {
+            analyzer_result = schema_concentric;
+         }
+         else if (current_options.howmanynumbers == 1 && current_options.number_fields == 3) {
             if (cmdout) cmdout->cmd_final_flags.set_heritbits(INHERITFLAGNXNK_3X3);
          }
          else if (current_options.howmanynumbers == 1 && current_options.number_fields == 4) {
@@ -4455,9 +4459,15 @@ extern void concentric_move(
                final_elongation = ((~final_outers_finish_dirs) & 1) + 1;
             }
             else if (DFM1_CONC_CONCENTRIC_RULES & localmods1) {
-               if (outer_inners[0].kind != s2x3)
-                  warn(concwarntable[crossing]);  // Don't give warning that would obviously break Solomon.
-               final_elongation ^= 3;
+               if (outer_inners[0].eighth_rotation != 0) {
+                  warn(warn__conc_perpfail);
+                  final_elongation = 3;
+               }
+               else {
+                  if (outer_inners[0].kind != s2x3)
+                     warn(concwarntable[crossing]);  // Don't give warning that would obviously break Solomon.
+                  final_elongation ^= 3;
+               }
             }
             else if (DFM1_CONC_FORCE_OTHERWAY & localmods1) {
                // But we don't obey this flag unless we did the whole call.  (Or it's a checkpoint.)

@@ -425,6 +425,7 @@ static void multiple_move_innards(
 
          x[i].cmd = *sscmd;
          x[i].rotation = rrr & 3;
+         x[i].rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
          x[i].eighth_rotation = 0;
          canonicalize_rotation(&x[i]);
          if (rrr & 1)
@@ -534,6 +535,7 @@ static void multiple_move_innards(
 
    result->clear_people();
    result->rotation = 0;
+   result->rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
    result->eighth_rotation = eighth_rot_flag;
 
    // If multiple setups are involved and they have rotated by 45 degrees, we have to be very careful.
