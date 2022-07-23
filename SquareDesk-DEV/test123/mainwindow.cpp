@@ -3421,6 +3421,7 @@ bool MainWindow::handleKeypress(int key, QString text)
 //                ui->typeSearch->clearFocus();
 //                ui->labelSearch->clearFocus();
 //                ui->titleSearch->clearFocus();
+                ui->songTable->setFocus(); // ENTER/RETURN loaded it, so songTable gets focus
             }
             break;
 
