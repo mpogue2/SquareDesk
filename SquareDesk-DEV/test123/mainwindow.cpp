@@ -7400,7 +7400,9 @@ void MainWindow::maybeInstallReferencefiles() {
             QString s2 = it.next();
             QString s1 = it.fileName();
             // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
-            if (s1.contains(QRegularExpression("^[0-9]+\\.SD.pdf")) || s1.contains(QRegularExpression("^SD.pdf"))) {
+            static QRegularExpression re10("^[0-9]+\\.SD.pdf");
+            static QRegularExpression re11("^SD.pdf");
+            if (s1.contains(re10) || s1.contains(re11)) {
                hasSDpdf = true;
             }
         }
@@ -7419,7 +7421,9 @@ void MainWindow::maybeInstallReferencefiles() {
             QString s2 = it2.next();
             QString s1 = it2.fileName();
             // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
-            if (s1.contains(QRegularExpression("^[0-9]+\\.SDESK.pdf")) || s1.contains(QRegularExpression("^SDESK.pdf"))) {
+            static QRegularExpression re12("^[0-9]+\\.SDESK.pdf");
+            static QRegularExpression re13("^SDESK.pdf");
+            if (s1.contains(re12) || s1.contains(re13)) {
                hasSDESKpdf = true;
             }
         }
