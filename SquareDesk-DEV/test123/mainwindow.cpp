@@ -1999,6 +1999,8 @@ void MainWindow::on_stopButton_clicked()
     ui->seekBarCuesheet->setValue(0);
     Info_Seekbar(false);  // update just the text
 #endif
+
+    ui->songTable->setFocus();
 }
 
 // ----------------------------------------------------------------------
