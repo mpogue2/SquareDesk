@@ -28,7 +28,7 @@
 #include "QFileDialog"
 #include "songsettings.h"
 #include "sessioninfo.h"
-#include "utility.h"
+//#include "utility.h"
 
 SongHistoryExportDialog::SongHistoryExportDialog(QWidget *parent) :
     QDialog(parent),
@@ -69,7 +69,7 @@ void SongHistoryExportDialog::populateOptions(SongSettings &songSettings)
     QList<SessionInfo> sessions(songSettings.getSessionInfo());
     ui->comboBoxSession->clear();
     ui->comboBoxSession->addItem("<all sessions>", 0);
-    for (auto session : sessions)
+    for (const auto &session : sessions)
     {
         ui->comboBoxSession->addItem(session.name, session.id);
     }

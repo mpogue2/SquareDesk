@@ -39,7 +39,7 @@ bool TableLabelItem::operator <(const QTableWidgetItem &other) const
     QString label2, number2, extension2;
 
     // extract pieces of the first string argument ------
-    QRegularExpression re("([a-z]*)\\s*(\\d*)\\s*([a-z]*)", QRegularExpression::CaseInsensitiveOption);
+    static QRegularExpression re("([a-z]*)\\s*(\\d*)\\s*([a-z]*)", QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch match1 = re.match(str1);
     if (match1.hasMatch()) {
         label1 = match1.captured(1).toUpper();       // LABEL

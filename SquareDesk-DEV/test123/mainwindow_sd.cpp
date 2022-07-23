@@ -24,7 +24,7 @@
 ****************************************************************************/
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "utility.h"
+//#include "utility.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -33,7 +33,7 @@
 #include <QClipboard>
 #include <QtSvg/QSvgGenerator>
 #include "common.h"
-#include "danceprograms.h"
+//#include "danceprograms.h"
 #include "../sdlib/database.h"
 #include "sdformationutils.h"
 #include <algorithm>  // for random_shuffle

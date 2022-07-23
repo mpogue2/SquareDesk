@@ -99,7 +99,7 @@ Console::Console(QWidget *parent)
 
 void Console::putData(const QByteArray &data)
 {
-    QByteArray data2 = data; // mutable
+//    QByteArray data2 = data; // mutable
     QString data2s(data);
 
 //    qDebug() << "console data:" << data2 << "length:" << data.length();

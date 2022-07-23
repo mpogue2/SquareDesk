@@ -35,7 +35,7 @@
 #include <stdio.h>
 #include <QDebug>
 #include <QTimer>
-#include "perftimer.h"
+//#include "perftimer.h"
 #include "audiodecoder.h"
 
 // GLOBALS =========

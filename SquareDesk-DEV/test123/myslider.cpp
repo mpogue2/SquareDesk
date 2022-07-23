@@ -158,7 +158,7 @@ void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't w
 {
     Q_UNUSED(event)
     setValue(origin);
-    valueChanged(origin);
+    emit valueChanged(origin);
 }
 
 // MARKERS ==================
