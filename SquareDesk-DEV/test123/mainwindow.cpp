@@ -2040,8 +2040,8 @@ void MainWindow::on_playButton_clicked()
             if (!ui->actionDon_t_Save_Plays->isChecked())
             {
                 songSettings.markSongPlayed(currentMP3filename, currentMP3filenameWithPath);
-                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-                QModelIndexList selected = selectionModel->selectedRows();
+//                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
+//                QModelIndexList selected = selectionModel->selectedRows();
 
                 ui->songTable->setSortingEnabled(false);
 
@@ -3830,8 +3830,8 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
             || score >= 4)
         )
     {
-        QString s1 = l1.join("-");
-        QString s2 = l2.join("-");
+//        QString s1 = l1.join("-");
+//        QString s2 = l2.join("-");
         return score * 500 + 100 * (abs(l1.length()) - l2.length());
     }
     else
@@ -4032,7 +4032,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 {
     hasLyrics = false;
 
-    QString HTML;
+//    QString HTML;
 
     QStringList possibleCuesheets;
     findPossibleCuesheets(MP3FileName, possibleCuesheets);
@@ -4042,7 +4042,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
     int defaultCuesheetIndex = 0;
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
-    QString firstCuesheet(preferredCuesheet);
+//    QString firstCuesheet(preferredCuesheet);
     ui->comboBoxCuesheetSelector->clear();
 
     foreach (const QString &cuesheet, possibleCuesheets)
@@ -4212,8 +4212,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
     currentSongTitle = ui->nowPlayingLabel->text();  // save, in case we are Flash Calling
 
-    QDir md(MP3FileName);
-    QString canonicalFN = md.canonicalPath();
+//    QDir md(MP3FileName);
+//    QString canonicalFN = md.canonicalPath();
 
     t.elapsed(__LINE__);
 
@@ -4361,9 +4361,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->seekBar->setEnabled(true);
     ui->seekBarCuesheet->setEnabled(true);
 
-    ui->pitchSlider->valueChanged(ui->pitchSlider->value());    // force pitch change, if pitch slider preset before load
-    ui->volumeSlider->valueChanged(ui->volumeSlider->value());  // force vol change, if vol slider preset before load
-    ui->mixSlider->valueChanged(ui->mixSlider->value());        // force mix change, if mix slider preset before load
+    emit ui->pitchSlider->valueChanged(ui->pitchSlider->value());    // force pitch change, if pitch slider preset before load
+    emit ui->volumeSlider->valueChanged(ui->volumeSlider->value());  // force vol change, if vol slider preset before load
+    emit ui->mixSlider->valueChanged(ui->mixSlider->value());        // force mix change, if mix slider preset before load
 
     ui->actionMute->setEnabled(true);
     ui->actionLoop->setEnabled(true);
@@ -4378,10 +4378,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     ui->actionPitch_Down->setEnabled(true);
     ui->actionPitch_Up->setEnabled(true);
 
-    ui->bassSlider->valueChanged(ui->bassSlider->value()); // force bass change, if bass slider preset before load
-    ui->midrangeSlider->valueChanged(
+    emit ui->bassSlider->valueChanged(ui->bassSlider->value()); // force bass change, if bass slider preset before load
+    emit ui->midrangeSlider->valueChanged(
         ui->midrangeSlider->value()); // force midrange change, if midrange slider preset before load
-    ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
+    emit ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
     cBass.Stop();
 
@@ -4470,7 +4470,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
         // if the user wants us to try to hit a particular BPM target, use that value
         //  iff the tempo is actually measured in BPM for this song
         ui->tempoSlider->setValue(initialBPM);
-        ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        emit ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
     } else {
 //        qDebug() << "using targetTempo" << targetTempo;
         if (targetTempo != "0" && targetTempo != "0%") {
@@ -4487,7 +4487,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 //    qDebug() << "using targetPitch" << targetPitch;
     int pitchInt = targetPitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
-    ui->pitchSlider->valueChanged(pitchInt); // make sure that the on value changed code gets executed, even if this isn't really a change.
+    emit ui->pitchSlider->valueChanged(pitchInt); // make sure that the on value changed code gets executed, even if this isn't really a change.
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
     cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
@@ -4577,7 +4577,7 @@ void findFilesRecursively(QDir rootDir, QList<QString> *pathStack, QString suffi
         QString newType = (fi.path().replace(rootDir.path() + "/","").split("/"))[0];
         QStringList section = fi.path().split("/");
 
-        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
+//        QString type = section[section.length()-1] + suffix;  // must be the last item in the path
 //                                                              // of where the alias is, not where the file is, and append "*" or not
         if (section[section.length()-1] != "soundfx") {
 //            qDebug() << "findFilesRecursively() adding " + type + "#!#" + resolvedFilePath + " to pathStack";
@@ -4979,7 +4979,7 @@ void MainWindow::loadMusicList()
             type = "";
         }
 
-        QStringList section = fi.canonicalPath().split("/");
+//        QStringList section = fi.canonicalPath().split("/");
         QString label = "";
         QString labelnum = "";
         QString labelnum_extra = "";
@@ -5078,7 +5078,7 @@ void MainWindow::loadMusicList()
 
         // Filter out (hide) rows that we're not interested in, based on the search fields...
         //   4 if statements is clearer than a gigantic single if....
-        QString labelPlusNumber = label + " " + labelnum;
+//        QString labelPlusNumber = label + " " + labelnum;
     }
 
     QFont currentFont = ui->songTable->font();
@@ -6301,9 +6301,9 @@ void MainWindow::columnHeaderResized(int logicalIndex, int /* oldSize */, int ne
 
         case 2: // Label
             x1 = ui->typeSearch->x();
-            y1 = ui->typeSearch->y();
+//            y1 = ui->typeSearch->y();
             w1 = ui->typeSearch->width();
-            h1 = ui->typeSearch->height();
+//            h1 = ui->typeSearch->height();
 
             x2 = x1 + w1 + 6;
             y2 = ui->labelSearch->y();
@@ -6879,6 +6879,8 @@ void MainWindow::initReftab() {
 //             // FIX: also seeing errors like this: [0306/194140.909675:ERROR:icu_util.cc(252)] Couldn't mmap icu data file, see issue #636
 #endif
 
+    static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
+
     numWebviews = 0;
     
     documentsTab = new QTabWidget();
@@ -7288,7 +7290,8 @@ void MainWindow::playSFX(QString which) {
         soundEffectFile = musicRootPath + "/soundfx/" + which + ".mp3";
     }
 
-    if(QFileInfo(soundEffectFile).exists()) {
+//    if(QFileInfo(soundEffectFile).exists()) {
+    if(QFileInfo::exists(soundEffectFile)) {
         // play sound FX only if file exists...
         cBass.PlayOrStopSoundEffect(which.toInt(),
                                     soundEffectFile.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
@@ -7730,19 +7733,23 @@ void MainWindow::adjustFontSizes()
 
     // a little extra space when a column is sorted
     // also a little extra space for the smallest zoom size
+
+    double extraWidth = (index != -1 ? extraColWidth[index] : 0.0);  // get rid of the error case where index returns as -1, make extraWidth zero in that case
+
     ui->songTable->setColumnWidth(kNumberCol, static_cast<int>((numberBase + (sortedSection==kNumberCol?numberFactor:0.0)) *currentFontPointSize));
-    ui->songTable->setColumnWidth(kRecentCol, static_cast<int>((recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraColWidth[index])*currentFontPointSize));
-    ui->songTable->setColumnWidth(kAgeCol, static_cast<int>((ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraColWidth[index])*currentFontPointSize));
-    ui->songTable->setColumnWidth(kPitchCol, static_cast<int>((pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraColWidth[index])*currentFontPointSize));
-    ui->songTable->setColumnWidth(kTempoCol, static_cast<int>((tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraColWidth[index])*currentFontPointSize));
+    ui->songTable->setColumnWidth(kRecentCol, static_cast<int>((recentBase+(sortedSection==kRecentCol?recentFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kAgeCol, static_cast<int>((ageBase+(sortedSection==kAgeCol?ageFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kPitchCol, static_cast<int>((pitchBase+(sortedSection==kPitchCol?pitchFactor:0.0)+extraWidth)*currentFontPointSize));
+    ui->songTable->setColumnWidth(kTempoCol, static_cast<int>((tempoBase+(sortedSection==kTempoCol?tempoFactor:0.0)+extraWidth)*currentFontPointSize));
 
-    ui->typeSearch->setFixedHeight(searchBoxesHeight[index]);
-    ui->labelSearch->setFixedHeight(searchBoxesHeight[index]);
-    ui->titleSearch->setFixedHeight(searchBoxesHeight[index]);
-    ui->lineEditSDInput->setFixedHeight(searchBoxesHeight[index]);
+    int searchBoxHeight = (index != -1 ? searchBoxesHeight[index] : searchBoxesHeight[2]); // if index == -1 because error, use something in the middle
+    ui->typeSearch->setFixedHeight(searchBoxHeight);
+    ui->labelSearch->setFixedHeight(searchBoxHeight);
+    ui->titleSearch->setFixedHeight(searchBoxHeight);
+    ui->lineEditSDInput->setFixedHeight(searchBoxHeight);
 
-    ui->dateTimeEditIntroTime->setFixedHeight(searchBoxesHeight[index]);  // this scales the intro/outro button height, too...
-    ui->dateTimeEditOutroTime->setFixedHeight(searchBoxesHeight[index]);
+    ui->dateTimeEditIntroTime->setFixedHeight(searchBoxHeight);  // this scales the intro/outro button height, too...
+    ui->dateTimeEditOutroTime->setFixedHeight(searchBoxHeight);
 
 #if defined(Q_OS_MAC)
     // the Mac combobox is not height resizeable.  This styled one is, and it looks fine.
@@ -7800,19 +7807,21 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditItalic->setFont(currentFont);
 
     ui->pushButtonClearTaughtCalls->setFont(currentFont);
-    ui->pushButtonClearTaughtCalls->setFixedWidth(static_cast<int>(TitleButtonWidth[index] * 1.5));
 
-    ui->pushButtonCueSheetEditTitle->setFixedWidth(static_cast<int>(TitleButtonWidth[index]));
-    ui->pushButtonCueSheetEditLabel->setFixedWidth(static_cast<int>(TitleButtonWidth[index]));
-    ui->pushButtonCueSheetEditArtist->setFixedWidth(static_cast<int>(TitleButtonWidth[index]));
-    ui->pushButtonCueSheetEditHeader->setFixedWidth(static_cast<int>(TitleButtonWidth[index] * 1.5));
-    ui->pushButtonCueSheetEditLyrics->setFixedWidth(static_cast<int>(TitleButtonWidth[index]));
+    unsigned int titleButtonW = (index != -1 ? TitleButtonWidth[index] : TitleButtonWidth[2]); // if error, use something in the middle
+    ui->pushButtonClearTaughtCalls->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
 
-    ui->pushButtonCueSheetClearFormatting->setFixedWidth(static_cast<int>(TitleButtonWidth[index] * 2.25));
+    ui->pushButtonCueSheetEditTitle->setFixedWidth(static_cast<int>(titleButtonW));
+    ui->pushButtonCueSheetEditLabel->setFixedWidth(static_cast<int>(titleButtonW));
+    ui->pushButtonCueSheetEditArtist->setFixedWidth(static_cast<int>(titleButtonW));
+    ui->pushButtonCueSheetEditHeader->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
+    ui->pushButtonCueSheetEditLyrics->setFixedWidth(static_cast<int>(titleButtonW));
+
+    ui->pushButtonCueSheetClearFormatting->setFixedWidth(static_cast<int>(titleButtonW * 2.25));
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFont(currentFont);
-    ui->songTable->horizontalHeader()->setFixedHeight(searchBoxesHeight[index]);
+    ui->songTable->horizontalHeader()->setFixedHeight(searchBoxHeight); // protected against index == -1
 //    qDebug() << "setting font to: " << currentFont;
 
     ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(67*(currentMacPointSize/13.0)));
@@ -7838,16 +7847,16 @@ void MainWindow::adjustFontSizes()
     //ui->pushButtonEditLyrics->setIconSize(newIconSize);
 
     // these are special MEDIUM
-    int warningLabelFontSize = warningLabelSize[index]; // keep ratio constant
+    int warningLabelFontSize = warningLabelSize[(index != -1 ? index : 2)]; // keep ratio constant
     currentFont.setPointSize(warningLabelFontSize);
     ui->warningLabel->setFont(currentFont);
     ui->warningLabelCuesheet->setFont(currentFont);
 
-    ui->warningLabel->setFixedWidth(warningLabelWidth[index]);
-    ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[index]);
+    ui->warningLabel->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
+    ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
 
     // these are special BIG
-    int nowPlayingLabelFontSize = (nowPlayingSize[index]); // keep ratio constant
+    int nowPlayingLabelFontSize = (nowPlayingSize[(index != -1 ? index : 2)]); // keep ratio constant
     currentFont.setPointSize(nowPlayingLabelFontSize);
     ui->nowPlayingLabel->setFont(currentFont);
     ui->nowPlayingLabel->setFixedHeight(static_cast<int>(nowPlayingHeightFactor * nowPlayingLabelFontSize));
@@ -8278,7 +8287,7 @@ void MainWindow::on_actionFilePrint_triggered()
             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
             QString playlistIndex = theItem->text();
             QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-            QString songTitle = getTitleColTitle(ui->songTable, i);
+//            QString songTitle = getTitleColTitle(ui->songTable, i);
             QString pitch = ui->songTable->item(i,kPitchCol)->text();
             QString tempo = ui->songTable->item(i,kTempoCol)->text();
 
@@ -8604,7 +8613,7 @@ void MainWindow::fetchListOfCuesheetsFromCloud() {
     // TODO: only fetch if the time is newer than the one we got last time....
     // TODO:    check Expires date.
 
-    QList<QString> cuesheets;
+//    QList<QString> cuesheets;
 
     Downloader *d = new Downloader(this);
 
@@ -8655,7 +8664,7 @@ bool MainWindow::fuzzyMatchFilenameToCuesheetname(QString s1, QString s2) {
 
     // SPLIT APART THE MUSIC FILENAME --------
     QFileInfo mp3FileInfo(s1);
-    QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
+//    QString mp3CanonicalPath = mp3FileInfo.canonicalPath();
     QString mp3CompleteBaseName = mp3FileInfo.completeBaseName();
     QString mp3Label = "";
     QString mp3Labelnum = "";
@@ -8664,7 +8673,7 @@ bool MainWindow::fuzzyMatchFilenameToCuesheetname(QString s1, QString s2) {
     QString mp3Title = "";
     QString mp3ShortTitle = "";
     breakFilenameIntoParts(mp3CompleteBaseName, mp3Label, mp3Labelnum, mp3Labelnum_extra, mp3Title, mp3ShortTitle);
-    QList<CuesheetWithRanking *> possibleRankings;
+//    QList<CuesheetWithRanking *> possibleRankings;
 
     QStringList mp3Words = splitIntoWords(mp3CompleteBaseName);
     mp3Labelnum_short = mp3Labelnum;
@@ -8711,6 +8720,7 @@ bool MainWindow::fuzzyMatchFilenameToCuesheetname(QString s1, QString s2) {
         return(true);
     } else if ((score = compareSortedWordListsForRelevance(mp3Words, words)) > 0)
     {
+        Q_UNUSED(score)
         // fuzzy match, using the sorted words in the titles
 //        qDebug() << "fuzzy match (meets sorted words criteria): " << s1 << "," << s2;
         return(true);
@@ -8925,7 +8935,7 @@ QList<QString> MainWindow::getListOfCuesheets() {
 
             // <li><a href="RR%20147%20-%20Amarillo%20By%20Morning.html"> RR 147 - Amarillo By Morning.html</a></li>
 
-            QRegularExpression regex_cuesheetName("^<li><a href=\"(.*?)\">(.*)</a></li>$"); // don't be greedy!
+            static QRegularExpression regex_cuesheetName("^<li><a href=\"(.*?)\">(.*)</a></li>$"); // don't be greedy!
             QRegularExpressionMatch match = regex_cuesheetName.match(line);
 //            qDebug() << "line: " << line;
             if (match.hasMatch())
@@ -9093,7 +9103,7 @@ QString MainWindow::logFilePath;  // static members must be explicitly instantia
 void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
-    QByteArray localMsg = msg.toLocal8Bit();
+//    QByteArray localMsg = msg.toLocal8Bit();
 
     QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
     QString logLevelName = msgLevelHash[type];
@@ -9395,7 +9405,7 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->setMaximum(songBPM+15);
 
         ui->tempoSlider->setValue(songBPM);  // qDebug() << "handleDurationBPM set tempo slider to: " << songBPM;
-        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
+        emit ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
 
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
         ui->tempoSlider->setEnabled(true);
@@ -9409,7 +9419,7 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
         ui->tempoSlider->setMaximum(100+20);
         ui->tempoSlider->setValue(100);
-        ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
+        emit ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
         ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
