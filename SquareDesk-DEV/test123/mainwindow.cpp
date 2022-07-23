@@ -230,8 +230,8 @@ flexible_audio cBass;
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };       // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };          // NOTE: must use Qt::CaseInsensitive compares for these
-static QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
-static QString title_tags_suffix(" </span>");
+QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
+QString title_tags_suffix(" </span>");
 static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 
 
@@ -292,7 +292,7 @@ void MainWindow::SetKeyMappings(const QHash<QString, KeyAction *> &hotkeyMapping
 
     std::sort(hotkeys.begin(), hotkeys.end(), LongStringsFirstThenAlpha);
 
-    for (QString hotkey : hotkeys)
+    for (const QString &hotkey : hotkeys)
     {
         auto mapping = hotkeyMappings.find(hotkey);
         QKeySequence keySequence(mapping.key());
@@ -690,7 +690,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    // let's watch for changes in the musicDir
 //    QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
     QDirIterator it(musicRootPath, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
-    QRegularExpression ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
+    static QRegularExpression ignoreTheseDirs("/(reference|choreography|notes|playlists|sd|soundfx|lyrics)");
     while (it.hasNext()) {
         QString aPath = it.next();
 //        if (ignoreTheseDirs.indexIn(aPath) == -1) {
@@ -1295,7 +1295,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         if (!sizesStr.isEmpty())
         {
             QList<int> sizes;
-            for (QString sizeStr : sizesStr.split(","))
+            for (const QString &sizeStr : sizesStr.split(","))
             {
                 sizes.append(sizeStr.toInt());
             }
@@ -1320,7 +1320,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         if (!sizesStr.isEmpty())
         {
             QList<int> sizes;
-            for (QString sizeStr : sizesStr.split(","))
+            for (const QString &sizeStr : sizesStr.split(","))
             {
                 sizes.append(sizeStr.toInt());
             }
@@ -1748,7 +1748,7 @@ void MainWindow::action_session_change_triggered()
         if (action->isChecked())
         {
             QString name(action->text());
-            for (auto session : sessions)
+            for (const auto &session : sessions)
             {
                 if (name == session.name)
                 {
@@ -1776,7 +1776,7 @@ void MainWindow::populateMenuSessionOptions()
     int id = songSettings.getCurrentSession();
     QList<SessionInfo> sessions(songSettings.getSessionInfo());
     
-    for (auto session : sessions)
+    for (const auto &session : sessions)
     {
         QAction *action = new QAction(session.name, this);
         action->setCheckable(true);
@@ -3291,7 +3291,7 @@ void MainWindow::actionFilterSongsPatterSingersToggle()
     }
     else
     {
-        for (QString s : songTypeNamesForPatter)
+        for (const QString &s : songTypeNamesForPatter)
         {
             if (0 == s.compare(currentFilter, Qt::CaseInsensitive))
             {
@@ -4786,7 +4786,7 @@ bool filterContains(QString str, const QStringList &list)
 
     if (title_end < 0) title_end = str.length();
                 
-    for (auto t : list)
+    for (const auto &t : list)
     {
         QString filterWord(t);
         bool tagsOnly(false);
@@ -4828,7 +4828,7 @@ bool filterContains(QString str, const QStringList &list)
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
-    QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
+    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
 
     QStringList label = ui->labelSearch->text().split(rx);
     QStringList type = ui->typeSearch->text().split(rx);
@@ -4881,13 +4881,14 @@ QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, cons
     {
         titlePlusTags += "&nbsp;";
         QStringList tags = strtags.split(" ");
-        for (auto tag : tags)
+        for (const auto &tag : tags)
         {
             QString tagTrimmed(tag.trimmed());
             if (tagTrimmed.length() > 0)
             {
                 QPair<QString,QString> color = songSettings.getColorForTag(tag);
-                QString prefix = title_tags_prefix.arg(color.first).arg(color.second);
+//                QString prefix = title_tags_prefix.arg(color.first).arg(color.second);
+                QString prefix = title_tags_prefix.arg(color.first, color.second);
                 titlePlusTags +=  prefix + tag.toHtmlEscaped() + title_tags_suffix;
             }
         }
@@ -5270,8 +5271,9 @@ QStringList MainWindow::getUncheckedItemsFromCurrentCallList()
 
 void MainWindow::filterChoreography()
 {
-    QStringList exclude(getUncheckedItemsFromCurrentCallList());
-    QString program = ui->comboBoxCallListProgram->currentText();
+//    QStringList exclude(getUncheckedItemsFromCurrentCallList());
+//    QString program = ui->comboBoxCallListProgram->currentText();
+
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
     QStringList include = ui->lineEditChoreographySearch->text().split(",");
     for (int i = 0; i < include.length(); ++i)
@@ -5397,11 +5399,12 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 
         // Dance Program file names must begin with 0 then exactly 2 numbers followed by a dot, followed by the dance program name, dot text.
 //        if (QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(s) != -1)  // matches the Dance Program files in /reference
-        if (s.indexOf(QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption)) != -1)  // matches the Dance Program files in /reference
+        static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
+        if (s.indexOf(re1) != -1)  // matches the Dance Program files in /reference
         {
             //qDebug() << "Dance Program Match:" << s;
             QStringList sl1 = s.split("#!#");
-            QString type = sl1[0];  // the type (of original pathname, before following aliases)
+//            QString type = sl1[0];  // the type (of original pathname, before following aliases)
             QString origPath = sl1[1];  // everything else
             QFileInfo fi(origPath);
             if (fi.dir().canonicalPath().endsWith("/reference", Qt::CaseInsensitive))
@@ -6096,7 +6099,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         QStringList tags(tagColors.keys());
         tags.sort(Qt::CaseInsensitive);
 
-        for (auto tagUntrimmed : tags)
+        for (const auto &tagUntrimmed : tags)
         {
             QString tag(tagUntrimmed.trimmed());
 
@@ -6104,7 +6107,7 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
                 continue;
             
             bool set = false;
-            for (auto t : currentTags)
+            for (const auto &t : currentTags)
             {
                 if (t.compare(tag, Qt::CaseInsensitive) == 0)
                 {
@@ -6908,7 +6911,8 @@ void MainWindow::initReftab() {
             if (info2.exists()) {
 //                qDebug() << "    FOUND INDEX.HTML";
                 tabname = filename.split("/").last();
-                tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));  // 101.foo/index.html -> "foo"
+                static QRegularExpression re1("^1[0-9][0-9]\\.");
+                tabname.remove(re1);  // 101.foo/index.html -> "foo"
                 HTMLfolderExists = true;
                 whichHTM = "/index.html";
             } else {
@@ -6916,7 +6920,8 @@ void MainWindow::initReftab() {
                 if (info3.exists()) {
 //                    qDebug() << "    FOUND INDEX.HTM";
                     tabname = filename.split("/").last();
-                    tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));  // 101.foo/index.htm -> "foo"
+                    static QRegularExpression re2("^1[0-9][0-9]\\.");
+                    tabname.remove(re2);  // 101.foo/index.htm -> "foo"
                     HTMLfolderExists = true;
                     whichHTM = "/index.htm";
                 }
@@ -6941,10 +6946,12 @@ void MainWindow::initReftab() {
             }
         } else if (filename.endsWith(".txt") &&   // ends in .txt, AND
 //                   QRegExp("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", Qt::CaseInsensitive).indexIn(filename) == -1) {  // is not a Dance Program file in /reference
-            filename.indexOf(QRegularExpression("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption)) == -1) {
+            filename.indexOf(re1) == -1) {
 //                qDebug() << "    FOUND TXT FILE";
-                tabname = filename.split("/").last().remove(QRegularExpression(".txt$"));
-                tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));  // 122.bar.txt -> "bar"
+                static QRegularExpression re2(".txt$");
+                tabname = filename.split("/").last().remove(re2);
+                static QRegularExpression re3("^1[0-9][0-9]\\.");
+                tabname.remove(re3);  // 122.bar.txt -> "bar"
 
 //                qDebug() << "    tabname:" << tabname;
 
@@ -6964,7 +6971,8 @@ void MainWindow::initReftab() {
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
-                tabname = filename.split("/").last().remove(QRegularExpression(".[Mm][Dd]$"));
+                static QRegularExpression re4(".[Mm][Dd]$");
+                tabname = filename.split("/").last().remove(re4);
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
 #else
@@ -7010,9 +7018,11 @@ void MainWindow::initReftab() {
 //                qDebug() << "    indexFileURL:" << indexFileURL;
 
 //                webview[numWebviews]->setUrl(QUrl(pdf_path));
-                QFileInfo fInfo(filename);
-                tabname = filename.split("/").last().remove(QRegularExpression(".pdf$"));      // get basename, remove .pdf
-                tabname.remove(QRegularExpression("^1[0-9][0-9]\\."));                         // 122.bar.txt -> "bar"  // remove optional 1##. at front
+//                QFileInfo fInfo(filename);
+                static QRegularExpression re5(".pdf$");
+                tabname = filename.split("/").last().remove(re5);      // get basename, remove .pdf
+                static QRegularExpression re6("^1[0-9][0-9]\\.");
+                tabname.remove(re6);                         // 122.bar.txt -> "bar"  // remove optional 1##. at front
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
         }
@@ -7333,7 +7343,7 @@ void MainWindow::on_actionCheck_for_Updates_triggered()
     QString latestVersionNumber = QString(result).trimmed();
 
     // extract the pieces of the latest one
-    QRegularExpression rxVersion("^(\\d+)\\.(\\d+)\\.(\\d+)");
+    static QRegularExpression rxVersion("^(\\d+)\\.(\\d+)\\.(\\d+)");
     QRegularExpressionMatch match1 = rxVersion.match(latestVersionNumber);
     unsigned int major1 = static_cast<unsigned int>(match1.captured(1).toInt());
     unsigned int minor1 = static_cast<unsigned int>(match1.captured(2).toInt());
