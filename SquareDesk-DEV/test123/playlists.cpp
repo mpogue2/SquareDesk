@@ -732,6 +732,9 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     // if playlist cleared, save that fact in Preferences by setting to ""
     prefsManager.SetlastPlaylistLoaded(""); // save the fact that no playlist was loaded
+
+    ui->songTable->selectRow(1); // These 2 lines are intentionally down here
+    ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
 }
 
 // ----------------------------------------------------------------------
