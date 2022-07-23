@@ -735,6 +735,7 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     ui->songTable->selectRow(1); // These 2 lines are intentionally down here
     ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
+    ui->songTable->setFocus();  // if we're going to highlight the first row, we need to make it ENTER/RETURN-able
 }
 
 // ----------------------------------------------------------------------
