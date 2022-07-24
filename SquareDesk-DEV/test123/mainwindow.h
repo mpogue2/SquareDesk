@@ -628,6 +628,8 @@ public:
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
     void submit_lineEditSDInput_contents_to_sd();
+
+    QString musicRootPath; // needed by sd to do output_prefix
 private:
 
     QString lastAudioDeviceName;
@@ -683,7 +685,7 @@ private:
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
-    QString musicRootPath, guestRootPath, guestVolume, guestMode;
+    QString guestRootPath, guestVolume, guestMode;
     QString lastCuesheetSavePath;
     QString loadedCuesheetNameWithPath;
     enum SongFilenameMatchingType songFilenameFormat;
