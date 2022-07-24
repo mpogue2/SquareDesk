@@ -1,9 +1,9 @@
 SquareDeskPlayer is a GPL cross-platform (Mac, Windows & Linux) tool
-for square dance callers.
+for square dance callers.  It includes both a music player and a lyrics editor.
 
 Definitive information at http://squaredesk.net/
 
-![Main Screenshot](http://danlyke.github.io/SquareDeskPlayer/images/SquareDeskPlayerScreenshot.png)
+![Main Screenshot](https://mpogue2.github.io/images/musicplayer.png)
 
 Break and patter timers are automatic, and the clock also gives you a
 nice running color bar showing how much time you've spent on patter,
