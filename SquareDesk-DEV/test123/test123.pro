@@ -365,6 +365,8 @@ copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDes
 #  (inside the SquareDesk.app bundle)
 # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
 # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
+# MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
+copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata2.commands = $(COPY_DIR) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
@@ -429,7 +431,7 @@ macx {
     DEFINES += M1MAC=1
     QT += multimedia
 
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends = $(first) copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
@@ -437,12 +439,13 @@ macx {
     export(copydata0c.commands)
 
     # sd_calls.dat, allcalls.csv, sd_doc.pdf
+    export(copydata1dir.commands)
     export(copydata1.commands)
     export(copydata2.commands)
     export(copydata2b.commands)
     export(copydata3.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3
 
     # For the PDF viewer -----------------
     copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
