@@ -3,7 +3,7 @@ for square dance callers.
 
 Definitive information at http://squaredesk.net/
 
-![Main Screenshot](http://danlyke.github.com/SquareDeskPlayer/images/SquareDeskPlayerScreenshot.png)
+![Main Screenshot](http://danlyke.github.io/SquareDeskPlayer/images/SquareDeskPlayerScreenshot.png)
 
 Break and patter timers are automatic, and the clock also gives you a
 nice running color bar showing how much time you've spent on patter,

@@ -778,6 +778,7 @@ OBJECTIVE_SOURCES += \
     macUtils.mm
 
 DISTFILES += \
+    ../../README.md \
     Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
