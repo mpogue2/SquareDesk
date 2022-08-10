@@ -4135,10 +4135,8 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
 }
 
-
+// Extract TBPM tag from ID3v2 to know (for sure) what the BPM is for a song (overrides beat detection) -----
 double MainWindow::getID3BPM(QString MP3FileName) {
-    Q_UNUSED(MP3FileName)
-/*
     MPEG::File *mp3file;
     ID3v2::Tag *id3v2tag;  // NULL if it doesn't have a tag, otherwise the address of the tag
 
@@ -4157,9 +4155,8 @@ double MainWindow::getID3BPM(QString MP3FileName) {
         }
 
     }
-
-    return(theBPM); */  // M1MAC FIX
-    return(0.0);
+//    qDebug() << "getID3BPM filename: " << MP3FileName << "BPM: " << theBPM;
+    return(theBPM);
 }
 
 void MainWindow::reloadCurrentMP3File() {
@@ -9400,12 +9397,12 @@ void MainWindow::handleDurationBPM() {
     bool isPatter = songTypeNamesForPatter.contains(currentSongType);
 
 // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
-//    double songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
+    double songBPM_ID3 = getID3BPM(currentMP3filenameWithPath);  // returns 0.0, if not found or not understandable
 
-//    if (songBPM_ID3 != 0.0) {
-//        songBPM = static_cast<int>(songBPM_ID3);
-//        tempoIsBPM = true;  // this song's tempo is BPM, not %
-//    }
+    if (songBPM_ID3 != 0.0) {
+        songBPM = static_cast<int>(songBPM_ID3);
+        tempoIsBPM = true;  // this song's tempo is BPM, not %
+    }
 
     baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
 
