@@ -14,19 +14,18 @@ macx {
 }
 
 macx {
-#  message("QT_ARCH: " $${QT_ARCH})
-#  contains(QT_ARCH, x86_64) {
-#    message("X86_64 BUILD DETECTED!")
-#    ARCHDIR = "x86_64"
-#    # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
-#    QMAKE_MAC_SDK = macosx12.1
-#  }
-#  contains(QT_ARCH, arm64) {
-    message("ARM64 BUILD DETECTED!")
+  # VARIABLE REFERENCE: https://doc.qt.io/qt-6/qmake-variable-reference.html
+  # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
+  contains(QMAKE_HOST.arch, x86_64) {
+    message("X86_64 BUILD MACHINE DETECTED!")
+    ARCHDIR = "x86_64"
+    QMAKE_MAC_SDK = macosx12.1
+  }
+  contains(QMAKE_HOST.arch, arm64) {
+    message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
     QMAKE_MAC_SDK = macosx12.3
-#  }
+  }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
 
