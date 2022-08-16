@@ -4,21 +4,19 @@
 # http://asmaloney.com/2013/07/howto/packaging-a-mac-os-x-application-using-a-dmg/
 
 # make sure we are in the correct dir when we double-click a .command file
-dir=${0%/*}
-if [ -d "$dir" ]; then
-  cd "$dir"
-fi
+# dir=${0%/*}
+# if [ -d "$dir" ]; then
+#   cd "$dir"
+# fi
 
-echo $dir
+# echo $dir
 
 # the macdeployqt step!
 # cd build-test123-Desktop_Qt_5_7_0_clang_64bit-Debug/
 
-# if errors about can't find libs, try:
-# cd to the app/Contents/MacOS
-# otool -L SquareDeskPlayer
-# install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
-# otool -L SquareDeskPlayer
+# No longer needed:
+## install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDeskPlayer
+## install_name_tool -change libtidy.5.dylib @executable_path/libtidy.5.dylib SquareDeskPlayer
 #
 # These errors can be ignored, they are false dependencies:
 # ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
@@ -29,44 +27,60 @@ WHICH=Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="0.9.6"  # <-- THIS IS THE ONE TO CHANGE
-DMG_BACKGROUND_IMG="installer3.png"
+VERSION="0.9.12X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
-QTVERSION="6.2.1"
-QT_VERSION="6_2_1"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="6.3.1"
+QT_VERSION="6_3_1"   # same thing, but with underscores (yes, change both of them at the same time!)
 
-#MANUAL="SquareDeskManual.pdf"
+SOURCEDIR="/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/test123"
+MIKEBUILDDIR="/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_${QT_VERSION}_for_macOS-${WHICH}"
 
-MIKEBUILDDIR="/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Desktop_Qt_${QT_VERSION}_clang_64bit5-${WHICH}"
+DMG_BACKGROUND_IMG_SHORT="installer3.png"
+DMG_BACKGROUND_IMG="${SOURCEDIR}/images/${DMG_BACKGROUND_IMG_SHORT}"
+
+echo
+echo SOURCEDIR: ${SOURCEDIR}
+echo MIKEBUILDDIR: ${MIKEBUILDDIR}
+echo DMG_BACKGROUND_IMG: ${DMG_BACKGROUND_IMG}
+echo DYLD_FRAMEWORK_PATH: ${DYLD_FRAMEWORK_PATH}
+echo
 
 # ------------------------------------------------------------------------
+echo WARNING: libquazip not present in X86 build yet
+
 echo Now running otool to fixup libraries...
-# Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
+# # Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
 pushd ${MIKEBUILDDIR}/test123/SquareDesk.app/Contents/MacOS
 otool -L SquareDesk | egrep "qua"
-install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
+# install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
 echo Those two lines should now start with executable_path...
 otool -L SquareDesk | egrep "qua"
 popd
 
-# ---------------------------------------------------
-echo Now running Mac Deploy Qt step...
- ~/Qt/${QTVERSION}/clang_64/bin/macdeployqt SquareDesk.app
+# ----------------------------------------------------------------------------------------
+echo Now running Mac Deploy Qt step...  NOTE: MUST BE UNCOMMENTED OUT AND RUN ONCE
+# NOT THIS ONE: ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+# ~/Qt${QTVERSION}/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+
 echo Mac Deploy Qt step done.
 echo
 
-echo "--------------------------------------"
-echo Building version $VERSION of $APP_NAME
-echo "--------------------------------------"
+# ----------------------------------------------------------------------------------------
+echo "-------------------------------------------"
+echo Building version $VERSION of $APP_NAME DMG
+echo "-------------------------------------------"
 echo
 
 # you should not need to change these
 APP_EXE="${APP_NAME}.app/Contents/MacOS/${APP_NAME}"
+RENAMED_APP_EXE="${APP_NAME}_${VERSION}.app/Contents/MacOS/${APP_NAME}"
 
-VOL_NAME="${APP_NAME} ${VERSION}"   # volume name will be "SuperCoolApp 1.0.0"
+VOL_NAME="${APP_NAME}_${VERSION}_X86"   # volume name will be "SquareDesk_0.9.6_X86"
 DMG_TMP="${VOL_NAME}-temp.dmg"
-DMG_FINAL="${VOL_NAME}.dmg"         # final DMG name will be "SuperCoolApp 1.0.0.dmg"
-STAGING_DIR="./Install"             # we copy all our stuff into this dir
+DMG_FINAL="${VOL_NAME}.dmg"         # final DMG name will be "SquareDesk_0.9.6.dmg"
+STAGING_DIR="${MIKEBUILDDIR}/Install"             # we copy all our stuff into this dir
+
+echo STAGING_DIR: ${STAGING_DIR}
 
 # Check the background image DPI and convert it if it isn't 72x72
 _BACKGROUND_IMAGE_DPI_H=`sips -g dpiHeight ${DMG_BACKGROUND_IMG} | grep -Eo '[0-9]+\.[0-9]+'`
@@ -87,16 +101,31 @@ fi
 rm -rf "${STAGING_DIR}" "${DMG_TMP}" "${DMG_FINAL}"
 
 # copy over the stuff we want in the final disk image to our staging dir
+echo
+echo Making Staging Directory...
 mkdir -p "${STAGING_DIR}"
-#cp -rpf "${APP_NAME}.app" "${STAGING_DIR}"
-cp -Rpf "${APP_NAME}.app" "${STAGING_DIR}"
+
+echo "================================================================"
+echo "Running xattr to clean up permissions... (no need for sudo here)"
+xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+xattr -cr "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+
+echo "Copying .app to STAGING_DIR and renaming to ${APP_NAME}_${VERSION}.app..."
+cp -Rpf "${MIKEBUILDDIR}/test123/${APP_NAME}.app" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+
+echo "Running xattr to clean up permissions, belt and suspenders...(no need for sudo here)"
+xattr -r "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+xattr -cr "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+xattr -r "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+echo "================================================================"
 
 # ----------------
 # I am not sure why the .plist file is not getting copied into the executable.
 #  Do that here to be sure it's in.
 echo "**** COPYING IN PLIST FILE...."
-SOURCEDIR="../../SquareDesk-DEV"
-cp ${SOURCEDIR}/test123/Info.plist "${STAGING_DIR}/${APP_NAME}.app/Contents/Info.plist"
+cp ${SOURCEDIR}/Info.plist "${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Info.plist"
+echo
 # ----------------
 
 # copy in the SquareDesk Manual
@@ -104,21 +133,31 @@ cp ${SOURCEDIR}/test123/Info.plist "${STAGING_DIR}/${APP_NAME}.app/Contents/Info
 
 # ... cp anything else you want in the DMG - documentation, etc.
 
-echo STAGING_DIR: ${STAGING_DIR}
+echo "***** pushing to ${STAGING_DIR}..."
 pushd "${STAGING_DIR}"
+echo 
 
 # strip the executable
-echo "Stripping ${APP_EXE}..."
-strip -u -r "${APP_EXE}"
+echo "Stripping ${RENAMED_APP_EXE}..."
+strip -u -r "${RENAMED_APP_EXE}"
+echo
 
 # compress the executable if we have upx in PATH
 #  UPX: http://upx.sourceforge.net/
-if hash upx 2>/dev/null; then
-   echo "Compressing (UPX) ${APP_EXE}..."
-   upx -9 "${APP_EXE}"
-fi
+# if hash upx 2>/dev/null; then
+#    echo "Compressing (UPX) ${APP_EXE}..."
+#    upx -9 "${APP_EXE}"
+# fi
 
 # ... perform any other stripping/compressing of libs and executables
+
+# Locate all the Qt Universal libs, and strip out the x86_64 part, since this is an M1-only executable right now
+echo "----- Removing M1 stuff to make the X86-specific .app file much thinner...."
+ls -al ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Frameworks
+find ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Frameworks -type f -name "Qt*" -size +1k
+find ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Frameworks -type f -name "Qt*" -size +1k -exec mv {} {}.backup \; -exec lipo -remove arm64 {}.backup -output {} \; -exec ls -al {} \; -exec ls -al {}.backup \; -exec rm {}.backup \;
+echo "----- DONE WITH LIPO ON QT FRAMEWORKS"
+echo 
 
 popd
 
@@ -132,22 +171,25 @@ if [ $? -ne 0 ]; then
    exit
 fi
 
+echo "-------------------------"
 echo SIZE: ${SIZE} MB
 echo STAGING_DIR: ${STAGING_DIR}
 echo VOL_NAME: ${VOL_NAME}
 echo DMG_TMP: ${DMG_TMP}
 
-# create the temp DMG file
+echo
+echo creating the temp DMG file...
 hdiutil create -srcfolder "${STAGING_DIR}" -volname "${VOL_NAME}" -fs HFS+ \
       -fsargs "-c c=64,a=16,e=16" -format UDRW -size ${SIZE}M "${DMG_TMP}"
 
 echo "Created DMG: ${DMG_TMP}"
+echo
 
-# mount it and save the device
+echo Mounting it and saving the device...
 DEVICE=$(hdiutil attach -readwrite -noverify "${DMG_TMP}" | \
          egrep '^/dev/' | sed 1q | awk '{print $1}')
-
 echo "DEVICE: ${DEVICE}"
+echo
 
 sleep 2
 
@@ -160,6 +202,7 @@ popd
 # add a background image
 echo "Make the .background directory"
 mkdir /Volumes/"${VOL_NAME}"/.background
+
 echo "Copy in the background image: ${DMG_BACKGROUND_IMG}"
 cp "${DMG_BACKGROUND_IMG}" /Volumes/"${VOL_NAME}"/.background/
 
@@ -182,8 +225,8 @@ echo '
            set viewOptions to the icon view options of container window
            set arrangement of viewOptions to not arranged
            set icon size of viewOptions to 72
-           set background picture of viewOptions to file ".background:'${DMG_BACKGROUND_IMG}'"
-           set position of item "'${APP_NAME}'.app" of container window to {160, 205}
+           set background picture of viewOptions to file ".background:'${DMG_BACKGROUND_IMG_SHORT}'"
+           set position of item "'${APP_NAME}_${VERSION}'.app" of container window to {160, 205}
            set position of item "Applications" of container window to {360, 205}
            close
            open
@@ -193,22 +236,28 @@ echo '
    end tell
 ' | osascript
 
+echo
 echo "Syncing..."
 sync
 
 # unmount it
+echo
 echo "Unmounting..."
 hdiutil detach "${DEVICE}"
 
 # now make the final image a compressed disk image
+echo
 echo "Creating compressed image"
+echo "DMG_FINAL: ${DMG_FINAL}"
 hdiutil convert "${DMG_TMP}" -format UDZO -imagekey zlib-level=9 -o "${DMG_FINAL}"
 
 # clean up
+echo
 echo "Cleaning up..."
 rm -rf "${DMG_TMP}"
 #rm -rf "${STAGING_DIR}"     #  keep this one around, because it's useful for testing
 
 echo 'DONE.'
+echo "-------------------------"
 
 exit
