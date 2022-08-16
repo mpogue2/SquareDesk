@@ -13,6 +13,22 @@ macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
 }
 
+macx {
+  contains(QT_ARCH, arm64) {
+    message("ARM64 BUILD DETECTED!")
+    ARCHDIR = "arm64"
+    # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
+    QMAKE_MAC_SDK = macosx12.3
+  }
+  contains(QT_ARCH, x86_64) {
+    message("X86_64 BUILD DETECTED!")
+    ARCHDIR = "x86_64"
+    # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
+    QMAKE_MAC_SDK = macosx12.1
+  }
+  message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
+}
+
 win32:CONFIG(debug, debug|release): {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/debug/sdlib.lib
@@ -296,7 +312,8 @@ INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
 
 # KFR for filters -----------------------------------
 INCLUDEPATH += $$PWD/../kfr/include
-LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
+#LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
+LIBS += -L$$PWD/../kfr/lib/$${ARCHDIR} -lkfr_dft -lkfr_io
 
 # MiniBPM for BPM detection -----------------------------------
 INCLUDEPATH += $$PWD/miniBPM
@@ -346,9 +363,6 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 #   QMAKE_MAC_SDK = macosx11.1
 # QMAKE_MAC_SDK = macosx11.3
 
-# NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
-QMAKE_MAC_SDK = macosx12.3
-#QMAKE_MAC_SDK = macosx12.1
 
 # If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
 # the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
