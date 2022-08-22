@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# THIS FILE IS FOR X86 ONLY -----------------
+
 # by Andy Maloney
 # http://asmaloney.com/2013/07/howto/packaging-a-mac-os-x-application-using-a-dmg/
 
@@ -23,7 +25,7 @@
 # ERROR: no file at "/usr/local/lib/libpq.5.dylib"
 
 #WHICH=Debug
-WHICH=Release
+WHICH=X86-Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
