@@ -1,6 +1,6 @@
 /****************************************************************************
 `**
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -149,8 +149,8 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::Key_Period).toString()] = &keyaction_KeyActionRestartSong;
     keyMappings[QKeySequence(Qt::Key_Right).toString()] = &keyaction_KeyActionForward15Seconds;
     keyMappings[QKeySequence(Qt::Key_Left).toString()] = &keyaction_KeyActionBackward15Seconds;
-    keyMappings[QKeySequence(Qt::Key_Down).toString()] = &keyaction_KeyActionVolumeMinus;
-    keyMappings[QKeySequence(Qt::Key_Up).toString()] = &keyaction_KeyActionVolumePlus;
+//    keyMappings[QKeySequence(Qt::Key_Down).toString()] = &keyaction_KeyActionVolumeMinus;
+//    keyMappings[QKeySequence(Qt::Key_Up).toString()] = &keyaction_KeyActionVolumePlus;
     keyMappings[QKeySequence(Qt::Key_Plus).toString()] = &keyaction_KeyActionTempoPlus;
     keyMappings[QKeySequence(Qt::Key_Minus).toString()] = &keyaction_KeyActionTempoMinus;
     keyMappings[QKeySequence(Qt::Key_D).toString()] = &keyaction_KeyActionPitchMinus;

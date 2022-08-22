@@ -103,7 +103,7 @@ public:
 
    setup m_real_saved_people[8];
    int m_saved_rotations[MAX_PEOPLE];
-   setup m_virtual_setup[2];       // If melded, use both.  Otherwise only m_virtual_setup[0].
+   setup m_virtual_setup[4];       // If melded, use however many in group.  Otherwise only m_virtual_setup[0].
    setup virtual_result;
    int m_vertical_people[MAX_PEOPLE];    // 1 if original people were near/far; 0 if lateral.
    uint32_t single_mask;
@@ -1083,7 +1083,7 @@ bool tandrec::pack_us(
    bool dynamic_in_use,
    int key) THROW_DECL
 {
-   int i, j;
+   int i, j, l;
    uint64_t mlow, sgllow;
    int virt_index = -1;
 
@@ -1091,11 +1091,15 @@ bool tandrec::pack_us(
    m_virtual_setup[0].rotation = map_ptr->rot & 3;
    m_virtual_setup[0].eighth_rotation = 0;
    m_virtual_setup[0].kind = map_ptr->insetup;
-   m_virtual_setup[1] = m_virtual_setup[0];   // Need this one also.
+   m_virtual_setup[1] = m_virtual_setup[0];   // Need these also.
+   m_virtual_setup[2] = m_virtual_setup[0];
+   m_virtual_setup[3] = m_virtual_setup[0];
 
    if (m_melded) {
       m_real_saved_people[0].clear_people();
       m_real_saved_people[1].clear_people();
+      m_real_saved_people[2].clear_people();
+      m_real_saved_people[3].clear_people();
    }
 
    for (i=0, mlow=map_ptr->ilatmask3, sgllow=map_ptr->insinglemask;
@@ -1106,11 +1110,16 @@ bool tandrec::pack_us(
       // of people working together.
 
       personrec fb[8];    // Will receive the people being assembled.
-      uint32_t vp1, vp2, vp3;
-      uint32_t vp1a, vp2a, vp3a;
-      vp1a = 0;   // Do we need these?
-      vp2a = 0;
-      vp3a = 0;
+      uint32_t vp1base[8];
+      uint32_t vp2base[8];
+      uint32_t vp3base[8];
+
+      for (l=0 ; l<8 ; l++) {
+         vp1base[l] = 0;
+         vp2base[l] = 0;
+         vp3base[l] = 0;
+      }
+
       // We know (hopefully) that this map doesn't have the "1/8 twosome" stuff, so the bits will be AB0.
       // This will get an error, of course.  Where m was ......AB,
       // mlow is .....AB0.  Or maybe AB1, in which case this map must not be used.
@@ -1130,9 +1139,9 @@ bool tandrec::pack_us(
 
       if (sgllow & 1) {
          // This person is not paired, as in "boys are tandem" when we are a girl.
-         vp1 = fb[0].id1;
-         vp2 = fb[0].id2;
-         vp3 = fb[0].id3;
+         vp1base[0] = fb[0].id1;
+         vp2base[0] = fb[0].id2;
+         vp3base[0] = fb[0].id3;
          fb[1].id1 = ~0U;
       }
       else {
@@ -1186,17 +1195,16 @@ bool tandrec::pack_us(
             if ((fraction_in_use || dynamic_in_use) && (orpeople1 & STABLE_ALL_MASK))
                fail("Sorry, can't nest fractional stable/twosome.");
 
-            vp1 = ~0U;
-            vp2 = ~0U;
-            vp3 = ~0U;
+            vp1base[0] = ~0U;
+            vp2base[0] = ~0U;
+            vp3base[0] = ~0U;
 
             if (m_melded) {
-               vp1 = 0;
-               vp2 = 0;
-               vp3 = 0;
-               vp1a = 0;
-               vp2a = 0;
-               vp3a = 0;
+               for (l=0 ; l<8 ; l++) {
+                  vp1base[l] = 0;
+                  vp2base[l] = 0;
+                  vp3base[l] = 0;
+               }
             }
 
             // Create the virtual person.  When both people are present, anding
@@ -1208,30 +1216,22 @@ bool tandrec::pack_us(
 
             for (j=0 ; j<m_people_per_group ; j++) {
                if (fb[j].id1) {
-                  // **** Do this right.
                   if (m_melded) {
-                     if (j == 0) {
-                        vp1 = fb[j].id1;
-                        vp2 = fb[j].id2;
-                        vp3 = fb[j].id3;
-                     }
-                     else {
-                        vp1a = fb[j].id1;
-                        vp2a = fb[j].id2;
-                        vp3a = fb[j].id3;
-                     }
+                     vp1base[j] = fb[j].id1;
+                     vp2base[j] = fb[j].id2;
+                     vp3base[j] = fb[j].id3;
                   }
                   else {
-                     vp1 &= fb[j].id1;
-                     vp2 &= fb[j].id2;
-                     vp3 &= fb[j].id3;
+                     vp1base[0] &= fb[j].id1;
+                     vp2base[0] &= fb[j].id2;
+                     vp3base[0] &= fb[j].id3;
 
                      // If they have different fractional stability states,
                      // just clear them -- they can't do it.
-                     if ((fb[j].id1 ^ orpeople1) & STABLE_ALL_MASK) vp1 &= ~STABLE_ALL_MASK;
+                     if ((fb[j].id1 ^ orpeople1) & STABLE_ALL_MASK) vp1base[0] &= ~STABLE_ALL_MASK;
                      // If they have different slide or roll states, just clear them -- they can't roll.
-                     if ((fb[j].id1 ^ orpeople1) & ROLL_DIRMASK) vp1 &= ~ROLL_DIRMASK;
-                     if ((fb[j].id1 ^ orpeople1) & NSLIDE_MASK) vp1 &= ~NSLIDE_MASK;
+                     if ((fb[j].id1 ^ orpeople1) & ROLL_DIRMASK) vp1base[0] &= ~ROLL_DIRMASK;
+                     if ((fb[j].id1 ^ orpeople1) & NSLIDE_MASK) vp1base[0] &= ~NSLIDE_MASK;
                      // Check that all real people face the same way.
                      if ((fb[j].id1 ^ orpeople1) & 077)
                         return true;
@@ -1240,22 +1240,20 @@ bool tandrec::pack_us(
             }
          }
          else {
-            vp1 = 0;
-            vp1a = 0;
+            for (l=0 ; l<8 ; l++) {
+               vp1base[l] = 0;
+            }
          }
       }
 
-      for (int meld_number = 0 ; meld_number < 2 ; meld_number++) {
+      for (int meld_number = 0 ; meld_number < m_people_per_group ; meld_number++) {
          personrec *ptr = &m_virtual_setup[meld_number].people[i];
 
-         // **** Do this right.
-         if (meld_number == 1) {
-            vp1 = vp1a;
-            vp2 = vp2a;
-            vp3 = vp3a;
-         }
+         vp1base[0] = vp1base[meld_number];
+         vp2base[0] = vp2base[meld_number];
+         vp3base[0] = vp3base[meld_number];
 
-         if (vp1) {
+         if (vp1base[0]) {
             // Create a virtual person number.  Only 8 are allowed, because of the tightness
             // in the person representation.  That shouldn't be a problem, since each
             // virtual person came from a group of real people that had at least one
@@ -1263,9 +1261,9 @@ bool tandrec::pack_us(
 
             if ((++virt_index) >= 8) fail("Sorry, too many tandem or as couples people.");
 
-            ptr->id1 = (vp1 & ~0700) | (virt_index << 6) | BIT_TANDVIRT;
-            ptr->id2 = vp2;
-            ptr->id3 = vp3;
+            ptr->id1 = (vp1base[0] & ~0700) | (virt_index << 6) | BIT_TANDVIRT;
+            ptr->id2 = vp2base[0] ;
+            ptr->id3 = vp3base[0];
 
             if (!(sgllow & 1)) {
                if (fraction_in_use)
@@ -2246,7 +2244,7 @@ extern void tandem_couples_move(
 
       update_id_bits(&tandstuff.m_virtual_setup[1]);
 
-      for (int k=0 ; k<2 ; k++) {
+      for (int k=0 ; k<tandstuff.m_people_per_group ; k++) {
          for (int j=0 ; j<=attr::klimit(incoming_map->insetup) ; j++) {
             setup sss = tandstuff.m_virtual_setup[k];
             sss.clear_people();
@@ -3308,6 +3306,7 @@ void mimic_move(
    case selector_belles:
       MI.lateral = 1;
    case selector_leads:
+   case selector_leaders:
    case selector_trailers:
    case selector_center4:
    case selector_outerpairs:
@@ -3333,6 +3332,7 @@ void mimic_move(
    switch (who) {
    case selector_belles:
    case selector_leads:
+   case selector_leaders:
    case selector_rightmosttwo:
    case selector_firsttwo:
    case selector_rightmostfour:

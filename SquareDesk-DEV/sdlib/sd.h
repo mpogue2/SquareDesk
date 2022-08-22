@@ -257,6 +257,7 @@ enum concept_kind {
    concept_matrix,
    concept_double_offset,
    concept_checkpoint,
+   concept_checkpoint_it_it,
    concept_on_your_own,
    concept_trace,
    concept_move_in_and,
@@ -490,6 +491,7 @@ enum warning_index {
    warn__xclineconc_perpc,
    warn__xcdmdconc_perpc,
    warn__xclineconc_perpe,
+   warn__conc_perpfail,
    warn__each2x2,
    warn__each1x4,
    warn__each1x2,
@@ -1412,6 +1414,7 @@ enum selector_kind {
    selector_ends,
    selector_outsides,
    selector_leads,
+   selector_leaders,
    selector_trailers,
    selector_lead_beaus,
    selector_lead_belles,
@@ -1783,13 +1786,14 @@ enum { MAX_PEOPLE = 24 };
 
 struct small_setup {
    setup_kind skind;
-   uint16_t srotation;
+   uint8_t srotation;
    uint16_t seighth_rotation;
 };
 
 struct setup {
    setup_kind kind;
-   uint16_t rotation;
+   uint8_t rotation;
+   uint8_t rotation_offset_from_true_north;
    uint16_t eighth_rotation;
    setup_command cmd;
    personrec people[MAX_PEOPLE];
@@ -1815,7 +1819,8 @@ struct setup {
    inline void swap_people(int oneplace, int otherplace);
    inline void rotate_person(int where, int rotamount);
 
-   setup() {}
+   setup() : rotation_offset_from_true_north(0) {}
+
    setup(setup_kind k, int r,    // in sdtop.cpp.
          uint32_t P0, uint32_t I0,
          uint32_t P1, uint32_t I1,
@@ -1836,6 +1841,7 @@ struct setup {
       kind = s_dead_concentric;
       rotation = 0;
       eighth_rotation = 0;
+      rotation_offset_from_true_north = 0;
 
       // And clear "outer".
       outer.skind = nothing;
@@ -3618,8 +3624,8 @@ class tglmap {
    static const tglmapkey s434map14[];
 };
 
-
-typedef unsigned int id_bit_table[4];  // -mpogue, enums are 0x800000000 which doesn't fit in an int
+//typedef int id_bit_table[4];
+typedef unsigned int id_bit_table[4];  // -mpogue
 
 struct ctr_end_mask_rec {
    uint32_t mask_normal;
@@ -3966,7 +3972,8 @@ enum {
    RESULTFLAG__NEED_DIAMOND         = 0x00000040U,
    RESULTFLAG__DID_MXN_EXPANSION    = 0x00000080U,
    RESULTFLAG__COMPRESSED_FROM_2X3  = 0x00000100U,
-   // 2 spare bits here
+   RESULTFLAG__EMPTY_1X4_TO_2X2     = 0x00000200U,
+   // 1 spare bit here
    RESULTFLAG__ACTIVE_PHANTOMS_ON   = 0x00000800U,
    RESULTFLAG__ACTIVE_PHANTOMS_OFF  = 0x00001000U,
    RESULTFLAG__EXPAND_TO_2X3        = 0x00002000U,
@@ -4394,9 +4401,12 @@ enum {
    //    is "Z axle" or "counter rotate").  In that case, the call is done directly
    //    in the 2x3, and the "Z" distortion is presumed not to have been in place.
    CMD_MISC2__REQUEST_Z         = 0x00001000U,
-   // spare:         = 0x00002000U,
-   // spare:         = 0x00004000U,
-   // spare:         = 0x00008000U,
+   // After doing 1x3 types of things, we need to squeeze out extra spots.  If the
+   // setup was split, do it separately in each part.  Even if unsymmetrical.  Do this
+   // for 3x1-types of things, but NOT 3x3.
+   CMD_MISC2__LOCAL_RECENTER    = 0x00002000U,
+   // spare:                    = 0x00004000U,
+   // spare:                    = 0x00008000U,
 
    CMD_MISC2_RESTRAINED_SUPER   = 0x00010000U,
 

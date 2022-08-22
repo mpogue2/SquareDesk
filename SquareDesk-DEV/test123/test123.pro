@@ -13,6 +13,22 @@ macx {
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
 }
 
+macx {
+  # VARIABLE REFERENCE: https://doc.qt.io/qt-6/qmake-variable-reference.html
+  # NOTE: Right now, use 12.3 for Monterey M1, use 12.1 for Big Sur X86 laptop
+  contains(QMAKE_HOST.arch, x86_64) {
+    message("X86_64 BUILD MACHINE DETECTED!")
+    ARCHDIR = "x86_64"
+    QMAKE_MAC_SDK = macosx12.1
+  }
+  contains(QMAKE_HOST.arch, arm64) {
+    message("ARM64 BUILD MACHINE DETECTED!")
+    ARCHDIR = "arm64"
+    QMAKE_MAC_SDK = macosx12.3
+  }
+  message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
+}
+
 win32:CONFIG(debug, debug|release): {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/debug/sdlib.lib
@@ -37,15 +53,34 @@ DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
 #    AppleMusicLibraryXMLReader.cpp \  # no longer need this
+    audiodecoder.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
+    lyricsEditor.cpp \
     mainwindow.cpp \
+#    miniBPM/MiniBpm.cpp \
+    miniBPM/MiniBpm.cpp \
+    playlists.cpp \
     preferencesdialog.cpp \
     choreosequencedialog.cpp \
     importdialog.cpp \
     exportdialog.cpp \
     songhistoryexportdialog.cpp \
     mytablewidget.cpp \
+    soundtouch/source/SoundTouch/AAFilter.cpp \
+    soundtouch/source/SoundTouch/BPMDetect.cpp \
+    soundtouch/source/SoundTouch/FIFOSampleBuffer.cpp \
+    soundtouch/source/SoundTouch/FIRFilter.cpp \
+    soundtouch/source/SoundTouch/InterpolateCubic.cpp \
+    soundtouch/source/SoundTouch/InterpolateLinear.cpp \
+    soundtouch/source/SoundTouch/InterpolateShannon.cpp \
+    soundtouch/source/SoundTouch/PeakFinder.cpp \
+    soundtouch/source/SoundTouch/RateTransposer.cpp \
+    soundtouch/source/SoundTouch/SoundTouch.cpp \
+    soundtouch/source/SoundTouch/TDStretch.cpp \
+    soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
+    soundtouch/source/SoundTouch/mmx_optimized.cpp \
+    soundtouch/source/SoundTouch/sse_optimized.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
     levelmeter.cpp \
@@ -87,10 +122,13 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@
 }
 
 HEADERS  += mainwindow.h \
+#    ../miniBPM/MiniBpm.h \
+    audiodecoder.h \
     bass.h \
     bass_fx.h \
     bass_audio.h \
     flexible_audio.h \
+    miniBPM/MiniBpm.h \
     myslider.h \
     bassmix.h \
     importdialog.h \
@@ -99,6 +137,21 @@ HEADERS  += mainwindow.h \
     songhistoryexportdialog.h \
     preferencesdialog.h \
     choreosequencedialog.h \
+    soundtouch/include/BPMDetect.h \
+    soundtouch/include/FIFOSampleBuffer.h \
+    soundtouch/include/FIFOSamplePipe.h \
+    soundtouch/include/STTypes.h \
+    soundtouch/include/SoundTouch.h \
+    soundtouch/include/soundtouch_config.h \
+    soundtouch/source/SoundTouch/AAFilter.h \
+    soundtouch/source/SoundTouch/FIRFilter.h \
+    soundtouch/source/SoundTouch/InterpolateCubic.h \
+    soundtouch/source/SoundTouch/InterpolateLinear.h \
+    soundtouch/source/SoundTouch/InterpolateShannon.h \
+    soundtouch/source/SoundTouch/PeakFinder.h \
+    soundtouch/source/SoundTouch/RateTransposer.h \
+    soundtouch/source/SoundTouch/TDStretch.h \
+    soundtouch/source/SoundTouch/cpu_detect.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \
@@ -158,8 +211,9 @@ FORMS    += mainwindow.ui \
     preferencesdialog.ui
 
 macx {
-INCLUDEPATH += $$PWD/ $$PWD/../local/include
-DEPENDPATH += $$PWD/ $$PWD/../local/include
+# This is just for libtidy at this point... (NOTE: libtidy no longer needed)
+INCLUDEPATH += $$PWD/ $$PWD/../local_macosx/include
+DEPENDPATH += $$PWD/ $$PWD/../local_macosx/include
 }
 
 win32 {
@@ -175,8 +229,8 @@ LIBS += -L$$PWD/../sdlib -lsdlib
 
 
 # NOTE: there is no debug version of libbass
-win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -ltidy -lquazip
-else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3 -ltidys
+win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -lquazip
+else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3
 # macx: see below...
 
 win32:CONFIG(debug, debug|release): {
@@ -246,6 +300,7 @@ win32:CONFIG(release, debug|release): {
 macx {
 LIBS += -framework CoreFoundation
 LIBS += -framework AppKit
+#LIBS += -framework Accelerate  # needed just for RubberBand, for vDSP FFT
 
 # TAGLIB ----------------------------------------
 LIBS += -L$$OUT_PWD/../taglib -ltaglib
@@ -254,6 +309,17 @@ INCLUDEPATH += $$PWD/../taglib
 INCLUDEPATH += $$PWD/../taglib/taglib
 INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
 INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
+
+# KFR for filters -----------------------------------
+INCLUDEPATH += $$PWD/../kfr/include
+#LIBS += -L$$PWD/../kfr/build -lkfr_dft -lkfr_io
+LIBS += -L$$PWD/../kfr/lib/$${ARCHDIR} -lkfr_dft -lkfr_io
+
+# MiniBPM for BPM detection -----------------------------------
+INCLUDEPATH += $$PWD/miniBPM
+
+# SoundTouch for pitch/tempo changing -----------------------------------
+INCLUDEPATH += $$PWD/soundtouch/include
 
 # SDLIB ------------------------------------------
 LIBS += -L$$OUT_PWD/../sdlib -lsdlib
@@ -296,7 +362,7 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 #   QMAKE_MAC_SDK = macosx10.15
 #   QMAKE_MAC_SDK = macosx11.1
 # QMAKE_MAC_SDK = macosx11.3
-QMAKE_MAC_SDK = macosx12.0
+
 
 # If you get the error: "dyld: Symbol not found: __cg_jpeg_resync_to_restart"
 # the fix is here: https://stackoverflow.com/questions/35509731/dyld-symbol-not-found-cg-jpeg-resync-to-restart
@@ -313,12 +379,20 @@ copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDes
 #  (inside the SquareDesk.app bundle)
 # Also copy the PDF file into the Resources folder, so we can stick it into the Reference folder
 # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
+# MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
+copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
-copydata2.commands = $(COPY_DIR) $$PWD/../sd/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata2.commands = $(COPY_DIR) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SquareDesk Manual (PDF)
 copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
+
+# NOTE: If we get an error here, that MacOS already exists, it's probably because we just switched to a new version of
+#  Qt, and we have a new build directory, and within that build directory we have a new squaredesk.app/Contents,
+#  and the copy of sd_calls.dat tried to copy to SquareDesk.app/Contents/MacOS (the FILE), and it should have been
+#  an already-existing SquareDesk.app/Contents/MacOS (the FOLDER).  To fix this, just delete the MacOS FILE, and
+#  create a folder called MacOS in Contents.  Then, the build should finish properly.
 
 # SOUNDFX STARTER SET --------------------------------------------
 copydata10.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/soundfx
@@ -352,87 +426,40 @@ export(copydata12h.commands)
 
 QMAKE_EXTRA_TARGETS += copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
-# For the Mac OS X DMG installer build, we need exactly 2 files stuck into the results directory ---------
-installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command
+# For the Mac OS X DMG installer build, we need exactly 3 files stuck into the results directory ---------
+installer1.commands = $(COPY) $$PWD/PackageIt.command $$OUT_PWD/PackageIt.command          # INTEL
 installer2.commands = $(COPY) $$PWD/images/Installer3.png $$OUT_PWD/Installer3.png
-first.depends += installer1 installer2
+installer3.commands = $(COPY) $$PWD/PackageIt_M1.command $$OUT_PWD/PackageIt_M1.command    # Apple Silicon M1
+first.depends += $(first) installer1 installer2 installer3
 export(first.depends)
 export(installer1.commands)
 export(installer2.commands)
-QMAKE_EXTRA_TARGETS += installer1 installer2
-
+export(installer3.commands)
+QMAKE_EXTRA_TARGETS += first installer1 installer2 installer3
 }
 
 # ************************************************************************************
 # USE THIS ONE FOR STUFF THAT IS FOR M1 MACS ONLY *************
-#macx {
-#    # M1MAC: comment this section out on X86 Mac builds
-#    DEFINES += M1MAC=1
-#}
-
-# USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
 macx {
-    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
-    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
-    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-    LIBS += $$PWD/../local/lib/libtidy.5.dylib
+    # M1MAC: comment this section out on X86 Mac builds
+    DEFINES += M1MAC=1
+    QT += multimedia
 
-    mylib.path = Contents/MacOS
-    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
-    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
-    mylib.files += $$PWD/../local/lib/libtidy.5.dylib
-    QMAKE_BUNDLE_DATA += mylib
+    first.depends = $(first) copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
-    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
-    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
-    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
-
-    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
-
-    # ZLIB ------------------------------------------
-    #  do "brew install zlib"
-    # LIBS += /usr/lib/libz.dylib
-    LIBS += /usr/local/opt/zlib/lib/libz.dylib
-
-    # PS --------------------------------------------
-    # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
-    #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
-    #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
-    #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
-    #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
-    #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
-
-    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
-    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata5.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDesk.app/Contents
-
-    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/models/en-us
-    copydata6b.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDesk.app/Contents/models
-
-    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
-
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
-
-    #export(first.depends)
+    # lyrics and patter templates
     export(copydata0a.commands)
     export(copydata0b.commands)
     export(copydata0c.commands)
+
+    # sd_calls.dat, allcalls.csv, sd_doc.pdf
+    export(copydata1dir.commands)
     export(copydata1.commands)
     export(copydata2.commands)
     export(copydata2b.commands)
     export(copydata3.commands)
-    export(copydata4.commands)
-    export(copydata5.commands)
-    export(copydata6a.commands)
-    export(copydata6b.commands)
-    export(copydata7.commands)
-    export(copydata8.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3
 
     # For the PDF viewer -----------------
     copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
@@ -447,67 +474,124 @@ macx {
     export(copydata3p.commands)
     export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
-
-    # For the QUAZIP library -- we need exactly the right name on the library -----------------
-    # yes, this is a rename.  I don't know how to do this in QMake directly.
-    copydata1q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
-    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
-    copydata3q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib
-    first.depends += copydata1q copydata2q copydata3q
-    export(first.depends)
-    export(copydata1q.commands)
-    export(copydata2q.commands)
-    export(copydata3q.commands)
-    QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
-
-    # For the Mac build, let's copy over the mp3gain executable to the bundle ---------
-    #   then, copies over the dependency (libmpg123) from /usr/local/opt (assumed installed via BREW)
-    #   then, the library reference is changed in the mp3gain executable to point at the LOCAL version of libmpg123
-    #   then, the lib reference is changed to point at the local QCore framework
-    #   finally, otool is used to double check that the library reference is correct
-    mp3gain1.commands = $(COPY) $$OUT_PWD/../mp3gain/mp3gain $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    mp3gain2.commands = $(COPY) /usr/local/opt/mpg123/lib/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
-    mp3gain3.commands = install_name_tool -change /usr/local/opt/mpg123/lib/libmpg123.0.dylib @executable_path/libmpg123.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
-    mp3gain4.commands = install_name_tool -change @rpath/QtCore.framework/Versions/5/QtCore @executable_path/../Frameworks/QtCore.framework/Versions/5/QtCore $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
-    mp3gain5.commands = otool -L $$OUT_PWD/SquareDesk.app/Contents/MacOS/mp3gain
-    first.depends += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
-    export(first.depends)
-    export(mp3gain1.commands)
-    export(mp3gain2.commands)
-    export(mp3gain3.commands)
-    export(mp3gain4.commands)
-    export(mp3gain5.commands)
-    QMAKE_EXTRA_TARGETS += mp3gain1 mp3gain2 mp3gain3 mp3gain4 mp3gain5
 }
+
+# USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
+#macx {
+#    # LIBBASS, LIBBASS_FX, LIBBASSMIX ---------------
+#    # http://stackoverflow.com/questions/1361229/using-a-static-library-in-qt-creator
+#    LIBS += $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+#    LIBS += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
+
+#    mylib.path = Contents/MacOS
+#    mylib.files = $$PWD/libbass.dylib $$PWD/libbass_fx.dylib $$PWD/libbassmix.dylib
+#    mylib.files += $$OUT_PWD/../quazip/quazip/libquazip.1.0.0.dylib
+#    QMAKE_BUNDLE_DATA += mylib
+
+#    # NOTE: I compiled QuaZIP in the Qt environment, then copied the Quazip.1.0.0.dylib to the test123 directory with
+#    #   with the name quazip.1.dylib .  This allows it to link.  There's gotta be a better way to reference these
+#    #   libs that is cross platform.  Maybe here is a clue:  https://www.youtube.com/watch?v=mxlcKmvMK9Q&ab_channel=VoidRealms
+
+#    INCLUDEPATH += $$PWD/../quazip/quazip  # reference includes like this:  #include "JlCompress.h"
+
+#    # ZLIB ------------------------------------------
+#    #  do "brew install zlib"
+#    # LIBS += /usr/lib/libz.dylib
+#    LIBS += /usr/local/opt/zlib/lib/libz.dylib
+
+#    # PS --------------------------------------------
+#    # SEE the postBuildStepMacOS for a description of how pocketsphinx is modified for embedding.
+#    #   https://github.com/auriamg/macdylibbundler  <-- BEST, and the one I used
+#    #   https://doc.qt.io/archives/qq/qq09-mac-deployment.html
+#    #   http://stackoverflow.com/questions/1596945/building-osx-app-bundle
+#    #   http://www.chilkatforum.com/questions/4235/how-to-distribute-a-dylib-with-a-mac-os-x-application
+#    #   http://stackoverflow.com/questions/2092378/macosx-how-to-collect-dependencies-into-a-local-bundle
+
+#    # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
+#    # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
+#    copydata4.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/exe/pocketsphinx_continuous $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    copydata5.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/libs $$OUT_PWD/SquareDesk.app/Contents
+
+#    copydata6a.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/models/en-us
+#    copydata6b.commands = $(COPY_DIR) $$PWD/../pocketsphinx/binaries/macosx_yosemite/models/en-us $$OUT_PWD/SquareDesk.app/Contents/models
+
+#    # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
+#    copydata7.commands = $(COPY_DIR) $$PWD/5365a.dic $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    copydata8.commands = $(COPY_DIR) $$PWD/plus.jsgf $$OUT_PWD/SquareDesk.app/Contents/MacOS
+
+#    first.depends = $(first) copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+
+#    #export(first.depends)
+#    export(copydata0a.commands)
+#    export(copydata0b.commands)
+#    export(copydata0c.commands)
+#    export(copydata1.commands)
+#    export(copydata2.commands)
+#    export(copydata2b.commands)
+#    export(copydata3.commands)
+#    export(copydata4.commands)
+#    export(copydata5.commands)
+#    export(copydata6a.commands)
+#    export(copydata6b.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
+
+#    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1 copydata2 copydata2b copydata3 copydata4 copydata5 copydata6a copydata6b copydata7 copydata8
+
+#    # For the PDF viewer -----------------
+#    copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+#    copydata2p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/web   $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+#    copydata3p.commands = $(COPY_DIR) $$PWD/../qpdfjs/minified/build $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
+#    copydata4p.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified/web/compressed.*.pdf
+
+#    first.depends += copydata1p copydata2p copydata3p copydata4p
+#    export(first.depends)
+#    export(copydata1p.commands)
+#    export(copydata2p.commands)
+#    export(copydata3p.commands)
+#    export(copydata4p.commands)
+#    QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
+
+#    # For the QUAZIP library -- we need exactly the right name on the library -----------------
+#    # yes, this is a rename.  I don't know how to do this in QMake directly.
+#    copydata1q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
+#    copydata2q.commands = $(COPY) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.dylib
+#    copydata3q.commands = $(RM) $$OUT_PWD/SquareDesk.app/Contents/MacOS/libquazip.1.0.0.dylib
+#    first.depends += copydata1q copydata2q copydata3q
+#    export(first.depends)
+#    export(copydata1q.commands)
+#    export(copydata2q.commands)
+#    export(copydata3q.commands)
+#    QMAKE_EXTRA_TARGETS += copydata1q copydata2q copydata3q
 
 win32:CONFIG(debug, debug|release): {
     # PS --------------------------------------------
     # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/debug)
-    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/debug)
-    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/debug)
+#    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/debug)
+#    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/debug)
+#    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/debug)
 
-    copydata7.commands = if not exist $$shell_path($$OUT_PWD/debug/models/en-us) mkdir $$shell_path($$OUT_PWD/debug/models/en-us)
-    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
-    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/debug/models/en-us)
+#    copydata7.commands = if not exist $$shell_path($$OUT_PWD/debug/models/en-us) mkdir $$shell_path($$OUT_PWD/debug/models/en-us)
+#    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
+#    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/debug/models/en-us)
 
     # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/debug)
-    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/debug)
+#    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/debug)
+#    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/debug)
 
-    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
-    export(first.depends)
-    export(copydata4.commands)
-    export(copydata5.commands)
-    export(copydata6.commands)
-    export(copydata7.commands)
-    export(copydata8.commands)
-    export(copydata9.commands)
-    export(copydata10.commands)
+#    export(first.depends)
+#    export(copydata4.commands)
+#    export(copydata5.commands)
+#    export(copydata6.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
+#    export(copydata9.commands)
+#    export(copydata10.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
     # SOUNDFX STARTER SET --------------------------------------------
     copydata10b.commands = if not exist $$shell_path($$OUT_PWD/debug/soundfx) mkdir $$shell_path($$OUT_PWD/debug/soundfx)
@@ -559,47 +643,48 @@ win32:CONFIG(debug, debug|release): {
     # To get around the "app failed to start because...platform plugin "windows" in "" problem
     # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
     #   rename is so that there is only one .exe in the directory for windeployqt.exe
-    fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+#    fixbug1.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
     fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
-    fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+#    fixbug3.commands = ren $$shell_path($$OUT_PWD/debug/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
 
-    first.depends += fixbug1 fixbug2 fixbug3
+#first.depends += fixbug1 fixbug2 fixbug3
+    first.depends += fixbug2
     export(first.depends)
-    export(fixbug1.commands)
+#    export(fixbug1.commands)
     export(fixbug2.commands)
-    export(fixbug3.commands)
-    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
-
+#    export(fixbug3.commands)
+#    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+    QMAKE_EXTRA_TARGETS += fixbug2
 }
 
 win32:CONFIG(release, debug|release): {
     # PS --------------------------------------------
     # Copy the ps executable and the libraries it depends on (into the SquareDesk.app bundle)
     # ***** WARNING: the path to pocketsphinx source files is specific to my particular laptop! *****
-    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/release)
-    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/release)
-    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/release)
+#    copydata4.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx_continuous.exe) $$shell_path($$OUT_PWD/release)
+#    copydata5.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/pocketsphinx.dll) $$shell_path($$OUT_PWD/release)
+#    copydata6.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/exe/sphinxbase.dll) $$shell_path($$OUT_PWD/release)
 
-    copydata7.commands = if not exist $$shell_path($$OUT_PWD/release/models/en-us) mkdir $$shell_path($$OUT_PWD/release/models/en-us)
-    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
-    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/release/models/en-us)
+#    copydata7.commands = if not exist $$shell_path($$OUT_PWD/release/models/en-us) mkdir $$shell_path($$OUT_PWD/release/models/en-us)
+#    # NOTE: The models used for Win32 PocketSphinx are NOT the same as the Mac OS X models.
+#    copydata8.commands = xcopy /q /y $$shell_path($$PWD/../pocketsphinx/binaries/win32/models/en-us/*) $$shell_path($$OUT_PWD/release/models/en-us)
 
     # SQUAREDESK-SPECIFIC DICTIONARY, LANGUAGE MODEL --------------------------------------------
-    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/release)
-    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/release)
+#    copydata9.commands = xcopy /q /y $$shell_path($$PWD/5365a.dic) $$shell_path($$OUT_PWD/release)
+#    copydata10.commands = xcopy /q /y $$shell_path($$PWD/plus.jsgf) $$shell_path($$OUT_PWD/release)
 
-    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    first.depends += $(first) copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
-    export(first.depends)
-    export(copydata4.commands)
-    export(copydata5.commands)
-    export(copydata6.commands)
-    export(copydata7.commands)
-    export(copydata8.commands)
-    export(copydata9.commands)
-    export(copydata10.commands)
+#    export(first.depends)
+#    export(copydata4.commands)
+#    export(copydata5.commands)
+#    export(copydata6.commands)
+#    export(copydata7.commands)
+#    export(copydata8.commands)
+#    export(copydata9.commands)
+#    export(copydata10.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
+#    QMAKE_EXTRA_TARGETS += first copydata4 copydata5 copydata6 copydata7 copydata8 copydata9 copydata10
 
     # SOUNDFX STARTER SET --------------------------------------------
     copydata10b.commands = if not exist $$shell_path($$OUT_PWD/release/soundfx) mkdir $$shell_path($$OUT_PWD/release/soundfx)
@@ -647,48 +732,54 @@ win32:CONFIG(release, debug|release): {
     # To get around the "app failed to start because...platform plugin "windows" in "" problem
     # This also makes the squaredesk.exe executable IN THE RELEASE BUILD DIRECTORY
     #   rename is so that there is only one .exe in the directory for windeployqt.exe
-    fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
+#    fixbug1.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe) pocketsphinx_continuous.exe2
     fixbug2.commands = $$[QT_INSTALL_BINS]\windeployqt.exe $$shell_path($$OUT_PWD/release)
-    fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
+#    fixbug3.commands = ren $$shell_path($$OUT_PWD/release/pocketsphinx_continuous.exe2) pocketsphinx_continuous.exe
 
-    first.depends += fixbug1 fixbug2 fixbug3
+#    first.depends += fixbug1 fixbug2 fixbug3
+    first.depends += fixbug2
     export(first.depends)
-    export(fixbug1.commands)
+#    export(fixbug1.commands)
     export(fixbug2.commands)
-    export(fixbug3.commands)
-    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
+#    export(fixbug3.commands)
+    QMAKE_EXTRA_TARGETS += fixbug2
+#    QMAKE_EXTRA_TARGETS += fixbug1 fixbug2 fixbug3
 }
 
 win32:CONFIG(debug, debug|release): {
     # MISC FILES --------------------------------------
     ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/debug)
     quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/debug)
-    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/debug)
+#    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/debug)
     manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/debug/SquareDeskManual.pdf)
 
-    first.depends += ico quaz pstest manual
+#    first.depends += ico quaz pstest manual
+    first.depends += ico quaz manual
     export(first.depends)
     export(ico.commands)
     export(quaz.commands)
-    export(pstest.commands)
+#    export(pstest.commands)
     export(manual.commands)
-    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+#    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+    QMAKE_EXTRA_TARGETS += ico quaz manual
 }
 
 win32:CONFIG(release, debug|release): {
     # MISC FILES --------------------------------------
     ico.commands    = xcopy /q /y $$shell_path($$PWD/desk1d.ico) $$shell_path($$OUT_PWD/release)
     quaz.commands   = xcopy /q /y $$shell_path($$PWD/../local_win32/bin/quazip.dll) $$shell_path($$OUT_PWD/release)
-    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/release)
+#    pstest.commands = xcopy /q /y $$shell_path($$PWD/ps_test) $$shell_path($$OUT_PWD/release)
     manual.commands = copy $$shell_path($$PWD/docs/SquareDeskManual.0.9.1.pdf) $$shell_path($$OUT_PWD/release/SquareDeskManual.pdf)
 
-    first.depends += ico quaz pstest manual
+#    first.depends += ico quaz pstest manual
+    first.depends += ico quaz manual
     export(first.depends)
     export(ico.commands)
     export(quaz.commands)
-    export(pstest.commands)
+#    export(pstest.commands)
     export(manual.commands)
-    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+#    QMAKE_EXTRA_TARGETS += ico quaz pstest manual
+    QMAKE_EXTRA_TARGETS += ico quaz manual
 }
 
 RESOURCES += resources.qrc
@@ -701,11 +792,14 @@ OBJECTIVE_SOURCES += \
     macUtils.mm
 
 DISTFILES += \
+    ../../README.md \
     Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
+    PackageIt_M1.command \
     cuesheet2.css \
     lyrics.template.html \
-    PackageIt.command
+    PackageIt.command \
+    soundtouch/include/soundtouch_config.h.in
 
 CONFIG += c++11

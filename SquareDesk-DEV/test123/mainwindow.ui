@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1008</width>
+    <width>1041</width>
     <height>582</height>
    </rect>
   </property>
@@ -98,9 +98,6 @@
             <property name="text">
              <string>Num</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
@@ -121,32 +118,20 @@
             <property name="text">
              <string>Recent</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Age</string>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
             </property>
            </column>
            <column>
             <property name="text">
              <string>Pitch</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Tempo</string>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
             </property>
            </column>
           </widget>
@@ -259,7 +244,6 @@
             </property>
             <property name="font">
              <font>
-              <family>Arial</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -326,7 +310,6 @@
             </property>
             <property name="font">
              <font>
-              <family>Arial</family>
               <pointsize>9</pointsize>
              </font>
             </property>
@@ -439,7 +422,10 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
             </property>
            </widget>
           </item>
@@ -500,7 +486,7 @@
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                 <property name="tickInterval">
                  <number>15</number>
@@ -551,7 +537,7 @@
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                 <property name="tickInterval">
                  <number>15</number>
@@ -592,7 +578,7 @@
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="tickPosition">
-                 <enum>QSlider::TicksBothSides</enum>
+                 <enum>QSlider::NoTicks</enum>
                 </property>
                 <property name="tickInterval">
                  <number>15</number>
@@ -761,7 +747,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>1</number>
@@ -832,7 +818,7 @@
              <bool>false</bool>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -897,7 +883,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>10</number>
@@ -954,7 +940,7 @@
              <enum>Qt::Horizontal</enum>
             </property>
             <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+             <enum>QSlider::NoTicks</enum>
             </property>
             <property name="tickInterval">
              <number>1</number>
@@ -1015,129 +1001,6 @@
            <string>Clear Search</string>
           </property>
          </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="timerTab">
-       <attribute name="title">
-        <string>Timers</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
-            </property>
-            <item>
-             <widget class="QPushButton" name="pushButtonCountDownTimerStartStop">
-              <property name="text">
-               <string>Start/Stop</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButtonCountDownTimerReset">
-              <property name="text">
-               <string>Reset</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="lineEditCountDownTimer">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="inputMask">
-               <string>009:99</string>
-              </property>
-              <property name="text">
-               <string>4:00</string>
-              </property>
-              <property name="maxLength">
-               <number>6</number>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBoxPlayOnEnd">
-              <property name="text">
-               <string>Play on end</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelCountDownTimer">
-            <property name="font">
-             <font>
-              <pointsize>36</pointsize>
-              <weight>75</weight>
-              <italic>true</italic>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>4:00</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QPushButton" name="pushButtonCountUpTimerStartStop">
-              <property name="text">
-               <string>Start/Stop</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButtonCountUpTimerReset">
-              <property name="text">
-               <string>Reset</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="checkBoxStartOnPlay">
-              <property name="text">
-               <string>Start on Play</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="labelCountUpTimer">
-              <property name="font">
-               <font>
-                <pointsize>36</pointsize>
-                <weight>75</weight>
-                <italic>true</italic>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>0:00</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
         </item>
        </layout>
       </widget>
@@ -1206,7 +1069,14 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBoxCuesheetSelector"/>
+             <widget class="QComboBox" name="comboBoxCuesheetSelector">
+              <property name="maximumSize">
+               <size>
+                <width>900</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonSetOutroTime">
@@ -1276,9 +1146,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>13</pointsize>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -1309,7 +1177,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>11</pointsize>
                </font>
               </property>
@@ -1346,7 +1213,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>11</pointsize>
                </font>
               </property>
@@ -1378,7 +1244,6 @@
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
-                <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
@@ -1402,9 +1267,7 @@
                </sizepolicy>
               </property>
               <property name="font">
-               <font>
-                <family>Verdana</family>
-               </font>
+               <font/>
               </property>
               <property name="text">
                <string>Lyrics</string>
@@ -1434,9 +1297,7 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>12</pointsize>
-                <weight>75</weight>
                 <bold>true</bold>
                </font>
               </property>
@@ -1470,7 +1331,6 @@
               </property>
               <property name="font">
                <font>
-                <family>Verdana</family>
                 <pointsize>12</pointsize>
                 <italic>true</italic>
                 <kerning>false</kerning>
@@ -1840,7 +1700,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1008</width>
+     <width>1041</width>
      <height>24</height>
     </rect>
    </property>
@@ -1939,6 +1799,8 @@
      <addaction name="actionRecent2"/>
      <addaction name="actionRecent3"/>
      <addaction name="actionRecent4"/>
+     <addaction name="actionRecent5"/>
+     <addaction name="actionRecent6"/>
      <addaction name="separator"/>
      <addaction name="actionClear_Recent_List"/>
     </widget>
@@ -2005,8 +1867,6 @@
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
-    <addaction name="separator"/>
-    <addaction name="actionEnable_voice_input"/>
     <addaction name="separator"/>
     <addaction name="menuColors"/>
     <addaction name="menuNumbers"/>
@@ -2176,7 +2036,7 @@
     <string>Skip Ahead 15 sec</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Right</string>
+    <string>Ctrl+Alt+Right</string>
    </property>
   </action>
   <action name="actionSkip_Back_15_sec">
@@ -2187,7 +2047,7 @@
     <string>Skip Back 15 sec</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Left</string>
+    <string>Ctrl+Alt+Left</string>
    </property>
   </action>
   <action name="actionVolume_Up">
@@ -3425,6 +3285,16 @@
    </property>
    <property name="text">
     <string>Randomize</string>
+   </property>
+  </action>
+  <action name="actionRecent5">
+   <property name="text">
+    <string>recent5</string>
+   </property>
+  </action>
+  <action name="actionRecent6">
+   <property name="text">
+    <string>recent6</string>
    </property>
   </action>
  </widget>

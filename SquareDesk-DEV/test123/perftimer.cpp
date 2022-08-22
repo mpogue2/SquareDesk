@@ -10,7 +10,7 @@ PerfTimer::PerfTimer(const char *name, int lineNumber)
     : name(name), timer(), stopped(false), lastElapsedTime_ms(0)
 {
 #ifdef ENABLEPERFTIMER
-    start(lineNumber);
+    //start(lineNumber);
 #else
     Q_UNUSED(lineNumber)
 #endif

@@ -425,6 +425,7 @@ static void multiple_move_innards(
 
          x[i].cmd = *sscmd;
          x[i].rotation = rrr & 3;
+         x[i].rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
          x[i].eighth_rotation = 0;
          canonicalize_rotation(&x[i]);
          if (rrr & 1)
@@ -483,6 +484,10 @@ static void multiple_move_innards(
          else
             impose_assumption_and_move(&x[i], &z[i]);
 
+         // Compress out extra space if doing a 3x1/1x3 thing.
+         if (x[i].cmd.cmd_misc2_flags & CMD_MISC2__LOCAL_RECENTER)
+            normalize_setup(&z[i], normalize_recenter, qtag_no_compress);
+
          // Some space-invader calls can turn a qtag into a 3x4.
          // If user gave a qtag/dmd concept (e.g. split phantom 1/4 lines),
          // try to turn it back into a general 1/4 tag.  (If the call was being
@@ -530,6 +535,7 @@ static void multiple_move_innards(
 
    result->clear_people();
    result->rotation = 0;
+   result->rotation_offset_from_true_north = ss->rotation_offset_from_true_north;
    result->eighth_rotation = eighth_rot_flag;
 
    // If multiple setups are involved and they have rotated by 45 degrees, we have to be very careful.

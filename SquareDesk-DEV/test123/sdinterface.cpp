@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -1126,11 +1126,19 @@ void SDThread::run()
 #endif
     std::string str = sdCallsFilename.toStdString();
     const char* p = str.c_str();
+    //    qDebug() << "database:" << p;
+
     char *levelString = strdup(const_cast<char *>(dance_program_name.toStdString().c_str())); // make a copy of the string
 
+    // where sd should write files
+    QString sdDir = mw->musicRootPath + "/sd/";
+    std::string str2 = sdDir.toStdString();
+    const char* p2 = str2.c_str();
+//    qDebug() << "SD musicRootPath: " << p2;
+
     char *argv[] = {const_cast<char *>("SquareDesk"),
-                    const_cast<char *>("-db"), //
-                    const_cast<char *>(p),
+                    const_cast<char *>("-db"), const_cast<char *>(p),               // location of sd_calls.dat database
+                    const_cast<char *>("-output_prefix"), const_cast<char *>(p2),   // fully-qualified dir name for files that sd writes
                     const_cast<char *>("-minigrand_getouts"),
                     const_cast<char *>("-bend_line_home_getouts"),
 //            const_cast<char *>(dance_program_name.toStdString().c_str()),

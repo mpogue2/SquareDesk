@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -75,7 +75,6 @@ CONFIG_ATTRIBUTE_STRING(lineEditMusicTypeCalled, MusicTypeCalled, "vocal;vocals;
 
 CONFIG_ATTRIBUTE_STRING(lineEditToggleSequence, ToggleSingingPatterSequence, "")
 
-CONFIG_ATTRIBUTE_BOOLEAN(EnableTimersTabCheckbox, experimentalTimersEnabled, false)
 CONFIG_ATTRIBUTE_BOOLEAN(EnableClockColoring,experimentalClockColoringEnabled, false)
 
 CONFIG_ATTRIBUTE_BOOLEAN(initialBPMcheckbox,tryToSetInitialBPM, false)
@@ -144,15 +143,6 @@ CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxInOutEditOnlyWhenLyricsUnlocked, InOutEditingOnlyWhenLyricsUnlocked, false);
 
 // Global FX tab
-CONFIG_ATTRIBUTE_BOOLEAN(compressorEnabledCheckbox, compressorIsEnabled, false)
-CONFIG_ATTRIBUTE_SLIDER(thresholdDial, threshold_dB, -15)  // sliders are integers controlled by value()/setValue()
-CONFIG_ATTRIBUTE_SLIDER(ratioDial, ratio_toOne, 4)
-CONFIG_ATTRIBUTE_SLIDER(gainDial, gain_dB, 0)
-CONFIG_ATTRIBUTE_SLIDER(attackDial, attack_ms, 10)
-CONFIG_ATTRIBUTE_SLIDER(releaseDial, release_ms, 200)
-
-CONFIG_ATTRIBUTE_BOOLEAN(replayGainCheckbox, replayGainIsEnabled, false)
-
 CONFIG_ATTRIBUTE_BOOLEAN(intelBoostEnabledCheckbox, intelBoostIsEnabled, false)
 CONFIG_ATTRIBUTE_SLIDER(intelCenterFreqDial, intelCenterFreq_KHz, 16)  // sliders are integers controlled by value()/setValue()
 CONFIG_ATTRIBUTE_SLIDER(intelWidthDial, intelWidth_oct, 20)
@@ -162,3 +152,5 @@ CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwapSDTabInputAndAvailableCallsSides, SwapSDTab
     
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabHorizontalSplitterPosition, "")
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabVerticalSplitterPosition, "")
+
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded, "") // if the user had a playlist loaded, then reload it at next app start time

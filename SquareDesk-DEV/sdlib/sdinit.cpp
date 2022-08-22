@@ -166,7 +166,7 @@ bool iterate_over_sel_dir_num(
       case selector_ends:
          selector_for_initialize = selector_leads;
          return true;
-      case selector_leads:
+      case selector_leads: case selector_leaders:
          // This will select just one end of each wave in parallel waves or a tidal wave,
          // so "prefer the <anyone> out roll circulate" will work.
          selector_for_initialize = selector_sideboys;

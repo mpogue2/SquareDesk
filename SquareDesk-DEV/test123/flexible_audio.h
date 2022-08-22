@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -24,11 +24,20 @@
 ****************************************************************************/
 
 #pragma once
-#include "flexible_audio.h"
+//#include "flexible_audio.h"
 
 #include <QTimer>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QAudioBuffer>
+#include <QAudioDevice>
+#include <QAudioDecoder>
+#include <QAudioFormat>
+#include <QMediaDevices>
+#include <QMediaPlayer>
+#include <QFile>
+#include <QBuffer>
+#include "perftimer.h"
 
 // indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
 #define FREQ_KHZ 0
@@ -41,8 +50,10 @@
 #define BASS_ACTIVE_STALLED 2
 #define BASS_ACTIVE_PAUSED  3
 
-class flexible_audio
+class flexible_audio : public QIODevice
 {
+    Q_OBJECT
+
     //-------------------------------------------------------------
 public:
     //---------------------------------------------------------
@@ -50,7 +61,7 @@ public:
     double                  Current_Position;
     int                     Stream_Volume;
     double                  Stream_MaxVolume;       // used for ReplayGain, which sets this to something other then 1.0
-    double                  Stream_replayGain_dB;   // used for ReplayGain, which sets this to something other then 0.0
+//    double                  Stream_replayGain_dB;   // used for ReplayGain, which sets this to something other then 0.0
     int                     Stream_Tempo;
     double                  Stream_Eq[3];
 
@@ -76,7 +87,7 @@ public:
 //---------------------------------------------------------
     //constructors
     flexible_audio(void);
-    ~flexible_audio(void);
+    virtual ~flexible_audio(void);
     //---------------------------------------------------------
     //System
     void Init(void);
@@ -84,14 +95,11 @@ public:
 
     //Settings
     void SetVolume(int inVolume);
-    void SetReplayGainVolume(double replayGain_dB);
+//    void SetReplayGainVolume(double replayGain_dB);
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
 
-    void SetCompression(unsigned int which, float val);  // Global compressor parameters
-    void SetCompressionEnabled(bool enable);             // Global compressor parameters
-
-    void SetIntelBoost(unsigned int which, float val);   // Global intelligibility boost parameters
+    void SetIntelBoost(unsigned int which, float val);    // Global intelligibility boost parameters
     void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
 
     void SetPitch(int newPitch);  // in semitones, -5 .. 5
@@ -129,13 +137,47 @@ public:
     void StartVolumeDucking(int duckToPercent, double  forSeconds);
     void StopVolumeDucking();
 
+    void FXChannelStartPlaying(const char *filename);
+    void FXChannelStopPlaying();
+    bool FXChannelIsPlaying();
+
     // always asks the engine what the state is (NOT CACHED), then returns one of:
     //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
     uint32_t currentStreamState();
 
     int  currentSoundEffectID;
 
+    QString currentAudioDevice;  // which audio device are we talking to?  intentionally public
+
 private:
     QAudioOutput  *audioOutput;
+
+    QFile m_file;
+    QBuffer m_input;
+    QByteArray m_data;
+    QAudioDecoder m_decoder;
+
+    int totalBytes;
+
+    QMediaPlayer soundEffect;  // dedicated player for sound effects
+
+protected:
+    qint64 readData(char* data, qint64 maxlen) override;
+    qint64 writeData(const char* data, qint64 len) override;
+
+signals:
+    void haveDuration();
+
+private slots:
+    void bufferReady();
+    void finished();  // decode finished
+    void decoder_error();
+    void posChanged(qint64);
+    void durChanged(qint64);
+    void FXChannelStatusChanged(QMediaPlayer::MediaStatus);
+    void systemAudioOutputsChanged();
+
+public slots:
+    void decoderDone();
 };
 

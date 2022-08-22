@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -26,6 +26,7 @@
 #include "myslider.h"
 #include "QDebug"
 #include <QEvent>
+#include <QStyle>
 
 // ==========================================================================================
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
@@ -34,6 +35,12 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
     singingCall = false;
     SetDefaultIntroOutroPositions(false, 0.0, 0.0, 0.0, 0.0);  // bare minimum init
     origin = 0;
+
+    else1 = "QSlider::groove:horizontal { border: 1px solid #C0C0C0; height: 2px; margin: 2px 0; background: #C0C0C0; }";  // for EVERYTHING ELSE
+    singer1 = "QSlider::groove:horizontal { border: 1px transparent; height: 2px; margin: 2px 0; background: transparent; }";  // for SINGERS
+    s2 = "QSlider::handle:horizontal { background: white; border: 1px solid #C0C0C0; height: 16px; width: 16px; margin: -8px 0; border-radius: 8px; padding: -8px 0px; }";
+    s2 += "QSlider::handle:horizontal:hover { background-color: #A0A0FF; }";  // TODO: not sure if I like this...
+    this->setStyleSheet( else1 + s2 );
 
 //    AddMarker(0.0);  // DEBUG
 //    AddMarker(10.0);
@@ -116,13 +123,13 @@ void MySlider::SetLoop(bool b)
 
 void MySlider::SetIntro(double intro)
 {
-//    qDebug() << "SetIntro: " << intro;
+//    qDebug() << "MySlider::SetIntro: " << intro;
     introPosition = intro;
 }
 
 void MySlider::SetOutro(double outro)
 {
-//    qDebug() << "SetOutro: " << outro;
+//    qDebug() << "MySlider::SetOutro: " << outro;
     outroPosition = outro;
 }
 
@@ -151,7 +158,7 @@ void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't w
 {
     Q_UNUSED(event)
     setValue(origin);
-    valueChanged(origin);
+    emit valueChanged(origin);
 }
 
 // MARKERS ==================
@@ -185,15 +192,46 @@ void MySlider::paintEvent(QPaintEvent *e)
     int offset = 8;  // for the handles
     int height = this->height();
     int width = this->width() - 2 * offset;
+    int middle = height/2;
+    double left = 1;
+    double right = width + offset + 5;
+
+    // CUSTOM TICK MARKS ===============================
+    //   NOTE: This whole section is hand-tuned.  I'm not sure why what Qt plots doesn't match the docs.
+    QPen pen1;
+    pen1.setWidth(2);
+    pen1.setColor("#c0c0c0");
+    painter.setPen(pen1);
+
+    int tickInt = tickInterval();
+    int incr1 = (tickInt > 0 ? tickInt : 10);
+    for (int i = minimum(); i < maximum() + incr1; i += incr1) {
+        int pos1 = QStyle::sliderPositionFromValue(minimum(), maximum(), i, this->width() - 22) + 11;
+        if (i == origin) {
+            int extra = 10;
+            painter.drawLine(pos1, middle - 5 - extra, pos1, middle + 5 + extra);
+        } else {
+            painter.drawLine(pos1, middle - 5, pos1, middle + 5);
+        }
+    }
 
     // SINGING CALL SECTION COLORS =====================
+    if (singingCall && !previousSingingCall) {
+        this->setStyleSheet( singer1 + s2 );
+    } else if (!singingCall && previousSingingCall) {
+        this->setStyleSheet( else1 + s2 );
+    } else {
+        // no change, so do nothing.
+    }
+    previousSingingCall = singingCall;  // cache this
+
     if (singingCall) {
         QPen pen;
-        pen.setWidth(6);
+        pen.setWidth(8);
 #if defined(Q_OS_WIN)
         pen.setWidth(10);
 #endif
-        int middle = height/2 - 2;
+//        int middle = height/2 - 2;
 #if defined(Q_OS_WIN)
         // Windows sliders are drawn differently, so colors are just
         //   under the horizontal bar on Windows (only).  Otherwise
@@ -204,8 +242,8 @@ void MySlider::paintEvent(QPaintEvent *e)
 //        QColor colors[3] = { Qt::red, Qt::blue, QColor("#7cd38b") };
         QColor colors[3] = { Qt::red, Qt::cyan, Qt::blue };
 
-        double left = 1;
-        double right = width + offset + 5;
+//        double left = 1;
+//        double right = width + offset + 5;
 #if defined(Q_OS_MAC)
         left += 1;   // pixel perfection on Mac OS X Sierra
 #endif
@@ -222,6 +260,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         double startEnding = left  + outroPosition * width;
         int segments = 7;
         double lengthSection = (startEnding - endIntro)/segments;
+
+//        middle += 2;
 
         // section 1: Opener
         pen.setColor(colorEnds);
@@ -316,6 +356,8 @@ void MySlider::paintEvent(QPaintEvent *e)
         painter.drawLine(line2);
         painter.drawLine(line3);
     }
+
+    // qDebug() << "tickInterval = " << tickInterval();  // TODO: draw our own ticks here, and setTickPosition to NoTicks
 
     // FINISH UP -------------------
 #ifndef Q_OS_LINUX

@@ -188,8 +188,12 @@ extern bool selectp(const setup *ss, int place, int allow_some /*= 0*/) THROW_DE
       else if (p2 == ID2_END)    s = selector_ends;
       else break;
       goto eq_return;
+   case selector_leaders:
+      local_selector = selector_leads;
+      // FALL THROUGH!!!
    case selector_leads:
    case selector_trailers:
+      // FELL THROUGH!!!
       p2 = pid2 & (ID2_LEAD|ID2_TRAILER);
       if      (p2 == ID2_LEAD)    s = selector_leads;
       else if (p2 == ID2_TRAILER) s = selector_trailers;
@@ -2078,14 +2082,6 @@ static bool can_swing_left(setup *real_people, int real_index,
    int direction_index = northified_index - (*extra_stuff ? halfsize : 0);
    if (direction_index < 0) direction_index += size;
 
-   if ((setup_attrs[real_people->kind].setup_props & SPROP_4_WAY_SYMMETRY) != 0) {
-      // The external meschanism is being a little more helpful than we want.
-      if (real_direction & 1) {
-         direction_index -= 3*(halfsize>>1);
-         if (direction_index < 0) direction_index += size;
-      }
-   }
-
    switch (real_people->kind) {
    case s1x4:
       t = swingleft_1x4[direction_index];
@@ -2122,8 +2118,13 @@ static bool can_swing_left(setup *real_people, int real_index,
 
    if (direction_index != real_index) {
       t -= halfsize;
-      if (t < 0) t += size;
    }
+
+   if (real_direction & 1)
+      t += direction_index - real_index - size;    // Be sure it's downward.
+
+   // We could be way out of range, always downward.
+   while (t < 0) t += size;
 
    return ((real_people->people[real_index].id1 ^ real_people->people[t].id1) & DIR_MASK) == 2;
 }

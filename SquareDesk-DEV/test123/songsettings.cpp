@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -725,7 +725,7 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
                             bool omitEndDate,
                             QString endDate)
 {
-    QString sql("SELECT name, played_on, datetime(played_on,'localtime') FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
+    QString sql("SELECT name, played_on, datetime(played_on,'localtime'), filename, pitch, tempo, last_cuesheet FROM songs JOIN song_plays ON song_plays.song_rowid=songs.rowid");
     QStringList whereClause;
     
     if (session_id)
@@ -761,7 +761,14 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     exec("songplayhistory", q);
     while (q.next())
     {
-        event(q.value(0).toString(), q.value(1).toString(), q.value(2).toString());
+        event(q.value(0).toString(), // name
+              q.value(1).toString(), // UTC time
+              q.value(2).toString(), // local time
+              q.value(3).toString(), // filename
+              q.value(4).toString(), // pitch (NOTE: current pitch, not necessarily the pitch at playback time - FIX)
+              q.value(5).toString(), // tempo (NOTE: current tempo, not necessarily the tempo at playback time - FIX)
+              removeRootDirs(q.value(6).toString())  // last_cuesheet (NOTE: current last_cuesheet, not necessarily the last_cuesheet at playback time - FIX)
+              );
     }
 }
 
@@ -859,6 +866,8 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
     int id = getSongIDFromFilename(settings.getFilename(), filenameWithPathNormalized);
 
+//    qDebug() << "saveSettings: id = " << id;
+
     QStringList fields;
     if (settings.isSetFilename()) { fields.append("songname" ); }
     if (settings.isSetPitch()) { fields.append("pitch" ); }
@@ -877,7 +886,9 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     if (settings.isSetMix()) { fields.append("mix"); }
     if (settings.isSetMix()) { fields.append("loop"); }
     if (settings.isSetTags()) { fields.append("tags"); }
-    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
+//    if (settings.isSetReplayGain()) { fields.append("replayGain"); }
+
+//    qDebug() << "saveSettings: " << fields;
 
     QSqlQuery q(m_db);
     if (id == -1)
@@ -947,7 +958,7 @@ void SongSettings::saveSettings(const QString &filenameWithPath,
     q.bindValue(":mix", settings.getMix());
     q.bindValue(":loop", settings.getLoop());
     q.bindValue(":tags", settings.getTags());
-    q.bindValue(":replayGain", settings.getReplayGain());
+//    q.bindValue(":replayGain", settings.getReplayGain());
 
     exec("saveSettings", q);
 }
@@ -971,13 +982,14 @@ void setSongSettingFromSQLQuery(QSqlQuery &q, SongSetting &settings)
     if (!q.value(13).isNull()) { settings.setMix(q.value(13).toInt()); }
     if (!q.value(14).isNull()) { settings.setLoop(q.value(14).toInt()); }
     if (!q.value(15).isNull()) { settings.setTags(q.value(15).toString()); }
-    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
+//    if (!q.value(16).isNull()) { settings.setReplayGain(q.value(16).toFloat()); }
 }
 
 bool SongSettings::loadSettings(const QString &filenameWithPath,
                                 SongSetting &settings)
 {
-    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
+//    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags, replayGain FROM songs WHERE ";
+    QString baseSql = "SELECT filename, pitch, tempo, introPos, outroPos, volume, last_cuesheet,tempoIsPercent,songLength,introOutroIsTimeBased, treble, bass, midrange, mix, loop, tags FROM songs WHERE ";
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
 
 //    qDebug() << "********* DEBUG get/setSongMarkers **********";

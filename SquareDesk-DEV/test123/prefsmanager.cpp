@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -29,7 +29,7 @@
 #include "preferencesdialog.h"
 #include <QDir>
 
-#include "common_enums.h"
+//#include "common_enums.h"
 #include "default_colors.h"
 
 PreferencesManager::PreferencesManager() : MySettings()
@@ -46,7 +46,7 @@ QHash<QString, KeyAction *> PreferencesManager::GetHotkeyMappings()
 
     QStringList all_keys(MySettings.allKeys());
     
-    for (auto key : all_keys)
+    for (const auto &key : all_keys)
     {
         if (key.startsWith(hotkeyPrefix))
         {
@@ -80,7 +80,7 @@ void PreferencesManager::SetHotkeyMappings(QHash<QString, KeyAction *> mapping)
 {
     QStringList all_keys(MySettings.allKeys());
     
-    for (auto key : all_keys)
+    for (const auto &key : all_keys)
     {
         if (key.startsWith(hotkeyPrefix))
         {

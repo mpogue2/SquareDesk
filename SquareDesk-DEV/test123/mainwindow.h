@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -91,8 +91,8 @@
 #include <stdio.h>
 #include <errno.h>
 #endif
-#include <tidy/tidy.h>
-#include <tidy/tidybuffio.h>
+//#include <tidy/tidy.h>
+//#include <tidy/tidybuffio.h>
 
 #include "sdinterface.h"
 
@@ -144,15 +144,42 @@ public:
     {
         return (source_x * (1 - t) + dest_x * t);
     }
+
     double getY(double t)
     {
         return (source_y * (1 - t) + dest_y * t);
     }
+
     double getDirection(double t)
     {
-        if (dest_direction < source_direction && t < 1.0)
-            return (source_direction * (1 - t) + (dest_direction + 360.0) * t);
-        return (source_direction * (1 - t) + dest_direction * t);
+        double src = source_direction;
+        double dest = dest_direction;
+        double result;
+
+        if (dest > src) {
+            if (dest - src <= 180) {
+                // go CCW, like normal, e.g. 0 -> 90
+            } else {
+                // go CW, e.g. 0 -> 270
+                dest -= 360.0;  // reflect, e.g. 0 -> -90
+            }
+        } else {
+            // dest < src
+            if (src - dest <= 180) {
+                // go CW, like normal, e.g. 90 -> 0
+            } else {
+                // go CCW, e.g. 270 -> 0
+                src -= 360.0;  // reflect, e.g. -90 -> 0
+            }
+        }
+
+        result = src * (1 - t) + dest * t;
+
+//        if (dest_direction < source_direction && t < 1.0)
+//            return (source_direction * (1 - t) + (dest_direction + 360.0) * t);
+//        return (source_direction * (1 - t) + dest_direction * t);
+
+        return(result);
     }
 
 private:
@@ -174,7 +201,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 // ALSO REMEMBER TO CHANGE THE VERSION IN PackageIt.command !
 // Also remember to change the "latest" file on GitHub (for Beta releases)!
-#define VERSIONSTRING "0.9.5"
+#define VERSIONSTRING "0.9.12"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -197,13 +224,17 @@ public:
     explicit MainWindow(QSplashScreen *splash, QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    double songLoadedReplayGain_dB;
+//    double songLoadedReplayGain_dB;
+
+    int longSongTableOperationCount;
 
     bool lyricsCopyIsAvailable;
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
     bool someWebViewHasFocus();
+
+    void handleDurationBPM();  // when duration and BPM are ready, call this to setup tempo slider, et.al.
 
     void stopSFX();
     void playSFX(QString which);
@@ -225,11 +256,12 @@ public:
 
     QActionGroup *flashCallTimingActionGroup;
 
-    void checkLockFile();
+    QSplashScreen *theSplash;
+    void checkLockFile();  // implicitly accesses theSplash
     void clearLockFile(QString path);
 
     QStringList parseCSV(const QString &string);
-    QString tidyHTML(QString s);  // return the tidied HTML
+//    QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
@@ -249,8 +281,10 @@ public slots:
 
     void LyricsCopyAvailable(bool yes);
     void customLyricsMenuRequested(QPoint pos);
+    void haveDuration2(void);
 
 protected:
+    bool maybeSave();
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
@@ -330,13 +364,13 @@ private slots:
     void on_actionExport_Play_Data_triggered();
     
     void on_pushButtonClearTaughtCalls_clicked();
-    void on_pushButtonCountDownTimerStartStop_clicked();
-    void on_pushButtonCountDownTimerReset_clicked();
-    void on_pushButtonCountUpTimerStartStop_clicked();
-    void on_pushButtonCountUpTimerReset_clicked();
+//    void on_pushButtonCountDownTimerStartStop_clicked();
+//    void on_pushButtonCountDownTimerReset_clicked();
+//    void on_pushButtonCountUpTimerStartStop_clicked();
+//    void on_pushButtonCountUpTimerReset_clicked();
 
-    void on_checkBoxPlayOnEnd_clicked();
-    void on_checkBoxStartOnPlay_clicked();
+//    void on_checkBoxPlayOnEnd_clicked();
+//    void on_checkBoxStartOnPlay_clicked();
 
     void getCurrentPointInStream(double *pos, double *len);
     void on_pushButtonSetIntroTime_clicked();
@@ -363,9 +397,9 @@ private slots:
     void setCueSheetAdditionalControlsVisible(bool visible);
     bool cueSheetAdditionalControlsVisible();
     void setInOutButtonState();
-    // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
-    void timerCountUp_update();
-    void timerCountDown_update();
+//    // TODO: change to use the auto-wiring naming convention, when manual slot/signal wiring is removed...
+//    void timerCountUp_update();
+//    void timerCountDown_update();
 
     void on_actionLoad_Playlist_triggered();
     void on_actionSave_Playlist_triggered();
@@ -390,22 +424,20 @@ private slots:
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
 
+    void tableItemChanged(QTableWidgetItem* item);
+
     void on_warningLabel_clicked();
     void on_warningLabelCuesheet_clicked();
 
     void on_tabWidget_currentChanged(int index);
 
-    void readPSData();
-    void readPSStdErr();
-    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
-    void pocketSphinx_started();
+//    void readPSData();
+//    void readPSStdErr();
+//    void pocketSphinx_errorOccurred(QProcess::ProcessError error);
+//    void pocketSphinx_started();
 
-    void on_actionEnable_voice_input_toggled(bool arg1);
+//    void on_actionEnable_voice_input_toggled(bool arg1);
     void microphoneStatusUpdate();
-
-    void readMP3GainData();
-    void MP3Gain_errorOccurred(QProcess::ProcessError error);
-    void MP3Gain_finished(int exitCode);
 
     void on_actionShow_All_Ages_triggered(bool checked);
 
@@ -452,6 +484,7 @@ private slots:
     void makeProgress();
     void cancelProgress();
 
+    void fileWatcherTriggered();
     void musicRootModified(QString s);
     void maybeLyricsChanged();
 
@@ -465,6 +498,8 @@ private slots:
     void on_actionRecent2_triggered();
     void on_actionRecent3_triggered();
     void on_actionRecent4_triggered();
+    void on_actionRecent5_triggered();
+    void on_actionRecent6_triggered();
     void on_actionClear_Recent_List_triggered();
     void on_actionCheck_for_Updates_triggered();
 
@@ -593,13 +628,18 @@ public:
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
     void submit_lineEditSDInput_contents_to_sd();
+
+    QString musicRootPath; // needed by sd to do output_prefix
 private:
+
+    QString lastAudioDeviceName;
 
     bool flashCallsVisible;
 
     int lastSongTableRowSelected;
 
     // Lyrics editor -------
+    QString cuesheetSquareDeskVersion; // if the cuesheet that we loaded was written by SquareDesk, this will contain the version (e.g. 0.9.9)
     enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=0}; // matches blue component of CSS definition
     charsType FG_BG_to_type(QColor fg, QColor bg);
     QTextCharFormat lastKnownTextCharFormat;
@@ -639,12 +679,13 @@ private:
     QAction *closeAct;  // WINDOWS only
     QWidget *oldFocusWidget;  // last widget that had focus (or NULL, if none did)
 
+    bool lastWidgetBeforePlaybackWasSongTable;
 
     bool justWentActive;
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
-    QString musicRootPath, guestRootPath, guestVolume, guestMode;
+    QString guestRootPath, guestVolume, guestMode;
     QString lastCuesheetSavePath;
     QString loadedCuesheetNameWithPath;
     enum SongFilenameMatchingType songFilenameFormat;
@@ -668,6 +709,9 @@ private:
 
     bool tempoIsBPM;
     double baseBPM;   // base-level detected BPM (either libbass or embedded TBPM frame in ID3)
+    QString targetPitch;  // from songTable, this is what we want after load
+    QString targetTempo;  // from songTable, this is what we want after load
+    QString targetNumber;  // from songTable, this tells us if current song is on a playlist
     bool switchToLyricsOnPlay;
 
     void Info_Volume(void);
@@ -705,6 +749,8 @@ private:
 
     void reloadCurrentMP3File();
     void loadMP3File(QString filepath, QString songTitle, QString songType, QString songLabel);
+    void secondHalfOfLoad(QString songTitle);  // after we have duration and BPM, execute this
+
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
@@ -720,6 +766,8 @@ private:
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();
+
+    void markPlaylistModified(bool isModified); // used to put * or not on the Playlist in statusBar
 
     int pointSizeToIndex(int pointSize);
     int indexToPointSize(int index);
@@ -757,18 +805,18 @@ private:
     QList<QString> *pathStack;
 
     // Experimental Timer stuff ----------
-    QTimer *timerCountUp;
-    qint64 timeCountUpZeroMs;
-    QTimer *timerCountDown;
-    qint64 timeCountDownZeroMs;
+//    QTimer *timerCountUp;
+//    qint64 timeCountUpZeroMs;
+//    QTimer *timerCountDown;
+//    qint64 timeCountDownZeroMs;
     bool trapKeypresses;
     QString reverseLabelTitle;
 
     void saveCheckBoxState(const char *key_string, QCheckBox *checkBox);
     void restoreCheckBoxState(const char *key_string, QCheckBox *checkBox,
                               bool checkedDefault);
-    bool timerStopStartClick(QTimer *&timer, QPushButton *button);
-    int updateTimer(qint64 timeZero, QLabel *label);
+//    bool timerStopStartClick(QTimer *&timer, QPushButton *button);
+//    int updateTimer(qint64 timeZero, QLabel *label);
 
     QString removePrefix(QString prefix, QString s);
 
@@ -788,6 +836,8 @@ private:
     // VU Meter support
     QTimer *UIUpdateTimer;
     QTimer *vuMeterTimer;
+
+    QTimer *fileWatcherTimer;  // after all changes are made, THEN reload the songTable.
 
     LevelMeter *vuMeter;
 
@@ -819,10 +869,7 @@ private:
     QString currentSDVUILevel;
     QString currentSDKeyboardLevel;
 
-    QProcess *ps;       // pocketsphinx process
-    QProcess *mp3gain;  // mp3gain process
-    QString mp3gainResult_filepath;    // results of the mp3gain process
-    double  mp3gainResult_dB;   // results of the mp3gain process
+//    QProcess *ps;       // pocketsphinx process
 
     Highlighter *highlighter;
 //    RenderArea *renderArea;
@@ -968,7 +1015,7 @@ private: // SD
     void set_sd_last_formation_name(const QString&);
     void set_sd_last_groupness(); // update groupness strings
 
-    bool replayGain_dB(QString filepath); // async call
+//    bool replayGain_dB(QString filepath); // async call
 
     bool compareRelative(QString s1, QString s2);  // compare pathnames relative to MusicDir
 
@@ -1053,5 +1100,39 @@ public:
     bool eventFilter(QObject *Object, QEvent *Event);
 };
 
+// ----------------------
+class SelectionRetainer {
+    QTextEdit *textEdit;
+    QTextCursor cursor;
+    int anchorPosition;
+    int cursorPosition;
+    // No inadvertent copies
+private:
+    SelectionRetainer() {};
+    SelectionRetainer(const SelectionRetainer &) {};
+public:
+    SelectionRetainer(QTextEdit *textEdit) : textEdit(textEdit), cursor(textEdit->textCursor())
+    {
+        anchorPosition = cursor.anchor();
+        cursorPosition = cursor.position();
+    }
+    ~SelectionRetainer() {
+        cursor.setPosition(anchorPosition);
+        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
+        textEdit->setTextCursor(cursor);
+    }
+};
+
+// -----------------------
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpadded"
+struct PlaylistExportRecord
+{
+    int index;
+    QString title;
+    QString pitch;
+    QString tempo;
+};
+#pragma clang diagnostic pop
 
 #endif // MAINWINDOW_H

@@ -35,7 +35,7 @@
 float  gStream_Pan = 0.0;
 bool gStream_Mono = false;
 HDSP gMono_dsp = 0;  // DSP handle (u32)
-float gStream_replayGain = 1.0f;    // replayGain
+//float gStream_replayGain = 1.0f;    // replayGain
 
 // ========================================================================
 // Mix/Pan, then optionally mix down to mono
@@ -70,7 +70,7 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             outL = KL * inL;
             outR = KR * inR;             // constant power pan
             mono = (outL + outR)/2.0f;  // mix down to mono for BOTH output channels
-            d[a] = d[a+1] = mono * gStream_replayGain;
+            d[a] = d[a+1] = mono; // * gStream_replayGain;
         }
 
     } else {
@@ -81,8 +81,8 @@ void CALLBACK DSP_Mono(HDSP handle, DWORD channel, void *buffer, DWORD length, v
             inR = d[a+1];
             outL = KL * inL;
             outR = KR * inR;  // constant power pan
-            d[a] = outL * gStream_replayGain;
-            d[a+1] = outR * gStream_replayGain;
+            d[a] = outL; // * gStream_replayGain;
+            d[a+1] = outR; // * gStream_replayGain;
         }
     }
 }
@@ -111,24 +111,6 @@ bass_audio::bass_audio(void)
     Global_IntelBoostEq[GAIN_DB] = 0.0;
 
     IntelBoostShouldBeEnabled = false;
-
-    // compressor initial settings (defaults to OFF)
-//    Stream_Compressor[0] = 0.0f;       // threshold (OFF)
-//    Stream_Compressor[1] = 4.0f;       // ratio
-//    Stream_Compressor[2] = 0.0f;       // gain
-//    Stream_Compressor[3] = 10.0f;      // attack
-//    Stream_Compressor[4] = 200.0f;     // release
-
-#ifdef WANTCOMPRESSOR
-    compressor.fThreshold = 0.0f;
-    compressor.fRatio = 4.0f;
-    compressor.fGain = 0.0f;
-    compressor.fAttack = 10.0f;
-    compressor.fRelease = 200.0f;
-    compressor.lChannel = BASS_BFX_CHANALL;  // compress all channels
-
-    compressorShouldBeEnabled = false;
-#endif
 
     FileLength = 0.0;
     Current_Position = 0.0;
@@ -174,32 +156,32 @@ void bass_audio::SetVolume(int inVolume)
     BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, Stream_Volume * 100);  // this uses the GLOBAL volume control
 }
 
-// uses the STREAM volume, rather than global volume
-void bass_audio::SetReplayGainVolume(double replayGain_dB) {
-    if (!BASS_ChannelIsSliding(Stream, BASS_ATTRIB_VOL) &&
-            (BASS_ChannelIsActive(FXStream) != BASS_ACTIVE_PLAYING) ) {
-        // if we are not fading AND we are not ducked because of a sound effect
-        //   (in both cases, when playback starts again, it will go to current volume w/ReplayGain)
-        double voltageRatio = pow(10.0, replayGain_dB/20.0); // 0 = silent, 1.0 = normal, above 1.0 = amplification
-        Stream_replayGain_dB = replayGain_dB;  // for later restore
+//// uses the STREAM volume, rather than global volume
+//void bass_audio::SetReplayGainVolume(double replayGain_dB) {
+//    if (!BASS_ChannelIsSliding(Stream, BASS_ATTRIB_VOL) &&
+//            (BASS_ChannelIsActive(FXStream) != BASS_ACTIVE_PLAYING) ) {
+//        // if we are not fading AND we are not ducked because of a sound effect
+//        //   (in both cases, when playback starts again, it will go to current volume w/ReplayGain)
+//        double voltageRatio = pow(10.0, replayGain_dB/20.0); // 0 = silent, 1.0 = normal, above 1.0 = amplification
+//        Stream_replayGain_dB = replayGain_dB;  // for later restore
 
-//        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
-        Stream_MaxVolume = voltageRatio;
+////        voltageRatio = (replayGain_dB == 0.0 ? 0.1 : voltageRatio);  // DEBUG
+//        Stream_MaxVolume = voltageRatio;
 
-//        qDebug() << "   setReplayGainVolume: " << replayGain_dB << "dB, Voltage ratio (max volume): " << voltageRatio;
+////        qDebug() << "   setReplayGainVolume: " << replayGain_dB << "dB, Voltage ratio (max volume): " << voltageRatio;
 
-        gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
+//        gStream_replayGain = static_cast<float>(voltageRatio);  // this is done in the DSP, because BASS_ATTRIB_VOL can't be > 1.0
 
-//        if (!BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(voltageRatio))) {
-//            qDebug() << "ERROR: ChannelSetAttribute to" << voltageRatio << "failed. ";
-//            qDebug() << "   error code: " << BASS_ErrorGetCode();
-//        }  // LOCAL volume control of just the music stream
+////        if (!BASS_ChannelSetAttribute(Stream, BASS_ATTRIB_VOL, static_cast<float>(voltageRatio))) {
+////            qDebug() << "ERROR: ChannelSetAttribute to" << voltageRatio << "failed. ";
+////            qDebug() << "   error code: " << BASS_ErrorGetCode();
+////        }  // LOCAL volume control of just the music stream
 
-//        float val;
-//        BASS_ChannelGetAttribute(Stream, BASS_ATTRIB_VOL, &val);
-//        qDebug() << "Channel GetAttribute Volume: " << val;
-    }
-}
+////        float val;
+////        BASS_ChannelGetAttribute(Stream, BASS_ATTRIB_VOL, &val);
+////        qDebug() << "Channel GetAttribute Volume: " << val;
+//    }
+//}
 
 // ------------------------------------------------------------------
 void bass_audio::SetTempo(int newTempo)
@@ -252,70 +234,6 @@ void bass_audio::SetEq(int band, double val)
 }
 
 // ------------------------------------------------------------------
-//
-void bass_audio::SetCompression(unsigned int which, float val)
-{
-
-#ifdef WANTCOMPRESSOR
-//    qDebug() << "SetCompression: " << which << "to: " << val;
-
-    switch (which) {
-        case 0: compressor.fThreshold = val; break;
-        case 1: compressor.fRatio     = val; break;
-        case 2: compressor.fGain      = val; break;
-        case 3: compressor.fAttack    = val; break;
-        case 4: compressor.fRelease   = val; break;
-        default: break;
-    }
-
-    if (fxCompressor != (HFX)NULL) {
-        // compressor exists, so go ahead and modify it!
-        BASS_FXSetParameters(fxCompressor, &compressor);
-//        qDebug() << "   Actual: " << compressor.fThreshold << compressor.fRatio << compressor.fGain << compressor.fAttack << compressor.fRelease;
-    }
-#else
-    Q_UNUSED(which)
-    Q_UNUSED(val)
-#endif
-
-}
-
-void bass_audio::SetCompressionEnabled(bool enable) {
-
-#ifdef WANTCOMPRESSOR
-    if (enable) {
-        // enabled
-//        qDebug() << "compressor should be enabled...";
-
-        if ((Stream != (HSTREAM)NULL) && (fxCompressor == (HFX)NULL)) {
-            // compressor doesn't exist yet, so create one and initialize it
-            // instantiate and init the compressor -----------------
-            fxCompressor = BASS_ChannelSetFX(Stream, BASS_FX_BFX_COMPRESSOR2, 0);  // 0 = after EQ
-            if (fxCompressor != (HFX)0) {
-//                qDebug() << "   compressor is up and running";
-                BASS_FXSetParameters(fxCompressor, &compressor);  // set parameters on compressor
-            } else {
-//                qDebug() << "error in turning on the compressor: " << BASS_ErrorGetCode();
-            }
-        }
-        compressorShouldBeEnabled = true;
-    } else {
-        // disabled
-//        qDebug() << "disabling compressor...";
-
-        if ((Stream != (HSTREAM)NULL) && (fxCompressor != (HFX)NULL)) {
-//            qDebug() << "   compressor is gone now...";
-            BASS_ChannelRemoveFX(Stream, fxCompressor);
-            fxCompressor = (HFX)NULL;  // compressor is gone now
-        }
-        compressorShouldBeEnabled = false;
-    }
-#else
-    Q_UNUSED(enable)
-#endif
-
-}
-
 // which = (FREQ_KHZ, BW_OCT, GAIN_DB)
 void bass_audio::SetIntelBoost(unsigned int which, float val)
 {
@@ -521,14 +439,6 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
             BASS_ChannelRemoveFX(Stream, fxEQ);  // remove the EQ
             fxEQ = (HFX)NULL;
         }
-#ifdef WANTCOMPRESSOR
-        if (fxCompressor != (HFX)NULL) {
-            // and there's a valid compressor
-            BASS_ChannelRemoveFX(Stream, fxCompressor);  // remove the compressor
-            fxCompressor = (HFX)NULL;  // other code looks at this to determine whether a compressor exists
-        }
-#endif
-
     }
     BASS_StreamFree(Stream);  // free the old stream
 
@@ -592,11 +502,6 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     eq.fBandwidth = 2.0f;
     BASS_FXSetParameters(fxEQ, &eq);
 
-#ifdef WANTCOMPRESSOR
-    // instantiate and init the compressor, if it's not already -----------------
-    SetCompressionEnabled(compressorShouldBeEnabled);
-#endif
-
     // -------------------------------------------------------------
     bPaused = true;
 
@@ -655,7 +560,7 @@ void bass_audio::StreamCreate(const char *filepath, double  *pSongStart_sec, dou
     DWORD handle = BASS_ChannelSetSync(Stream, BASS_SYNC_SLIDE, 0, MyFadeIsDoneProc, this);
     Q_UNUSED(handle)
 
-    SetReplayGainVolume(0.0);  // initialize the replayGain to "disabled", sets the LOCAL volume
+//    SetReplayGainVolume(0.0);  // initialize the replayGain to "disabled", sets the LOCAL volume
 }
 
 // ------------------------------------------------------------------

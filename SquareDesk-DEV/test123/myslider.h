@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016-2021 Mike Pogue, Dan Lyke
+** Copyright (C) 2016-2022 Mike Pogue, Dan Lyke
 ** Contact: mpogue @ zenstarstudio.com
 **
 ** This file is part of the SquareDesk application.
@@ -60,13 +60,15 @@ protected:
 
 private:
     bool drawLoopPoints;
-    bool singingCall;
+    bool singingCall, previousSingingCall;  // previousSingingCall is what it was last time (cached)
     double introPosition;
     double outroPosition;
     int origin;  // reset to this point when double-clicked
 
     bool drawMarkers;
     QSet<double> markers;
+
+    QString singer1, else1, s2;  // stylesheets for coloring sliders
 };
 
 #endif // MYSLIDER_H
