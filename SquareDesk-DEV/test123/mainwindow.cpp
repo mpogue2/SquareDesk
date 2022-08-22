@@ -3099,6 +3099,7 @@ void MainWindow::aboutBox()
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
 //                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
+                   QString("<a href=\"https://github.com/breakfastquay/minibpm\">miniBPM</a>, ") +
 //                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
 //                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
                    QString("<a href=\"https://www.kfrlib.com\">kfr</a>, and ") +
