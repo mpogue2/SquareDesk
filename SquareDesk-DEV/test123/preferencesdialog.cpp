@@ -34,11 +34,7 @@
 #include <algorithm>
 #include "mainwindow.h"
 
-#if M1MAC
 extern flexible_audio cBass;    // global in MainWindow.cpp <-- use this on M1 Silicon
-#else
-extern bass_audio cBass;        // global in MainWindow.cpp
-#endif
 
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;

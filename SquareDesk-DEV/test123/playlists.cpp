@@ -11,16 +11,18 @@
 #include "songlistmodel.h"
 #include "tablenumberitem.h"
 
+#if defined(Q_OS_LINUX)
+#define OS_FALLTHROUGH [[fallthrough]]
+#elif defined(Q_OS_WIN)
+#define OS_FALLTHROUGH
+#else
+    // already defined on Mac OS X
+#endif
+
 // FORWARD DECLS ---------
 extern QString getTitleColTitle(MyTableWidget *songTable, int row);
 
-#ifndef M1MAC
-// All other platforms:
-extern bass_audio cBass;  // make this accessible to PreferencesDialog
-#else
-// M1 Silicon Mac only:
 extern flexible_audio cBass;  // make this accessible to PreferencesDialog
-#endif
 
 // CSV parsing (used only here) -----------------------------------------
 // Adapted from: https://github.com/hnaohiro/qt-csv/blob/master/csv.cpp

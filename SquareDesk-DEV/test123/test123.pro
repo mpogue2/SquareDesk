@@ -5,10 +5,11 @@
 #-------------------------------------------------
 
 QT       += core gui sql network printsupport svg
-
-macx {
+unix {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
+}
+macx {
     QMAKE_INFO_PLIST = $$PWD/Info.plist
     QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
 }
@@ -36,11 +37,6 @@ win32:CONFIG(debug, debug|release): {
 win32:CONFIG(release, debug|release): {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/release/sdlib.lib
-}
-
-unix:!macx {
-    QT += webkitwidgets
-    PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
 }
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -114,7 +110,7 @@ SOURCES += main.cpp\
     mydatetimeedit.cpp \
     tablelabelitem.cpp
 
-macx {
+unix {
 SOURCES += ../qpdfjs/src/communicator.cpp
 
 # this hint from: https://forum.qt.io/topic/74432/os-x-deployment-problem-rpath-framework/5
@@ -124,13 +120,9 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@
 HEADERS  += mainwindow.h \
 #    ../miniBPM/MiniBpm.h \
     audiodecoder.h \
-    bass.h \
-    bass_fx.h \
-    bass_audio.h \
     flexible_audio.h \
     miniBPM/MiniBpm.h \
     myslider.h \
-    bassmix.h \
     importdialog.h \
     exportdialog.h \
     sessioninfo.h \
@@ -192,7 +184,7 @@ HEADERS  += mainwindow.h \
     songsetting_attributes.h \
     tablelabelitem.h
 
-macx {
+unix {
 HEADERS += ../qpdfjs/src/communicator.h
 INCLUDEPATH += $$PWD/../qpdfjs
 }
@@ -222,15 +214,30 @@ DEPENDPATH += $$PWD/ $$PWD/../local_win32/include
 }
 
 unix:!macx {
-INCLUDEPATH += $$PWD/ $$PWD/../local/include
+LIBS += -L$$OUT_PWD/../taglib -ltaglib
+INCLUDEPATH += $$PWD/../taglib/binaries/include
+INCLUDEPATH += $$PWD/../taglib
+INCLUDEPATH += $$PWD/../taglib/taglib
+INCLUDEPATH += $$PWD/../taglib/taglib/toolkit
+INCLUDEPATH += $$PWD/../taglib/taglib/mpeg/id3v2
+INCLUDEPATH += $$PWD/ $$PWD/../local/include /home/danlyke/local/include /home/danlyke/local/include/soundtouch 
 DEPENDPATH += $$PWD/ $$PWD/../local/include
 LIBS += -L$$PWD/../sdlib -lsdlib
+LIBS += -L/home/danlyke/local/lib -lkfr_dft -lkfr_io
+QT += multimedia
+
+# MiniBPM for BPM detection -----------------------------------
+INCLUDEPATH += $$PWD/miniBPM
+
+# SoundTouch for pitch/tempo changing -----------------------------------
+INCLUDEPATH += $$PWD/soundtouch/include
+
 }
 
 
 # NOTE: there is no debug version of libbass
 win32: LIBS += -L$$PWD/ -L$$PWD/../local_win32/lib -lbass -lbass_fx -lbassmix -luser32 -lquazip
-else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -lbass -lbass_fx -lbassmix -ltag -lsqlite3
+else:unix:!macx: LIBS += -L$$PWD/ -L$$PWD/../local/lib -ltag -lsqlite3
 # macx: see below...
 
 win32:CONFIG(debug, debug|release): {

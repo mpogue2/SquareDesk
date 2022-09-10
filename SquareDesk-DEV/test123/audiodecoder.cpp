@@ -1,8 +1,8 @@
 #include "audiodecoder.h"
 #include <QFile>
 #include <stdio.h>
-#include <QMediaDevices>
-#include <QAudioDevice>
+#include <QtMultimedia/QMediaDevices>
+#include <QtMultimedia/QAudioDevice>
 #include <QElapsedTimer>
 #include <QThread>
 

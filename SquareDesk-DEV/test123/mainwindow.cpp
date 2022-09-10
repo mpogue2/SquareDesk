@@ -81,9 +81,7 @@
 #include "songlistmodel.h"
 #include "mytablewidget.h"
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "src/communicator.h"
-#endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #ifndef M1MAC
@@ -218,15 +216,9 @@ using namespace TagLib;
 
 // GLOBALS:
 
-#ifndef M1MAC
-// All other platforms:
-extern bass_audio cBass;  // make this accessible to PreferencesDialog
-bass_audio cBass;
-#else
 // M1 Silicon Mac only:
 extern flexible_audio cBass;  // make this accessible to PreferencesDialog
 flexible_audio cBass;
-#endif
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };       // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };          // NOTE: must use Qt::CaseInsensitive compares for these
@@ -370,9 +362,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     //Q_UNUSED(splash)
     longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
 
-#ifdef M1MAC
     connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
-#endif
     lastAudioDeviceName = "";
 
     lyricsCopyIsAvailable = false;
@@ -2949,7 +2939,6 @@ void MainWindow::on_UIUpdateTimerTick(void)
         on_newVolumeMounted();
     }
     lastKnownVolumeList = newVolumeList;
-
     // check for Audio Device changes, and set UI status bar, if there's a change
     if ((cBass.currentAudioDevice != lastAudioDeviceName)||(lastAudioDeviceName == "")) {
 //        qDebug() << "NEW CURRENT AUDIO DEVICE: " << cBass.currentAudioDevice;
@@ -3092,10 +3081,6 @@ void MainWindow::aboutBox()
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
-#ifndef M1MAC
-                   QString("<a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
-                   QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
-#endif
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
 //                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
@@ -4251,102 +4236,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QString fn = ss.at(ss.size()-1);
     this->setWindowTitle(fn + QString(" - SquareDesk MP3 Player/Editor"));
 
-#ifndef M1MAC
-    // THIS CODE IS ONLY HERE FOR X86.  M1MAC MOVES THIS DOWN TO secondHalfOfLoad().
-    int length_sec = static_cast<int>(cBass.FileLength);
-    int songBPM = static_cast<int>(round(cBass.Stream_BPM));  // libbass's idea of the BPM
-
-    bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
-                         songTypeNamesForCalled.contains(songType);
-
-    bool isPatter = songTypeNamesForPatter.contains(songType);
-
-    bool isRiverboat = songLabel.startsWith(QString("riv"), Qt::CaseInsensitive);
-
-    if (isRiverboat && isPatter) {
-        // All Riverboat patter records are recorded at 126BPM, according to the publisher.
-        // This can always be overridden using TBPM in the ID3 tag inside a specific patter song, if needed.
-        //        qDebug() << "Riverboat patter detected!";
-        songBPM = 126;
-        tempoIsBPM = true;  // this song's tempo is BPM, not %
-    }
-
-    // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
-    double songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
-
-    if (songBPM_ID3 != 0.0) {
-        songBPM = static_cast<int>(songBPM_ID3);
-        tempoIsBPM = true;  // this song's tempo is BPM, not %
-    }
-
-    baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
-
-    t.elapsed(__LINE__);
-
-    // Intentionally compare against a narrower range here than BPM detection, because BPM detection
-    //   returns a number at the limits, when it's actually out of range.
-    // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
-    //
-    // TODO: make the types for turning off BPM detection a preference
-    if ((songBPM>=125-15) && (songBPM<=125+15) && songType != "xtras") {
-        tempoIsBPM = true;
-        ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
-        t.elapsed(__LINE__);
-
-        ui->tempoSlider->setMinimum(songBPM-15);
-        ui->tempoSlider->setMaximum(songBPM+15);
-
-        t.elapsed(__LINE__);
-//        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
-//        int initialBPM = prefsManager.GetinitialBPM();
-//        t.elapsed(__LINE__);
-//        qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
-//        if (tryToSetInitialBPM) {
-//            qDebug() << "tryToSetInitialBPM true: " << initialBPM;
-//            // if the user wants us to try to hit a particular BPM target, use that value
-//            ui->tempoSlider->setValue(initialBPM);
-//            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-//            t.elapsed(__LINE__);
-//        } else {
-//            // otherwise, if the user wants us to start with the slider at the regular detected BPM
-//            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
-//            //     all saved tempo preferences will always win.
-        ui->tempoSlider->setValue(songBPM);
-        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-//            t.elapsed(__LINE__);
-//        }
-
-        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
-        ui->tempoSlider->setEnabled(true);
-        t.elapsed(__LINE__);
-//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-//                                 ", base tempo: " + QString::number(songBPM) + " BPM");
-        t.elapsed(__LINE__);
-    }
-    else {
-        tempoIsBPM = false;
-        // if we can't figure out a BPM, then use percent as a fallback (centered: 100%, range: +/-20%)
-        t.elapsed(__LINE__);
-        ui->currentTempoLabel->setText("100%");
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setMaximum(100+20);
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setValue(100);
-        t.elapsed(__LINE__);
-        ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
-        t.elapsed(__LINE__);
-        ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setEnabled(true);
-        t.elapsed(__LINE__);
-//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-//                                 ", base tempo: 100%");
-        t.elapsed(__LINE__);
-    }
-#endif
-
     t.elapsed(__LINE__);
 
     fileModified = false;
@@ -4405,14 +4294,6 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
-#ifndef M1MAC
-    // THIS IS ONLY FOR X86 BUILD RIGHT NOW.
-    // NOTE: we need to set the bounds BEFORE we set the actual positions
-    int length_sec = static_cast<int>(cBass.FileLength); // secondHalfOfLoad isn't called until after gotDuratioBPM, which gives cBass the FileLength
-    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-#endif
-
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
 
@@ -4423,37 +4304,10 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->pushButtonSetOutroTime->setEnabled(true);
     ui->pushButtonTestLoop->setEnabled(true);
 
-    // FIX FIX FIX:
-#ifndef M1MAC
-    ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
-    ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
-#endif
-
     cBass.SetVolume(100);
     currentVolume = 100;
     previousVolume = 100;
     Info_Volume();
-
-    // FIX FIX FIX
-#ifndef M1MAC
-    // On M1MAC, THIS IS RELOCATED TO handleDurationBPM()....
-    if (isPatter) {
-        on_loopButton_toggled(true); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
-        ui->pushButtonSetIntroTime->setText("Start Loop");
-        ui->pushButtonSetOutroTime->setText("End Loop");
-        ui->pushButtonTestLoop->setHidden(false);
-        analogClock->setSingingCallSection("");
-    } else {
-        // NOTE: if unknown type, it will be treated as a singing call, so as to NOT set looping
-        // singing call or vocals or xtras, so Loop mode defaults to OFF
-        on_loopButton_toggled(false); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
-        ui->pushButtonSetIntroTime->setText("In");
-        ui->pushButtonSetOutroTime->setText("Out");
-        ui->pushButtonTestLoop->setHidden(true);
-    }
-#endif
 
 //    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
     loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo from DB (not necessarily same as songTable if playlist loaded)
@@ -6876,13 +6730,6 @@ void MainWindow::microphoneStatusUpdate() {
 //}
 
 void MainWindow::initReftab() {
-
-#ifdef M1MAC
-//    ui->tabWidget->setTabVisible(4,false);  // turn off the References tab for now in the M1 build
-//    return;  // FIX: turned off right now for M1 Mac, because of crashes in the WebEngine on M1
-//             // FIX: also seeing errors like this: [0306/194140.909675:ERROR:icu_util.cc(252)] Couldn't mmap icu data file, see issue #636
-#endif
-
     static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
 
     numWebviews = 0;
@@ -6928,12 +6775,7 @@ void MainWindow::initReftab() {
                 }
             }
             if (HTMLfolderExists) {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
-#else
-                webview[numWebviews] = new QWebView();
-#endif
-
 //                QString indexFileURL = "file://" + filename + whichHTM;
 #if defined(Q_OS_WIN32)
                 QString indexFileURL = "file:///" + filename + whichHTM;  // Yes, Windows is special
@@ -6956,11 +6798,7 @@ void MainWindow::initReftab() {
 
 //                qDebug() << "    tabname:" << tabname;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
-#else
-                webview[numWebviews] = new QWebView();
-#endif
 
 #if defined(Q_OS_WIN32)
                 QString indexFileURL = "file:///" + filename;  // Yes, Windows is special: file:///Y:/Dropbox/__squareDanceMusic/reference/100.Broken Hearts.txt
@@ -6974,11 +6812,7 @@ void MainWindow::initReftab() {
         } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
                 static QRegularExpression re4(".[Mm][Dd]$");
                 tabname = filename.split("/").last().remove(re4);
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
-#else
-                webview[numWebviews] = new QWebView();
-#endif
 
                 QFile f1(filename);
                 f1.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -6999,7 +6833,6 @@ void MainWindow::initReftab() {
                 QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
 //                qDebug() << "    pdf_path: " << pdf_path;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 Communicator *m_communicator = new Communicator(this);
                 m_communicator->setUrl(pdf_path);
 
@@ -7009,10 +6842,6 @@ void MainWindow::initReftab() {
                 webview[numWebviews]->page()->setWebChannel(channel);
 
                 webview[numWebviews]->load(url);
-#else
-                webview[numWebviews] = new QWebView();
-                webview[numWebviews]->setUrl(url);
-#endif
 
 
 //                QString indexFileURL = "file://" + filename;
