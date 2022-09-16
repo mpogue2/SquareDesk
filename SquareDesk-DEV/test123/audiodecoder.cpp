@@ -728,7 +728,7 @@ void AudioDecoder::finished()
     }
 
     MiniBPM BPMestimator(44100.0);
-    BPMestimator.setBPMRange(125.0-25.0, 125.0+25.0);  // limited range for square dance songs, else use percent
+    BPMestimator.setBPMRange(125.0-10.0, 125.0+10.0);  // limited range for square dance songs, else use percent
     BPM = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
 //    qDebug() << "***** BPM RESULT: " << BPM;  // -1 = overwritten by here, 0 = undetectable, else double
 
