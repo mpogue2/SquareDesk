@@ -10,7 +10,8 @@ macx {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
     QMAKE_INFO_PLIST = $$PWD/Info.plist
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
+#    QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 }
 
 macx {
