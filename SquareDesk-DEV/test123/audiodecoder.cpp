@@ -709,12 +709,23 @@ void AudioDecoder::finished()
 //    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
     // BPM detection -------
-    //   this estimate will be based on mono mixed-down samples from T={10,20} sec
+    //   this estimate will be based on mono mixed-down samples from T={30,40} sec
     const float *songPointer = (const float *)p_data;
 
+    float sampleStart_sec = 30.0;
+    float sampleLength_sec = 10.0; // 30.0 - 40.0 sec
+    float sampleEnd_sec = sampleStart_sec + sampleLength_sec;
+
     float songLength_sec = myPlayer.totalFramesInSong/44100.0;
-    float start_sec =  (songLength_sec >= 10.0 ? 10.0 : 0.0);
-    float end_sec   =  (songLength_sec >= start_sec + 10.0 ? start_sec + 10.0 : songLength_sec );
+//    float start_sec =  (songLength_sec >= sampleStart_sec + sampleLength_sec ? 10.0 : 0.0);
+//    float end_sec   =  (songLength_sec >= start_sec + 10.0 ? start_sec + 10.0 : songLength_sec );
+
+    // if song is longer than 40, end_sec will be 40; else end_sec will be the end of the song.
+    float end_sec = (songLength_sec >= sampleEnd_sec ? sampleEnd_sec : songLength_sec);
+
+    // if end_sec going backward by sampleLength is within the song, then use that point for the start_sec
+    //   else, just use the start of the song
+    float start_sec = (end_sec - sampleLength_sec > 0.0 ? end_sec - sampleLength_sec : 0.0 );
 
     unsigned int offsetIntoSong_samples = 44100 * start_sec;            // start looking at time T = 10 sec
     unsigned int numSamplesToLookAt = 44100 * (end_sec - start_sec);    //   look at 10 sec of samples
@@ -728,8 +739,14 @@ void AudioDecoder::finished()
     }
 
     MiniBPM BPMestimator(44100.0);
-    BPMestimator.setBPMRange(125.0-10.0, 125.0+10.0);  // limited range for square dance songs, else use percent
+    BPMestimator.setBPMRange(125.0-15.0, 125.0+15.0);  // limited range for square dance songs, else use percent
     BPM = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
+
+    if (end_sec - start_sec < 10.0) {
+        // if we don't have enough song left to really know what the BPM is, just say "I don't know"
+        BPM = 0.0;
+    }
+
 //    qDebug() << "***** BPM RESULT: " << BPM;  // -1 = overwritten by here, 0 = undetectable, else double
 
     emit done();
