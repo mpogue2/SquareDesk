@@ -298,6 +298,8 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
         SelectionRetainer retainer(ui->textBrowserCueSheet);
         QTextCursor cursor = ui->textBrowserCueSheet->textCursor();
 
+//        qDebug() << "\n***** CURSOR: " << cursor.selectionStart() << cursor.selectionEnd() << cursor.position() << cursor.atEnd();
+
         // now look at it as HTML
         QString selected = cursor.selection().toHtml();
 //        qDebug() << "\n***** initial selection (HTML): " << selected;
@@ -312,6 +314,24 @@ void MainWindow::on_pushButtonCueSheetClearFormatting_clicked()
                 .replace("</span>","")
                 ;
 //        qDebug() << "current replacement: " << selected;
+
+        // SUPER CLEAN -------
+        if (cursor.selectionStart() == 0 && cursor.atEnd()) {
+            // selection starts at beginning of file (position 0), and cursor is at end of file, means everything in the file is selected
+            //   if this is the case, let's do a SUPER CLEAN to get rid of all formatting from say MS Word or OpenOffice.
+//            qDebug() << "BEFORE CLEANING: '" << selected << "'";
+            selected
+                    .replace(QRegularExpression("<HEAD>.*</HEAD>", QRegularExpression::DotMatchesEverythingOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::InvertedGreedinessOption), "") // delete <head> section
+                    .replace(QRegularExpression("<BR *>",  QRegularExpression::CaseInsensitiveOption), "|BRBRBR|") // preserve line breaks
+                    .replace(QRegularExpression("<BR */>", QRegularExpression::CaseInsensitiveOption), "|BRBRBR|")
+                    .replace(QRegularExpression("<.*>", QRegularExpression::InvertedGreedinessOption), "") // delete ALL TAGS
+                    .replace("|BRBRBR|", "<BR>") // restore line breaks
+                    .replace(QRegularExpression("^(<BR>)+"), "")    // delete extra BR's at the start of the file
+                    .replace(QRegularExpression("^\n+"), "")        // delete extra NL's at the start of the file
+                    .replace("\n", "<BR>\n")     // restore line breaks
+                    ;
+//            qDebug() << "SUPER CLEANED: '" << selected << "'";
+        }
 
         // WARNING: this has a dependency on internal cuesheet2.css's definition of BODY text.
         QString HTMLreplacement =

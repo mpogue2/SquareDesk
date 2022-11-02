@@ -194,7 +194,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 // ALSO REMEMBER TO CHANGE THE VERSION IN PackageIt.command !
 // Also remember to change the "latest" file on GitHub (for Beta releases)!
-#define VERSIONSTRING "1.0.0"
+#define VERSIONSTRING "1.0.2"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
