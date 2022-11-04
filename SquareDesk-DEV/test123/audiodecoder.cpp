@@ -712,7 +712,7 @@ void AudioDecoder::finished()
     //   this estimate will be based on mono mixed-down samples from T={30,40} sec
     const float *songPointer = (const float *)p_data;
 
-    float sampleStart_sec = 30.0;
+    float sampleStart_sec = 60.0;
     float sampleLength_sec = 10.0; // 30.0 - 40.0 sec
     float sampleEnd_sec = sampleStart_sec + sampleLength_sec;
 
