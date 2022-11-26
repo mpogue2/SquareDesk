@@ -131,7 +131,7 @@ void SDRedoStack::did_an_undo()
 {
     redo_stack.push_front(QStringList());
     int undo_pos = build_redo_stack_from_command_tail(redo_stack.front());
-    command_stack.erase(command_stack.begin() + undo_pos, command_stack.end());
+    command_stack.erase(command_stack.constBegin() + undo_pos, command_stack.constEnd());
 }
 
 int SDRedoStack::build_redo_stack_from_command_tail(QStringList &redo_stack_front, int *p_last_seen_formation_line, int *p_last_seen_row)

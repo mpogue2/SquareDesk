@@ -112,9 +112,10 @@ void Console::putData(const QByteArray &data)
     }
 
     bool done = false;
+    static QRegularExpression regex1(".\b \b");
     while (!done) {
         int beforeLength = data2s.length();
-        data2s.replace(QRegularExpression(".\b \b"),""); // if coming in as bulk text, delete one char
+        data2s.replace(regex1,""); // if coming in as bulk text, delete one char
         int afterLength = data2s.length();
         done = (beforeLength == afterLength);
     }

@@ -7247,9 +7247,9 @@ void MainWindow::airplaneMode(bool turnItOn) {
 #if defined(Q_OS_MAC)
     char cmd[100];
     if (turnItOn) {
-        sprintf(cmd, "osascript -e 'do shell script \"networksetup -setairportpower en0 off\"'\n");
+        snprintf(cmd, sizeof(cmd), "osascript -e 'do shell script \"networksetup -setairportpower en0 off\"'\n");
     } else {
-        sprintf(cmd, "osascript -e 'do shell script \"networksetup -setairportpower en0 on\"'\n");
+        snprintf(cmd, sizeof(cmd), "osascript -e 'do shell script \"networksetup -setairportpower en0 on\"'\n");
     }
     system(cmd);
 #else
@@ -8331,7 +8331,7 @@ void MainWindow::on_actionFilePrint_triggered()
             QString baseName = rec.title;
             baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
 
-            sprintf(buf, "%02d: %s\n", rec.index, baseName.toLatin1().data());
+            snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
             toBePrinted += buf;
         }
 
