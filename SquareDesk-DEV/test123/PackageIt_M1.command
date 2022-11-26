@@ -64,7 +64,7 @@ popd
 # ----------------------------------------------------------------------------------------
 echo Now running Mac Deploy Qt step...  NOTE: MUST BE UNCOMMENTED OUT AND RUN ONCE
 # NOT THIS ONE: ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
-~/Qt/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+#~/Qt/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 
 echo Mac Deploy Qt step done.
 echo
