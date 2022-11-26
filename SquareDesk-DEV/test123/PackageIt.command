@@ -31,17 +31,21 @@ WHICH=X86-Release
 APP_NAME="SquareDesk"
 VERSION="1.0.2X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
-QTVERSION="6.3.1"
-QT_VERSION="6_3_1"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="6.4.1"
+QT_VERSION="6_4_1"   # same thing, but with underscores (yes, change both of them at the same time!)
 
-SOURCEDIR="/Users/mpogue/clean3/SquareDesk/SquareDesk-DEV/test123"
-MIKEBUILDDIR="/Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_${QT_VERSION}_for_macOS-${WHICH}"
+HOMEDIR="/Users/mpogue"
+SOURCEDIR="${HOMEDIR}/clean3/SquareDesk/SquareDesk-DEV/test123"
+MIKEBUILDDIR="${HOMEDIR}/clean3/SquareDesk/build-SquareDesk-Qt_${QT_VERSION}_for_macOS-${WHICH}"
+QTDIR="${HOMEDIR}/Qt"
 
 DMG_BACKGROUND_IMG_SHORT="installer3.png"
 DMG_BACKGROUND_IMG="${SOURCEDIR}/images/${DMG_BACKGROUND_IMG_SHORT}"
 
 echo
+echo HOMEDIR: ${HOMEDIR}
 echo SOURCEDIR: ${SOURCEDIR}
+echo QTDIR: ${QTDIR}
 echo MIKEBUILDDIR: ${MIKEBUILDDIR}
 echo DMG_BACKGROUND_IMG: ${DMG_BACKGROUND_IMG}
 echo DYLD_FRAMEWORK_PATH: ${DYLD_FRAMEWORK_PATH}
@@ -62,7 +66,7 @@ popd
 # ----------------------------------------------------------------------------------------
 echo Now running Mac Deploy Qt step...  NOTE: MUST BE UNCOMMENTED OUT AND RUN ONCE
 # NOT THIS ONE: ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
-# ~/Qt${QTVERSION}/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+#~/Qt${QTVERSION}/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 
 echo Mac Deploy Qt step done.
 echo
@@ -84,6 +88,7 @@ STAGING_DIR="${MIKEBUILDDIR}/Install"             # we copy all our stuff into t
 
 echo STAGING_DIR: ${STAGING_DIR}
 
+# ----------------------------------------------------------------------------------------
 # Check the background image DPI and convert it if it isn't 72x72
 _BACKGROUND_IMAGE_DPI_H=`sips -g dpiHeight ${DMG_BACKGROUND_IMG} | grep -Eo '[0-9]+\.[0-9]+'`
 _BACKGROUND_IMAGE_DPI_W=`sips -g dpiWidth ${DMG_BACKGROUND_IMG} | grep -Eo '[0-9]+\.[0-9]+'`
@@ -107,6 +112,7 @@ echo
 echo Making Staging Directory...
 mkdir -p "${STAGING_DIR}"
 
+# ----------------------------------------------------------------------------------------
 echo "================================================================"
 echo "Running xattr to clean up permissions... (no need for sudo here)"
 xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
@@ -115,6 +121,21 @@ xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
 
 echo "Copying .app to STAGING_DIR and renaming to ${APP_NAME}_${VERSION}.app..."
 cp -Rpf "${MIKEBUILDDIR}/test123/${APP_NAME}.app" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+
+# ----------------------------------------------------------------------------------------
+echo "============================================================================"
+echo Now copying in the libdarwinmediaplugin.dylib to avoid the error: QtMultimedia is not currently supported on this platform or compiler
+echo which is described here: https://forum.qt.io/topic/139680/qt6-4-compiled-app-asserts-qtmultimedia-is-not-currently-supported-on-this-platform-or-compiler-and-crashes-qt6-3-2-runs-fine/2
+echo This is probably a bug in macdeployqt, starting with Qt6.4.1, and this step might be removable in the future.
+echo
+echo Making the directory....
+mkdir -p "${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/PlugIns/multimedia"
+echo Doing the copy of the one file we need...
+#ls -al "${QTDIR}/${QTVERSION}/macos/plugins/multimedia/libdarwinmediaplugin.dylib"
+cp -pfv "${QTDIR}/${QTVERSION}/macos/plugins/multimedia/libdarwinmediaplugin.dylib" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/PlugIns/multimedia/libdarwinmediaplugin.dylib"
+echo COPY DONE.
+echo
+echo "============================================================================"
 
 echo "Running xattr to clean up permissions, belt and suspenders...(no need for sudo here)"
 xattr -r "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
