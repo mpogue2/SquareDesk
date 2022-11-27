@@ -730,7 +730,7 @@ void SongSettings::getSongPlayHistory(SongPlayEvent &event,
     
     if (session_id)
     {
-        whereClause.append("session_id=:session_rowid");
+        whereClause.append("session_rowid=:session_rowid");
     }
     if (!omitStartDate)
     {

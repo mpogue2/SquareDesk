@@ -132,7 +132,7 @@ void SongHistoryExportDialog::exportSongPlayData(SongSettings &settings)
 
         bool omitStartDate = ui->checkBoxOmitStart->isChecked();
         bool omitEndDate = ui->checkBoxOmitEnd->isChecked();
-        int session_id = ui->comboBoxSession->currentIndex();
+        int session_id = ui->comboBoxSession->currentData().toInt();
 
         stream << "\"Song\",\"when played (local)\",\"when played (UTC)\",\"filename\",\"pitch\",\"tempo\",\"last_cuesheet\"\n"; // CSV HEADER
         settings.getSongPlayHistory(fespe, session_id,
