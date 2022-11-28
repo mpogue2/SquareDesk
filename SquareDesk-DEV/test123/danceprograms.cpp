@@ -202,7 +202,7 @@ const char *danceprogram_SSD[] = {
     "47, Tag the Line / Half Tag / Left Tag (Face In/Out/Left/Right)",
     "48, Fold / Cross Fold",
     "49, Scoot Back (NOT from 1/4 tag)",
-    "50, Recycle 2",
+    "50, Recycle (from a wave only)",
     nullptr
 };
 
