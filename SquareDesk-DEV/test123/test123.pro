@@ -10,8 +10,8 @@ macx {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
     QMAKE_INFO_PLIST = $$PWD/Info.plist
-#    QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.0
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 11.6
+#    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 }
 
 macx {
@@ -25,7 +25,7 @@ macx {
   contains(QMAKE_HOST.arch, arm64) {
     message("ARM64 BUILD MACHINE DETECTED!")
     ARCHDIR = "arm64"
-    QMAKE_MAC_SDK = macosx12.3
+    QMAKE_MAC_SDK = macosx13.0
   }
   message("ARCHDIR = " $${ARCHDIR} ", QMAKE_MAC_SDK = " $${QMAKE_MAC_SDK})
 }
