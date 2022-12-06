@@ -401,6 +401,15 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     //     if no match, then error (dialog?)
     //   Then on Save Playlist, write out the NEW patter and the rest
 
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    QRegularExpressionMatch match = regex1.match(PlaylistFileName);
+    QString shortPlaylistName("ERROR 7");
+
+    if (match.hasMatch())
+    {
+        shortPlaylistName = match.captured(1);
+    }
+
     filewatcherShouldIgnoreOneFileSave = true;  // I don't know why we have to do this, but rootDir is being watched, which causes this to be needed.
     QFile file(PlaylistFileName);
     if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
@@ -417,6 +426,9 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
             markPlaylistModified(false); // turn off the * in the status bar
+            lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
+            prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
+            ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
@@ -436,6 +448,9 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             file.close();
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
             markPlaylistModified(false); // turn off the * in the status bar
+            lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
+            prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
+            ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
