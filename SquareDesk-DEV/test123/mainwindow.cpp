@@ -923,6 +923,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // in the Designer, these have values, making it easy to visualize there
     //   must clear those out, because a song is not loaded yet.
     ui->currentLocLabel->setText("");
+    ui->currentLocLabel->setText("");
     ui->songLengthLabel->setText("");
 
     inPreferencesDialog = false;
@@ -2509,10 +2510,13 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         if (prefsManager.GetuseTimeRemaining()) {
             // time remaining in song
             ui->currentLocLabel->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
+            ui->currentLocLabel_2->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
         } else {
             // current position in song
             ui->currentLocLabel->setText(position2String(currentPos_i, true));              // pad on the left
+            ui->currentLocLabel_2->setText(position2String(currentPos_i, true));              // pad on the left
         }
+
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
 
         // singing call sections
@@ -7618,6 +7622,7 @@ void MainWindow::setFontSizes()
     font.setPointSize(preferredWarningLabelFontSize);
     ui->warningLabel->setFont(font);
     ui->warningLabelCuesheet->setFont(font);
+    ui->currentLocLabel_2->setFont(font);
 
     // preferred Now Playing (large sized)
     font.setPointSize(preferredNowPlayingFontSize);
@@ -7867,9 +7872,11 @@ void MainWindow::adjustFontSizes()
     currentFont.setPointSize(warningLabelFontSize);
     ui->warningLabel->setFont(currentFont);
     ui->warningLabelCuesheet->setFont(currentFont);
+    ui->currentLocLabel_2->setFont(currentFont);
 
     ui->warningLabel->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
     ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
+    ui->currentLocLabel_2->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
 
     // these are special BIG
     int nowPlayingLabelFontSize = (nowPlayingSize[(index != -1 ? index : 2)]); // keep ratio constant

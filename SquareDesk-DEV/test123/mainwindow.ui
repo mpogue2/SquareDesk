@@ -1036,6 +1036,18 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QLabel" name="currentLocLabel_2">
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>1:23</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
         <item>
