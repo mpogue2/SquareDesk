@@ -28,6 +28,105 @@
         <string>Music Player</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="typeSearch">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>91</width>
+            <height>27</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="placeholderText">
+           <string>Type</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="searchSpacer">
+          <property name="minimumSize">
+           <size>
+            <width>33</width>
+            <height>27</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>33</width>
+            <height>27</height>
+           </size>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="3" colspan="7">
+         <widget class="QLineEdit" name="titleSearch">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>1</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>27</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them, &amp;quot;#&amp;quot; to search only tags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="placeholderText">
+           <string>Title (type to search)</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLineEdit" name="labelSearch">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>75</width>
+            <height>27</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <italic>false</italic>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="placeholderText">
+           <string>Label</string>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
         <item row="2" column="0" colspan="11">
          <widget class="QSplitter" name="splitter_2">
           <property name="orientation">
@@ -137,77 +236,31 @@
           </widget>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="searchSpacer">
+        <item row="1" column="10">
+         <widget class="QPushButton" name="clearSearchButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
-            <width>33</width>
-            <height>27</height>
+            <width>80</width>
+            <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>33</width>
-            <height>27</height>
+            <width>112</width>
+            <height>16777215</height>
            </size>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
           </property>
           <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="2">
-         <widget class="QLineEdit" name="labelSearch">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>75</width>
-            <height>27</height>
-           </size>
-          </property>
-          <property name="font">
-           <font>
-            <italic>false</italic>
-           </font>
-          </property>
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="placeholderText">
-           <string>Label</string>
-          </property>
-          <property name="clearButtonEnabled">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="typeSearch">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>91</width>
-            <height>27</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="placeholderText">
-           <string>Type</string>
-          </property>
-          <property name="clearButtonEnabled">
-           <bool>true</bool>
+           <string>Clear Search</string>
           </property>
          </widget>
         </item>
@@ -216,6 +269,24 @@
           <property name="bottomMargin">
            <number>7</number>
           </property>
+          <item row="1" column="4">
+           <widget class="QLabel" name="songLengthLabel">
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>/ 1:23</string>
+            </property>
+           </widget>
+          </item>
           <item row="1" column="3">
            <widget class="QLabel" name="currentLocLabel">
             <property name="sizePolicy">
@@ -255,415 +326,6 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="3" colspan="2">
-           <widget class="QLabel" name="currentPitchLabel">
-            <property name="text">
-             <string>0 semitones</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="7">
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="6" alignment="Qt::AlignHCenter">
-           <widget class="clickableLabel" name="warningLabel">
-            <property name="font">
-             <font>
-              <pointsize>18</pointsize>
-             </font>
-            </property>
-            <property name="autoFillBackground">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Figure 4</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="tempoLabel">
-            <property name="text">
-             <string>Tempo</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="4">
-           <widget class="QLabel" name="songLengthLabel">
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>9</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>/ 1:23</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QToolButton" name="previousSongButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>48</width>
-              <height>22</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>10</pointsize>
-             </font>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>|&lt;&lt;</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="pitchLabel">
-            <property name="text">
-             <string>Pitch</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="playButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>P</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="MySlider" name="volumeSlider">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="value">
-             <number>100</number>
-            </property>
-            <property name="sliderPosition">
-             <number>100</number>
-            </property>
-            <property name="tracking">
-             <bool>true</bool>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::NoTicks</enum>
-            </property>
-            <property name="tickInterval">
-             <number>10</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="5" rowspan="4">
-           <widget class="QGroupBox" name="EQgroup">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>115</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>165</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>3-band EQ</string>
-            </property>
-            <widget class="QWidget" name="layoutWidget">
-             <property name="geometry">
-              <rect>
-               <x>6</x>
-               <y>23</y>
-               <width>112</width>
-               <height>128</height>
-              </rect>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_3">
-              <item row="0" column="0">
-               <widget class="MySlider" name="bassSlider">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="focusPolicy">
-                 <enum>Qt::NoFocus</enum>
-                </property>
-                <property name="minimum">
-                 <number>-15</number>
-                </property>
-                <property name="maximum">
-                 <number>15</number>
-                </property>
-                <property name="pageStep">
-                 <number>5</number>
-                </property>
-                <property name="value">
-                 <number>0</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
-                </property>
-                <property name="tickInterval">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="2">
-               <widget class="QLabel" name="trebleLabel">
-                <property name="text">
-                 <string>T</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QLabel" name="midrangeLabel">
-                <property name="text">
-                 <string>M</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="MySlider" name="trebleSlider">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="focusPolicy">
-                 <enum>Qt::NoFocus</enum>
-                </property>
-                <property name="minimum">
-                 <number>-15</number>
-                </property>
-                <property name="maximum">
-                 <number>15</number>
-                </property>
-                <property name="pageStep">
-                 <number>5</number>
-                </property>
-                <property name="value">
-                 <number>0</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
-                </property>
-                <property name="tickInterval">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="bassLabel">
-                <property name="text">
-                 <string>B</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="MySlider" name="midrangeSlider">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="focusPolicy">
-                 <enum>Qt::NoFocus</enum>
-                </property>
-                <property name="minimum">
-                 <number>-15</number>
-                </property>
-                <property name="maximum">
-                 <number>15</number>
-                </property>
-                <property name="pageStep">
-                 <number>5</number>
-                </property>
-                <property name="value">
-                 <number>0</number>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="tickPosition">
-                 <enum>QSlider::NoTicks</enum>
-                </property>
-                <property name="tickInterval">
-                 <number>15</number>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <spacer name="EQbottomSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Fixed</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>5</width>
-                  <height>1</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </widget>
-           </widget>
-          </item>
-          <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-           <widget class="QToolButton" name="stopButton">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>50</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>S</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QToolButton" name="nextSongButton">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>48</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>48</width>
-              <height>22</height>
-             </size>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="text">
-             <string>&gt;&gt;|</string>
-            </property>
-           </widget>
-          </item>
           <item row="4" column="3" colspan="2">
            <widget class="QLabel" name="currentVolumeLabel">
             <property name="text">
@@ -687,163 +349,6 @@
               <width>40</width>
               <height>40</height>
              </size>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2" colspan="4">
-           <widget class="QLabel" name="nowPlayingLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>40</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>20</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="MySlider" name="pitchSlider">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="minimum">
-             <number>-5</number>
-            </property>
-            <property name="maximum">
-             <number>5</number>
-            </property>
-            <property name="pageStep">
-             <number>2</number>
-            </property>
-            <property name="value">
-             <number>0</number>
-            </property>
-            <property name="sliderPosition">
-             <number>0</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::NoTicks</enum>
-            </property>
-            <property name="tickInterval">
-             <number>1</number>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="3" colspan="2">
-           <widget class="QLabel" name="currentMixLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>90</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>50% L / 50% R</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="2">
-           <widget class="MySlider" name="mixSlider">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>4</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="focusPolicy">
-             <enum>Qt::NoFocus</enum>
-            </property>
-            <property name="minimum">
-             <number>-100</number>
-            </property>
-            <property name="maximum">
-             <number>100</number>
-            </property>
-            <property name="value">
-             <number>0</number>
-            </property>
-            <property name="sliderPosition">
-             <number>0</number>
-            </property>
-            <property name="tracking">
-             <bool>true</bool>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="invertedAppearance">
-             <bool>false</bool>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::NoTicks</enum>
-            </property>
-            <property name="tickInterval">
-             <number>10</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="3" colspan="2">
-           <widget class="QLabel" name="currentTempoLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
@@ -890,23 +395,36 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="QLabel" name="mixLabel">
+          <item row="0" column="0">
+           <widget class="QToolButton" name="previousSongButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
             <property name="text">
-             <string>Mix</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="1">
-           <widget class="QLabel" name="volumeLabel">
-            <property name="text">
-             <string>Volume</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             <string>|&lt;&lt;</string>
             </property>
            </widget>
           </item>
@@ -947,60 +465,526 @@
             </property>
            </widget>
           </item>
+          <item row="5" column="2">
+           <widget class="MySlider" name="mixSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="minimum">
+             <number>-100</number>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="sliderPosition">
+             <number>0</number>
+            </property>
+            <property name="tracking">
+             <bool>true</bool>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="invertedAppearance">
+             <bool>false</bool>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::NoTicks</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="volumeLabel">
+            <property name="text">
+             <string>Volume</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" colspan="2">
+           <widget class="QLabel" name="currentTempoLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="4">
+           <widget class="QLabel" name="nowPlayingLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="pitchLabel">
+            <property name="text">
+             <string>Pitch</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="mixLabel">
+            <property name="text">
+             <string>Mix</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="6" alignment="Qt::AlignHCenter">
+           <widget class="clickableLabel" name="warningLabel">
+            <property name="font">
+             <font>
+              <pointsize>18</pointsize>
+             </font>
+            </property>
+            <property name="autoFillBackground">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Figure 4</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="playButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>P</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="3" colspan="2">
+           <widget class="QLabel" name="currentPitchLabel">
+            <property name="text">
+             <string>0 semitones</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="MySlider" name="pitchSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="minimum">
+             <number>-5</number>
+            </property>
+            <property name="maximum">
+             <number>5</number>
+            </property>
+            <property name="pageStep">
+             <number>2</number>
+            </property>
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="sliderPosition">
+             <number>0</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::NoTicks</enum>
+            </property>
+            <property name="tickInterval">
+             <number>1</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="MySlider" name="volumeSlider">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>4</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="maximum">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>100</number>
+            </property>
+            <property name="sliderPosition">
+             <number>100</number>
+            </property>
+            <property name="tracking">
+             <bool>true</bool>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="tickPosition">
+             <enum>QSlider::NoTicks</enum>
+            </property>
+            <property name="tickInterval">
+             <number>10</number>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+           <widget class="QToolButton" name="stopButton">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>S</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="3" colspan="2">
+           <widget class="QLabel" name="currentMixLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>90</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>90</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>50% L / 50% R</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="7">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="tempoLabel">
+            <property name="text">
+             <string>Tempo</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QToolButton" name="nextSongButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>48</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::NoFocus</enum>
+            </property>
+            <property name="text">
+             <string>&gt;&gt;|</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="5" rowspan="4">
+           <layout class="QGridLayout" name="gridLayout_3">
+            <item row="1" column="0">
+             <widget class="QLabel" name="bassLabel">
+              <property name="font">
+               <font>
+                <italic>false</italic>
+               </font>
+              </property>
+              <property name="text">
+               <string>B</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="midrangeLabel">
+              <property name="font">
+               <font>
+                <italic>false</italic>
+               </font>
+              </property>
+              <property name="text">
+               <string>M</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="MySlider" name="trebleSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="minimum">
+               <number>-15</number>
+              </property>
+              <property name="maximum">
+               <number>15</number>
+              </property>
+              <property name="pageStep">
+               <number>5</number>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+              <property name="tickInterval">
+               <number>15</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="MySlider" name="bassSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="minimum">
+               <number>-15</number>
+              </property>
+              <property name="maximum">
+               <number>15</number>
+              </property>
+              <property name="pageStep">
+               <number>5</number>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+              <property name="tickInterval">
+               <number>15</number>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="MySlider" name="midrangeSlider">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="minimum">
+               <number>-15</number>
+              </property>
+              <property name="maximum">
+               <number>15</number>
+              </property>
+              <property name="pageStep">
+               <number>5</number>
+              </property>
+              <property name="value">
+               <number>0</number>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="tickPosition">
+               <enum>QSlider::NoTicks</enum>
+              </property>
+              <property name="tickInterval">
+               <number>15</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QLabel" name="trebleLabel">
+              <property name="font">
+               <font>
+                <italic>false</italic>
+               </font>
+              </property>
+              <property name="text">
+               <string>T</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
          </layout>
-        </item>
-        <item row="1" column="3" colspan="7">
-         <widget class="QLineEdit" name="titleSearch">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>1</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>27</height>
-           </size>
-          </property>
-          <property name="toolTip">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;prefix words with &amp;quot;-&amp;quot; to exclude them, &amp;quot;#&amp;quot; to search only tags&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-          <property name="placeholderText">
-           <string>Title (type to search)</string>
-          </property>
-          <property name="clearButtonEnabled">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="10">
-         <widget class="QPushButton" name="clearSearchButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>80</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>112</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="text">
-           <string>Clear Search</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>

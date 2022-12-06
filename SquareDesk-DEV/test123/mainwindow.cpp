@@ -7609,7 +7609,7 @@ void MainWindow::setFontSizes()
     ui->bassLabel->setFont(font);
     ui->midrangeLabel->setFont(font);
     ui->trebleLabel->setFont(font);
-    ui->EQgroup->setFont(font);
+//    ui->EQgroup->setFont(font);
 
     ui->pushButtonCueSheetEditTitle->setFont(font);
     ui->pushButtonCueSheetEditLabel->setFont(font);
@@ -7855,7 +7855,7 @@ void MainWindow::adjustFontSizes()
     ui->bassLabel->setFont(currentFont);
     ui->midrangeLabel->setFont(currentFont);
     ui->trebleLabel->setFont(currentFont);
-    ui->EQgroup->setFont(currentFont);
+//    ui->EQgroup->setFont(currentFont);
 
     // resize the icons for the buttons
     int newIconDimension = static_cast<int>(currentFontPointSize * scaleIcons);
