@@ -923,7 +923,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // in the Designer, these have values, making it easy to visualize there
     //   must clear those out, because a song is not loaded yet.
     ui->currentLocLabel->setText("");
-    ui->currentLocLabel->setText("");
+    ui->currentLocLabel_2->setText("");
     ui->songLengthLabel->setText("");
 
     inPreferencesDialog = false;
