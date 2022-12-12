@@ -770,6 +770,8 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
 
     QRegularExpression P2BRRegExp("<p>(.*)</p>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption | QRegularExpression::DotMatchesEverythingOption);
     cuesheet3.replace(P2BRRegExp,"\\1<BR/>");  // don't be greedy, and replace the unneeded <P>...</P>
+    QRegularExpression BRTableRegExp("<BR/>[\\s\n]*(</?t[ard])", QRegularExpression::CaseInsensitiveOption);
+    cuesheet3.replace(BRTableRegExp,"\\1");  // replace the unneeded <BR/> before <table or <td or <tr
     cuesheet3.replace("<BR/>\n    \n", "<BR/>\n");
     cuesheet3.replace("<BR/>\n\n", "<BR/>\n");
     cuesheet3.replace("<BODY>\n\n", "<BODY>\n");
