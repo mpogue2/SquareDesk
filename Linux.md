@@ -1,27 +1,42 @@
-Building on Linux, courtesy of Tim Schares:
+WARNING: This document is incomplete, I still need to wipe a machine
+and verify that from a clean install of some distribution, we can get
+a working build.
 
-## Libraries
-
-You can't do this step utill after you have cloned the repo,
- but the instructions are here to keep the other steps more linear.
-
-From the SquareDesk-DEV/ directory in the repo: (you should already be
- there if you got here from the main instructions)
-`sudo cp deb_packaging/debian/libbass*.so /usr/local/lib`
-
-You can also use LD_LIBRARY_PATH, but this is simplest.
-
-NOTE: some distros (like Ubuntu) don't have /usr/local/lib in
- their default LD_LIBRARY_PATH. For Ubuntu in particular, you can
- add a custom `.conf` file to `/etc/ld.so.conf.d/` e.g.:
-
- `echo /usr/local/lib | sudo tee /etc/ld.so.conf.d/squaredesk.conf`
+Building SquareDesk on a Debian-style Linux (eg: Ubuntu). Initial
+revision by Tim Schares, revisions for Qt6 and clang-built processing
+by Dan Lyke
 
 ## Prerequisites
 
-First, install the additional packages we're now using (one at a time)
+I don't think this is a complete list of packages. I tried to stay
+current, but lost track:
 
-`sudo apt-get install build-essential git g++ qt5-default libqt5svg5-dev libqt5webkit5-dev libtag1-dev cmake libsqlite3-dev sqlite3 xsltproc qtbase5-dev`
+`sudo apt install build-essential git g++ qt6-base-dev qt6-multimedia-dev libtag1-dev cmake libsqlite3-dev sqlite3 xsltproc libqt6svg6-dev qt6-webengine-dev ninja-build clang`
+
+Get the libraries we build from source:
+
+```
+mkdir -p ~/code/vendor
+pushd ~/code/vendor
+git clone git@github.com:kfrlib/kfr.git
+git clone git@github.com:breakfastquay/minibpm.git
+git clone https://codeberg.org/soundtouch/soundtouch.git
+popd
+```
+
+Build them:
+
+```mkdir -p $HOME/local
+pushd kfr
+mkdir -p build && cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/local -GNinja -DENABLE_CAPI_BUILD=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ ..
+ninja kfr_capi
+ninja install
+popd
+pushd soundtouch
+cmake -DCMAKE_INSTALL_PREFIX:PATH=$HOME/local && make && make all && make install
+popd
+```
 
 # Main Instructions
 ```
@@ -35,8 +50,6 @@ cd code
 git clone https://github.com/mpogue2/SquareDesk.git
 # Go to the working directory
 cd SquareDesk/SquareDesk-DEV
-# Copy the shared libraries into the right place
-# See the "Libraries" section above ^^^^^^
 # create the build environment from the specification files
 qmake SquareDesk.pro
 # do the build
