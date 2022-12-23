@@ -1,8 +1,13 @@
 #include "audiodecoder.h"
 #include <QFile>
 #include <stdio.h>
+#if defined(Q_OS_LINUX)
 #include <QtMultimedia/QMediaDevices>
 #include <QtMultimedia/QAudioDevice>
+#else /* end of Q_OS_LINUX */
+#include <QMediaDevices>
+#include <QAudioDevice>
+#endif /* else if defined Q_OS_LINUX */
 #include <QElapsedTimer>
 #include <QThread>
 

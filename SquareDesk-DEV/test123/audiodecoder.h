@@ -51,16 +51,31 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
+#if defined(Q_OS_LINUX)
 #include <QtMultimedia/QAudioDecoder>
 #include <QtMultimedia/QMediaPlayer>
+#else /* end of Q_OS_LINUX */
+#include <QAudioDecoder>
+#include <QMediaPlayer>
+#endif /* else if defined Q_OS_LINUX */
+
+
 #include <QTextStream>
+#if defined(Q_OS_LINUX)
 #include <QtMultimedia/QWaveDecoder>
+#else /* end of Q_OS_LINUX */
+#include <QWaveDecoder>
+#endif /* else if defined Q_OS_LINUX */
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
+#if defined(Q_OS_LINUX)
 #include <QtMultimedia/QAudioDevice>
 #include <QtMultimedia/QAudioSink>
-
+#else /* end of Q_OS_LINUX */
+#include <QAudioDevice>
+#include <QAudioSink>
+#endif /* else if defined Q_OS_LINUX */
 // BASS_ChannelIsActive return values
 #define BASS_ACTIVE_STOPPED 0
 #define BASS_ACTIVE_PLAYING 1

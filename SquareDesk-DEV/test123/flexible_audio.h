@@ -27,6 +27,7 @@
 //#include "flexible_audio.h"
 
 #include <QTimer>
+#if defined(Q_OS_LINUX)
 #include <QtMultimedia/QMediaPlayer>
 #include <QtMultimedia/QAudioOutput>
 #include <QtMultimedia/QAudioBuffer>
@@ -35,6 +36,16 @@
 #include <QtMultimedia/QAudioFormat>
 #include <QtMultimedia/QMediaDevices>
 #include <QtMultimedia/QMediaPlayer>
+#else /* end of Q_OS_LINUX */
+#include <QMediaPlayer>
+#include <QAudioOutput>
+#include <QAudioBuffer>
+#include <QAudioDevice>
+#include <QAudioDecoder>
+#include <QAudioFormat>
+#include <QMediaDevices>
+#include <QMediaPlayer>
+#endif /* else if defined Q_OS_LINUX */
 #include <QFile>
 #include <QBuffer>
 #include "perftimer.h"
