@@ -33,11 +33,8 @@
 #include <QDebug>
 #include <QTimer>
 //#include "perftimer.h"
-#include "audiodecoder.h"
-
 // GLOBALS =========
 
-AudioDecoder decoder; // TEST of AudioDecoder from example, must call setSource!
 QMediaDevices md;
 
 //PerfTimer gPT("flexible_audio::StreamCreate", 0);

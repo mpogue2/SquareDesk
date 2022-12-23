@@ -39,6 +39,8 @@
 #include <QBuffer>
 #include "perftimer.h"
 
+#include "audiodecoder.h"
+
 // indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
 #define FREQ_KHZ 0
 #define BW_OCT  1
@@ -53,6 +55,9 @@
 class flexible_audio : public QIODevice
 {
     Q_OBJECT
+
+private:
+    AudioDecoder decoder; // TEST of AudioDecoder from example, must call setSource!
 
     //-------------------------------------------------------------
 public:

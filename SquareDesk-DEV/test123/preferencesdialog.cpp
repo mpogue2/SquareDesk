@@ -34,7 +34,7 @@
 #include <algorithm>
 #include "mainwindow.h"
 
-extern flexible_audio cBass;    // global in MainWindow.cpp <-- use this on M1 Silicon
+extern flexible_audio *cBass;    // global in MainWindow.cpp <-- use this on M1 Silicon
 
 static const int kSessionsColName = 0;
 static const int kSessionsColDay = 1;
@@ -954,10 +954,10 @@ void PreferencesDialog::on_afterBreakAction_currentIndexChanged(int index)
 //{
 //    if (checked) {
 ////        qDebug() << "replayGainCheckbox checked";
-//        cBass.SetReplayGainVolume(mw->songLoadedReplayGain_dB); // restore to last loaded song
+//        cBass->SetReplayGainVolume(mw->songLoadedReplayGain_dB); // restore to last loaded song
 //    } else {
 ////        qDebug() << "replayGainCheckbox NOT checked";
-//        cBass.SetReplayGainVolume(0.0); // set to 0.0dB (replayGain disabled)
+//        cBass->SetReplayGainVolume(0.0); // set to 0.0dB (replayGain disabled)
 //    }
 //}
 
@@ -967,7 +967,7 @@ void PreferencesDialog::on_intelCenterFreqDial_valueChanged(int value)
 // value is in Hz/10
     float centerFreq_KHz = static_cast<float>(value)/10.0f; // only integer tenths of a KHz
     ui->intelCenterFreq_KHz->setText(QStringLiteral("%1KHz").arg(centerFreq_KHz));
-    cBass.SetIntelBoost(0, centerFreq_KHz);
+    cBass->SetIntelBoost(0, centerFreq_KHz);
 }
 
 void PreferencesDialog::on_intelWidthDial_valueChanged(int value)
@@ -975,7 +975,7 @@ void PreferencesDialog::on_intelWidthDial_valueChanged(int value)
 // value is in octaves * 10
     float width_octaves = static_cast<float>(value)/10.0f;  // only integer tenths of an octave
     ui->intelWidth_oct->setText(QStringLiteral("%1").arg(width_octaves, 3, 'f', 1));
-    cBass.SetIntelBoost(1, width_octaves);
+    cBass->SetIntelBoost(1, width_octaves);
 }
 
 void PreferencesDialog::on_intelGainDial_valueChanged(int value)
@@ -987,7 +987,7 @@ void PreferencesDialog::on_intelGainDial_valueChanged(int value)
     } else {
         ui->intelGain_dB->setText(QStringLiteral("-%1dB").arg(gain_dB));
     }
-    cBass.SetIntelBoost(2, gain_dB);
+    cBass->SetIntelBoost(2, gain_dB);
 }
 
 void PreferencesDialog::on_intelResetButton_clicked()
@@ -996,7 +996,7 @@ void PreferencesDialog::on_intelResetButton_clicked()
     ui->intelWidthDial->setValue(20);        // 2.0 octaves
     ui->intelGainDial->setValue(30);         // -3.0dB
 
-    on_intelCenterFreqDial_valueChanged(16); // force calls to cBass...
+    on_intelCenterFreqDial_valueChanged(16); // force calls to cBass->..
     on_intelWidthDial_valueChanged(20);
     on_intelGainDial_valueChanged(30);
 }
@@ -1028,5 +1028,5 @@ void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(bool checked)
         ui->intelBoostLine->setGeometry(330 - leftExtend, yLoc, 390 + leftExtend, 20);
     }
 
-    cBass.SetIntelBoostEnabled(checked);
+    cBass->SetIntelBoostEnabled(checked);
 }
