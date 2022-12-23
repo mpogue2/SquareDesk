@@ -81,9 +81,7 @@
 #include "songlistmodel.h"
 #include "mytablewidget.h"
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include "src/communicator.h"
-#endif
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #ifndef M1MAC
@@ -218,15 +216,9 @@ using namespace TagLib;
 
 // GLOBALS:
 
-#ifndef M1MAC
-// All other platforms:
-extern bass_audio cBass;  // make this accessible to PreferencesDialog
-bass_audio cBass;
-#else
 // M1 Silicon Mac only:
-extern flexible_audio cBass;  // make this accessible to PreferencesDialog
-flexible_audio cBass;
-#endif
+extern flexible_audio *cBass;  // make this accessible to PreferencesDialog
+flexible_audio *cBass;
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };       // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };          // NOTE: must use Qt::CaseInsensitive compares for these
@@ -326,11 +318,11 @@ void InitializeSeekBar(MySlider *seekBar);  // forward decl
 
 void MainWindow::haveDuration2(void) {
 //    qDebug() << "MainWindow::haveDuration -- StreamCreate duration and songBPM now available! *****";
-    cBass.StreamGetLength();  // tell everybody else what the length of the stream is...
+    cBass->StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
     InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
 
-//    qDebug() << "haveDuration2 BPM = " << cBass.Stream_BPM;
+//    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
 
     handleDurationBPM();  // finish up the UI stuff, when we know duration and BPM
 
@@ -367,12 +359,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    cBass = new flexible_audio();
     //Q_UNUSED(splash)
     longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)
 
-#ifdef M1MAC
-    connect(&cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
-#endif
+    connect(cBass, SIGNAL(haveDuration()), this, SLOT(haveDuration2()));  // when decode complete, we know MP3 duration
     lastAudioDeviceName = "";
 
     lyricsCopyIsAvailable = false;
@@ -628,10 +619,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->songTable->clearFocus();
 
     //Create Bass audio system
-    cBass.Init();
+    cBass->Init();
 
     //Set UI update
-    cBass.SetVolume(100);
+    cBass->SetVolume(100);
     currentVolume = 100;
     previousVolume = 100;
     Info_Volume();
@@ -1284,10 +1275,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->dateTimeEditIntroTime->setEnabled(false);
     ui->dateTimeEditOutroTime->setEnabled(false);
 
-    cBass.SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
-    cBass.SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
-    cBass.SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
-    cBass.SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
+    cBass->SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
+    cBass->SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
+    cBass->SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
+    cBass->SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
 
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
     on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
@@ -1804,11 +1795,11 @@ void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
 //void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */)
 //{
 //    // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
-//    cBass.songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
+//    cBass->songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
 
-//    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
-//    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
-//    double length = cBass.FileLength;
+//    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+//    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+//    double length = cBass->FileLength;
 //    double intro = ui->seekBarCuesheet->GetIntro();
 //    double outro = ui->seekBarCuesheet->GetOutro();
 
@@ -1896,7 +1887,7 @@ MainWindow::~MainWindow()
     delete[] danceProgramActions;
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
-
+    delete cBass;
     QString currentMusicRootPath = prefsManager.GetmusicPath();
     clearLockFile(currentMusicRootPath); // release the lock that we took (other locks were thrown away)
 }
@@ -1939,11 +1930,11 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->seekBar->SetLoop(true);
         ui->seekBarCuesheet->SetLoop(true);
 
-        double songLength = cBass.FileLength;
+        double songLength = cBass->FileLength;
 //        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
 
-//        cBass.SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
-        cBass.SetLoop(songLength * static_cast<double>(ui->seekBar->GetOutro()),
+//        cBass->SetLoop(songLength * 0.9, songLength * 0.1); // FIX: use parameters in the MP3 file
+        cBass->SetLoop(songLength * static_cast<double>(ui->seekBar->GetOutro()),
                       songLength * static_cast<double>(ui->seekBar->GetIntro()));
     }
     else {
@@ -1952,7 +1943,7 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->seekBar->SetLoop(false);
         ui->seekBarCuesheet->SetLoop(false);
 
-        cBass.ClearLoop();
+        cBass->ClearLoop();
     }
 }
 
@@ -1961,11 +1952,11 @@ void MainWindow::on_monoButton_toggled(bool checked)
 {
     if (checked) {
         ui->actionForce_Mono_Aahz_mode->setChecked(true);
-        cBass.SetMono(true);
+        cBass->SetMono(true);
     }
     else {
         ui->actionForce_Mono_Aahz_mode->setChecked(false);
-        cBass.SetMono(false);
+        cBass->SetMono(false);
     }
 
     // the Force Mono (Aahz Mode) setting is persistent across restarts of the application
@@ -1985,15 +1976,15 @@ void MainWindow::on_stopButton_clicked()
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
 //    currentState = kStopped;
 
-    cBass.Stop();                 // Stop playback, rewind to the beginning
-    cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
+    cBass->Stop();                 // Stop playback, rewind to the beginning
+    cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
 
     setNowPlayingLabelWithColor(currentSongTitle);
 
 #ifdef REMOVESILENCE
     // last thing we do is move the stream position to 1 sec before start of music
     // this will move BOTH seekBar's to the right spot
-    cBass.StreamSetPosition((double)startOfSong_sec);
+    cBass->StreamSetPosition((double)startOfSong_sec);
     Info_Seekbar(false);  // update just the text
 #else
     ui->seekBar->setValue(0);
@@ -2027,9 +2018,9 @@ void MainWindow::on_playButton_clicked()
     }
 
 //    if (currentState == kStopped || currentState == kPaused) {
-    uint32_t Stream_State = cBass.currentStreamState();
+    uint32_t Stream_State = cBass->currentStreamState();
     if (Stream_State != BASS_ACTIVE_PLAYING) {
-        cBass.Play();  // currently stopped or paused or stalled, so try to start playing
+        cBass->Play();  // currently stopped or paused or stalled, so try to start playing
 
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
         randomizeFlashCall();
@@ -2088,7 +2079,7 @@ void MainWindow::on_playButton_clicked()
     else {
         // TODO: we might want to restore focus here....
         // currently playing, so pause playback
-        cBass.Pause();
+        cBass->Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
@@ -2195,7 +2186,7 @@ int MainWindow::getSelectionRowForFilename(const QString &filePath)
 
 void MainWindow::on_pitchSlider_valueChanged(int value)
 {
-    cBass.SetPitch(value);
+    cBass->SetPitch(value);
     currentPitch = value;
     QString plural;
     if (currentPitch == 1 || currentPitch == -1) {
@@ -2258,7 +2249,7 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
     if (value == 0) {
         voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
     }
-    cBass.SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
+    cBass->SetVolume(voltageLevelToSet);     // now logarithmic, 0 --> 0.01, 50 --> 0.1, 100 --> 1.0 (values * 100 for libbass)
     currentVolume = static_cast<unsigned short>(value);    // this will be saved with the song (0-100)
 
     Info_Volume();  // update the slider text
@@ -2292,14 +2283,14 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
     if (tempoIsBPM) {
         double desiredBPM = static_cast<double>(value);            // desired BPM
         int newBASStempo = static_cast<int>(round(100.0*desiredBPM/baseBPM));
-        cBass.SetTempo(newBASStempo);
+        cBass->SetTempo(newBASStempo);
         ui->currentTempoLabel->setText(QString::number(value) + " BPM (" + QString::number(newBASStempo) + "%)");
     }
     else {
         double basePercent = 100.0;                      // original detected percent
         double desiredPercent = static_cast<double>(value);            // desired percent
         int newBASStempo = static_cast<int>(round(100.0*desiredPercent/basePercent));
-        cBass.SetTempo(newBASStempo);
+        cBass->SetTempo(newBASStempo);
         ui->currentTempoLabel->setText(QString::number(value) + "%");
     }
 
@@ -2351,7 +2342,7 @@ void MainWindow::on_mixSlider_valueChanged(int value)
     QString s = QString::number(Lpercent) + "%L/" + QString::number(Rpercent) + "%R ";
 
     ui->currentMixLabel->setText(s);
-    cBass.SetPan(value/100.0);
+    cBass->SetPan(value/100.0);
 
     saveCurrentSongSettings();  // MIX should be persisted when changed
 }
@@ -2386,7 +2377,7 @@ QString MainWindow::position2String(int position, bool pad = false)
 void InitializeSeekBar(MySlider *seekBar)
 {
     seekBar->setMinimum(0);
-    seekBar->setMaximum(static_cast<int>(cBass.FileLength)-1); // NOTE: TRICKY, counts on == below
+    seekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // NOTE: TRICKY, counts on == below
     seekBar->setTickInterval(10);  // 10 seconds per tick
 }
 
@@ -2414,33 +2405,33 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     RecursionGuard recursion_guard(in_Info_Seekbar);
 
     if (songLoaded) {
-        cBass.StreamGetPosition();  // update cBass.Current_Position
+        cBass->StreamGetPosition();  // update cBass->Current_Position
 
-        if (ui->pitchSlider->value() != cBass.Stream_Pitch) {  // DEBUG DEBUG DEBUG
+        if (ui->pitchSlider->value() != cBass->Stream_Pitch) {  // DEBUG DEBUG DEBUG
             qDebug() << "ERROR: Song was loaded, and cBass pitch did not match pitch slider!";
             qDebug() << "    pitchSlider =" << ui->pitchSlider->value();
-            qDebug() << "    cBass.Pitch/Tempo/Volume = " << cBass.Stream_Pitch << ", " << cBass.Stream_Tempo << ", " << cBass.Stream_Volume;
-            cBass.SetPitch(ui->pitchSlider->value());
+            qDebug() << "    cBass->Pitch/Tempo/Volume = " << cBass->Stream_Pitch << ", " << cBass->Stream_Tempo << ", " << cBass->Stream_Volume;
+            cBass->SetPitch(ui->pitchSlider->value());
         }
 
-        int currentPos_i = static_cast<int>(cBass.Current_Position);
+        int currentPos_i = static_cast<int>(cBass->Current_Position);
 
 // to help track down the failure-to-progress error...
 #define WATCHDOG460
 #ifdef WATCHDOG460
         // watchdog for "failure to progress" error ------
-        if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
-            if (cBass.Current_Position <= previousPosition
+        if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
+            if (cBass->Current_Position <= previousPosition
                     // || previousPosition > 10.0  // DEBUG
                )
             {
-                qDebug() << "Failure/manual seek:" << previousPosition << cBass.Current_Position
+                qDebug() << "Failure/manual seek:" << previousPosition << cBass->Current_Position
                          << "songloaded: " << songLoaded;
                 previousPosition = -1.0;  // uninitialized
             } else {
-//                qDebug() << "Progress:" << previousPosition << cBass.Current_Position;
+//                qDebug() << "Progress:" << previousPosition << cBass->Current_Position;
                 // this will always be executed on the first info_seekbar update when playing
-                previousPosition = cBass.Current_Position;  // remember previous position
+                previousPosition = cBass->Current_Position;  // remember previous position
             }
         } else {
 //            qDebug() << "Paused:" << previousPosition << currentPos_i;
@@ -2464,12 +2455,12 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             if (autoScrollLyricsEnabled &&
                     !ui->pushButtonEditLyrics->isChecked() &&
 //                    currentState == kPlaying) {
-                    cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
+                    cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
                 // lyrics scrolling at the same time as the InfoBar
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(static_cast<int>(targetScroll));
             }
         }
-        int fileLen_i = static_cast<int>(cBass.FileLength);
+        int fileLen_i = static_cast<int>(cBass->FileLength);
 
         // songs must be longer than 5 seconds for this to work (belt and suspenders)
         if ((currentPos_i == fileLen_i) && (currentPos_i > 5) && (fileLen_i > 5)) {  // NOTE: TRICKY, counts on -1 above in InitializeSeekBar()
@@ -2521,8 +2512,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         // singing call sections
         if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
-            double introLength = static_cast<double>(ui->seekBar->GetIntro()) * cBass.FileLength; // seconds
-            double outroTime = static_cast<double>(ui->seekBar->GetOutro()) * cBass.FileLength; // seconds
+            double introLength = static_cast<double>(ui->seekBar->GetIntro()) * cBass->FileLength; // seconds
+            double outroTime = static_cast<double>(ui->seekBar->GetOutro()) * cBass->FileLength; // seconds
 //            qDebug() << "InfoSeekbar()::introLength: " << introLength << ", " << outroTime;
             double outroLength = fileLen_i-outroTime;
 
@@ -2542,8 +2533,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             sectionName << "Intro" << "Opener" << "Figure 1" << "Figure 2"
                         << "Break" << "Figure 3" << "Figure 4" << "Closer" << "Tag";
 
-//            if (cBass.Stream_State == BASS_ACTIVE_PLAYING &&
-            if (//cBass.currentStreamState() == BASS_ACTIVE_PLAYING &&
+//            if (cBass->Stream_State == BASS_ACTIVE_PLAYING &&
+            if (//cBass->currentStreamState() == BASS_ACTIVE_PLAYING &&
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType))) {
                 // if singing call OR called, then tell the clock to show the section type
                 analogClock->setSingingCallSection(sectionName[section]);
@@ -2572,8 +2563,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 
         if (flashCalls.length() != 0) {
             // if there are flash calls on the list, then Flash Calls are enabled.
-//            if (cBass.Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
-            if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
+//            if (cBass->Stream_State == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
+            if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING && songTypeNamesForPatter.contains(currentSongType)) {
                  // if playing, and Patter type
                  // TODO: don't show any random calls until at least the end of the first N seconds
                  setNowPlayingLabelWithColor(flashCalls[randCallIndex], true);
@@ -2713,12 +2704,12 @@ void MainWindow::on_pushButtonClearTaughtCalls_clicked()
 void MainWindow::getCurrentPointInStream(double *pos, double *len) {
     double position, length;
 
-//    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
-    if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
+//    if (cBass->Stream_State == BASS_ACTIVE_PLAYING) {
+    if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
         // if we're playing, this is accurate to sub-second.
-        cBass.StreamGetPosition(); // snapshot the current position
-        position = cBass.Current_Position;
-        length = cBass.FileLength;  // always use the value with maximum precision
+        cBass->StreamGetPosition(); // snapshot the current position
+        position = cBass->Current_Position;
+        length = cBass->FileLength;  // always use the value with maximum precision
 
     } else {
         // if we're NOT playing, this is accurate to the second.  (This should be fixed!)
@@ -2785,7 +2776,7 @@ void MainWindow::on_seekBarCuesheet_valueChanged(int value)
 void MainWindow::on_seekBar_valueChanged(int value)
 {
     // These must happen in this order.
-    cBass.StreamSetPosition(value);
+    cBass->StreamSetPosition(value);
     Info_Seekbar(false);
 }
 
@@ -2844,9 +2835,9 @@ void MainWindow::on_UIUpdateTimerTick(void)
     // update the session coloring analog clock
     QTime time = QTime::currentTime();
     int theType = NONE;
-//    qDebug() << "Stream_State:" << cBass.Stream_State; //FIX
-//    if (cBass.Stream_State == BASS_ACTIVE_PLAYING) {
-    uint32_t Stream_State = cBass.currentStreamState();
+//    qDebug() << "Stream_State:" << cBass->Stream_State; //FIX
+//    if (cBass->Stream_State == BASS_ACTIVE_PLAYING) {
+    uint32_t Stream_State = cBass->currentStreamState();
     if (Stream_State == BASS_ACTIVE_PLAYING) {
         // if it's currently playing (checked once per second), then color this segment
         //   with the current segment type
@@ -2867,7 +2858,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         }
 
         analogClock->breakLengthAlarm = false;  // if playing, then we can't be in break
-//    } else if (cBass.Stream_State == BASS_ACTIVE_PAUSED) {
+//    } else if (cBass->Stream_State == BASS_ACTIVE_PAUSED) {
     } else if (Stream_State == BASS_ACTIVE_PAUSED || Stream_State == BASS_ACTIVE_STOPPED) {  // TODO: Check to make sure it doesn't mess up X86.
         // if we paused due to FADE, for example...
         // FIX: this could be factored out, it's used twice.
@@ -2953,11 +2944,10 @@ void MainWindow::on_UIUpdateTimerTick(void)
         on_newVolumeMounted();
     }
     lastKnownVolumeList = newVolumeList;
-
     // check for Audio Device changes, and set UI status bar, if there's a change
-    if ((cBass.currentAudioDevice != lastAudioDeviceName)||(lastAudioDeviceName == "")) {
-//        qDebug() << "NEW CURRENT AUDIO DEVICE: " << cBass.currentAudioDevice;
-        lastAudioDeviceName = cBass.currentAudioDevice;
+    if ((cBass->currentAudioDevice != lastAudioDeviceName)||(lastAudioDeviceName == "")) {
+//        qDebug() << "NEW CURRENT AUDIO DEVICE: " << cBass->currentAudioDevice;
+        lastAudioDeviceName = cBass->currentAudioDevice;
         microphoneStatusUpdate();  // now also updates the audioOutputDevice status
 //        ui->statusBar->showMessage("Audio output: " + lastAudioDeviceName);
     }
@@ -2967,7 +2957,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
 void MainWindow::on_vuMeterTimerTick(void)
 {
     double currentVolumeSlider = ui->volumeSlider->value();
-    int level = cBass.StreamGetVuMeter();
+    int level = cBass->StreamGetVuMeter();
     double levelF = (currentVolumeSlider/100.0)*level/32768.0;
     // TODO: iff music is playing.
     vuMeter->levelChanged(levelF/2.0,levelF,256);  // 10X/sec, update the vuMeter
@@ -3096,10 +3086,6 @@ void MainWindow::aboutBox()
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
-#ifndef M1MAC
-                   QString("<a href=\"http://www.un4seen.com/bass.html\">libbass</a>, ") +
-                   QString("<a href=\"http://www.jobnik.org/?mnu=bass_fx\">libbass_fx</a>, ") +
-#endif
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
 //                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
@@ -3243,7 +3229,7 @@ void MainWindow::actionTempoMinus()
 }
 void MainWindow::actionFadeOutAndPause()
 {
-    cBass.FadeOutAndPause();
+    cBass->FadeOutAndPause();
 }
 void MainWindow::actionNextTab()
 {
@@ -3367,12 +3353,12 @@ bool MainWindow::handleKeypress(int key, QString text)
                 // So, GET ME OUT OF HERE is now "ESC ESC", or "Hit ESC a couple of times".
                 //    and, CLEAR SEARCH is just ESC (or click on the Clear Search button).
 //                if (currentState == kPlaying) {
-                if (cBass.currentStreamState() == BASS_ACTIVE_PLAYING) {
+                if (cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
                     on_playButton_clicked();  // we were playing, so PAUSE now.
                 }
             }
 
-            cBass.StopAllSoundEffects();  // and, it also stops ALL sound effects
+            cBass->StopAllSoundEffects();  // and, it also stops ALL sound effects
             break;
 
         case Qt::Key_PageDown:
@@ -3548,17 +3534,17 @@ void MainWindow::on_actionSlow_Down_triggered()
 // ------------------------------------------------------------------------
 void MainWindow::on_actionSkip_Ahead_15_sec_triggered()
 {
-    cBass.StreamGetPosition();  // update the position
+    cBass->StreamGetPosition();  // update the position
     // set the position to one second before the end, so that RIGHT ARROW works as expected
-    cBass.StreamSetPosition(static_cast<int>(fmin(cBass.Current_Position + 10.0, cBass.FileLength-1.0)));
+    cBass->StreamSetPosition(static_cast<int>(fmin(cBass->Current_Position + 10.0, cBass->FileLength-1.0)));
     Info_Seekbar(true);
 }
 
 void MainWindow::on_actionSkip_Back_15_sec_triggered()
 {
     Info_Seekbar(true);
-    cBass.StreamGetPosition();  // update the position
-    cBass.StreamSetPosition(static_cast<int>(fmax(cBass.Current_Position - 10.0, 0.0)));
+    cBass->StreamGetPosition();  // update the position
+    cBass->StreamSetPosition(static_cast<int>(fmax(cBass->Current_Position - 10.0, 0.0)));
 }
 
 // ------------------------------------------------------------------------
@@ -3593,19 +3579,19 @@ void MainWindow::on_actionForce_Mono_Aahz_mode_triggered()
 // ------------------------------------------------------------------------
 void MainWindow::on_bassSlider_valueChanged(int value)
 {
-    cBass.SetEq(0, static_cast<double>(value));
+    cBass->SetEq(0, static_cast<double>(value));
     saveCurrentSongSettings();
 }
 
 void MainWindow::on_midrangeSlider_valueChanged(int value)
 {
-    cBass.SetEq(1, static_cast<double>(value));
+    cBass->SetEq(1, static_cast<double>(value));
     saveCurrentSongSettings();
 }
 
 void MainWindow::on_trebleSlider_valueChanged(int value)
 {
-    cBass.SetEq(2, static_cast<double>(value));
+    cBass->SetEq(2, static_cast<double>(value));
     saveCurrentSongSettings();
 }
 
@@ -4238,7 +4224,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         }
     }
 
-    cBass.StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec, intro1, outro1);  // load song, and figure out where the song actually starts and ends
+    cBass->StreamCreate(MP3FileName.toStdString().c_str(), &startOfSong_sec, &endOfSong_sec, intro1, outro1);  // load song, and figure out where the song actually starts and ends
 
     t.elapsed(__LINE__);
 
@@ -4255,102 +4241,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     QStringList ss = MP3FileName.split('/');
     QString fn = ss.at(ss.size()-1);
     this->setWindowTitle(fn + QString(" - SquareDesk MP3 Player/Editor"));
-
-#ifndef M1MAC
-    // THIS CODE IS ONLY HERE FOR X86.  M1MAC MOVES THIS DOWN TO secondHalfOfLoad().
-    int length_sec = static_cast<int>(cBass.FileLength);
-    int songBPM = static_cast<int>(round(cBass.Stream_BPM));  // libbass's idea of the BPM
-
-    bool isSingingCall = songTypeNamesForSinging.contains(songType) ||
-                         songTypeNamesForCalled.contains(songType);
-
-    bool isPatter = songTypeNamesForPatter.contains(songType);
-
-    bool isRiverboat = songLabel.startsWith(QString("riv"), Qt::CaseInsensitive);
-
-    if (isRiverboat && isPatter) {
-        // All Riverboat patter records are recorded at 126BPM, according to the publisher.
-        // This can always be overridden using TBPM in the ID3 tag inside a specific patter song, if needed.
-        //        qDebug() << "Riverboat patter detected!";
-        songBPM = 126;
-        tempoIsBPM = true;  // this song's tempo is BPM, not %
-    }
-
-    // If the MP3 file has an embedded TBPM frame in the ID3 tag, then it overrides the libbass auto-detect of BPM
-    double songBPM_ID3 = getID3BPM(MP3FileName);  // returns 0.0, if not found or not understandable
-
-    if (songBPM_ID3 != 0.0) {
-        songBPM = static_cast<int>(songBPM_ID3);
-        tempoIsBPM = true;  // this song's tempo is BPM, not %
-    }
-
-    baseBPM = songBPM;  // remember the base-level BPM of this song, for when the Tempo slider changes later
-
-    t.elapsed(__LINE__);
-
-    // Intentionally compare against a narrower range here than BPM detection, because BPM detection
-    //   returns a number at the limits, when it's actually out of range.
-    // Also, turn off BPM for xtras (they are all over the place, including round dance cues, which have no BPM at all).
-    //
-    // TODO: make the types for turning off BPM detection a preference
-    if ((songBPM>=125-15) && (songBPM<=125+15) && songType != "xtras") {
-        tempoIsBPM = true;
-        ui->currentTempoLabel->setText(QString::number(songBPM) + " BPM (100%)"); // initial load always at 100%
-        t.elapsed(__LINE__);
-
-        ui->tempoSlider->setMinimum(songBPM-15);
-        ui->tempoSlider->setMaximum(songBPM+15);
-
-        t.elapsed(__LINE__);
-//        bool tryToSetInitialBPM = prefsManager.GettryToSetInitialBPM();
-//        int initialBPM = prefsManager.GetinitialBPM();
-//        t.elapsed(__LINE__);
-//        qDebug() << "tryToSetInitialBPM: " << tryToSetInitialBPM;
-//        if (tryToSetInitialBPM) {
-//            qDebug() << "tryToSetInitialBPM true: " << initialBPM;
-//            // if the user wants us to try to hit a particular BPM target, use that value
-//            ui->tempoSlider->setValue(initialBPM);
-//            ui->tempoSlider->valueChanged(initialBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-//            t.elapsed(__LINE__);
-//        } else {
-//            // otherwise, if the user wants us to start with the slider at the regular detected BPM
-//            //   NOTE: this can be overridden by the "saveSongPreferencesInConfig" preference, in which case
-//            //     all saved tempo preferences will always win.
-        ui->tempoSlider->setValue(songBPM);
-        ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
-//            t.elapsed(__LINE__);
-//        }
-
-        ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
-        ui->tempoSlider->setEnabled(true);
-        t.elapsed(__LINE__);
-//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-//                                 ", base tempo: " + QString::number(songBPM) + " BPM");
-        t.elapsed(__LINE__);
-    }
-    else {
-        tempoIsBPM = false;
-        // if we can't figure out a BPM, then use percent as a fallback (centered: 100%, range: +/-20%)
-        t.elapsed(__LINE__);
-        ui->currentTempoLabel->setText("100%");
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setMaximum(100+20);
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setValue(100);
-        t.elapsed(__LINE__);
-        ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
-        t.elapsed(__LINE__);
-        ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
-        t.elapsed(__LINE__);
-        ui->tempoSlider->setEnabled(true);
-        t.elapsed(__LINE__);
-//        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
-//                                 ", base tempo: 100%");
-        t.elapsed(__LINE__);
-    }
-#endif
 
     t.elapsed(__LINE__);
 
@@ -4389,7 +4279,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
         ui->midrangeSlider->value()); // force midrange change, if midrange slider preset before load
     emit ui->trebleSlider->valueChanged(ui->trebleSlider->value()); // force treble change, if treble slider preset before load
 
-    cBass.Stop();
+    cBass->Stop();
 
 }
 
@@ -4399,7 +4289,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     // We are NOT doing automatic start-of-song finding right now.
     startOfSong_sec = 0.0;
-    endOfSong_sec = cBass.FileLength;  // used by setDefaultIntroOutroPositions below
+    endOfSong_sec = cBass->FileLength;  // used by setDefaultIntroOutroPositions below
 
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
@@ -4410,16 +4300,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
-#ifndef M1MAC
-    // THIS IS ONLY FOR X86 BUILD RIGHT NOW.
-    // NOTE: we need to set the bounds BEFORE we set the actual positions
-    int length_sec = static_cast<int>(cBass.FileLength); // secondHalfOfLoad isn't called until after gotDuratioBPM, which gives cBass the FileLength
-    ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-    ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-#endif
-
-    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
-    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass.Stream_BPM, startOfSong_sec, endOfSong_sec, cBass.FileLength);
+    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
 
     ui->dateTimeEditIntroTime->setEnabled(true);
     ui->dateTimeEditOutroTime->setEnabled(true);
@@ -4428,37 +4310,10 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->pushButtonSetOutroTime->setEnabled(true);
     ui->pushButtonTestLoop->setEnabled(true);
 
-    // FIX FIX FIX:
-#ifndef M1MAC
-    ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
-    ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
-#endif
-
-    cBass.SetVolume(100);
+    cBass->SetVolume(100);
     currentVolume = 100;
     previousVolume = 100;
     Info_Volume();
-
-    // FIX FIX FIX
-#ifndef M1MAC
-    // On M1MAC, THIS IS RELOCATED TO handleDurationBPM()....
-    if (isPatter) {
-        on_loopButton_toggled(true); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Patter");  // Lyrics tab does double duty as Patter tab
-        ui->pushButtonSetIntroTime->setText("Start Loop");
-        ui->pushButtonSetOutroTime->setText("End Loop");
-        ui->pushButtonTestLoop->setHidden(false);
-        analogClock->setSingingCallSection("");
-    } else {
-        // NOTE: if unknown type, it will be treated as a singing call, so as to NOT set looping
-        // singing call or vocals or xtras, so Loop mode defaults to OFF
-        on_loopButton_toggled(false); // default is to loop, if type is patter
-//        ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // Lyrics tab is named "Lyrics"
-        ui->pushButtonSetIntroTime->setText("In");
-        ui->pushButtonSetOutroTime->setText("Out");
-        ui->pushButtonTestLoop->setHidden(true);
-    }
-#endif
 
 //    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
     loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo from DB (not necessarily same as songTable if playlist loaded)
@@ -4496,7 +4351,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     emit ui->pitchSlider->valueChanged(pitchInt); // make sure that the on value changed code gets executed, even if this isn't really a change.
 
 //    qDebug() << "setting stream position to: " << startOfSong_sec;
-    cBass.StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
+    cBass->StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
 
     songLoaded = true;  // now seekBar can be updated
 
@@ -5537,7 +5392,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     ui->pitchSlider->setValue(pitchInt);
 
     on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
-                                           //   exactly the same as the previous value.  This will ensure that cBass.setPitch() gets called (right now) on the new stream.
+                                           //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
 
 // this code does not appear to do what the comment intended.
 //    if (tempo != "0" && tempo != "0%") {
@@ -6386,9 +6241,9 @@ void MainWindow::saveCurrentSongSettings()
 //        // When it comes time to save the replayGain value, it should be done being calculated.
 //        // So, save it, whatever it is.  This will fail, if the song is quickly clicked through.
 //        // We guard against this by NOT saving, if it's exactly 0.0 dB (meaning not calculated yet).
-//        if (cBass.Stream_replayGain_dB != 0.0) {
-////            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass.Stream_replayGain_dB;
-//            setting.setReplayGain(cBass.Stream_replayGain_dB);
+//        if (cBass->Stream_replayGain_dB != 0.0) {
+////            qDebug() << "***** saveCurrentSongSettings: saving replayGain value for" << currentSong << "= " << cBass->Stream_replayGain_dB;
+//            setting.setReplayGain(cBass->Stream_replayGain_dB);
 //        } else {
 ////            qDebug() << "***** saveCurrentSongSettings: NOT saving replayGain value for" << currentSong << ", because it's 0.0dB, so not set yet";
 //        }
@@ -6435,7 +6290,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         if (settings.isSetCuesheetName()) { cuesheetName = settings.getCuesheetName(); } // ADDED *****
 
         // double length = (double)(ui->seekBarCuesheet->maximum());  // This is not correct, results in non-round-tripping
-        double length = cBass.FileLength;  // This seems to work better, and round-tripping looks like it is working now.
+        double length = cBass->FileLength;  // This seems to work better, and round-tripping looks like it is working now.
         if (settings.isSetIntroOutroIsTimeBased() && settings.getIntroOutroIsTimeBased())
         {
             intro = intro / length;
@@ -6535,7 +6390,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 void MainWindow::loadGlobalSettingsForSong(QString songTitle) {
    Q_UNUSED(songTitle)
 //   qDebug() << "loadGlobalSettingsForSong";
-   cBass.SetGlobals();
+   cBass->SetGlobals();
 }
 
 // ------------------------------------------------------------------------------------------
@@ -6881,13 +6736,6 @@ void MainWindow::microphoneStatusUpdate() {
 //}
 
 void MainWindow::initReftab() {
-
-#ifdef M1MAC
-//    ui->tabWidget->setTabVisible(4,false);  // turn off the References tab for now in the M1 build
-//    return;  // FIX: turned off right now for M1 Mac, because of crashes in the WebEngine on M1
-//             // FIX: also seeing errors like this: [0306/194140.909675:ERROR:icu_util.cc(252)] Couldn't mmap icu data file, see issue #636
-#endif
-
     static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
 
     numWebviews = 0;
@@ -6933,12 +6781,7 @@ void MainWindow::initReftab() {
                 }
             }
             if (HTMLfolderExists) {
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
-#else
-                webview[numWebviews] = new QWebView();
-#endif
-
 //                QString indexFileURL = "file://" + filename + whichHTM;
 #if defined(Q_OS_WIN32)
                 QString indexFileURL = "file:///" + filename + whichHTM;  // Yes, Windows is special
@@ -6961,11 +6804,7 @@ void MainWindow::initReftab() {
 
 //                qDebug() << "    tabname:" << tabname;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
-#else
-                webview[numWebviews] = new QWebView();
-#endif
 
 #if defined(Q_OS_WIN32)
                 QString indexFileURL = "file:///" + filename;  // Yes, Windows is special: file:///Y:/Dropbox/__squareDanceMusic/reference/100.Broken Hearts.txt
@@ -6979,11 +6818,7 @@ void MainWindow::initReftab() {
         } else if (filename.endsWith(".md", Qt::CaseInsensitive)) {  // is not a Dance Program file in /reference
                 static QRegularExpression re4(".[Mm][Dd]$");
                 tabname = filename.split("/").last().remove(re4);
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 webview[numWebviews] = new QWebEngineView();
-#else
-                webview[numWebviews] = new QWebView();
-#endif
 
                 QFile f1(filename);
                 f1.open(QIODevice::ReadOnly | QIODevice::Text);
@@ -7004,7 +6839,6 @@ void MainWindow::initReftab() {
                 QString pdf_path = dir.relativeFilePath(filename);  // point at the file to be viewed (relative!)
 //                qDebug() << "    pdf_path: " << pdf_path;
 
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
                 Communicator *m_communicator = new Communicator(this);
                 m_communicator->setUrl(pdf_path);
 
@@ -7014,10 +6848,6 @@ void MainWindow::initReftab() {
                 webview[numWebviews]->page()->setWebChannel(channel);
 
                 webview[numWebviews]->load(url);
-#else
-                webview[numWebviews] = new QWebView();
-                webview[numWebviews]->setUrl(url);
-#endif
 
 
 //                QString indexFileURL = "file://" + filename;
@@ -7293,7 +7123,7 @@ void MainWindow::on_action_6_triggered()
 }
 
 void MainWindow::stopSFX() {
-    cBass.StopAllSoundEffects();
+    cBass->StopAllSoundEffects();
 }
 
 void MainWindow::playSFX(QString which) {
@@ -7309,7 +7139,7 @@ void MainWindow::playSFX(QString which) {
 //    if(QFileInfo(soundEffectFile).exists()) {
     if(QFileInfo::exists(soundEffectFile)) {
         // play sound FX only if file exists...
-        cBass.PlayOrStopSoundEffect(which.toInt(),
+        cBass->PlayOrStopSoundEffect(which.toInt(),
                                     soundEffectFile.toLocal8Bit().constData());  // convert to C string; defaults to volume 100%
     } else {
         qDebug() << "***** ERROR: sound FX " << which << " does not exist: " << soundEffectFile;
@@ -7542,7 +7372,7 @@ void MainWindow::maybeInstallSoundFX() {
 void MainWindow::on_actionStop_Sound_FX_triggered()
 {
     // whatever SFX are playing, stop them.
-    cBass.StopAllSoundEffects();
+    cBass->StopAllSoundEffects();
 }
 
 // FONT SIZE STUFF ========================================
@@ -8042,7 +7872,7 @@ void MainWindow::on_actionTempo_toggled(bool checked)
 
 void MainWindow::on_actionFade_Out_triggered()
 {
-    cBass.FadeOutAndPause();
+    cBass->FadeOutAndPause();
 }
 
 // For improving as well as measuring performance of long songTable operations
@@ -9002,20 +8832,20 @@ void MainWindow::on_actionTest_Loop_triggered()
         return;  // if there is no song loaded, no point in doing anything.
     }
 
-    cBass.Stop();  // always pause playback
+    cBass->Stop();  // always pause playback
 
-    double songLength = cBass.FileLength;
+    double songLength = cBass->FileLength;
 //    double intro = ui->seekBar->GetIntro(); // 0.0 - 1.0
     double outro = ui->seekBar->GetOutro(); // 0.0 - 1.0
 
     double startPosition_sec = fmax(0.0, songLength*outro - 5.0);
 
-    cBass.StreamSetPosition(startPosition_sec);
+    cBass->StreamSetPosition(startPosition_sec);
     Info_Seekbar(false);  // update just the text
 
 //    on_playButton_clicked();  // play, starting 5 seconds before the loop
 
-    cBass.Play();  // currently paused, so start playing at new location
+    cBass->Play();  // currently paused, so start playing at new location
 }
 
 void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
@@ -9023,7 +8853,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 //    qDebug() << "newIntroTime: " << time;
 
     double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
-    double length = cBass.FileLength;
+    double length = cBass->FileLength;
 //    double t_ms = position_ms/length;
 
 //    ui->seekBarCuesheet->SetIntro((float)t_ms/1000.0);
@@ -9053,7 +8883,7 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 //    qDebug() << "newOutroTime: " << time;
 
     double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
-    double length = cBass.FileLength;
+    double length = cBass->FileLength;
 //    double t_ms = position_ms/length;
 
 //    ui->seekBarCuesheet->SetOutro((float)t_ms/1000.0);
@@ -9396,8 +9226,8 @@ void MainWindow::revealLyricsFileInFinder() {
 
 void MainWindow::handleDurationBPM() {
 //    qDebug() << "***** handleDurationBPM()";
-    int length_sec = static_cast<int>(cBass.FileLength);
-    int songBPM = static_cast<int>(round(cBass.Stream_BPM));  // libbass's idea of the BPM
+    int length_sec = static_cast<int>(cBass->FileLength);
+    int songBPM = static_cast<int>(round(cBass->Stream_BPM));  // libbass's idea of the BPM
 //    qDebug() << "***** handleDurationBPM(): " << songBPM;
 
     bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||

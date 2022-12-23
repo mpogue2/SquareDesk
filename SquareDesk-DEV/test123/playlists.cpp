@@ -11,16 +11,18 @@
 #include "songlistmodel.h"
 #include "tablenumberitem.h"
 
+#if defined(Q_OS_LINUX)
+#define OS_FALLTHROUGH [[fallthrough]]
+#elif defined(Q_OS_WIN)
+#define OS_FALLTHROUGH
+#else
+    // already defined on Mac OS X
+#endif
+
 // FORWARD DECLS ---------
 extern QString getTitleColTitle(MyTableWidget *songTable, int row);
 
-#ifndef M1MAC
-// All other platforms:
-extern bass_audio cBass;  // make this accessible to PreferencesDialog
-#else
-// M1 Silicon Mac only:
-extern flexible_audio cBass;  // make this accessible to PreferencesDialog
-#endif
+extern flexible_audio *cBass;  // make this accessible to PreferencesDialog
 
 // CSV parsing (used only here) -----------------------------------------
 // Adapted from: https://github.com/hnaohiro/qt-csv/blob/master/csv.cpp
@@ -630,8 +632,8 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
 
 void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 {
-    cBass.StreamGetPosition();  // get ready to look at the playhead position
-    if (cBass.Current_Position != 0.0) {
+    cBass->StreamGetPosition();  // get ready to look at the playhead position
+    if (cBass->Current_Position != 0.0) {
         on_stopButton_clicked();  // if the playhead was not at the beginning, just stop current playback and go to START
         return;                   //   and return early... (don't save the current song settings)
     }

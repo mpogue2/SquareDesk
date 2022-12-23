@@ -54,11 +54,7 @@
 #include <QToolTip>
 #include <QVariant>
 #include <QShortcut>
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
 #include <QtWebEngineWidgets/QtWebEngineWidgets>
-#else
-#include <QtWebKitWidgets/QWebView>
-#endif
 #include <QWheelEvent>
 #include <QWidget>
 #include <QFileSystemWatcher>
@@ -72,11 +68,8 @@
 
 #include "math.h"
 
-#if M1MAC
-#include "flexible_audio.h"  // M1 Mac OS only
-#else
-#include "bass_audio.h"      // all other platforms
-#endif
+#include "flexible_audio.h"
+
 
 #include "myslider.h"
 #include "preferencesdialog.h"
@@ -268,11 +261,7 @@ public:
 
     unsigned int numWebviews;
 #define MAX_WEB_VIEWS 16
-#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
     QWebEngineView* webview[MAX_WEB_VIEWS];  // max of 16 tabs
-#else
-    QWebView* webview[MAX_WEB_VIEWS];
-#endif    
     QTabWidget *documentsTab;
 
 public slots:

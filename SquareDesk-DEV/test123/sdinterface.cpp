@@ -551,7 +551,7 @@ bool SquareDesk_iofull::help_manual()
 {
 //    qWarning() << "SquareDesk_iofull::help_manual();";
 //ZZZZZZZZZ   ShellExecute(NULL, "open", "c:\\sd\\sd_doc.html", NULL, NULL, SW_SHOWNORMAL);
-    return TRUE;
+    return true;
 
 }
 
@@ -559,7 +559,7 @@ bool SquareDesk_iofull::help_faq()
 {
 //    qWarning() << "SquareDesk_iofull::help_faq();";
 // ZZZZZZZZZZ    ShellExecute(NULL, "open", "c:\\sd\\faq.html", NULL, NULL, SW_SHOWNORMAL);
-    return TRUE;
+    return true;
 }
 
 popup_return SquareDesk_iofull::get_popup_string(Cstring prompt1, Cstring prompt2,

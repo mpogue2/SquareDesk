@@ -27,17 +27,19 @@
 //#include "flexible_audio.h"
 
 #include <QTimer>
-#include <QMediaPlayer>
-#include <QAudioOutput>
-#include <QAudioBuffer>
-#include <QAudioDevice>
-#include <QAudioDecoder>
-#include <QAudioFormat>
-#include <QMediaDevices>
-#include <QMediaPlayer>
+#include <QtMultimedia/QMediaPlayer>
+#include <QtMultimedia/QAudioOutput>
+#include <QtMultimedia/QAudioBuffer>
+#include <QtMultimedia/QAudioDevice>
+#include <QtMultimedia/QAudioDecoder>
+#include <QtMultimedia/QAudioFormat>
+#include <QtMultimedia/QMediaDevices>
+#include <QtMultimedia/QMediaPlayer>
 #include <QFile>
 #include <QBuffer>
 #include "perftimer.h"
+
+#include "audiodecoder.h"
 
 // indices into Global_IntelBoostEq[] for Global Intelligibility Boost EQ
 #define FREQ_KHZ 0
@@ -53,6 +55,9 @@
 class flexible_audio : public QIODevice
 {
     Q_OBJECT
+
+private:
+    AudioDecoder decoder; // TEST of AudioDecoder from example, must call setSource!
 
     //-------------------------------------------------------------
 public:

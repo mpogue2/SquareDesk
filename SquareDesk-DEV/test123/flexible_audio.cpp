@@ -26,9 +26,6 @@
 // IMPORTANT: If we're compiling for an M1 Silicon MAC, then use THIS FILE.  Else use contents of bass_audio.cpp
 //   This is a short term thing, until the flexible audio class comes up to the same level as bass_audio.
 // M1MAC is defined only on Mac's and only on M1 Silicon Macs.
-#ifndef M1MAC
-#include "bass_audio.cpp"
-#else
 
 #include "flexible_audio.h"
 #include <math.h>
@@ -36,11 +33,8 @@
 #include <QDebug>
 #include <QTimer>
 //#include "perftimer.h"
-#include "audiodecoder.h"
-
 // GLOBALS =========
 
-AudioDecoder decoder; // TEST of AudioDecoder from example, must call setSource!
 QMediaDevices md;
 
 //PerfTimer gPT("flexible_audio::StreamCreate", 0);
@@ -462,4 +456,3 @@ void flexible_audio::StopAllSoundEffects() {
     currentSoundEffectID = 0;   // no sound effect is playing now
 }
 
-#endif
