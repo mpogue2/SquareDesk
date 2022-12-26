@@ -173,6 +173,7 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
         for (int col = 1; col < tableWidgetKeyBindings->columnCount(); ++col)
         {
             QKeySequenceEdit *keySequenceEdit(new QKeySequenceEdit);
+            keySequenceEdit->setClearButtonEnabled(true);  // allow single-click clear of existing shortcut
             tableWidgetKeyBindings->setCellWidget(row, col, keySequenceEdit);
             connect(keySequenceEdit, &QKeySequenceEdit::editingFinished, this, [keySequenceEdit, tableWidgetKeyBindings, row, col]()
                     {
