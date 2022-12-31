@@ -116,7 +116,8 @@ public:
         soundTouch.setSetting(SETTING_USE_QUICKSEEK, false);  // NO QUICKSEEK (better quality)
         soundTouch.setSetting(SETTING_USE_AA_FILTER, true);   // USE AA FILTER (better quality)
 
-        m_peakLevel = 0.0;
+        m_peakLevelL_mono = 0.0;
+        m_peakLevelR      = 0.0;
         m_resetPeakDetector = true;
     }
 
@@ -285,9 +286,14 @@ public:
         return(currentState);  // returns current state as int {0,3}
     }
 
-    double getPeakLevel() {
+    double getPeakLevelL_mono() {
         m_resetPeakDetector = true;  // we've used it, so start a new accumulation
-        return(m_peakLevel);  // for VU meter, calculated when music is playing in DSP
+        return(m_peakLevelL_mono);   // for VU meter, calculated when music is playing in DSP
+    }
+
+    double getPeakLevelR() { // ALWAYS CALL THIS FIRST, BECAUSE IT WILL NOT RESET THE PEAK DETECTOR
+        // m_resetPeakDetector = true;  // we've used it, so start a new accumulation
+        return(m_peakLevelR);           // for VU meter, calculated when music is playing in DSP
     }
 
     void setLoop(double from_sec, double to_sec) {
@@ -405,7 +411,8 @@ public:
             newFilterNeeded = false;
         }
 
-        float thePeakLevel = 0.0;
+        float thePeakLevelL_mono = 0.0;
+        float thePeakLevelR = 0.0;
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
@@ -432,7 +439,7 @@ public:
             // output data is INTERLEAVED DUAL MONO (Stereo with L and R identical) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i] = outDataFloat[2*i+1] = max(min(1.0f, outDataFloat[i]),-1.0);  // hard limiter
-                thePeakLevel = fmaxf(thePeakLevel, outDataFloat[2*i]);
+                thePeakLevelL_mono = fmaxf(thePeakLevelL_mono, outDataFloat[2*i]);
             }
         } else {
             // stereo (Force Mono is DISABLED)
@@ -452,22 +459,27 @@ public:
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = max(min(1.0f, outDataFloat[i]),-1.0);  // L + hard limiter
                 outDataFloat[2*i+1] = max(min(1.0f, outDataFloatR[i]),-1.0); // R + hard limiter
-//                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[2*i] + outDataFloatR[2*i+1]) * 0.5); // FIX FIX: THIS IS WRONG.
-                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[2*i] + outDataFloat[2*i+1]) * 0.5); // THIS IS BETTER.
+                thePeakLevelL_mono = fmaxf(thePeakLevelL_mono, outDataFloat[2*i]);   // peakL
+                thePeakLevelR      = fmaxf(thePeakLevelR,      outDataFloat[2*i+1]); // peakR
             }
         }
-        if (thePeakLevel < 1E-20) {  // ignore very small numbers
-            thePeakLevel = 0.0;
+        if (thePeakLevelL_mono < 1E-20) {   // ignore very small numbers
+            thePeakLevelL_mono = 0.0;
+        }
+        if (thePeakLevelR < 1E-20) {        // ignore very small numbers
+            thePeakLevelR = 0.0;
         }
 //        if (thePeakLevel != 0.0) {
 //            qDebug() << "peak: " << thePeakLevel;
 //        }
 
         if (m_resetPeakDetector) {
-            m_peakLevel = 32768.0 * thePeakLevel;
+            m_peakLevelL_mono = 32768.0 * thePeakLevelL_mono;
+            m_peakLevelR      = 32768.0 * thePeakLevelR;
             m_resetPeakDetector = false;
         } else {
-            m_peakLevel = fmaxf((float)(32768.0 * thePeakLevel), (float)m_peakLevel);
+            m_peakLevelL_mono = fmaxf((float)(32768.0 * thePeakLevelL_mono), (float)m_peakLevelL_mono);
+            m_peakLevelR      = fmaxf((float)(32768.0 * thePeakLevelR),      (float)m_peakLevelR);
         }
 
         // SOUNDTOUCH PITCH/TEMPO -----------
@@ -542,7 +554,8 @@ private:
     double       m_pan;
     bool         m_mono;  // true when Force Mono is on
 
-    double       m_peakLevel;  // for VU meter
+    double       m_peakLevelL_mono;     // for VU meter
+    double       m_peakLevelR;          // for VU meter
     bool         m_resetPeakDetector;
 
     unsigned int currentState;
@@ -933,8 +946,12 @@ void AudioDecoder::clearLoop()
     myPlayer.clearLoop();
 }
 
-double AudioDecoder::getPeakLevel() {
-    return(myPlayer.getPeakLevel());
+double AudioDecoder::getPeakLevelL_mono() {
+    return(myPlayer.getPeakLevelL_mono());
+}
+
+double AudioDecoder::getPeakLevelR() {
+    return(myPlayer.getPeakLevelR());
 }
 
 void AudioDecoder::fadeOutAndPause(float finalVol, float secondsToGetThere) {

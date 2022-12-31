@@ -87,58 +87,22 @@ public:
 
 public slots:
     void reset();
-    void levelChanged(qreal rmsLevel, qreal peakLevel, int numSamples);
-
-private slots:
-    void redrawTimerExpired();
+    void levelChanged(double peakL_mono, double peakR, bool isMono);
 
 private:
     /**
-     * Height of RMS level bar.
+     * Most recent peak level (L channel, and mono)
      * Range 0.0 - 1.0.
      */
-    qreal m_rmsLevel;
+    qreal m_peakLevelL_mono;
 
     /**
-     * Most recent peak level.
+     * Most recent peak level (R channel)
      * Range 0.0 - 1.0.
      */
-    qreal m_peakLevel;
+    qreal m_peakLevelR;
 
-    /**
-     * Height of peak level bar.
-     * This is calculated by decaying m_peakLevel depending on the
-     * elapsed time since m_peakLevelChanged, and the value of m_decayRate.
-     */
-    qreal m_oldDecayedPeakLevel;
-    qreal m_decayedPeakLevel;
-
-    /**
-     * Time at which m_peakLevel was last changed.
-     */
-    QElapsedTimer m_peakLevelChanged;
-
-    /**
-     * Rate at which peak level bar decays.
-     * Expressed in level units / millisecond.
-     */
-    qreal m_peakDecayRate;
-
-    /**
-     * High watermark of peak level.
-     * Range 0.0 - 1.0.
-     */
-    qreal m_peakHoldLevel;
-
-    /**
-     * Time at which m_peakHoldLevel was last changed.
-     */
-    QElapsedTimer m_peakHoldLevelChanged;
-
-    QTimer *m_redrawTimer;
-
-    QColor m_rmsColor;
-    QColor m_peakColor;
+    bool m_isMono;
 };
 
 #endif // LEVELMETER_H

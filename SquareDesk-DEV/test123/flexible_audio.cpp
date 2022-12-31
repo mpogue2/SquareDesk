@@ -312,13 +312,27 @@ uint32_t flexible_audio::currentStreamState() {
 }
 
 // ------------------------------------------------------------------
-int flexible_audio::StreamGetVuMeter(void)
+int flexible_audio::StreamGetVuMeterL_mono(void)
 {
     // qDebug() << "NOT IMPLEMENTED: StreamGetVuMeter()";
     uint32_t Stream_State = currentStreamState();
 
     if (Stream_State == BASS_ACTIVE_PLAYING) {
-        return(decoder.getPeakLevel());
+        return(decoder.getPeakLevelL_mono());
+    }
+    else {
+        return 0;
+    }
+}
+
+// ------------------------------------------------------------------
+int flexible_audio::StreamGetVuMeterR(void)
+{
+    // qDebug() << "NOT IMPLEMENTED: StreamGetVuMeter()";
+    uint32_t Stream_State = currentStreamState();
+
+    if (Stream_State == BASS_ACTIVE_PLAYING) {
+        return(decoder.getPeakLevelR());
     }
     else {
         return 0;
@@ -345,9 +359,14 @@ void flexible_audio::ClearLoop()
 // ------------------------------------------------------------------
 void flexible_audio::SetMono(bool on)
 {
-//    gStream_Mono = on;
-//    qDebug() << "flexible_audio::SetMono()";
+    StreamIsMono = on;
     decoder.setMono(on);
+}
+
+// ------------------------------------------------------------------
+bool flexible_audio::GetMono(void)
+{
+    return(StreamIsMono);
 }
 
 // ------------------------------------------------------------------

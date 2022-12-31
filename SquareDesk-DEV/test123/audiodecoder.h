@@ -153,7 +153,8 @@ public:
     double getStreamPosition();
     double getStreamLength();
 
-    double getPeakLevel(); // for VU meter
+    double getPeakLevelL_mono();    // for VU meter
+    double getPeakLevelR();         // for VU meter
 
     double getBPM();
 

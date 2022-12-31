@@ -2957,10 +2957,16 @@ void MainWindow::on_UIUpdateTimerTick(void)
 void MainWindow::on_vuMeterTimerTick(void)
 {
     double currentVolumeSlider = ui->volumeSlider->value();
-    int level = cBass->StreamGetVuMeter();
-    double levelF = (currentVolumeSlider/100.0)*level/32768.0;
+    int levelR      = cBass->StreamGetVuMeterR();        // do not reset peak detector
+    int levelL_mono = cBass->StreamGetVuMeterL_mono();   // get AND reset peak detector
+
+    double levelL_monof = (currentVolumeSlider/100.0)*levelL_mono/32768.0;
+    double levelRf      = (currentVolumeSlider/100.0)*levelR/32768.0;
+
+    bool isMono = cBass->GetMono();
+
     // TODO: iff music is playing.
-    vuMeter->levelChanged(levelF/2.0,levelF,256);  // 10X/sec, update the vuMeter
+    vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
 }
 
 // --------------

@@ -127,6 +127,7 @@ public:
     void ClearLoop();
 
     void SetMono(bool on);
+    bool GetMono(void);
 
     //Stream
     void songStartDetector(const char *filepath, double  *pSongStart, double  *pSongEnd);
@@ -144,7 +145,8 @@ public:
     void Pause(void); // forces stream to stop playback
     void FadeOutAndPause(void);  // 6 second fade, then pause
 
-    int StreamGetVuMeter(void); // get VU meter level (mono)
+    int StreamGetVuMeterL_mono(void);   // get VU meter level (L or mono)
+    int StreamGetVuMeterR(void);        // get VU meter level (R)
 
     // FX
     void PlayOrStopSoundEffect(int which, const char *filename, int volume = 100);
@@ -176,6 +178,8 @@ private:
     int totalBytes;
 
     QMediaPlayer soundEffect;  // dedicated player for sound effects
+
+    bool StreamIsMono;
 
 protected:
     qint64 readData(char* data, qint64 maxlen) override;
