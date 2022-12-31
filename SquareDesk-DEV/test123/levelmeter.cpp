@@ -108,46 +108,57 @@ void LevelMeter::reset()
 
 void LevelMeter::levelChanged(qreal rmsLevel, qreal peakLevel, int numSamples)
 {
-    // Smooth the RMS signal
-    const qreal smooth = pow(qreal(0.9), static_cast<qreal>(numSamples) / 256); // TODO: remove this magic number
-    m_rmsLevel = (m_rmsLevel * smooth) + (rmsLevel * (1.0 - smooth));
+    Q_UNUSED(rmsLevel)
+    Q_UNUSED(numSamples)
 
-    if (peakLevel > m_decayedPeakLevel) {
-        m_peakLevel = peakLevel;
-        m_decayedPeakLevel = peakLevel;
-        m_peakLevelChanged.start();
-    }
+//    // Smooth the RMS signal
+//    const qreal smooth = pow(qreal(0.9), static_cast<qreal>(numSamples) / 256); // TODO: remove this magic number
+//    m_rmsLevel = (m_rmsLevel * smooth) + (rmsLevel * (1.0 - smooth));
 
-    if (peakLevel > m_peakHoldLevel) {
-        m_peakHoldLevel = peakLevel;
-        m_peakHoldLevelChanged.start();
-    }
+//    if (peakLevel > m_decayedPeakLevel) {
+//        m_peakLevel = peakLevel;
+//        m_decayedPeakLevel = peakLevel;
+//        m_peakLevelChanged.start();
+//    }
+
+//    if (peakLevel > m_peakHoldLevel) {
+//        m_peakHoldLevel = peakLevel;
+//        m_peakHoldLevelChanged.start();
+//    }
+
+    m_peakLevel = peakLevel;
+
+//    qDebug() << "RMS: " << rmsLevel << ", P: " << peakLevel << ", S: " << numSamples << ", m_rmsLevel: " << m_rmsLevel << ", m_decayedPeakLevel: " << m_decayedPeakLevel;
 
 //    update();  // no update needed here, will be picked up when redrawTimerExpired is called
 }
 
 void LevelMeter::redrawTimerExpired()
 {
-    // Decay the peak signal
-    const int elapsedMs = (m_peakLevelChanged.isValid() ? m_peakLevelChanged.elapsed() : 0);
-    const qreal decayAmount = m_peakDecayRate * elapsedMs;
-    if (decayAmount < m_peakLevel) {
-        m_decayedPeakLevel = m_peakLevel - decayAmount;
-    }
-    else {
-        m_decayedPeakLevel = 0.0;
-    }
+//    // Decay the peak signal
+//    const int elapsedMs = (m_peakLevelChanged.isValid() ? m_peakLevelChanged.elapsed() : 0);
+//    const qreal decayAmount = m_peakDecayRate * elapsedMs;
+//    if (decayAmount < m_peakLevel) {
+//        m_decayedPeakLevel = m_peakLevel - decayAmount;
+//    }
+//    else {
+//        m_decayedPeakLevel = 0.0;
+//    }
 
-    // Check whether to clear the peak hold level
-    if ((m_peakHoldLevelChanged.isValid() ? m_peakHoldLevelChanged.elapsed() : 0) > PeakHoldLevelDuration) {
-        m_peakHoldLevel = 0.0;
-    }
+//    // Check whether to clear the peak hold level
+//    if ((m_peakHoldLevelChanged.isValid() ? m_peakHoldLevelChanged.elapsed() : 0) > PeakHoldLevelDuration) {
+//        m_peakHoldLevel = 0.0;
+//    }
 
-    if (m_decayedPeakLevel != m_oldDecayedPeakLevel) {
-        // only update, if the level has changed
-        update();
-        m_oldDecayedPeakLevel = m_decayedPeakLevel;
-    }
+//    if (m_decayedPeakLevel != m_oldDecayedPeakLevel) {
+//        // only update, if the level has changed
+//        update();
+//        m_oldDecayedPeakLevel = m_decayedPeakLevel;
+//    }
+
+    update();
+
+//    qDebug() << "    elapsedMs: " << elapsedMs << ", decayAmt: " << decayAmount << ", m_peakLevel: " << m_peakLevel << ", m_decayedPeakLevel: " << m_decayedPeakLevel;
 
 //    update();
 }
@@ -157,23 +168,37 @@ void LevelMeter::paintEvent(QPaintEvent *event)
     Q_UNUSED(event)
     QPainter painter(this);
 
-#if defined(Q_OS_MAC)
-    painter.fillRect(rect(), QColor(225,225,225));  // background color of VU Meter
-#elif defined(Q_OS_WIN)
-    painter.fillRect(rect(), QColor(255,255,255));
-#else  // Q_OS_LINUX
-    painter.fillRect(rect(), QColor(225,225,225));
-#endif
+    // all platforms
+    QRect frame = rect();
+    frame.setTop(1+2);
+    frame.setBottom(rect().bottom()-1-2);
+    painter.fillRect(frame, QColor(0,0,0));  // background color of frame around VU Meter
+
+//#if defined(Q_OS_MAC)
+//     painter.fillRect(rect(), QColor(255,255,255));  // background color of VU Meter
+//#elif defined(Q_OS_WIN)
+//    painter.fillRect(rect(), QColor(255,255,255));
+//#else  // Q_OS_LINUX
+//    painter.fillRect(rect(), QColor(255,255,255));
+//#endif
 
     // 10 bars, painted from left to right
     // 6 green, 2 yellow, 2 red
     QColor barColor;
     QColor noBarColor;  // color to use, if level is not that high
     const unsigned int numBoxes = 10;
+
+    float level_dB = 20.0f * log10f(m_peakLevel); // NOTE: output of filter for input 1.0 (clipping) is about 0.51
+    double highlightBoxes;
+
+//    if (m_peakLevel != 0.0) {
+//        qDebug() << "    PL: " << m_peakLevel << ", HB: " << highlightBoxes << "LDB: " << level_dB;
+//    }
+
     for (unsigned int i = 0; i < numBoxes; i++) {
         QRect bar = rect();
-        int bot = static_cast<int>(rect().left() + (static_cast<float>(i)/static_cast<float>(numBoxes))*rect().width());
-        int top = static_cast<int>(rect().left() + (static_cast<float>(i+1)/static_cast<float>(numBoxes))*rect().width());
+        int bot = static_cast<int>(rect().left() + 2 + (static_cast<float>(i)/static_cast<float>(numBoxes))*(rect().width()-4));
+        int top = static_cast<int>(rect().left() + 2 + (static_cast<float>(i+1)/static_cast<float>(numBoxes))*(rect().width()-4));
 
         bar.setLeft(top);
         bar.setRight(bot);
@@ -182,23 +207,30 @@ void LevelMeter::paintEvent(QPaintEvent *event)
 
         int noBarLevel = 120;
 
-        if (i < 0.6 * numBoxes) {
+        highlightBoxes = static_cast<double>(numBoxes) + 2.0 * level_dB/6.0 + 0.5; // 0.1 is to compensate for loss in filter
+        if (i < 0.4 * numBoxes) {
+            barColor = Qt::green;
+            noBarColor = QColor(0,noBarLevel,0);
+            // map -12 - 4  to 0 - 4
+            highlightBoxes = (highlightBoxes + 12.0)/4.0; // override to 9dB per box vs normal 3dB per box
+        }
+        else if (i < 0.8 * numBoxes) {
             barColor = Qt::green;
             noBarColor = QColor(0,noBarLevel,0);
         }
-        else if (i < 0.8 * numBoxes) {
+        else if (i < 0.9 * numBoxes) {
             barColor = Qt::yellow;
             noBarColor = QColor(noBarLevel,noBarLevel,0);
         }
         else {
             barColor = Qt::red;
-            noBarColor = QColor(noBarLevel,0,0);
+            noBarColor = QColor(noBarLevel + 10,0,0);
         }
-        if (m_decayedPeakLevel*static_cast<double>(numBoxes) >= (i+1)) {
+
+        if (highlightBoxes >= (i+1)) {
             painter.fillRect(bar, barColor);
         }
         else {
-//            break;  // break out of the for loop early, if no more boxes to draw
             painter.fillRect(bar, noBarColor);
         }
     }

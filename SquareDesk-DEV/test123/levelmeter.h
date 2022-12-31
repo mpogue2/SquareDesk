@@ -139,7 +139,6 @@ private:
 
     QColor m_rmsColor;
     QColor m_peakColor;
-
 };
 
 #endif // LEVELMETER_H

@@ -115,6 +115,9 @@ public:
 
         soundTouch.setSetting(SETTING_USE_QUICKSEEK, false);  // NO QUICKSEEK (better quality)
         soundTouch.setSetting(SETTING_USE_AA_FILTER, true);   // USE AA FILTER (better quality)
+
+        m_peakLevel = 0.0;
+        m_resetPeakDetector = true;
     }
 
     virtual ~PlayerThread() {
@@ -283,6 +286,7 @@ public:
     }
 
     double getPeakLevel() {
+        m_resetPeakDetector = true;  // we've used it, so start a new accumulation
         return(m_peakLevel);  // for VU meter, calculated when music is playing in DSP
     }
 
@@ -382,7 +386,7 @@ public:
         float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
         float KL = cos(theta);
         float KR = sin(theta);
-
+//        qDebug() << "KL/R: " << KL << KR;
         float scaleFactor;  // volume and mono scaling
 
         // EQ -----------
@@ -405,15 +409,26 @@ public:
         if (m_mono) {
             // Force Mono is ENABLED
             scaleFactor = currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
-
+//    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
                 outDataFloat[i] = (float)(scaleFactor*KL*inDataFloat[2*i] + scaleFactor*KR*inDataFloat[2*i+1]); // stereo to 2ch mono + volume + pan
             }
 
+//            if (outDataFloat[0] != 0.0) {
+//                for (int i = 0; i < 40; i++) { // DEBUG DEBUG DEBUG
+//                    qDebug() << "B-outDataFloat[" << i << "]: " << outDataFloat[i];
+//                }
+//            }
+
             // APPLY EQ TO MONO (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
             filter->apply(outDataFloat, scaled_inLength_frames);   // NOTE: applies IN PLACE
 
+//            if (outDataFloat[0] != 0.0) {
+//                for (int i = 0; i < 40; i++) { // DEBUG DEBUG DEBUG
+//                    qDebug() << "A-outDataFloat[" << i << "]: " << outDataFloat[i];
+//                }
+//            }
             // output data is INTERLEAVED DUAL MONO (Stereo with L and R identical) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i] = outDataFloat[2*i+1] = max(min(1.0f, outDataFloat[i]),-1.0);  // hard limiter
@@ -437,11 +452,23 @@ public:
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = max(min(1.0f, outDataFloat[i]),-1.0);  // L + hard limiter
                 outDataFloat[2*i+1] = max(min(1.0f, outDataFloatR[i]),-1.0); // R + hard limiter
-                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[2*i] + outDataFloatR[2*i+1]) * 0.5);
+//                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[2*i] + outDataFloatR[2*i+1]) * 0.5); // FIX FIX: THIS IS WRONG.
+                thePeakLevel = fmaxf(thePeakLevel, (outDataFloat[2*i] + outDataFloat[2*i+1]) * 0.5); // THIS IS BETTER.
             }
         }
-//        qDebug() << "peak: " << thePeakLevel;
-        m_peakLevel = 32768.0 * thePeakLevel;  // used by VU meter, this is the peak of the last 5 ms. (units assume 16-bit int samples)
+        if (thePeakLevel < 1E-20) {  // ignore very small numbers
+            thePeakLevel = 0.0;
+        }
+//        if (thePeakLevel != 0.0) {
+//            qDebug() << "peak: " << thePeakLevel;
+//        }
+
+        if (m_resetPeakDetector) {
+            m_peakLevel = 32768.0 * thePeakLevel;
+            m_resetPeakDetector = false;
+        } else {
+            m_peakLevel = fmaxf((float)(32768.0 * thePeakLevel), (float)m_peakLevel);
+        }
 
         // SOUNDTOUCH PITCH/TEMPO -----------
         if (clearSoundTouch) {
@@ -516,6 +543,7 @@ private:
     bool         m_mono;  // true when Force Mono is on
 
     double       m_peakLevel;  // for VU meter
+    bool         m_resetPeakDetector;
 
     unsigned int currentState;
     bool         activelyPlaying;
