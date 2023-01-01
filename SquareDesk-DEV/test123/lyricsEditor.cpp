@@ -709,6 +709,8 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
                                     QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption );
     cuesheet3.replace(ItalicRegExp, "<SPAN style=\"font-style: Italic;\">");
 
+    // <span style="  font-size:large; font-weight:700; font-style:italic; color:#000000;">
+
     // now do the same for Italic...
     // "<SPAN style=\"font-style: Italic;\">"
     QRegularExpression italicRegExp("<SPAN style=\"font-style: Italic;\">(.*)</SPAN>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption);
@@ -717,7 +719,12 @@ QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
     cuesheet3.replace(italicRegExp,"<I>\\1</I>");  // don't be greedy, and replace <SPAN italic> -> <B>
 
     // BOLD ITALIC -------
-    // TODO: <span style=" font-size:large; font-weight:700; font-style:italic; color:#000000;">
+    //       <span style="  font-size:large; font-weight:700; font-style:italic; color:#000000;">
+    // Bug:
+    //    B then I then text then /I then /B renders properly in the editor and in Safari.
+    //    I then B then text then /B then /I renders as I then text then /I (doesn't make the middle letters bold), but in Safari it is correct.
+    QRegularExpression bolditalicRegExp("<SPAN style=\"[\\s\n]+font-size:large;[\\s\n]+font-weight:700;[\\s\n]+font-style:[\\s\n]*Italic;[\\s\n]+color:#000000;\">(.*)</SPAN>", QRegularExpression::InvertedGreedinessOption | QRegularExpression::CaseInsensitiveOption);
+    cuesheet3.replace(bolditalicRegExp,"<B><I>\\1</I></B>");  // don't be greedy, and replace <SPAN bold-italic or italic-bold> -> <B><I>
 
     // LYRICS ---------
     // <SPAN style="font-family:'Verdana'; font-size:large; color:#030303; background-color:#ffc0cb;">
