@@ -93,6 +93,18 @@ static void RemoveAllOtherHotkeysFromTable(QTableWidget *tableWidgetKeyBindings,
     }
 }
 
+// https://stackoverflow.com/questions/47195261/qtableview-disable-sorting-for-some-columns
+void PreferencesDialog::onSortIndicatorChanged(int column, Qt::SortOrder order)
+{
+    if (column == kTagsColTag){
+        // Record the sort order when it is by "tag name"
+        sortOrder = order;
+    }
+    else {
+        // Restore the "tag name" sort order (ignoring all other columns)
+        ui->tableWidgetTagColors->sortByColumn(kTagsColTag, sortOrder);
+    }
+}
 
 // -------------------------------------------------------------------
 PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *parent) :
@@ -114,9 +126,17 @@ PreferencesDialog::PreferencesDialog(QMap<int, QString> *soundFXname, QWidget *p
     }
 
     {
+        // disable column resizing
         QHeaderView *headerView = ui->tableWidgetTagColors->horizontalHeader();
-        headerView->setSectionResizeMode(kTagsColExample, QHeaderView::Stretch);
+        headerView->setSectionResizeMode(kTagsColTag,        QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kTagsColForeground, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kTagsColBackground, QHeaderView::Fixed);
+        headerView->setSectionResizeMode(kTagsColExample,    QHeaderView::Stretch);
+
+        // disable sorting on columns OTHER than the tag name column
+        connect(ui->tableWidgetTagColors->horizontalHeader(), &QHeaderView::sortIndicatorChanged, this, &PreferencesDialog::onSortIndicatorChanged);
     }
+
 // validator for initial BPM setting
     validator = new QIntValidator(100, 150, this);
     ui->initialBPMLineEdit->setValidator(validator);

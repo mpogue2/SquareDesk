@@ -160,10 +160,15 @@ private slots:
 
     void on_intelBoostEnabledCheckbox_toggled(bool checked);
 
+    void onSortIndicatorChanged(int column, Qt::SortOrder order);
+
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;
     MainWindow *mw;  // so we can play soundFX from within the dialog
+
+    Qt::SortOrder sortOrder;
 };
 
 class PushButtonColorTag : public QPushButton {

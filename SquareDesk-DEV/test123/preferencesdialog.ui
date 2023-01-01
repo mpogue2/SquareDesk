@@ -180,7 +180,6 @@
           <widget class="QLabel" name="musicTypesLabel">
            <property name="font">
             <font>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -222,7 +221,6 @@
            <property name="font">
             <font>
              <pointsize>13</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -257,7 +255,6 @@
           <widget class="QLabel" name="musicPathLabel">
            <property name="font">
             <font>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -339,7 +336,6 @@
           <widget class="QLabel" name="musicPath">
            <property name="font">
             <font>
-             <weight>50</weight>
              <italic>true</italic>
              <bold>false</bold>
             </font>
@@ -513,7 +509,6 @@ Click on a color square to change the color associated with that Music Type.  Se
            <property name="font">
             <font>
              <pointsize>13</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -539,7 +534,6 @@ Click on a color square to change the color associated with that Music Type.  Se
           <widget class="QLabel" name="label_9">
            <property name="font">
             <font>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -762,7 +756,6 @@ Click on a color square to change the color associated with that Music Type.  Se
                  <property name="font">
                   <font>
                    <pointsize>13</pointsize>
-                   <weight>75</weight>
                    <bold>true</bold>
                   </font>
                  </property>
@@ -892,9 +885,6 @@ Click on a color square to change the color associated with that Music Type.  Se
              <column>
               <property name="text">
                <string>Sample</string>
-              </property>
-              <property name="textAlignment">
-               <set>AlignCenter</set>
               </property>
              </column>
             </widget>
@@ -1038,7 +1028,6 @@ Click on a color square to change the color associated with that Music Type.  Se
           <widget class="QLabel" name="ExpFeaturesLabel">
            <property name="font">
             <font>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -1508,7 +1497,6 @@ Click on a color square to change the color associated with that Music Type.  Se
           <font>
            <family>Arial</family>
            <pointsize>10</pointsize>
-           <weight>50</weight>
            <italic>false</italic>
            <bold>false</bold>
           </font>
