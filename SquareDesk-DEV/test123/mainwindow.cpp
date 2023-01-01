@@ -8092,6 +8092,7 @@ void MainWindow::on_actionFilePrint_triggered()
 
     int i = ui->tabWidget->currentIndex();
     if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+        // PRINT CUESHEET FOR PATTER OR SINGER -------------------------------------------------------
         if (ui->tabWidget->tabText(i).endsWith("Lyrics")) {
             printDialog.setWindowTitle("Print Cuesheet");
         } else {
@@ -8104,6 +8105,7 @@ void MainWindow::on_actionFilePrint_triggered()
 
         ui->textBrowserCueSheet->print(&printer);
     } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+        // PRINT SD SEQUENCE -------------------------------------------------------
         QPrinter printer;
         QPrintDialog printDialog(&printer, this);
         printDialog.setWindowTitle("Print SD Sequence");
@@ -8122,6 +8124,7 @@ void MainWindow::on_actionFilePrint_triggered()
         doc.setHtml(contents);
         doc.print(&printer);
     } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+        // PRINT PLAYLIST -------------------------------------------------------
         QPrinter printer;
         QPrintDialog printDialog(&printer, this);
         printDialog.setWindowTitle("Print Playlist");
@@ -8129,14 +8132,6 @@ void MainWindow::on_actionFilePrint_triggered()
         if (printDialog.exec() == QDialog::Rejected) {
             return;
         }
-
-        QPainter painter;
-
-        painter.begin(&printer);
-
-        QFont font = painter.font();
-        font.setPixelSize(14);
-        painter.setFont(font);
 
         // --------
         QList<PlaylistExportRecord> exports;
@@ -8163,26 +8158,61 @@ void MainWindow::on_actionFilePrint_triggered()
             }
         }
 
-//        qSort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
         std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
 
-        QString toBePrinted = "PLAYLIST\n\n";
+        // GET SHORT NAME FOR PLAYLIST ---------
+        static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
+        QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
+        QString shortPlaylistName("ERROR 7");
 
-        char buf[128];
-        // list is sorted here, in INDEX order
+        if (match.hasMatch())
+        {
+            shortPlaylistName = match.captured(1);
+        }
+
+        QString toBePrinted = "<h2>PLAYLIST: " + shortPlaylistName + "</h2>\n"; // TITLE AT TOP OF PAGE
+
+        QTextDocument doc;
+        QSizeF paperSize;
+        paperSize.setWidth(printer.width());
+        paperSize.setHeight(printer.height());
+        doc.setPageSize(paperSize);
+
+        patterColorString = prefsManager.GetpatterColorString();
+        singingColorString = prefsManager.GetsingingColorString();
+        calledColorString = prefsManager.GetcalledColorString();
+        extrasColorString = prefsManager.GetextrasColorString();
+
+        qDebug() << "COLOR: " << patterColorString;
+
+        char buf[256];
         foreach (const PlaylistExportRecord &rec, exports)
         {
             QString baseName = rec.title;
             baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
 
             snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
-            toBePrinted += buf;
+
+            QStringList parts = baseName.split("/");
+            QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
+            QString colorString("black");
+            if (songTypeNamesForPatter.contains(folderTypename)) {
+                colorString = patterColorString;
+            } else if (songTypeNamesForSinging.contains(folderTypename)) {
+                colorString = singingColorString;
+            } else if (songTypeNamesForCalled.contains(folderTypename)) {
+                colorString = calledColorString;
+            } else if (songTypeNamesForExtras.contains(folderTypename)) {
+                colorString = extrasColorString;
+            }
+            toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
         }
 
-        //        painter.drawText(20, 20, 500, 500, Qt::AlignLeft|Qt::AlignTop, "Hello world!\nMore lines\n");
-        painter.drawText(20,20,500,500, Qt::AlignLeft|Qt::AlignTop, toBePrinted);
+        qDebug() << "PRINT: " << toBePrinted;
 
-        painter.end();
+        doc.setHtml(toBePrinted);
+        doc.print(&printer);
+
     }
 }
 
