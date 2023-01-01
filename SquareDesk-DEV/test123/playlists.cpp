@@ -194,53 +194,53 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
                 lineCount++;
             } // while
         }
-        else {
-            // M3U FILE =================================
-            // to workaround old-style Mac files that have a bare "\r" (which readLine() can't handle)
-            //   in particular, iTunes exported playlists use this old format.
-            QStringList theWholeFile = in.readAll().replace("\r\n","\n").replace("\r","\n").split("\n");
+//        else {
+//            // M3U FILE =================================
+//            // to workaround old-style Mac files that have a bare "\r" (which readLine() can't handle)
+//            //   in particular, iTunes exported playlists use this old format.
+//            QStringList theWholeFile = in.readAll().replace("\r\n","\n").replace("\r","\n").split("\n");
 
-            foreach (const QString &line, theWholeFile) {
-//                qDebug() << "line:" << line;
-                if (line == "#EXTM3U") {
-                    // ignore, it's the first line of the M3U file
-                }
-                else if (line == "") {
-                    // ignore, it's a blank line
-                }
-                else if (line.at( 0 ) == '#' ) {
-                    // it's a comment line
-                    if (line.mid(0,7) == "#EXTINF") {
-                        // it's information about the next line, ignore for now.
-                    }
-                }
-                else {
-                    songCount++;  // it's a real song path
+//            foreach (const QString &line, theWholeFile) {
+////                qDebug() << "line:" << line;
+//                if (line == "#EXTM3U") {
+//                    // ignore, it's the first line of the M3U file
+//                }
+//                else if (line == "") {
+//                    // ignore, it's a blank line
+//                }
+//                else if (line.at( 0 ) == '#' ) {
+//                    // it's a comment line
+//                    if (line.mid(0,7) == "#EXTINF") {
+//                        // it's information about the next line, ignore for now.
+//                    }
+//                }
+//                else {
+//                    songCount++;  // it's a real song path
 
-                    bool match = false;
-                    // exit the loop early, if we find a match
-                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
-                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-//                        qDebug() << "pathToMP3:" << pathToMP3;
-                        if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
-                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-                            theItem->setText(QString::number(songCount));
+//                    bool match = false;
+//                    // exit the loop early, if we find a match
+//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+////                        qDebug() << "pathToMP3:" << pathToMP3;
+//                        if (line == pathToMP3) { // FIX: this is fragile, if songs are moved around
+//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//                            theItem->setText(QString::number(songCount));
 
-                            match = true;
-                        }
-                    }
-                    // if we had no match, remember the first non-matching song path
-                    if (!match && firstBadSongLine == "") {
-                        firstBadSongLine = line;
-                    }
+//                            match = true;
+//                        }
+//                    }
+//                    // if we had no match, remember the first non-matching song path
+//                    if (!match && firstBadSongLine == "") {
+//                        firstBadSongLine = line;
+//                    }
 
-                }
+//                }
 
-                lineCount++;
+//                lineCount++;
 
-            } // for each line in the M3U file
+//            } // for each line in the M3U file
 
-        } // else M3U file
+//        } // else M3U file
 
         inputFile.close();
         linesInCurrentPlaylist += songCount; // when non-zero, this enables saving of the current playlist
@@ -290,7 +290,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     // MAKE SHORT NAME FOR PLAYLIST FROM FILENAME -------
 //    qDebug() << "PlaylistFileName: " << PlaylistFileName;
-    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
     QRegularExpressionMatch match = regex1.match(PlaylistFileName);
     QString shortPlaylistName("ERROR 7");
 
@@ -361,7 +361,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
         QFileDialog::getOpenFileName(this,
                                      tr("Load Playlist"),
                                      startingPlaylistDirectory,
-                                     tr("Playlist Files (*.m3u *.csv)"));
+                                     tr("Playlist Files (*.csv)"));
     trapKeypresses = true;
     if (PlaylistFileName.isNull()) {
         return;  // user cancelled...so don't do anything, just return
@@ -385,7 +385,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     // --------
     QList<PlaylistExportRecord> exports;
 
-    bool savingToM3U = PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive);
+//    bool savingToM3U = PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive);
 
     // Iterate over the songTable
     for (int i=0; i<ui->songTable->rowCount(); i++) {
@@ -402,13 +402,13 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             // TODO: reconcile int here with double elsewhere on insertion
             PlaylistExportRecord rec;
             rec.index = playlistIndex.toInt();
-            if (savingToM3U) {
-                rec.title = pathToMP3;  // NOTE: M3U must remain absolute
-                                        //    it will NOT survive moving musicDir or sharing it via Dropbox or Google Drive
-            } else {
-                rec.title = pathToMP3.replace(musicRootPath, "");  // NOTE: this is now a relative (to the musicDir) path
+//            if (savingToM3U) {
+//                rec.title = pathToMP3;  // NOTE: M3U must remain absolute
+//                                        //    it will NOT survive moving musicDir or sharing it via Dropbox or Google Drive
+//            } else {
+            rec.title = pathToMP3.replace(musicRootPath, "");  // NOTE: this is now a relative (to the musicDir) path
                                                                    //    that should survive moving musicDir or sharing it via Dropbox or Google Drive
-            }
+//            }
             rec.pitch = pitch;
             rec.tempo = tempo;
             exports.append(rec);
@@ -428,7 +428,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
     //     if no match, then error (dialog?)
     //   Then on Save Playlist, write out the NEW patter and the rest
 
-    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
     QRegularExpressionMatch match = regex1.match(PlaylistFileName);
     QString shortPlaylistName("ERROR 7");
 
@@ -439,29 +439,29 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
 
     filewatcherShouldIgnoreOneFileSave = true;  // I don't know why we have to do this, but rootDir is being watched, which causes this to be needed.
     QFile file(PlaylistFileName);
-    if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
-        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
-            QTextStream stream(&file);
-            stream << "#EXTM3U" << ENDL << ENDL;
+//    if (PlaylistFileName.endsWith(".m3u", Qt::CaseInsensitive)) {
+//        if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {  // delete, if it exists already
+//            QTextStream stream(&file);
+//            stream << "#EXTM3U" << ENDL << ENDL;
 
-            // list is auto-sorted here
-            foreach (const PlaylistExportRecord &rec, exports)
-            {
-                stream << "#EXTINF:-1," << ENDL;  // nothing after the comma = no special name
-                stream << rec.title << ENDL;
-            }
-            file.close();
-            addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
-            markPlaylistModified(false); // turn off the * in the status bar
-            lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
-            prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
-            ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
-        }
-        else {
-            ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
-        }
-    }
-    else if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
+//            // list is auto-sorted here
+//            foreach (const PlaylistExportRecord &rec, exports)
+//            {
+//                stream << "#EXTINF:-1," << ENDL;  // nothing after the comma = no special name
+//                stream << rec.title << ENDL;
+//            }
+//            file.close();
+//            addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
+//            markPlaylistModified(false); // turn off the * in the status bar
+//            lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
+//            prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
+//            ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
+//        }
+//        else {
+//            ui->statusBar->showMessage(QString("ERROR: could not open M3U file."));
+//        }
+//    }
+    /* else */ if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
             QTextStream stream(&file);
             stream << "relpath,pitch,tempo" << ENDL;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
@@ -505,7 +505,7 @@ void MainWindow::savePlaylistAgain() // saves without asking for a filename (Fil
     //   no playlist was loaded), Save Playlist... should be greyed out.
 //    QString basefilename = lastSavedPlaylist.section("/",-1,-1);
 
-    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
     QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
     QString shortPlaylistName("ERROR 7");
 
@@ -550,7 +550,7 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
         QFileDialog::getSaveFileName(this,
                                      tr("Save Playlist"),
                                      startHere,
-                                     tr("M3U playlists (*.m3u);;CSV files (*.csv)"),
+                                     tr("CSV files (*.csv)"),
                                      &preferred);  // preferred is CSV
     trapKeypresses = true;
     if (PlaylistFileName.isNull()) {
@@ -567,7 +567,7 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
     //   no playlist was loaded), Save Playlist... should be greyed out.
 //    QString basefilename = PlaylistFileName.section("/",-1,-1);
 
-    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$|.*/(.*).m3u$"); // FIX: get rid of M3U support sometime
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
     QRegularExpressionMatch match = regex1.match(PlaylistFileName);
     QString shortPlaylistName("ERROR 7");
 
