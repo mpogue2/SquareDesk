@@ -8183,8 +8183,6 @@ void MainWindow::on_actionFilePrint_triggered()
         calledColorString = prefsManager.GetcalledColorString();
         extrasColorString = prefsManager.GetextrasColorString();
 
-        qDebug() << "COLOR: " << patterColorString;
-
         char buf[256];
         foreach (const PlaylistExportRecord &rec, exports)
         {
@@ -8208,7 +8206,7 @@ void MainWindow::on_actionFilePrint_triggered()
             toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
         }
 
-        qDebug() << "PRINT: " << toBePrinted;
+//        qDebug() << "PRINT: " << toBePrinted;
 
         doc.setHtml(toBePrinted);
         doc.print(&printer);
