@@ -992,11 +992,14 @@ void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidg
 
 QString toCamelCase(const QString& s)
 {
-    QStringList parts = s.split(' ', Qt::SkipEmptyParts);
+    QString s2 = s;
+    s2.replace("[", "[ ");
+    QStringList parts = s2.split(' ', Qt::SkipEmptyParts);
     for (int i = 0; i < parts.size(); ++i)
         parts[i].replace(0, 1, parts[i][0].toUpper());
-
-    return parts.join(" ");
+    QString s3 = parts.join(" ");
+    s3.replace("[ ", "[");  // handle the "explode and [right and left thru]" case
+    return s3;
 }
 
 QString MainWindow::prettify(QString call) {
