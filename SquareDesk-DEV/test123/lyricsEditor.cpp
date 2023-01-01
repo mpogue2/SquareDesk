@@ -32,19 +32,50 @@
 // RESOURCE FILES ----------------------------------------------
 // get a resource file, and return as string or "" if not found
 QString MainWindow::getResourceFile(QString s) {
+
 #if defined(Q_OS_MAC)
+    // path of the template embedded in the App itself -------
     QString appPath = QApplication::applicationFilePath();
     QString patterTemplatePath = appPath + "/Contents/Resources/" + s;
     patterTemplatePath.replace("Contents/MacOS/SquareDesk/","");
+
+    // path of the optional user-specified template, which overrides the default template --------
+    // s is of the form "<type>.template.html", so first we split it into its component parts
+    QStringList parts = s.split(".");
+    QString userTemplateOverridePath = musicRootPath + "/" + parts[0] + "/" + s;
+
+    QFileInfo checkFile(userTemplateOverridePath);
+    if (checkFile.exists()) {
+        patterTemplatePath = userTemplateOverridePath;  // use user-specified template instead of default
+    }
+
 #elif defined(Q_OS_WIN32)
-    // TODO: There has to be a better way to do this.
     QString appPath = QApplication::applicationFilePath();
     QString patterTemplatePath = appPath + "/" + s;
     patterTemplatePath.replace("SquareDesk.exe/","");
+
+    // path of the optional user-specified template, which overrides the default template --------
+    // s is of the form "<type>.template.html", so first we split it into its component parts
+    QStringList parts = s.split(".");
+    QString userTemplateOverridePath = musicRootPath + "/" + parts[0] + "/" + s;
+
+    QFileInfo checkFile(userTemplateOverridePath);
+    if (checkFile.exists()) {
+        patterTemplatePath = userTemplateOverridePath;  // use user-specified template instead of default
+    }
+
 #else
     QString patterTemplatePath = s;
+
     // Linux
+
+    // path of the optional user-specified template, which overrides the default template --------
+    // s is of the form "<type>.template.html", so first we split it into its component parts
+    QStringList parts = s.split(".");
+    QString userTemplateOverridePath = musicRootPath + "/" + parts[0] + "/" + s;
+
     QStringList paths;
+    paths.append(userTemplateOverridePath); // NOTE: I HAVE NOT TESTED THIS LINUX VERSION.
     paths.append(QApplication::applicationFilePath());
     paths.append("/usr/share/SquareDesk");
     paths.append(".");
