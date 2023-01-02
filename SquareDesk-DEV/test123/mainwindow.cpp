@@ -5321,25 +5321,32 @@ void MainWindow::loadChoreographyList()
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 }
 
-
 static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
                                    const char *filename,
                                    const char *fileLines[])
 {
     QString outputFile = outputDir.canonicalPath() + "/" + filename;
-    QFile file(outputFile);
-    if (file.open(QIODevice::ReadWrite)) {
-        QTextStream stream(&file);
-        for (int i = 0; fileLines[i]; ++i)
-        {
-            stream << fileLines[i] << ENDL;
+
+    QFileInfo info(outputFile);
+    if (!info.exists()) {
+        // write the program file IFF it doesn't already exist
+        // this allows users to modify the files manually, and they
+        //   won't get overwritten by us at startup time.
+        // BUT, if there are updates from us, the user will now have to manually
+        //   delete those files, so that they will be recreated from the newer versions.
+
+//        qDebug() << "REFRESHING: " << outputFile;
+        QFile file(outputFile);
+        if (file.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&file);
+            for (int i = 0; fileLines[i]; ++i)
+            {
+                stream << fileLines[i] << ENDL;
+            }
+            programs << outputFile;
         }
-        programs << outputFile;
     }
 }
-
-
-
 
 void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 {
@@ -5378,16 +5385,17 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
             outputDir.mkpath(".");
         }
 
-        addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt", danceprogram_basic1);
-        addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt", danceprogram_basic2);
-        addToProgramsAndWriteTextFile(programs, outputDir, "025.SSD.txt", danceprogram_SSD);
+        addToProgramsAndWriteTextFile(programs, outputDir, "010.basic1.txt",    danceprogram_basic1);
+        addToProgramsAndWriteTextFile(programs, outputDir, "020.basic2.txt",    danceprogram_basic2);
+        addToProgramsAndWriteTextFile(programs, outputDir, "025.SSD.txt",       danceprogram_SSD);
         addToProgramsAndWriteTextFile(programs, outputDir, "030.mainstream.txt", danceprogram_mainstream);
-        addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt", danceprogram_plus);
-        addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt", danceprogram_a1);
-        addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt", danceprogram_a2);
-
+        addToProgramsAndWriteTextFile(programs, outputDir, "040.plus.txt",      danceprogram_plus);
+        addToProgramsAndWriteTextFile(programs, outputDir, "050.a1.txt",        danceprogram_a1);
+        addToProgramsAndWriteTextFile(programs, outputDir, "060.a2.txt",        danceprogram_a2);
     }
+
     programs.sort(Qt::CaseInsensitive);
+
     QListIterator<QString> program(programs);
     while (program.hasNext())
     {
