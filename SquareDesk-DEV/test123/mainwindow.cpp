@@ -5048,6 +5048,9 @@ void MainWindow::loadMusicList()
     lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
     on_songTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
     lastSongTableRowSelected = 0; // first row is highlighted now
+
+    ui->songTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0 (which is highlighted)
+
 //    qDebug() << "AFTER LOAD MUSIC LIST lastSongTableRowSelected:" << lastSongTableRowSelected;
     ui->titleSearch->setFocus();
 }
