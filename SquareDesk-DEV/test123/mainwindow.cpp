@@ -224,8 +224,9 @@ static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };   
 static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };          // NOTE: must use Qt::CaseInsensitive compares for these
 QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
 QString title_tags_suffix(" </span>");
-static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
-
+//static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
+static QRegularExpression title_tags_remover("(\\&nbsp\\;)+.*\\<\\/span>");
+static QRegularExpression spanPrefixRemover("<span.*>", QRegularExpression::InvertedGreedinessOption);
 
 //class SelectionRetainer {
 //    QTextEdit *textEdit;
@@ -672,6 +673,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
+    // DEBUG
 //#define DISABLEFILEWATCHER 1
 
 #ifndef DISABLEFILEWATCHER
@@ -697,9 +699,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     fileWatcherTimer = new QTimer();  // Retriggerable timer for file watcher events
     QObject::connect(fileWatcherTimer, SIGNAL(timeout()), this, SLOT(fileWatcherTriggered())); // this calls musicRootModified again (one last time!)
 
+////    musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
+//    QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
 
-//    musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
-    QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+//    QTimer::singleShot(2000, [this]{
+//            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
+//            QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+//            if (!ui->titleSearch->hasFocus()) {
+//                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+//                ui->titleSearch->setFocus();
+//            }
+//        });
 
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
@@ -813,7 +823,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    loadMusicList(); // and filter them into the songTable
+//    loadMusicList(); // and filter them into the songTable
+    on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // THIS WILL CALL loadMusicList().  Doing it this way to avoid loading twice at startup.
 
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
             this, &MainWindow::columnHeaderResized);
@@ -850,7 +861,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // -----------
     ui->actionAutostart_playback->setChecked(prefsManager.Getautostartplayback());
-    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags());
+//    ui->actionViewTags->setChecked(prefsManager.GetshowSongTags());  // DO NOT DO THIS HERE.  SEE ABOVE loadMusicList() commented out call.
 
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
@@ -1212,7 +1223,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     maybeLoadCSSfileIntoTextBrowser();
 
-    QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
+//    QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
 
     t.elapsed(__LINE__);
 
@@ -1356,8 +1367,39 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     stopLongSongTableOperation("MainWindow");
 
-    ui->songTable->selectRow(1); // These 2 lines are intentionally down here
-    ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
+//    ui->songTable->selectRow(1); // These 2 lines are intentionally down here
+////    ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
+
+//    ui->titleSearch->setFocus(); // make sure title has focus on startup
+////    QTimer::singleShot(1000,ui->titleSearch,SLOT(setFocus()));
+
+////    QTimer::singleShot(0, [this]{
+////            qDebug("Hello from lambda 3");
+////            qDebug("Hello from lambda 4");
+////        });
+
+//    QTimer::singleShot(500, [this]{
+//            qDebug("Hello from lambda");
+////            QApplication::focusWidget()->clearFocus();
+//            ui->titleSearch->setFocus();
+//            ui->songTable->selectRow(2); // make coloring of row 1 Title correct (KLUDGE)
+//            ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
+//            qDebug("Hello from lambda 2");
+//        });
+
+//    qDebug() << "selected: " << ui->songTable->selectedItems().first()->row();
+    on_songTable_itemSelectionChanged(); // call this to update the colors
+
+    // startup the file watcher, AND make sure that focus has gone to the Title search field
+    QTimer::singleShot(2000, [this]{
+//            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
+            QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+            if (!ui->titleSearch->hasFocus()) {
+                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                ui->titleSearch->setFocus();
+            }
+        });
+
 }
 
 void MainWindow::fileWatcherTriggered() {
@@ -1403,23 +1445,36 @@ void MainWindow::changeApplicationState(Qt::ApplicationState state)
 
 void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
 {
-    // all this mess, just to restore NO FOCUS, after ApplicationActivate, if there was NO FOCUS
-    //   when going into Inactive state
-    if (!justWentActive && new1 == nullptr) {
-        oldFocusWidget = old1;  // GOING INACTIVE, RESTORE THIS ONE
-    } else if (justWentActive) {
-        if (oldFocusWidget == nullptr) {
-            if (QApplication::focusWidget() != nullptr) {
-                QApplication::focusWidget()->clearFocus();  // BOGUS
-            }
-        } else {
-//            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE;  RESTORE DISABLED because it crashes
-                                          //  if leave app with # open for edit and come back in
-        }
-        justWentActive = false;  // this was a one-shot deal.
-    } else {
-        oldFocusWidget = new1;  // clicked on something, this is the one to restore
-    }
+    Q_UNUSED(old1)
+    Q_UNUSED(new1)
+
+// REMOVING THIS CODE, IT IS TOO CLEVER FOR ITS OWN GOOD.
+// BESIDES, WE DON'T USE THE No Focus CASE ANYMORE.
+
+//    // all this mess, just to restore NO FOCUS, after ApplicationActivate, if there was NO FOCUS
+//    //   when going into Inactive state
+//    qDebug() << "focusChanged";
+//    if (!justWentActive && new1 == nullptr) {
+//        qDebug() << "focusChanged: restore";
+//        oldFocusWidget = old1;  // GOING INACTIVE, RESTORE THIS ONE
+//    } else if (justWentActive) {
+//        qDebug() << "focusChanged: just went active";
+//        if (oldFocusWidget == nullptr) {
+//            qDebug() << "focusChanged: no old widget";
+//            if (QApplication::focusWidget() != nullptr) {
+//                qDebug() << "focusChanged: no widget has focus right now";
+//                QApplication::focusWidget()->clearFocus();  // BOGUS
+//            }
+//        } else {
+//            qDebug() << "focusChanged: else clause 1";
+////            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE;  RESTORE DISABLED because it crashes
+//                                          //  if leave app with # open for edit and come back in
+//        }
+//        justWentActive = false;  // this was a one-shot deal.
+//    } else {
+//        qDebug() << "focusChanged: else clause 2";
+//        oldFocusWidget = new1;  // clicked on something, this is the one to restore
+//    }
 
 }
 
@@ -2069,11 +2124,13 @@ void MainWindow::on_playButton_clicked()
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != nullptr) {
             lastWidgetBeforePlaybackWasSongTable = (QApplication::focusWidget() == ui->songTable); // for restore on STOP
+            oldFocusWidget = QApplication::focusWidget();
             QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
-                                                        //  or it will eat our keyboard shortcuts
+                                                        //  or it will eat our keyboard shortcuts (like P, J, K, period, etc.)
         }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
+        ui->songTable->setFocus(); // while playing, songTable has focus
 //        currentState = kPlaying;
     }
     else {
@@ -2086,10 +2143,13 @@ void MainWindow::on_playButton_clicked()
         setNowPlayingLabelWithColor(currentSongTitle);
 
         // restore focus
-        if (lastWidgetBeforePlaybackWasSongTable) {
-//            qDebug() << "restoring songTable focus...";
-            ui->songTable->setFocus();  // if STOP, restore the focus to widget that had it before PLAY began, IFF it was songTable
+        if (oldFocusWidget != nullptr) {
+            oldFocusWidget->setFocus();
         }
+//        if (lastWidgetBeforePlaybackWasSongTable) {
+////            qDebug() << "restoring songTable focus...";
+//            ui->songTable->setFocus();  // if STOP, restore the focus to widget that had it before PLAY began, IFF it was songTable
+//        }
 
     }
 
@@ -2425,8 +2485,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                     // || previousPosition > 10.0  // DEBUG
                )
             {
-                qDebug() << "Failure/manual seek:" << previousPosition << cBass->Current_Position
-                         << "songloaded: " << songLoaded;
+//                qDebug() << "Failure/manual seek:" << previousPosition << cBass->Current_Position
+//                         << "songloaded: " << songLoaded;
                 previousPosition = -1.0;  // uninitialized
             } else {
 //                qDebug() << "Progress:" << previousPosition << cBass->Current_Position;
@@ -2808,6 +2868,9 @@ void MainWindow::on_clearSearchButton_clicked()
         //   the row isn't highlighted again.
         ui->songTable->selectRow(row);
     }
+
+    ui->titleSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the titleSearch field, so that UP/DOWN works
+    filterMusic(); // highlights first visible row (if there are any rows)
 }
 
 // ----------------------------------------------------------------------
@@ -3348,11 +3411,14 @@ bool MainWindow::handleKeypress(int key, QString text)
 
             ui->textBrowserCueSheet->clearFocus();  // ESC should always get us out of editing lyrics/patter
 
+            on_clearSearchButton_clicked(); // clears search fields, selects first visible item in songTable
+
             if (ui->labelSearch->text() != "" || ui->typeSearch->text() != "" || ui->titleSearch->text() != "") {
                 // clear the search fields, if there was something in them.  (First press of ESCAPE).
-                ui->labelSearch->setText("");
-                ui->typeSearch->setText("");
-                ui->titleSearch->setText("");
+//                ui->labelSearch->setText("");
+//                ui->typeSearch->setText("");
+//                ui->titleSearch->setText("");
+
             } else {
                 // if the search fields were already clear, then this is the second press of ESCAPE (or the first press
                 //   of ESCAPE when the search function was not being used).  So, ONLY NOW do we Stop Playback.
@@ -3402,6 +3468,8 @@ bool MainWindow::handleKeypress(int key, QString text)
                     ui->songTable->hasFocus()) { // also now allow pressing Return to load, if songTable has focus
 //                qDebug() << "   and search OR songTable has focus.";
 
+//                QWidget *lastWidget = QApplication::focusWidget(); // save current focus (destroyed by itemDoubleClicked) because reasons
+
                 // figure out which row is currently selected
                 QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
                 QModelIndexList selected = selectionModel->selectedRows();
@@ -3416,11 +3484,10 @@ bool MainWindow::handleKeypress(int key, QString text)
                     return true;
                 }
 
-                on_songTable_itemDoubleClicked(ui->songTable->item(row,1));
-//                ui->typeSearch->clearFocus();
-//                ui->labelSearch->clearFocus();
-//                ui->titleSearch->clearFocus();
-                ui->songTable->setFocus(); // ENTER/RETURN loaded it, so songTable gets focus
+                on_songTable_itemDoubleClicked(ui->songTable->item(row,1)); // note: alters focus
+
+//                lastWidget->setFocus(); // restore focus to widget that had it before
+                ui->songTable->setFocus(); // THIS IS BETTER
             }
             break;
 
@@ -4636,6 +4703,9 @@ QString getTitleColTitle(MyTableWidget *songTable, int row)
         title.truncate(where);
     }
     title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
+
+    title.replace(spanPrefixRemover, "").replace("</span>", "");
+
     return title;
 }
 
@@ -4649,6 +4719,9 @@ bool filterContains(QString str, const QStringList &list)
 
     int title_end = str.indexOf(title_tags_remover);
     str.replace(title_tags_remover, " ");
+
+    str.replace(spanPrefixRemover, "").replace("</span>", "");
+
     int index = 0;
 
     if (title_end < 0) title_end = str.length();
@@ -4705,7 +4778,6 @@ void MainWindow::filterMusic()
 
     ui->songTable->setSortingEnabled(false);
 
-// SONGTABLEREFACTOR
     int initialRowCount = ui->songTable->rowCount();
     int rowsVisible = initialRowCount;
     int firstVisibleRow = -1;
@@ -4730,11 +4802,8 @@ void MainWindow::filterMusic()
     }
     ui->songTable->setSortingEnabled(true);
 
-//    qDebug() << "rowsVisible: " << rowsVisible << ", initialRowCount: " << initialRowCount << ", firstVisibleRow: " << firstVisibleRow;
-    if (rowsVisible > 0 && rowsVisible != initialRowCount && firstVisibleRow != -1) {
+    if (rowsVisible > 0) {
         ui->songTable->selectRow(firstVisibleRow);
-    } else {
-        ui->songTable->clearSelection();
     }
 
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
@@ -4773,6 +4842,9 @@ void setSongTableFont(QTableWidget *songTable, const QFont &currentFont)
 // --------------------------------------------------------------------------------
 void MainWindow::loadMusicList()
 {
+//    qDebug() << "LOAD MUSIC LIST()";
+//    ui->songTable->clearSelection();  // DEBUG DEBUG
+
     PerfTimer t("loadMusicList", __LINE__);
     startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
 
@@ -4902,13 +4974,17 @@ void MainWindow::loadMusicList()
                                   settings);
         if (settings.isSetTags())
             songSettings.addTags(settings.getTags());
-        
-        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
+
+        QString titlePlusTags(FormatTitlePlusTags("XYZZY" + title + "ZYZZX", settings.isSetTags(), settings.getTags()));
+        // <span style=\"background-color:#ffffff; color: #c64434;\"> NEW </span>"
+        titlePlusTags.replace("XYZZY", QString("<span style=\"color: %1;\">").arg(textCol.name()));
+        titlePlusTags.replace("ZYZZX", "</span>");
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
-        QString songNameStyleSheet("QLabel { color : %1; }");
-        titleLabel->setStyleSheet(songNameStyleSheet.arg(textCol.name()));
+//        QString songNameStyleSheet("QLabel { color: %1; }");
+//        titleLabel->setStyleSheet(songNameStyleSheet.arg(textCol.name()));
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
+//        qDebug() << "titlePlusTags: " << titlePlusTags;
         titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
 
         ui->songTable->setCellWidget(ui->songTable->rowCount()-1, kTitleCol, titleLabel);
@@ -4965,6 +5041,12 @@ void MainWindow::loadMusicList()
         msg1 = QString::number(ui->songTable->rowCount()) + QString(" total audio files found.");
     }
     ui->statusBar->showMessage(msg1, 3000);
+
+    lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
+    on_songTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
+    lastSongTableRowSelected = 0; // first row is highlighted now
+//    qDebug() << "AFTER LOAD MUSIC LIST lastSongTableRowSelected:" << lastSongTableRowSelected;
+    ui->titleSearch->setFocus();
 }
 
 QString processSequence(QString sequence,
@@ -5449,6 +5531,7 @@ void MainWindow::on_actionAutostart_playback_triggered()
 void MainWindow::on_actionImport_triggered()
 {
     RecursionGuard dialog_guard(inPreferencesDialog);
+    qDebug() << "IMPORT TRIGGERED";
  
     ImportDialog *importDialog = new ImportDialog();
     int dialogCode = importDialog->exec();
@@ -5711,6 +5794,7 @@ void MainWindow::on_actionPreferences_triggered()
         songFilenameFormat = static_cast<enum SongFilenameMatchingType>(prefsManager.GetSongFilenameFormat());
 
         if (prefDialog->songTableReloadNeeded) {
+//            qDebug() << "LOAD MUSIC LIST TRIGGERED FROM PREFERENCES TRIGGERED";
             loadMusicList();
         }
 
@@ -5764,20 +5848,49 @@ void MainWindow::on_songTable_itemSelectionChanged()
 
 //    qDebug() << "Row " << selectedRow << " is selected now.";
 
+//    if (selectedRow != -1) {
+//        // we've clicked on a real row, which now needs its Title text to be highlighted
+
+//        // first: let's un-highlight the previous SongTitleLabel back to its original color
+//        if (lastSongTableRowSelected != -1) {
+//            qDebug() << "lastSongTableRowSelected == -1";
+//            QString origColor = dynamic_cast<const SongTitleLabel*>(ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol))->textColor;
+//            QString origColorStyleSheet("QLabel { color : %1; }");
+//            ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol)->setStyleSheet(origColorStyleSheet.arg(origColor));
+//        }
+
+//        // second: let's highlight the current selected row's Title
+//        qDebug() << "setting new text color on row: " << selectedRow;
+//        QString songNameStyleSheet("QLabel { color : white; }");  // TODO: does this need to be fished out of some platform-specific QPalette somewhere?
+//        ui->songTable->cellWidget(selectedRow, kTitleCol)->setStyleSheet(songNameStyleSheet);
+
+//        lastSongTableRowSelected = selectedRow;  // remember that THIS row is now highlighted
+//    }
+
     if (selectedRow != -1) {
-        // we've clicked on a real row, which now needs its Title text to be highlighted
+        // we've clicked on a real row, which needs its Title text to be highlighted
 
         // first: let's un-highlight the previous SongTitleLabel back to its original color
         if (lastSongTableRowSelected != -1) {
+//            qDebug() << "lastSongTableRowSelected == -1";
             QString origColor = dynamic_cast<const SongTitleLabel*>(ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol))->textColor;
-            QString origColorStyleSheet("QLabel { color : %1; }");
-            ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol)->setStyleSheet(origColorStyleSheet.arg(origColor));
+
+            QString currentText = dynamic_cast<QLabel*>(ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol))->text();
+//            qDebug() << "CURRENT TEXT OF LASTSONGTABLEROWSELECTED: " << currentText;
+            currentText.replace("\"color: white;\"", QString("\"color: %1;\"").arg(origColor));
+//            qDebug() << "NEW TEXT OF LASTSONGTABLEROWSELECTED: " << currentText;
+            dynamic_cast<QLabel*>(ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol))->setText(currentText);
         }
 
-        // second: let's highlight the current selected row's Title
-        QString songNameStyleSheet("QLabel { color : white; }");  // TODO: does this need to be fished out of some platform-specific QPalette somewhere?
-        ui->songTable->cellWidget(selectedRow, kTitleCol)->setStyleSheet(songNameStyleSheet);
+        // second: let's highlight the current select row's Title
+        QString currentText = dynamic_cast<QLabel*>(ui->songTable->cellWidget(selectedRow, kTitleCol))->text();
+//        qDebug() << "CURRENT TEXT: " << currentText;
+        currentText.replace(QRegularExpression("\"color: #[0-9a-z]+;\"",
+                                                QRegularExpression::InvertedGreedinessOption), "\"color: white;\"");
+//        qDebug() << "NEW TEXT: " << currentText;
+        dynamic_cast<QLabel*>(ui->songTable->cellWidget(selectedRow, kTitleCol))->setText(currentText);
 
+        // finally:
         lastSongTableRowSelected = selectedRow;  // remember that THIS row is now highlighted
     }
 
@@ -6031,7 +6144,13 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
         settings.setTags(tags.join(" "));
         songSettings.saveSettings(pathToMP3, settings);
         QString title = getTitleColTitle(ui->songTable, row);
-        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
+
+        // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
+        QString titlePlusTags(FormatTitlePlusTags("XYZZY" + title + "ZYZZX", settings.isSetTags(), settings.getTags()));
+        titlePlusTags.replace("XYZZY", "<span style=\"color: white;\">");
+        titlePlusTags.replace("ZYZZX", "</span>");
+
+//        qDebug() << "FormatTitlePlusTags = " << titlePlusTags;
         dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
     }
 }
@@ -6061,7 +6180,11 @@ void MainWindow::editTags()
             songSettings.saveSettings(pathToMP3, settings);
             songSettings.addTags(newtags);
 
-            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags()));
+            // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
+            QString titlePlusTags(FormatTitlePlusTags("XYZZY" + title + "ZYZZX", settings.isSetTags(), settings.getTags()));
+            titlePlusTags.replace("XYZZY", "<span style=\"color: white;\">");
+            titlePlusTags.replace("ZYZZX", "</span>");
+
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
     }
@@ -6552,6 +6675,7 @@ void MainWindow::on_newVolumeMounted() {
 
     lastKnownVolumeList = newVolumeList;
 
+    qDebug() << "LOAD MUIC LIST FROM NEW VOLUME MOUNTED";
     loadMusicList(); // and filter them into the songTable
 }
 
@@ -7032,6 +7156,7 @@ void MainWindow::on_actionStartup_Wizard_triggered()
         // used to store the file paths
         findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
         filterMusic(); // and filter them into the songTable
+//        qDebug() << "LOAD MUSIC LIST FROM STARTUP WIZARD TRIGGERED";
         loadMusicList();
 
         // install soundFX if not already present
@@ -7831,6 +7956,7 @@ void MainWindow::on_actionReset_triggered()
 
 void MainWindow::on_actionViewTags_toggled(bool /* checked */)
 {
+//    qDebug() << "VIEW TAGS TOGGLED";
     prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
     loadMusicList();
 }
@@ -9000,6 +9126,12 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
 //         This is a known warning that is spit out once per loaded PDF file.  It's just noise, so suppressing it from the debug.log file.
         return;
     }
+
+    if (msg.contains("js:")) {
+//         Suppressing lots of javascript noise from the debug.log file.
+        return;
+    }
+
 
     QFile outFile(logFilePath);
     outFile.open(QIODevice::WriteOnly | QIODevice::Append);
