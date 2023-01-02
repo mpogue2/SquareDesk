@@ -4810,9 +4810,17 @@ void MainWindow::filterMusic()
 }
 
 
-QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags)
+QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor)
 {
     QString titlePlusTags(title.toHtmlEscaped());
+
+    // if the titleColor is not explicitly specified (defaults to ""), do not add a <span> to specify color.
+    // but if specified, surround the title with a span that specifies its color.
+    if (titleColor != "") {
+        titlePlusTags = QString("<span style=\"color: %1;\">").arg(titleColor) + titlePlusTags + QString("</span>");
+//        qDebug() << "titlePlusTags: " << titlePlusTags;
+    }
+
     if (setTags && !strtags.isEmpty() && ui->actionViewTags->isChecked())
     {
         titlePlusTags += "&nbsp;";
@@ -4975,16 +4983,11 @@ void MainWindow::loadMusicList()
         if (settings.isSetTags())
             songSettings.addTags(settings.getTags());
 
-        QString titlePlusTags(FormatTitlePlusTags("XYZZY" + title + "ZYZZX", settings.isSetTags(), settings.getTags()));
-        // <span style=\"background-color:#ffffff; color: #c64434;\"> NEW </span>"
-        titlePlusTags.replace("XYZZY", QString("<span style=\"color: %1;\">").arg(textCol.name()));
-        titlePlusTags.replace("ZYZZX", "</span>");
+        // format the title string -----
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), textCol.name()));
         SongTitleLabel *titleLabel = new SongTitleLabel(this);
-//        QString songNameStyleSheet("QLabel { color: %1; }");
-//        titleLabel->setStyleSheet(songNameStyleSheet.arg(textCol.name()));
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
-//        qDebug() << "titlePlusTags: " << titlePlusTags;
         titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
 
         ui->songTable->setCellWidget(ui->songTable->rowCount()-1, kTitleCol, titleLabel);
@@ -6146,11 +6149,8 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
         QString title = getTitleColTitle(ui->songTable, row);
 
         // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
-        QString titlePlusTags(FormatTitlePlusTags("XYZZY" + title + "ZYZZX", settings.isSetTags(), settings.getTags()));
-        titlePlusTags.replace("XYZZY", "<span style=\"color: white;\">");
-        titlePlusTags.replace("ZYZZX", "</span>");
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
 
-//        qDebug() << "FormatTitlePlusTags = " << titlePlusTags;
         dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
     }
 }
@@ -6181,9 +6181,7 @@ void MainWindow::editTags()
             songSettings.addTags(newtags);
 
             // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
-            QString titlePlusTags(FormatTitlePlusTags("XYZZY" + title + "ZYZZX", settings.isSetTags(), settings.getTags()));
-            titlePlusTags.replace("XYZZY", "<span style=\"color: white;\">");
-            titlePlusTags.replace("ZYZZX", "</span>");
+            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
 
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }

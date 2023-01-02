@@ -752,7 +752,7 @@ private:
     void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
-    QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags);
+    QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
     void changeTagOnCurrentSongSelection(QString tag, bool add);
     void loadChoreographyList();
     void filterChoreography();
