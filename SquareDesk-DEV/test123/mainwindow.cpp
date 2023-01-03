@@ -116,18 +116,6 @@ bool InvisibleTableWidgetItem::operator< (const QTableWidgetItem &other) const
 // disabled right now, because it's not reliable enough.
 //#define REMOVESILENCE 1
 
-// BUG: Cmd-K highlights the next row, and hangs the app
-// BUG: searching then clearing search will lose selection in songTable
-// TODO: consider selecting the row in the songTable, if there is only one row valid as the result of a search
-//   then, ENTER could select it, maybe?  Think about this.
-// BUG: if you're playing a song on an external flash drive, and remove it, playback stops, but the song is still
-//   in the currenttitlebar, and it tries to play (silently).  Should clear everything out at that point and unload the song.
-
-// BUG: should allow Ctrl-U in the sd window, to clear the line (equiv to "erase that")
-
-// TODO: include a license in the executable bundle for Mac (e.g. GPL2).  Include the same
-//   license next to the Win32 executable (e.g. COPYING).
-
 // REMINDER TO FUTURE SELF: (I forget how to do this every single time) -- to set a layout to fill a single tab:
 //    In designer, you should first in form preview select requested tab,
 //    than in tree-view click to PARENT QTabWidget and set the layout as for all tabs.
@@ -227,29 +215,6 @@ QString title_tags_suffix(" </span>");
 //static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
 static QRegularExpression title_tags_remover("(\\&nbsp\\;)+.*\\<\\/span>");
 static QRegularExpression spanPrefixRemover("<span.*>", QRegularExpression::InvertedGreedinessOption);
-
-//class SelectionRetainer {
-//    QTextEdit *textEdit;
-//    QTextCursor cursor;
-//    int anchorPosition;
-//    int cursorPosition;
-//    // No inadvertent copies
-//private:
-//    SelectionRetainer() {};
-//    SelectionRetainer(const SelectionRetainer &) {};
-//public:
-//    SelectionRetainer(QTextEdit *textEdit) : textEdit(textEdit), cursor(textEdit->textCursor())
-//    {
-//        anchorPosition = cursor.anchor();
-//        cursorPosition = cursor.position();
-//    }
-//    ~SelectionRetainer() {
-//        cursor.setPosition(anchorPosition);
-//        cursor.setPosition(cursorPosition, QTextCursor::KeepAnchor);
-//        textEdit->setTextCursor(cursor);
-//    }
-//};
-
 
 #include <QProxyStyle>
 
@@ -403,16 +368,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
 
     t.elapsed(__LINE__);
-
-    // Disable ScreenSaver while SquareDesk is running
-//#if defined(Q_OS_MAC)
-//    macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
-//#elif defined(Q_OS_WIN)
-//#pragma comment(lib, "user32.lib")
-//    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE , NULL, SPIF_SENDWININICHANGE);
-//#elif defined(Q_OS_LINUX)
-//    // TODO
-//#endif
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
@@ -699,18 +654,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     fileWatcherTimer = new QTimer();  // Retriggerable timer for file watcher events
     QObject::connect(fileWatcherTimer, SIGNAL(timeout()), this, SLOT(fileWatcherTriggered())); // this calls musicRootModified again (one last time!)
 
-////    musicRootWatcher.addPath(musicRootPath);  // let's not forget the musicDir itself
-//    QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
-
-//    QTimer::singleShot(2000, [this]{
-//            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
-//            QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
-//            if (!ui->titleSearch->hasFocus()) {
-//                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-//                ui->titleSearch->setFocus();
-//            }
-//        });
-
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
 
@@ -721,28 +664,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         dir.mkpath(".");
     }
 
-    t.elapsed(__LINE__);
-
-    // do the same for lyrics (included the "downloaded" subdirectory) -------
-//    QDirIterator it2(musicRootPath + "/lyrics", QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
-//    while (it2.hasNext()) {
-//        QString aPath = it2.next();
-//        lyricsWatcher.addPath(aPath); // watch for add/deletes to musicDir and interesting subdirs
-////        qDebug() << "adding lyrics path: " << aPath;
-//        t.elapsed(__LINE__);
-//    }
-
-    t.elapsed(__LINE__);
-
-    // COMMENTING THESE OUT:  the lyrics watcher was only useful for drag copying in new lyrics files, which is done infrequently.
-    //   And, because of a bug, it was crashing.  So, commented out maybeLyricsChanged AND turned off the lyricsWatcher entirely for now.
-//    lyricsWatcher.addPath(musicRootPath + "/lyrics");      // add the root lyrics directory itself
-//    lyricsWatcher.addPath(musicRootPath + "/lyrics/downloaded");
-
-//    QObject::connect(&lyricsWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(maybeLyricsChanged()));
     // ---------------------------------------
-    t.elapsed(__LINE__);
-
     t2.elapsed(__LINE__);
 
 //    qDebug() << "Dirs 1:" << musicRootWatcher.directories();
@@ -812,18 +734,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // used to store the file paths
-//    splash->showMessage("Locating songs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
-//    QCoreApplication::instance()->processEvents();  // process events to date
-
     findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-
-//    splash->showMessage("Loading song info...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
-//    QCoreApplication::instance()->processEvents();  // process events to date
 
     t.elapsed(__LINE__);
 
-//    loadMusicList(); // and filter them into the songTable
     on_actionViewTags_toggled(prefsManager.GetshowSongTags()); // THIS WILL CALL loadMusicList().  Doing it this way to avoid loading twice at startup.
 
     connect(ui->songTable->horizontalHeader(),&QHeaderView::sectionResized,
@@ -1077,28 +991,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     }
     // END ITERATION -------
 
-    // -----------------------
-//    // Make SD menu items for GUI level mutually exclusive
-//    QList<QAction*> actions2 = ui->menuSequence->actions();
-//    qDebug() << "ACTIONS 2:" << actions2;
-
-//    sdActionGroup2 = new QActionGroup(this);
-//    sdActionGroup2->setExclusive(true);
-
-//    // WARNING: fragile.  If you add menu items above these, the numbers must be changed manually.
-//    //   Is there a better way to do this?
-//#define BASICNUM (0)
-//    sdActionGroup2->addAction(actions2[BASICNUM]);      // Basic
-//    sdActionGroup2->addAction(actions2[BASICNUM+1]);    // Mainstream
-//    sdActionGroup2->addAction(actions2[BASICNUM+2]);    // Plus
-//    sdActionGroup2->addAction(actions2[BASICNUM+3]);    // A1
-//    sdActionGroup2->addAction(actions2[BASICNUM+4]);    // A2
-//    sdActionGroup2->addAction(actions2[BASICNUM+5]);    // C1
-//    sdActionGroup2->addAction(actions2[BASICNUM+6]);    // C2
-//    sdActionGroup2->addAction(actions2[BASICNUM+7]);    // C3a
-
-//    connect(sdActionGroup2, SIGNAL(triggered(QAction*)), this, SLOT(sdAction2Triggered(QAction*)));
-
     {
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
         ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,67);
@@ -1157,61 +1049,21 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    // LOAD INITIAL PLAYLIST ------------------
-    // FOR NOW, NO LOADING OF CURRENT.M3U or CURRENT.CSV - THESE WILL BE OBSOLETE SOON
-    //  to be replaced by loading of the previously loaded playlist (if there was one)
-//    int songCount = 0;
-//    QString firstBadSongLine;
-
-//    QString oldCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.m3u";
-//    QString newCurrentPlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
-
-//    if (QFileInfo::exists(newCurrentPlaylistFileName)) {
-//        // if the V2 version exists, use it, and ignore the M3U file
-//        firstBadSongLine = loadPlaylistFromFile(newCurrentPlaylistFileName, songCount);  // load "current.csv" (if doesn't exist, do nothing)
-//    } else if (QFileInfo::exists(oldCurrentPlaylistFileName)) {
-//        // if we didn't find a new V2 version, look for an old M3U version, and it present, load it.
-//        // when saved next time, it will become a V2 CSV version.
-//        firstBadSongLine = loadPlaylistFromFile(oldCurrentPlaylistFileName, songCount);  // load "current.m3u" (if doesn't exist, do nothing)
-//    }
-
-    t.elapsed(__LINE__);
-
     ui->pushButtonCueSheetEditTitle->setStyleSheet("font-weight: bold;");
 
     ui->pushButtonCueSheetEditBold->setStyleSheet("font-weight: bold;");
     ui->pushButtonCueSheetEditItalic->setStyleSheet("font: italic;");
 
-//    QPalette* palette1 = new QPalette();
-//    palette1->setColor(QPalette::ButtonText, Qt::red);
-//    ui->pushButtonCueSheetEditHeader->setPalette(*palette1);
     ui->pushButtonCueSheetEditHeader->setStyleSheet("color: red");
 
     t.elapsed(__LINE__);
 
-//    QPalette* palette2 = new QPalette();
-//    palette2->setColor(QPalette::ButtonText, QColor("#0000FF"));
-//    ui->pushButtonCueSheetEditArtist->setPalette(*palette2);
     ui->pushButtonCueSheetEditArtist->setStyleSheet("color: #0000FF");
 
     t.elapsed(__LINE__);
 
-//    QPalette* palette3 = new QPalette();
-//    palette3->setColor(QPalette::ButtonText, QColor("#60C060"));
-//    ui->pushButtonCueSheetEditLabel->setPalette(*palette3);
     ui->pushButtonCueSheetEditLabel->setStyleSheet("color: #60C060");
 
-//    QPalette* palette4 = new QPalette();
-//    palette4->setColor(QPalette::Background, QColor("#FFC0CB"));
-//    ui->pushButtonCueSheetEditLyrics->setPalette(*palette4);
-
-//    ui->pushButtonCueSheetEditLyrics->setAutoFillBackground(true);
-//    ui->pushButtonCueSheetEditLyrics->setStyleSheet(
-//                "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
-//                "QPushButton:checked { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
-//                "QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
-//                "QPushButton:disabled {background-color: #F1F1F1; color: #7F7F7F; border-radius:4px; padding:1px 8px; border:0.5px solid #D0D0D0;}"
-//                );
     ui->pushButtonCueSheetEditLyrics->setStyleSheet(
                 "QPushButton {background-color: #FFC0CB; color: #000000; border-radius:4px; padding:1px 8px; border:0.5px solid #CF9090;}"
                 "QPushButton:checked { background-color: qlineargradient(x1: 0, y1: 1, x2: 0, y2: 0, stop: 0 #1E72FE, stop: 1 #3E8AFC); color: #FFFFFF; border:0.5px solid #0D60E3;}"
@@ -1223,12 +1075,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     maybeLoadCSSfileIntoTextBrowser();
 
-//    QTimer::singleShot(0,ui->titleSearch,SLOT(setFocus()));
-
     t.elapsed(__LINE__);
-
-//    splash->showMessage("Loading reference docs...", Qt::AlignBottom + Qt::AlignHCenter, Qt::red);
-//    QCoreApplication::instance()->processEvents();  // process events to date
 
     initReftab();
 
@@ -1367,27 +1214,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     stopLongSongTableOperation("MainWindow");
 
-//    ui->songTable->selectRow(1); // These 2 lines are intentionally down here
-////    ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
-
-//    ui->titleSearch->setFocus(); // make sure title has focus on startup
-////    QTimer::singleShot(1000,ui->titleSearch,SLOT(setFocus()));
-
-////    QTimer::singleShot(0, [this]{
-////            qDebug("Hello from lambda 3");
-////            qDebug("Hello from lambda 4");
-////        });
-
-//    QTimer::singleShot(500, [this]{
-//            qDebug("Hello from lambda");
-////            QApplication::focusWidget()->clearFocus();
-//            ui->titleSearch->setFocus();
-//            ui->songTable->selectRow(2); // make coloring of row 1 Title correct (KLUDGE)
-//            ui->songTable->selectRow(0); // make coloring of row 1 Title correct (KLUDGE)
-//            qDebug("Hello from lambda 2");
-//        });
-
 //    qDebug() << "selected: " << ui->songTable->selectedItems().first()->row();
+
     on_songTable_itemSelectionChanged(); // call this to update the colors
 
     // startup the file watcher, AND make sure that focus has gone to the Title search field
@@ -1409,7 +1237,6 @@ void MainWindow::fileWatcherTriggered() {
 
 void MainWindow::musicRootModified(QString s)
 {
-//    Q_UNUSED(s)
 //    qDebug() << "musicRootModified() = " << s;
     if (s != "DONE") {
 //        qDebug() << "(Re)triggering File Watcher for 3 seconds...";
@@ -1447,35 +1274,6 @@ void MainWindow::focusChanged(QWidget *old1, QWidget *new1)
 {
     Q_UNUSED(old1)
     Q_UNUSED(new1)
-
-// REMOVING THIS CODE, IT IS TOO CLEVER FOR ITS OWN GOOD.
-// BESIDES, WE DON'T USE THE No Focus CASE ANYMORE.
-
-//    // all this mess, just to restore NO FOCUS, after ApplicationActivate, if there was NO FOCUS
-//    //   when going into Inactive state
-//    qDebug() << "focusChanged";
-//    if (!justWentActive && new1 == nullptr) {
-//        qDebug() << "focusChanged: restore";
-//        oldFocusWidget = old1;  // GOING INACTIVE, RESTORE THIS ONE
-//    } else if (justWentActive) {
-//        qDebug() << "focusChanged: just went active";
-//        if (oldFocusWidget == nullptr) {
-//            qDebug() << "focusChanged: no old widget";
-//            if (QApplication::focusWidget() != nullptr) {
-//                qDebug() << "focusChanged: no widget has focus right now";
-//                QApplication::focusWidget()->clearFocus();  // BOGUS
-//            }
-//        } else {
-//            qDebug() << "focusChanged: else clause 1";
-////            oldFocusWidget->setFocus(); // RESTORE HAPPENS HERE;  RESTORE DISABLED because it crashes
-//                                          //  if leave app with # open for edit and come back in
-//        }
-//        justWentActive = false;  // this was a one-shot deal.
-//    } else {
-//        qDebug() << "focusChanged: else clause 2";
-//        oldFocusWidget = new1;  // clicked on something, this is the one to restore
-//    }
-
 }
 
 void MainWindow::setCurrentSessionId(int id)
@@ -1515,11 +1313,6 @@ void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent colu
     PerfTimer t("reloadSongAges", __LINE__);
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
-
-//    QHash<QString,QString>::const_iterator i;
-//    for (i = ages.constBegin(); i != ages.constEnd(); ++i) {
-//        qDebug() << "key: " << i.key() << ", val: " << i.value();
-//    }
 
     ui->songTable->setSortingEnabled(false);
     ui->songTable->hide();
@@ -1637,7 +1430,7 @@ static QString findTimingForCall(QString danceProgram, const QString &call)
 void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
 {
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
-
+    qDebug() << "loadCallList: " << danceProgram << filename;
     tableWidget->setRowCount(0);
     callListOriginalOrder.clear();
 
@@ -1713,15 +1506,6 @@ void breakDanceProgramIntoParts(const QString &filename,
 }
 
 // =============================================================================
-// =============================================================================
-// =============================================================================
-
-// LYRICS EDITOR WAS HERE
-
-// =============================================================================
-// =============================================================================
-// =============================================================================
-
 void MainWindow::tableWidgetCallList_checkboxStateChanged(int clickRow, int state)
 {
     int currentIndex = ui->comboBoxCallListProgram->currentIndex();
@@ -1847,21 +1631,6 @@ void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
     on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex());
 }
 
-//void MainWindow::on_actionIn_Out_Loop_points_to_default_triggered(bool /* checked */)
-//{
-//    // MUST scan here (once), because the user asked us to, and SetDefaultIntroOutroPositions() (below) needs it
-//    cBass->songStartDetector(qPrintable(currentMP3filenameWithPath), &startOfSong_sec, &endOfSong_sec);
-
-//    ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
-//    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
-//    double length = cBass->FileLength;
-//    double intro = ui->seekBarCuesheet->GetIntro();
-//    double outro = ui->seekBarCuesheet->GetOutro();
-
-//    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*intro*length+0.5)));  // milliseconds
-//    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs((int)(1000.0*outro*length+0.5)));  // milliseconds
-//}
-
 void MainWindow::on_actionCompact_triggered(bool checked)
 {
     bool visible = !checked;
@@ -1906,13 +1675,6 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    // SAVING OF CURRENT PLAYLIST IS CURRENTLY COMMENTED OUT, BECAUSE CURRENT.CSV IS OBSOLETE
-//    // Just before the app quits, save the current playlist state in "current.csv", and it will be reloaded
-//    //   when the app starts up again.
-//    // Save the current playlist state to ".squaredesk/current.m3u".  Tempo/pitch are NOT saved here.
-//    QString PlaylistFileName = musicRootPath + "/.squaredesk/current.csv";
-//    saveCurrentPlaylistToFile(PlaylistFileName);
-
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(nullptr);
     colorDlg.setOption(QColorDialog::NoButtons);
@@ -1921,12 +1683,6 @@ MainWindow::~MainWindow()
     delete ui;
     delete sd_redo_stack;
 
-//    // REENABLE SCREENSAVER, RELEASE THE KRAKEN
-//#if defined(Q_OS_MAC)
-//    macUtils.reenableScreensaver();
-//#elif defined(Q_OS_WIN32)
-//    SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE , NULL, SPIF_SENDWININICHANGE);
-//#endif
     if (sdthread)
     {
         sdthread->finishAndShutdownSD();
@@ -2155,82 +1911,6 @@ void MainWindow::on_playButton_clicked()
 
 }
 
-// ----------------------------------------------------------------------
-//bool MainWindow::timerStopStartClick(QTimer *&timer, QPushButton *button)
-//{
-//    if (timer) {
-//        button->setText("Start");
-//        timer->stop();
-//        delete timer;
-//        timer = nullptr;
-//    }
-//    else {
-//        button->setText("Stop");
-//        timer = new QTimer(this);
-//        timer->start(1000);
-//    }
-//    return nullptr != timer;
-//}
-
-// ----------------------------------------------------------------------
-//int MainWindow::updateTimer(qint64 timeZeroEpochMs, QLabel *label)
-//{
-//    QDateTime now(QDateTime::currentDateTime());
-//    qint64 timeNowEpochMs = now.currentMSecsSinceEpoch();
-//    int signedSeconds = static_cast<int>((timeNowEpochMs - timeZeroEpochMs) / 1000);
-//    int seconds = signedSeconds;
-//    char sign = ' ';
-
-//    if (seconds < 0) {
-//        sign = '-';
-//        seconds = -seconds;
-//    }
-
-//    stringstream ss;
-//    int hours = seconds / (60*60);
-//    int minutes = (seconds / 60) % 60;
-
-//    ss << sign;
-//    if (hours) {
-//        ss << hours << ":" << setw(2);
-//    }
-//    ss << setfill('0') << minutes << ":" << setw(2) << setfill('0') << (seconds % 60);
-//    string s(ss.str());
-//    label->setText(s.c_str());
-//    return signedSeconds;
-//}
-
-//// ----------------------------------------------------------------------
-//void MainWindow::on_pushButtonCountDownTimerStartStop_clicked()
-//{
-//}
-
-//// ----------------------------------------------------------------------
-
-//void MainWindow::on_pushButtonCountDownTimerReset_clicked()
-//{
-//}
-
-//// ----------------------------------------------------------------------
-//void MainWindow::on_pushButtonCountUpTimerStartStop_clicked()
-//{
-//}
-
-//// ----------------------------------------------------------------------
-//void MainWindow::on_pushButtonCountUpTimerReset_clicked()
-//{
-//}
-
-//// ----------------------------------------------------------------------
-//void MainWindow::timerCountUp_update()
-//{
-//}
-
-//// ----------------------------------------------------------------------
-//void MainWindow::timerCountDown_update()
-//{
-//}
-
 // SONGTABLEREFACTOR
 int MainWindow::getSelectionRowForFilename(const QString &filePath)
 {
@@ -2243,7 +1923,6 @@ int MainWindow::getSelectionRowForFilename(const QString &filePath)
 }
 
 // ----------------------------------------------------------------------
-
 void MainWindow::on_pitchSlider_valueChanged(int value)
 {
     cBass->SetPitch(value);
@@ -2884,14 +2563,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
 {
     // This is called once per second, to update the seekbar and associated dynamic text
 
-//#if defined(Q_OS_MAC)
-//    if (screensaverSeconds++ % 55 == 0) {  // 55 because lowest screensaver setting is 60 seconds of idle time
-//        macUtils.disableScreensaver(); // NOTE: now needs to be called every N seconds
-//    }
-//#endif
-
 //    qDebug() << "VERTICAL SCROLL VALUE: " << ui->textBrowserCueSheet->verticalScrollBar()->value();
-
 
     Info_Seekbar(true);
 
@@ -3199,6 +2871,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //            qDebug() << "QObject::eventFilter()";
             return QObject::eventFilter(Object,Event);
         }
+
+//        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers();
 
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsLyricsOrPatter = (ui->tabWidget->tabText(cindex) == "Lyrics" || ui->tabWidget->tabText(cindex) == "*Lyrics" ||  // and I'm on the Lyrics/Patter tab
@@ -3938,37 +3612,12 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         mp3Labelnum_short.remove(0,1);
     }
 
-//    QList<QString> extensions;
-//    QString dot(".");
-//    for (size_t i = 0; i < sizeof(cuesheet_file_extensions) / sizeof(*cuesheet_file_extensions); ++i)
-//    {
-//        extensions.append(dot + cuesheet_file_extensions[i]);
-//    }
-
     t.elapsed(__LINE__);
 
     QListIterator<QString> iter(*pathStack);
     while (iter.hasNext()) {
 
         QString s = iter.next();
-
-//        // Is this a file extension we recognize as a cuesheet file?
-//        QListIterator<QString> extensionIterator(extensions);
-//        bool foundExtension = false;
-//        while (extensionIterator.hasNext())
-//        {
-//            extensionIndex++;
-//            QString extension(extensionIterator.next());
-//            if (s.endsWith(extension))
-//            {
-//                foundExtension = true;
-//                break;
-//            }
-//        }
-
-//        bool foundExtension0 = s.endsWith("htm");
-//        bool foundExtension1 = s.endsWith("html");
-//        bool foundExtension2 = s.endsWith("txt");
 
         int extensionIndex = 0;
 
@@ -4427,33 +4076,6 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     cBass->StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
 
     songLoaded = true;  // now seekBar can be updated
-
-//#ifdef Q_OS_MACXXX
-//    // TODO: HOW TO FORCE RECALC OF REPLAYGAIN ON A FILE?
-//    songLoadedReplayGain_dB = 0.0;
-//    bool songHasReplayGain = settings1.isSetReplayGain();
-//    if (songHasReplayGain) {
-////        qDebug() << "   loadMP3File: replayGain found in DB:" << settings1.getReplayGain();
-//        songLoadedReplayGain_dB = settings1.getReplayGain();
-//    }
-//    if (!songHasReplayGain) // || (songLoadedReplayGain_dB == 0.0) )
-//    {
-//        // only trigger replayGain calculation, if replayGain is enabled (checkbox is checked)
-//        //   and song does NOT have replayGain
-//        // //   OR it has ReplayGain, but that gain was exactly 0.0 (which means that ReplayGain
-//        // //     failed the last time)  <-- this part disabled intentionally
-//        bool replayGainCheckboxIsChecked = prefsManager.GetreplayGainIsEnabled();
-//        if (replayGainCheckboxIsChecked) {
-//            if (!replayGain_dB(MP3FileName)) {
-////                qDebug() << "ERROR: can't get ReplayGain for: " << MP3FileName;
-//            } else {
-////                qDebug() << "Now calculating ReplayGain for: " << MP3FileName;
-//            }
-//        } else {
-////            qDebug() << "ReplayGain is currently disabled, so calculation will not be started.";
-//        }
-//    }
-//#endif
 
     setInOutButtonState();
     loadingSong = false;
@@ -5082,21 +4704,6 @@ QString processSequence(QString sequence,
     }
 
     return sequence.trimmed();
-
-//    QRegularExpression regexpAmp("&");
-//    QRegularExpression regexpLt("<");
-//    QRegularExpression regexpGt(">");
-//    QRegularExpression regexpApos("'");
-//    QRegularExpression regexpNewline("\n");
-//
-//    sequence = sequence.replace(regexpAmp, "&amp;");
-//    sequence = sequence.replace(regexpLt, "&lt;");
-//    sequence = sequence.replace(regexpGt, "&gt;");
-//    sequence = sequence.replace(regexpApos, "&apos;");
-//    sequence = sequence.replace(regexpNewline, "<br/>\n");
-//
-//    return "<h1>" + title + "</h1>\n<p>" + sequence + "</p>\n";
-
 }
 
 void extractSequencesFromFile(QStringList &sequences,
@@ -5207,9 +4814,6 @@ void extractSequencesFromFile(QStringList &sequences,
     }
     sequences << processSequence(sequence, include, exclude);
 }
-
-
-
 
 QStringList MainWindow::getUncheckedItemsFromCurrentCallList()
 {
@@ -5497,16 +5101,6 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
                                            //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
 
-// this code does not appear to do what the comment intended.
-//    if (tempo != "0" && tempo != "0%") {
-//        // iff tempo is known, then update the table
-//        QString tempo2 = tempo.replace("%",""); // if percentage (not BPM) just get rid of the "%" (setValue knows what to do)
-//        int tempoInt = tempo2.toInt();
-//        if (tempoInt !=0)
-//        {
-//            ui->tempoSlider->setValue(tempoInt);
-//        }
-//    }
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -5534,14 +5128,6 @@ void MainWindow::on_actionAutostart_playback_triggered()
     // the Autostart on Playback mode setting is persistent across restarts of the application
     prefsManager.Setautostartplayback(ui->actionAutostart_playback->isChecked());
 }
-
-//void MainWindow::on_checkBoxPlayOnEnd_clicked()
-//{
-//}
-
-//void MainWindow::on_checkBoxStartOnPlay_clicked()
-//{
-//}
 
 void MainWindow::on_actionImport_triggered()
 {
@@ -5860,27 +5446,6 @@ void MainWindow::on_songTable_itemSelectionChanged()
 
     // ----------------
     int selectedRow = selectedSongRow();  // get current row or -1
-
-//    qDebug() << "Row " << selectedRow << " is selected now.";
-
-//    if (selectedRow != -1) {
-//        // we've clicked on a real row, which now needs its Title text to be highlighted
-
-//        // first: let's un-highlight the previous SongTitleLabel back to its original color
-//        if (lastSongTableRowSelected != -1) {
-//            qDebug() << "lastSongTableRowSelected == -1";
-//            QString origColor = dynamic_cast<const SongTitleLabel*>(ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol))->textColor;
-//            QString origColorStyleSheet("QLabel { color : %1; }");
-//            ui->songTable->cellWidget(lastSongTableRowSelected, kTitleCol)->setStyleSheet(origColorStyleSheet.arg(origColor));
-//        }
-
-//        // second: let's highlight the current selected row's Title
-//        qDebug() << "setting new text color on row: " << selectedRow;
-//        QString songNameStyleSheet("QLabel { color : white; }");  // TODO: does this need to be fished out of some platform-specific QPalette somewhere?
-//        ui->songTable->cellWidget(selectedRow, kTitleCol)->setStyleSheet(songNameStyleSheet);
-
-//        lastSongTableRowSelected = selectedRow;  // remember that THIS row is now highlighted
-//    }
 
     if (selectedRow != -1) {
         // we've clicked on a real row, which needs its Title text to be highlighted
@@ -6786,95 +6351,9 @@ void MainWindow::microphoneStatusUpdate() {
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 
-//    if (ui->tabWidget->tabText(index) == "SD"
-//        || ui->tabWidget->tabText(index) == "SD 2") {
-//        if (voiceInputEnabled &&
-//            currentApplicationState == Qt::ApplicationActive) {
-//            if (!ps) {
-//                initSDtab();
-//            }
-//        }
-//        if (voiceInputEnabled && ps &&
-//            currentApplicationState == Qt::ApplicationActive) {
-//            micStatusLabel->setStyleSheet("color: red");
-//            micStatusLabel->setText(micsON);
-//            killVoiceInput = false;
-//        } else {
-//            micStatusLabel->setStyleSheet("color: black");
-//            micStatusLabel->setText(micsOFF);
-//        }
-//    } else {
-//        if (voiceInputEnabled && currentApplicationState == Qt::ApplicationActive) {
-//            micStatusLabel->setStyleSheet("color: black");
-//            micStatusLabel->setText(micsOFF);
-//        } else {
-//            micStatusLabel->setStyleSheet("color: black");
-//            micStatusLabel->setText(micsOFF);
-//        }
-//    }
-//    if (killVoiceInput && ps)
-//    {
-//        ps->kill();
-//        delete ps;
-//        ps = nullptr;
-//    }
 }
 
-
-//void MainWindow::readPSStdErr()
-//{
-//    QByteArray s(ps->readAllStandardError());
-//    QString str = QString::fromUtf8(s.data());
-//}
-
-//void MainWindow::readPSData()
-//{
-//    // ASR --------------------------------------------
-//    // pocketsphinx has a valid string, send it to sd
-//    QByteArray s = ps->readAllStandardOutput();
-//    QString str = QString::fromUtf8(s.data());
-//    if (str.startsWith("INFO: "))
-//        return;
-
-////    qDebug() << "PS str: " << str;
-
-//    int index = ui->tabWidget->currentIndex();
-//    if (!voiceInputEnabled || (currentApplicationState != Qt::ApplicationActive) ||
-//        ((ui->tabWidget->tabText(index) != "SD" && ui->tabWidget->tabText(index) != "SD 2"))) {
-//        // if voiceInput is explicitly disabled, or the app is not Active, we're not on the sd tab, then voiceInput is disabled,
-//        //  and we're going to read the data from PS and just throw it away.
-//        // This is a cheesy way to do it.  We really should disable the mics somehow.
-//        return;
-//    }
-
-//    // NLU --------------------------------------------
-//    // This section does the impedance match between what you can say and the exact wording that sd understands.
-//    // TODO: put this stuff into an external text file, read in at runtime?
-//    //
-//    QString s2 = str.toLower();
-//    s2.replace("\r\n","\n");  // for Windows PS only, harmless to Mac/Linux
-//    s2.replace(QRegularExpression("allocating .* buffers of .* samples each\\n"),"");  // garbage from windows PS only, harmless to Mac/Linux
-//    s2 = s2.simplified();
-
-//    if (s2 == "erase" || s2 == "erase that") {
-//        ui->lineEditSDInput->clear();
-//    }
-//    else
-//    {
-//        ui->lineEditSDInput->setText(s2);
-//        on_lineEditSDInput_returnPressed();
-//    }
-//}
-
-//void MainWindow::pocketSphinx_errorOccurred(QProcess::ProcessError error)
-//{
-//    Q_UNUSED(error)
-//}
-
-//void MainWindow::pocketSphinx_started()
-//{
-//}
-
+// ---------------------------------------------
 void MainWindow::initReftab() {
     static QRegularExpression re1("reference/0[0-9][0-9]\\.[a-zA-Z0-9' ]+\\.txt$", QRegularExpression::CaseInsensitiveOption);
 
@@ -7009,94 +6488,9 @@ void MainWindow::initReftab() {
 }
 
 void MainWindow::initSDtab() {
-//    console->setFixedHeight(150);
-
-//    // POCKET_SPHINX -------------------------------------------
-//    //    WHICH=5365
-//    //    pocketsphinx_continuous -dict $WHICH.dic -lm $WHICH.lm -inmic yes
-//    // MAIN CMU DICT: /usr/local/Cellar/cmu-pocketsphinx/HEAD-584be6e/share/pocketsphinx/model/en-us
-//    // TEST DIR: /Users/mpogue/Documents/QtProjects/SquareDesk/build-SquareDesk-Desktop_Qt_5_7_0_clang_64bit-Debug/test123/SquareDesk.app/Contents/MacOS
-//    // TEST PS MANUALLY: pocketsphinx_continuous -dict 5365a.dic -jsgf plus.jsgf -inmic yes -hmm ../models/en-us
-//    //   also try: -remove_noise yes, as per http://stackoverflow.com/questions/25641154/noise-reduction-before-pocketsphinx-reduces-recognition-accuracy
-//    // TEST SD MANUALLY: ./sd
-//    unsigned int whichModel = 5365;
-//#if defined(Q_OS_MAC) | defined(Q_OS_WIN32)
-//    QString appDir = QCoreApplication::applicationDirPath() + "/";  // this is where the actual ps executable is
-//    QString pathToPS = appDir + "pocketsphinx_continuous";
-//#if defined(Q_OS_WIN32)
-//    pathToPS += ".exe";   // executable has a different name on Win32
-//#endif
-
-//#else /* must be (Q_OS_LINUX) */
-//    QString pathToPS = "pocketsphinx_continuous";
-//#endif
-//    // NOTE: <whichmodel>a.dic and <VUIdanceLevel>.jsgf MUST be in the same directory.
-//    QString pathToDict = QString::number(whichModel) + "a.dic";
-//    QString pathToJSGF = currentSDVUILevel + ".jsgf";
-
-//#if defined(Q_OS_MAC)
-//    // The acoustic models are one level up in the models subdirectory on MAC
-//    QString pathToHMM  = "../models/en-us";
-//#endif
-//#if defined(Q_OS_WIN32)
-//    // The acoustic models are at the same level, but in the models subdirectory on MAC
-//    QString pathToHMM  = "models/en-us";
-//#endif
-//#if defined(Q_OS_LINUX)
-//    QString pathToHMM = "../pocketsphinx/binaries/win32/models/en-us/";
-//#endif
-
-//    QStringList PSargs;
-//    PSargs << "-dict" << pathToDict     // pronunciation dictionary
-//           << "-jsgf" << pathToJSGF     // language model
-//           << "-inmic" << "yes"         // use the built-in microphone
-//           << "-remove_noise" << "yes"  // try turning on PS noise reduction
-//           << "-hmm" << pathToHMM;      // the US English acoustic model (a bunch of files) is in ../models/en-us
-
-//    ps = new QProcess(Q_NULLPTR);
-
-//    qDebug() << "PS start: " << pathToPS << PSargs;
-
-//    ps->setWorkingDirectory(QCoreApplication::applicationDirPath()); // NOTE: nothing will be written here
-//    ps->setProcessChannelMode(QProcess::MergedChannels);
-//    ps->setReadChannel(QProcess::StandardOutput);
-//    connect(ps, SIGNAL(readyReadStandardOutput()),
-//            this, SLOT(readPSData()));                 // output data from ps
-//    connect(ps, SIGNAL(readyReadStandardError()),
-//            this, SLOT(readPSStdErr()));                 // output data from ps
-//    connect(ps, SIGNAL(errorOccurred(QProcess::ProcessError)),
-//            this, SLOT(pocketSphinx_errorOccurred(QProcess::ProcessError)));
-//    connect(ps, SIGNAL(started()),
-//            this, SLOT(pocketSphinx_started()));
-//    ps->start(pathToPS, PSargs);
-
-//    bool startedStatus = ps->waitForStarted();
-//    if (!startedStatus)
-//    {
-//        delete ps;
-//        ps = nullptr;
-//    }
-
     // SD -------------------------------------------
     copyrightShown = false;  // haven't shown it once yet
 }
-
-//void MainWindow::on_actionEnable_voice_input_toggled(bool checked)
-//{
-//    if (checked) {
-//        ui->actionEnable_voice_input->setChecked(true);
-//        voiceInputEnabled = true;
-//    }
-//    else {
-//        ui->actionEnable_voice_input->setChecked(false);
-//        voiceInputEnabled = false;
-//    }
-
-//    microphoneStatusUpdate();
-
-//    // the Enable Voice Input setting is persistent across restarts of the application
-//    prefsManager.Setenablevoiceinput(ui->actionEnable_voice_input->isChecked());
-//}
 
 void MainWindow::on_actionAuto_scroll_during_playback_toggled(bool checked)
 {
@@ -8056,59 +7450,6 @@ void MainWindow::stopLongSongTableOperation(QString s) {
 void MainWindow::on_actionDownload_Cuesheets_triggered()
 {
     fetchListOfCuesheetsFromCloud();
-//  cuesheetListDownloadEnd();  // <-- will be called, when the fetch from the Cloud is complete
-
-//#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-
-//    QString musicDirPath = prefsManager.GetmusicPath();
-//    QString lyricsDirPath = musicDirPath + "/lyrics";
-
-//    QDir lyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
-
-//    if (lyricsDir.exists()) {
-////        qDebug() << "You already have the latest cuesheets downloaded.  Are you sure you want to download them again (erasing any edits you made)?";
-
-//        QMessageBox msgBox;
-//        msgBox.setIcon(QMessageBox::Warning);
-//        msgBox.setText(QString("You already have the latest lyrics files: '") + CURRENTSQVIEWLYRICSNAME + "'");
-//        msgBox.setInformativeText("Are you sure?  This will overwrite any lyrics that you have edited in that folder.");
-//        QPushButton *downloadButton = msgBox.addButton(tr("Download Anyway"), QMessageBox::AcceptRole);
-//        QPushButton *abortButton = msgBox.addButton(tr("Cancel"), QMessageBox::RejectRole);
-//        msgBox.exec();
-
-//        if (msgBox.clickedButton() == downloadButton) {
-//            // Download
-////            qDebug() << "DOWNLOAD WILL PROCEED NORMALLY.";
-//        } else if (msgBox.clickedButton() == abortButton) {
-//            // Abort
-////            qDebug() << "ABORTING DOWNLOAD.";
-//            return;
-//        }
-//    }
-
-//    Downloader *d = new Downloader(this);
-
-//    QUrl lyricsZipFileURL(QString("https://raw.githubusercontent.com/mpogue2/SquareDesk/master/") + CURRENTSQVIEWLYRICSNAME + QString(".zip"));  // FIX: hard-coded for now
-////    qDebug() << "url to download:" << lyricsZipFileURL.toDisplayString();
-
-//    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
-
-//    d->doDownload(lyricsZipFileURL, lyricsZipFileName);  // download URL and put it into lyricsZipFileName
-
-//    QObject::connect(d,SIGNAL(downloadFinished()), this, SLOT(lyricsDownloadEnd()));
-//    QObject::connect(d,SIGNAL(downloadFinished()), d, SLOT(deleteLater()));
-
-//    // PROGRESS BAR ---------------------
-//    // assume ~10MB
-//    progressDialog = new QProgressDialog("Downloading lyrics...", "Cancel Download", 0, 100, this);
-//    connect(progressDialog, SIGNAL(canceled()), this, SLOT(cancelProgress()));
-//    progressTimer = new QTimer(this);
-//    connect(progressTimer, SIGNAL(timeout()), this, SLOT(makeProgress()));
-
-//    progressOffset = 0.0;
-//    progressTotal = 0.0;
-//    progressTimer->start(500);  // twice per second
-//#endif
 }
 
 void MainWindow::makeProgress() {
@@ -8139,59 +7480,6 @@ void MainWindow::cancelProgress() {
 
 
 void MainWindow::lyricsDownloadEnd() {
-//#if defined(Q_OS_MAC) | defined(Q_OS_WIN)
-////    qDebug() << "MainWindow::lyricsDownloadEnd() -- Download done:";
-
-////    qDebug() << "UNPACKING ZIP FILE INTO LYRICS DIRECTORY...";
-//    QString musicDirPath = prefsManager.GetmusicPath();
-//    QString lyricsDirPath = musicDirPath + "/lyrics";
-//    QString lyricsZipFileName = lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + ".zip";
-
-//    QString destinationDir = lyricsDirPath;
-
-//    // extract the ZIP file
-//    QStringList extracted = JlCompress::extractDir(lyricsZipFileName, destinationDir); // extracts /root/lyrics/SqView_xxxxxx.zip to /root/lyrics/Text
-
-//    if (extracted.empty()) {
-////        qDebug() << "There was a problem extracting the files.  No files extracted.";
-//        progressDialog->setValue(100);  // kill the progress bar
-//        progressTimer->stop();
-//        progressOffset = 0;
-//        progressTotal = 0;
-//        progressCancelled = false;
-
-//        QMessageBox msgBox;
-//        msgBox.setText("The lyrics have been downloaded to <musicDirectory>/lyrics, but you need to manually unpack them.\nWindows: Right click, Extract All on: " +
-//                       lyricsZipFileName);
-//        msgBox.exec();
-//        return;  // and don't delete the ZIP file, for debugging
-//    }
-
-////    qDebug() << "DELETING ZIP FILE...";
-//    QFile file(lyricsZipFileName);
-//    file.remove();
-
-//    QDir currentLyricsDir(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
-//    if (currentLyricsDir.exists()) {
-////        qDebug() << "Refused to overwrite existing cuesheets, renamed to: " << lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup";
-//        QFile::rename(lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME, lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME + "_backup");
-//    }
-
-////    qDebug() << "RENAMING Text/ TO SqViewCueSheets_2017.03.14/ ...";
-//    QFile::rename(lyricsDirPath + "/Text", lyricsDirPath + "/" + CURRENTSQVIEWLYRICSNAME);
-
-//    // RESCAN THE ENTIRE MUSIC DIRECTORY FOR LYRICS ------------
-//    findMusic(musicRootPath,"","main", true);  // get the filenames from the user's directories
-//    loadMusicList(); // and filter them into the songTable
-
-////    qDebug() << "DONE DOWNLOADING LATEST LYRICS: " << CURRENTSQVIEWLYRICSNAME << "\n";
-
-//    progressDialog->setValue(100);  // kill the progress bar
-//    progressTimer->stop();
-//    progressOffset = 0;
-//    progressTotal = 0;
-
-//#endif
 }
 
 QString MainWindow::filepath2SongType(QString MP3Filename)
