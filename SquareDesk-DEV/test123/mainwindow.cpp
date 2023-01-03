@@ -5325,26 +5325,27 @@ static void addToProgramsAndWriteTextFile(QStringList &programs, QDir outputDir,
                                    const char *filename,
                                    const char *fileLines[])
 {
+    // write the program file IFF it doesn't already exist
+    // this allows users to modify the files manually, and they
+    //   won't get overwritten by us at startup time.
+    // BUT, if there are updates from us, the user will now have to manually
+    //   delete those files, so that they will be recreated from the newer versions.
+
     QString outputFile = outputDir.canonicalPath() + "/" + filename;
 
     QFileInfo info(outputFile);
     if (!info.exists()) {
-        // write the program file IFF it doesn't already exist
-        // this allows users to modify the files manually, and they
-        //   won't get overwritten by us at startup time.
-        // BUT, if there are updates from us, the user will now have to manually
-        //   delete those files, so that they will be recreated from the newer versions.
-
-//        qDebug() << "REFRESHING: " << outputFile;
         QFile file(outputFile);
         if (file.open(QIODevice::ReadWrite)) {
-            QTextStream stream(&file);
+            QTextStream outStream(&file);
             for (int i = 0; fileLines[i]; ++i)
             {
-                stream << fileLines[i] << ENDL;
+                outStream << fileLines[i] << ENDL;  // write to file
             }
-            programs << outputFile;
+            programs << outputFile; // and append to programs list
         }
+    } else {
+        programs << outputFile; // just append filename to programs list
     }
 }
 
