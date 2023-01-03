@@ -1227,7 +1227,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
             if (!ui->titleSearch->hasFocus()) {
-                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+//                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
                 ui->titleSearch->setFocus();
             }
         });
