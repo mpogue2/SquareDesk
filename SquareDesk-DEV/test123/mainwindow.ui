@@ -1949,6 +1949,7 @@
      <addaction name="actionFlashCallC2"/>
      <addaction name="actionFlashCallC3a"/>
      <addaction name="actionFlashCallC3b"/>
+     <addaction name="actionFlashCallFilechooser"/>
     </widget>
     <widget class="QMenu" name="menuFlash_Call_Timing">
      <property name="title">
@@ -3013,6 +3014,14 @@
     <string>C3b</string>
    </property>
   </action>
+  <action name="actionFlashCallFilechooser">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Select a flashcards file</string>
+   </property>
+  </action>  
   <action name="actionDownload_matching_lyrics">
    <property name="text">
     <string>TEST cuesheets...</string>

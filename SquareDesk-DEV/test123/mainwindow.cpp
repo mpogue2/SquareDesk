@@ -337,6 +337,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
+    // Recall any previous flashcards file
+    lastFlashcardsfile = prefsManager.Getdefault_flashcards_file();
+    
     filewatcherShouldIgnoreOneFileSave = false;
 
     PerfTimer t("MainWindow::MainWindow", __LINE__);
@@ -916,6 +919,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     on_flashcallc2_toggled(prefsManager.Getflashcallc2());
     on_flashcallc3a_toggled(prefsManager.Getflashcallc3a());
     on_flashcallc3b_toggled(prefsManager.Getflashcallc3b());
+    on_flashcallfilechooser_toggled(prefsManager.Getflashcallfilechooser());
 
     t.elapsed(__LINE__);
 
@@ -7844,6 +7848,21 @@ void MainWindow::on_actionFlashCallC3b_triggered()
     readFlashCallsList();
 }
 
+void MainWindow::on_flashcallfilechooser_toggled(bool checked)
+{
+    ui->actionFlashCallFilechooser->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    prefsManager.Setflashcallfilechooser(ui->actionFlashCallFilechooser->isChecked());
+}
+
+void MainWindow::on_actionFlashCallFilechooser_triggered()
+{
+    on_flashcallfilechooser_toggled(ui->actionFlashCallFilechooser->isChecked());
+    readFlashCallsList();
+}
+
+
 // -----
 void MainWindow::readFlashCallsList() {
 #if defined(Q_OS_MAC)
@@ -7875,15 +7894,76 @@ void MainWindow::readFlashCallsList() {
     }
 #endif
 
+
+    flashCalls.clear();  // remove all calls, let's read them in again
+
+    if (ui->actionFlashCallFilechooser->isChecked()) {
+//        qDebug() << "Filechooser!";
+
+        if (lastFlashcardsfile == "") {
+            // We haven't ask for it yet...
+
+            lastFlashcardsfile = prefsManager.Getdefault_flashcards_file();
+            // if (QFile::exists(lastFlashcardsfile)
+
+            QString defaultFile = lastFlashcardsfile;
+            if (!QFile::exists(lastFlashcardsfile)) {
+                defaultFile = QDir::homePath();
+            }
+            
+            trapKeypresses = false;
+            QString flashcardsFileName =
+                QFileDialog::getOpenFileName(this,
+                                             tr("Load Flashcards"),
+                                             defaultFile,
+                                             tr("Flashcards Files (*.txt)"));
+            trapKeypresses = true;
+
+            if (flashcardsFileName.isNull()) {
+                lastFlashcardsfile = "";        // user cancelled it
+                // Uncheck it, so it can be chosen again by re-checking it.
+                ui->actionFlashCallFilechooser->setChecked(false);
+            } else {
+                lastFlashcardsfile = flashcardsFileName;
+                // Save it in Settings.
+                prefsManager.Setdefault_flashcards_file(flashcardsFileName);
+            }
+        }
+
+        if (lastFlashcardsfile != "") {
+            // There is a flashcard file, either newly specified or specified before (we could
+            // get here because another level was checked)
+            
+            // now read the file...
+//            qDebug() << "Reading file " << lastFlashcardsfile;
+            
+            QFile file(lastFlashcardsfile);
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+//                qDebug() << "Could not open " << lastFlashcardsfile;
+            } else {
+                while (!file.atEnd()) {
+                    QString line = file.readLine().simplified();
+                    if (!line.startsWith("#")) {
+                        flashCalls.append(line);
+                    }
+                }
+                file.close();
+            }
+        }
+    } else {
+        // unchecked, clear the filename, so if it is checked we ask for it
+        lastFlashcardsfile = "";
+    }
+    
+    // Now look check for the calls from relevant levels
+
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open 'allcalls.csv' file. Flash calls will not work.";
         qDebug() << "looked here:" << allcallsPath;
         return;
     }
-
-    flashCalls.clear();  // remove all calls, let's read them in again
-
+    
     while (!file.atEnd()) {
         QString line = file.readLine().simplified();
         QStringList lineparts = line.split(',');

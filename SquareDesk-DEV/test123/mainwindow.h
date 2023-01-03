@@ -287,6 +287,7 @@ protected:
     void on_flashcallc2_toggled(bool checked);
     void on_flashcallc3a_toggled(bool checked);
     void on_flashcallc3b_toggled(bool checked);
+    void on_flashcallfilechooser_toggled(bool checked);
 
     void airplaneMode(bool turnItOn);
 
@@ -569,6 +570,7 @@ private slots:
     void on_actionFlashCallC2_triggered();
     void on_actionFlashCallC3a_triggered();
     void on_actionFlashCallC3b_triggered();
+    void on_actionFlashCallFilechooser_triggered();
 
 //    void on_actionDownload_matching_lyrics_triggered();
 
@@ -659,6 +661,7 @@ private:
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
     QString lastSavedPlaylist;       // "" if no playlist was saved in this session
+    QString lastFlashcardsfile;      // "" if no flashcard file currently 
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;
