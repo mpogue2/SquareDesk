@@ -210,11 +210,14 @@ flexible_audio *cBass;
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };       // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };          // NOTE: must use Qt::CaseInsensitive compares for these
+
+// TAGS
 QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
 QString title_tags_suffix(" </span>");
-//static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
-static QRegularExpression title_tags_remover("(\\&nbsp\\;)+.*\\<\\/span>");
-static QRegularExpression spanPrefixRemover("<span.*>", QRegularExpression::InvertedGreedinessOption);
+static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
+
+// TITLE COLORS
+static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 
 #include <QProxyStyle>
 
@@ -4343,10 +4346,10 @@ bool filterContains(QString str, const QStringList &list)
     // Make "it's" and "its" equivalent.
     str.replace("'","");
 
-    int title_end = str.indexOf(title_tags_remover);
-    str.replace(title_tags_remover, " ");
+    str.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
 
-    str.replace(spanPrefixRemover, "").replace("</span>", "");
+    int title_end = str.indexOf(title_tags_remover); // locate tags
+    str.replace(title_tags_remover, " ");
 
     int index = 0;
 
