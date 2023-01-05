@@ -4327,13 +4327,15 @@ static QString getTitleColText(MyTableWidget *songTable, int row)
 QString getTitleColTitle(MyTableWidget *songTable, int row)
 {
     QString title = getTitleColText(songTable, row);
+
+    title.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+
     int where = title.indexOf(title_tags_remover);
     if (where >= 0) {
         title.truncate(where);
     }
-    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
-    title.replace(spanPrefixRemover, "").replace("</span>", "");
+    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
     return title;
 }
