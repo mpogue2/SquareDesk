@@ -24,8 +24,8 @@
 # ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
 # ERROR: no file at "/usr/local/lib/libpq.5.dylib"
 
-#WHICH=Debug
-WHICH=X86-Release
+#WHICH=Debug-X86
+WHICH=Release-X86
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
@@ -66,7 +66,7 @@ popd
 # ----------------------------------------------------------------------------------------
 echo Now running Mac Deploy Qt step...  NOTE: MUST BE UNCOMMENTED OUT AND RUN ONCE
 # NOT THIS ONE: ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
-#~/Qt${QTVERSION}/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+#~/Qt/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 
 echo Mac Deploy Qt step done.
 echo
