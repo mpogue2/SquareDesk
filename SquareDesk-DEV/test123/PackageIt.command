@@ -29,7 +29,7 @@ WHICH=X86-Release
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="1.0.2X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
+VERSION="1.0.3X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
 QTVERSION="6.4.1"
 QT_VERSION="6_4_1"   # same thing, but with underscores (yes, change both of them at the same time!)
@@ -150,6 +150,11 @@ echo "**** COPYING IN PLIST FILE...."
 cp ${SOURCEDIR}/Info.plist "${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/Info.plist"
 echo
 # ----------------
+# remove any SD cache files that were left over from testing...
+echo "***** REMOVING SD CACHE FILES from: "
+echo "     ${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/MacOS/sd_calls.*cache"
+rm -f "${STAGING_DIR}/${APP_NAME}_${VERSION}.app/Contents/MacOS/sd_calls.*cache"
+echo
 
 # copy in the SquareDesk Manual
 #cp -rpf "${MANUAL}" "${STAGING_DIR}"
