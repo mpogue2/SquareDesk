@@ -6651,6 +6651,12 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
 
         ui->tableWidgetCurrentSequence->clearSelection();
         ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::ContiguousSelection); // can select any set of contiguous items with SHIFT
+
+        ui->tabWidgetSDMenuOptions->setTabVisible(0, true); // Options
+        ui->tabWidgetSDMenuOptions->setTabVisible(1, true); // ?
+        ui->tabWidgetSDMenuOptions->setTabVisible(2, true); // Additional
+
+        ui->lineEditSDInput->setVisible(true);  // make SD input field visible
         ui->lineEditSDInput->setFocus(); // put the focus in the SD input field
     } else {
         // Dance Arranger
@@ -6668,6 +6674,12 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
             ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item)
             on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
         }
+
+        ui->tabWidgetSDMenuOptions->setTabVisible(0, false); // Options
+        ui->tabWidgetSDMenuOptions->setTabVisible(1, false); // ?
+        ui->tabWidgetSDMenuOptions->setTabVisible(2, false); // Additional
+
+        ui->lineEditSDInput->setVisible(false);  // hide SD input field
         ui->tableWidgetCurrentSequence->setFocus(); // put the focus in the current sequence pane, where the first one will be bright blue (not gray)
     }
 }
