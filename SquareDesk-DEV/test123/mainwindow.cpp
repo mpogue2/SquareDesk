@@ -1256,6 +1256,15 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->girl3, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
     connect(ui->boy4,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
     connect(ui->girl4, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+
+    ui->boy1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + ";}");
+    ui->girl1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + ";}");
+    ui->boy2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + ";}");
+    ui->girl2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + ";}");
+    ui->boy3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + ";}");
+    ui->girl3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + ";}");
+    ui->boy4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + ";}");
+    ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + ";}");
 }
 
 void MainWindow::fileWatcherTriggered() {
