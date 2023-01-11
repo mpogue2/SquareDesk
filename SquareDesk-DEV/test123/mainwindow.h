@@ -292,6 +292,9 @@ protected:
     void airplaneMode(bool turnItOn);
 
 private slots:
+
+    void dancerNameChanged(); // when text in any dancerName field changes
+
     void sdActionTriggered(QAction * action);  // checker style
     void sdAction2Triggered(QAction * action); // SD level
 
@@ -988,13 +991,11 @@ private: // SD
     QAction **danceProgramActions;
 
     void setSDCoupleColoringScheme(const QString &scheme);
-    void setSDCoupleNumberingScheme(const QString &scheme);
     void setSDCoupleGenderingScheme(const QString &scheme);
 
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
     void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
     void set_current_sequence_icons_visible(bool visible);
-    QString sdLastFormationName;
     QShortcut *shortcutSDTabUndo;
     QShortcut *shortcutSDTabRedo;
     QShortcut *shortcutSDCurrentSequenceSelectAll;
@@ -1036,6 +1037,9 @@ public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);
     dance_level get_current_sd_dance_program();
+    void setSDCoupleNumberingScheme(const QString &scheme);
+    void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme);
+    QString sdLastFormationName;
 };
 
 // currentState:

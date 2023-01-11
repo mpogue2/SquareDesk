@@ -2035,7 +2035,8 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
     }
 }
 
-static void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme)
+// static
+void MainWindow::setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme)
 {
     // New numbers are: "None", "Numbers", "Names"
     bool showDancerLabels = (numberScheme != "None");
@@ -2050,34 +2051,27 @@ static void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &n
         }
     } else {
         // Names
-        const char * defaultNames[] = {
-            "David",
-            "Amy",
-            "Paul",
-            "Susan",
-            "Adam",
-            "Pam",
-            "Mark",
-            "Barb",
-        };
         for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
         {
-            sdpeople[dancerNum].label->setPlainText((QString(defaultNames[dancerNum]) + "   ").left(3));
+            QString dancerName;
+            switch (dancerNum) {
+                case 0: dancerName = ui->boy1->text(); break;
+                case 1: dancerName = ui->girl1->text(); break;
+                case 2: dancerName = ui->boy2->text(); break;
+                case 3: dancerName = ui->girl2->text(); break;
+                case 4: dancerName = ui->boy3->text(); break;
+                case 5: dancerName = ui->girl3->text(); break;
+                case 6: dancerName = ui->boy4->text(); break;
+                case 7: dancerName = ui->girl4->text(); break;
+                default: break;
+            }
+            sdpeople[dancerNum].label->setPlainText((dancerName + "   ").left(3));
         }
     }
 
     for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
     {
         sdpeople[dancerNum].label->setVisible(showDancerLabels);
-
-//        // now center the labels....
-//        QRectF labelBounds(sdpeople[dancerNum].label->boundingRect());
-//        QTransform labelTransform;
-//        sdpeople[dancerNum].labelTranslateX =-(labelBounds.left() + labelBounds.width() / 2);
-//        sdpeople[dancerNum].labelTranslateY = 0.0; // -(labelBounds.top() + labelBounds.height() / 2);
-//        labelTransform.translate(sdpeople[dancerNum].labelTranslateX,
-//                                 sdpeople[dancerNum].labelTranslateY);
-//        sdpeople[dancerNum].label->setTransform(labelTransform);
     }
 
 
@@ -2573,4 +2567,12 @@ void MainWindow::on_actionSDHeads1p2p_triggered() {
     sdthread->resetAndExecute(list);
 
     ui->lineEditSDInput->setFocus();  // set focus to the input line
+}
+
+void MainWindow::dancerNameChanged() {  // when text in any dancerName field changes
+    // If any key is pressed AND we are in Names mode, update the names in the dancer icons
+    if (ui->actionNames->isChecked()) {
+        setSDCoupleNumberingScheme("Names");  // update dancer names in diagram
+        on_sd_update_status_bar(sdLastFormationName); // update everything in the diagram
+    }
 }

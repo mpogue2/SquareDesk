@@ -1236,6 +1236,15 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         });
 
     on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
+
+    connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy2,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl2, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy3,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl3, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy4,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl4, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
 }
 
 void MainWindow::fileWatcherTriggered() {
@@ -2902,6 +2911,12 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         {
             maybeMainWindow->do_sd_tab_completion();
             return true;
+        }
+        else if (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
+                 ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus()
+                 ) {
+            // TODO: If ENTER is pressed, move to the next field in order.
+            return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
         }
         else if (cmdC_KeyPressed                        // When CMD-C is pressed
                  && tabIsLyricsOrPatter                 // and we're on the Lyrics editor tab
