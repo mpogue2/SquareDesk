@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -1607,7 +1607,7 @@
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_3">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1631,7 +1631,7 @@
                  <item row="1" column="0">
                   <widget class="QLabel" name="label_2">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1655,7 +1655,7 @@
                  <item row="0" column="1">
                   <widget class="QLabel" name="label_5">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1679,7 +1679,7 @@
                  <item row="0" column="2">
                   <widget class="QLabel" name="label_6">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1703,7 +1703,7 @@
                  <item row="0" column="3">
                   <widget class="QLabel" name="label_7">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1727,7 +1727,7 @@
                  <item row="0" column="4">
                   <widget class="QLabel" name="label_8">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -1750,6 +1750,12 @@
                  </item>
                  <item row="1" column="1">
                   <widget class="QLineEdit" name="boy1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1771,6 +1777,12 @@
                  </item>
                  <item row="1" column="2">
                   <widget class="QLineEdit" name="boy2">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1792,6 +1804,12 @@
                  </item>
                  <item row="2" column="2">
                   <widget class="QLineEdit" name="girl2">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1813,6 +1831,12 @@
                  </item>
                  <item row="1" column="3">
                   <widget class="QLineEdit" name="boy3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1834,6 +1858,12 @@
                  </item>
                  <item row="1" column="4">
                   <widget class="QLineEdit" name="boy4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1855,6 +1885,12 @@
                  </item>
                  <item row="2" column="1">
                   <widget class="QLineEdit" name="girl1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1876,6 +1912,12 @@
                  </item>
                  <item row="2" column="3">
                   <widget class="QLineEdit" name="girl3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -1897,6 +1939,12 @@
                  </item>
                  <item row="2" column="4">
                   <widget class="QLineEdit" name="girl4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="maximumSize">
                     <size>
                      <width>16777215</width>
@@ -2190,6 +2238,9 @@
      <addaction name="actionRandomize_3"/>
      <addaction name="actionNone_hex"/>
     </widget>
+    <addaction name="actionSequence_Designer"/>
+    <addaction name="actionDance_Arranger"/>
+    <addaction name="separator"/>
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
@@ -3656,6 +3707,25 @@
    </property>
    <property name="text">
     <string>Names</string>
+   </property>
+  </action>
+  <action name="actionSequence_Designer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sequence Designer</string>
+   </property>
+  </action>
+  <action name="actionDance_Arranger">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dance Arranger</string>
    </property>
   </action>
  </widget>

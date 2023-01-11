@@ -935,6 +935,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     currentSongLabel = "";
 
     // -----------------------------
+    sdViewActionGroup = new QActionGroup(this);
+    sdViewActionGroup->setExclusive(true);  // exclusivity is set up below here...
+    connect(sdViewActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(sdViewActionTriggered(QAction*)));
+
+    // -----------------------------
     sessionActionGroup = new QActionGroup(this);
     sessionActionGroup->setExclusive(true);
 
@@ -961,8 +966,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     t.elapsed(__LINE__);
 
     // let's look through the items in the SD menu (this method is less fragile now)
-    QStringList ag1; // , ag2;
+    QStringList ag1;
     ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Random Color only"; // OK to have one be prefix of another
+
+    QStringList ag2;
+    ag2 << "Sequence Designer" << "Dance Arranger";
 
     // ITERATE THRU MENU SETTING UP EXCLUSIVITY -------
     QString submenuName;
@@ -990,9 +998,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
                 }
             }
         } else {
-//            qDebug() << "item: " << action->text(); // top level item
             if (ag1.contains(action->text()) ) {
                 sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
+//                qDebug() << "ag1 item: " << action->text(); // top level item
+            } else if (ag2.contains(action->text())) {
+                sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
+//                qDebug() << "ag2 item: " << action->text(); // top level item
             }
         }
     }
@@ -6610,6 +6621,32 @@ void MainWindow::sdActionTriggered(QAction * action) {
     action->setChecked(true);  // check the new one
 //    renderArea->setCoupleColoringScheme(action->text());  // removed: causes crash on Win32, and not needed
     setSDCoupleColoringScheme(action->text());
+}
+
+// SD VIEW =====================================
+void MainWindow::sdViewActionTriggered(QAction * action) {
+    action->setChecked(true);  // check the new one
+    qDebug() << "***** sdViewActionTriggered()" << action << action->isChecked();
+
+    if (action->text() == "Sequence Designer") {
+        // turn on thumbnails
+        ui->actionFormation_Thumbnails->setChecked(true);
+        on_actionFormation_Thumbnails_triggered();
+        // SD Output intentionally not touched by this, since it's default is OFF now
+        // Can't make the Options/?/Additional/Names size zero, because Names is now used by SD Dance Arranger (manual resize works tho)
+        // instead, set Options as current tab
+        ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+        ui->actionNormal_3->setChecked(true);
+        setSDCoupleNumberingScheme("Numbers");
+    } else {
+        // Dance Arranger
+        ui->actionFormation_Thumbnails->setChecked(false);
+        on_actionFormation_Thumbnails_triggered();
+        // set Names as current tab
+        ui->tabWidgetSDMenuOptions->setCurrentIndex(3);
+        ui->actionNames->setChecked(true);
+        setSDCoupleNumberingScheme("Names");
+    }
 }
 
 // SD Colors, Numbers, and Genders ------------

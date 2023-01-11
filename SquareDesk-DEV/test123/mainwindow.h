@@ -237,6 +237,7 @@ public:
     static QString logFilePath;
 
     PreferencesDialog *prefDialog;
+    QActionGroup *sdViewActionGroup;
     QActionGroup *sessionActionGroup;
     QAction **sessionActions;
     QActionGroup *sdActionGroup1;
@@ -301,6 +302,8 @@ private slots:
     void sdActionTriggeredColors(QAction * action);  // checker style: Colors
     void sdActionTriggeredNumbers(QAction * action);  // checker style: Numbers
     void sdActionTriggeredGenders(QAction * action);  // checker style: Genders
+
+    void sdViewActionTriggered(QAction *action); // Sequence Designer vs Dance Arranger
 
     void on_stopButton_clicked();
     void on_playButton_clicked();
