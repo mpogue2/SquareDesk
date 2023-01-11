@@ -2175,6 +2175,18 @@ void MainWindow::undo_sd_to_row()
     }
 }
 
+void MainWindow::paste_to_tableWidgetCurrentSequence() {
+    const QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *mimeData = clipboard->mimeData();
+
+    if (mimeData->hasHtml()) {
+       qDebug() << "HTML: " << mimeData->html();
+    } else if (mimeData->hasText()) {
+        qDebug() << "PLAIN TEXT: " << mimeData->text();
+    } else {
+        qDebug() << "CANNOT UNDERSTAND CLIPBOARD DATA";
+    }
+}
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
@@ -2412,19 +2424,36 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 {
     QMenu contextMenu(tr("Sequence"), this);
 
-    QAction action1("Copy", this);
+    QAction action1("Copy Sequence", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
     action1.setShortcut(QKeySequence::Copy);
+    action1.setShortcutVisibleInContextMenu(true);
     contextMenu.addAction(&action1);
-   
+
+    QAction action5("Copy Sequence as HTML", this);
+    connect(&action5, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
+    action5.setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V)); // MAC-SPECIFIC
+    action5.setShortcutVisibleInContextMenu(true);
+    contextMenu.addAction(&action5);
+
+    QAction action1a("Paste Sequence", this);
+    connect(&action1a, SIGNAL(triggered()), this, SLOT(paste_to_tableWidgetCurrentSequence()));
+    action1a.setShortcut(QKeySequence::Paste);
+    action1a.setShortcutVisibleInContextMenu(true);
+    contextMenu.addAction(&action1a);
+
+    contextMenu.addSeparator(); // ---------------
+
     QAction action2("Undo", this);
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
     action2.setShortcut(QKeySequence::Undo);
+    action2.setShortcutVisibleInContextMenu(true);
     contextMenu.addAction(&action2);
 
     QAction action25("Redo", this);
     connect(&action25, SIGNAL(triggered()), this, SLOT(redo_last_sd_action()));
     action25.setShortcut(QKeySequence::Redo);
+    action25.setShortcutVisibleInContextMenu(true);
     action25.setEnabled(sd_redo_stack->can_redo());
     contextMenu.addAction(&action25);
 
@@ -2432,6 +2461,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     QAction action3("Select All", this);
     connect(&action3, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
     action3.setShortcut(QKeySequence::SelectAll);
+    action3.setShortcutVisibleInContextMenu(true);
     contextMenu.addAction(&action3);
 
     contextMenu.addSeparator(); // ---------------
@@ -2446,10 +2476,6 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     contextMenu.addAction(&action4a);
 
     contextMenu.addSeparator(); // ---------------
-
-    QAction action5("Copy as HTML", this);
-    connect(&action5, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
-    contextMenu.addAction(&action5);
 
     QMenu menuCopySettings("Copy Options");
     QActionGroup actionGroupCopyOptions(this);

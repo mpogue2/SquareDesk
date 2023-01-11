@@ -536,6 +536,7 @@ private slots:
     void on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidgetItem *item);
     void on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item);
     void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
+    void paste_to_tableWidgetCurrentSequence();
     void copy_selection_from_tableWidgetCurrentSequence();
     void copy_selection_from_tableWidgetCurrentSequence_html();
     void set_sd_copy_options_entire_sequence();
