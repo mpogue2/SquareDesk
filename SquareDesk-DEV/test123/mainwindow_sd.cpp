@@ -110,7 +110,7 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
 
     QGraphicsRectItem *directionRectItem = sdscene.addRect(directionRect, pen, coupleColorBrushes[number]);
 
-    QGraphicsTextItem *label = sdscene.addText(QString("%1").arg(number + 1),
+    QGraphicsTextItem *label = sdscene.addText(QString("  %1  ").arg(number + 1), // exactly 3 characters wide when numbers used (sets the hjust)
                                                dancerLabelFont);
 
     QRectF labelBounds(label->boundingRect());
@@ -453,7 +453,7 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
                              QGraphicsTextItem *&graphicsTextItemSDTopGroupText)
 {
 #if defined(Q_OS_MAC)
-    dancerLabelFont = QFont("Arial",11);
+    dancerLabelFont = QFont("Arial", 8);
 #elif defined(Q_OS_WIN)
     dancerLabelFont = QFont("Arial",8);
 #else
@@ -1964,6 +1964,12 @@ void MainWindow::on_actionFormation_Thumbnails_triggered()
     set_current_sequence_icons_visible(ui->actionFormation_Thumbnails->isChecked());
 }
 
+void MainWindow::on_actionSD_Output_triggered()
+{
+    ui->tabWidget_2->setTabVisible(0, ui->actionSD_Output->isChecked()); // 0 = SD Output tab
+}
+
+// ------------------------------
 void SDDancer::setColor(const QColor &color)
 {
     QGraphicsRectItem* rectItem = dynamic_cast<QGraphicsRectItem*>(boyItem);
@@ -2031,12 +2037,50 @@ static void setPeopleColoringScheme(QList<SDDancer> &sdpeople, const QString &co
 
 static void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme)
 {
-    // New numbers are: "Normal", "Invisible"
-    bool showDancerLabels = (numberScheme == "Normal");
+    // New numbers are: "None", "Numbers", "Names"
+    bool showDancerLabels = (numberScheme != "None");
+
+    if (numberScheme == "None") {
+        // None/Invisible
+    } else if (numberScheme == "Numbers"){
+        // Numbers
+        for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
+        {
+            sdpeople[dancerNum].label->setPlainText("  " + QString::number(1 + dancerNum/2) + "  ");
+        }
+    } else {
+        // Names
+        const char * defaultNames[] = {
+            "David",
+            "Amy",
+            "Paul",
+            "Susan",
+            "Adam",
+            "Pam",
+            "Mark",
+            "B",
+        };
+        for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
+        {
+            sdpeople[dancerNum].label->setPlainText((QString(defaultNames[dancerNum]) + "   ").left(3));
+        }
+    }
+
     for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
     {
         sdpeople[dancerNum].label->setVisible(showDancerLabels);
+
+//        // now center the labels....
+//        QRectF labelBounds(sdpeople[dancerNum].label->boundingRect());
+//        QTransform labelTransform;
+//        sdpeople[dancerNum].labelTranslateX =-(labelBounds.left() + labelBounds.width() / 2);
+//        sdpeople[dancerNum].labelTranslateY = 0.0; // -(labelBounds.top() + labelBounds.height() / 2);
+//        labelTransform.translate(sdpeople[dancerNum].labelTranslateX,
+//                                 sdpeople[dancerNum].labelTranslateY);
+//        sdpeople[dancerNum].label->setTransform(labelTransform);
     }
+
+
 }
 
 static void setPeopleGenderingScheme(QList<SDDancer> &sdpeople, const QString &genderScheme)

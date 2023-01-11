@@ -1846,10 +1846,11 @@
     </widget>
     <widget class="QMenu" name="menuNumbers">
      <property name="title">
-      <string>Numbers</string>
+      <string>Labels</string>
      </property>
-     <addaction name="actionNormal_3"/>
      <addaction name="actionInvisible"/>
+     <addaction name="actionNormal_3"/>
+     <addaction name="actionNames"/>
     </widget>
     <widget class="QMenu" name="menuGenders">
      <property name="title">
@@ -1875,6 +1876,7 @@
     <addaction name="actionRandom"/>
     <addaction name="actionRandom_Color_only"/>
     <addaction name="separator"/>
+    <addaction name="actionSD_Output"/>
     <addaction name="actionFormation_Thumbnails"/>
     <addaction name="separator"/>
     <addaction name="actionShow_group_station"/>
@@ -3021,7 +3023,7 @@
    <property name="text">
     <string>Select a flashcards file</string>
    </property>
-  </action>  
+  </action>
   <action name="actionDownload_matching_lyrics">
    <property name="text">
     <string>TEST cuesheets...</string>
@@ -3247,7 +3249,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Normal</string>
+    <string>Numbers</string>
    </property>
   </action>
   <action name="actionInvisible">
@@ -3255,7 +3257,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Invisible</string>
+    <string>None</string>
    </property>
   </action>
   <action name="actionNormal_4">
@@ -3309,6 +3311,22 @@
    </property>
    <property name="text">
     <string>Auto-format Lyrics</string>
+   </property>
+  </action>
+  <action name="actionSD_Output">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>SD Output</string>
+   </property>
+  </action>
+  <action name="actionNames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Names</string>
    </property>
   </action>
  </widget>

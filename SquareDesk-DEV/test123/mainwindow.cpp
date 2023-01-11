@@ -982,7 +982,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //                    qDebug() << "     item: " << action2->text() << "in submenu: " << submenuName;  // one level down item
                     if (submenuName == "Colors") {
                         sdActionGroupColors->addAction(action2);
-                    } else if (submenuName == "Numbers") {
+                    } else if (submenuName == "Labels") {
                         sdActionGroupNumbers->addAction(action2);
                     } else if (submenuName == "Genders") {
                         sdActionGroupGenders->addAction(action2);
@@ -1235,6 +1235,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             }
         });
 
+    on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
 }
 
 void MainWindow::fileWatcherTriggered() {
@@ -1437,7 +1438,7 @@ static QString findTimingForCall(QString danceProgram, const QString &call)
 void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
 {
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
-    qDebug() << "loadCallList: " << danceProgram << filename;
+//    qDebug() << "loadCallList: " << danceProgram << filename;
     tableWidget->setRowCount(0);
     callListOriginalOrder.clear();
 

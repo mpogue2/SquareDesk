@@ -603,6 +603,8 @@ private slots:
 
     void on_actionAuto_format_Lyrics_triggered();
 
+    void on_actionSD_Output_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
