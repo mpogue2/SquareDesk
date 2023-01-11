@@ -6392,7 +6392,7 @@ void MainWindow::microphoneStatusUpdate() {
 //    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 //    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    QString kybdStatus("Audio: " + lastAudioDeviceName + "  |  Kybd: " + currentSDKeyboardLevel);
+    QString kybdStatus("Audio: " + lastAudioDeviceName + ",  SD: " + currentSDKeyboardLevel);
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 
