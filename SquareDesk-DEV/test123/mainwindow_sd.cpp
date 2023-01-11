@@ -1157,6 +1157,7 @@ void MainWindow::render_sd_item_data(QTableWidgetItem *item)
         QVariant v = item->data(Qt::UserRole);
         if (!v.isNull())
         {
+//            qDebug() << "v: " << v;
             QString formation(v.toString());
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
@@ -1225,7 +1226,9 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
 
 void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item)
 {
-    render_sd_item_data(item);
+//    qDebug() << "on_tableWidgetCurrentSequence_itemDoubleClicked: " << item;
+    // regardless of clicking on col 0 or 1, use the variant formation squirreled away in column 1 (even if not visible)
+    render_sd_item_data(ui->tableWidgetCurrentSequence->item(item->row(),1));
 }
 
 void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation)

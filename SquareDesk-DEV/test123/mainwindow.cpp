@@ -6626,26 +6626,40 @@ void MainWindow::sdActionTriggered(QAction * action) {
 // SD VIEW =====================================
 void MainWindow::sdViewActionTriggered(QAction * action) {
     action->setChecked(true);  // check the new one
-    qDebug() << "***** sdViewActionTriggered()" << action << action->isChecked();
+//    qDebug() << "***** sdViewActionTriggered()" << action << action->isChecked();
 
     if (action->text() == "Sequence Designer") {
         // turn on thumbnails
         ui->actionFormation_Thumbnails->setChecked(true);
         on_actionFormation_Thumbnails_triggered();
+
         // SD Output intentionally not touched by this, since it's default is OFF now
         // Can't make the Options/?/Additional/Names size zero, because Names is now used by SD Dance Arranger (manual resize works tho)
         // instead, set Options as current tab
         ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
         ui->actionNormal_3->setChecked(true);
         setSDCoupleNumberingScheme("Numbers");
+
+        ui->tableWidgetCurrentSequence->clearSelection();
+        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::ContiguousSelection); // can select any set of contiguous items with SHIFT
+        ui->lineEditSDInput->setFocus(); // put the focus in the SD input field
     } else {
         // Dance Arranger
-        ui->actionFormation_Thumbnails->setChecked(false);
+        ui->actionFormation_Thumbnails->setChecked(false); // these are not shown, but they are still there..., so we can reference them onDoubleClick below
         on_actionFormation_Thumbnails_triggered();
+
         // set Names as current tab
         ui->tabWidgetSDMenuOptions->setCurrentIndex(3);
         ui->actionNames->setChecked(true);
         setSDCoupleNumberingScheme("Names");
+
+        ui->tableWidgetCurrentSequence->clearSelection();
+        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::SingleSelection); // can only select ONE item
+        if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
+            ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item)
+            on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
+        }
+        ui->tableWidgetCurrentSequence->setFocus(); // put the focus in the current sequence pane, where the first one will be bright blue (not gray)
     }
 }
 
