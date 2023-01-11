@@ -2058,7 +2058,7 @@ static void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &n
             "Adam",
             "Pam",
             "Mark",
-            "B",
+            "Barb",
         };
         for (int dancerNum = 0; dancerNum < sdpeople.length(); ++dancerNum)
         {
