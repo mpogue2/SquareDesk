@@ -24,7 +24,7 @@
 ****************************************************************************/
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "utility.h"
+#include "utility.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -2195,11 +2195,21 @@ void MainWindow::undo_sd_to_row()
 {
     while (--sdUndoToLine)
     {
+        qDebug() << "UNDO -----";
         undo_last_sd_action();
     }
 }
 
 void MainWindow::paste_to_tableWidgetCurrentSequence() {
+
+    // TODO: Clear out existing sequence, if there is one...
+//            if (ui->tableWidgetCurrentSequence->rowCount() > 0) {
+//                sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() + 2; // undo this many
+//                qDebug() << "UNDOING: " << sdUndoToLine;
+//                undo_sd_to_row();   // undo everything, don't reinit the engine (which would stop us from
+//                                    // adding new stuff
+//            }
+
     const QClipboard *clipboard = QApplication::clipboard();
     const QMimeData *mimeData = clipboard->mimeData();
 
@@ -2467,7 +2477,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 
     QAction action5("Copy Sequence as HTML", this);
     connect(&action5, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence_html()));
-    action5.setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_V)); // MAC-SPECIFIC
+    action5.setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C)); // MAC-SPECIFIC
     action5.setShortcutVisibleInContextMenu(true);
     contextMenu.addAction(&action5);
 
@@ -2640,3 +2650,103 @@ void MainWindow::dancerNameChanged() {  // when text in any dancerName field cha
         on_sd_update_status_bar(sdLastFormationName); // update everything in the diagram
     }
 }
+
+
+void MainWindow::on_actionLoad_Sequence_triggered()
+{
+//    qDebug() << "on_actionLoad_Sequence_triggered";
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString sequenceFilename = QFileDialog::getOpenFileName(this,
+                                                    tr("Load SD Sequence"),
+                                                    musicRootPath + "/sd",
+                                                    tr("TXT (*.txt)"));
+    if (!sequenceFilename.isNull())
+    {
+        QFile file(sequenceFilename);
+        if ( file.open(QIODevice::ReadOnly) )
+        {
+            // TODO: Clear out existing sequence, if there is one...
+//            if (ui->tableWidgetCurrentSequence->rowCount() > 0) {
+//                sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() + 2; // undo this many
+//                qDebug() << "UNDOING: " << sdUndoToLine;
+//                undo_sd_to_row();   // undo everything, don't reinit the engine (which would stop us from
+//                                    // adding new stuff
+//            }
+
+            QTextStream in(&file);
+            QString entireSequence = in.readAll();
+//            qDebug() << file.size() << entireSequence; // print entire file!
+
+            QStringList theCalls = entireSequence.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
+            qDebug() << "theCalls: " << theCalls;
+
+            // submit calls one at a time to SD (can't use resetAndExecute() here...)
+            for (auto call: theCalls) {
+                // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
+                ui->lineEditSDInput->setText(call);
+                submit_lineEditSDInput_contents_to_sd(); // send line to SD
+            }
+
+            file.close();
+
+            // put the selection at the beginning (Arranger) or no selection (Designer)
+            // this doesn't work, because the load is asyncronous
+//            if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
+//                if (ui->actionSequence_Designer->isChecked()) {
+//                    // Sequence Designer mode
+//                    ui->tableWidgetCurrentSequence->clearSelection(); // no selection if Designer mode
+//                } else {
+//                    // Dance Arranger mode
+//                    qDebug() << "SELECTING FIRST ITEM (DANCE ARRANGER)";
+////                    ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item) in playback mode
+////                    on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
+//                }
+//            }
+        }
+    }
+}
+
+
+void MainWindow::on_actionSave_Sequence_As_triggered()
+{
+//    qDebug() << "on_actionSave_Sequence_As_triggered";
+    saveSequenceAs(); // intentionally Save Sequence AS
+}
+
+void MainWindow::saveSequenceAs()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString sequenceFilename = QFileDialog::getSaveFileName(this,
+                                                    tr("Save SD Sequence"),
+                                                    musicRootPath + "/sd/sequence.txt",
+                                                    tr("TXT (*.txt);;HTML (*.html *.htm)"));
+    if (!sequenceFilename.isNull())
+    {
+        QFile file(sequenceFilename);
+        if ( file.open(QIODevice::WriteOnly) )
+        {
+            QTextStream stream( &file );
+            if (sequenceFilename.endsWith(".html", Qt::CaseInsensitive)
+                || sequenceFilename.endsWith(".htm", Qt::CaseInsensitive))
+            {
+                QTextStream stream( &file );
+                stream << get_current_sd_sequence_as_html(true, false);
+            }
+            else
+            {
+                for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
+                     ++row)
+                {
+                    QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+                    stream << item->text() + "\n";
+                }
+            }
+            stream.flush();
+            file.close();
+        }
+    }
+}
+

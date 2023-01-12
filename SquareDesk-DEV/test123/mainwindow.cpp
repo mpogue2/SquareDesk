@@ -6676,7 +6676,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::SingleSelection); // can only select ONE item
         if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
             ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item)
-            on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
+            //on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
         }
 
         ui->tabWidgetSDMenuOptions->setTabVisible(0, false); // Options
@@ -7739,42 +7739,6 @@ void MainWindow::on_actionFilePrint_triggered()
     }
 }
 
-void MainWindow::saveSequenceAs()
-{
-    // Ask me where to save it...
-    RecursionGuard dialog_guard(inPreferencesDialog);
-
-    QString sequenceFilename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save SD Sequence"),
-                                                    musicRootPath + "/sd/sequence.txt",
-                                                    tr("TXT (*.txt);;HTML (*.html *.htm)"));
-    if (!sequenceFilename.isNull())
-    {
-        QFile file(sequenceFilename);
-        if ( file.open(QIODevice::WriteOnly) )
-        {
-            QTextStream stream( &file );
-            if (sequenceFilename.endsWith(".html", Qt::CaseInsensitive)
-                || sequenceFilename.endsWith(".htm", Qt::CaseInsensitive))
-            {
-                QTextStream stream( &file );
-                stream << get_current_sd_sequence_as_html(true, false);
-            }
-            else
-            {
-                for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
-                     ++row)
-                {
-                    QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
-                    stream << item->text() + "\n";
-                }
-            }
-            stream.flush();
-            file.close();
-        }
-    }
-}
-
 void MainWindow::on_actionSave_triggered()
 {
 //    qDebug() << "actionSave";
@@ -7795,7 +7759,6 @@ void MainWindow::on_actionSave_triggered()
         // intentionally nothing...
     }
 }
-
 
 void MainWindow::on_actionSave_As_triggered()
 {

@@ -2241,6 +2241,9 @@
     <addaction name="actionSequence_Designer"/>
     <addaction name="actionDance_Arranger"/>
     <addaction name="separator"/>
+    <addaction name="actionLoad_Sequence"/>
+    <addaction name="actionSave_Sequence_As"/>
+    <addaction name="separator"/>
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
@@ -3726,6 +3729,16 @@
    </property>
    <property name="text">
     <string>Dance Arranger</string>
+   </property>
+  </action>
+  <action name="actionLoad_Sequence">
+   <property name="text">
+    <string>Load Sequence...</string>
+   </property>
+  </action>
+  <action name="actionSave_Sequence_As">
+   <property name="text">
+    <string>Save Sequence As...</string>
    </property>
   </action>
  </widget>
