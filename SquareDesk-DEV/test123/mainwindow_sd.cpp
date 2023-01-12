@@ -1054,10 +1054,17 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         ui->label_SD_Resolve->setText("");
     }
 
-    if (str.startsWith("Output file is \""))
+    if (str.startsWith("SD -- square dance")) {
+        // start of copyright section
+        ui->listWidgetSDOutput->clear();
+    }
+
+    if (str.startsWith("Output file is"))
     {
+        // end of copyright section, so reinit the engine
         sdLastLine = 0;
         sd_redo_stack->initialize();
+        ui->label_SD_Resolve->clear(); // get rid of extra "(no matches)" or "left allemande" in resolve area when changing levels
     }
 
     while (str.length() > 1 && str[str.length() - 1] == '\n')
