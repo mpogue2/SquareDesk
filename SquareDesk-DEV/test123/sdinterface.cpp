@@ -1086,7 +1086,7 @@ void SDThread::finishAndShutdownSD()
 //    if (!iofull->seenAFormation)
     {
         do_user_input("abort the search");
-        do_user_input("heads start");
+        do_user_input("heads start");  // THIS SEEMS WRONG, DOESN'T IT? But it stops crash on SDesk quit
         do_user_input("square thru 4");
     }
     do_user_input("quit");

@@ -1692,6 +1692,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
         || cmd == str_square_your_sets) {
         sdthread->do_user_input(str_abort_this_sequence);
         sdthread->do_user_input("y");
+        ui->tableWidgetCurrentSequence->clear(); // clear the current sequence pane
+        // sd_redo_stack->initialize(); // init the redo stack
     }
     else if (cmd == "2 couples only") {
         sdthread->do_user_input("two couples only");
@@ -1877,6 +1879,7 @@ void MainWindow::restartSDThread(dance_level dance_program)
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
     restartSDThread(dance_program);
+
 //    for (int i = 0; actions[i]; ++i)
 //    {
 //        bool checked = (i == (int)(dance_program));
@@ -1900,6 +1903,9 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
         case l_c4x:  currentSDKeyboardLevel = "C4x"; break;
         default: break;
     }
+
+    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
+
     microphoneStatusUpdate(); // update the level designator
 
     on_lineEditSDInput_textChanged();
@@ -2188,7 +2194,7 @@ void MainWindow::paste_to_tableWidgetCurrentSequence() {
         QStringList theCalls = theText.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
 //        qDebug() << "theCalls: " << theCalls;
 
-        // submit calls one at a time to SD
+        // submit calls one at a time to SD (can't use resetAndExecute() here...)
         for (auto call: theCalls) {
             // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
             ui->lineEditSDInput->setText(call);

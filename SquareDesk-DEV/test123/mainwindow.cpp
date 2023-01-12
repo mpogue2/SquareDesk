@@ -1099,8 +1099,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a} // DEPRECATED
     currentSDKeyboardLevel = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
 
     t.elapsed(__LINE__);
 
