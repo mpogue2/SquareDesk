@@ -1233,9 +1233,20 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
 
 void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item)
 {
+    Q_UNUSED(item)
 //    qDebug() << "on_tableWidgetCurrentSequence_itemDoubleClicked: " << item;
     // regardless of clicking on col 0 or 1, use the variant formation squirreled away in column 1 (even if not visible)
-    render_sd_item_data(ui->tableWidgetCurrentSequence->item(item->row(),1));
+//    render_sd_item_data(ui->tableWidgetCurrentSequence->item(item->row(),1));
+}
+
+void MainWindow::on_tableWidgetCurrentSequence_itemSelectionChanged()
+{
+//    qDebug() << "on_tableWidgetCurrentSequence_itemSelectionChanged()";
+    // regardless of clicking on col 0 or 1, use the variant formation squirreled away in column 1 (even if not visible)
+    QList<QTableWidgetItem *> selected = ui->tableWidgetCurrentSequence->selectedItems();
+    if (selected.count() == 1) {
+        render_sd_item_data(ui->tableWidgetCurrentSequence->item(selected[0]->row(),1)); // selected row and col 1
+    }
 }
 
 void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation)
@@ -1518,7 +1529,6 @@ void MainWindow::on_lineEditSDInput_returnPressed()
         ui->lineEditSDInput->clear();
     }
 
-    
     sd_redo_stack->set_doing_user_input();
     submit_lineEditSDInput_contents_to_sd();
     sd_redo_stack->clear_doing_user_input();
@@ -1782,6 +1792,7 @@ dance_level MainWindow::get_current_sd_dance_program()
     }
     return current_dance_program;
 }
+
 
 void MainWindow::on_lineEditSDInput_textChanged()
 {
