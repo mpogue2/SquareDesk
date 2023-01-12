@@ -2180,11 +2180,22 @@ void MainWindow::paste_to_tableWidgetCurrentSequence() {
     const QMimeData *mimeData = clipboard->mimeData();
 
     if (mimeData->hasHtml()) {
-       qDebug() << "HTML: " << mimeData->html();
+       qDebug() << "ERROR: HTML FOUND -- " << mimeData->html();
     } else if (mimeData->hasText()) {
-        qDebug() << "PLAIN TEXT: " << mimeData->text();
+//        qDebug() << "PLAIN TEXT: " << mimeData->text();
+        QString theText = mimeData->text(); // get plain text from clipboard
+        theText.replace(QRegularExpression("\\(.*\\)", QRegularExpression::InvertedGreedinessOption), ""); // delete comments
+        QStringList theCalls = theText.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
+//        qDebug() << "theCalls: " << theCalls;
+
+        // submit calls one at a time to SD
+        for (auto call: theCalls) {
+            // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
+            ui->lineEditSDInput->setText(call);
+            submit_lineEditSDInput_contents_to_sd(); // send line to SD
+        }
     } else {
-        qDebug() << "CANNOT UNDERSTAND CLIPBOARD DATA";
+        qDebug() << "ERROR: CANNOT UNDERSTAND CLIPBOARD DATA"; // error? warning?
     }
 }
 
