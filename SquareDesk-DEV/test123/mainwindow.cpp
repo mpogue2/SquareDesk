@@ -2933,6 +2933,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             maybeMainWindow->do_sd_tab_completion();
             return true;
         }
+        else if (ui->tableWidgetCurrentSequence->hasFocus()) {
+            return QObject::eventFilter(Object,Event); // let the tableWidget handle UP/DOWN normally
+        }
         else if (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
                  ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus()
                  ) {
