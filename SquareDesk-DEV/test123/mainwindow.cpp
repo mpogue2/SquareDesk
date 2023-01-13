@@ -6458,6 +6458,8 @@ void MainWindow::initReftab() {
 #endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                webview[numWebviews]->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);  // allow index.html to access 3P remote website
+
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
             }
