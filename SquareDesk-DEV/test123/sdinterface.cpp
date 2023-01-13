@@ -29,6 +29,7 @@
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 #include <stdio.h>
 
@@ -1071,11 +1072,14 @@ void SDThread::resetAndExecute(QStringList &commands)
         do_user_input("abort this sequence");
         do_user_input("yes");
     }
-    
+
+    bool firstCall = true;
     for (QString &cmd : commands)
     {
-//        qDebug() << "resetAndExecute: executing " << cmd;
-        do_user_input(cmd);
+//        qDebug() << "resetAndExecute: sending to SD: " << cmd;
+//        do_user_input(cmd);                           // without interpretation, e.g. heads start; square thru 4
+        mw->submit_lineEditSDInput_contents_to_sd(cmd, firstCall); // with interpretation, e.g. HEADS Square Thru --> heads start; square thru 4
+        firstCall = false;
     }
 }
 

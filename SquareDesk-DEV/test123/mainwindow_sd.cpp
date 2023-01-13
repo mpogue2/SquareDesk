@@ -1534,10 +1534,17 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     sd_redo_stack->clear_doing_user_input();
 }
 
-void MainWindow::submit_lineEditSDInput_contents_to_sd()
+void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall) // s defaults to ""
 {
-    QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
+    QString cmd;
+    if (s.isEmpty()) {
+        cmd = ui->lineEditSDInput->text().simplified(); // both trims whitespace and consolidates whitespace
+    } else {
+        cmd = s;
+    }
+//    QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
     cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
+//    qDebug() << "cmd: " << cmd;
     ui->lineEditSDInput->clear();
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
@@ -1716,15 +1723,19 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd()
         sdthread->do_user_input("two couples only");
         gTwoCouplesOnly = true;
     } else {
-        if (ui->tableWidgetCurrentSequence->rowCount() == 0 && !cmd.contains("1p2p")) {
+//        qDebug() << "ui->tableWidgetCurrentSequence->rowCount(): " << ui->tableWidgetCurrentSequence->rowCount() << "firstCall: " << firstCall;
+        if ((firstCall || ui->tableWidgetCurrentSequence->rowCount() == 0) && !cmd.contains("1p2p")) {
             if (cmd.startsWith("heads ")) {
+//                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: heads start";
                 sdthread->do_user_input("heads start");
                 cmd.replace("heads ", "");
             } else if (cmd.startsWith("sides")) {
+//                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: sides start";
                 sdthread->do_user_input("sides start");
                 cmd.replace("sides ", "");
             }
         }
+//        qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: " << cmd;
         if (sdthread->do_user_input(cmd))
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
@@ -2666,29 +2677,21 @@ void MainWindow::on_actionLoad_Sequence_triggered()
         QFile file(sequenceFilename);
         if ( file.open(QIODevice::ReadOnly) )
         {
-            // TODO: Clear out existing sequence, if there is one...
-//            if (ui->tableWidgetCurrentSequence->rowCount() > 0) {
-//                sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() + 2; // undo this many
-//                qDebug() << "UNDOING: " << sdUndoToLine;
-//                undo_sd_to_row();   // undo everything, don't reinit the engine (which would stop us from
-//                                    // adding new stuff
-//            }
-
             QTextStream in(&file);
             QString entireSequence = in.readAll();
 //            qDebug() << file.size() << entireSequence; // print entire file!
 
-            QStringList theCalls = entireSequence.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
-            qDebug() << "theCalls: " << theCalls;
+            QStringList theCalls = entireSequence.toLower().split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
+//            qDebug() << "theCalls: " << theCalls;
 
-            // submit calls one at a time to SD (can't use resetAndExecute() here...)
-            for (auto call: theCalls) {
-                // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
-                ui->lineEditSDInput->setText(call);
-                submit_lineEditSDInput_contents_to_sd(); // send line to SD
-            }
+//            callsToLoad = theCalls; // load these AFTER we restart the SD engine
 
             file.close();
+
+//            qDebug() << "About to call: resetAndExecute() with these calls: " << theCalls;
+            on_actionSDSquareYourSets_triggered();
+            ui->tableWidgetCurrentSequence->clear(); // clear the current sequence pane
+            sdthread->resetAndExecute(theCalls);  // OK LET'S TRY THIS
 
             // put the selection at the beginning (Arranger) or no selection (Designer)
             // this doesn't work, because the load is asyncronous
