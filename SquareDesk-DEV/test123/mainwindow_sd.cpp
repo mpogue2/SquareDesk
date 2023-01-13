@@ -2213,13 +2213,9 @@ void MainWindow::undo_sd_to_row()
 
 void MainWindow::paste_to_tableWidgetCurrentSequence() {
 
-    // TODO: Clear out existing sequence, if there is one...
-//            if (ui->tableWidgetCurrentSequence->rowCount() > 0) {
-//                sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() + 2; // undo this many
-//                qDebug() << "UNDOING: " << sdUndoToLine;
-//                undo_sd_to_row();   // undo everything, don't reinit the engine (which would stop us from
-//                                    // adding new stuff
-//            }
+    // Clear out existing sequence, if there is one...
+    on_actionSDSquareYourSets_triggered();
+    ui->tableWidgetCurrentSequence->clear(); // clear the current sequence pane
 
     const QClipboard *clipboard = QApplication::clipboard();
     const QMimeData *mimeData = clipboard->mimeData();
@@ -2233,12 +2229,14 @@ void MainWindow::paste_to_tableWidgetCurrentSequence() {
         QStringList theCalls = theText.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
 //        qDebug() << "theCalls: " << theCalls;
 
-        // submit calls one at a time to SD (can't use resetAndExecute() here...)
-        for (auto call: theCalls) {
-            // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
-            ui->lineEditSDInput->setText(call);
-            submit_lineEditSDInput_contents_to_sd(); // send line to SD
-        }
+        sdthread->resetAndExecute(theCalls);  // OK LET'S TRY THIS
+
+//        // submit calls one at a time to SD (can't use resetAndExecute() here...)
+//        for (auto call: theCalls) {
+//            // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
+//            ui->lineEditSDInput->setText(call);
+//            submit_lineEditSDInput_contents_to_sd(); // send line to SD
+//        }
     } else {
         qDebug() << "ERROR: CANNOT UNDERSTAND CLIPBOARD DATA"; // error? warning?
     }
