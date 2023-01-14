@@ -1730,6 +1730,9 @@
                 <property name="contextMenuPolicy">
                  <enum>Qt::CustomContextMenu</enum>
                 </property>
+                <property name="alternatingRowColors">
+                 <bool>true</bool>
+                </property>
                 <column>
                  <property name="text">
                   <string>Call</string>
