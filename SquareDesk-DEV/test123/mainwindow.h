@@ -617,6 +617,8 @@ private slots:
 
     void on_actionSave_Sequence_As_triggered();
 
+    void on_actionShow_Frames_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

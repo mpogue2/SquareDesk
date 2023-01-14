@@ -56,12 +56,18 @@ void SDLineEdit::focusInEvent(QFocusEvent *e)
 {
   QLineEdit::focusInEvent(e);
 
-  // AND, if there's anything in the Current Sequence, render the last item and clear any selection
-  //  as we're going back to entering calls (we want to see the last know state of the square for this case)
-  int c = mainWindow->ui->tableWidgetCurrentSequence->rowCount();
+//  // AND, if there's anything in the Current Sequence, render the last item and clear any selection
+//  //  as we're going back to entering calls (we want to see the last know state of the square for this case)
 
-  if (c > 0) {
-      mainWindow->ui->tableWidgetCurrentSequence->clearSelection();
-      mainWindow->render_sd_item_data(mainWindow->ui->tableWidgetCurrentSequence->item(c-1, 1)); // last row, col 1
+  if (mainWindow != NULL) {
+      int c = mainWindow->ui->tableWidgetCurrentSequence->rowCount();
+
+//      qDebug() << "c: " << c;
+      if (c > 0) {
+          mainWindow->ui->tableWidgetCurrentSequence->clearSelection();
+          mainWindow->render_sd_item_data(mainWindow->ui->tableWidgetCurrentSequence->item(c-1, 1)); // last row, col 1
+      }
+  } else {
+      qDebug() << "mainWindow was NULL!";
   }
 }

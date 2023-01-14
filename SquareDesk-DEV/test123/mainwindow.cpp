@@ -1004,6 +1004,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             } else if (ag2.contains(action->text())) {
                 sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
 //                qDebug() << "ag2 item: " << action->text(); // top level item
+                if (action->text() == "Sequence Designer") {
+                    sdViewActionTriggered(action); // make sure this gets run at startup time
+                }
             }
         }
     }
@@ -1101,7 +1104,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a} // DEPRECATED
     currentSDKeyboardLevel = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
+    //    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
+//    ui->tabWidget_2->setTabText(1, QString("F4 Workshop [3/14]"));
 
     t.elapsed(__LINE__);
 
@@ -1248,6 +1252,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         });
 
     on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
+    on_actionShow_Frames_triggered(); // show or hide frames
+    ui->actionSequence_Designer->setChecked(true);
 
     connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
     connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
@@ -6396,7 +6402,7 @@ void MainWindow::microphoneStatusUpdate() {
 //    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 //    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    QString kybdStatus("Audio: " + lastAudioDeviceName + ",  SD: " + currentSDKeyboardLevel);
+    QString kybdStatus("Audio: " + lastAudioDeviceName + ",  SD Level: " + currentSDKeyboardLevel);
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 
@@ -6657,6 +6663,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
 
         ui->tableWidgetCurrentSequence->clearSelection();
         ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::ContiguousSelection); // can select any set of contiguous items with SHIFT
+        ui->tableWidgetCurrentSequence->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 
         ui->tabWidgetSDMenuOptions->setTabVisible(0, true); // Options
         ui->tabWidgetSDMenuOptions->setTabVisible(1, true); // ?
@@ -6664,6 +6671,13 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
 
         ui->lineEditSDInput->setVisible(true);  // make SD input field visible
         ui->lineEditSDInput->setFocus(); // put the focus in the SD input field
+
+        ui->label_SD_Resolve->setVisible(true); // hide resolve field
+
+        ui->actionShow_Frames->setChecked(false); // hide frames
+        on_actionShow_Frames_triggered();
+
+        ui->labelWorkshop->setText("<B>Current Sequence");
     } else {
         // Dance Arranger
         ui->actionFormation_Thumbnails->setChecked(false); // these are not shown, but they are still there..., so we can reference them onDoubleClick below
@@ -6679,6 +6693,8 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
             ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item)
             //on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
+
+            ui->tableWidgetCurrentSequence->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
         }
 
         ui->tabWidgetSDMenuOptions->setTabVisible(0, false); // Options
@@ -6687,6 +6703,13 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
 
         ui->lineEditSDInput->setVisible(false);  // hide SD input field
         ui->tableWidgetCurrentSequence->setFocus(); // put the focus in the current sequence pane, where the first one will be bright blue (not gray)
+
+        ui->label_SD_Resolve->setVisible(false); // hide resolve field
+
+        ui->actionShow_Frames->setChecked(true); // show frames
+        on_actionShow_Frames_triggered();
+
+        ui->labelWorkshop->setText("<html><head/><body><p><span style=\" font-weight:700; color:#0433ff;\">F4</span><span style=\" font-weight:700;\"> Workshop [14/17]</span></p></body></html>");
     }
 }
 
@@ -8910,4 +8933,15 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(true);
     }
 
+}
+
+void MainWindow::on_actionShow_Frames_triggered()
+{
+    bool vis = ui->actionShow_Frames->isChecked();
+    ui->labelEasy->setVisible(vis);
+    ui->labelMedium->setVisible(vis);
+    ui->labelHard->setVisible(vis);
+    ui->listEasy->setVisible(vis);
+    ui->listMedium->setVisible(vis);
+    ui->listHard->setVisible(vis);
 }

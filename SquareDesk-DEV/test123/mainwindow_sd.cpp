@@ -1933,7 +1933,7 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
         default: break;
     }
 
-    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
+//    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
 
     microphoneStatusUpdate(); // update the level designator
 
@@ -2004,7 +2004,8 @@ void MainWindow::on_actionFormation_Thumbnails_triggered()
 
 void MainWindow::on_actionSD_Output_triggered()
 {
-    ui->tabWidget_2->setTabVisible(0, ui->actionSD_Output->isChecked()); // 0 = SD Output tab
+//    ui->tabWidget_2->setTabVisible(0, ui->actionSD_Output->isChecked()); // 0 = SD Output tab
+    ui->listWidgetSDOutput->setVisible(ui->actionSD_Output->isChecked());
 }
 
 // ------------------------------
