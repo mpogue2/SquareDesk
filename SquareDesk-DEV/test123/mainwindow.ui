@@ -1695,6 +1695,11 @@
           </item>
           <item>
            <widget class="QListWidget" name="listWidgetSDOutput">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="contextMenuPolicy">
              <enum>Qt::CustomContextMenu</enum>
             </property>
