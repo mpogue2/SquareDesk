@@ -1061,8 +1061,7 @@ public:
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
 
-    void loadFrame(QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget
-    void loadCentralFrame(QString filename, int seqNum);                     // loads a specified frame from a file in <musicDir>/sd/ into the central table widget
+    void loadFrame(QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget (or a table, if list == null)
 };
 
 // currentState:
