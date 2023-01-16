@@ -1554,6 +1554,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
 
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
+    cmd = cmd.replace("1 & 1/2","1-1/2");
     cmd = cmd.replace("once and a half","1-1/2");
     cmd = cmd.replace("one and a half","1-1/2");
     cmd = cmd.replace("two and a half","2-1/2");
@@ -1706,6 +1707,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
     if (cmd.endsWith("square thru")) {
         cmd.replace("square thru", "square thru 4");
     }
+
+    cmd.replace("1/2 square thru", "square thru 2");
 
     // SD COMMANDS -------
 

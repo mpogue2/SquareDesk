@@ -53,6 +53,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#include <QVector>
 #include <QShortcut>
 #include <QtWebEngineWidgets/QtWebEngineWidgets>
 #include <QWheelEvent>
@@ -1051,6 +1052,17 @@ public:
     void setSDCoupleNumberingScheme(const QString &scheme);
     void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme);
     QString sdLastFormationName;
+
+    // one file = one frame, length(frameFiles) = F<max> key assignment
+    // TODO: these will be saved as preferences eventually, or maybe these will somewhere in the sqlite DB
+    QStringList frameFiles;   // list of which files are assigned to keys F1-F10, e.g. "ceder/basic", "mpogue/hard"
+    QStringList frameVisible; // strings representing frame visibility/placement, e.g. ["sidebar", "", "central"], there must be exactly one "central" and 3 "sidebar"
+    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
+    QVector<int> frameCurSeq;
+    QVector<int> frameMaxSeq;
+
+    void loadFrame(QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget
+    void loadCentralFrame(QString filename, int seqNum);                     // loads a specified frame from a file in <musicDir>/sd/ into the central table widget
 };
 
 // currentState:
