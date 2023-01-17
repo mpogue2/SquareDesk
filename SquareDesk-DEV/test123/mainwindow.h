@@ -226,6 +226,7 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
+    bool handleSDFunctionKey(int key, QString text);
     bool someWebViewHasFocus();
 
     void handleDurationBPM();  // when duration and BPM are ready, call this to setup tempo slider, et.al.
@@ -1061,7 +1062,8 @@ public:
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
 
-    void loadFrame(QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget (or a table, if list == null)
+    void refreshSDframes();
+    void loadFrame(int i, QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget (or a table, if list == null)
 };
 
 // currentState:

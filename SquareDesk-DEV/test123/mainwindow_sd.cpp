@@ -842,7 +842,9 @@ void MainWindow::on_sd_update_status_bar(QString str)
         render_current_sd_scene_to_tableWidgetCurrentSequence(row, formation);
 #ifdef NO_TIMING_INFO
         QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row, kColCurrentSequenceCall);
-        item->setData(Qt::UserRole, QVariant(formation));
+        if (item != nullptr) {
+            item->setData(Qt::UserRole, QVariant(formation));
+        }
 #endif /* ifdef NO_TIMING_INFO */
     }
 //    sdformation.clear(); // not needed.  If here, it prevents updates when group menu item is toggled.
@@ -1054,7 +1056,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         ui->label_SD_Resolve->setText("");
     }
 
-    if (str.startsWith("SD -- square dance")) {
+    if (str.startsWith("SD -- square dance") ||                 // startup time
+            str.contains("current sequence will be aborted")) { // square your sets time
         // start of copyright section
         ui->listWidgetSDOutput->clear();
     }
@@ -1265,7 +1268,9 @@ void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(int row, 
     ui->tableWidgetCurrentSequence->setItem (row, kColCurrentSequenceFormation, item);
 #ifdef NO_TIMING_INFO
     QTableWidgetItem *textItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
-    textItem->setData(Qt::UserRole, QVariant(formation));
+    if (textItem != nullptr) {
+        textItem->setData(Qt::UserRole, QVariant(formation));
+    }
 #endif
 }
 
@@ -1910,6 +1915,7 @@ void MainWindow::restartSDThread(dance_level dance_program)
 
 void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
 {
+    ui->listWidgetSDOutput->clear();  // we're restarting the engine, so clear the SDOutput window
     restartSDThread(dance_program);
 
 //    for (int i = 0; actions[i]; ++i)
@@ -2619,7 +2625,6 @@ void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(const QPoint &
 }
 
 void MainWindow::on_actionSDSquareYourSets_triggered() {
-    ui->lineEditSDInput->clear();
     restartSDThread(get_current_sd_dance_program());
 
     if (nullptr == sdthread) // NULL == sdthread)
@@ -2628,6 +2633,10 @@ void MainWindow::on_actionSDSquareYourSets_triggered() {
         restartSDThread(get_current_sd_dance_program());
     }
 //    qDebug() << "Square your sets";
+
+    ui->listWidgetSDOutput->clear();  // squaring up, so clear the SDOutput window, too.
+    //  this allows us to scan for "(no matches)"
+    ui->lineEditSDInput->clear();
     ui->lineEditSDInput->setFocus();  // set focus to the input line
 }
 
@@ -2755,3 +2764,223 @@ void MainWindow::saveSequenceAs()
     }
 }
 
+void MainWindow::refreshSDframes() {
+    // refreshSDframes ---------
+    int whichSidebar = 0;
+    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2 [%3/%4]</span></p></body></html>");
+    for (int i = 0; i < frameFiles.length(); i++) {
+//        qDebug() << "frameFile: " << frameFiles[i] << ", frameVisible: " << frameVisible[i] << ", frameLevel: " << frameLevel[i];
+        if (frameVisible[i] == "sidebar") {
+            whichSidebar += 1;
+            switch (whichSidebar) {
+                case 1:
+                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listEasy);
+                    break;
+                case 2:
+                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listMedium);
+                    break;
+                case 3:
+                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listHard);
+                    break;
+                default: break; // by design, only the first 3 sidebar frames found are loaded (FIX)
+            }
+
+        } else if (frameVisible[i] == "central") {
+            ui->labelWorkshop->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i])); // use fancy string
+            loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"
+            ui->tableWidgetCurrentSequence->selectRow(0);  // When we use F11 or F12 and refresh the frames, affecting the Current Sequence frame, select the first row (TODO: always, or just Dance Arranger mode?)
+        }
+    }
+}
+
+// TODO: If we ask to load a frame, and that frame is already loaded, just return...fixes the F12 F12 F12 visual noise problem.
+
+// loads a specified frame from a file in <musicDir>/sd/ into a listWidget (if not NULL), else into the tableSequence widget
+void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *list) {
+//    qDebug() << "----- loadFrame: " << filename << seqNum;
+    QStringList callList;
+
+    if (list != nullptr) {
+        list->clear();  // clear out the current contents
+    }
+
+    QString origFilename = filename;
+    QFile theFile((musicRootPath + "/sd/" + filename.replace(".","/SStoSS/") + ".choreodb_to_csds.in"));
+//    qDebug() << "theFile: " << theFile.fileName();
+
+    if(!theFile.open(QIODevice::ReadOnly)) {
+//        QMessageBox::information(0, "ERROR", theFile.errorString()); // if file does not exist...
+        // before the user (or this app) has created the right files, we will use sample data
+
+        frameMaxSeq[i] = 1;  // for all fake data, there is exactly one sequence available.  Communicate this to everybody (like frame titles, and F11/F12 handler).
+
+        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//        qDebug() << "FILE DOES NOT EXIST, level: " << level;
+
+        QStringList defaultBasic = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "centers pass thru", "AL"};
+        QStringList defaultMS    = {"heads pass thru", "cloverleaf", "zoom", "centers square thru 3", "AL"};
+        QStringList defaultPlus  = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "double pass thru", "track 2", "hinge", "roll", "pass thru", "RLG"};
+        QStringList defaultA1    = {"heads pass the ocean", "chain reaction"};
+        QStringList defaultA2    = {"heads pass the ocean", "extend", "motivate"};
+        QStringList defaultC1    = {"heads wheel fan thru", "swing thru", "tally ho"};
+
+        QStringList theCalls = defaultBasic;  // basic calls are allowed at all levels, so this is the default
+        dance_level dlevel = l_mainstream;
+        if (level == "basic") {
+            theCalls = defaultBasic;
+            dlevel = l_mainstream;
+        } else if (level == "ms") {
+            theCalls = defaultMS;
+            dlevel = l_mainstream;
+        } else if (level == "plus") {
+            theCalls = defaultPlus;
+            dlevel = l_plus;
+        } else if (level == "a1") {
+            theCalls = defaultA1;
+            dlevel = l_a1;
+        } else if (level == "a2") {
+            theCalls = defaultA2;
+            dlevel = l_a2;
+        } else if (level == "c1") {
+            theCalls = defaultC1;
+            dlevel = l_c1;
+        }
+
+        if (list != nullptr) {
+//            qDebug() << "Loading SIDEBAR widget with DEFAULT calls: " << theCalls;
+            list->clear();
+            for (auto i:theCalls) {
+                list->addItem(i);    // add to a list widget
+                // NOTE: the SD engine's level must NOT be set here.
+            }
+        } else {
+            qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
+            qDebug() << "***** TEMPORARILY DISABLED *****";
+            ui->labelWorkshop->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
+            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
+//            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
+            ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
+            sdthread->resetAndExecute(theCalls);     // finally, load the list of calls
+        }
+
+    } else {
+        // file found, but we need to tell SD what the level is first
+        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//        qDebug() << "FILE EXISTS, setting level: " << level;
+
+        // TODO: turn this into a function, it's used in 2 places...
+        dance_level dlevel = l_mainstream;
+        if (level == "basic") {
+            dlevel = l_mainstream;
+        } else if (level == "ms") {
+            dlevel = l_mainstream;
+        } else if (level == "plus") {
+            dlevel = l_plus;
+        } else if (level == "a1") {
+            dlevel = l_a1;
+        } else if (level == "a2") {
+            dlevel = l_a2;
+        } else if (level == "c1") {
+            dlevel = l_c1;
+        }
+
+        // now read in the lines of the file, looking for the sequence we want
+        QTextStream in(&theFile);
+
+        int seq = 0;
+        bool wantThisSequence = false;
+        while(!in.atEnd()) {
+            QString line = in.readLine();
+            if (line.startsWith("#REC=")) {
+                seq++;
+                wantThisSequence = (seq == seqNum); // want it, iff the seqNum matches the one we're looking at
+                continue;
+            } else if (line.startsWith("@")) {
+                if (wantThisSequence) {
+                    break;  // break out of the loop, if we just read all the lines for seqNum
+                }
+            } else if (line.startsWith("#")) {
+                continue; // skip #PROOFREAD#, #EASY#, #SEQTYPE#, #AUTHOR=...#, etc.
+            } else if (wantThisSequence){
+                // this is the place!
+//                qDebug() << "FOUND SEQ: " << seq << ": " << line;
+                // TODO: this string processing needs to be made into a function that returns a QStringList (because
+                //   some strings like "Heads Lead Right & Veer Left" will return TWO calls to be sent to SD)
+                line = line.replace(QRegularExpression(",$"), "");
+                line = line.replace(QRegularExpression("^heads", QRegularExpression::CaseInsensitiveOption),    "HEADS");
+                line = line.replace(QRegularExpression("^sides", QRegularExpression::CaseInsensitiveOption),    "SIDES");
+                line = line.replace(QRegularExpression("^all ", QRegularExpression::CaseInsensitiveOption),    "ALL "); // NOTE: spaces
+                line = line.replace(QRegularExpression("^centers", QRegularExpression::CaseInsensitiveOption),  "CENTERS");
+                line = line.replace(QRegularExpression("^ends", QRegularExpression::CaseInsensitiveOption),     "ENDS");
+                if (list != nullptr) {
+                    list->addItem(line);    // add to a list widget
+                } else {
+                    callList.append(line);  // add to the tableSequence widget (below)
+                }
+            }
+        }
+
+        if (!wantThisSequence) {
+            // sequence not found!, wantThisSequence will be true if one was found and we broke out of the while loop, false otherwise
+            if (list != nullptr) {
+                list->addItem(QString("Sequence #%1 not found in file.").arg(seqNum));
+            } else {
+                qDebug() << "TODO: Sequence not found for Central widget, DO SOMETHING HERE";
+            }
+        }
+
+        if (callList.length() != 0) {
+            // we are loading the central widget now
+//            qDebug() << "Loading central widget with level: " << level << ", callList: " << callList;
+            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
+//            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
+            ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
+            sdthread->resetAndExecute(callList);     // finally, send the calls in the list to SD.
+        }
+
+        theFile.close();
+    }
+//    qDebug() << "----- DONE";
+}
+
+// take care of F1 - F12 when SD tab is showing ------------------------
+bool MainWindow::handleSDFunctionKey(int key, QString text) {
+    Q_UNUSED(text)
+
+//    qDebug() << "handleSDFunctionKey(" << key << ")";
+    if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
+        return false;
+    }
+//    qDebug() << "YES handleSDFunctionKey(" << key << ")";
+
+    int centralIndex = frameVisible.indexOf("central");
+
+    if (key == Qt::Key_F11) {
+        // F11
+//        qDebug() << "F11 pressed.";
+        frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+    } else if (key == Qt::Key_F12) {
+        // F12
+//        qDebug() << "F12 pressed.";
+        frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+    } else if (key - Qt::Key_F1 < frameVisible.count()) { // only valid FN keys are those from F1 - F<length of frameVisible - 1>, e.g right now F1 - F7
+//        qDebug() << "F" << key - Qt::Key_F1 + 1 << " pressed.";
+        if (frameVisible[key - Qt::Key_F1] == "sidebar") { // can only press keys that are sidebars; central is already central, others are not shown at all
+            frameVisible[centralIndex] = "sidebar";
+            frameVisible[key - Qt::Key_F1] = "central";
+        } else {
+//            qDebug() << "    Key ignored, because that frame isn't visible right now.";
+        }
+    } else {
+//        qDebug() << "ERROR: UNHANDLED FUNCTION KEY " << key - Qt::Key_F1 + 1;
+    }
+
+//    qDebug() << "NEW: " << frameVisible << frameCurSeq;
+
+    refreshSDframes(); // load 3 sidebar and 1 central frame, update labels
+
+    return(true);
+}
