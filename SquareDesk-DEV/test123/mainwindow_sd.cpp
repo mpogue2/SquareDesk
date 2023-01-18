@@ -2882,8 +2882,8 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                 // NOTE: the SD engine's level must NOT be set here.
             }
         } else {
-            qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
-            qDebug() << "***** TEMPORARILY DISABLED *****";
+//            qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
+//            qDebug() << "***** TEMPORARILY DISABLED *****";
             ui->labelWorkshop->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
             ui->label_CurrentSequence->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
             setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
@@ -2988,10 +2988,12 @@ bool MainWindow::handleSDFunctionKey(int key, QString text) {
         // F11
 //        qDebug() << "F11 pressed.";
         frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+        // TODO: should set selection to first item in list, if in Dance Arranger
     } else if (key == Qt::Key_F12) {
         // F12
 //        qDebug() << "F12 pressed.";
         frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+        // TODO: should set selection to first item in list, if in Dance Arranger
     } else if (key - Qt::Key_F1 < frameVisible.count()) { // only valid FN keys are those from F1 - F<length of frameVisible - 1>, e.g right now F1 - F7
 //        qDebug() << "F" << key - Qt::Key_F1 + 1 << " pressed.";
         if (frameVisible[key - Qt::Key_F1] == "sidebar") { // can only press keys that are sidebars; central is already central, others are not shown at all
@@ -3014,7 +3016,7 @@ bool MainWindow::handleSDFunctionKey(int key, QString text) {
 // SD editing buttons ------
 void MainWindow::on_pushButtonSDUnlock_clicked()
 {
-    qDebug() << "SDUnlock triggered";
+//    qDebug() << "SDUnlock triggered";
     ui->pushButtonSDSave->setVisible(true);
     ui->pushButtonSDUnlock->setVisible(false);
     ui->pushButtonSDNew->setVisible(false);
@@ -3024,7 +3026,8 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
 }
 
 void MainWindow::SDCopyToFrame(int i) {
-    qDebug() << "SDCopyToFrame " << i << " triggered";
+    Q_UNUSED(i)
+//    qDebug() << "SDCopyToFrame " << i << " triggered";
     ui->pushButtonSDSave->setVisible(false);
     ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDNew->setVisible(true);
@@ -3034,7 +3037,8 @@ void MainWindow::SDCopyToFrame(int i) {
 }
 
 void MainWindow::SDDeleteFrame(int i) {
-    qDebug() << "SDDeleteFrame " << i << " triggered";
+    Q_UNUSED(i)
+//    qDebug() << "SDDeleteFrame " << i << " triggered";
     ui->pushButtonSDSave->setVisible(false);
     ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDNew->setVisible(true);
@@ -3046,9 +3050,10 @@ void MainWindow::SDDeleteFrame(int i) {
 void MainWindow::SDMoveToFrame(int i) {
     if (i == 0) {
         // TODO: save to Current Frame
+//        qDebug() << "SDMoveToFrame(0) == SaveToCurrentFrame";
     } else {
         // TODO: save to a different frame (possibly also the Current Frame)
-        qDebug() << "SDMoveToFrame SAVE TO FRAME " << i << " triggered, exiting edit mode";
+//        qDebug() << "SDMoveToFrame SAVE TO FRAME " << i << " triggered, exiting edit mode";
 
     }
 
@@ -3065,7 +3070,7 @@ void MainWindow::SDMoveToFrame(int i) {
 
 void MainWindow::on_pushButtonSDNew_clicked()
 {
-    qDebug() << "on_pushButtonSDNew_clicked()";
+//    qDebug() << "on_pushButtonSDNew_clicked()";
     on_actionSDSquareYourSets_triggered(); // clear everything out of the Current Sequence window
     on_pushButtonSDUnlock_clicked(); // unlock
 
@@ -3079,7 +3084,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
 
     QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
 
-    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
+//    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
     QFile file(pathToAppendFile);
     if (file.open(QIODevice::Append))
@@ -3095,7 +3100,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
         frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
         refreshSDframes();
     } else {
-        qDebug() << "ERROR: could not append to " << pathToAppendFile;
+//        qDebug() << "ERROR: could not append to " << pathToAppendFile;
     }
 
 }
