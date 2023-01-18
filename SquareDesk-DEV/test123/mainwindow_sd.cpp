@@ -2764,6 +2764,17 @@ void MainWindow::saveSequenceAs()
     }
 }
 
+void MainWindow::on_actionShow_Frames_triggered()
+{
+    bool vis = ui->actionShow_Frames->isChecked();
+    ui->labelEasy->setVisible(vis);
+    ui->labelMedium->setVisible(vis);
+    ui->labelHard->setVisible(vis);
+    ui->listEasy->setVisible(vis);
+    ui->listMedium->setVisible(vis);
+    ui->listHard->setVisible(vis);
+}
+
 void MainWindow::refreshSDframes() {
     // refreshSDframes ---------
     int whichSidebar = 0;
@@ -2789,7 +2800,18 @@ void MainWindow::refreshSDframes() {
             }
 
         } else if (frameVisible[i] == "central") {
-            ui->labelWorkshop->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i])); // use fancy string
+            QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]);
+            currentFrameTextName = frameFiles[i]; // save just the name of the frame
+            currentFrameHTMLName = html1;         // save fancy string
+
+            if ( ui->pushButtonSDSave->menu() != nullptr ) {
+                ui->pushButtonSDSave->menu()->actions()[0]->setText(QString("Save Current Sequence to ") + currentFrameTextName);       // first one in the list is Save to Current (item 0)
+                ui->pushButtonSDSave->menu()->actions()[1]->setText(QString("Delete Current Sequence from ") + currentFrameTextName);   // second one in the list is Delete from Current (item 1)
+            }
+
+            ui->labelWorkshop->setText(html1);          // use fancy string
+            ui->label_CurrentSequence->setText(html1);  // use fancy string
+
             loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"
             ui->tableWidgetCurrentSequence->selectRow(0);  // When we use F11 or F12 and refresh the frames, affecting the Current Sequence frame, select the first row (TODO: always, or just Dance Arranger mode?)
         }
@@ -2814,6 +2836,9 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
     if(!theFile.open(QIODevice::ReadOnly)) {
 //        QMessageBox::information(0, "ERROR", theFile.errorString()); // if file does not exist...
         // before the user (or this app) has created the right files, we will use sample data
+
+        SDtestmode = true; // if any file not found, disable edit buttons.
+        qDebug() << "File does not exist: " << theFile.fileName();
 
         frameMaxSeq[i] = 1;  // for all fake data, there is exactly one sequence available.  Communicate this to everybody (like frame titles, and F11/F12 handler).
 
@@ -2860,6 +2885,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
             qDebug() << "***** TEMPORARILY DISABLED *****";
             ui->labelWorkshop->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
+            ui->label_CurrentSequence->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
             setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
 //            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
             ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
@@ -2980,7 +3006,96 @@ bool MainWindow::handleSDFunctionKey(int key, QString text) {
 
 //    qDebug() << "NEW: " << frameVisible << frameCurSeq;
 
-    refreshSDframes(); // load 3 sidebar and 1 central frame, update labels
+    refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
 
     return(true);
+}
+
+// SD editing buttons ------
+void MainWindow::on_pushButtonSDUnlock_clicked()
+{
+    qDebug() << "SDUnlock triggered";
+    ui->pushButtonSDSave->setVisible(true);
+    ui->pushButtonSDUnlock->setVisible(false);
+    ui->pushButtonSDNew->setVisible(false);
+
+    ui->lineEditSDInput->setVisible(true);
+    ui->lineEditSDInput->setFocus();
+}
+
+void MainWindow::SDCopyToFrame(int i) {
+    qDebug() << "SDCopyToFrame " << i << " triggered";
+    ui->pushButtonSDSave->setVisible(false);
+    ui->pushButtonSDUnlock->setVisible(true);
+    ui->pushButtonSDNew->setVisible(true);
+
+    ui->lineEditSDInput->setVisible(false);
+    ui->tableWidgetCurrentSequence->setFocus();
+}
+
+void MainWindow::SDDeleteFrame(int i) {
+    qDebug() << "SDDeleteFrame " << i << " triggered";
+    ui->pushButtonSDSave->setVisible(false);
+    ui->pushButtonSDUnlock->setVisible(true);
+    ui->pushButtonSDNew->setVisible(true);
+
+    ui->lineEditSDInput->setVisible(false);
+    ui->tableWidgetCurrentSequence->setFocus();
+}
+
+void MainWindow::SDMoveToFrame(int i) {
+    if (i == 0) {
+        // TODO: save to Current Frame
+    } else {
+        // TODO: save to a different frame (possibly also the Current Frame)
+        qDebug() << "SDMoveToFrame SAVE TO FRAME " << i << " triggered, exiting edit mode";
+
+    }
+
+    // exit EDIT MODE
+    ui->pushButtonSDSave->setVisible(false);
+    ui->pushButtonSDUnlock->setVisible(true);
+    ui->pushButtonSDNew->setVisible(true);
+
+    ui->lineEditSDInput->setVisible(false);
+    ui->tableWidgetCurrentSequence->setFocus();
+
+    // TODO: IMPL MoveTo is CopyTo(new) plus DeleteFrame(old)
+}
+
+void MainWindow::on_pushButtonSDNew_clicked()
+{
+    qDebug() << "on_pushButtonSDNew_clicked()";
+    on_actionSDSquareYourSets_triggered(); // clear everything out of the Current Sequence window
+    on_pushButtonSDUnlock_clicked(); // unlock
+
+    // append this null sequence to the current frame file, and then refreshFrames to load it
+    //    #REC=99999# // TODO: make this a big incrementing number
+    //    #AUTHOR=TEST#
+    //    @
+
+    QString who     = QString(currentFrameTextName).replace(QRegularExpression("\\..*"), "");
+    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+
+    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+
+    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
+
+    QFile file(pathToAppendFile);
+    if (file.open(QIODevice::Append))
+    {
+        QTextStream stream(&file);
+        stream << "#REC=99999#\n";
+        stream << "#AUTHOR=TEST#\n";
+        stream << "@\n";
+        file.close();
+
+        int centralNum = frameVisible.indexOf("central");
+        frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
+        frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+        refreshSDframes();
+    } else {
+        qDebug() << "ERROR: could not append to " << pathToAppendFile;
+    }
+
 }

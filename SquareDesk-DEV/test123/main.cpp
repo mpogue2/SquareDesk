@@ -50,6 +50,19 @@ int main(int argc, char *argv[])
 
     QSplashScreen splash(pixmap);
     splash.show();
+
+    // If running from QtCreator, use normal debugging -------------
+    QByteArray envVar = qgetenv("QTDIR");       //  check if the app is ran in Qt Creator
+
+    if (envVar.isEmpty()) {
+        // if running as a standalone app, log to a file instead of the console
+        qInstallMessageHandler(MainWindow::customMessageOutput); // custom message handler for debugging
+    } else {
+        // if running inside QtCreator, suppress some of the messages going to the Application Output pane
+        qDebug() << "***** NOTE: some Application Output warnings suppressed by MainWindow::customMessageOutputQt() *****";
+        qInstallMessageHandler(MainWindow::customMessageOutputQt); // custom message handler for debugging inside QtCreator
+    }
+
 //    a.processEvents();
 
     MainWindow w(&splash);  // setMessage() will be called several times in here while loading...
@@ -72,14 +85,6 @@ int main(int argc, char *argv[])
     a.installEventFilter(new GlobalEventFilter(w.ui));
 
     Q_INIT_RESOURCE(startupwizard); // resources for the startup wizard
-
-    // If running from QtCreator, use normal debugging -------------
-    QByteArray envVar = qgetenv("QTDIR");       //  check if the app is ran in Qt Creator
-
-    if (envVar.isEmpty()) {
-        // if running as a standalone app, log to a file instead of the console
-        qInstallMessageHandler(MainWindow::customMessageOutput); // custom message handler for debugging
-    }
 
     // this is needed, because when the splash screen happens, we don't get the usual appState change message
     //  so, SD doesn't work until you click on another window and come back.

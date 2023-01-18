@@ -1280,9 +1280,53 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";
     frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";
     frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;
-    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 1             << 2;  // TODO: update these at init time
+    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // TODO: update these at init time
 
+    SDtestmode = false;
     refreshSDframes();
+
+    // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
+    if (SDtestmode) {
+        ui->pushButtonSDSave->setVisible(false);
+        ui->pushButtonSDUnlock->setVisible(false);
+        ui->pushButtonSDNew->setVisible(false);
+    }
+
+    QMenu *saveSDMenu = new QMenu(this);
+    saveSDMenu->addAction("Save to Current Frame (local.plus)", QKeyCombination(Qt::ControlModifier, Qt::Key_S), this, [this]{ SDMoveToFrame(0); }); // CMD-S to save, 0 = save to Current Frame
+    saveSDMenu->addAction("Delete Sequence from Current Frame (local.plus)"); // no shortcut for delete, deletes from Current Frame
+    saveSDMenu->addSeparator();
+
+    // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
+    //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
+
+    QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to Frame");
+    submenuMove->addAction("F1 ceder.basic", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveToFrame(1); });
+    submenuMove->addAction("F2 ceder.ms",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveToFrame(2); });
+    submenuMove->addAction("F3 ceder.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveToFrame(3); });
+    submenuMove->addAction("F4 ceder.a1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveToFrame(4); });
+    submenuMove->addAction("F5 ceder.a2",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDMoveToFrame(5); });
+    submenuMove->addAction("F6 local.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDMoveToFrame(6); });
+    submenuMove->addAction("F7 local.c1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDMoveToFrame(7); });
+
+    QMenu* submenuCopy = saveSDMenu->addMenu("Copy Sequence to Frame");
+    submenuCopy->addAction("F1 ceder.basic", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDCopyToFrame(1); });
+    submenuCopy->addAction("F2 ceder.ms",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDCopyToFrame(2); });
+    submenuCopy->addAction("F3 ceder.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDCopyToFrame(3); });
+    submenuCopy->addAction("F4 ceder.a1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDCopyToFrame(4); });
+    submenuCopy->addAction("F5 ceder.a2",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDCopyToFrame(5); });
+    submenuCopy->addAction("F6 local.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDCopyToFrame(6); });
+    submenuCopy->addAction("F7 local.c1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDCopyToFrame(7); });
+
+    foreach(QAction *action, submenuCopy->actions()){ // enable shortcuts for all Copy actions
+        action->setShortcutVisibleInContextMenu(true);
+    }
+    foreach(QAction *action, submenuMove->actions()){ // enable shortcuts for all Move actions
+        action->setShortcutVisibleInContextMenu(true);
+    }
+
+    ui->pushButtonSDSave->setMenu(saveSDMenu);
+    ui->pushButtonSDSave->setVisible(false);
 }
 
 
@@ -6668,6 +6712,8 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
     action->setChecked(true);  // check the new one
 //    qDebug() << "***** sdViewActionTriggered()" << action << action->isChecked();
 
+    ui->labelWorkshop->setHidden(true); // DEBUG
+
     if (action->text() == "Sequence Designer") {
         // turn on thumbnails
         ui->actionFormation_Thumbnails->setChecked(true);
@@ -6697,6 +6743,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         on_actionShow_Frames_triggered();
 
         ui->labelWorkshop->setText("<B>Current Sequence");
+        ui->label_CurrentSequence->setText("<B>Current Sequence");
     } else {
         // Dance Arranger
         ui->actionFormation_Thumbnails->setChecked(false); // these are not shown, but they are still there..., so we can reference them onDoubleClick below
@@ -8631,6 +8678,27 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     }
 }
 
+void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
+//    QByteArray localMsg = msg.toLocal8Bit();
+
+    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
+    QString logLevelName = msgLevelHash[type];
+    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
+
+    // suppress known warnings from QtCreator Application Output window
+    if (msg.contains("The provided value 'moz-chunked-arraybuffer' is not a valid enum value of type XMLHttpRequestResponseType") ||
+            msg.contains("js:") ||
+            txt.contains("Warning: #") ||
+            msg.contains("GL Type: core_profile")) {
+        return;
+    }
+
+    qDebug() << txt; // inside QtCreator, just log it to the console
+
+}
+
 // ----------------------------------------------------------------------
 void MainWindow::on_action5_seconds_triggered()
 {
@@ -8957,15 +9025,4 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(true);
     }
 
-}
-
-void MainWindow::on_actionShow_Frames_triggered()
-{
-    bool vis = ui->actionShow_Frames->isChecked();
-    ui->labelEasy->setVisible(vis);
-    ui->labelMedium->setVisible(vis);
-    ui->labelHard->setVisible(vis);
-    ui->listEasy->setVisible(vis);
-    ui->listMedium->setVisible(vis);
-    ui->listHard->setVisible(vis);
 }

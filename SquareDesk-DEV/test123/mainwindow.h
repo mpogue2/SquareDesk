@@ -236,6 +236,7 @@ public:
 
     // ERROR LOGGING...
     static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    static void customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static QString logFilePath;
 
     PreferencesDialog *prefDialog;
@@ -620,6 +621,14 @@ private slots:
     void on_actionSave_Sequence_As_triggered();
 
     void on_actionShow_Frames_triggered();
+
+    // slots for SD editing buttons ------
+    void SDMoveToFrame(int i);
+    void SDCopyToFrame(int i);
+    void SDDeleteFrame(int i);
+    void on_pushButtonSDUnlock_clicked();
+
+    void on_pushButtonSDNew_clicked();
 
 public:
     void on_threadSD_errorString(QString str);
@@ -1061,6 +1070,11 @@ public:
     QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
+
+    QString currentFrameTextName; // e.g. local.plus
+    QString currentFrameHTMLName; // e.g. <HTML>...F6...local.plus</HTML>
+
+    bool SDtestmode;
 
     void refreshSDframes();
     void loadFrame(int i, QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget (or a table, if list == null)

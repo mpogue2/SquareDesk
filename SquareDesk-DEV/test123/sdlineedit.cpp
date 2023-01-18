@@ -62,7 +62,7 @@ void SDLineEdit::focusInEvent(QFocusEvent *e)
   if (mainWindow != NULL) {
       int c = mainWindow->ui->tableWidgetCurrentSequence->rowCount();
 
-//      qDebug() << "c: " << c;
+//      qDebug() << "***** c: " << c;
       if (c > 0) {
           mainWindow->ui->tableWidgetCurrentSequence->clearSelection();
           mainWindow->render_sd_item_data(mainWindow->ui->tableWidgetCurrentSequence->item(c-1, 1)); // last row, col 1
