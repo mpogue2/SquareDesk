@@ -8096,6 +8096,7 @@ void MainWindow::readFlashCallsList() {
             QFile file(lastFlashcardsfile);
             if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 //                qDebug() << "Could not open " << lastFlashcardsfile;
+                lastFlashcardsfile = "";
             } else {
                 while (!file.atEnd()) {
                     QString line = file.readLine().simplified();
@@ -8110,6 +8111,13 @@ void MainWindow::readFlashCallsList() {
         // unchecked, clear the filename, so if it is checked we ask for it
         lastFlashcardsfile = "";
     }
+
+    QString menuItemDisplay = "Select a file";
+    if (lastFlashcardsfile != "") {
+        QFileInfo fi(lastFlashcardsfile);
+        menuItemDisplay = fi.baseName();
+    }
+    ui->actionFlashCallFilechooser->setText(menuItemDisplay);
     
     // Now look check for the calls from relevant levels
 
