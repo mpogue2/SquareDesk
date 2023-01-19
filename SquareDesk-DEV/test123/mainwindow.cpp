@@ -2991,29 +2991,33 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         //   stopping of music when editing a text field).  Sorry, can't use the SPACE BAR
         //   when editing a search field, because " " is a valid character to search for.
         //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
-        if (ui->lineEditSDInput->hasFocus()
-            && KeyEvent->key() == Qt::Key_Tab)
+        if (tabIsSD &&
+                ui->lineEditSDInput->hasFocus() &&
+                KeyEvent->key() == Qt::Key_Tab)
         {
             maybeMainWindow->do_sd_tab_completion();
             return true;
         }
-        else if (tabIsSD && KeyEvent->key() >= Qt::Key_F1 && KeyEvent->key() <= Qt::Key_F12 ) { // SD F1 - F12 FUNCTION KEYS
+        else if (tabIsSD &&
+                 KeyEvent->key() >= Qt::Key_F1 && KeyEvent->key() <= Qt::Key_F12 ) { // SD F1 - F12 FUNCTION KEYS
             // this has to come first.
             return (maybeMainWindow->handleSDFunctionKey(KeyEvent->key(), KeyEvent->text()));
         }
-        else if (ui->tableWidgetCurrentSequence->hasFocus()) {
+        else if (tabIsSD &&
+                 ui->tableWidgetCurrentSequence->hasFocus()) {
             // this has to be second.
             return QObject::eventFilter(Object,Event); // let the tableWidget handle UP/DOWN normally
         }
-        else if (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
-                 ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus()
+        else if (tabIsSD &&
+                 (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
+                 ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus())
                  ) {
             // TODO: If ENTER is pressed, move to the next field in order.
             return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
         }
-        else if (cmdC_KeyPressed                        // When CMD-C is pressed
-                 && tabIsLyricsOrPatter                 // and we're on the Lyrics editor tab
-                 && maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
+        else if (tabIsLyricsOrPatter &&  // we're on the Lyrics editor tab
+                 cmdC_KeyPressed &&      // When CMD-C is pressed
+                 maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
                  ) {
             ui->textBrowserCueSheet->copy();  // Then let's do the copy to clipboard manually anyway, even though we might not have focus
             return true;
@@ -3067,7 +3071,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                   || (ui->dateTimeEditOutroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
-//            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
+            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << KeyEvent->key() << KeyEvent->text();
             // THEN HANDLE IT AS A SPECIAL KEY
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
