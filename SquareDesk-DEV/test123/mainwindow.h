@@ -623,9 +623,12 @@ private slots:
     void on_actionShow_Frames_triggered();
 
     // slots for SD editing buttons ------
-    void SDMoveToFrame(int i);
-    void SDCopyToFrame(int i);
-    void SDDeleteFrame(int i);
+    void SDScanFramesForMax();
+    void SDAppendCurrentSequenceToFrame(int i);
+    void SDMoveCurrentSequenceToFrame(int i);
+    void SDDeleteCurrentSequence();
+    void SDReplaceCurrentSequence();
+    void SDExitEditMode();
     void on_pushButtonSDUnlock_clicked();
 
     void on_pushButtonSDNew_clicked();

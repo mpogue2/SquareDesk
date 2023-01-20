@@ -1282,6 +1282,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;
     frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // TODO: update these at init time
 
+    SDScanFramesForMax(); // update the framMaxSeq's with real numbers
+
     SDtestmode = false;
     refreshSDframes();
 
@@ -1293,30 +1295,30 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     }
 
     QMenu *saveSDMenu = new QMenu(this);
-    saveSDMenu->addAction("Save to Current Frame (local.plus)", QKeyCombination(Qt::ControlModifier, Qt::Key_S), this, [this]{ SDMoveToFrame(0); }); // CMD-S to save, 0 = save to Current Frame
-    saveSDMenu->addAction("Delete Sequence from Current Frame (local.plus)"); // no shortcut for delete, deletes from Current Frame
+    saveSDMenu->addAction("Save Sequence to Current Frame", /* QKeyCombination(Qt::ControlModifier, Qt::Key_S), */ this, [this]{ SDReplaceCurrentSequence(); }); // CMD-S to save (later)
+    saveSDMenu->addAction("Delete Sequence from Current Frame", this, [this]{ SDDeleteCurrentSequence(); });
     saveSDMenu->addSeparator();
 
     // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
     //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
 
-    QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to Frame");
-    submenuMove->addAction("F1 ceder.basic", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveToFrame(1); });
-    submenuMove->addAction("F2 ceder.ms",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveToFrame(2); });
-    submenuMove->addAction("F3 ceder.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveToFrame(3); });
-    submenuMove->addAction("F4 ceder.a1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveToFrame(4); });
-    submenuMove->addAction("F5 ceder.a2",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDMoveToFrame(5); });
-    submenuMove->addAction("F6 local.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDMoveToFrame(6); });
-    submenuMove->addAction("F7 local.c1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDMoveToFrame(7); });
+    QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
+    submenuMove->addAction("F1 ceder.basic", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
+    submenuMove->addAction("F2 ceder.ms",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
+    submenuMove->addAction("F3 ceder.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveCurrentSequenceToFrame(2); });
+    submenuMove->addAction("F4 ceder.a1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveCurrentSequenceToFrame(3); });
+    submenuMove->addAction("F5 ceder.a2",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDMoveCurrentSequenceToFrame(4); });
+    submenuMove->addAction("F6 local.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDMoveCurrentSequenceToFrame(5); });
+    submenuMove->addAction("F7 local.c1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDMoveCurrentSequenceToFrame(6); });
 
-    QMenu* submenuCopy = saveSDMenu->addMenu("Copy Sequence to Frame");
-    submenuCopy->addAction("F1 ceder.basic", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDCopyToFrame(1); });
-    submenuCopy->addAction("F2 ceder.ms",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDCopyToFrame(2); });
-    submenuCopy->addAction("F3 ceder.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDCopyToFrame(3); });
-    submenuCopy->addAction("F4 ceder.a1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDCopyToFrame(4); });
-    submenuCopy->addAction("F5 ceder.a2",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDCopyToFrame(5); });
-    submenuCopy->addAction("F6 local.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDCopyToFrame(6); });
-    submenuCopy->addAction("F7 local.c1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDCopyToFrame(7); });
+    QMenu* submenuCopy = saveSDMenu->addMenu("Copy Sequence to");
+    submenuCopy->addAction("F1 ceder.basic", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDAppendCurrentSequenceToFrame(0); });
+    submenuCopy->addAction("F2 ceder.ms",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDAppendCurrentSequenceToFrame(1); });
+    submenuCopy->addAction("F3 ceder.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
+    submenuCopy->addAction("F4 ceder.a1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
+    submenuCopy->addAction("F5 ceder.a2",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDAppendCurrentSequenceToFrame(4); });
+    submenuCopy->addAction("F6 local.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDAppendCurrentSequenceToFrame(5); });
+    submenuCopy->addAction("F7 local.c1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDAppendCurrentSequenceToFrame(6); });
 
     foreach(QAction *action, submenuCopy->actions()){ // enable shortcuts for all Copy actions
         action->setShortcutVisibleInContextMenu(true);

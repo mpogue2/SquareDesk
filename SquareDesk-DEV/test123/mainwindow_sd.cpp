@@ -2987,18 +2987,28 @@ bool MainWindow::handleSDFunctionKey(int key, QString text) {
     if (key == Qt::Key_F11) {
         // F11
 //        qDebug() << "F11 pressed.";
-        frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+        // only do something if we are NOT looking at the first sequence in the current frame
+        if (frameCurSeq[centralIndex] > 1) {
+            frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+        }
         // TODO: should set selection to first item in list, if in Dance Arranger
     } else if (key == Qt::Key_F12) {
         // F12
 //        qDebug() << "F12 pressed.";
-        frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+        // only do something if we are NOT looking at the last sequence in the current frame
+        if (frameCurSeq[centralIndex] < frameMaxSeq[centralIndex]) {
+            frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+        }
+
         // TODO: should set selection to first item in list, if in Dance Arranger
     } else if (key - Qt::Key_F1 < frameVisible.count()) { // only valid FN keys are those from F1 - F<length of frameVisible - 1>, e.g right now F1 - F7
 //        qDebug() << "F" << key - Qt::Key_F1 + 1 << " pressed.";
         if (frameVisible[key - Qt::Key_F1] == "sidebar") { // can only press keys that are sidebars; central is already central, others are not shown at all
             frameVisible[centralIndex] = "sidebar";
             frameVisible[key - Qt::Key_F1] = "central";
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
         } else {
 //            qDebug() << "    Key ignored, because that frame isn't visible right now.";
         }
@@ -3007,8 +3017,6 @@ bool MainWindow::handleSDFunctionKey(int key, QString text) {
     }
 
 //    qDebug() << "NEW: " << frameVisible << frameCurSeq;
-
-    refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
 
     return(true);
 }
@@ -3025,9 +3033,7 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->lineEditSDInput->setFocus();
 }
 
-void MainWindow::SDCopyToFrame(int i) {
-    Q_UNUSED(i)
-//    qDebug() << "SDCopyToFrame " << i << " triggered";
+void MainWindow::SDExitEditMode() {
     ui->pushButtonSDSave->setVisible(false);
     ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDNew->setVisible(true);
@@ -3036,36 +3042,231 @@ void MainWindow::SDCopyToFrame(int i) {
     ui->tableWidgetCurrentSequence->setFocus();
 }
 
-void MainWindow::SDDeleteFrame(int i) {
-    Q_UNUSED(i)
-//    qDebug() << "SDDeleteFrame " << i << " triggered";
-    ui->pushButtonSDSave->setVisible(false);
-    ui->pushButtonSDUnlock->setVisible(true);
-    ui->pushButtonSDNew->setVisible(true);
+void MainWindow::SDScanFramesForMax() { // i = 0 to 6
+    qDebug() << "SDScanFramesForMax triggered";
 
-    ui->lineEditSDInput->setVisible(false);
-    ui->tableWidgetCurrentSequence->setFocus();
-}
+    for (int i = 0; i < frameVisible.length(); i++) {
+        // for each frame (0 - 6)
+        QString frameName = frameFiles[i]; // get the filename
+        QString who     = QString(frameName).replace(QRegularExpression("\\..*"), "");
+        QString level   = QString(frameName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
-void MainWindow::SDMoveToFrame(int i) {
-    if (i == 0) {
-        // TODO: save to Current Frame
-//        qDebug() << "SDMoveToFrame(0) == SaveToCurrentFrame";
-    } else {
-        // TODO: save to a different frame (possibly also the Current Frame)
-//        qDebug() << "SDMoveToFrame SAVE TO FRAME " << i << " triggered, exiting edit mode";
+        QString pathToScanFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//        qDebug() << "SCANNING: " << pathToScanFile;
+
+        QFile file(pathToScanFile);
+        int AtCount = 0;
+        if (file.open(QIODevice::ReadOnly))
+        {
+            while(!file.atEnd()) {
+                QString line = file.readLine();
+//                qDebug() << "frameName: " << frameName << ", line: " << line;
+                if (!line.isEmpty() && line.front() == '@') {
+                    AtCount++;
+                }
+            }
+
+//            qDebug() << "     SCAN RESULT:"  << AtCount - 1;
+            frameMaxSeq[i] = AtCount - 1;  // one sequence = @ seq @
+            frameCurSeq[i] = (int)fmax(0, fmin(frameCurSeq[i], frameMaxSeq[i])); // ensure that CurSeq is 1 - N
+
+            file.close();
+        }
 
     }
 
-    // exit EDIT MODE
-    ui->pushButtonSDSave->setVisible(false);
-    ui->pushButtonSDUnlock->setVisible(true);
-    ui->pushButtonSDNew->setVisible(true);
+    refreshSDframes(); // we have new framMax's now
+}
 
-    ui->lineEditSDInput->setVisible(false);
-    ui->tableWidgetCurrentSequence->setFocus();
 
-    // TODO: IMPL MoveTo is CopyTo(new) plus DeleteFrame(old)
+void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
+//    qDebug() << "SDAppendCurrentSequenceToFrame " << i << frameFiles[i] << " triggered";
+
+    QString who     = QString(frameFiles[i]).replace(QRegularExpression("\\..*"), "");
+    QString level   = QString(frameFiles[i]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+
+    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+
+//    qDebug() << "APPEND: currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
+
+    QFile file(pathToAppendFile);
+    if (file.open(QIODevice::Append))
+    {
+        QTextStream stream(&file);
+        stream << "#REC=99999#\n";   // TODO: Need incrementing number here
+        stream << "#AUTHOR=TEST#\n"; // TODO: Need real author here
+        for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
+//            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
+            stream << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n";
+        }
+        stream << "@\n";  // end of sequence
+        file.close();
+
+        // Appending increases the number of sequences in a frame, but it does NOT take us to the new frame.  Continue with the CURRENT frame.
+        //int centralNum = frameVisible.indexOf("central");
+        frameMaxSeq[i] += 1;    // add a NEW sequence to the receiving frame
+                                // but do not change the CurSeq of that receiving frame
+        refreshSDframes();
+    } else {
+        qDebug() << "ERROR: could not append to " << pathToAppendFile;
+    }
+    SDExitEditMode();
+}
+
+void MainWindow::SDReplaceCurrentSequence() {
+    int currentFrame  = frameVisible.indexOf("central"); // 0 to M
+    int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
+//    qDebug() << "SDReplaceCurrentSequence REPLACING SEQUENCE #" << currentSeqNum << " FROM " << frameFiles[currentFrame];
+
+    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
+    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+
+    // open the current file for READ ONLY
+    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QFile OLDfile(pathToOLDFile);
+
+    if (!OLDfile.open(QIODevice::ReadOnly)) {
+        qDebug() << "ERROR: could not open " << pathToOLDFile;
+        return;
+    }
+
+    // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
+    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
+    QFile NEWfile(pathToNEWFile);
+
+    if (!NEWfile.open(QIODevice::Append)) {
+        qDebug() << "ERROR: could not open " << pathToNEWFile;
+        OLDfile.close(); // we know that this one WAS opened correctly, so close it
+        return;
+    }
+
+    // DO THE REPLACEMENT -------------------------
+    QTextStream inFile(&OLDfile);
+    QTextStream outFile(&NEWfile);
+
+    int sn = 0; // current sequence number as we scan
+    while(!inFile.atEnd()) { // for each line in OLDfile
+        QString line = inFile.readLine();
+        if (line == "@") {
+            sn++;
+            if (sn == currentSeqNum) {
+                // This IS the one we want to replace, so let's write out the replacement right here to the outFile
+                outFile << "@\n"; // First item in the replacement sequence is the '@'
+                outFile << "#REC=99998#\n";             // TODO: Need to keep the original REC here
+                outFile << "#AUTHOR=REPLACEMENT#\n";    // TODO: Need to keep the original author here
+                for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
+//                    qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
+                    outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+                }
+            }
+        }
+        if (sn != currentSeqNum) {
+            // NOT the one we want to delete, so append to the NEW file
+            outFile << line << "\n";
+        }
+    }
+
+    // close both files
+    NEWfile.close();
+    OLDfile.close();
+
+    // rename foo.bar --> foo.bar.OLD
+    QFile::rename(pathToOLDFile, pathToOLDFile + ".BU");
+
+    // rename foo.bar.NEW --> foo.bar
+    QFile::rename(pathToNEWFile, pathToOLDFile);
+
+    // delete foo.bar.OLD
+    QFile::remove(pathToOLDFile + ".BU");
+
+    // REPLACEMENT HAS NO EFFECT ON FRAME INFO
+    // NO NEED TO REFRESH FRAMES, BECAUSE FRAMES ARE ALL FINE
+
+    SDExitEditMode();
+}
+
+void MainWindow::SDDeleteCurrentSequence() {
+    int currentFrame  = frameVisible.indexOf("central"); // 0 to M
+    int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
+//    qDebug() << "SDDeleteCurrentSequence DELETING SEQUENCE #" << currentSeqNum << " FROM " << frameFiles[currentFrame];
+
+    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
+    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+
+    // open the current file for READ ONLY
+    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QFile OLDfile(pathToOLDFile);
+
+    if (!OLDfile.open(QIODevice::ReadOnly)) {
+        qDebug() << "ERROR: could not open " << pathToOLDFile;
+        return;
+    }
+
+    // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
+    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
+    QFile NEWfile(pathToNEWFile);
+
+    if (!NEWfile.open(QIODevice::Append)) {
+        qDebug() << "ERROR: could not open " << pathToNEWFile;
+        OLDfile.close(); // we know that this one WAS opened correctly, so close it
+        return;
+    }
+
+    // DO THE REPLACEMENT -------------------------
+    QTextStream inFile(&OLDfile);
+    QTextStream outFile(&NEWfile);
+
+    int sn = 0; // current sequence number as we scan
+    while(!inFile.atEnd()) { // for each line in OLDfile
+        QString line = inFile.readLine();
+        if (line == "@") {
+            sn++;
+        }
+        if (sn != currentSeqNum) {
+            // NOT the one we want to delete, so append to the NEW file
+            outFile << line << "\n";
+        }
+    }
+
+    // close both files
+    NEWfile.close();
+    OLDfile.close();
+
+    // rename foo.bar --> foo.bar.OLD
+    QFile::rename(pathToOLDFile, pathToOLDFile + ".BU");
+
+    // rename foo.bar.NEW --> foo.bar
+    QFile::rename(pathToNEWFile, pathToOLDFile);
+
+    // delete foo.bar.OLD
+    QFile::remove(pathToOLDFile + ".BU");
+
+    // update frame info -----
+    // NOTE: if a frame has ZERO sequences in it, frameCurSeq == frameMaxSeq == 0
+    //    otherwise, 1 <= frameCurSeq <= frameMaxSeq
+    frameMaxSeq[currentFrame] = (int)fmax(frameMaxSeq[currentFrame] - 1, 0);                     // 1 fewer sequences now
+    frameCurSeq[currentFrame] = (int)fmin(frameMaxSeq[currentFrame], frameCurSeq[currentFrame]); // current might decrease by 1 if we deleted the last sequence, otherwise no change to CurSeq
+
+    refreshSDframes(); // show the new current frame
+
+    SDExitEditMode();
+}
+
+void MainWindow::SDMoveCurrentSequenceToFrame(int i) {  // i = 0 to 6
+    int currentFrame = frameVisible.indexOf("central");
+
+    if (i == currentFrame) {
+        // save to Current Frame (replace sequence in current frame)
+//        qDebug() << "MoveCurrentSequenceToFrame(current) => ReplaceCurrentSequence" << i << currentFrame;
+        SDReplaceCurrentSequence();
+    } else {
+        // save to a different frame (NOT the current frame)
+//        qDebug() << "SDMoveCurrentSequenceToFrame " << i << frameFiles[i] << " triggered, then exiting edit mode";
+
+        SDAppendCurrentSequenceToFrame(i);          // append a copy of the current sequence to a different frame
+        SDDeleteCurrentSequence();                  // delete current sequence from current frame
+    }
+    // SDExitEditMode();  // NOT NEEDED HERE: already invoked by all of the Replace, Append, and Delete operations
 }
 
 void MainWindow::on_pushButtonSDNew_clicked()
