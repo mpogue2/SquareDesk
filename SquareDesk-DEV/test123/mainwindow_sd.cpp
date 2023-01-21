@@ -3049,8 +3049,65 @@ void MainWindow::SDExitEditMode() {
     ui->tableWidgetCurrentSequence->setFocus();
 }
 
+void MainWindow::SDGetCurrentSeqs() {
+//    qDebug() << "SDGetCurrentSeqs triggered";
+    // currently viewed sequence numbers are stored persistently in /sd/.current.csv, so that
+    //  they are shared automatically and are kept consistent across machines (e.g. synced with Dropbox or Box.net).
+    // They are intentionally not single-laptop-specific states, they are entire-SD-sequence-data states, so they move with the musicDir.
+    // This is a standard CSV file, with filename and sequence numbers.
+    // If the current numbers are greater than the scanned-for max numbers, the current numbers are adjusted to the max.
+
+    QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
+    QFile f(pathToCurrentSeqFile);
+    if (QFileInfo::exists(pathToCurrentSeqFile)) {
+        if (!f.open(QFile::ReadOnly | QFile::Text)) {
+            qDebug() << "ERROR: file exists, but could not open: " << f.fileName();
+        } else {
+            QTextStream in(&f);
+            // simple CSV parser, for exactly 2 fields: filename (string), currentSequenceNumber (uint)
+            while (!in.atEnd()) {
+                QString line = in.readLine();
+                QStringList fields = line.split(','); // should be exactly 2 fields
+                if (!(fields[0] == "filename")) {
+                    // if not the header line
+                    QString filename = fields[0];
+                    int currentSeqNum = fields[1].toInt();
+                    int which = frameFiles.indexOf(filename);
+                    if (which != -1) {
+//                        qDebug() << "Setting frameCurSeq[" << which << "] to " << currentSeqNum;
+                        frameCurSeq[which] = (int)fmin(currentSeqNum, frameMaxSeq[which]); // can't be bigger than actual known max seqNum
+                    }
+                }
+            }
+            f.close();
+        }
+    } else {
+        // use 1 internally
+        for (int i = 0; i < frameFiles.length(); i++) {
+            frameCurSeq[i] = 1; // if .current.csv file does not exist yet, just init all to zero internally
+        }
+        // create a new /sd/.current.csv which has 1 for every known file
+        QFile currentFile(pathToCurrentSeqFile);
+        if (currentFile.open(QFile::WriteOnly)) {
+            QTextStream out(&currentFile);
+            out << "filename,currentSeqNum\n";  // HEADER
+            for (auto s: frameFiles) {
+                out << s << ",1\n"; // set CurSeq = 1 for all known files.
+            }
+            currentFile.close();
+        } else {
+            qDebug() << "ERROR: could not open for writing: " << pathToCurrentSeqFile;
+        }
+    }
+//    qDebug() << "Final frameFiles: "  << frameFiles;
+//    qDebug() << "Final frameLevel: "  << frameLevel;
+//    qDebug() << "Final frameMaxSeq: " << frameMaxSeq;
+//    qDebug() << "Final frameCurSeq: " << frameCurSeq;
+}
+
+
 void MainWindow::SDScanFramesForMax() { // i = 0 to 6
-    qDebug() << "SDScanFramesForMax triggered";
+//    qDebug() << "SDScanFramesForMax triggered";
 
     for (int i = 0; i < frameVisible.length(); i++) {
         // for each frame (0 - 6)

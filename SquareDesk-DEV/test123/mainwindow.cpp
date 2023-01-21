@@ -1275,14 +1275,24 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // INIT SD FRAMES ----------------
     // TODO: This is TEST DATA right now.
+    // TODO: dynamically find the files, and remember to make Visible/Level/CurSeq/Max/Seq for each file found.
     //              F1               F2            F3              F4            F5            F6               F7
-    frameFiles   << "ceder.basic" << "ceder.ms" << "ceder.plus" << "ceder.a1" << "ceder.a2" << "local.plus" << "local.c1";
-    frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";
-    frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";
-    frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;
-    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // TODO: update these at init time
+    frameFiles   << "ceder.basic" << "ceder.ms" << "ceder.plus" << "ceder.a1" << "ceder.a2" << "local.plus" << "local.c1";  // TODO: These are STATIC, but should be discoverable.
+    frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";  // TODO: These are currently STATIC, but should be settable.
+    frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";       // These are in the frameFile name, no longer used.
+    frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;  // These are persistent in /sd/.current.csv
+    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // These are updated at init time by scanning.
 
-    SDScanFramesForMax(); // update the framMaxSeq's with real numbers
+    // set levels from filename
+    for (int i = 0; i < frameFiles.length(); i++) {
+        QString frameName = frameFiles[i];
+        QString level   = QString(frameName).replace(QRegularExpression("^.*\\."), "");
+//        qDebug() << frameName << level;
+        frameLevel[i] = level;
+    }
+
+    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE BEFORE GETCURRENTSEQS)
+    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles
 
     SDtestmode = false;
     refreshSDframes();
@@ -1777,6 +1787,20 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    // persist the frameCurSeq values into /sd/.current.csv (don't worry, it won't take very long!)
+    QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
+    QFile currentFile(pathToCurrentSeqFile);
+    if (currentFile.open(QFile::WriteOnly)) {
+        QTextStream out(&currentFile);
+        out << "filename,currentSeqNum\n";  // HEADER
+        for (int i = 0; i < frameFiles.length(); i++) {
+            out << frameFiles[i] << "," << frameCurSeq[i] << "\n"; // persist all the values from this session
+        }
+        currentFile.close();
+    } else {
+        qDebug() << "ERROR: could not open for writing: " << pathToCurrentSeqFile;
+    }
+
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(nullptr);
     colorDlg.setOption(QColorDialog::NoButtons);
