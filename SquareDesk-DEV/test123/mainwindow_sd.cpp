@@ -2963,7 +2963,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             if (list != nullptr) {
                 list->addItem(QString("Sequence #%1 not found in file.").arg(seqNum));
             } else {
-                qDebug() << "TODO: Sequence not found for Central widget, DO SOMETHING HERE";
+//                qDebug() << "TODO: Sequence not found for Central widget, DO SOMETHING HERE";
             }
         }
 
@@ -3149,7 +3149,7 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
 
     }
 
-    refreshSDframes(); // we have new framMax's now
+    // refreshSDframes(); // we have new framMax's now
 }
 
 
