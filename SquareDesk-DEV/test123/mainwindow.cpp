@@ -3032,6 +3032,16 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
         }
         else if (tabIsSD &&
+                 KeyEvent->key() == Qt::Key_Left) { // LEFT --> F11, and SHIFT-LEFT --> SHIFT-F11, if on SD page
+            QKeyCombination combo1(KeyEvent->modifiers(), Qt::Key_F11);
+            return (maybeMainWindow->handleSDFunctionKey(combo1, QString("LEFT_ARROW")));
+        }
+        else if (tabIsSD &&
+                 KeyEvent->key() == Qt::Key_Right) { // RIGHT --> F12, and SHIFT-RIGHT --> SHIFT-F12, if on SD page
+            QKeyCombination combo2(KeyEvent->modifiers(), Qt::Key_F12);
+            return (maybeMainWindow->handleSDFunctionKey(combo2, QString("RIGHT_ARROW")));
+        }
+        else if (tabIsSD &&
                  ui->tableWidgetCurrentSequence->hasFocus()) {
             // this has to be second.
             return QObject::eventFilter(Object,Event); // let the tableWidget handle UP/DOWN normally

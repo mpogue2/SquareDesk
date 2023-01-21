@@ -2990,7 +2990,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     int modifiers = keyCombo.keyboardModifiers();
     bool shiftDown = modifiers & Qt::ShiftModifier; // true iff SHIFT was down when key was pressed
 
-//    qDebug() << "handleSDFunctionKey(" << key << ")";
+//    qDebug() << "handleSDFunctionKey(" << key << ")" << shiftDown;
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
         return false;
     }
