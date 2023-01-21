@@ -1339,6 +1339,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     ui->pushButtonSDSave->setMenu(saveSDMenu);
     ui->pushButtonSDSave->setVisible(false);
+
+    selectFirstItemOnLoad = false;
 }
 
 
@@ -2998,7 +3000,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
-//        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers();
+//        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers() << ui->tableWidgetCurrentSequence->hasFocus();
 
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsLyricsOrPatter = (ui->tabWidget->tabText(cindex) == "Lyrics" || ui->tabWidget->tabText(cindex) == "*Lyrics" ||  // and I'm on the Lyrics/Patter tab
@@ -6757,7 +6759,8 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         setSDCoupleNumberingScheme("Numbers");
 
         ui->tableWidgetCurrentSequence->clearSelection();
-        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::ContiguousSelection); // can select any set of contiguous items with SHIFT
+//        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::ContiguousSelection); // can select any set of contiguous items with SHIFT
+        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::SingleSelection); // can select any set of contiguous items with SHIFT
         ui->tableWidgetCurrentSequence->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 
         ui->tabWidgetSDMenuOptions->setTabVisible(0, true); // Options
@@ -6785,6 +6788,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         setSDCoupleNumberingScheme("Names");
 
         ui->tableWidgetCurrentSequence->clearSelection();
+        ui->tableWidgetCurrentSequence->setFocus();
         ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::SingleSelection); // can only select ONE item
         if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
             ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item)

@@ -1074,6 +1074,7 @@ public:
     QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
+    bool selectFirstItemOnLoad;
 
     QString currentFrameTextName; // e.g. local.plus
     QString currentFrameHTMLName; // e.g. <HTML>...F6...local.plus</HTML>

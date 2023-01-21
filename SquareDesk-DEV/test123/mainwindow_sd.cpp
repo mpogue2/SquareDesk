@@ -1109,6 +1109,27 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 QTableWidgetItem *moveItem(new QTableWidgetItem(thePrettifiedCall));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
+
+//                qDebug() << "on_sd_add_new_line: adding " << thePrettifiedCall;
+
+                // This is a terrible kludge, but I don't know a better way to do this.
+                // The tableWidgetCurrentSequence is updated asynchronously, when sd gets around to sending output
+                //   back to us.  There is NO indication that SD is done processing, near as I can tell.  So, there
+                //   is no way for us to select the first row after SD is done.  If we try to do it before, BOOM.
+                // This kludge gives SD 100ms to do all its processing, and get at least one valid row and item in there.
+                QTimer::singleShot(100, [this]{
+                    if (selectFirstItemOnLoad) {
+                        selectFirstItemOnLoad = false;
+                        ui->tableWidgetCurrentSequence->setFocus();
+                        ui->tableWidgetCurrentSequence->clearSelection();
+                        if (ui->tableWidgetCurrentSequence->item(0,0) != nullptr) { // make darn sure that there's actually an item there
+                            // Surprisingly, both of the following are necessary to get the first row selected.
+                            ui->tableWidgetCurrentSequence->setCurrentItem(ui->tableWidgetCurrentSequence->item(0,0));
+                            ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
+                        }
+                    }
+                    });
+
 #else
                 QString lastCall(match.captured(2).toHtmlEscaped());
                 int longestMatchLength = 0;
@@ -1164,11 +1185,17 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 
 void MainWindow::render_sd_item_data(QTableWidgetItem *item)
 {
+//        qDebug() << "render_sd_item_data: " << item;
+        if (item == nullptr) {
+//            qDebug() << "render_sd_item_data RETURNING BECAUSE NULL POINTER";
+            return; // for safety
+        }
         QVariant v = item->data(Qt::UserRole);
         if (!v.isNull())
         {
 //            qDebug() << "v: " << v;
             QString formation(v.toString());
+//            qDebug() << "v string: " << formation;
             QStringList formationList = formation.split("\n");
             if (formationList.size() > 0)
             {
@@ -1247,7 +1274,7 @@ void MainWindow::on_tableWidgetCurrentSequence_itemSelectionChanged()
 //    qDebug() << "on_tableWidgetCurrentSequence_itemSelectionChanged()";
     // regardless of clicking on col 0 or 1, use the variant formation squirreled away in column 1 (even if not visible)
     QList<QTableWidgetItem *> selected = ui->tableWidgetCurrentSequence->selectedItems();
-    if (selected.count() == 1) {
+    if (selected.count() >= 1) {
         render_sd_item_data(ui->tableWidgetCurrentSequence->item(selected[0]->row(),1)); // selected row and col 1
     }
 }
@@ -2239,14 +2266,9 @@ void MainWindow::paste_to_tableWidgetCurrentSequence() {
         QStringList theCalls = theText.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
 //        qDebug() << "theCalls: " << theCalls;
 
+        selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
         sdthread->resetAndExecute(theCalls);  // OK LET'S TRY THIS
 
-//        // submit calls one at a time to SD (can't use resetAndExecute() here...)
-//        for (auto call: theCalls) {
-//            // do all of the usual pre-processing, e.g. "heads square thru" --> "heads start;square thru 4", UNDO/REDO stack, etc.
-//            ui->lineEditSDInput->setText(call);
-//            submit_lineEditSDInput_contents_to_sd(); // send line to SD
-//        }
     } else {
         qDebug() << "ERROR: CANNOT UNDERSTAND CLIPBOARD DATA"; // error? warning?
     }
@@ -2702,21 +2724,8 @@ void MainWindow::on_actionLoad_Sequence_triggered()
 //            qDebug() << "About to call: resetAndExecute() with these calls: " << theCalls;
             on_actionSDSquareYourSets_triggered();
             ui->tableWidgetCurrentSequence->clear(); // clear the current sequence pane
+            selectFirstItemOnLoad = true; // when the resetAndExecute is done, do a one-time set of the selection to the first item
             sdthread->resetAndExecute(theCalls);  // OK LET'S TRY THIS
-
-            // put the selection at the beginning (Arranger) or no selection (Designer)
-            // this doesn't work, because the load is asyncronous
-//            if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
-//                if (ui->actionSequence_Designer->isChecked()) {
-//                    // Sequence Designer mode
-//                    ui->tableWidgetCurrentSequence->clearSelection(); // no selection if Designer mode
-//                } else {
-//                    // Dance Arranger mode
-//                    qDebug() << "SELECTING FIRST ITEM (DANCE ARRANGER)";
-////                    ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item) in playback mode
-////                    on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
-//                }
-//            }
         }
     }
 }
@@ -2813,7 +2822,7 @@ void MainWindow::refreshSDframes() {
             ui->label_CurrentSequence->setText(html1);  // use fancy string
 
             loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"
-            ui->tableWidgetCurrentSequence->selectRow(0);  // When we use F11 or F12 and refresh the frames, affecting the Current Sequence frame, select the first row (TODO: always, or just Dance Arranger mode?)
+//            ui->tableWidgetCurrentSequence->selectRow(1);  // When we use F11 or F12 and refresh the frames, affecting the Current Sequence frame, select the first row (TODO: always, or just Dance Arranger mode?)
         }
     }
 }
@@ -2964,6 +2973,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
 //            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
             ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
+            selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
             sdthread->resetAndExecute(callList);     // finally, send the calls in the list to SD.
         }
 

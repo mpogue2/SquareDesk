@@ -1081,6 +1081,7 @@ void SDThread::resetAndExecute(QStringList &commands)
         mw->submit_lineEditSDInput_contents_to_sd(cmd, firstCall); // with interpretation, e.g. HEADS Square Thru --> heads start; square thru 4
         firstCall = false;
     }
+
 }
 
 void SDThread::finishAndShutdownSD()
