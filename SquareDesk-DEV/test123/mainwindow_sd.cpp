@@ -3057,6 +3057,15 @@ void MainWindow::SDExitEditMode() {
 
     ui->lineEditSDInput->setVisible(false);
     ui->tableWidgetCurrentSequence->setFocus();
+
+    // we're exiting edit, so highlight the first line
+    ui->tableWidgetCurrentSequence->clearSelection();
+    if (ui->tableWidgetCurrentSequence->item(0,0) != nullptr) { // make darn sure that there's actually an item there
+        // Surprisingly, both of the following are necessary to get the first row selected.
+        ui->tableWidgetCurrentSequence->setCurrentItem(ui->tableWidgetCurrentSequence->item(0,0));
+        ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
+    }
+
 }
 
 void MainWindow::SDGetCurrentSeqs() {
