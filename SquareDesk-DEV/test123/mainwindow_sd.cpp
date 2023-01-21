@@ -2973,8 +2973,12 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 }
 
 // take care of F1 - F12 when SD tab is showing ------------------------
-bool MainWindow::handleSDFunctionKey(int key, QString text) {
+bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     Q_UNUSED(text)
+
+    int key = keyCombo.key();
+    int modifiers = keyCombo.keyboardModifiers();
+    bool shiftDown = modifiers & Qt::ShiftModifier; // true iff SHIFT was down when key was pressed
 
 //    qDebug() << "handleSDFunctionKey(" << key << ")";
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
@@ -2985,23 +2989,26 @@ bool MainWindow::handleSDFunctionKey(int key, QString text) {
     int centralIndex = frameVisible.indexOf("central");
 
     if (key == Qt::Key_F11) {
-        // F11
-//        qDebug() << "F11 pressed.";
-        // only do something if we are NOT looking at the first sequence in the current frame
-        if (frameCurSeq[centralIndex] > 1) {
-            frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
-            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+        if (!shiftDown) { // F11 = decrement sequence number in current frame
+            // only do something if we are NOT looking at the first sequence in the current frame
+            if (frameCurSeq[centralIndex] > 1) {
+                frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+            }
+        } else {  // SHIFT-F11 = go to sequence 1 in current frame
+            frameCurSeq[centralIndex] = 1;
         }
+        refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
         // TODO: should set selection to first item in list, if in Dance Arranger
     } else if (key == Qt::Key_F12) {
-        // F12
-//        qDebug() << "F12 pressed.";
-        // only do something if we are NOT looking at the last sequence in the current frame
-        if (frameCurSeq[centralIndex] < frameMaxSeq[centralIndex]) {
-            frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
-            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+        if (!shiftDown) { // F12 = increment sequence number in current frame
+            // only do something if we are NOT looking at the last sequence in the current frame
+            if (frameCurSeq[centralIndex] < frameMaxSeq[centralIndex]) {
+                frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+            }
+        } else { // SHIFT-F12 = go to last sequence in current frame
+            frameCurSeq[centralIndex] = frameMaxSeq[centralIndex];
         }
-
+        refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
         // TODO: should set selection to first item in list, if in Dance Arranger
     } else if (key - Qt::Key_F1 < frameVisible.count()) { // only valid FN keys are those from F1 - F<length of frameVisible - 1>, e.g right now F1 - F7
 //        qDebug() << "F" << key - Qt::Key_F1 + 1 << " pressed.";

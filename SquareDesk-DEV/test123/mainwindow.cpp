@@ -3003,7 +3003,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         else if (tabIsSD &&
                  KeyEvent->key() >= Qt::Key_F1 && KeyEvent->key() <= Qt::Key_F12 ) { // SD F1 - F12 FUNCTION KEYS
             // this has to come first.
-            return (maybeMainWindow->handleSDFunctionKey(KeyEvent->key(), KeyEvent->text()));
+            return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
         }
         else if (tabIsSD &&
                  ui->tableWidgetCurrentSequence->hasFocus()) {

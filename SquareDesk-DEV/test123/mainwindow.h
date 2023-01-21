@@ -226,7 +226,7 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
-    bool handleSDFunctionKey(int key, QString text);
+    bool handleSDFunctionKey(QKeyCombination key, QString text);
     bool someWebViewHasFocus();
 
     void handleDurationBPM();  // when duration and BPM are ready, call this to setup tempo slider, et.al.
