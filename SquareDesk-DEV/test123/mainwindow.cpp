@@ -1341,6 +1341,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->pushButtonSDSave->setVisible(false);
 
     selectFirstItemOnLoad = false;
+
+    getMetadata();
 }
 
 
@@ -9079,4 +9081,84 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(true);
     }
 
+}
+
+// fetch the GLUID etc from .squaredesk/metadata.csv
+void MainWindow::getMetadata() {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.txt");
+
+    QFileInfo fi(metadata);
+
+    if (fi.exists()) {
+        QString line;
+        if (!metadata.open(QFile::ReadOnly)) {
+            qDebug() << "Could not open: " << metadata.fileName() << " for reading metadata";
+            return;
+        }
+
+//        qDebug() << "OPENED FOR READING: " << metadata.fileName();
+        QTextStream in(&metadata);
+
+        // read first line
+        line = in.readLine();
+        if (line != "key,value") {
+            qDebug() << "Unexpected header line: " << line;
+            metadata.close();
+            return;
+        }
+
+        userID = -1;
+        nextSequenceID = -1;
+
+        // read key,value pairs
+        while (!in.atEnd()) {
+            line = in.readLine();
+            QStringList L = line.split(',');
+            QString key = L[0];
+            QString value = L[1];
+
+            if (key == "userID") {
+                userID = value.toInt();
+//                qDebug() << "***** USERID: " << userID;
+            } else if (key == "nextSequenceID") {
+                nextSequenceID = value.toInt();
+//                qDebug() << "***** NEXTSEQUENCEID: " << nextSequenceID;
+            } else {
+                qDebug() << "SKIPPING UNKNOWN KEY: " << key;
+            }
+        }
+
+        if (userID == -1 || nextSequenceID == -1) {
+            qDebug() << "BAD METADATA: " << userID << nextSequenceID;
+        } else {
+//            qDebug() << "METADATA LOOKS OK!";
+        }
+
+        metadata.close();
+    } else {
+        userID = (int)(QRandomGenerator::global()->bounded(1, 21474)); // range: 1 - 21473 inclusive
+        nextSequenceID = 1;
+        writeMetadata(userID, nextSequenceID);
+//        qDebug() << "***** USERID/NEXTSEQUENCEID WRITTEN SUCCESSFULLY AND VALUES SET INTERNALLY: " << userID << nextSequenceID;
+    }
+}
+
+// update the metadata file real quick with the new nextSequenceID
+void MainWindow::writeMetadata(int userID, int nextSequenceID) {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.txt");
+    if (!metadata.open(QFile::WriteOnly)) {
+        qDebug() << "Could not open: " << metadata.fileName() << " for writing metadata";
+        return;
+    }
+
+//    qDebug() << "OPENED FOR WRITING: " << metadata.fileName();
+    QTextStream out(&metadata);
+
+    out << "key,value\n";
+
+    out << "userID," << userID << "\n";
+    out << "nextSequenceID," << nextSequenceID << "\n";
+
+//    qDebug() << "***** USERID/NEXTSEQUENCEID UPDATED " << userID << nextSequenceID;
+    metadata.close();
 }

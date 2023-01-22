@@ -3176,8 +3176,14 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
     if (file.open(QIODevice::Append))
     {
         QTextStream stream(&file);
-        stream << "#REC=99999#\n";   // TODO: Need incrementing number here
-        stream << "#AUTHOR=TEST#\n"; // TODO: Need real author here
+//        stream << "#REC=99999#\n";   // TODO: Need incrementing number here
+//        stream << "#AUTHOR=TEST#\n"; // TODO: Need real author here
+
+        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";     // Use a new sequence number, whenever edited
+        nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
+        writeMetadata(userID, nextSequenceID);   // update the metadata file real quick with the new nextSequenceID
+        stream << "#AUTHOR=" << userID << "#\n";    // Use the new author here (TODO: right now userID)
+
         for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
             stream << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n";
@@ -3235,8 +3241,10 @@ void MainWindow::SDReplaceCurrentSequence() {
             if (sn == currentSeqNum) {
                 // This IS the one we want to replace, so let's write out the replacement right here to the outFile
                 outFile << "@\n"; // First item in the replacement sequence is the '@'
-                outFile << "#REC=99998#\n";             // TODO: Need to keep the original REC here
-                outFile << "#AUTHOR=REPLACEMENT#\n";    // TODO: Need to keep the original author here
+                outFile << "#REC=" << 100000 * userID + nextSequenceID << "#\n";     // Use a new sequence number, whenever edited
+                nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
+                writeMetadata(userID, nextSequenceID);   // update the metadata file real quick with the new nextSequenceID
+                outFile << "#AUTHOR=" << userID << "#\n";    // Use the new author here (TODO: right now userID)
                 for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
 //                    qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
                     outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
@@ -3370,12 +3378,16 @@ void MainWindow::on_pushButtonSDNew_clicked()
 
 //    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
+    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
+
     QFile file(pathToAppendFile);
     if (file.open(QIODevice::Append))
     {
         QTextStream stream(&file);
-        stream << "#REC=99999#\n";
-        stream << "#AUTHOR=TEST#\n";
+        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
+        nextSequenceID++;
+        writeMetadata(userID, nextSequenceID);   // update the metadata file real quick with the new nextSequenceID
+        stream << "#AUTHOR=" << userID << "#\n"; // TODO: put Author string here instead of userID (which is temporary)
         stream << "@\n";
         file.close();
 

@@ -1083,6 +1083,12 @@ public:
 
     void refreshSDframes();
     void loadFrame(int i, QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget (or a table, if list == null)
+
+    int userID;  // Globally Likely Unique ID for user, range: 1 - 21473
+    int nextSequenceID;  // starts at 1 for a given userID, then increments by 1 each time NEW is clicked
+    void getMetadata(); // fetch the GLUID etc from .squaredesk/metadata.csv
+    void writeMetadata(int userID, int nextSequenceID);
+
 };
 
 // currentState:
