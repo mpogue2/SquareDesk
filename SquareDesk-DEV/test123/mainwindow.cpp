@@ -9085,7 +9085,7 @@ void MainWindow::handleDurationBPM() {
 
 // fetch the GLUID etc from .squaredesk/metadata.csv
 void MainWindow::getMetadata() {
-    QFile metadata(musicRootPath + "/.squaredesk/metadata.txt");
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
 
     QFileInfo fi(metadata);
 
@@ -9145,7 +9145,7 @@ void MainWindow::getMetadata() {
 
 // update the metadata file real quick with the new nextSequenceID
 void MainWindow::writeMetadata(int userID, int nextSequenceID) {
-    QFile metadata(musicRootPath + "/.squaredesk/metadata.txt");
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
     if (!metadata.open(QFile::WriteOnly)) {
         qDebug() << "Could not open: " << metadata.fileName() << " for writing metadata";
         return;
