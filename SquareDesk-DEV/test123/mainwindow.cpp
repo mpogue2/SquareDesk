@@ -9109,6 +9109,7 @@ void MainWindow::getMetadata() {
 
         userID = -1;
         nextSequenceID = -1;
+        authorID = "";
 
         // read key,value pairs
         while (!in.atEnd()) {
@@ -9123,13 +9124,16 @@ void MainWindow::getMetadata() {
             } else if (key == "nextSequenceID") {
                 nextSequenceID = value.toInt();
 //                qDebug() << "***** NEXTSEQUENCEID: " << nextSequenceID;
+            } else if (key == "authorID") {
+                authorID = value;
+//                qDebug() << "***** AUTHODID: " << authorID;
             } else {
                 qDebug() << "SKIPPING UNKNOWN KEY: " << key;
             }
         }
 
-        if (userID == -1 || nextSequenceID == -1) {
-            qDebug() << "BAD METADATA: " << userID << nextSequenceID;
+        if (userID == -1 || nextSequenceID == -1 || authorID == "") {
+            qDebug() << "BAD METADATA: " << userID << nextSequenceID << authorID;
         } else {
 //            qDebug() << "METADATA LOOKS OK!";
         }
@@ -9138,13 +9142,14 @@ void MainWindow::getMetadata() {
     } else {
         userID = (int)(QRandomGenerator::global()->bounded(1, 21474)); // range: 1 - 21473 inclusive
         nextSequenceID = 1;
-        writeMetadata(userID, nextSequenceID);
+        authorID.setNum(userID);  // default Author is a number, unless user changes it manually in hidden file
+        writeMetadata(userID, nextSequenceID, authorID);
 //        qDebug() << "***** USERID/NEXTSEQUENCEID WRITTEN SUCCESSFULLY AND VALUES SET INTERNALLY: " << userID << nextSequenceID;
     }
 }
 
 // update the metadata file real quick with the new nextSequenceID
-void MainWindow::writeMetadata(int userID, int nextSequenceID) {
+void MainWindow::writeMetadata(int userID, int nextSequenceID, QString authorID) {
     QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
     if (!metadata.open(QFile::WriteOnly)) {
         qDebug() << "Could not open: " << metadata.fileName() << " for writing metadata";
@@ -9158,6 +9163,7 @@ void MainWindow::writeMetadata(int userID, int nextSequenceID) {
 
     out << "userID," << userID << "\n";
     out << "nextSequenceID," << nextSequenceID << "\n";
+    out << "authorID," << authorID << "\n";
 
 //    qDebug() << "***** USERID/NEXTSEQUENCEID UPDATED " << userID << nextSequenceID;
     metadata.close();

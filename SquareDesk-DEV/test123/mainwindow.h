@@ -1086,8 +1086,9 @@ public:
 
     int userID;  // Globally Likely Unique ID for user, range: 1 - 21473
     int nextSequenceID;  // starts at 1 for a given userID, then increments by 1 each time NEW is clicked
+    QString authorID;  // use this instead of userID going forward
     void getMetadata(); // fetch the GLUID etc from .squaredesk/metadata.csv
-    void writeMetadata(int userID, int nextSequenceID);
+    void writeMetadata(int userID, int nextSequenceID, QString authorID);
 
 };
 

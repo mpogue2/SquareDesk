@@ -3176,13 +3176,10 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
     if (file.open(QIODevice::Append))
     {
         QTextStream stream(&file);
-//        stream << "#REC=99999#\n";   // TODO: Need incrementing number here
-//        stream << "#AUTHOR=TEST#\n"; // TODO: Need real author here
-
         stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";     // Use a new sequence number, whenever edited
         nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
-        writeMetadata(userID, nextSequenceID);   // update the metadata file real quick with the new nextSequenceID
-        stream << "#AUTHOR=" << userID << "#\n";    // Use the new author here (TODO: right now userID)
+        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
+        stream << "#AUTHOR=" << authorID << "#\n";    // Use the new author string here
 
         for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
@@ -3243,8 +3240,8 @@ void MainWindow::SDReplaceCurrentSequence() {
                 outFile << "@\n"; // First item in the replacement sequence is the '@'
                 outFile << "#REC=" << 100000 * userID + nextSequenceID << "#\n";     // Use a new sequence number, whenever edited
                 nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
-                writeMetadata(userID, nextSequenceID);   // update the metadata file real quick with the new nextSequenceID
-                outFile << "#AUTHOR=" << userID << "#\n";    // Use the new author here (TODO: right now userID)
+                writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
+                outFile << "#AUTHOR=" << authorID << "#\n";    // Use the new author here
                 for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
 //                    qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
                     outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
@@ -3366,11 +3363,16 @@ void MainWindow::on_pushButtonSDNew_clicked()
     on_actionSDSquareYourSets_triggered(); // clear everything out of the Current Sequence window
     on_pushButtonSDUnlock_clicked(); // unlock
 
-    // append this null sequence to the current frame file, and then refreshFrames to load it
-    //    #REC=99999# // TODO: make this a big incrementing number
-    //    #AUTHOR=TEST#
-    //    @
+    // ====== new idea: don't do anything to files at NEW time, only at SAVE or APPEND or REPLACE time =========
+    // This idea requires that we distinguish between a NEW sequence (unsaved) and a LOADED sequence (already in the DB).
+    // In the first case, we want to increment the sequence number then APPEND.  In the second, we want to
+    // increment and then REPLACE.  Right now, since we have a placeholder due to NEW, we always REPLACE.  It's simpler.
+    // So, consider doing the above new idea later....
 
+    // append this null sequence to the current frame file, and then refreshFrames to load it
+    //    #REC=<next sequence number>#
+    //    #AUTHOR=<authorID>#
+    //    @
     QString who     = QString(currentFrameTextName).replace(QRegularExpression("\\..*"), "");
     QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
@@ -3386,8 +3388,8 @@ void MainWindow::on_pushButtonSDNew_clicked()
         QTextStream stream(&file);
         stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
         nextSequenceID++;
-        writeMetadata(userID, nextSequenceID);   // update the metadata file real quick with the new nextSequenceID
-        stream << "#AUTHOR=" << userID << "#\n"; // TODO: put Author string here instead of userID (which is temporary)
+        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
+        stream << "#AUTHOR=" << authorID << "#\n";
         stream << "@\n";
         file.close();
 
