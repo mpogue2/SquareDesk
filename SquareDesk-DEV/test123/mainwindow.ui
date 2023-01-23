@@ -2706,6 +2706,8 @@
      <addaction name="actionFlashCallC2"/>
      <addaction name="actionFlashCallC3a"/>
      <addaction name="actionFlashCallC3b"/>
+     <addaction name="actionFlashCallUserFile"/>
+     <addaction name="separator"/>
      <addaction name="actionFlashCallFilechooser"/>
     </widget>
     <widget class="QMenu" name="menuFlash_Call_Timing">
@@ -3771,9 +3773,17 @@
     <string>C3b</string>
    </property>
   </action>
-  <action name="actionFlashCallFilechooser">
+  <action name="actionFlashCallUserFile">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>No flashcards file selected</string>
+   </property>
+  </action>
+  <action name="actionFlashCallFilechooser">
+   <property name="checkable">
+    <bool>false</bool>
    </property>
    <property name="text">
     <string>Select a flashcards file</string>

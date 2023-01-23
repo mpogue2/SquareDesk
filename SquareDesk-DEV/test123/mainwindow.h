@@ -261,6 +261,8 @@ public:
 //    QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
+    void selectUserFlashFile();
+    void updateFlashFileMenu();
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
 
     unsigned int numWebviews;
@@ -291,6 +293,7 @@ protected:
     void on_flashcallc2_toggled(bool checked);
     void on_flashcallc3a_toggled(bool checked);
     void on_flashcallc3b_toggled(bool checked);
+    void on_flashcalluserfile_toggled(bool checked);
     void on_flashcallfilechooser_toggled(bool checked);
 
     void airplaneMode(bool turnItOn);
@@ -582,6 +585,7 @@ private slots:
     void on_actionFlashCallC3a_triggered();
     void on_actionFlashCallC3b_triggered();
     void on_actionFlashCallFilechooser_triggered();
+    void on_actionFlashCallUserFile_triggered();
 
 //    void on_actionDownload_matching_lyrics_triggered();
 
@@ -692,7 +696,8 @@ private:
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
     QString lastSavedPlaylist;       // "" if no playlist was saved in this session
-    QString lastFlashcardsfile;      // "" if no flashcard file currently 
+    QString lastFlashcardsUserFile;      // "" if no flashcard file currently
+    QString lastFlashcardsUserDirectory;      // "" if no flashcard file currently
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;

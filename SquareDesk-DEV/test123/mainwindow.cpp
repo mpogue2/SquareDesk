@@ -341,7 +341,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
     // Recall any previous flashcards file
-    lastFlashcardsfile = prefsManager.Getdefault_flashcards_file();
+    lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
+    lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
     
     filewatcherShouldIgnoreOneFileSave = false;
 
@@ -922,11 +923,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     on_flashcallc2_toggled(prefsManager.Getflashcallc2());
     on_flashcallc3a_toggled(prefsManager.Getflashcallc3a());
     on_flashcallc3b_toggled(prefsManager.Getflashcallc3b());
-    on_flashcallfilechooser_toggled(prefsManager.Getflashcallfilechooser());
+    on_flashcalluserfile_toggled(prefsManager.Getflashcalluserfile());
 
     t.elapsed(__LINE__);
-
-    readFlashCallsList();
 
     t.elapsed(__LINE__);
 
@@ -1143,6 +1142,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     } else {
         ui->action20_seconds->setChecked(true);
     }
+    updateFlashFileMenu();
+    readFlashCallsList();
+
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
@@ -8050,22 +8052,74 @@ void MainWindow::on_actionFlashCallC3b_triggered()
     readFlashCallsList();
 }
 
-void MainWindow::on_flashcallfilechooser_toggled(bool checked)
+void MainWindow::on_flashcalluserfile_toggled(bool checked)
 {
-    ui->actionFlashCallFilechooser->setChecked(checked);
+    ui->actionFlashCallUserFile->setChecked(checked);
 
     // the Flash Call settings are persistent across restarts of the application
-    prefsManager.Setflashcallfilechooser(ui->actionFlashCallFilechooser->isChecked());
+    prefsManager.Setflashcalluserfile(ui->actionFlashCallUserFile->isChecked());
+}
+
+void MainWindow::on_actionFlashCallUserFile_triggered()
+{
+    on_flashcalluserfile_toggled(ui->actionFlashCallUserFile->isChecked());
+    readFlashCallsList();
 }
 
 void MainWindow::on_actionFlashCallFilechooser_triggered()
 {
-    on_flashcallfilechooser_toggled(ui->actionFlashCallFilechooser->isChecked());
-    readFlashCallsList();
+    // on_flashcallfilechooser_toggled(ui->actionFlashCallFilechooser->isChecked());
+    selectUserFlashFile();      // choose a file
+    readFlashCallsList();       // if there was one, read it
 }
 
 
 // -----
+void MainWindow::updateFlashFileMenu() {
+    QString menuItemDisplay;
+    if (lastFlashcardsUserFile == "") {
+        menuItemDisplay = "No flashcards file selected";
+        ui->actionFlashCallUserFile->setEnabled(false);
+        // ensure it isn't checked!
+        ui->actionFlashCallUserFile->setChecked(false);
+    } else {
+        menuItemDisplay = "File: " + lastFlashcardsUserFile;
+        QFileInfo fi(lastFlashcardsUserFile);
+        menuItemDisplay = "File: " + fi.completeBaseName();
+        ui->actionFlashCallUserFile->setEnabled(true);
+    }
+    ui->actionFlashCallUserFile->setText(menuItemDisplay);
+}
+
+void MainWindow::selectUserFlashFile() {
+    QString defaultDir = lastFlashcardsUserDirectory;
+    if (!QFile::exists(defaultDir)) {
+        defaultDir = QDir::homePath();
+    }
+            
+    trapKeypresses = false;
+    QString flashcardsFileName =
+        QFileDialog::getOpenFileName(this,
+                                     tr("Load Flashcards"),
+                                     defaultDir,
+                                     tr("Flashcards Files (*.txt)"));
+    trapKeypresses = true;
+
+    if (flashcardsFileName.isNull()) {
+        // user cancelled, so don't change anything
+        return;
+    }
+    QFileInfo fi(flashcardsFileName);
+    lastFlashcardsUserFile = fi.fileName();
+    lastFlashcardsUserDirectory = fi.absolutePath();
+    // Save it in Settings...
+    prefsManager.Setlastflashcalluserfile(lastFlashcardsUserFile);
+    prefsManager.Setlastflashcalluserdirectory(lastFlashcardsUserDirectory);
+    
+    // ...and display it in the menu
+    updateFlashFileMenu();
+}
+
 void MainWindow::readFlashCallsList() {
 #if defined(Q_OS_MAC)
     QString appPath = QApplication::applicationFilePath();
@@ -8099,71 +8153,31 @@ void MainWindow::readFlashCallsList() {
 
     flashCalls.clear();  // remove all calls, let's read them in again
 
-    if (ui->actionFlashCallFilechooser->isChecked()) {
-//        qDebug() << "Filechooser!";
+    lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
+    lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
+    if (lastFlashcardsUserFile != "" &&
+        (ui->actionFlashCallUserFile->isChecked())) {
 
-        if (lastFlashcardsfile == "") {
-            // We haven't ask for it yet...
-
-            lastFlashcardsfile = prefsManager.Getdefault_flashcards_file();
-            // if (QFile::exists(lastFlashcardsfile)
-
-            QString defaultFile = lastFlashcardsfile;
-            if (!QFile::exists(lastFlashcardsfile)) {
-                defaultFile = QDir::homePath();
-            }
+        // There is a user flash card file, so read it
             
-            trapKeypresses = false;
-            QString flashcardsFileName =
-                QFileDialog::getOpenFileName(this,
-                                             tr("Load Flashcards"),
-                                             defaultFile,
-                                             tr("Flashcards Files (*.txt)"));
-            trapKeypresses = true;
-
-            if (flashcardsFileName.isNull()) {
-                lastFlashcardsfile = "";        // user cancelled it
-                // Uncheck it, so it can be chosen again by re-checking it.
-                ui->actionFlashCallFilechooser->setChecked(false);
-            } else {
-                lastFlashcardsfile = flashcardsFileName;
-                // Save it in Settings.
-                prefsManager.Setdefault_flashcards_file(flashcardsFileName);
-            }
-        }
-
-        if (lastFlashcardsfile != "") {
-            // There is a flashcard file, either newly specified or specified before (we could
-            // get here because another level was checked)
-            
-            // now read the file...
-//            qDebug() << "Reading file " << lastFlashcardsfile;
-            
-            QFile file(lastFlashcardsfile);
-            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-//                qDebug() << "Could not open " << lastFlashcardsfile;
-                lastFlashcardsfile = "";
-            } else {
-                while (!file.atEnd()) {
-                    QString line = file.readLine().simplified();
-                    if (!line.startsWith("#")) {
-                        flashCalls.append(line);
-                    }
+        QFile file(lastFlashcardsUserDirectory + "/" + lastFlashcardsUserFile);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            // qDebug() << "Could not open " << lastFlashcardsUserFile;
+            // clear the name 
+            lastFlashcardsUserFile = "";
+            prefsManager.Setlastflashcalluserfile(lastFlashcardsUserFile);
+            updateFlashFileMenu();
+        } else {
+            while (!file.atEnd()) {
+                QString line = file.readLine().simplified();
+                if (!line.startsWith("#")) {
+                    flashCalls.append(line);
                 }
-                file.close();
             }
+            file.close();
         }
-    } else {
-        // unchecked, clear the filename, so if it is checked we ask for it
-        lastFlashcardsfile = "";
     }
 
-    QString menuItemDisplay = "Select a file";
-    if (lastFlashcardsfile != "") {
-        QFileInfo fi(lastFlashcardsfile);
-        menuItemDisplay = fi.baseName();
-    }
-    ui->actionFlashCallFilechooser->setText(menuItemDisplay);
     
     // Now look check for the calls from relevant levels
 
