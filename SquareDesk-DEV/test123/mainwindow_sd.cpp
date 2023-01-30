@@ -22,7 +22,12 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+// Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
+#pragma clang diagnostic pop
+
 #include "ui_mainwindow.h"
 #include "utility.h"
 #include <QGraphicsItemGroup>
@@ -1127,6 +1132,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                             ui->tableWidgetCurrentSequence->setCurrentItem(ui->tableWidgetCurrentSequence->item(0,0));
                             ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
                         }
+
+                        checkSDforErrors(); // DEBUG DEBUG DEBUG
                     }
                     });
 
@@ -1179,6 +1186,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         // Drawing the people happens over in on_sd_update_status_bar
         
         ui->listWidgetSDOutput->addItem(str);
+//        qDebug() << "adding line to listWIdget: " << str;
     }
 }
 
@@ -1568,6 +1576,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 
 void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall) // s defaults to ""
 {
+//    qDebug() << "original call: " << s;
     QString cmd;
     if (s.isEmpty()) {
         cmd = ui->lineEditSDInput->text().simplified(); // both trims whitespace and consolidates whitespace
@@ -1597,6 +1606,11 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
     cmd = cmd.replace("seven and a half","7-1/2");
     cmd = cmd.replace("eight and a half","8-1/2");
 
+    // new from CSDS PLUS ===================================
+    cmd = cmd.replace(" & "," and "); // down here to not disturb 1-1/2 processing
+    cmd = cmd.replace(QRegularExpression("\\(.*\\)"),"").simplified(); // remove parens, trims whitespace
+
+    // -------------------
     cmd = cmd.replace("four quarters","4/4");
     cmd = cmd.replace("three quarters","3/4").replace("three quarter","3/4");  // always replace the longer thing first!
     cmd = cmd.replace("halfway", "xyzzy123");
@@ -1671,7 +1685,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
 //                cmd = "[" + andRollCall.cap(1) + "] and roll";
 //            }
 
-            cmd.replace(andRollCall, "[ \\1 ] and roll");
+            cmd.replace(andRollCall, "[\\1] and roll");
         }
 
         // explode must be handled *after* roll, because explode binds tightly with the call
@@ -1692,8 +1706,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
 //        } else {
 //        }
 
-        cmd.replace(explodeAndRollCall, "[ explode and \\1 ] and roll");
-        cmd.replace(explodeAndNotRollCall, "explode and [ \\1 ]");
+        cmd.replace(explodeAndRollCall, "[explode and \\1] and roll");
+        cmd.replace(explodeAndNotRollCall, "explode and [\\1]");
 
     }
 
@@ -1703,7 +1717,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
 //        if (cmd.indexOf(andSpreadCall) != -1) {
 //            cmd = "[" + andSpreadCall.cap(1) + "] and spread";
 //        }
-        cmd.replace(andSpreadCall, "[ \\1 ] and spread");
+        cmd.replace(andSpreadCall, "[\\1] and spread");
     }
 
     // handle "undo [that]" --> "undo last call"
@@ -1733,14 +1747,14 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
         }
     }
 
+    cmd.replace("1/2 square thru", "square thru 2"); // must be first for "1/2 square thru"
+
     // handle "square thru" -> "square thru 4"
     //  and "heads square thru" --> "heads square thru 4"
     //  and "sides..."
     if (cmd.endsWith("square thru")) {
         cmd.replace("square thru", "square thru 4");
     }
-
-    cmd.replace("1/2 square thru", "square thru 2");
 
     // SD COMMANDS -------
 
@@ -2839,7 +2853,8 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
     }
 
     QString origFilename = filename;
-    QFile theFile((musicRootPath + "/sd/" + filename.replace(".","/SStoSS/") + ".choreodb_to_csds.in"));
+//    QFile theFile((musicRootPath + "/sd/" + filename.replace(".","/SStoSS/") + ".choreodb_to_csds.in"));
+    QFile theFile((musicRootPath + "/sd/" + filename + ".seq.txt"));
 //    qDebug() << "theFile: " << theFile.fileName();
 
     if(!theFile.open(QIODevice::ReadOnly)) {
@@ -2970,10 +2985,17 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         if (callList.length() != 0) {
             // we are loading the central widget now
 //            qDebug() << "Loading central widget with level: " << level << ", callList: " << callList;
-            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
+
+            // in the new scheme, we do NOT change the level away from what the user selected.
+//            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
+
 //            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
             ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
             selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
+
+//            qDebug() << "**********************************";
+//            qDebug() << "loadFrame() SEQUENCE TO BE SENT TO SD: " << callList;
+
             sdthread->resetAndExecute(callList);     // finally, send the calls in the list to SD.
         }
 
@@ -3131,10 +3153,11 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
     for (int i = 0; i < frameVisible.length(); i++) {
         // for each frame (0 - 6)
         QString frameName = frameFiles[i]; // get the filename
-        QString who     = QString(frameName).replace(QRegularExpression("\\..*"), "");
-        QString level   = QString(frameName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//        QString who     = QString(frameName).replace(QRegularExpression("\\..*"), "");
+//        QString level   = QString(frameName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
-        QString pathToScanFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//        QString pathToScanFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+        QString pathToScanFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameName);
 //        qDebug() << "SCANNING: " << pathToScanFile;
 
         QFile file(pathToScanFile);
@@ -3165,10 +3188,11 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
 void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 //    qDebug() << "SDAppendCurrentSequenceToFrame " << i << frameFiles[i] << " triggered";
 
-    QString who     = QString(frameFiles[i]).replace(QRegularExpression("\\..*"), "");
-    QString level   = QString(frameFiles[i]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//    QString who     = QString(frameFiles[i]).replace(QRegularExpression("\\..*"), "");
+//    QString level   = QString(frameFiles[i]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
-    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QString pathToAppendFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameFiles[i]);
 
 //    qDebug() << "APPEND: currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -3204,11 +3228,12 @@ void MainWindow::SDReplaceCurrentSequence() {
     int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
 //    qDebug() << "SDReplaceCurrentSequence REPLACING SEQUENCE #" << currentSeqNum << " FROM " << frameFiles[currentFrame];
 
-    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
-    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
+//    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
     // open the current file for READ ONLY
-    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QString pathToOLDFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameFiles[currentFrame]);
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3217,7 +3242,8 @@ void MainWindow::SDReplaceCurrentSequence() {
     }
 
     // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
-    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
+//    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
+    QString pathToNEWFile = (musicRootPath + "/sd/%1.seq.txt.NEW").arg(frameFiles[currentFrame]);
     QFile NEWfile(pathToNEWFile);
 
     if (!NEWfile.open(QIODevice::Append)) {
@@ -3278,11 +3304,12 @@ void MainWindow::SDDeleteCurrentSequence() {
     int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
 //    qDebug() << "SDDeleteCurrentSequence DELETING SEQUENCE #" << currentSeqNum << " FROM " << frameFiles[currentFrame];
 
-    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
-    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
+//    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
     // open the current file for READ ONLY
-    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QString pathToOLDFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameFiles[currentFrame]);
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3291,7 +3318,8 @@ void MainWindow::SDDeleteCurrentSequence() {
     }
 
     // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
-    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
+//    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
+    QString pathToNEWFile = (musicRootPath + "/sd/%1.seq.txt.NEW").arg(frameFiles[currentFrame]);
     QFile NEWfile(pathToNEWFile);
 
     if (!NEWfile.open(QIODevice::Append)) {
@@ -3373,10 +3401,11 @@ void MainWindow::on_pushButtonSDNew_clicked()
     //    #REC=<next sequence number>#
     //    #AUTHOR=<authorID>#
     //    @
-    QString who     = QString(currentFrameTextName).replace(QRegularExpression("\\..*"), "");
-    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//    QString who     = QString(currentFrameTextName).replace(QRegularExpression("\\..*"), "");
+//    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
-    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QString pathToAppendFile = (musicRootPath + "/sd/%1.seq.txt").arg(currentFrameTextName);
 
 //    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -3402,3 +3431,44 @@ void MainWindow::on_pushButtonSDNew_clicked()
     }
 
 }
+
+QString MainWindow::translateCall(QString call) {
+    // TODO: lots here
+    return(call);
+}
+
+bool MainWindow::checkSDforErrors() {
+    bool success = true;
+
+    bool suppressBoilerplate = true;
+
+    for (int i = 0; i < ui->listWidgetSDOutput->count(); i++) {
+        QString line = ui->listWidgetSDOutput->item(i)->text();
+
+        if (!suppressBoilerplate) {
+//            qDebug() << "SD_OUTPUT: " << i << line;
+        }
+
+        if (line.contains("uiSquareDesk")) { // end of boilerplate
+            suppressBoilerplate = false;
+        }
+    }
+
+    return(success);
+}
+
+void MainWindow::debugCSDSfile(QString level) {
+    Q_UNUSED(level)
+//    for (int i = 2; i < 3; i++) {
+//        qDebug() << "***** LOADING FRAME FOR TEST: " << i;
+//        loadFrame(i, "local.plus", 0, NULL); // NULL means "use the Central widget, which is a table"
+//        qDebug() << "sleeping 500ms...";
+//        QThread::msleep(500);
+//        qDebug() << "awake!";
+//        checkSDforErrors();
+//    }
+//    qDebug() << "***** END TEST";
+
+}
+
+

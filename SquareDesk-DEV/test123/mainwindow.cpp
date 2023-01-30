@@ -1314,6 +1314,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
     //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
 
+    // TODO: These strings must be dynamically created, based on current selections for F1-F7 frame files
     QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
     submenuMove->addAction("F1 ceder.basic", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
     submenuMove->addAction("F2 ceder.ms",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
@@ -1345,6 +1346,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     selectFirstItemOnLoad = false;
 
     getMetadata();
+
+//    debugCSDSfile("plus"); // DEBUG DEBUG DEBUG THIS HELPS TO DEBUG IMPORT OF CSDS SEQUENCES TO SD FORMAT *********
 }
 
 

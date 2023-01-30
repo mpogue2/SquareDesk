@@ -1095,6 +1095,11 @@ public:
     void getMetadata(); // fetch the GLUID etc from .squaredesk/metadata.csv
     void writeMetadata(int userID, int nextSequenceID, QString authorID);
 
+    void debugCSDSfile(QString frameName); // DEBUG
+    bool checkSDforErrors(); // DEBUG
+
+    QString translateCall(QString call);
+
 };
 
 // currentState:

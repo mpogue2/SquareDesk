@@ -183,6 +183,7 @@ SDThread::CurrentInputState SDThread::currentInputState()
 
 bool SDThread::do_user_input(QString str)
 {
+//    qDebug() << "LINE ACTUALLY SENT TO SD:" << str;
     if (on_user_input(str))
     {
         waitCondAckToMainThread.wait(&mutexAckToMainThread);
