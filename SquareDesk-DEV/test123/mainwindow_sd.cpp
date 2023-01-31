@@ -38,7 +38,7 @@
 #include <QClipboard>
 #include <QtSvg/QSvgGenerator>
 #include "common.h"
-//#include "danceprograms.h"
+#include "danceprograms.h"
 #include "../sdlib/database.h"
 #include "sdformationutils.h"
 #include <algorithm>  // for random_shuffle
@@ -1113,6 +1113,21 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 
                 QTableWidgetItem *moveItem(new QTableWidgetItem(thePrettifiedCall));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
+
+                QString level = translateCallToLevel(thePrettifiedCall);
+
+                if (level == "Mainstream") {
+                    moveItem->setBackground(QBrush("#E0E0FF"));
+                } else if (level == "Plus") {
+                    moveItem->setBackground(QBrush("#BFFFC0"));
+                } else if (level == "A1" || level == "A2") {
+                    moveItem->setBackground(QBrush("#FFF0C0"));
+                } else if (level == "C1") {
+                    moveItem->setBackground(QBrush("#FEE0E0"));
+                } else {
+//                    qDebug() << "ERROR: unknown level for setting BG color of SD item: " << level;
+                }
+
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
 
 //                qDebug() << "on_sd_add_new_line: adding " << thePrettifiedCall;
@@ -3474,4 +3489,69 @@ void MainWindow::debugCSDSfile(QString level) {
 
 }
 
+QString MainWindow::makeLevelString(const char *levelCalls[]) {
+    static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
+    QString allCallsString = ";";
 
+    // iterate over all the plus calls (NOTE: This list is NOT the one in the file, it's the internal one for now.)
+    for (int i = 0; levelCalls[i]; ++i)
+    {
+        QString line = QString(levelCalls[i]); // the line that would be in the file
+        QString number;
+        QString name;
+//        qDebug() << "theLine: " << line;
+
+        QRegularExpressionMatch match = regex_numberCommaName.match(line);
+        if (match.hasMatch())
+        {
+            QString prefix("");
+            if (match.captured(2).length() < 2)
+            {
+                prefix = " ";
+            }
+            number = prefix + match.captured(1);
+            name = match.captured(4);
+
+            // remove parenthesized stuff and trim spaces
+            name = name.replace(QRegularExpression("\\(.*\\)", QRegularExpression::InvertedGreedinessOption), "").trimmed().toLower();
+
+//            qDebug() << number << name;
+
+            allCallsString += (name + ";");
+        }
+    }
+
+    return(allCallsString);
+}
+
+QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
+    QString theCall = thePrettifiedCall.toLower();
+
+    QString allPlusCallsString = makeLevelString(danceprogram_plus);    // make big long string
+    QString allA1CallsString   = makeLevelString(danceprogram_a1);      // make big long string
+    QString allA2CallsString   = makeLevelString(danceprogram_a2);      // make big long string
+
+    // ***** TODO: only makeLevelString once at startup for each level
+    // ***** TODO: make a C1 level string, AND stick it into a Dance Programs file
+
+//    qDebug() << "CHECKING: " << theCall;
+//    qDebug() << "AGAINST: " << allPlusCallsString;
+//    qDebug() << "AGAINST: " << allA1CallsString;
+//    qDebug() << "AGAINST: " << allA2CallsString;
+
+    // must go from highest level to lowest!
+    if (theCall.contains("windmill") ||
+            allA2CallsString.contains(";" + theCall + ";")) {
+        return("A2");
+    } else if (theCall.contains("any hand") ||
+               theCall.contains("cross clover") ||
+               theCall.contains("and cross") ||
+               allA1CallsString.contains(";" + theCall + ";")) {
+        return("A1");
+    } else if (theCall.contains("and roll") ||
+               theCall.contains("and spread") ||
+               allPlusCallsString.contains(";" + theCall + ";")) {
+        return("Plus");
+    }
+    return("Mainstream"); // else it's probably Basic or MS, TODO: Could be C1
+}

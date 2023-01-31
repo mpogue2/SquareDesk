@@ -1100,6 +1100,9 @@ public:
 
     QString translateCall(QString call);
 
+    QString translateCallToLevel(QString thePrettifiedCall);
+    QString makeLevelString(const char *levelCalls[]);
+
 };
 
 // currentState:
