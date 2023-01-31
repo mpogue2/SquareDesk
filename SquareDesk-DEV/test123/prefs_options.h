@@ -142,6 +142,7 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLIncludeHeaders, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyDeepUndoBuffer, true);
 
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDLevel, "Plus"); // SD's input level is persistent
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
 

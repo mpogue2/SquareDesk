@@ -1983,6 +1983,9 @@ void MainWindow::setCurrentSDDanceProgram(dance_level dance_program)
         default: break;
     }
 
+//    qDebug() << "SETTING SD LEVEL TO: " << currentSDKeyboardLevel;
+    prefsManager.SetSDLevel(currentSDKeyboardLevel); // persist the selected dance level
+
 //    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
 
     microphoneStatusUpdate(); // update the level designator
@@ -2918,24 +2921,24 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 
     } else {
         // file found, but we need to tell SD what the level is first
-        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+//        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 //        qDebug() << "FILE EXISTS, setting level: " << level;
 
-        // TODO: turn this into a function, it's used in 2 places...
-        dance_level dlevel = l_mainstream;
-        if (level == "basic") {
-            dlevel = l_mainstream;
-        } else if (level == "ms") {
-            dlevel = l_mainstream;
-        } else if (level == "plus") {
-            dlevel = l_plus;
-        } else if (level == "a1") {
-            dlevel = l_a1;
-        } else if (level == "a2") {
-            dlevel = l_a2;
-        } else if (level == "c1") {
-            dlevel = l_c1;
-        }
+//        // TODO: turn this into a function, it's used in 2 places...
+//        dance_level dlevel = l_mainstream;
+//        if (level == "basic") {
+//            dlevel = l_mainstream;
+//        } else if (level == "ms") {
+//            dlevel = l_mainstream;
+//        } else if (level == "plus") {
+//            dlevel = l_plus;
+//        } else if (level == "a1") {
+//            dlevel = l_a1;
+//        } else if (level == "a2") {
+//            dlevel = l_a2;
+//        } else if (level == "c1") {
+//            dlevel = l_c1;
+//        }
 
         // now read in the lines of the file, looking for the sequence we want
         QTextStream in(&theFile);

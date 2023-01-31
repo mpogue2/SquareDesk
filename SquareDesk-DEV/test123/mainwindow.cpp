@@ -1102,7 +1102,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     t.elapsed(__LINE__);
 
     currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a} // DEPRECATED
-    currentSDKeyboardLevel = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDKeyboardLevel = "UNK"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
     //    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
 //    ui->tabWidget_2->setTabText(1, QString("F4 Workshop [3/14]"));
 
@@ -1144,7 +1144,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     }
     updateFlashFileMenu();
     readFlashCallsList();
-
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
@@ -1274,6 +1273,38 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->girl3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + ";}");
     ui->boy4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + ";}");
     ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + ";}");
+
+    // restore SD level from saved
+    QString sdLevel = prefsManager.GetSDLevel();
+//    qDebug() << "RESTORING SD LEVEL TO: " << sdLevel;
+    if (sdLevel == "Mainstream") {
+        ui->actionSDDanceProgramMainstream->setChecked(true);
+    } else if (sdLevel == "Plus") {
+        ui->actionSDDanceProgramPlus->setChecked(true);
+    } else if (sdLevel == "A1") {
+        ui->actionSDDanceProgramA1->setChecked(true);
+    } else if (sdLevel == "A2") {
+        ui->actionSDDanceProgramA2->setChecked(true);
+    } else if (sdLevel == "C1") {
+        ui->actionSDDanceProgramC1->setChecked(true);
+    } else if (sdLevel == "C2") {
+        ui->actionSDDanceProgramC2->setChecked(true);
+    } else if (sdLevel == "C3A") {
+        ui->actionSDDanceProgramC3A->setChecked(true);
+    } else if (sdLevel == "C3") {
+        ui->actionSDDanceProgramC3->setChecked(true);
+    } else if (sdLevel == "C3x") {
+        ui->actionSDDanceProgramC3x->setChecked(true);
+    } else if (sdLevel == "C4") {
+        ui->actionSDDanceProgramC4->setChecked(true);
+    } else if (sdLevel == "C4x") {
+        ui->actionSDDanceProgramC4x->setChecked(true);
+    } else {
+        qDebug() << "ERROR: Can't restore SD to level: " << sdLevel;
+    }
+
+    dance_level currentLevel = get_current_sd_dance_program(); // quick way to translate from string("Plus") to dance_level l_plus
+    setCurrentSDDanceProgram(currentLevel);
 
     // INIT SD FRAMES ----------------
     // TODO: This is TEST DATA right now.
