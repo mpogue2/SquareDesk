@@ -3531,6 +3531,12 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
     QString allA1CallsString   = makeLevelString(danceprogram_a1);      // make big long string
     QString allA2CallsString   = makeLevelString(danceprogram_a2);      // make big long string
 
+    QString allC1CallsString = ";ah so;alter the wave;chase your neighbor;checkover;cross and turn;cross by;";
+//    allC1CallsString += "";
+
+    // TODO: not handled yet:
+    // circle by (because that requires numbers, i.e. QRegularExpression
+
     // ***** TODO: only makeLevelString once at startup for each level
     // ***** TODO: make a C1 level string, AND stick it into a Dance Programs file
 
@@ -3540,7 +3546,83 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
 //    qDebug() << "AGAINST: " << allA2CallsString;
 
     // must go from highest level to lowest!
-    if (theCall.contains("windmill") ||
+    if (theCall.contains("block") ||
+            theCall.contains("butterfly") ||
+            theCall.contains("cast back") ||
+            theCall.contains("concentric") ||
+            (theCall.contains("counter rotate") && !theCall.contains("split counter rotate")) ||
+            theCall.contains("cross chain") ||
+            theCall.contains("cross extend") ||
+            theCall.contains("cross roll") ||
+            theCall.contains("cross your neighbor") ||
+            theCall.contains("pass and roll your cross neighbor") ||
+            (theCall.contains("chain thru") && !theCall.contains("spin chain")) ||
+            theCall.contains("dixie diamond") ||
+            theCall.contains("dixie sashay") ||
+            theCall.contains("flip") ||
+            theCall.contains("follow thru") ||
+            theCall.contains("galaxy") ||
+            theCall.contains("interlocked") ||
+            theCall.contains("jaywalk") ||
+            theCall.contains("linear action") ||
+            theCall.contains("magic") ||
+            theCall.contains("O ") ||
+            theCall.contains("the axle") ||
+            theCall.contains("percolate") ||
+            theCall.contains("phantom") ||
+            theCall.contains("press ahead") ||
+            theCall.contains("2/3") ||
+            theCall.contains("box recycle") ||
+            theCall.contains("regroup") ||
+            theCall.contains("relay the shadow") ||
+            theCall.contains("relay the top") ||
+            theCall.contains("reverse explode") ||
+            theCall.contains("rotary spin") ||
+            theCall.contains("rotate") ||
+            theCall.contains("scatter") ||
+            theCall.contains("little") ||
+            theCall.contains("plenty") ||
+            theCall.contains("ramble") ||
+            theCall.contains("shakedown") ||
+            theCall.contains("siamese") ||
+            (theCall.contains("the windmill") && !theCall.contains("spin the windmill")) ||
+            theCall.contains("square chain the top") ||
+            theCall.contains("split dixie style to a wave") ||
+            theCall.contains("square the bases") ||
+            theCall.contains("squeeze") ||
+            theCall.contains("step and flip") ||
+            theCall.contains("step and fold") ||
+            theCall.contains("stretch") ||
+            theCall.contains("substitute") ||
+            theCall.contains("swing and circle") ||
+            theCall.contains("fractions") ||
+            theCall.contains("switch the line") ||
+            theCall.contains("t-bone") ||
+            theCall.contains("back to a wave") ||
+            theCall.contains("tally ho") ||
+            theCall.contains("tandem") ||
+            theCall.contains("3 by 2") ||
+            theCall.contains("Track 0") ||
+            theCall.contains("Track 1") ||
+            theCall.contains("Track 3") ||
+            theCall.contains("Track 4") ||
+            theCall.contains("triangle") ||
+            theCall.contains("triple box") ||
+            theCall.contains("triple column") ||
+            theCall.contains("triple wave") ||
+            theCall.contains("twist") ||
+            theCall.contains("vertical tag") ||
+            (theCall.contains("to a wave") && !theCall.contains("single circle")) ||
+            (theCall.contains("weave") && !theCall.contains("the ring")) ||
+            (theCall.contains("wheel and") && !theCall.contains("deal")) ||
+            theCall.contains("wheel fan thru") ||
+            theCall.contains("wheel thru") ||
+            theCall.contains("with the flow") ||
+            theCall.contains("zing") ||
+            allC1CallsString.contains(";" + theCall + ";")
+            ) {
+        return("C1");
+    } else if (theCall.contains("windmill") ||
             allA2CallsString.contains(";" + theCall + ";")) {
         return("A2");
     } else if (theCall.contains("any hand") ||
@@ -3553,5 +3635,5 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                allPlusCallsString.contains(";" + theCall + ";")) {
         return("Plus");
     }
-    return("Mainstream"); // else it's probably Basic or MS, TODO: Could be C1
+    return("Mainstream"); // else it's probably Basic or MS
 }

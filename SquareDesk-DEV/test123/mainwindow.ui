@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1030</width>
+    <width>1057</width>
     <height>578</height>
    </rect>
   </property>
@@ -1852,7 +1852,7 @@
                  <enum>Qt::CustomContextMenu</enum>
                 </property>
                 <property name="alternatingRowColors">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <column>
                  <property name="text">
@@ -2444,7 +2444,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1030</width>
+     <width>1057</width>
      <height>24</height>
     </rect>
    </property>
