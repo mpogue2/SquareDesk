@@ -4089,6 +4089,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     currentMP3filenameWithPath = MP3FileName;
 
+    loadCuesheets(MP3FileName); // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
+                                //   A symlink or alias in the Singing folder pointing at the real file in the Patter folder should work now.
+                                //   A symlink or alias in the Patter folder pointing at the real file in the Singing folder should also work now.
+                                //   In both cases: as Singer, it has lyrics, and as Patter, it has looping and no lyrics.
+
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
     QFileInfo fi(MP3FileName);
     QString resolvedFilePath = fi.symLinkTarget(); // path with the symbolic links followed/removed
@@ -4102,8 +4107,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     currentSongLabel = songLabel;   // remember it, in case we need it later
 
     ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
-
-    loadCuesheets(MP3FileName);
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
