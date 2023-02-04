@@ -4089,6 +4089,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     currentMP3filenameWithPath = MP3FileName;
 
+    currentSongType = songType;     // save it for session coloring on the analog clock later...
+    currentSongLabel = songLabel;   // remember it, in case we need it later
+
     loadCuesheets(MP3FileName); // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
                                 //   A symlink or alias in the Singing folder pointing at the real file in the Patter folder should work now.
                                 //   A symlink or alias in the Patter folder pointing at the real file in the Singing folder should also work now.
@@ -4102,9 +4105,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
 
     t.elapsed(__LINE__);
-
-    currentSongType = songType;  // save it for session coloring on the analog clock later...
-    currentSongLabel = songLabel;   // remember it, in case we need it later
 
     ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
 
