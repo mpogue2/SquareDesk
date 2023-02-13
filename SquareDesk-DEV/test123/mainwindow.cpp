@@ -3071,11 +3071,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         }
         else if (tabIsSD &&
                  KeyEvent->key() == Qt::Key_Left) { // LEFT --> F11, and SHIFT-LEFT --> SHIFT-F11, if on SD page
+            // NOTE: for this to work, the LEFT ARROW must not be assigned to Move -15 sec in Hot Keys
             QKeyCombination combo1(KeyEvent->modifiers(), Qt::Key_F11);
             return (maybeMainWindow->handleSDFunctionKey(combo1, QString("LEFT_ARROW")));
         }
         else if (tabIsSD &&
                  KeyEvent->key() == Qt::Key_Right) { // RIGHT --> F12, and SHIFT-RIGHT --> SHIFT-F12, if on SD page
+            // NOTE: for this to work, the RIGHT ARROW must not be assigned to Move +15 sec in Hot Keys
             QKeyCombination combo2(KeyEvent->modifiers(), Qt::Key_F12);
             return (maybeMainWindow->handleSDFunctionKey(combo2, QString("RIGHT_ARROW")));
         }
