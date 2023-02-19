@@ -628,6 +628,7 @@ private slots:
 
     // slots for SD editing buttons ------
     void SDGetCurrentSeqs();
+    void SDSetCurrentSeqs(int i);
     void SDScanFramesForMax();
     void SDAppendCurrentSequenceToFrame(int i);
     void SDMoveCurrentSequenceToFrame(int i);
@@ -1094,6 +1095,9 @@ public:
     QString authorID;  // use this instead of userID going forward
     void getMetadata(); // fetch the GLUID etc from .squaredesk/metadata.csv
     void writeMetadata(int userID, int nextSequenceID, QString authorID);
+
+    QString currentSequenceRecordNumber;  // REC of currently loaded sequence
+    QString currentSequenceAuthor;        // AUTHOR of currently loaded sequence
 
     void debugCSDSfile(QString frameName); // DEBUG
     bool checkSDforErrors(); // DEBUG

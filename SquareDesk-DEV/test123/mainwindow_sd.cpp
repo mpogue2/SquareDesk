@@ -2875,9 +2875,8 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
     }
 
     QString origFilename = filename;
-//    QFile theFile((musicRootPath + "/sd/" + filename.replace(".","/SStoSS/") + ".choreodb_to_csds.in"));
-    QFile theFile((musicRootPath + "/sd/" + filename + ".seq.txt"));
-//    qDebug() << "theFile: " << theFile.fileName();
+    QFile theFile((musicRootPath + "/sd/" + filename + ".txt"));
+//    qDebug() << "loadFrame: " << theFile.fileName();
 
     if(!theFile.open(QIODevice::ReadOnly)) {
 //        QMessageBox::information(0, "ERROR", theFile.errorString()); // if file does not exist...
@@ -2886,57 +2885,57 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         SDtestmode = true; // if any file not found, disable edit buttons.
         qDebug() << "File does not exist: " << theFile.fileName();
 
-        frameMaxSeq[i] = 1;  // for all fake data, there is exactly one sequence available.  Communicate this to everybody (like frame titles, and F11/F12 handler).
+//        frameMaxSeq[i] = 1;  // for all fake data, there is exactly one sequence available.  Communicate this to everybody (like frame titles, and F11/F12 handler).
 
-        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
-//        qDebug() << "FILE DOES NOT EXIST, level: " << level;
+//        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
+////        qDebug() << "FILE DOES NOT EXIST, level: " << level;
 
-        QStringList defaultBasic = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "centers pass thru", "AL"};
-        QStringList defaultMS    = {"heads pass thru", "cloverleaf", "zoom", "centers square thru 3", "AL"};
-        QStringList defaultPlus  = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "double pass thru", "track 2", "hinge", "roll", "pass thru", "RLG"};
-        QStringList defaultA1    = {"heads pass the ocean", "chain reaction"};
-        QStringList defaultA2    = {"heads pass the ocean", "extend", "motivate"};
-        QStringList defaultC1    = {"heads wheel fan thru", "swing thru", "tally ho"};
+//        QStringList defaultBasic = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "centers pass thru", "AL"};
+//        QStringList defaultMS    = {"heads pass thru", "cloverleaf", "zoom", "centers square thru 3", "AL"};
+//        QStringList defaultPlus  = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "double pass thru", "track 2", "hinge", "roll", "pass thru", "RLG"};
+//        QStringList defaultA1    = {"heads pass the ocean", "chain reaction"};
+//        QStringList defaultA2    = {"heads pass the ocean", "extend", "motivate"};
+//        QStringList defaultC1    = {"heads wheel fan thru", "swing thru", "tally ho"};
 
-        QStringList theCalls = defaultBasic;  // basic calls are allowed at all levels, so this is the default
-        dance_level dlevel = l_mainstream;
-        if (level == "basic") {
-            theCalls = defaultBasic;
-            dlevel = l_mainstream;
-        } else if (level == "ms") {
-            theCalls = defaultMS;
-            dlevel = l_mainstream;
-        } else if (level == "plus") {
-            theCalls = defaultPlus;
-            dlevel = l_plus;
-        } else if (level == "a1") {
-            theCalls = defaultA1;
-            dlevel = l_a1;
-        } else if (level == "a2") {
-            theCalls = defaultA2;
-            dlevel = l_a2;
-        } else if (level == "c1") {
-            theCalls = defaultC1;
-            dlevel = l_c1;
-        }
+//        QStringList theCalls = defaultBasic;  // basic calls are allowed at all levels, so this is the default
+//        dance_level dlevel = l_mainstream;
+//        if (level == "basic") {
+//            theCalls = defaultBasic;
+//            dlevel = l_mainstream;
+//        } else if (level == "ms") {
+//            theCalls = defaultMS;
+//            dlevel = l_mainstream;
+//        } else if (level == "plus") {
+//            theCalls = defaultPlus;
+//            dlevel = l_plus;
+//        } else if (level == "a1") {
+//            theCalls = defaultA1;
+//            dlevel = l_a1;
+//        } else if (level == "a2") {
+//            theCalls = defaultA2;
+//            dlevel = l_a2;
+//        } else if (level == "c1") {
+//            theCalls = defaultC1;
+//            dlevel = l_c1;
+//        }
 
-        if (list != nullptr) {
-//            qDebug() << "Loading SIDEBAR widget with DEFAULT calls: " << theCalls;
-            list->clear();
-            for (auto i:theCalls) {
-                list->addItem(i);    // add to a list widget
-                // NOTE: the SD engine's level must NOT be set here.
-            }
-        } else {
-//            qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
-//            qDebug() << "***** TEMPORARILY DISABLED *****";
-            ui->labelWorkshop->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
-            ui->label_CurrentSequence->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
-            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
-//            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
-            ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
-            sdthread->resetAndExecute(theCalls);     // finally, load the list of calls
-        }
+//        if (list != nullptr) {
+////            qDebug() << "Loading SIDEBAR widget with DEFAULT calls: " << theCalls;
+//            list->clear();
+//            for (auto i:theCalls) {
+//                list->addItem(i);    // add to a list widget
+//                // NOTE: the SD engine's level must NOT be set here.
+//            }
+//        } else {
+////            qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
+////            qDebug() << "***** TEMPORARILY DISABLED *****";
+//            ui->labelWorkshop->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
+//            ui->label_CurrentSequence->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
+//            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
+////            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
+//            ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
+//            sdthread->resetAndExecute(theCalls);     // finally, load the list of calls
+//        }
 
     } else {
         // file found, but we need to tell SD what the level is first
@@ -2966,9 +2965,25 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         bool wantThisSequence = false;
         while(!in.atEnd()) {
             QString line = in.readLine();
+            // typical first two lines in a sequence:
+            // #REC=1658300002#
+            // #AUTHOR=16583#
             if (line.startsWith("#REC=")) {
                 seq++;
                 wantThisSequence = (seq == seqNum); // want it, iff the seqNum matches the one we're looking at
+
+                if (frameVisible[i] == "central") {
+                    // if this is the central frame, then remember the REC
+                    line = line.replace("#REC=", "").replace("#", "");  // #REC=<record number># --> <record number>
+                    currentSequenceRecordNumber = line ;
+                }
+                continue;
+            } else if (line.startsWith("#AUTHOR=")) {
+                if (frameVisible[i] == "central") {
+                    // if this is the central frame, then remember the AUTHOR
+                    line = line.replace("#AUTHOR=", "").replace("#", "");  // #AUTHOR=<string># --> <string>
+                    currentSequenceAuthor = line;
+                }
                 continue;
             } else if (line.startsWith("@")) {
                 if (wantThisSequence) {
@@ -3026,58 +3041,166 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 //    qDebug() << "----- DONE";
 }
 
-// take care of F1 - F12 when SD tab is showing ------------------------
+// take care of F1 - F12 and UP/DOWN/LEFT/RIGHT and combinations when SD tab is showing ------------------------
 bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     Q_UNUSED(text)
 
-    int key = keyCombo.key();
-    int modifiers = keyCombo.keyboardModifiers();
-    bool shiftDown = modifiers & Qt::ShiftModifier; // true iff SHIFT was down when key was pressed
+    int  key = keyCombo.key();
+    int  modifiers = keyCombo.keyboardModifiers();
+    bool shiftDown   = modifiers & Qt::ShiftModifier;       // true iff SHIFT was down when key was pressed
+    bool commandDown = modifiers & Qt::ControlModifier;     // true iff CMD (MacOS) or CTRL (others) was down when key was pressed
 
 //    qDebug() << "handleSDFunctionKey(" << key << ")" << shiftDown;
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
         return false;
     }
-//    qDebug() << "YES handleSDFunctionKey(" << key << ")";
+//    qDebug() << "YES: handleSDFunctionKey(" << key << ")";
 
     int centralIndex = frameVisible.indexOf("central");
+    int newIndex;
 
-    if (key == Qt::Key_F11) {
-        if (!shiftDown) { // F11 = decrement sequence number in current frame
-            // only do something if we are NOT looking at the first sequence in the current frame
-            if (frameCurSeq[centralIndex] > 1) {
-                frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
-            }
-        } else {  // SHIFT-F11 = go to sequence 1 in current frame
+    QString pathToSequenceUsedFile = (musicRootPath + "/sd/sequenceUsed.csv");
+    QFile currentFile(pathToSequenceUsedFile);
+    QFileInfo info(pathToSequenceUsedFile);
+
+    if (shiftDown) {
+        // SHIFT-something
+        switch (key) {
+        case Qt::Key_Left:  break;  // TODO: go to previous frame
+        case Qt::Key_Right: break;  // TODO: go to next frame
+        case Qt::Key_Up:    break;
+        case Qt::Key_Down:  break;
+        case Qt::Key_F1:
+        case Qt::Key_F2:
+        case Qt::Key_F3:
+        case Qt::Key_F4:    break;
+        case Qt::Key_F10:   break;
+        case Qt::Key_F11:
+//            qDebug() << "SHIFT-F11";
+            newIndex = fmax(centralIndex - 1, 0);
+            qDebug() << "    central/new index: " << centralIndex << newIndex;
+            frameVisible[centralIndex] = "sidebar";
+            frameVisible[newIndex]     = "central";
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+            break;
+        case Qt::Key_F12:
+//            qDebug() << "SHIFT-F12";
+            newIndex = fmin(centralIndex + 1, 3);
+            qDebug() << "    central/new index: " << centralIndex << newIndex;
+            frameVisible[centralIndex] = "sidebar";
+            frameVisible[newIndex]     = "central";
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+            break;
+        default: break;
+        }
+    } else if (commandDown) {
+        // CMD-something (MacOS) or CTRL-something (others)
+        switch (key) {
+        case Qt::Key_Left:  break;
+        case Qt::Key_Right: break;
+        case Qt::Key_Up:    break;
+        case Qt::Key_Down:  break;
+        case Qt::Key_F1:
+        case Qt::Key_F2:
+        case Qt::Key_F3:
+        case Qt::Key_F4:    break;
+        case Qt::Key_F10:   break;
+        case Qt::Key_F11:
+            // CMD-F11 = go to sequence 1 in current frame
+            qDebug() << "CMD-F11";
             frameCurSeq[centralIndex] = 1;
-        }
-        refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
-        // TODO: should set selection to first item in list, if in Dance Arranger
-    } else if (key == Qt::Key_F12) {
-        if (!shiftDown) { // F12 = increment sequence number in current frame
-            // only do something if we are NOT looking at the last sequence in the current frame
-            if (frameCurSeq[centralIndex] < frameMaxSeq[centralIndex]) {
-                frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
-            }
-        } else { // SHIFT-F12 = go to last sequence in current frame
+            SDSetCurrentSeqs(1); // persist the new Current Sequence numbers
+            refreshSDframes();  // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+            break;
+        case Qt::Key_F12:
+            // go to last sequence in current frame
+//            qDebug() << "CMD-F12";
             frameCurSeq[centralIndex] = frameMaxSeq[centralIndex];
+            SDSetCurrentSeqs(2); // persist the new Current Sequence numbers
+            refreshSDframes();  // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+            break;
+        default: break;
         }
-        refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
-        // TODO: should set selection to first item in list, if in Dance Arranger
-    } else if (key - Qt::Key_F1 < frameVisible.count()) { // only valid FN keys are those from F1 - F<length of frameVisible - 1>, e.g right now F1 - F7
-//        qDebug() << "F" << key - Qt::Key_F1 + 1 << " pressed.";
-        if (frameVisible[key - Qt::Key_F1] == "sidebar") { // can only press keys that are sidebars; central is already central, others are not shown at all
+    } else {
+        // key with no relevant modifiers
+        switch (key) {
+        case Qt::Key_Left:  break;
+        case Qt::Key_Right: break;
+        case Qt::Key_Up:    break;
+        case Qt::Key_Down:  break;
+        case Qt::Key_F1:
+        case Qt::Key_F2:
+        case Qt::Key_F3:
+        case Qt::Key_F4:
+            // F1, F2, F3, F4 means go to a specific frame
+//            qDebug() << "F1/2/3/4";
             frameVisible[centralIndex] = "sidebar";
             frameVisible[key - Qt::Key_F1] = "central";
             refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
-        } else {
-//            qDebug() << "    Key ignored, because that frame isn't visible right now.";
-        }
-    } else {
-//        qDebug() << "ERROR: UNHANDLED FUNCTION KEY " << key - Qt::Key_F1 + 1;
-    }
+            break;
 
-//    qDebug() << "NEW: " << frameVisible << frameCurSeq;
+        case Qt::Key_F10:   break;
+
+        case Qt::Key_F11:
+            // Decrement sequence number in current frame
+            // only do something if we are NOT looking at the first sequence in the current frame
+//            qDebug() << "F11";
+            if (frameCurSeq[centralIndex] > 1) {
+                frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+            }
+            SDSetCurrentSeqs(3); // persist the new Current Sequence numbers
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+            break;
+
+        case Qt::Key_B:
+        case Qt::Key_G:
+            // Mark current sequence as "used", either "BAD" or "GOOD"
+
+            if (!info.exists()) {
+                if (currentFile.open(QFile::WriteOnly | QFile::Append)) {
+                    // file is created, and CSV header is written
+                    QTextStream out(&currentFile);
+                    out << "datetime,userID,sequenceID,status\n";
+                    currentFile.close();
+                } else {
+                    qDebug() << "ERROR: could not make a new one: " << pathToSequenceUsedFile;
+                }
+            }
+
+            if (currentFile.open(QFile::WriteOnly | QFile::Append | QFile::ExistingOnly)) {
+                QTextStream out(&currentFile);
+
+                QString now = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+                if (key == Qt::Key_B) {
+                    // MARK SEQUENCE AS BAD/USED, THEN MOVE TO NEXT SEQUENCE (equiv to CSDS Ctrl-P)
+                    out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",BAD\n";
+                } else {
+                    // MARK SEQUENCE AS GOOD/USED, THEN MOVE TO NEXT SEQUENCE  (equiv to CSDS U)
+                    out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",GOOD\n";
+                }
+
+                currentFile.close();
+            } else {
+                qDebug() << "ERROR: could not open for appending: " << pathToSequenceUsedFile;
+            }
+
+            [[fallthrough]];
+
+        case Qt::Key_F12:
+            // increment sequence number in current frame
+            // only do something if we are NOT looking at the last sequence in the current frame
+//            qDebug() << "F12";
+            if (frameCurSeq[centralIndex] < frameMaxSeq[centralIndex]) {
+                frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+            }
+            SDSetCurrentSeqs(4); // persist the new Current Sequence numbers
+            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
+            // TODO: should set selection to first item in list, if in Dance Arranger
+            break;
+
+        default: break;
+        }
+    }
 
     return(true);
 }
@@ -3112,6 +3235,23 @@ void MainWindow::SDExitEditMode() {
 
 }
 
+void MainWindow::SDSetCurrentSeqs( int i ) {
+//    qDebug() << "SDSet: " << i;
+    // persist the frameCurSeq values into /sd/.current.csv (don't worry, it won't take very long!)
+    QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
+    QFile currentFile(pathToCurrentSeqFile);
+    if (currentFile.open(QFile::WriteOnly)) {
+        QTextStream out(&currentFile);
+        out << "filename,currentSeqNum,maxSeqNum\n";  // HEADER
+        for (int i = 0; i < frameFiles.length(); i++) {
+            out << frameFiles[i] << "," << frameCurSeq[i] << "," << frameMaxSeq[i] << "\n"; // persist all the values from this session
+        }
+        currentFile.close();
+    } else {
+        qDebug() << "ERROR: could not open for writing: " << pathToCurrentSeqFile;
+    }
+}
+
 void MainWindow::SDGetCurrentSeqs() {
 //    qDebug() << "SDGetCurrentSeqs triggered";
     // currently viewed sequence numbers are stored persistently in /sd/.current.csv, so that
@@ -3130,6 +3270,7 @@ void MainWindow::SDGetCurrentSeqs() {
             // simple CSV parser, for exactly 2 fields: filename (string), currentSequenceNumber (uint)
             while (!in.atEnd()) {
                 QString line = in.readLine();
+//                qDebug() << "current.csv line: " << line;
                 QStringList fields = line.split(','); // should be exactly 2 fields
                 if (!(fields[0] == "filename")) {
                     // if not the header line
@@ -3138,7 +3279,8 @@ void MainWindow::SDGetCurrentSeqs() {
                     int which = frameFiles.indexOf(filename);
                     if (which != -1) {
 //                        qDebug() << "Setting frameCurSeq[" << which << "] to " << currentSeqNum;
-                        frameCurSeq[which] = (int)fmin(currentSeqNum, frameMaxSeq[which]); // can't be bigger than actual known max seqNum
+//                        frameCurSeq[which] = (int)fmin(currentSeqNum, frameMaxSeq[which]); // can't be bigger than actual known max seqNum
+                        frameCurSeq[which] = currentSeqNum; // do the MAX later
                     }
                 }
             }
@@ -3146,6 +3288,7 @@ void MainWindow::SDGetCurrentSeqs() {
         }
     } else {
         // use 1 internally
+        qDebug() << "Didn't find .current.csv, so making one with all 1's";
         for (int i = 0; i < frameFiles.length(); i++) {
             frameCurSeq[i] = 1; // if .current.csv file does not exist yet, just init all to zero internally
         }
@@ -3153,7 +3296,7 @@ void MainWindow::SDGetCurrentSeqs() {
         QFile currentFile(pathToCurrentSeqFile);
         if (currentFile.open(QFile::WriteOnly)) {
             QTextStream out(&currentFile);
-            out << "filename,currentSeqNum\n";  // HEADER
+            out << "filename,currentSeqNum,maxSeqNum\n";  // HEADER
             for (auto s: frameFiles) {
                 out << s << ",1\n"; // set CurSeq = 1 for all known files.
             }
@@ -3173,19 +3316,16 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
 //    qDebug() << "SDScanFramesForMax triggered";
 
     for (int i = 0; i < frameVisible.length(); i++) {
+//        qDebug() << "MAGIC [" << i << "]:" << frameCurSeq[i];
         // for each frame (0 - 6)
         QString frameName = frameFiles[i]; // get the filename
-//        QString who     = QString(frameName).replace(QRegularExpression("\\..*"), "");
-//        QString level   = QString(frameName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
-
-//        QString pathToScanFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-        QString pathToScanFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameName);
-//        qDebug() << "SCANNING: " << pathToScanFile;
+        QString pathToScanFile = (musicRootPath + "/sd/%1.txt").arg(frameName);
 
         QFile file(pathToScanFile);
         int AtCount = 0;
         if (file.open(QIODevice::ReadOnly))
         {
+//            qDebug() << "Scanning for max: " << pathToScanFile;
             while(!file.atEnd()) {
                 QString line = file.readLine();
 //                qDebug() << "frameName: " << frameName << ", line: " << line;
@@ -3194,16 +3334,28 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
                 }
             }
 
-//            qDebug() << "     SCAN RESULT:"  << AtCount - 1;
+//            qDebug() << "     MAX RESULT:"  << AtCount - 1;
+//            qDebug() << "XYZZY: " << frameCurSeq[i] << frameMaxSeq[i];
             frameMaxSeq[i] = AtCount - 1;  // one sequence = @ seq @
             frameCurSeq[i] = (int)fmax(0, fmin(frameCurSeq[i], frameMaxSeq[i])); // ensure that CurSeq is 1 - N
-
+//            qDebug() << "    XYZZY2: " << frameCurSeq[i] << frameMaxSeq[i];
             file.close();
+        } else {
+            frameMaxSeq[i] = 1;
+            frameCurSeq[i] = 1;
+            qDebug() << "File " << pathToScanFile << " could not be opened.";
         }
 
     }
 
+    SDSetCurrentSeqs(5); // persist the new Current Sequence numbers
+
     // refreshSDframes(); // we have new framMax's now
+
+//    qDebug() << "Final frameFiles: "  << frameFiles;
+//    qDebug() << "Final frameLevel: "  << frameLevel;
+//    qDebug() << "Final frameMaxSeq: " << frameMaxSeq;
+//    qDebug() << "Final frameCurSeq: " << frameCurSeq;
 }
 
 
@@ -3255,7 +3407,7 @@ void MainWindow::SDReplaceCurrentSequence() {
 
     // open the current file for READ ONLY
 //    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToOLDFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameFiles[currentFrame]);
+    QString pathToOLDFile = (musicRootPath + "/sd/%1.txt").arg(frameFiles[currentFrame]);
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3265,7 +3417,7 @@ void MainWindow::SDReplaceCurrentSequence() {
 
     // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
 //    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
-    QString pathToNEWFile = (musicRootPath + "/sd/%1.seq.txt.NEW").arg(frameFiles[currentFrame]);
+    QString pathToNEWFile = (musicRootPath + "/sd/%1.txt.NEW").arg(frameFiles[currentFrame]);
     QFile NEWfile(pathToNEWFile);
 
     if (!NEWfile.open(QIODevice::Append)) {
@@ -3385,6 +3537,8 @@ void MainWindow::SDDeleteCurrentSequence() {
     frameMaxSeq[currentFrame] = (int)fmax(frameMaxSeq[currentFrame] - 1, 0);                     // 1 fewer sequences now
     frameCurSeq[currentFrame] = (int)fmin(frameMaxSeq[currentFrame], frameCurSeq[currentFrame]); // current might decrease by 1 if we deleted the last sequence, otherwise no change to CurSeq
 
+    SDSetCurrentSeqs(6); // persist the new Current Sequence numbers
+
     refreshSDframes(); // show the new current frame
 
     SDExitEditMode();
@@ -3427,7 +3581,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
 //    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
 //    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToAppendFile = (musicRootPath + "/sd/%1.seq.txt").arg(currentFrameTextName);
+    QString pathToAppendFile = (musicRootPath + "/sd/%1.txt").arg(currentFrameTextName);
 
 //    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -3447,6 +3601,9 @@ void MainWindow::on_pushButtonSDNew_clicked()
         int centralNum = frameVisible.indexOf("central");
         frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
         frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+
+        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+
         refreshSDframes();
     } else {
 //        qDebug() << "ERROR: could not append to " << pathToAppendFile;

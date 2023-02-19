@@ -1003,7 +1003,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             } else if (ag2.contains(action->text())) {
                 sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
 //                qDebug() << "ag2 item: " << action->text(); // top level item
-                if (action->text() == "Sequence Designer") {
+//                if (action->text() == "Sequence Designer") {
+                if (action->text() == "Dance Arranger") {
                     sdViewActionTriggered(action); // make sure this gets run at startup time
                 }
             }
@@ -1254,7 +1255,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
     on_actionShow_Frames_triggered(); // show or hide frames
-    ui->actionSequence_Designer->setChecked(true);
+//    ui->actionSequence_Designer->setChecked(true);
+    ui->actionDance_Arranger->setChecked(true);  // this sets the default view
 
     connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
     connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
@@ -1310,22 +1312,28 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // TODO: This is TEST DATA right now.
     // TODO: dynamically find the files, and remember to make Visible/Level/CurSeq/Max/Seq for each file found.
     //              F1               F2            F3              F4            F5            F6               F7
-    frameFiles   << "ceder.basic" << "ceder.ms" << "ceder.plus" << "ceder.a1" << "ceder.a2" << "local.plus" << "local.c1";  // TODO: These are STATIC, but should be discoverable.
-    frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";  // TODO: These are currently STATIC, but should be settable.
-    frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";       // These are in the frameFile name, no longer used.
-    frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;  // These are persistent in /sd/.current.csv
-    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // These are updated at init time by scanning.
+//    frameFiles   << "ceder.basic" << "ceder.ms" << "ceder.plus" << "ceder.a1" << "ceder.a2" << "local.plus" << "local.c1";  // TODO: These are STATIC, but should be discoverable.
+//    frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";  // TODO: These are currently STATIC, but should be settable.
+//    frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";       // These are in the frameFile name, no longer used.
+//    frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;  // These are persistent in /sd/.current.csv
+//    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // These are updated at init time by scanning.
+
+    frameFiles   << "hoedown1.easy.ms" << "hoedown1.med.ms" << "hoedown1.hard.ms" << "hoedown1.stir.ms";
+    frameVisible << "central"          << "sidebar"        << "sidebar"           << "sidebar";
+    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
+    frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
+    frameLevel   << ""                 << ""               << ""                  << "";         // These are updated at init time by parsing frameFiles
 
     // set levels from filename
     for (int i = 0; i < frameFiles.length(); i++) {
         QString frameName = frameFiles[i];
-        QString level   = QString(frameName).replace(QRegularExpression("^.*\\."), "");
-//        qDebug() << frameName << level;
+        QString level   = QString(frameName).split(".")[2]; // hoedown1.easy.ms --> "ms"
+//        qDebug() << "Frame/level = " << frameName << level;
         frameLevel[i] = level;
     }
 
-    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE BEFORE GETCURRENTSEQS)
-    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles
+    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
+    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
 
     SDtestmode = false;
     refreshSDframes();
@@ -1347,22 +1355,22 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // TODO: These strings must be dynamically created, based on current selections for F1-F7 frame files
     QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
-    submenuMove->addAction("F1 ceder.basic", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
-    submenuMove->addAction("F2 ceder.ms",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
-    submenuMove->addAction("F3 ceder.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveCurrentSequenceToFrame(2); });
-    submenuMove->addAction("F4 ceder.a1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveCurrentSequenceToFrame(3); });
-    submenuMove->addAction("F5 ceder.a2",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDMoveCurrentSequenceToFrame(4); });
-    submenuMove->addAction("F6 local.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDMoveCurrentSequenceToFrame(5); });
-    submenuMove->addAction("F7 local.c1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDMoveCurrentSequenceToFrame(6); });
+    submenuMove->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
+    submenuMove->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
+    submenuMove->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveCurrentSequenceToFrame(2); });
+    submenuMove->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveCurrentSequenceToFrame(3); });
+//    submenuMove->addAction("F5 ceder.a2",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDMoveCurrentSequenceToFrame(4); });
+//    submenuMove->addAction("F6 local.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDMoveCurrentSequenceToFrame(5); });
+//    submenuMove->addAction("F7 local.c1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDMoveCurrentSequenceToFrame(6); });
 
-    QMenu* submenuCopy = saveSDMenu->addMenu("Copy Sequence to");
-    submenuCopy->addAction("F1 ceder.basic", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDAppendCurrentSequenceToFrame(0); });
-    submenuCopy->addAction("F2 ceder.ms",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDAppendCurrentSequenceToFrame(1); });
-    submenuCopy->addAction("F3 ceder.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
-    submenuCopy->addAction("F4 ceder.a1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
-    submenuCopy->addAction("F5 ceder.a2",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDAppendCurrentSequenceToFrame(4); });
-    submenuCopy->addAction("F6 local.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDAppendCurrentSequenceToFrame(5); });
-    submenuCopy->addAction("F7 local.c1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDAppendCurrentSequenceToFrame(6); });
+    QMenu* submenuCopy = saveSDMenu->addMenu("Append Sequence to");
+    submenuCopy->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDAppendCurrentSequenceToFrame(0); });
+    submenuCopy->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDAppendCurrentSequenceToFrame(1); });
+    submenuCopy->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
+    submenuCopy->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
+//    submenuCopy->addAction("F5 ceder.a2",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDAppendCurrentSequenceToFrame(4); });
+//    submenuCopy->addAction("F6 local.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDAppendCurrentSequenceToFrame(5); });
+//    submenuCopy->addAction("F7 local.c1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDAppendCurrentSequenceToFrame(6); });
 
     foreach(QAction *action, submenuCopy->actions()){ // enable shortcuts for all Copy actions
         action->setShortcutVisibleInContextMenu(true);
@@ -1827,19 +1835,7 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
-    // persist the frameCurSeq values into /sd/.current.csv (don't worry, it won't take very long!)
-    QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
-    QFile currentFile(pathToCurrentSeqFile);
-    if (currentFile.open(QFile::WriteOnly)) {
-        QTextStream out(&currentFile);
-        out << "filename,currentSeqNum\n";  // HEADER
-        for (int i = 0; i < frameFiles.length(); i++) {
-            out << frameFiles[i] << "," << frameCurSeq[i] << "\n"; // persist all the values from this session
-        }
-        currentFile.close();
-    } else {
-        qDebug() << "ERROR: could not open for writing: " << pathToCurrentSeqFile;
-    }
+    SDSetCurrentSeqs(0);  // this doesn't take very long
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(nullptr);
@@ -3030,6 +3026,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
+        int theKey = KeyEvent->key();
 
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
         if (maybeMainWindow == nullptr) {
@@ -3057,43 +3054,71 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         //   stopping of music when editing a text field).  Sorry, can't use the SPACE BAR
         //   when editing a search field, because " " is a valid character to search for.
         //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
-        if (tabIsSD &&
-                ui->lineEditSDInput->hasFocus() &&
-                KeyEvent->key() == Qt::Key_Tab)
-        {
-            maybeMainWindow->do_sd_tab_completion();
-            return true;
-        }
-        else if (tabIsSD &&
-                 KeyEvent->key() >= Qt::Key_F1 && KeyEvent->key() <= Qt::Key_F12 ) { // SD F1 - F12 FUNCTION KEYS
-            // this has to come first.
-            return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
-        }
-        else if (tabIsSD &&
-                 KeyEvent->key() == Qt::Key_Left) { // LEFT --> F11, and SHIFT-LEFT --> SHIFT-F11, if on SD page
-            // NOTE: for this to work, the LEFT ARROW must not be assigned to Move -15 sec in Hot Keys
-            QKeyCombination combo1(KeyEvent->modifiers(), Qt::Key_F11);
-            return (maybeMainWindow->handleSDFunctionKey(combo1, QString("LEFT_ARROW")));
-        }
-        else if (tabIsSD &&
-                 KeyEvent->key() == Qt::Key_Right) { // RIGHT --> F12, and SHIFT-RIGHT --> SHIFT-F12, if on SD page
-            // NOTE: for this to work, the RIGHT ARROW must not be assigned to Move +15 sec in Hot Keys
-            QKeyCombination combo2(KeyEvent->modifiers(), Qt::Key_F12);
-            return (maybeMainWindow->handleSDFunctionKey(combo2, QString("RIGHT_ARROW")));
-        }
-        else if (tabIsSD &&
-                 ui->tableWidgetCurrentSequence->hasFocus()) {
-            // this has to be second.
-            return QObject::eventFilter(Object,Event); // let the tableWidget handle UP/DOWN normally
-        }
-        else if (tabIsSD &&
-                 (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
-                 ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus())
-                 ) {
-            // TODO: If ENTER is pressed, move to the next field in order.
-            return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
-        }
-        else if (tabIsLyricsOrPatter &&  // we're on the Lyrics editor tab
+
+        if (tabIsSD) {
+            // TODO: Move this stuff to handleSDFunctionKey()....
+            if (ui->lineEditSDInput->hasFocus() && theKey == Qt::Key_Tab) {
+                maybeMainWindow->do_sd_tab_completion();
+                return true;
+            } else if ((theKey >= Qt::Key_F1 && theKey <= Qt::Key_F12) ||
+                       theKey == Qt::Key_G ||
+                       theKey == Qt::Key_B
+                       ) {
+                // this has to come first.
+                return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
+            } else if (ui->tableWidgetCurrentSequence->hasFocus() && theKey == Qt::Key_Left) {
+                // NOTE: for this to work, the LEFT ARROW must not be assigned to Move -15 sec in Hot Keys
+                QKeyCombination combo1(KeyEvent->modifiers(), Qt::Key_F11); // LEFT --> F11, and SHIFT-LEFT --> SHIFT-F11, if on SD page
+                return (maybeMainWindow->handleSDFunctionKey(combo1, QString("LEFT_ARROW")));
+            } else if (ui->tableWidgetCurrentSequence->hasFocus() && theKey == Qt::Key_Right) {
+                // NOTE: for this to work, the RIGHT ARROW must not be assigned to Move +15 sec in Hot Keys
+                QKeyCombination combo2(KeyEvent->modifiers(), Qt::Key_F12); // RIGHT --> F12, and SHIFT-RIGHT --> SHIFT-F12, if on SD page
+                return (maybeMainWindow->handleSDFunctionKey(combo2, QString("RIGHT_ARROW")));
+            } else if (ui->tableWidgetCurrentSequence->hasFocus()) {
+                // this has to be second.
+                return QObject::eventFilter(Object,Event); // let the tableWidget handle UP/DOWN normally
+            } else if (
+                       (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
+                       ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus())
+                       ) {
+                // Handles TAB from field to field.
+                // Arrows won't work (they move from sequence to sequence)
+                // TODO: If ENTER is pressed, move to the next field in order.
+                if (theKey == Qt::Key_Return) {
+                    // ENTER moves between fields in TAB order, in a ring (Girl4 goes back to Boy1)
+                    // Note: This is hard-coded, so TAB order and this code must be manually matched.
+                    if (ui->boy1->hasFocus()) {
+                        ui->girl1->setFocus();
+                        ui->girl1->selectAll();
+                    } else if (ui->girl1->hasFocus()) {
+                        ui->boy2->setFocus();
+                        ui->boy2->selectAll();
+                    } else if (ui->boy2->hasFocus()) {
+                        ui->girl2->setFocus();
+                        ui->girl2->selectAll();
+                    } else if (ui->girl2->hasFocus()) {
+                        ui->boy3->setFocus();
+                        ui->boy3->selectAll();
+                    } else if (ui->boy3->hasFocus()) {
+                        ui->girl3->setFocus();
+                        ui->girl3->selectAll();
+                    } else if (ui->girl3->hasFocus()) {
+                        ui->boy4->setFocus();
+                        ui->boy4->selectAll();
+                    } else if (ui->boy4->hasFocus()) {
+                        ui->girl4->setFocus();
+                        ui->girl4->selectAll();
+                    } else if (ui->girl4->hasFocus()) {
+                        ui->boy1->setFocus();
+                        ui->boy1->selectAll();
+                    }
+                    return(true);
+                } else {
+                    // TAB moves between fields in TAB order
+                    return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
+                }
+            }
+        } else if (tabIsLyricsOrPatter &&  // we're on the Lyrics editor tab
                  cmdC_KeyPressed &&      // When CMD-C is pressed
                  maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
                  ) {
@@ -3123,33 +3148,33 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
                 ui->lineEditSDInput->hasFocus() || 
                 ui->textBrowserCueSheet->hasFocus()) &&
-                (KeyEvent->key() == Qt::Key_Escape
+                (theKey == Qt::Key_Escape
 #if defined(Q_OS_MACOS)
                  // on MAC OS X, backtick is equivalent to ESC (e.g. devices that have TouchBar)
-                 || KeyEvent->key() == Qt::Key_QuoteLeft
+                 || theKey == Qt::Key_QuoteLeft
 #endif
                                                           ) )  ||
                   // OR, IF ONE OF THE SEARCH FIELDS HAS FOCUS, AND RETURN/UP/DOWN_ARROW IS PRESSED
              ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
-               (KeyEvent->key() == Qt::Key_Return || KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down)
+               (theKey == Qt::Key_Return || theKey == Qt::Key_Up || theKey == Qt::Key_Down)
              )
                   // These next 3 help work around a problem where going to a different non-SDesk window and coming back
                   //   puts the focus into a the Type field, where there was NO FOCUS before.  But, that field usually doesn't
                   //   have any characters in it, so if the user types SPACE, the right thing happens, and it goes back to NO FOCUS.
                   // I think this is a reasonable tradeoff right now.
                   // OR, IF THE LABEL SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->labelSearch->hasFocus() && ui->labelSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->labelSearch->hasFocus() && ui->labelSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE TYPE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->dateTimeEditIntroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->dateTimeEditIntroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->dateTimeEditOutroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->dateTimeEditOutroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
-            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << KeyEvent->key() << KeyEvent->text();
+//            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << theKey << KeyEvent->text();
             // THEN HANDLE IT AS A SPECIAL KEY
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
