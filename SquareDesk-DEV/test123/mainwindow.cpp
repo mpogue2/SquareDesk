@@ -3061,8 +3061,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 maybeMainWindow->do_sd_tab_completion();
                 return true;
             } else if ((theKey >= Qt::Key_F1 && theKey <= Qt::Key_F12) ||
-                       theKey == Qt::Key_G ||
-                       theKey == Qt::Key_B
+                       (!ui->lineEditSDInput->hasFocus() && (theKey == Qt::Key_G || theKey == Qt::Key_B))
                        ) {
                 // this has to come first.
                 return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
