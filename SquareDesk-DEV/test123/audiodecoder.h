@@ -101,11 +101,6 @@
 #include <QAudioDevice>
 #include <QAudioSink>
 #endif /* else if defined Q_OS_LINUX */
-// BASS_ChannelIsActive return values
-#define BASS_ACTIVE_STOPPED 0
-#define BASS_ACTIVE_PLAYING 1
-#define BASS_ACTIVE_STALLED 2
-#define BASS_ACTIVE_PAUSED  3
 
 class AudioDecoder : public QObject
 {
@@ -182,7 +177,6 @@ private:
 
     QAudioSink   *m_audioSink;
     QIODevice    *m_audioDevice;
-    unsigned int  m_audioBufferSize;
 
     qreal m_progress;
 

@@ -51,6 +51,7 @@ DEFINES += QT_QML_DEBUG_NO_WARNING
 SOURCES += main.cpp\
 #    AppleMusicLibraryXMLReader.cpp \  # no longer need this
     audiodecoder.cpp \
+    audiothread.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
     lyricsEditor.cpp \
@@ -121,6 +122,7 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@
 HEADERS  += mainwindow.h \
 #    ../miniBPM/MiniBpm.h \
     audiodecoder.h \
+    audiothread.h \
     flexible_audio.h \
     miniBPM/MiniBpm.h \
     myslider.h \
