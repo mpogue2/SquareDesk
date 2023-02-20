@@ -3773,7 +3773,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("triple wave") ||
             theCall.contains("twist") ||
             theCall.contains("vertical tag") ||
-            (theCall.contains("to a wave") && !theCall.contains("single circle")) ||
+            (theCall.contains("to a wave") && !theCall.contains("single circle") && !theCall.contains("step to a")) ||
             (theCall.contains("weave") && !theCall.contains("the ring")) ||
             (theCall.contains("wheel and") && !theCall.contains("deal")) ||
             theCall.contains("wheel fan thru") ||
