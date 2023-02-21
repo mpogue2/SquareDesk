@@ -3235,7 +3235,8 @@ void MainWindow::SDExitEditMode() {
 
 }
 
-void MainWindow::SDSetCurrentSeqs( int i ) {
+void MainWindow::SDSetCurrentSeqs(int i) {
+    Q_UNUSED(i)
 //    qDebug() << "SDSet: " << i;
     // persist the frameCurSeq values into /sd/.current.csv (don't worry, it won't take very long!)
     QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
@@ -3784,11 +3785,14 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             ) {
         return("C1");
     } else if (theCall.contains("windmill") ||
-            allA2CallsString.contains(";" + theCall + ";")) {
+            allA2CallsString.contains(";" + theCall + ";") ||
+            theCall.contains("motivate")                // takes care of "motivate, turn the star 1/4"
+               ) {
         return("A2");
     } else if (theCall.contains("any hand") ||
                theCall.contains("cross clover") ||
                theCall.contains("and cross") ||
+               theCall.contains("chain reaction") ||    // takes care of "chain reaction, turn the star 1/2"
                allA1CallsString.contains(";" + theCall + ";")) {
         return("A1");
     } else if (theCall.contains("and roll") ||
