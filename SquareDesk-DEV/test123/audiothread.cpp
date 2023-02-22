@@ -1,4 +1,3 @@
-#include <mcheck.h>
 #include "audiothread.h"
 
 #include <iostream>
@@ -9,6 +8,13 @@
 #include <kfr/math.hpp>
 using namespace kfr;
 
+#ifdef Q_OS_LINUX
+#include <mcheck.h>
+#endif
+
+inline void DoAMemoryCheck() {
+//    mcheck(0);
+}
 
 class LockHolder {
 private:
@@ -88,7 +94,7 @@ AudioThread::~AudioThread() {
 }
 
 unsigned int AudioThread::bytesAvailable(QAudioSink *audioSink) {
-    mcheck(0);
+    DoAMemoryCheck();
     if (0 == m_audioSinkBufferSize) {
         m_audioSinkBufferSize = audioSink->bytesFree();
     }
@@ -118,11 +124,9 @@ void AudioThread::run() {
             
             // write the smaller of bytesFree and how much we have left in the song
             unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
-            std::cout << "Bytes needed to write " << bytesNeededToWrite << std::endl;
             if (m_bytesPerFrame * (m_totalFramesInSong - m_playPosition_frames) < bytesFree) {
                 // but if the song ends sooner than that, just send the last samples in the song
                 bytesNeededToWrite = m_bytesPerFrame * (m_totalFramesInSong - m_playPosition_frames);
-                std::cout << "Bytes needed to write refactored to " << bytesNeededToWrite << std::endl;
             }
             
             unsigned int framesFree = bytesFree/m_bytesPerFrame;  // One frame = LR
@@ -141,10 +145,10 @@ void AudioThread::run() {
                 // if we need bytes, let's go get them.  BUT, if processDSP only gives us less than that, then write just those.
                 m_numProcessedFrames = 0;
                 m_sourceFramesConsumed = 0;
-                mcheck(0);
+                DoAMemoryCheck();
                 ASSERT(m_playPosition_frames + (bytesNeededToWrite / m_bytesPerFrame) <= m_totalFramesInSong);
                 processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *m_processedData (dual mono)
-                mcheck(0);
+                DoAMemoryCheck();
 
                 if (straddlingLoopFromPoint) {
                     m_playPosition_frames = (unsigned int)(m_loopTo_sec * 44100.0); // reset the playPosition to the loop start point
@@ -154,11 +158,10 @@ void AudioThread::run() {
                     // these were consumed (sent to m_soundTouch) in any case.
                 }
                 if (m_numProcessedFrames > 0) {  // but, maybe we didn't get any back from m_soundTouch.
-                    mcheck(0);
-                    std::cout << "Outputting " << m_bytesPerFrame * m_numProcessedFrames << " bytes" << std::endl;;
+                    DoAMemoryCheck();
                     ASSERT((const char *)(m_processedData) + m_bytesPerFrame * m_numProcessedFrames < (const char *)(m_processedData + PROCESSED_DATA_BUFFER_SIZE));
                     m_audioDevice->write((const char *)&m_processedData, m_bytesPerFrame * m_numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
-                    mcheck(0);
+                    DoAMemoryCheck();
                     
                 }
             } else {
@@ -377,7 +380,6 @@ unsigned int AudioThread::processDSP(const char *inData, unsigned int inLength_b
     double inOutRatio = m_soundTouch.getInputOutputSampleRatio();
     m_soundTouchMutex.unlock();
     unsigned int scaled_inLength_frames = floor(((double)inLength_frames) / inOutRatio);
-    std::cout << "Scaled inLength frames " << scaled_inLength_frames << " came from " << inLength_frames << " / " << inOutRatio << std::endl;
 //        qDebug() << "inOutRatio:" << inOutRatio;
 
     // PAN/VOLUME/FORCE MONO/EQ --------
@@ -517,13 +519,13 @@ int AudioThread::processSoundTouchData(float *inDataFloat, unsigned int scaled_i
         m_clearSoundTouch = false;
     }
 
-    mcheck(0);
+    DoAMemoryCheck();
     m_soundTouch.putSamples(inDataFloat, scaled_inLength_frames);  // Feed the samples into SoundTouch processor
         //  NOTE: it always takes ALL of them in, so outDataFloat is now unused.
         
-    mcheck(0);
+    DoAMemoryCheck();
 //        qDebug() << "unprocessed: " << m_soundTouch.numUnprocessedSamples() << ", ready: " << m_soundTouch.numSamples() << "scaled_frames: " << scaled_inLength_frames;
-    mcheck(0);
+    DoAMemoryCheck();
     ASSERT(inLength_frames <= PROCESSED_DATA_BUFFER_SIZE);
     int nFrames = m_soundTouch.receiveSamples(outDataFloat, inLength_frames);  // this is how many frames the AudioSink wants
     return nFrames;
