@@ -2296,8 +2296,9 @@ bool open_session(int argc, char **argv)
       file, in which case we will get the file name also, or we will have to query
       the user.  In the latter case, we will do this step again. */
 
+   snprintf(outfile_string, 10, SEQUENCE_FILENAME); // -mpogue, initialize the string EVERY time to avoid sequence.Plus.A1.C1 bug
    if (calling_level != l_nonexistent_concept)
-      strncat(outfile_string, filename_strings[calling_level], MAX_FILENAME_LENGTH-80);
+       strncat(outfile_string, filename_strings[calling_level], MAX_FILENAME_LENGTH-80);
 
    /* At this point, the command-line arguments, and the preferences in the "[Options]"
       section of the initialization file, have been processed.  Some of those things

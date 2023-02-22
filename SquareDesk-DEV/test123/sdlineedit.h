@@ -52,6 +52,9 @@ SDLineEdit() : mainWindow(NULL)
 
 public:
   bool event(QEvent *) override;
+
+protected:
+   virtual void focusInEvent(QFocusEvent *e) override;
 };
 #endif
 

@@ -53,6 +53,7 @@
 #include <QTableWidgetItem>
 #include <QToolTip>
 #include <QVariant>
+#include <QVector>
 #include <QShortcut>
 #include <QtWebEngineWidgets/QtWebEngineWidgets>
 #include <QWheelEvent>
@@ -194,7 +195,7 @@ public:
 // REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
 // ALSO REMEMBER TO CHANGE THE VERSION IN PackageIt.command !
 // Also remember to change the "latest" file on GitHub (for Beta releases)!
-#define VERSIONSTRING "1.0.2"
+#define VERSIONSTRING "1.0.3"
 
 // cuesheets are assumed to be at the top level of the SquareDesk repo, and they
 //   will be fetched from there.
@@ -225,6 +226,7 @@ public:
 
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
+    bool handleSDFunctionKey(QKeyCombination key, QString text);
     bool someWebViewHasFocus();
 
     void handleDurationBPM();  // when duration and BPM are ready, call this to setup tempo slider, et.al.
@@ -234,9 +236,11 @@ public:
 
     // ERROR LOGGING...
     static void customMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    static void customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg);
     static QString logFilePath;
 
     PreferencesDialog *prefDialog;
+    QActionGroup *sdViewActionGroup;
     QActionGroup *sessionActionGroup;
     QAction **sessionActions;
     QActionGroup *sdActionGroup1;
@@ -257,6 +261,8 @@ public:
 //    QString tidyHTML(QString s);  // return the tidied HTML
     QString postProcessHTMLtoSemanticHTML(QString cuesheet);
 
+    void selectUserFlashFile();
+    void updateFlashFileMenu();
     void readFlashCallsList();  // re-read the flashCalls file, keep just those selected
 
     unsigned int numWebviews;
@@ -287,16 +293,23 @@ protected:
     void on_flashcallc2_toggled(bool checked);
     void on_flashcallc3a_toggled(bool checked);
     void on_flashcallc3b_toggled(bool checked);
+    void on_flashcalluserfile_toggled(bool checked);
+    void on_flashcallfilechooser_toggled(bool checked);
 
     void airplaneMode(bool turnItOn);
 
 private slots:
+
+    void dancerNameChanged(); // when text in any dancerName field changes
+
     void sdActionTriggered(QAction * action);  // checker style
     void sdAction2Triggered(QAction * action); // SD level
 
     void sdActionTriggeredColors(QAction * action);  // checker style: Colors
     void sdActionTriggeredNumbers(QAction * action);  // checker style: Numbers
     void sdActionTriggeredGenders(QAction * action);  // checker style: Genders
+
+    void sdViewActionTriggered(QAction *action); // Sequence Designer vs Dance Arranger
 
     void on_stopButton_clicked();
     void on_playButton_clicked();
@@ -528,7 +541,9 @@ private slots:
     void on_listWidgetSDAdditionalOptions_itemDoubleClicked(QListWidgetItem *item);
     void on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(QListWidgetItem *item);
     void on_tableWidgetCurrentSequence_itemDoubleClicked(QTableWidgetItem *item);
+    void on_tableWidgetCurrentSequence_itemSelectionChanged();
     void on_tableWidgetCurrentSequence_customContextMenuRequested(const QPoint &pos);
+    void paste_to_tableWidgetCurrentSequence();
     void copy_selection_from_tableWidgetCurrentSequence();
     void copy_selection_from_tableWidgetCurrentSequence_html();
     void set_sd_copy_options_entire_sequence();
@@ -569,6 +584,8 @@ private slots:
     void on_actionFlashCallC2_triggered();
     void on_actionFlashCallC3a_triggered();
     void on_actionFlashCallC3b_triggered();
+    void on_actionFlashCallFilechooser_triggered();
+    void on_actionFlashCallUserFile_triggered();
 
 //    void on_actionDownload_matching_lyrics_triggered();
 
@@ -601,6 +618,27 @@ private slots:
 
     void on_actionAuto_format_Lyrics_triggered();
 
+    void on_actionSD_Output_triggered();
+
+    void on_actionLoad_Sequence_triggered();
+
+    void on_actionSave_Sequence_As_triggered();
+
+    void on_actionShow_Frames_triggered();
+
+    // slots for SD editing buttons ------
+    void SDGetCurrentSeqs();
+    void SDSetCurrentSeqs(int i);
+    void SDScanFramesForMax();
+    void SDAppendCurrentSequenceToFrame(int i);
+    void SDMoveCurrentSequenceToFrame(int i);
+    void SDDeleteCurrentSequence();
+    void SDReplaceCurrentSequence();
+    void SDExitEditMode();
+    void on_pushButtonSDUnlock_clicked();
+
+    void on_pushButtonSDNew_clicked();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -618,7 +656,7 @@ public:
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
-    void submit_lineEditSDInput_contents_to_sd();
+    void submit_lineEditSDInput_contents_to_sd(QString s = "", bool firstCall = false);
 
     QString musicRootPath; // needed by sd to do output_prefix
 private:
@@ -659,6 +697,8 @@ private:
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
     QString lastSavedPlaylist;       // "" if no playlist was saved in this session
+    QString lastFlashcardsUserFile;      // "" if no flashcard file currently
+    QString lastFlashcardsUserDirectory;      // "" if no flashcard file currently
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;
@@ -983,13 +1023,11 @@ private: // SD
     QAction **danceProgramActions;
 
     void setSDCoupleColoringScheme(const QString &scheme);
-    void setSDCoupleNumberingScheme(const QString &scheme);
     void setSDCoupleGenderingScheme(const QString &scheme);
 
     QString get_current_sd_sequence_as_html(bool all_rows, bool graphics_as_text);
     void render_current_sd_scene_to_tableWidgetCurrentSequence(int row, const QString &formation);
     void set_current_sequence_icons_visible(bool visible);
-    QString sdLastFormationName;
     QShortcut *shortcutSDTabUndo;
     QShortcut *shortcutSDTabRedo;
     QShortcut *shortcutSDCurrentSequenceSelectAll;
@@ -1031,6 +1069,44 @@ public:
     void do_sd_tab_completion();
     void setCurrentSDDanceProgram(dance_level);
     dance_level get_current_sd_dance_program();
+    void setSDCoupleNumberingScheme(const QString &scheme);
+    void setPeopleNumberingScheme(QList<SDDancer> &sdpeople, const QString &numberScheme);
+    QString sdLastFormationName;
+
+    // one file = one frame, length(frameFiles) = F<max> key assignment
+    // TODO: these will be saved as preferences eventually, or maybe these will somewhere in the sqlite DB
+    QStringList frameFiles;   // list of which files are assigned to keys F1-F10, e.g. "ceder/basic", "mpogue/hard"
+    QStringList frameVisible; // strings representing frame visibility/placement, e.g. ["sidebar", "", "central"], there must be exactly one "central" and 3 "sidebar"
+    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
+    QVector<int> frameCurSeq;
+    QVector<int> frameMaxSeq;
+    bool selectFirstItemOnLoad;
+
+    QString currentFrameTextName; // e.g. local.plus
+    QString currentFrameHTMLName; // e.g. <HTML>...F6...local.plus</HTML>
+
+    bool SDtestmode;
+
+    void refreshSDframes();
+    void loadFrame(int i, QString filename, int seqNum, QListWidget *list);  // loads a specified frame from a file in <musicDir>/sd/ into a list widget (or a table, if list == null)
+
+    int userID;  // Globally Likely Unique ID for user, range: 1 - 21473
+    int nextSequenceID;  // starts at 1 for a given userID, then increments by 1 each time NEW is clicked
+    QString authorID;  // use this instead of userID going forward
+    void getMetadata(); // fetch the GLUID etc from .squaredesk/metadata.csv
+    void writeMetadata(int userID, int nextSequenceID, QString authorID);
+
+    QString currentSequenceRecordNumber;  // REC of currently loaded sequence
+    QString currentSequenceAuthor;        // AUTHOR of currently loaded sequence
+
+    void debugCSDSfile(QString frameName); // DEBUG
+    bool checkSDforErrors(); // DEBUG
+
+    QString translateCall(QString call);
+
+    QString translateCallToLevel(QString thePrettifiedCall);
+    QString makeLevelString(const char *levelCalls[]);
+
 };
 
 // currentState:

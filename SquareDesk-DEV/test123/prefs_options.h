@@ -117,8 +117,13 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc1, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc2, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc3a, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcallc3b, false);
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(flashcalluserfile, false);
+
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastflashcalluserfile, "");
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastflashcalluserdirectory, "");
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(flashcalltiming, "10");
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_flashcards_file, "");
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showSongTags, true);
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(recentFenceDateTime, "2018-01-01T00:00:00Z"); // songs played earlier than this date are not "recently played", ISO8601
@@ -137,6 +142,7 @@ CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLIncludeHeaders, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyHTMLFormationsAsSVG, true);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(SDCallListCopyDeepUndoBuffer, true);
 
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDLevel, "Plus"); // SD's input level is persistent
 
 CONFIG_ATTRIBUTE_INT_NO_PREFS(LastVersionOfKeyMappingDefaultsUsed, 1)
 

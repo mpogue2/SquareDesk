@@ -29,6 +29,7 @@
 #include <QDebug>
 #include "sdinterface.h"
 #include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 #include <stdio.h>
 
@@ -182,6 +183,7 @@ SDThread::CurrentInputState SDThread::currentInputState()
 
 bool SDThread::do_user_input(QString str)
 {
+//    qDebug() << "LINE ACTUALLY SENT TO SD:" << str;
     if (on_user_input(str))
     {
         waitCondAckToMainThread.wait(&mutexAckToMainThread);
@@ -1071,12 +1073,16 @@ void SDThread::resetAndExecute(QStringList &commands)
         do_user_input("abort this sequence");
         do_user_input("yes");
     }
-    
+
+    bool firstCall = true;
     for (QString &cmd : commands)
     {
-//        qDebug() << "resetAndExecute: executing " << cmd;
-        do_user_input(cmd);
+//        qDebug() << "resetAndExecute: sending to SD: " << cmd;
+//        do_user_input(cmd);                           // without interpretation, e.g. heads start; square thru 4
+        mw->submit_lineEditSDInput_contents_to_sd(cmd, firstCall); // with interpretation, e.g. HEADS Square Thru --> heads start; square thru 4
+        firstCall = false;
     }
+
 }
 
 void SDThread::finishAndShutdownSD()
@@ -1086,7 +1092,7 @@ void SDThread::finishAndShutdownSD()
 //    if (!iofull->seenAFormation)
     {
         do_user_input("abort the search");
-        do_user_input("heads start");
+        do_user_input("heads start");  // THIS SEEMS WRONG, DOESN'T IT? But it stops crash on SDesk quit
         do_user_input("square thru 4");
     }
     do_user_input("quit");

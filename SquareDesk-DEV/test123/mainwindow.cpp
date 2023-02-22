@@ -210,11 +210,14 @@ flexible_audio *cBass;
 
 static const char *music_file_extensions[] = { "mp3", "wav", "m4a", "flac" };       // NOTE: must use Qt::CaseInsensitive compares for these
 static const char *cuesheet_file_extensions[3] = { "htm", "html", "txt" };          // NOTE: must use Qt::CaseInsensitive compares for these
+
+// TAGS
 QString title_tags_prefix("&nbsp;<span style=\"background-color:%1; color: %2;\"> ");
 QString title_tags_suffix(" </span>");
-//static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
-static QRegularExpression title_tags_remover("(\\&nbsp\\;)+.*\\<\\/span>");
-static QRegularExpression spanPrefixRemover("<span.*>", QRegularExpression::InvertedGreedinessOption);
+static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
+
+// TITLE COLORS
+static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 
 #include <QProxyStyle>
 
@@ -337,6 +340,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
+    // Recall any previous flashcards file
+    lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
+    lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
+    
     filewatcherShouldIgnoreOneFileSave = false;
 
     PerfTimer t("MainWindow::MainWindow", __LINE__);
@@ -916,16 +923,20 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     on_flashcallc2_toggled(prefsManager.Getflashcallc2());
     on_flashcallc3a_toggled(prefsManager.Getflashcallc3a());
     on_flashcallc3b_toggled(prefsManager.Getflashcallc3b());
+    on_flashcalluserfile_toggled(prefsManager.Getflashcalluserfile());
 
     t.elapsed(__LINE__);
-
-    readFlashCallsList();
 
     t.elapsed(__LINE__);
 
     currentSongType = "";
     currentSongTitle = "";
     currentSongLabel = "";
+
+    // -----------------------------
+    sdViewActionGroup = new QActionGroup(this);
+    sdViewActionGroup->setExclusive(true);  // exclusivity is set up below here...
+    connect(sdViewActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(sdViewActionTriggered(QAction*)));
 
     // -----------------------------
     sessionActionGroup = new QActionGroup(this);
@@ -954,8 +965,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     t.elapsed(__LINE__);
 
     // let's look through the items in the SD menu (this method is less fragile now)
-    QStringList ag1; // , ag2;
+    QStringList ag1;
     ag1 << "Normal" << "Color only" << "Mental image" << "Sight" << "Random" << "Random Color only"; // OK to have one be prefix of another
+
+    QStringList ag2;
+    ag2 << "Sequence Designer" << "Dance Arranger";
 
     // ITERATE THRU MENU SETTING UP EXCLUSIVITY -------
     QString submenuName;
@@ -975,7 +989,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //                    qDebug() << "     item: " << action2->text() << "in submenu: " << submenuName;  // one level down item
                     if (submenuName == "Colors") {
                         sdActionGroupColors->addAction(action2);
-                    } else if (submenuName == "Numbers") {
+                    } else if (submenuName == "Labels") {
                         sdActionGroupNumbers->addAction(action2);
                     } else if (submenuName == "Genders") {
                         sdActionGroupGenders->addAction(action2);
@@ -983,9 +997,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
                 }
             }
         } else {
-//            qDebug() << "item: " << action->text(); // top level item
             if (ag1.contains(action->text()) ) {
                 sdActionGroup1->addAction(action); // ag1 items are all mutually exclusive, and are all at top level
+//                qDebug() << "ag1 item: " << action->text(); // top level item
+            } else if (ag2.contains(action->text())) {
+                sdViewActionGroup->addAction(action); // ag2 items are all mutually exclusive, and are all at top level
+//                qDebug() << "ag2 item: " << action->text(); // top level item
+//                if (action->text() == "Sequence Designer") {
+                if (action->text() == "Dance Arranger") {
+                    sdViewActionTriggered(action); // make sure this gets run at startup time
+                }
             }
         }
     }
@@ -1081,8 +1102,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
-    currentSDKeyboardLevel = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    currentSDVUILevel      = "Plus"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a} // DEPRECATED
+    currentSDKeyboardLevel = "UNK"; // one of sd's names: {basic, mainstream, plus, a1, a2, c1, c2, c3a}
+    //    ui->tabWidget_2->setTabText(1, QString("Current Sequence: ") + currentSDKeyboardLevel); // Current {Level} Sequence
+//    ui->tabWidget_2->setTabText(1, QString("F4 Workshop [3/14]"));
 
     t.elapsed(__LINE__);
 
@@ -1120,6 +1143,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     } else {
         ui->action20_seconds->setChecked(true);
     }
+    updateFlashFileMenu();
+    readFlashCallsList();
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
@@ -1223,12 +1248,147 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
             if (!ui->titleSearch->hasFocus()) {
-                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+//                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
                 ui->titleSearch->setFocus();
             }
         });
 
+    on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab
+    on_actionShow_Frames_triggered(); // show or hide frames
+//    ui->actionSequence_Designer->setChecked(true);
+    ui->actionDance_Arranger->setChecked(true);  // this sets the default view
+
+    connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy2,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl2, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy3,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl3, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->boy4,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+    connect(ui->girl4, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
+
+    ui->boy1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + ";}");
+    ui->girl1->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE1COLOR.name() + ";}");
+    ui->boy2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + ";}");
+    ui->girl2->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE2COLOR.name() + ";}");
+    ui->boy3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + ";}");
+    ui->girl3->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE3COLOR.name() + ";}");
+    ui->boy4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + ";}");
+    ui->girl4->setStyleSheet(QString("QLineEdit {background-color: ") + COUPLE4COLOR.name() + ";}");
+
+    // restore SD level from saved
+    QString sdLevel = prefsManager.GetSDLevel();
+//    qDebug() << "RESTORING SD LEVEL TO: " << sdLevel;
+    if (sdLevel == "Mainstream") {
+        ui->actionSDDanceProgramMainstream->setChecked(true);
+    } else if (sdLevel == "Plus") {
+        ui->actionSDDanceProgramPlus->setChecked(true);
+    } else if (sdLevel == "A1") {
+        ui->actionSDDanceProgramA1->setChecked(true);
+    } else if (sdLevel == "A2") {
+        ui->actionSDDanceProgramA2->setChecked(true);
+    } else if (sdLevel == "C1") {
+        ui->actionSDDanceProgramC1->setChecked(true);
+    } else if (sdLevel == "C2") {
+        ui->actionSDDanceProgramC2->setChecked(true);
+    } else if (sdLevel == "C3A") {
+        ui->actionSDDanceProgramC3A->setChecked(true);
+    } else if (sdLevel == "C3") {
+        ui->actionSDDanceProgramC3->setChecked(true);
+    } else if (sdLevel == "C3x") {
+        ui->actionSDDanceProgramC3x->setChecked(true);
+    } else if (sdLevel == "C4") {
+        ui->actionSDDanceProgramC4->setChecked(true);
+    } else if (sdLevel == "C4x") {
+        ui->actionSDDanceProgramC4x->setChecked(true);
+    } else {
+        qDebug() << "ERROR: Can't restore SD to level: " << sdLevel;
+    }
+
+    dance_level currentLevel = get_current_sd_dance_program(); // quick way to translate from string("Plus") to dance_level l_plus
+    setCurrentSDDanceProgram(currentLevel);
+
+    // INIT SD FRAMES ----------------
+    // TODO: This is TEST DATA right now.
+    // TODO: dynamically find the files, and remember to make Visible/Level/CurSeq/Max/Seq for each file found.
+    //              F1               F2            F3              F4            F5            F6               F7
+//    frameFiles   << "ceder.basic" << "ceder.ms" << "ceder.plus" << "ceder.a1" << "ceder.a2" << "local.plus" << "local.c1";  // TODO: These are STATIC, but should be discoverable.
+//    frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";  // TODO: These are currently STATIC, but should be settable.
+//    frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";       // These are in the frameFile name, no longer used.
+//    frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;  // These are persistent in /sd/.current.csv
+//    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // These are updated at init time by scanning.
+
+    frameFiles   << "hoedown1.easy.ms" << "hoedown1.med.ms" << "hoedown1.hard.ms" << "hoedown1.stir.ms";
+    frameVisible << "central"          << "sidebar"        << "sidebar"           << "sidebar";
+    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
+    frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
+    frameLevel   << ""                 << ""               << ""                  << "";         // These are updated at init time by parsing frameFiles
+
+    // set levels from filename
+    for (int i = 0; i < frameFiles.length(); i++) {
+        QString frameName = frameFiles[i];
+        QString level   = QString(frameName).split(".")[2]; // hoedown1.easy.ms --> "ms"
+//        qDebug() << "Frame/level = " << frameName << level;
+        frameLevel[i] = level;
+    }
+
+    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
+    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
+
+    SDtestmode = false;
+    refreshSDframes();
+
+    // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
+    if (SDtestmode) {
+        ui->pushButtonSDSave->setVisible(false);
+        ui->pushButtonSDUnlock->setVisible(false);
+        ui->pushButtonSDNew->setVisible(false);
+    }
+
+    QMenu *saveSDMenu = new QMenu(this);
+    saveSDMenu->addAction("Save Sequence to Current Frame", /* QKeyCombination(Qt::ControlModifier, Qt::Key_S), */ this, [this]{ SDReplaceCurrentSequence(); }); // CMD-S to save (later)
+    saveSDMenu->addAction("Delete Sequence from Current Frame", this, [this]{ SDDeleteCurrentSequence(); });
+    saveSDMenu->addSeparator();
+
+    // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
+    //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
+
+    // TODO: These strings must be dynamically created, based on current selections for F1-F7 frame files
+    QMenu* submenuMove = saveSDMenu->addMenu("Move Sequence to");
+    submenuMove->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
+    submenuMove->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDMoveCurrentSequenceToFrame(1); });
+    submenuMove->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDMoveCurrentSequenceToFrame(2); });
+    submenuMove->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDMoveCurrentSequenceToFrame(3); });
+//    submenuMove->addAction("F5 ceder.a2",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDMoveCurrentSequenceToFrame(4); });
+//    submenuMove->addAction("F6 local.plus",  QKeyCombination(Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDMoveCurrentSequenceToFrame(5); });
+//    submenuMove->addAction("F7 local.c1",    QKeyCombination(Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDMoveCurrentSequenceToFrame(6); });
+
+    QMenu* submenuCopy = saveSDMenu->addMenu("Append Sequence to");
+    submenuCopy->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDAppendCurrentSequenceToFrame(0); });
+    submenuCopy->addAction(QString("F2 ") + frameFiles[1] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F2), this, [this]{ SDAppendCurrentSequenceToFrame(1); });
+    submenuCopy->addAction(QString("F3 ") + frameFiles[2] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F3), this, [this]{ SDAppendCurrentSequenceToFrame(2); });
+    submenuCopy->addAction(QString("F4 ") + frameFiles[3] + " ", QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F4), this, [this]{ SDAppendCurrentSequenceToFrame(3); });
+//    submenuCopy->addAction("F5 ceder.a2",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F5), this, [this]{ SDAppendCurrentSequenceToFrame(4); });
+//    submenuCopy->addAction("F6 local.plus",  QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F6), this, [this]{ SDAppendCurrentSequenceToFrame(5); });
+//    submenuCopy->addAction("F7 local.c1",    QKeyCombination(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_F7), this, [this]{ SDAppendCurrentSequenceToFrame(6); });
+
+    foreach(QAction *action, submenuCopy->actions()){ // enable shortcuts for all Copy actions
+        action->setShortcutVisibleInContextMenu(true);
+    }
+    foreach(QAction *action, submenuMove->actions()){ // enable shortcuts for all Move actions
+        action->setShortcutVisibleInContextMenu(true);
+    }
+
+    ui->pushButtonSDSave->setMenu(saveSDMenu);
+    ui->pushButtonSDSave->setVisible(false);
+
+    selectFirstItemOnLoad = false;
+
+    getMetadata();
+
+//    debugCSDSfile("plus"); // DEBUG DEBUG DEBUG THIS HELPS TO DEBUG IMPORT OF CSDS SEQUENCES TO SD FORMAT *********
 }
+
 
 void MainWindow::fileWatcherTriggered() {
 //    qDebug() << "fileWatcherTriggered()";
@@ -1430,7 +1590,7 @@ static QString findTimingForCall(QString danceProgram, const QString &call)
 void MainWindow::loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename)
 {
     static QRegularExpression regex_numberCommaName(QRegularExpression("^((\\s*\\d+)(\\.\\w+)?)\\,?\\s+(.*)$"));
-    qDebug() << "loadCallList: " << danceProgram << filename;
+//    qDebug() << "loadCallList: " << danceProgram << filename;
     tableWidget->setRowCount(0);
     callListOriginalOrder.clear();
 
@@ -1675,6 +1835,8 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    SDSetCurrentSeqs(0);  // this doesn't take very long
+
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
     QColorDialog colorDlg(nullptr);
     colorDlg.setOption(QColorDialog::NoButtons);
@@ -2864,6 +3026,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 {
     if (Event->type() == QEvent::KeyPress) {
         QKeyEvent *KeyEvent = dynamic_cast<QKeyEvent *>(Event);
+        int theKey = KeyEvent->key();
 
         MainWindow *maybeMainWindow = dynamic_cast<MainWindow *>((dynamic_cast<QApplication *>(Object))->activeWindow());
         if (maybeMainWindow == nullptr) {
@@ -2872,11 +3035,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             return QObject::eventFilter(Object,Event);
         }
 
-//        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers();
+//        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers() << ui->tableWidgetCurrentSequence->hasFocus();
 
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsLyricsOrPatter = (ui->tabWidget->tabText(cindex) == "Lyrics" || ui->tabWidget->tabText(cindex) == "*Lyrics" ||  // and I'm on the Lyrics/Patter tab
                                     ui->tabWidget->tabText(cindex) == "Patter" || ui->tabWidget->tabText(cindex) == "*Patter");
+
+        bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
 
@@ -2889,15 +3054,72 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         //   stopping of music when editing a text field).  Sorry, can't use the SPACE BAR
         //   when editing a search field, because " " is a valid character to search for.
         //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
-        if (ui->lineEditSDInput->hasFocus()
-            && KeyEvent->key() == Qt::Key_Tab)
-        {
-            maybeMainWindow->do_sd_tab_completion();
-            return true;
-        }
-        else if (cmdC_KeyPressed                        // When CMD-C is pressed
-                 && tabIsLyricsOrPatter                 // and we're on the Lyrics editor tab
-                 && maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
+
+        if (tabIsSD) {
+            // TODO: Move this stuff to handleSDFunctionKey()....
+            if (ui->lineEditSDInput->hasFocus() && theKey == Qt::Key_Tab) {
+                maybeMainWindow->do_sd_tab_completion();
+                return true;
+            } else if ((theKey >= Qt::Key_F1 && theKey <= Qt::Key_F12) ||
+                       (!ui->lineEditSDInput->hasFocus() && (theKey == Qt::Key_G || theKey == Qt::Key_B))
+                       ) {
+                // this has to come first.
+                return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
+            } else if (ui->tableWidgetCurrentSequence->hasFocus() && theKey == Qt::Key_Left) {
+                // NOTE: for this to work, the LEFT ARROW must not be assigned to Move -15 sec in Hot Keys
+                QKeyCombination combo1(KeyEvent->modifiers(), Qt::Key_F11); // LEFT --> F11, and SHIFT-LEFT --> SHIFT-F11, if on SD page
+                return (maybeMainWindow->handleSDFunctionKey(combo1, QString("LEFT_ARROW")));
+            } else if (ui->tableWidgetCurrentSequence->hasFocus() && theKey == Qt::Key_Right) {
+                // NOTE: for this to work, the RIGHT ARROW must not be assigned to Move +15 sec in Hot Keys
+                QKeyCombination combo2(KeyEvent->modifiers(), Qt::Key_F12); // RIGHT --> F12, and SHIFT-RIGHT --> SHIFT-F12, if on SD page
+                return (maybeMainWindow->handleSDFunctionKey(combo2, QString("RIGHT_ARROW")));
+            } else if (ui->tableWidgetCurrentSequence->hasFocus()) {
+                // this has to be second.
+                return QObject::eventFilter(Object,Event); // let the tableWidget handle UP/DOWN normally
+            } else if (
+                       (ui->boy1->hasFocus() || ui->boy2->hasFocus() || ui->boy3->hasFocus() || ui->boy4->hasFocus() ||
+                       ui->girl1->hasFocus() || ui->girl2->hasFocus() || ui->girl3->hasFocus() || ui->girl4->hasFocus())
+                       ) {
+                // Handles TAB from field to field.
+                // Arrows won't work (they move from sequence to sequence)
+                // TODO: If ENTER is pressed, move to the next field in order.
+                if (theKey == Qt::Key_Return) {
+                    // ENTER moves between fields in TAB order, in a ring (Girl4 goes back to Boy1)
+                    // Note: This is hard-coded, so TAB order and this code must be manually matched.
+                    if (ui->boy1->hasFocus()) {
+                        ui->girl1->setFocus();
+                        ui->girl1->selectAll();
+                    } else if (ui->girl1->hasFocus()) {
+                        ui->boy2->setFocus();
+                        ui->boy2->selectAll();
+                    } else if (ui->boy2->hasFocus()) {
+                        ui->girl2->setFocus();
+                        ui->girl2->selectAll();
+                    } else if (ui->girl2->hasFocus()) {
+                        ui->boy3->setFocus();
+                        ui->boy3->selectAll();
+                    } else if (ui->boy3->hasFocus()) {
+                        ui->girl3->setFocus();
+                        ui->girl3->selectAll();
+                    } else if (ui->girl3->hasFocus()) {
+                        ui->boy4->setFocus();
+                        ui->boy4->selectAll();
+                    } else if (ui->boy4->hasFocus()) {
+                        ui->girl4->setFocus();
+                        ui->girl4->selectAll();
+                    } else if (ui->girl4->hasFocus()) {
+                        ui->boy1->setFocus();
+                        ui->boy1->selectAll();
+                    }
+                    return(true);
+                } else {
+                    // TAB moves between fields in TAB order
+                    return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
+                }
+            }
+        } else if (tabIsLyricsOrPatter &&  // we're on the Lyrics editor tab
+                 cmdC_KeyPressed &&      // When CMD-C is pressed
+                 maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
                  ) {
             ui->textBrowserCueSheet->copy();  // Then let's do the copy to clipboard manually anyway, even though we might not have focus
             return true;
@@ -2925,33 +3147,33 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
                 ui->lineEditSDInput->hasFocus() || 
                 ui->textBrowserCueSheet->hasFocus()) &&
-                (KeyEvent->key() == Qt::Key_Escape
+                (theKey == Qt::Key_Escape
 #if defined(Q_OS_MACOS)
                  // on MAC OS X, backtick is equivalent to ESC (e.g. devices that have TouchBar)
-                 || KeyEvent->key() == Qt::Key_QuoteLeft
+                 || theKey == Qt::Key_QuoteLeft
 #endif
                                                           ) )  ||
                   // OR, IF ONE OF THE SEARCH FIELDS HAS FOCUS, AND RETURN/UP/DOWN_ARROW IS PRESSED
              ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
-               (KeyEvent->key() == Qt::Key_Return || KeyEvent->key() == Qt::Key_Up || KeyEvent->key() == Qt::Key_Down)
+               (theKey == Qt::Key_Return || theKey == Qt::Key_Up || theKey == Qt::Key_Down)
              )
                   // These next 3 help work around a problem where going to a different non-SDesk window and coming back
                   //   puts the focus into a the Type field, where there was NO FOCUS before.  But, that field usually doesn't
                   //   have any characters in it, so if the user types SPACE, the right thing happens, and it goes back to NO FOCUS.
                   // I think this is a reasonable tradeoff right now.
                   // OR, IF THE LABEL SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->labelSearch->hasFocus() && ui->labelSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->labelSearch->hasFocus() && ui->labelSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE TYPE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->dateTimeEditIntroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->dateTimeEditIntroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->dateTimeEditOutroTime->hasFocus() && (KeyEvent->key() == Qt::Key_Space || KeyEvent->key() == Qt::Key_Period))
+                  || (ui->dateTimeEditOutroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
-//            qDebug() << "eventFilter YES:" << ui << currentWindowName << maybeMainWindow;
+//            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << theKey << KeyEvent->text();
             // THEN HANDLE IT AS A SPECIAL KEY
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
@@ -3893,6 +4115,14 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     currentMP3filenameWithPath = MP3FileName;
 
+    currentSongType = songType;     // save it for session coloring on the analog clock later...
+    currentSongLabel = songLabel;   // remember it, in case we need it later
+
+    loadCuesheets(MP3FileName); // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
+                                //   A symlink or alias in the Singing folder pointing at the real file in the Patter folder should work now.
+                                //   A symlink or alias in the Patter folder pointing at the real file in the Singing folder should also work now.
+                                //   In both cases: as Singer, it has lyrics, and as Patter, it has looping and no lyrics.
+
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
     QFileInfo fi(MP3FileName);
     QString resolvedFilePath = fi.symLinkTarget(); // path with the symbolic links followed/removed
@@ -3902,12 +4132,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     t.elapsed(__LINE__);
 
-    currentSongType = songType;  // save it for session coloring on the analog clock later...
-    currentSongLabel = songLabel;   // remember it, in case we need it later
-
     ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
-
-    loadCuesheets(MP3FileName);
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
@@ -4320,13 +4545,15 @@ static QString getTitleColText(MyTableWidget *songTable, int row)
 QString getTitleColTitle(MyTableWidget *songTable, int row)
 {
     QString title = getTitleColText(songTable, row);
+
+    title.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+
     int where = title.indexOf(title_tags_remover);
     if (where >= 0) {
         title.truncate(where);
     }
-    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
-    title.replace(spanPrefixRemover, "").replace("</span>", "");
+    title.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if filename contains HTML encoded chars, put originals back
 
     return title;
 }
@@ -4339,10 +4566,10 @@ bool filterContains(QString str, const QStringList &list)
     // Make "it's" and "its" equivalent.
     str.replace("'","");
 
-    int title_end = str.indexOf(title_tags_remover);
-    str.replace(title_tags_remover, " ");
+    str.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
 
-    str.replace(spanPrefixRemover, "").replace("</span>", "");
+    int title_end = str.indexOf(title_tags_remover); // locate tags
+    str.replace(title_tags_remover, " ");
 
     int index = 0;
 
@@ -6347,7 +6574,7 @@ void MainWindow::microphoneStatusUpdate() {
 //    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 //    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    QString kybdStatus("Audio: " + lastAudioDeviceName + "  |  Kybd: " + currentSDKeyboardLevel);
+    QString kybdStatus("Audio: " + lastAudioDeviceName + ",  SD Level: " + currentSDKeyboardLevel);
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 
@@ -6409,6 +6636,8 @@ void MainWindow::initReftab() {
 #endif
 //                qDebug() << "    indexFileURL:" << indexFileURL;
                 webview[numWebviews]->setUrl(QUrl(indexFileURL));
+                webview[numWebviews]->page()->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);  // allow index.html to access 3P remote website
+
                 documentsTab->addTab(webview[numWebviews], tabname);
                 numWebviews++;
             }
@@ -6585,6 +6814,85 @@ void MainWindow::sdActionTriggered(QAction * action) {
     action->setChecked(true);  // check the new one
 //    renderArea->setCoupleColoringScheme(action->text());  // removed: causes crash on Win32, and not needed
     setSDCoupleColoringScheme(action->text());
+}
+
+// SD VIEW =====================================
+void MainWindow::sdViewActionTriggered(QAction * action) {
+    action->setChecked(true);  // check the new one
+//    qDebug() << "***** sdViewActionTriggered()" << action << action->isChecked();
+
+    ui->labelWorkshop->setHidden(true); // DEBUG
+
+    if (action->text() == "Sequence Designer") {
+        // turn on thumbnails
+        ui->actionFormation_Thumbnails->setChecked(true);
+        on_actionFormation_Thumbnails_triggered();
+
+        // SD Output intentionally not touched by this, since it's default is OFF now
+        // Can't make the Options/?/Additional/Names size zero, because Names is now used by SD Dance Arranger (manual resize works tho)
+        // instead, set Options as current tab
+        ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+        ui->actionNormal_3->setChecked(true);
+        setSDCoupleNumberingScheme("Numbers");
+
+        ui->tableWidgetCurrentSequence->clearSelection();
+//        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::ContiguousSelection); // can select any set of contiguous items with SHIFT
+        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::SingleSelection); // can select any set of contiguous items with SHIFT
+        ui->tableWidgetCurrentSequence->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
+
+        ui->tabWidgetSDMenuOptions->setTabVisible(0, true); // Options
+        ui->tabWidgetSDMenuOptions->setTabVisible(1, true); // ?
+        ui->tabWidgetSDMenuOptions->setTabVisible(2, true); // Additional
+
+        ui->lineEditSDInput->setVisible(true);  // make SD input field visible
+        ui->lineEditSDInput->setFocus(); // put the focus in the SD input field
+
+        ui->label_SD_Resolve->setVisible(true); // show resolve field
+
+        ui->actionShow_Frames->setChecked(false); // hide frames
+        on_actionShow_Frames_triggered();
+
+        ui->labelWorkshop->setText("<B>Current Sequence");
+        ui->label_CurrentSequence->setText("<B>Current Sequence");
+    } else {
+        // Dance Arranger
+        ui->actionFormation_Thumbnails->setChecked(false); // these are not shown, but they are still there..., so we can reference them onDoubleClick below
+        on_actionFormation_Thumbnails_triggered();
+
+        // set Names as current tab
+        ui->tabWidgetSDMenuOptions->setCurrentIndex(3);
+        ui->actionNames->setChecked(true);
+        setSDCoupleNumberingScheme("Names");
+
+        ui->tableWidgetCurrentSequence->clearSelection();
+        ui->tableWidgetCurrentSequence->setFocus();
+        ui->tableWidgetCurrentSequence->setSelectionMode(QAbstractItemView::SingleSelection); // can only select ONE item
+        if (ui->tableWidgetCurrentSequence->rowCount() != 0) {
+            ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true); // select first item (if there is a first item)
+            //on_tableWidgetCurrentSequence_itemDoubleClicked(ui->tableWidgetCurrentSequence->item(0,1)); // double click on first item to render it (kColCurrentSequenceFormation)
+
+            ui->tableWidgetCurrentSequence->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
+        }
+
+        // FIX FIX FIX: Options tab needs to be visible all the time, OR ELSE we get weird crash **in Qt code** when going from SDesk to QtCreator
+//        ui->tabWidgetSDMenuOptions->setTabVisible(0, false); // Options
+        ui->tabWidgetSDMenuOptions->setTabVisible(1, false); // ?
+        ui->tabWidgetSDMenuOptions->setTabVisible(2, false); // Additional
+
+        // We're going to hide the SDInput field when in Dance Arranger mode for now, because if something is typed in here,
+        //   I don't want to have to figure out what happens to changes to that sequence (do they get written back to the Fn frame automatically?
+        //   Do I need to ask the user, when they Fn to another frame?  etc.).
+        // It is OK to have it visible, it just means more work to figure out what to do for the above cases.  For now, it's off.
+        ui->lineEditSDInput->setVisible(false);  // hide SD input field // TEMPORARY FIX FIX FIX when "true"
+        ui->tableWidgetCurrentSequence->setFocus(); // put the focus in the current sequence pane, where the first one will be bright blue (not gray)
+
+        // ui->label_SD_Resolve->setVisible(false); // hide resolve field // let's NOT hide it, because AL and RLG can't appear in the Current Sequence right now
+
+        ui->actionShow_Frames->setChecked(true); // show frames
+        on_actionShow_Frames_triggered();
+
+//        ui->labelWorkshop->setText("<html><head/><body><p><span style=\" font-weight:700; color:#0433ff;\">F4</span><span style=\" font-weight:700;\"> Workshop [14/17]</span></p></body></html>");
+    }
 }
 
 // SD Colors, Numbers, and Genders ------------
@@ -7638,42 +7946,6 @@ void MainWindow::on_actionFilePrint_triggered()
     }
 }
 
-void MainWindow::saveSequenceAs()
-{
-    // Ask me where to save it...
-    RecursionGuard dialog_guard(inPreferencesDialog);
-
-    QString sequenceFilename = QFileDialog::getSaveFileName(this,
-                                                    tr("Save SD Sequence"),
-                                                    musicRootPath + "/sd/sequence.txt",
-                                                    tr("TXT (*.txt);;HTML (*.html *.htm)"));
-    if (!sequenceFilename.isNull())
-    {
-        QFile file(sequenceFilename);
-        if ( file.open(QIODevice::WriteOnly) )
-        {
-            QTextStream stream( &file );
-            if (sequenceFilename.endsWith(".html", Qt::CaseInsensitive)
-                || sequenceFilename.endsWith(".htm", Qt::CaseInsensitive))
-            {
-                QTextStream stream( &file );
-                stream << get_current_sd_sequence_as_html(true, false);
-            }
-            else
-            {
-                for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount();
-                     ++row)
-                {
-                    QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
-                    stream << item->text() + "\n";
-                }
-            }
-            stream.flush();
-            file.close();
-        }
-    }
-}
-
 void MainWindow::on_actionSave_triggered()
 {
 //    qDebug() << "actionSave";
@@ -7694,7 +7966,6 @@ void MainWindow::on_actionSave_triggered()
         // intentionally nothing...
     }
 }
-
 
 void MainWindow::on_actionSave_As_triggered()
 {
@@ -7844,7 +8115,74 @@ void MainWindow::on_actionFlashCallC3b_triggered()
     readFlashCallsList();
 }
 
+void MainWindow::on_flashcalluserfile_toggled(bool checked)
+{
+    ui->actionFlashCallUserFile->setChecked(checked);
+
+    // the Flash Call settings are persistent across restarts of the application
+    prefsManager.Setflashcalluserfile(ui->actionFlashCallUserFile->isChecked());
+}
+
+void MainWindow::on_actionFlashCallUserFile_triggered()
+{
+    on_flashcalluserfile_toggled(ui->actionFlashCallUserFile->isChecked());
+    readFlashCallsList();
+}
+
+void MainWindow::on_actionFlashCallFilechooser_triggered()
+{
+    // on_flashcallfilechooser_toggled(ui->actionFlashCallFilechooser->isChecked());
+    selectUserFlashFile();      // choose a file
+    readFlashCallsList();       // if there was one, read it
+}
+
+
 // -----
+void MainWindow::updateFlashFileMenu() {
+    QString menuItemDisplay;
+    if (lastFlashcardsUserFile == "") {
+        menuItemDisplay = "No flashcards file selected";
+        ui->actionFlashCallUserFile->setEnabled(false);
+        // ensure it isn't checked!
+        ui->actionFlashCallUserFile->setChecked(false);
+    } else {
+        menuItemDisplay = "File: " + lastFlashcardsUserFile;
+        QFileInfo fi(lastFlashcardsUserFile);
+        menuItemDisplay = "File: " + fi.completeBaseName();
+        ui->actionFlashCallUserFile->setEnabled(true);
+    }
+    ui->actionFlashCallUserFile->setText(menuItemDisplay);
+}
+
+void MainWindow::selectUserFlashFile() {
+    QString defaultDir = lastFlashcardsUserDirectory;
+    if (!QFile::exists(defaultDir)) {
+        defaultDir = QDir::homePath();
+    }
+            
+    trapKeypresses = false;
+    QString flashcardsFileName =
+        QFileDialog::getOpenFileName(this,
+                                     tr("Load Flashcards"),
+                                     defaultDir,
+                                     tr("Flashcards Files (*.txt)"));
+    trapKeypresses = true;
+
+    if (flashcardsFileName.isNull()) {
+        // user cancelled, so don't change anything
+        return;
+    }
+    QFileInfo fi(flashcardsFileName);
+    lastFlashcardsUserFile = fi.fileName();
+    lastFlashcardsUserDirectory = fi.absolutePath();
+    // Save it in Settings...
+    prefsManager.Setlastflashcalluserfile(lastFlashcardsUserFile);
+    prefsManager.Setlastflashcalluserdirectory(lastFlashcardsUserDirectory);
+    
+    // ...and display it in the menu
+    updateFlashFileMenu();
+}
+
 void MainWindow::readFlashCallsList() {
 #if defined(Q_OS_MAC)
     QString appPath = QApplication::applicationFilePath();
@@ -7875,15 +8213,44 @@ void MainWindow::readFlashCallsList() {
     }
 #endif
 
+
+    flashCalls.clear();  // remove all calls, let's read them in again
+
+    lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
+    lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
+    if (lastFlashcardsUserFile != "" &&
+        (ui->actionFlashCallUserFile->isChecked())) {
+
+        // There is a user flash card file, so read it
+            
+        QFile file(lastFlashcardsUserDirectory + "/" + lastFlashcardsUserFile);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            // qDebug() << "Could not open " << lastFlashcardsUserFile;
+            // clear the name 
+            lastFlashcardsUserFile = "";
+            prefsManager.Setlastflashcalluserfile(lastFlashcardsUserFile);
+            updateFlashFileMenu();
+        } else {
+            while (!file.atEnd()) {
+                QString line = file.readLine().simplified();
+                if (!line.startsWith("#")) {
+                    flashCalls.append(line);
+                }
+            }
+            file.close();
+        }
+    }
+
+    
+    // Now look check for the calls from relevant levels
+
     QFile file(allcallsPath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Could not open 'allcalls.csv' file. Flash calls will not work.";
         qDebug() << "looked here:" << allcallsPath;
         return;
     }
-
-    flashCalls.clear();  // remove all calls, let's read them in again
-
+    
     while (!file.atEnd()) {
         QString line = file.readLine().simplified();
         QStringList lineparts = line.split(',');
@@ -8442,6 +8809,29 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
     }
 }
 
+void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    Q_UNUSED(context)
+    QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
+//    QByteArray localMsg = msg.toLocal8Bit();
+
+    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
+    QString logLevelName = msgLevelHash[type];
+//    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
+    QString txt = QString("%1: %2").arg(logLevelName).arg(msg);
+
+    // suppress known warnings from QtCreator Application Output window
+    if (msg.contains("The provided value 'moz-chunked-arraybuffer' is not a valid enum value of type XMLHttpRequestResponseType") ||
+            msg.contains("js:") ||
+            txt.contains("Warning: #") ||
+            msg.contains("GL Type: core_profile")) {
+        return;
+    }
+
+    qDebug() << txt; // inside QtCreator, just log it to the console
+
+}
+
 // ----------------------------------------------------------------------
 void MainWindow::on_action5_seconds_triggered()
 {
@@ -8768,4 +9158,90 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(true);
     }
 
+}
+
+// fetch the GLUID etc from .squaredesk/metadata.csv
+void MainWindow::getMetadata() {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
+
+    QFileInfo fi(metadata);
+
+    if (fi.exists()) {
+        QString line;
+        if (!metadata.open(QFile::ReadOnly)) {
+            qDebug() << "Could not open: " << metadata.fileName() << " for reading metadata";
+            return;
+        }
+
+//        qDebug() << "OPENED FOR READING: " << metadata.fileName();
+        QTextStream in(&metadata);
+
+        // read first line
+        line = in.readLine();
+        if (line != "key,value") {
+            qDebug() << "Unexpected header line: " << line;
+            metadata.close();
+            return;
+        }
+
+        userID = -1;
+        nextSequenceID = -1;
+        authorID = "";
+
+        // read key,value pairs
+        while (!in.atEnd()) {
+            line = in.readLine();
+            QStringList L = line.split(',');
+            QString key = L[0];
+            QString value = L[1];
+
+            if (key == "userID") {
+                userID = value.toInt();
+//                qDebug() << "***** USERID: " << userID;
+            } else if (key == "nextSequenceID") {
+                nextSequenceID = value.toInt();
+//                qDebug() << "***** NEXTSEQUENCEID: " << nextSequenceID;
+            } else if (key == "authorID") {
+                authorID = value;
+//                qDebug() << "***** AUTHODID: " << authorID;
+            } else {
+                qDebug() << "SKIPPING UNKNOWN KEY: " << key;
+            }
+        }
+
+        if (userID == -1 || nextSequenceID == -1 || authorID == "") {
+            qDebug() << "BAD METADATA: " << userID << nextSequenceID << authorID;
+        } else {
+//            qDebug() << "METADATA LOOKS OK!";
+        }
+
+        metadata.close();
+    } else {
+        userID = (int)(QRandomGenerator::global()->bounded(1, 21474)); // range: 1 - 21473 inclusive
+        nextSequenceID = 1;
+        authorID.setNum(userID);  // default Author is a number, unless user changes it manually in hidden file
+        writeMetadata(userID, nextSequenceID, authorID);
+//        qDebug() << "***** USERID/NEXTSEQUENCEID WRITTEN SUCCESSFULLY AND VALUES SET INTERNALLY: " << userID << nextSequenceID;
+    }
+}
+
+// update the metadata file real quick with the new nextSequenceID
+void MainWindow::writeMetadata(int userID, int nextSequenceID, QString authorID) {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
+    if (!metadata.open(QFile::WriteOnly)) {
+        qDebug() << "Could not open: " << metadata.fileName() << " for writing metadata";
+        return;
+    }
+
+//    qDebug() << "OPENED FOR WRITING: " << metadata.fileName();
+    QTextStream out(&metadata);
+
+    out << "key,value\n";
+
+    out << "userID," << userID << "\n";
+    out << "nextSequenceID," << nextSequenceID << "\n";
+    out << "authorID," << authorID << "\n";
+
+//    qDebug() << "***** USERID/NEXTSEQUENCEID UPDATED " << userID << nextSequenceID;
+    metadata.close();
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1041</width>
-    <height>582</height>
+    <width>1057</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
@@ -988,7 +988,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="lryicsTab">
+      <widget class="QWidget" name="lyricsTab">
        <attribute name="title">
         <string>Lyrics</string>
        </attribute>
@@ -1439,7 +1439,275 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_12">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_11">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <layout class="QVBoxLayout" name="framesSidebar">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetFixedSize</enum>
+            </property>
+            <item>
+             <widget class="QLabel" name="labelEasy">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>13</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#0433ff;&quot;&gt;F1&lt;/span&gt; Easy [1/10]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="textFormat">
+               <enum>Qt::RichText</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="listEasy">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>200</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <item>
+               <property name="text">
+                <string>HEADS Square Thru 4</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Swing Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>BOYS Run</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Ferris Wheel</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>CENTERS Pass Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>AL</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelMedium">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>13</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#0433ff;&quot;&gt;F2&lt;/span&gt; Medium [12/13]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="listMedium">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>200</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <item>
+               <property name="text">
+                <string>HEADS Touch 1/4</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>CENTER BOYS Run</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Fan the Top</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Grand Swing Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>VERY CENTER GIRLS Trade</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>BOYS Run</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Wheel and Deal and Sweep 1/4</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Dive Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>CENTERS Square Thru 3</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>AL</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelHard">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>13</pointsize>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#0433ff;&quot;&gt;F3&lt;/span&gt; Difficult [3/21]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="textFormat">
+               <enum>Qt::RichText</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QListWidget" name="listHard">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>200</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <item>
+               <property name="text">
+                <string>HEADS Star Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Zoom and Roll</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Crossfire</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>SIDES Cloverleaf</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>CENTERS Pass Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Pass Thru</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Trade By</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>AL</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QListWidget" name="listWidgetSDOutput">
+            <property name="font">
+             <font>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
+            <property name="contextMenuPolicy">
+             <enum>Qt::CustomContextMenu</enum>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::ContiguousSelection</enum>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QSplitter" name="splitterSDTabHorizontal">
             <property name="orientation">
@@ -1448,58 +1716,161 @@
             <widget class="QWidget" name="layoutWidgetSDTab">
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
-               <widget class="QTabWidget" name="tabWidget_2">
-                <property name="currentIndex">
-                 <number>1</number>
+               <widget class="QLabel" name="labelWorkshop">
+                <property name="enabled">
+                 <bool>true</bool>
                 </property>
-                <widget class="QWidget" name="tabWidget_2Page1">
-                 <attribute name="title">
-                  <string>SD Output</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_5">
-                  <item>
-                   <widget class="QListWidget" name="listWidgetSDOutput">
-                    <property name="contextMenuPolicy">
-                     <enum>Qt::CustomContextMenu</enum>
-                    </property>
-                    <property name="selectionMode">
-                     <enum>QAbstractItemView::ContiguousSelection</enum>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-                <widget class="QWidget" name="tabWidget_2Page2">
-                 <attribute name="title">
-                  <string>Current Sequence</string>
-                 </attribute>
-                 <layout class="QVBoxLayout" name="verticalLayout_7">
-                  <item>
-                   <widget class="QTableWidget" name="tableWidgetCurrentSequence">
-                    <property name="contextMenuPolicy">
-                     <enum>Qt::CustomContextMenu</enum>
-                    </property>
-                    <column>
-                     <property name="text">
-                      <string>Call</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>Result</string>
-                     </property>
-                    </column>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_SD_Resolve">
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
+                <property name="font">
+                 <font>
+                  <pointsize>15</pointsize>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0433ff;&quot;&gt;F4&lt;/span&gt;&lt;span style=&quot; font-weight:700;&quot;&gt; Workshop [14/17]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="textFormat">
+                 <enum>Qt::RichText</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_CurrentSequence">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>19</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#0433ff;&quot;&gt;F4&lt;/span&gt;&lt;span style=&quot; font-weight:700;&quot;&gt; Workshop [14/17]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="textFormat">
+                   <enum>Qt::RichText</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonSDNew">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>11</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>New</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonSDUnlock">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Unlock</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonSDSave">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Save...    </string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QTableWidget" name="tableWidgetCurrentSequence">
+                <property name="contextMenuPolicy">
+                 <enum>Qt::CustomContextMenu</enum>
+                </property>
+                <property name="alternatingRowColors">
+                 <bool>false</bool>
+                </property>
+                <column>
+                 <property name="text">
+                  <string>Call</string>
+                 </property>
+                </column>
+                <column>
+                 <property name="text">
+                  <string>Result</string>
+                 </property>
+                </column>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_SD_Resolve">
+                <property name="text">
+                 <string/>
+                </property>
                </widget>
               </item>
               <item>
@@ -1548,7 +1919,7 @@
              </widget>
              <widget class="QTabWidget" name="tabWidgetSDMenuOptions">
               <property name="currentIndex">
-               <number>2</number>
+               <number>3</number>
               </property>
               <widget class="QWidget" name="tab">
                <attribute name="title">
@@ -1589,6 +1960,383 @@
                  <widget class="QListWidget" name="listWidgetSDAdditionalOptions"/>
                 </item>
                </layout>
+              </widget>
+              <widget class="QWidget" name="tab_4">
+               <attribute name="title">
+                <string>Names</string>
+               </attribute>
+               <widget class="QWidget" name="gridLayoutWidget">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>0</y>
+                  <width>441</width>
+                  <height>101</height>
+                 </rect>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_6">
+                 <item row="2" column="0">
+                  <widget class="QLabel" name="label_3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Girl</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QLabel" name="label_2">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Boy</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1">
+                  <widget class="QLabel" name="label_5">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="2">
+                  <widget class="QLabel" name="label_6">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>2</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="3">
+                  <widget class="QLabel" name="label_7">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>3</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="4">
+                  <widget class="QLabel" name="label_8">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>4</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="boy1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>David</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="2">
+                  <widget class="QLineEdit" name="boy2">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Paul</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="2">
+                  <widget class="QLineEdit" name="girl2">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Susan</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="3">
+                  <widget class="QLineEdit" name="boy3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Adam</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="4">
+                  <widget class="QLineEdit" name="boy4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Mark</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QLineEdit" name="girl1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Amy</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="3">
+                  <widget class="QLineEdit" name="girl3">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Pam</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="4">
+                  <widget class="QLineEdit" name="girl4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Barb</string>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
               </widget>
              </widget>
             </widget>
@@ -1696,7 +2444,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1041</width>
+     <width>1057</width>
      <height>24</height>
     </rect>
    </property>
@@ -1846,10 +2594,11 @@
     </widget>
     <widget class="QMenu" name="menuNumbers">
      <property name="title">
-      <string>Numbers</string>
+      <string>Labels</string>
      </property>
-     <addaction name="actionNormal_3"/>
      <addaction name="actionInvisible"/>
+     <addaction name="actionNormal_3"/>
+     <addaction name="actionNames"/>
     </widget>
     <widget class="QMenu" name="menuGenders">
      <property name="title">
@@ -1860,6 +2609,12 @@
      <addaction name="actionRandomize_3"/>
      <addaction name="actionNone_hex"/>
     </widget>
+    <addaction name="actionSequence_Designer"/>
+    <addaction name="actionDance_Arranger"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Sequence"/>
+    <addaction name="actionSave_Sequence_As"/>
+    <addaction name="separator"/>
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
     <addaction name="actionShow_Commands"/>
@@ -1875,7 +2630,9 @@
     <addaction name="actionRandom"/>
     <addaction name="actionRandom_Color_only"/>
     <addaction name="separator"/>
+    <addaction name="actionSD_Output"/>
     <addaction name="actionFormation_Thumbnails"/>
+    <addaction name="actionShow_Frames"/>
     <addaction name="separator"/>
     <addaction name="actionShow_group_station"/>
     <addaction name="actionShow_order_sequence"/>
@@ -1949,6 +2706,9 @@
      <addaction name="actionFlashCallC2"/>
      <addaction name="actionFlashCallC3a"/>
      <addaction name="actionFlashCallC3b"/>
+     <addaction name="actionFlashCallUserFile"/>
+     <addaction name="separator"/>
+     <addaction name="actionFlashCallFilechooser"/>
     </widget>
     <widget class="QMenu" name="menuFlash_Call_Timing">
      <property name="title">
@@ -3013,6 +3773,22 @@
     <string>C3b</string>
    </property>
   </action>
+  <action name="actionFlashCallUserFile">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>No flashcards file selected</string>
+   </property>
+  </action>
+  <action name="actionFlashCallFilechooser">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Select a flashcards file</string>
+   </property>
+  </action>
   <action name="actionDownload_matching_lyrics">
    <property name="text">
     <string>TEST cuesheets...</string>
@@ -3238,7 +4014,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Normal</string>
+    <string>Numbers</string>
    </property>
   </action>
   <action name="actionInvisible">
@@ -3246,7 +4022,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Invisible</string>
+    <string>None</string>
    </property>
   </action>
   <action name="actionNormal_4">
@@ -3302,6 +4078,62 @@
     <string>Auto-format Lyrics</string>
    </property>
   </action>
+  <action name="actionSD_Output">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>SD Output</string>
+   </property>
+  </action>
+  <action name="actionNames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Names</string>
+   </property>
+  </action>
+  <action name="actionSequence_Designer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Sequence Designer</string>
+   </property>
+  </action>
+  <action name="actionDance_Arranger">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dance Arranger</string>
+   </property>
+  </action>
+  <action name="actionLoad_Sequence">
+   <property name="text">
+    <string>Load Sequence...</string>
+   </property>
+  </action>
+  <action name="actionSave_Sequence_As">
+   <property name="text">
+    <string>Save Sequence As...</string>
+   </property>
+  </action>
+  <action name="actionShow_Frames">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Frames</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -3340,18 +4172,41 @@
   <tabstop>typeSearch</tabstop>
   <tabstop>labelSearch</tabstop>
   <tabstop>titleSearch</tabstop>
-  <tabstop>playButton</tabstop>
-  <tabstop>tempoSlider</tabstop>
-  <tabstop>stopButton</tabstop>
-  <tabstop>volumeSlider</tabstop>
-  <tabstop>pitchSlider</tabstop>
-  <tabstop>seekBar</tabstop>
-  <tabstop>mixSlider</tabstop>
-  <tabstop>bassSlider</tabstop>
-  <tabstop>trebleSlider</tabstop>
-  <tabstop>midrangeSlider</tabstop>
-  <tabstop>songTable</tabstop>
-  <tabstop>clearSearchButton</tabstop>
+  <tabstop>seekBarCuesheet</tabstop>
+  <tabstop>pushButtonSetIntroTime</tabstop>
+  <tabstop>dateTimeEditIntroTime</tabstop>
+  <tabstop>comboBoxCuesheetSelector</tabstop>
+  <tabstop>pushButtonSetOutroTime</tabstop>
+  <tabstop>dateTimeEditOutroTime</tabstop>
+  <tabstop>pushButtonTestLoop</tabstop>
+  <tabstop>pushButtonCueSheetEditTitle</tabstop>
+  <tabstop>pushButtonCueSheetEditLabel</tabstop>
+  <tabstop>pushButtonCueSheetEditArtist</tabstop>
+  <tabstop>pushButtonCueSheetEditHeader</tabstop>
+  <tabstop>pushButtonCueSheetEditLyrics</tabstop>
+  <tabstop>pushButtonCueSheetEditBold</tabstop>
+  <tabstop>pushButtonCueSheetEditItalic</tabstop>
+  <tabstop>pushButtonCueSheetClearFormatting</tabstop>
+  <tabstop>pushButtonEditLyrics</tabstop>
+  <tabstop>pushButtonCueSheetEditSave</tabstop>
+  <tabstop>pushButtonCueSheetEditSaveAs</tabstop>
+  <tabstop>textBrowserCueSheet</tabstop>
+  <tabstop>graphicsViewSDFormation</tabstop>
+  <tabstop>tabWidgetSDMenuOptions</tabstop>
+  <tabstop>listWidgetSDOptions</tabstop>
+  <tabstop>listWidgetSDQuestionMarkComplete</tabstop>
+  <tabstop>listWidgetSDAdditionalOptions</tabstop>
+  <tabstop>comboBoxCallListProgram</tabstop>
+  <tabstop>pushButtonClearTaughtCalls</tabstop>
+  <tabstop>tableWidgetCallList</tabstop>
+  <tabstop>boy1</tabstop>
+  <tabstop>girl1</tabstop>
+  <tabstop>boy2</tabstop>
+  <tabstop>girl2</tabstop>
+  <tabstop>boy3</tabstop>
+  <tabstop>girl3</tabstop>
+  <tabstop>boy4</tabstop>
+  <tabstop>girl4</tabstop>
  </tabstops>
  <resources/>
  <connections/>
