@@ -1976,7 +1976,7 @@
                 </property>
                 <layout class="QGridLayout" name="gridLayout_6">
                  <item row="2" column="0">
-                  <widget class="QLabel" name="label_3">
+                  <widget class="QLabel" name="girlLabel">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -1991,7 +1991,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2000,7 +2000,7 @@
                   </widget>
                  </item>
                  <item row="1" column="0">
-                  <widget class="QLabel" name="label_2">
+                  <widget class="QLabel" name="boyLabel">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -2015,7 +2015,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2024,7 +2024,7 @@
                   </widget>
                  </item>
                  <item row="0" column="1">
-                  <widget class="QLabel" name="label_5">
+                  <widget class="QLabel" name="couple1Label">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -2039,7 +2039,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2048,7 +2048,7 @@
                   </widget>
                  </item>
                  <item row="0" column="2">
-                  <widget class="QLabel" name="label_6">
+                  <widget class="QLabel" name="couple2Label">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -2063,7 +2063,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2072,7 +2072,7 @@
                   </widget>
                  </item>
                  <item row="0" column="3">
-                  <widget class="QLabel" name="label_7">
+                  <widget class="QLabel" name="couple3Label">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -2087,7 +2087,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2096,7 +2096,7 @@
                   </widget>
                  </item>
                  <item row="0" column="4">
-                  <widget class="QLabel" name="label_8">
+                  <widget class="QLabel" name="couple4Label">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -2111,7 +2111,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2135,7 +2135,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2162,7 +2162,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2189,7 +2189,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2216,7 +2216,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2243,7 +2243,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2270,7 +2270,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2297,7 +2297,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -2324,7 +2324,7 @@
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <pointsize>24</pointsize>
                     </font>
                    </property>
                    <property name="text">
