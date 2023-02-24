@@ -3424,6 +3424,9 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
             stream << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n";
         }
+
+//        qDebug() << "APPEND (RESOLVE TEXT): " << ui->label_SD_Resolve->text();
+
         stream << "@\n";  // end of sequence
         file.close();
 
@@ -3486,6 +3489,12 @@ void MainWindow::SDReplaceCurrentSequence() {
                 for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
 //                    qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
                     outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+                }
+
+                QString resolve = ui->label_SD_Resolve->text().simplified();
+//                qDebug() << "REPLACE (RESOLVE TEXT): " << resolve;
+                if (resolve != "") {
+                    outFile << "( " << resolve << " )\n";  // write a comment with the resolve, if it's not NULL
                 }
             }
         }
