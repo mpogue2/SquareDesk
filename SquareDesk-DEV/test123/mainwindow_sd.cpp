@@ -1052,6 +1052,36 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         }
         if (sdLastLineWasResolve)
         {
+            // Cleanup/shorten resolve line, so it doesn't expand the whole UI section
+            // TODO: This can be generalized.
+            // TODO: The current algorithm only captures the first of multiple resolve lines.  This could be fixed.
+
+            if (str == "promenade  (1/8 promenade, or couples 1/2 circulate, bend") {
+                str = "promenade or COUPLES 1/2 circ, BTL, HOME";
+            } else if (str == "reverse promenade  (7/8 promenade, or couples circulate") {
+                str = "rev promenade or COUPLES circ 3-1/2, BTL, HOME";
+            } else if (str == "reverse promenade  (1/8 promenade, or couples 1/2") {
+                str = "rev promenade or COUPLES 1/2 circ, BTL, HOME";
+            } else if (str == "promenade  (7/8 promenade, or couples circulate 3-1/2, bend") {
+                str = "promenade or COUPLES circ 3-1/2, BTL, HOME";
+            }
+
+            str.replace("right and left grand", "RLG");
+            str.replace("left allemande", "AL");
+            str.replace("promenade", "prom");
+            str.replace("swing and promenade", "SwProm");
+            str.replace("couples", "COUPLES");
+            str.replace("circulate", "circ");
+            str.replace("bend the line", "BTL");
+            str.replace("you're home", "HOME");
+            str.replace("at home", "HOME");
+
+            QRegularExpression parens("\\((.*)\\)");
+            str.replace(parens, ", \\1"); // Promenade (1/2 promenade) --> Prom, 1/2 prom
+            str = str.simplified(); // consolidate whitespace
+            str.replace(" ,", ","); // get rid of extra space before comma
+
+//            qDebug() << "str: " << str;
             ui->label_SD_Resolve->setText(str);
             sdLastLineWasResolve = false;
         }
