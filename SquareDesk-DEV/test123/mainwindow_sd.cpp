@@ -3800,8 +3800,11 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                ) {
         return("A2");
     } else if (theCall.contains("any hand") ||
+               theCall.contains("clover and") ||
                theCall.contains("cross clover") ||
                theCall.contains("and cross") ||
+               theCall.contains("1/4 in") ||
+               theCall.contains("1/4 out") ||
                theCall.contains("chain reaction") ||    // takes care of "chain reaction, turn the star 1/2"
                allA1CallsString.contains(";" + theCall + ";")) {
         return("A1");
