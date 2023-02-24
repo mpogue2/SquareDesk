@@ -1717,17 +1717,27 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
         QRegularExpression explodeAndRollCall("\\[explode and (.*)\\] and roll");
         QRegularExpression explodeAndNotRollCall("^explode and (.*)");
 
-//        if (cmd.indexOf(explodeAndRollCall) != -1) {
-//            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll";
-//        } else if (cmd.indexOf(explodeAndNotRollCall) != -1) {
-//            // not a roll, for sure.  Must be a naked "explode and <anything>"
-//            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]";
-//        } else {
-//        }
-
         cmd.replace(explodeAndRollCall, "[explode and \\1] and roll");
         cmd.replace(explodeAndNotRollCall, "explode and [\\1]");
 
+        // similar for Transfer and Anything, Clover and Anything, and Cross Clover and Anything
+        QRegularExpression transferAndRollCall("\\[transfer and (.*)\\] and roll");
+        QRegularExpression transferAndNotRollCall("^transfer and (.*)");
+
+        cmd.replace(transferAndRollCall, "[transfer and \\1] and roll");
+        cmd.replace(transferAndNotRollCall, "transfer and [\\1]");
+
+        QRegularExpression cloverAndRollCall("\\[clover and (.*)\\] and roll");
+        QRegularExpression cloverAndNotRollCall("^clover and (.*)");
+
+        cmd.replace(cloverAndRollCall, "[clover and \\1] and roll");
+        cmd.replace(cloverAndNotRollCall, "clover and [\\1]");
+
+        QRegularExpression crossCloverAndRollCall("\\[cross clover and (.*)\\] and roll");
+        QRegularExpression crossCloverAndNotRollCall("^cross clover and (.*)");
+
+        cmd.replace(crossCloverAndRollCall, "[cross clover and \\1] and roll");
+        cmd.replace(crossCloverAndNotRollCall, "cross clover and [\\1]");
     }
 
     // handle <ANYTHING> and spread
