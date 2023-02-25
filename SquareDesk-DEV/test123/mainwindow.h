@@ -1107,6 +1107,9 @@ public:
     QString translateCallToLevel(QString thePrettifiedCall);
     QString makeLevelString(const char *levelCalls[]);
 
+    bool newSequenceInProgress;
+    bool editSequenceInProgress;
+
 };
 
 // currentState:

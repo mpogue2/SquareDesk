@@ -2863,29 +2863,31 @@ void MainWindow::on_actionShow_Frames_triggered()
 void MainWindow::refreshSDframes() {
     // refreshSDframes ---------
     int whichSidebar = 0;
-    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2 [%3/%4]</span></p></body></html>");
+    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%3/%4]</span></p></body></html>");
+    QString editingInProgressIndicator = (newSequenceInProgress || editSequenceInProgress ? "*" : "");
+
     for (int i = 0; i < frameFiles.length(); i++) {
 //        qDebug() << "frameFile: " << frameFiles[i] << ", frameVisible: " << frameVisible[i] << ", frameLevel: " << frameLevel[i];
         if (frameVisible[i] == "sidebar") {
             whichSidebar += 1;
             switch (whichSidebar) {
                 case 1:
-                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(""));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listEasy);
                     break;
                 case 2:
-                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(""));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listMedium);
                     break;
                 case 3:
-                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(""));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listHard);
                     break;
                 default: break; // by design, only the first 3 sidebar frames found are loaded (FIX)
             }
 
         } else if (frameVisible[i] == "central") {
-            QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]);
+            QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator);
             currentFrameTextName = frameFiles[i]; // save just the name of the frame
             currentFrameHTMLName = html1;         // save fancy string
 
@@ -3255,9 +3257,13 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
 
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
+
+    editSequenceInProgress = true;
+    refreshSDframes();  // clear the * editing indicator
 }
 
 void MainWindow::SDExitEditMode() {
+
     ui->pushButtonSDSave->setVisible(false);
     ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDNew->setVisible(true);
@@ -3273,6 +3279,9 @@ void MainWindow::SDExitEditMode() {
         ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
     }
 
+    newSequenceInProgress = false;
+    editSequenceInProgress = false;
+    refreshSDframes();  // clear the * editing indicator
 }
 
 void MainWindow::SDSetCurrentSeqs(int i) {
@@ -3486,9 +3495,13 @@ void MainWindow::SDReplaceCurrentSequence() {
                 nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
                 writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
                 outFile << "#AUTHOR=" << authorID << "#\n";    // Use the new author here
-                for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
-//                    qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
-                    outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+
+                if (ui->tableWidgetCurrentSequence->rowCount() >= 1) {
+                    for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
+                        outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+                    }
+                } else {
+                    outFile << "just as you are\n"; // EMPTY SEQUENCE
                 }
 
                 QString resolve = ui->label_SD_Resolve->text().simplified();
@@ -3502,6 +3515,13 @@ void MainWindow::SDReplaceCurrentSequence() {
             // NOT the one we want to delete, so append to the NEW file
             outFile << line << "\n";
         }
+    }
+
+    qDebug() << "XYZZY: " << currentSeqNum << frameMaxSeq[currentFrame] << newSequenceInProgress;
+    if (newSequenceInProgress) {
+        // if we're replace the very last "@" in the file, it means that this must be a NEW then SAVE
+        //   so, add the EOF @
+        outFile << "@\n";
     }
 
     // close both files
@@ -3630,34 +3650,45 @@ void MainWindow::on_pushButtonSDNew_clicked()
 //    QString who     = QString(currentFrameTextName).replace(QRegularExpression("\\..*"), "");
 //    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
-//    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToAppendFile = (musicRootPath + "/sd/%1.txt").arg(currentFrameTextName);
 
-//    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
+////    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//    QString pathToAppendFile = (musicRootPath + "/sd/%1.txt").arg(currentFrameTextName);
 
-    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
+////    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
-    QFile file(pathToAppendFile);
-    if (file.open(QIODevice::Append))
-    {
-        QTextStream stream(&file);
-        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
-        nextSequenceID++;
-        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
-        stream << "#AUTHOR=" << authorID << "#\n";
-        stream << "@\n";
-        file.close();
+//    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
+
+//    QFile file(pathToAppendFile);
+//    if (file.open(QIODevice::Append))
+//    {
+//        QTextStream stream(&file);
+//        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
+//        nextSequenceID++;
+//        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
+//        stream << "#AUTHOR=" << authorID << "#\n";
+//        stream << "@\n";
+//        file.close();
+
+//        int centralNum = frameVisible.indexOf("central");
+//        frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
+//        frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+
+//        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+
+//        refreshSDframes();
+//    } else {
+////        qDebug() << "ERROR: could not append to " << pathToAppendFile;
+//    }
 
         int centralNum = frameVisible.indexOf("central");
         frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
         frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+        // NOTE: DO NOT CALL SDSETCURRENSEQS(7) HERE.  WE DO NOT WANT TO PERSIST UNTIL SAVE TIME.
+        // TODO: DISABLE ALL LEFT/RIGHT ARROW COMBINATIONS WHEN EDITING A SEQUENCE.  REENABLE WHEN SAVE OR ABORT.
 
-        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+        newSequenceInProgress = true;
 
         refreshSDframes();
-    } else {
-//        qDebug() << "ERROR: could not append to " << pathToAppendFile;
-    }
 
 }
 

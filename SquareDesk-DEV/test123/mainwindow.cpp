@@ -1388,6 +1388,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 //    debugCSDSfile("plus"); // DEBUG DEBUG DEBUG THIS HELPS TO DEBUG IMPORT OF CSDS SEQUENCES TO SD FORMAT *********
 
+    newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now.
     on_actionFormation_Thumbnails_triggered(); // make sure that the thumbnails are turned OFF, if Formation Thumbnails is not initially checked
 }
 
