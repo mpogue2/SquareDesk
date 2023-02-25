@@ -422,6 +422,10 @@ private slots:
     void loadSong();
     void revealInFinder();
     void revealLyricsFileInFinder();
+    void copyIt();
+    void pasteIt();
+    void cutIt();
+    void selectLine();
 
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
