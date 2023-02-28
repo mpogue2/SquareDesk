@@ -119,7 +119,7 @@ void AudioThread::run() {
         if ( m_activelyPlaying && (m_audioSink) && (bytesFree = bytesAvailable(m_audioSink)) > 0) {  // let's be careful not to dereference a null pointer
             m_audioSinkAssignmentMutex.unlock();
             LockHolder dataAndTotalFramesLockHolder(m_dataAndTotalFramesMutex);
-            ASSERT(m_playPosition_frames < m_totalFramesInSong);
+            ASSERT(m_playPosition_frames <= m_totalFramesInSong);
             const char *p_data = (const char *)(m_data) + (m_bytesPerFrame * m_playPosition_frames);  // next samples to play
             
             // write the smaller of bytesFree and how much we have left in the song
