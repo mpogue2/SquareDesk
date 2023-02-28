@@ -798,6 +798,9 @@ int MainWindow::PlaylistItemCount() {
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemToTop() {
 
+//    PerfTimer t("PlaylistItemToTop", __LINE__);
+//    t.start(__LINE__);
+
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -807,7 +810,9 @@ void MainWindow::PlaylistItemToTop() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+//    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+    startLongSongTableOperation("PlaylistItemToTop");
+//    t.elapsed(__LINE__);
 
     if (currentNumberText == "") {
         // add to list, and make it the #1
@@ -848,7 +853,9 @@ void MainWindow::PlaylistItemToTop() {
         ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
     }
 
-    ui->songTable->blockSignals(false); // done updating.
+//    ui->songTable->blockSignals(false); // done updating.
+    stopLongSongTableOperation("PlaylistItemToTop");
+//    t.elapsed(__LINE__);
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
@@ -862,6 +869,8 @@ void MainWindow::PlaylistItemToTop() {
 
     // mark playlist modified
     markPlaylistModified(true); // turn ON the * in the status bar
+
+//    t.elapsed(__LINE__);
 }
 
 // --------------------------------------------------------------------
@@ -877,7 +886,8 @@ void MainWindow::PlaylistItemToBottom() {
 
     int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
 
-    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+//    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+    startLongSongTableOperation("PlaylistItemToTop");
 
     if (currentNumberText == "") {
         // add to list, and make it the bottom
@@ -907,7 +917,8 @@ void MainWindow::PlaylistItemToBottom() {
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount));  // this one is the new #1
     }
 
-    ui->songTable->blockSignals(false); // done updating
+//    ui->songTable->blockSignals(false); // done updating
+    stopLongSongTableOperation("PlaylistItemToTop");
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
