@@ -278,6 +278,12 @@ public slots:
     void customLyricsMenuRequested(QPoint pos);
     void haveDuration2(void);
 
+    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
+    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
+    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
+    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
+    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
+
 protected:
     bool maybeSave();
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -454,21 +460,11 @@ private slots:
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
 
-    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
-    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
-    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
-    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
-    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
-
     void on_actionAt_TOP_triggered();
-
     void on_actionAt_BOTTOM_triggered();
-
-    void on_actionRemove_from_Playlist_triggered();
-
     void on_actionUP_in_Playlist_triggered();
-
     void on_actionDOWN_in_Playlist_triggered();
+    void on_actionRemove_from_Playlist_triggered();
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);

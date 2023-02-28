@@ -3178,6 +3178,22 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
 //            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << theKey << KeyEvent->text();
             // THEN HANDLE IT AS A SPECIAL KEY
+
+            if ((theKey == Qt::Key_Up || theKey == Qt::Key_Down) &&
+                    (KeyEvent->modifiers() & Qt::ShiftModifier) &&
+                    (KeyEvent->modifiers() & Qt::ControlModifier)) {
+
+                if (theKey == Qt::Key_Up) {
+//                    qDebug() << "SHIFT-CMD-UP detected.";
+                    maybeMainWindow->PlaylistItemMoveUp();
+                } else {
+//                    qDebug() << "SHIFT-CMD-DOWN detected.";
+                    maybeMainWindow->PlaylistItemMoveDown();
+                }
+
+                return true;
+            }
+
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
         }
 
