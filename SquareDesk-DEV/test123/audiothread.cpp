@@ -40,7 +40,7 @@ AudioThread::AudioThread() {
     m_threadDone = false;
     m_volume = 100;
     m_bytesPerFrame = 0;
-    m_sampleRate = 0;
+    m_sampleRate = 48000;
 
     m_clearSoundTouch = false;
     m_currentFadeFactor = 1.0;
@@ -66,7 +66,7 @@ AudioThread::AudioThread() {
     m_tempoSpeedup_percent = 0.0;
     m_pitchUp_semitones = 0.0;
 
-    m_soundTouch.setSampleRate(44100);
+    m_soundTouch.setSampleRate(m_sampleRate);
     m_soundTouch.setChannels(2);  // we are already setup for stereo processing, just don't copy-to-mono.
 
     m_soundTouch.setTempoChange(m_tempoSpeedup_percent);  // this is in PERCENT
@@ -98,7 +98,7 @@ unsigned int AudioThread::bytesAvailable(QAudioSink *audioSink) {
     if (0 == m_audioSinkBufferSize) {
         m_audioSinkBufferSize = audioSink->bytesFree();
     }
-    const unsigned int wantedBufferSize =  8 * 44100 / 10;
+    const unsigned int wantedBufferSize =  8 * m_sampleRate / 10;
     unsigned int padding = m_audioSinkBufferSize > wantedBufferSize ? (m_audioSinkBufferSize - wantedBufferSize) : 0;
     unsigned int bytesFree = audioSink->bytesFree();
     if (bytesFree > padding) {
@@ -130,7 +130,7 @@ void AudioThread::run() {
             }
             
             unsigned int framesFree = bytesFree/m_bytesPerFrame;  // One frame = LR
-            unsigned int loopEndpoint_frames = 44100 * m_loopFrom_sec;
+            unsigned int loopEndpoint_frames = m_sampleRate * m_loopFrom_sec;
             bool straddlingLoopFromPoint =
                 !(m_loopFrom_sec == 0.0 && m_loopTo_sec == 0.0) &&
                 (m_playPosition_frames < loopEndpoint_frames) &&
@@ -151,7 +151,7 @@ void AudioThread::run() {
                 DoAMemoryCheck();
 
                 if (straddlingLoopFromPoint) {
-                    m_playPosition_frames = (unsigned int)(m_loopTo_sec * 44100.0); // reset the playPosition to the loop start point
+                    m_playPosition_frames = (unsigned int)(m_loopTo_sec * (double)(m_sampleRate)); // reset the playPosition to the loop start point
                 } else {
                     m_playPosition_frames += m_sourceFramesConsumed; // move the data pointer to the next place to read from
                     // if at the end, this will point just beyond the last sample
@@ -298,14 +298,14 @@ void AudioThread::clearLoop() {
 void AudioThread::updateEQ() {
     LockHolder filterLock(m_filterParameterMutex);
     // given m_bassBoost_dB, etc., recreate the bq's.
-    m_bq[0] = biquad_peak( 125.0/44100.0,  4.0,   m_bassBoost_dB);    // tweaked Q to match Intel version
-    m_bq[1] = biquad_peak(1000.0/44100.0,  0.9,   m_midBoost_dB);     // tweaked Q to match Intel version
-    m_bq[2] = biquad_peak(8000.0/44100.0,  0.9,   m_trebleBoost_dB);  // tweaked Q to match Intel version
+    m_bq[0] = biquad_peak( 125.0/((double)(m_sampleRate)),  4.0,   m_bassBoost_dB);    // tweaked Q to match Intel version
+    m_bq[1] = biquad_peak(1000.0/((double)(m_sampleRate)),  0.9,   m_midBoost_dB);     // tweaked Q to match Intel version
+    m_bq[2] = biquad_peak(8000.0/((double)(m_sampleRate)),  0.9,   m_trebleBoost_dB);  // tweaked Q to match Intel version
 
     float W0 = 2 * 3.14159265 * (1000.0 * m_intelligibilityBoost_fKHz/m_sampleRate);
     float Q = 1/(2.0 * sinhf( (logf(2.0)/2.0) * m_intelligibilityBoost_widthOctaves * (W0/sinf(W0)) ) );
 //        qDebug() << "Q: " << Q << ", boost_dB: " << m_intelligibilityBoost_dB;
-    m_bq[3] = biquad_peak(1000.0 * m_intelligibilityBoost_fKHz/44100.0, Q, m_intelligibilityBoost_dB);
+    m_bq[3] = biquad_peak(1000.0 * m_intelligibilityBoost_fKHz/ (double)(m_sampleRate), Q, m_intelligibilityBoost_dB);
 
     m_newFilterNeeded = true;
 //        qDebug() << "\tbiquad's are updated: ("<< m_bassBoost_dB << m_midBoost_dB << m_trebleBoost_dB << m_intelligibilityBoost_dB << ")";

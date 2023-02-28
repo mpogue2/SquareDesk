@@ -27,6 +27,7 @@
 #include "audiothread.h"
 #include <QFile>
 #include <stdio.h>
+#include <iostream>
 #if defined(Q_OS_LINUX)
 #include <QtMultimedia/QMediaDevices>
 #include <QtMultimedia/QAudioDevice>
@@ -60,7 +61,7 @@ AudioThread myPlayer;  // singleton
 AudioDecoder::AudioDecoder()
 {
 //    qDebug() << "In AudioDecoder() constructor";
-
+    m_sampleRate = 48000;
     connect(&m_decoder, &QAudioDecoder::bufferReady,
             this, &AudioDecoder::bufferReady);
     connect(&m_decoder, QOverload<QAudioDecoder::Error>::of(&QAudioDecoder::error),
@@ -82,7 +83,7 @@ AudioDecoder::AudioDecoder()
 //    QString t = QString("0x%1").arg((quintptr)(m_data->data()), QT_POINTER_SIZE * 2, 16, QChar('0'));
 //    qDebug() << "audio data is at:" << t;
 
-    myPlayer.setBytesPerFrameAndSampleRate(8,44100);
+    myPlayer.setBytesPerFrameAndSampleRate(8,m_sampleRate);
     myPlayer.assignDataAndTotalFrames((unsigned char *)(m_data->data()),0);
 
     m_audioSink = 0;                        // nothing yet
@@ -103,16 +104,19 @@ AudioDecoder::~AudioDecoder()
 
 void AudioDecoder::newSystemAudioOutputDevice() {
     // we want a format that will be no resampling for 99% of the MP3 files, but is float for kfr/rubberband processing
+    QAudioDevice defaultAudioOutput = QMediaDevices::defaultAudioOutput();
+    QString defaultADName = defaultAudioOutput.description();
+    QAudioFormat preferredFormat = defaultAudioOutput.preferredFormat();
+
     QAudioFormat desiredAudioFormat; // = device.preferredFormat();  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
-    desiredAudioFormat.setSampleRate(44100);
+    m_sampleRate = preferredFormat.sampleRate();
+    desiredAudioFormat.setSampleRate(m_sampleRate);
     desiredAudioFormat.setChannelConfig(QAudioFormat::ChannelConfigStereo);
     desiredAudioFormat.setSampleFormat(QAudioFormat::Float);  // Note: 8 bytes per frame
 
-    myPlayer.setBytesPerFrameAndSampleRate(8,44100);
+    myPlayer.setBytesPerFrameAndSampleRate(8,m_sampleRate);
 
 //    qDebug() << "desiredAudioFormat: " << desiredAudioFormat << " )";
-
-    QString defaultADName = QMediaDevices::defaultAudioOutput().description();
 //    qDebug() << "newSystemAudioOutputDevice -- LAST AUDIO OUTPUT DEVICE NAME" << m_currentAudioOutputDeviceName << ", CURRENT AUDIO OUTPUT DEVICE NAME: " << defaultADName;
 
     if (defaultADName != m_currentAudioOutputDeviceName) {
@@ -122,11 +126,11 @@ void AudioDecoder::newSystemAudioOutputDevice() {
             m_audioSink->stop();
             QAudioSink *oldOne = m_audioSink;
 //            qDebug() << "     making a new one atomically...";
-            m_audioSink = new QAudioSink(desiredAudioFormat);  // uses the current default audio device, ATOMIC
+            m_audioSink = new QAudioSink(defaultAudioOutput, desiredAudioFormat);  // uses the current default audio device, ATOMIC
             delete oldOne;
         } else {
 //            qDebug() << "     making a new one for the first time...";
-            m_audioSink = new QAudioSink(desiredAudioFormat);  // uses the current default audio device, ATOMIC
+            m_audioSink = new QAudioSink(defaultAudioOutput, desiredAudioFormat);  // uses the current default audio device, ATOMIC
         }
         m_currentAudioOutputDeviceName = defaultADName;    // assuming that succeeded, this is the one we are sending audio to
     }
@@ -265,7 +269,7 @@ void AudioDecoder::finished()
     float sampleLength_sec = 10.0; // 30.0 - 40.0 sec
     float sampleEnd_sec = sampleStart_sec + sampleLength_sec;
 
-    float songLength_sec = totalFramesInSong/44100.0;
+    float songLength_sec = totalFramesInSong/ (double)(m_sampleRate);
 //    float start_sec =  (songLength_sec >= sampleStart_sec + sampleLength_sec ? 10.0 : 0.0);
 //    float end_sec   =  (songLength_sec >= start_sec + 10.0 ? start_sec + 10.0 : songLength_sec );
 
@@ -276,8 +280,8 @@ void AudioDecoder::finished()
     //   else, just use the start of the song
     float start_sec = (end_sec - sampleLength_sec > 0.0 ? end_sec - sampleLength_sec : 0.0 );
 
-    unsigned int offsetIntoSong_samples = 44100 * start_sec;            // start looking at time T = 10 sec
-    unsigned int numSamplesToLookAt = 44100 * (end_sec - start_sec);    //   look at 10 sec of samples
+    unsigned int offsetIntoSong_samples = m_sampleRate * start_sec;            // start looking at time T = 10 sec
+    unsigned int numSamplesToLookAt = m_sampleRate * (end_sec - start_sec);    //   look at 10 sec of samples
 
 //    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
 
@@ -287,7 +291,7 @@ void AudioDecoder::finished()
         monoBuffer[i] = 0.5*songPointer[2*(i+offsetIntoSong_samples)] + 0.5*songPointer[2*(i+offsetIntoSong_samples)+1];
     }
 
-    MiniBPM BPMestimator(44100.0);
+    MiniBPM BPMestimator((double)(m_sampleRate));
     BPMestimator.setBPMRange(125.0-15.0, 125.0+15.0);  // limited range for square dance songs, else use percent
     BPM = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
 
@@ -365,7 +369,7 @@ double AudioDecoder::getStreamPosition() {
 }
 
 double AudioDecoder::getStreamLength() {
-    return(myPlayer.getTotalFramesInSong()/44100.0);
+    return(myPlayer.getTotalFramesInSong()/ (double)(m_sampleRate));
 }
 
 unsigned char AudioDecoder::getCurrentState() {

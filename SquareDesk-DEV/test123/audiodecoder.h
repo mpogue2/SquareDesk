@@ -177,7 +177,7 @@ private:
 
     QAudioSink   *m_audioSink;
     QIODevice    *m_audioDevice;
-
+    int m_sampleRate;
     qreal m_progress;
 
     QBuffer *m_input;
