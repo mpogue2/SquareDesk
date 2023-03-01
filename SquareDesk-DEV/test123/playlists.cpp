@@ -818,7 +818,6 @@ void MainWindow::PlaylistItemToTop() {
         // add to list, and make it the #1
 
         // Iterate over the entire songTable, incrementing every item
-        // TODO: turn off sorting
         for (int i=0; i<ui->songTable->rowCount(); i++) {
             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
             QString playlistIndex = theItem->text();  // this is the playlist #
@@ -830,12 +829,10 @@ void MainWindow::PlaylistItemToTop() {
         }
 
         ui->songTable->item(selectedRow, kNumberCol)->setText("1");  // this one is the new #1
-        // TODO: turn on sorting again
 
     } else {
         // already on the list
         // Iterate over the entire songTable, incrementing items BELOW this item
-        // TODO: turn off sorting
         for (int i=0; i<ui->songTable->rowCount(); i++) {
             QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
             QString playlistIndexText = theItem->text();  // this is the playlist #
@@ -887,15 +884,13 @@ void MainWindow::PlaylistItemToBottom() {
     int playlistItemCount = PlaylistItemCount();  // how many items in the playlist right now?
 
 //    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
-    startLongSongTableOperation("PlaylistItemToTop");
+    startLongSongTableOperation("PlaylistItemToBottom");
 
     if (currentNumberText == "") {
         // add to list, and make it the bottom
 
         // Iterate over the entire songTable, not touching every item
-        // TODO: turn off sorting
         ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(playlistItemCount+1));  // this one is the new #LAST
-        // TODO: turn on sorting again
 
     } else {
         // already on the list
@@ -918,7 +913,7 @@ void MainWindow::PlaylistItemToBottom() {
     }
 
 //    ui->songTable->blockSignals(false); // done updating
-    stopLongSongTableOperation("PlaylistItemToTop");
+    stopLongSongTableOperation("PlaylistItemToBottom");
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
@@ -946,8 +941,6 @@ void MainWindow::PlaylistItemMoveUp() {
     int currentNumberInt = currentNumberText.toInt();
 
     // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
-    // TODO: turn off sorting
-
     ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
 
     for (int i=0; i<ui->songTable->rowCount(); i++) {
@@ -963,8 +956,6 @@ void MainWindow::PlaylistItemMoveUp() {
     }
 
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt-1));  // this one moves UP
-    // TODO: turn on sorting again
-
     ui->songTable->blockSignals(false); // done updating
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
@@ -995,7 +986,6 @@ void MainWindow::PlaylistItemMoveDown() {
     // add to list, and make it the bottom
 
     // Iterate over the entire songTable, find the item just BELOW this one, and move it UP (only)
-    // TODO: turn off sorting
     ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
 
     for (int i=0; i<ui->songTable->rowCount(); i++) {
@@ -1011,8 +1001,6 @@ void MainWindow::PlaylistItemMoveDown() {
     }
 
     ui->songTable->item(selectedRow, kNumberCol)->setText(QString::number(currentNumberInt+1));  // this one moves UP
-    // TODO: turn on sorting again
-
     ui->songTable->blockSignals(false); // done updating
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
@@ -1032,6 +1020,7 @@ void MainWindow::PlaylistItemMoveDown() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemRemove() {
+
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -1041,11 +1030,11 @@ void MainWindow::PlaylistItemRemove() {
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
     int currentNumberInt = currentNumberText.toInt();
 
-    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+//    ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
+    startLongSongTableOperation("PlaylistItemRemove");
 
     // already on the list
     // Iterate over the entire songTable, decrementing items BELOW this item
-    // TODO: turn off sorting
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         QString playlistIndexText = theItem->text();  // this is the playlist #
@@ -1061,7 +1050,8 @@ void MainWindow::PlaylistItemRemove() {
     // and then set this one to #LAST
     ui->songTable->item(selectedRow, kNumberCol)->setText("");  // this one is off the list
 
-    ui->songTable->blockSignals(false); // done updating
+//    ui->songTable->blockSignals(false); // done updating
+    stopLongSongTableOperation("PlaylistItemRemove");
 
     on_songTable_itemSelectionChanged();  // reevaluate which menu items are enabled
 
