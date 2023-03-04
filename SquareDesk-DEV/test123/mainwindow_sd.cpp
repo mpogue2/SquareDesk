@@ -3885,3 +3885,110 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
     }
     return("Mainstream"); // else it's probably Basic or MS
 }
+
+// =================================
+// ----------------------------------------------------------------------
+void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
+{
+//    Q_UNUSED(showGroupStation)
+//    qDebug() << "TOGGLED: " << showGroupStation;
+    ui->actionShow_group_station->setChecked(showGroupStation); // when called from constructor
+    prefsManager.Setenablegroupstation(showGroupStation);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+void MainWindow::on_actionShow_order_sequence_toggled(bool showOrderSequence)
+{
+//    Q_UNUSED(showOrderSequence)
+//    qDebug() << "TOGGLED ORDER SEQUENCE: " << showOrderSequence;
+    ui->actionShow_order_sequence->setChecked(showOrderSequence); // when called from constructor
+    prefsManager.Setenableordersequence(showOrderSequence);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+// ==================================
+// fetch the GLUID etc from .squaredesk/metadata.csv
+void MainWindow::getMetadata() {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
+
+    QFileInfo fi(metadata);
+
+    if (fi.exists()) {
+        QString line;
+        if (!metadata.open(QFile::ReadOnly)) {
+            qDebug() << "Could not open: " << metadata.fileName() << " for reading metadata";
+            return;
+        }
+
+//        qDebug() << "OPENED FOR READING: " << metadata.fileName();
+        QTextStream in(&metadata);
+
+        // read first line
+        line = in.readLine();
+        if (line != "key,value") {
+            qDebug() << "Unexpected header line: " << line;
+            metadata.close();
+            return;
+        }
+
+        userID = -1;
+        nextSequenceID = -1;
+        authorID = "";
+
+        // read key,value pairs
+        while (!in.atEnd()) {
+            line = in.readLine();
+            QStringList L = line.split(',');
+            QString key = L[0];
+            QString value = L[1];
+
+            if (key == "userID") {
+                userID = value.toInt();
+//                qDebug() << "***** USERID: " << userID;
+            } else if (key == "nextSequenceID") {
+                nextSequenceID = value.toInt();
+//                qDebug() << "***** NEXTSEQUENCEID: " << nextSequenceID;
+            } else if (key == "authorID") {
+                authorID = value;
+//                qDebug() << "***** AUTHODID: " << authorID;
+            } else {
+                qDebug() << "SKIPPING UNKNOWN KEY: " << key;
+            }
+        }
+
+        if (userID == -1 || nextSequenceID == -1 || authorID == "") {
+            qDebug() << "BAD METADATA: " << userID << nextSequenceID << authorID;
+        } else {
+//            qDebug() << "METADATA LOOKS OK!";
+        }
+
+        metadata.close();
+    } else {
+        userID = (int)(QRandomGenerator::global()->bounded(1, 21474)); // range: 1 - 21473 inclusive
+        nextSequenceID = 1;
+        authorID.setNum(userID);  // default Author is a number, unless user changes it manually in hidden file
+        writeMetadata(userID, nextSequenceID, authorID);
+//        qDebug() << "***** USERID/NEXTSEQUENCEID WRITTEN SUCCESSFULLY AND VALUES SET INTERNALLY: " << userID << nextSequenceID;
+    }
+}
+
+// update the metadata file real quick with the new nextSequenceID
+void MainWindow::writeMetadata(int userID, int nextSequenceID, QString authorID) {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
+    if (!metadata.open(QFile::WriteOnly)) {
+        qDebug() << "Could not open: " << metadata.fileName() << " for writing metadata";
+        return;
+    }
+
+//    qDebug() << "OPENED FOR WRITING: " << metadata.fileName();
+    QTextStream out(&metadata);
+
+    out << "key,value\n";
+
+    out << "userID," << userID << "\n";
+    out << "nextSequenceID," << nextSequenceID << "\n";
+    out << "authorID," << authorID << "\n";
+
+//    qDebug() << "***** USERID/NEXTSEQUENCEID UPDATED " << userID << nextSequenceID;
+    metadata.close();
+}

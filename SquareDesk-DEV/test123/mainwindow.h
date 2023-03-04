@@ -477,6 +477,7 @@ private slots:
     void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 
+    void setSongTableFont(QTableWidget *songTable, const QFont &currentFont);
 
     void focusChanged(QWidget *old, QWidget *now);
 

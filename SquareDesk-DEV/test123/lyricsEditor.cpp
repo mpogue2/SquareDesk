@@ -1199,3 +1199,81 @@ void MainWindow::on_actionAuto_format_Lyrics_triggered()
         cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
     cursor.endEditBlock(); // end of grouping for UNDO purposes
 }
+
+// =============================================
+void MainWindow::on_actionBold_triggered()
+{
+    bool isBoldNow = ui->pushButtonCueSheetEditBold->isChecked();
+    bool isEditable = ui->pushButtonEditLyrics->isChecked();
+    if (isEditable) {
+        ui->textBrowserCueSheet->setFontWeight(isBoldNow ? QFont::Normal : QFont::Bold);
+    }
+}
+
+void MainWindow::on_actionItalic_triggered()
+{
+    bool isItalicsNow = ui->pushButtonCueSheetEditItalic->isChecked();
+    bool isEditable = ui->pushButtonEditLyrics->isChecked();
+    if (isEditable) {
+        ui->textBrowserCueSheet->setFontItalic(!isItalicsNow);
+    }
+}
+
+// ===============================================
+void MainWindow::customLyricsMenuRequested(QPoint pos) {
+    Q_UNUSED(pos)
+
+    if (loadedCuesheetNameWithPath != "" && !loadedCuesheetNameWithPath.contains(".template.html")) {
+        // context menu is available, only if we have loaded a cuesheet
+        QMenu *menu = new QMenu(this);
+
+    if (ui->pushButtonEditLyrics->isChecked()) {
+        menu->addAction( "Cut", this, SLOT (cutIt()) );
+        menu->addAction( "Copy", this, SLOT (copyIt()) );
+        menu->addAction( "Paste", this, SLOT (pasteIt()) );
+        menu->addSeparator();
+        menu->addAction( "Select Line", this, SLOT (selectLine()) );
+        menu->addSeparator();
+    }
+
+#if defined(Q_OS_MAC)
+        menu->addAction( "Reveal in Finder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_WIN)
+        menu->addAction( "Show in Explorer" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_LINUX)
+        menu->addAction( "Open containing folder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+        menu->popup(QCursor::pos());
+        menu->exec();
+
+        delete(menu);
+    }
+}
+
+void MainWindow::selectLine(){
+    ui->textBrowserCueSheet->moveCursor(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+    ui->textBrowserCueSheet->moveCursor(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+}
+
+void MainWindow::copyIt(){
+    ui->textBrowserCueSheet->copy();
+}
+
+void MainWindow::pasteIt() {
+    ui->textBrowserCueSheet->paste();
+}
+
+void MainWindow::cutIt() {
+    ui->textBrowserCueSheet->cut();
+}
+
+// =======================
+void MainWindow::revealLyricsFileInFinder() {
+//    qDebug() << "path: " << loadedCuesheetNameWithPath;
+    showInFinderOrExplorer(loadedCuesheetNameWithPath);
+}
