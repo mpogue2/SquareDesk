@@ -343,7 +343,7 @@ void MainWindow::decode_formation_into_dancer_destinations(
                     else
                     {
                         sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
-                        QString gend = (girl == 1 ? "G" : "B");
+//                        QString gend = (girl == 1 ? "G" : "B");
 //                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
                         dancers[dancerNum].coupleNum = coupleNumber;
                         dancers[dancerNum].gender = girl;
@@ -2916,7 +2916,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         list->clear();  // clear out the current contents
     }
 
-    QString origFilename = filename;
+//    QString origFilename = filename;
     QFile theFile((musicRootPath + "/sd/" + filename + ".txt"));
 //    qDebug() << "loadFrame: " << theFile.fileName();
 

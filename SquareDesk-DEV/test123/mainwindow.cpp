@@ -8624,10 +8624,10 @@ QList<QString> MainWindow::getListOfCuesheets() {
     if (inputFile.open(QIODevice::ReadOnly))
     {
         QTextStream in(&inputFile);
-        int line_number = 0;
+//        int line_number = 0;
         while (!in.atEnd()) //  && line_number < 10)
         {
-            line_number++;
+//            line_number++;
             QString line = in.readLine();
 
             // <li><a href="RR%20147%20-%20Amarillo%20By%20Morning.html"> RR 147 - Amarillo By Morning.html</a></li>
@@ -8834,10 +8834,10 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
     QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
 //    QByteArray localMsg = msg.toLocal8Bit();
 
-    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
+//    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
     QString logLevelName = msgLevelHash[type];
 //    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
-    QString txt = QString("%1: %2").arg(logLevelName).arg(msg);
+    QString txt = QString("%1: %2").arg(logLevelName, msg);
 
     // suppress known warnings from QtCreator Application Output window
     if (msg.contains("The provided value 'moz-chunked-arraybuffer' is not a valid enum value of type XMLHttpRequestResponseType") ||
