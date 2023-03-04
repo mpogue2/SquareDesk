@@ -3517,7 +3517,7 @@ void MainWindow::SDReplaceCurrentSequence() {
         }
     }
 
-    qDebug() << "XYZZY: " << currentSeqNum << frameMaxSeq[currentFrame] << newSequenceInProgress;
+//    qDebug() << "XYZZY: " << currentSeqNum << frameMaxSeq[currentFrame] << newSequenceInProgress;
     if (newSequenceInProgress) {
         // if we're replace the very last "@" in the file, it means that this must be a NEW then SAVE
         //   so, add the EOF @
