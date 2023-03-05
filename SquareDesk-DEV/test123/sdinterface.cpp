@@ -1049,17 +1049,21 @@ SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_prog
 }
 
 void SDThread::resetSDState() {
-    iofull->answerYesToEverything = true;
-    abort = true;
-//    mutexSDAwaitingInput.lock();
-    while (iofull->currentInputState != InputStateNormal)
-    {
-//        mutexSDAwaitingInput.unlock();
-        do_user_input("Yes");
-//        mutexSDAwaitingInput.lock();
-    }
-//    mutexSDAwaitingInput.unlock();
 
+    if (iofull != nullptr) {
+        iofull->answerYesToEverything = true;
+        abort = true;
+    //    mutexSDAwaitingInput.lock();
+        while (iofull->currentInputState != InputStateNormal)
+        {
+    //        mutexSDAwaitingInput.unlock();
+            do_user_input("Yes");
+    //        mutexSDAwaitingInput.lock();
+        }
+    //    mutexSDAwaitingInput.unlock();
+    } else {
+        qDebug() << "warning: iofull was null";
+    }
 }
 
 void SDThread::resetAndExecute(QStringList &commands)
