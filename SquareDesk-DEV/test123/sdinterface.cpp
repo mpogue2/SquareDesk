@@ -196,7 +196,12 @@ bool SDThread::on_user_input(QString str)
 {
     QByteArray inUtf8 = str.simplified().toUtf8();
     const char *data = inUtf8.constData();
-    return iofull->add_string_input(data);
+
+    if (iofull != nullptr) {
+        // only dereference after SD has been spun up
+        return iofull->add_string_input(data);
+    }
+    return false;
 }
 
 bool SquareDesk_iofull::add_string_input(const char *s)
