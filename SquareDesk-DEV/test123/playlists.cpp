@@ -754,7 +754,8 @@ void MainWindow::on_actionClear_Playlist_triggered()
         // let's intentionally NOT clear the tempos.  They are persistent within a session.
     }
 
-    linesInCurrentPlaylist = 0;
+    lastSavedPlaylist = "";       // clear the name of the last playlist, since none is loaded
+    linesInCurrentPlaylist = 0;   // the number of lines in the playlist is zero
     ui->actionSave->setText(QString("Save Playlist")); // and now it has no name, because not loaded
     ui->actionSave->setDisabled(true);
     ui->actionSave_As->setDisabled(true);
