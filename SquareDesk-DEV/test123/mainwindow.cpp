@@ -1390,6 +1390,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     newSequenceInProgress = editSequenceInProgress = false; // no sequence being edited right now.
     on_actionFormation_Thumbnails_triggered(); // make sure that the thumbnails are turned OFF, if Formation Thumbnails is not initially checked
+
+    if (ui->songTable->rowCount() >= 1) {
+        ui->songTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
+    }
 }
 
 
