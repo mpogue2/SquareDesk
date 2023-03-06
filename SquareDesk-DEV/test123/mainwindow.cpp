@@ -1320,7 +1320,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     if (!QDir(pathToFrameFolder).exists()) {
         // if the frameName folder does not exist, make it.
         qDebug() << "frameName: " << frameName << "does not exist, so making it.";
-        QDir().mkdir(pathToFrameFolder); // now the other file creators below should work
+        QDir().mkpath(pathToFrameFolder); // now the other file creators below should work
     }
 
     // TODO: Do these whenever a new frame is loaded...
