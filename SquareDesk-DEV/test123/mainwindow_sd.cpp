@@ -4061,3 +4061,72 @@ void MainWindow::SDReadSequencesUsed() {
 }
 
 
+void MainWindow::SDMakeFrameFilesIfNeeded() {
+    for (int i = 0; i < frameVisible.length(); i++) {
+        QString fileName = frameFiles[i]; // get the filename
+        QString pathToFrameFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+
+        QFile file(pathToFrameFile);
+        QFileInfo info(file.fileName());
+
+        if (!info.exists()) {
+            // file doesn't exist, so create one
+            qDebug() << "Making new frame sequence file: " << file.fileName();
+
+            if (file.open(QFile::WriteOnly | QFile::Append)) {
+                // file is created, and CSV header is written
+                QTextStream out(&file);
+
+                switch (i) {
+                    case 0: // biggie
+                        out << "@\n";
+                        out << "#REC=725900001#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Square Thru 3\n";
+                        out << "HEADS Partner Trade\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    case 1: // easy
+                        out << "@\n";
+                        out << "#REC=725900002#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Square Thru 4\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    case 2: // medium
+                        out << "@\n";
+                        out << "#REC=725900003#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Square Thru 4\n";
+                        out << "Right and Left Thru\n";
+                        out << "Dive Thru\n";
+                        out << "CENTERS Square Thru 3\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    case 3: // hard
+                        out << "@\n";
+                        out << "#REC=725900004#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Pass The Ocean\n";
+                        out << "Extend\n";
+                        out << "Swing Thru\n";
+                        out << "BOYS Run\n";
+                        out << "Ferris Wheel\n";
+                        out << "CENTERS Square Thru 3\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    default:
+                        break;
+                }
+
+                file.close();
+            } else {
+                qDebug() << "ERROR: could not make a new frame file: " << file.fileName();
+            }
+        }
+    }
+}

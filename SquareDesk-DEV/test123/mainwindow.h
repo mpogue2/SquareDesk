@@ -628,6 +628,7 @@ private slots:
     void on_actionShow_Frames_triggered();
 
     // slots for SD editing buttons ------
+    void SDMakeFrameFilesIfNeeded();
     void SDGetCurrentSeqs();
     void SDSetCurrentSeqs(int i);
     void SDScanFramesForMax();

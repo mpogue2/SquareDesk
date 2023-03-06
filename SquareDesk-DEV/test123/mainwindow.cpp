@@ -1315,7 +1315,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
     frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
 
+
+    QString pathToFrameFolder(musicRootPath + "/sd/frames/" + frameName);
+    if (!QDir(pathToFrameFolder).exists()) {
+        // if the frameName folder does not exist, make it.
+        qDebug() << "frameName: " << frameName << "does not exist, so making it.";
+        QDir().mkdir(pathToFrameFolder); // now the other file creators below should work
+    }
+
     // TODO: Do these whenever a new frame is loaded...
+    SDMakeFrameFilesIfNeeded(); // if there aren't any files in <frameName>, make some
     SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
     SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
     SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
