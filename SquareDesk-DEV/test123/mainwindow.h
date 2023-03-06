@@ -432,7 +432,10 @@ private slots:
     void pasteIt();
     void cutIt();
     void selectLine();
-
+    bool getSectionLimits(int &sectionStart, int &sectionEnd);
+    void selectSection();
+    void swapHeadsAndSidesInSelection();
+    
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
 
