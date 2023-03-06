@@ -3987,7 +3987,19 @@ void MainWindow::SDReadSequencesUsed() {
         file.close();
 //        qDebug() << "sequenceStatus: " << sequenceStatus;
     } else {
-        qDebug() << "File " << file.fileName() << " could not be opened.";
+        qDebug() << "File " << file.fileName() << " could not be opened, so creating one.";
+        QFileInfo info(file.fileName());
+
+        if (!info.exists()) {
+            if (file.open(QFile::WriteOnly | QFile::Append)) {
+                // file is created, and CSV header is written
+                QTextStream out(&file);
+                out << "datetime,userID,sequenceID,status,reason\n";
+                file.close();
+            } else {
+                qDebug() << "ERROR: could not make a new sequenceUsed file: " << file.fileName();
+            }
+        }
     }
 }
 
