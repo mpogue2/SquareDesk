@@ -1076,12 +1076,16 @@ public:
 
     // one file = one frame, length(frameFiles) = F<max> key assignment
     // TODO: these will be saved as preferences eventually, or maybe these will somewhere in the sqlite DB
+    QString     frameName;    // name of the currently loaded frame: sd/frames/<frameName>/{biggie,easy,med,hard).txt
     QStringList frameFiles;   // list of which files are assigned to keys F1-F10, e.g. "ceder/basic", "mpogue/hard"
     QStringList frameVisible; // strings representing frame visibility/placement, e.g. ["sidebar", "", "central"], there must be exactly one "central" and 3 "sidebar"
-    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
+//    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
     bool selectFirstItemOnLoad;
+
+    void SDReadSequencesUsed();      // update the sequenceStatus hash table from the persisted log in sequencesUsed.csv
+    QHash<int, int> sequenceStatus;  // maps a sequence number to a status (0 = good, else # = bad reason), and not present = not rated
 
     QString currentFrameTextName; // e.g. local.plus
     QString currentFrameHTMLName; // e.g. <HTML>...F6...local.plus</HTML>
@@ -1098,6 +1102,7 @@ public:
     void writeMetadata(int userID, int nextSequenceID, QString authorID);
 
     QString currentSequenceRecordNumber;  // REC of currently loaded sequence
+    int currentSequenceRecordNumberi;     //  int version of that
     QString currentSequenceAuthor;        // AUTHOR of currently loaded sequence
 
     void debugCSDSfile(QString frameName); // DEBUG

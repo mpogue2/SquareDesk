@@ -1309,31 +1309,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     setCurrentSDDanceProgram(currentLevel);
 
     // INIT SD FRAMES ----------------
-    // TODO: This is TEST DATA right now.
-    // TODO: dynamically find the files, and remember to make Visible/Level/CurSeq/Max/Seq for each file found.
-    //              F1               F2            F3              F4            F5            F6               F7
-//    frameFiles   << "ceder.basic" << "ceder.ms" << "ceder.plus" << "ceder.a1" << "ceder.a2" << "local.plus" << "local.c1";  // TODO: These are STATIC, but should be discoverable.
-//    frameVisible << ""            << "sidebar"  << "sidebar"    << ""         << ""         << "central"     << "sidebar";  // TODO: These are currently STATIC, but should be settable.
-//    frameLevel   << "basic"       << "ms"       << "plus"       << "a1"       << "a2"       << "plus"        << "c1";       // These are in the frameFile name, no longer used.
-//    frameCurSeq  << 3             << 4          << 5            << 19         << 13         << 1             << 1;  // These are persistent in /sd/.current.csv
-//    frameMaxSeq  << 13            << 12         << 21           << 31         << 15         << 2             << 2;  // These are updated at init time by scanning.
-
-    frameFiles   << "hoedown1.easy.ms" << "hoedown1.med.ms" << "hoedown1.hard.ms" << "hoedown1.stir.ms";
-    frameVisible << "central"          << "sidebar"        << "sidebar"           << "sidebar";
+    frameName = "hoedown1";
+    frameFiles   << "biggie"           << "easy"           << "medium"            << "hard";
+    frameVisible << "sidebar"          << "central"        << "sidebar"           << "sidebar";
     frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
     frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
-    frameLevel   << ""                 << ""               << ""                  << "";         // These are updated at init time by parsing frameFiles
 
-    // set levels from filename
-    for (int i = 0; i < frameFiles.length(); i++) {
-        QString frameName = frameFiles[i];
-        QString level   = QString(frameName).split(".")[2]; // hoedown1.easy.ms --> "ms"
-//        qDebug() << "Frame/level = " << frameName << level;
-        frameLevel[i] = level;
-    }
-
+    // TODO: Do these whenever a new frame is loaded...
     SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
     SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
+    SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
 
     SDtestmode = false;
     refreshSDframes();
@@ -6129,7 +6114,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         ui->actionShow_Frames->setChecked(false); // hide frames
         on_actionShow_Frames_triggered();
 
-        ui->labelWorkshop->setText("<B>Current Sequence");
+        ui->labelWorkshop->setText("<B>BAD</B>");
         ui->label_CurrentSequence->setText("<B>Current Sequence");
     } else {
         // Dance Arranger
@@ -6168,7 +6153,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         ui->actionShow_Frames->setChecked(true); // show frames
         on_actionShow_Frames_triggered();
 
-//        ui->labelWorkshop->setText("<html><head/><body><p><span style=\" font-weight:700; color:#0433ff;\">F4</span><span style=\" font-weight:700;\"> Workshop [14/17]</span></p></body></html>");
+        ui->labelWorkshop->setText("<html><head/><body><p><span style=\" font-weight:700; color:#ff0000;\">BAD</span></p></body></html>");
     }
 }
 
