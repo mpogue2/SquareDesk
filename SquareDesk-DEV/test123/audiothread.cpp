@@ -40,7 +40,7 @@ AudioThread::AudioThread() {
     m_threadDone = false;
     m_volume = 100;
     m_bytesPerFrame = 0;
-    m_sampleRate = 48000;
+    m_sampleRate = 0;
 
     m_clearSoundTouch = false;
     m_currentFadeFactor = 1.0;
@@ -119,9 +119,6 @@ void AudioThread::run() {
         if ( m_activelyPlaying && (m_audioSink) && (bytesFree = bytesAvailable(m_audioSink)) > 0) {  // let's be careful not to dereference a null pointer
             m_audioSinkAssignmentMutex.unlock();
             LockHolder dataAndTotalFramesLockHolder(m_dataAndTotalFramesMutex);
-            ASSERT(m_playPosition_frames <= m_totalFramesInSong);
-            const char *p_data = (const char *)(m_data) + (m_bytesPerFrame * m_playPosition_frames);  // next samples to play
-            
             // write the smaller of bytesFree and how much we have left in the song
             unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
             if (m_bytesPerFrame * (m_totalFramesInSong - m_playPosition_frames) < bytesFree) {
@@ -147,6 +144,7 @@ void AudioThread::run() {
                 m_sourceFramesConsumed = 0;
                 DoAMemoryCheck();
                 ASSERT(m_playPosition_frames + (bytesNeededToWrite / m_bytesPerFrame) <= m_totalFramesInSong);
+                const char *p_data = (const char *)(m_data) + (m_bytesPerFrame * m_playPosition_frames);  // next samples to play
                 processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *m_processedData (dual mono)
                 DoAMemoryCheck();
 

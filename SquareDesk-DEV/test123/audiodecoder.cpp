@@ -108,7 +108,7 @@ void AudioDecoder::newSystemAudioOutputDevice() {
     QString defaultADName = defaultAudioOutput.description();
     QAudioFormat preferredFormat = defaultAudioOutput.preferredFormat();
 
-    QAudioFormat desiredAudioFormat; // = device.preferredFormat();  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
+    QAudioFormat desiredAudioFormat = preferredFormat;  // 48000, 2ch, float = WHY?  Why not 16-bit int?  Less memory used.
     m_sampleRate = preferredFormat.sampleRate();
     desiredAudioFormat.setSampleRate(m_sampleRate);
     desiredAudioFormat.setChannelConfig(QAudioFormat::ChannelConfigStereo);
