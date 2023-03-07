@@ -278,6 +278,12 @@ public slots:
     void customLyricsMenuRequested(QPoint pos);
     void haveDuration2(void);
 
+    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
+    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
+    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
+    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
+    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
+
 protected:
     bool maybeSave();
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
@@ -422,7 +428,14 @@ private slots:
     void loadSong();
     void revealInFinder();
     void revealLyricsFileInFinder();
-
+    void copyIt();
+    void pasteIt();
+    void cutIt();
+    void selectLine();
+    bool getSectionLimits(int &sectionStart, int &sectionEnd);
+    void selectSection();
+    void swapHeadsAndSidesInSelection();
+    
     void columnHeaderResized(int logicalIndex, int oldSize, int newSize);
     void columnHeaderSorted(int logicalIndex, Qt::SortOrder order);
 
@@ -450,21 +463,11 @@ private slots:
     void on_menuLyrics_aboutToShow();
     void on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/);
 
-    void PlaylistItemToTop();       // moves to top, or adds to the list and moves to top
-    void PlaylistItemToBottom();    // moves to bottom, or adds to the list and moves to bottom
-    void PlaylistItemMoveUp();          // moves up one position (must already be on the list)
-    void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
-    void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
-
     void on_actionAt_TOP_triggered();
-
     void on_actionAt_BOTTOM_triggered();
-
-    void on_actionRemove_from_Playlist_triggered();
-
     void on_actionUP_in_Playlist_triggered();
-
     void on_actionDOWN_in_Playlist_triggered();
+    void on_actionRemove_from_Playlist_triggered();
 
     void on_actionStartup_Wizard_triggered();
     void on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex);
@@ -477,6 +480,7 @@ private slots:
     void on_listWidgetChoreography_itemDoubleClicked(QListWidgetItem *item);
 #endif // ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
 
+    void setSongTableFont(QTableWidget *songTable, const QFont &currentFont);
 
     void focusChanged(QWidget *old, QWidget *now);
 
@@ -627,6 +631,7 @@ private slots:
     void on_actionShow_Frames_triggered();
 
     // slots for SD editing buttons ------
+    void SDMakeFrameFilesIfNeeded();
     void SDGetCurrentSeqs();
     void SDSetCurrentSeqs(int i);
     void SDScanFramesForMax();
@@ -1075,12 +1080,16 @@ public:
 
     // one file = one frame, length(frameFiles) = F<max> key assignment
     // TODO: these will be saved as preferences eventually, or maybe these will somewhere in the sqlite DB
+    QString     frameName;    // name of the currently loaded frame: sd/frames/<frameName>/{biggie,easy,med,hard).txt
     QStringList frameFiles;   // list of which files are assigned to keys F1-F10, e.g. "ceder/basic", "mpogue/hard"
     QStringList frameVisible; // strings representing frame visibility/placement, e.g. ["sidebar", "", "central"], there must be exactly one "central" and 3 "sidebar"
-    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
+//    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]
     QVector<int> frameCurSeq;
     QVector<int> frameMaxSeq;
     bool selectFirstItemOnLoad;
+
+    void SDReadSequencesUsed();      // update the sequenceStatus hash table from the persisted log in sequencesUsed.csv
+    QHash<int, int> sequenceStatus;  // maps a sequence number to a status (0 = good, else # = bad reason), and not present = not rated
 
     QString currentFrameTextName; // e.g. local.plus
     QString currentFrameHTMLName; // e.g. <HTML>...F6...local.plus</HTML>
@@ -1097,6 +1106,7 @@ public:
     void writeMetadata(int userID, int nextSequenceID, QString authorID);
 
     QString currentSequenceRecordNumber;  // REC of currently loaded sequence
+    int currentSequenceRecordNumberi;     //  int version of that
     QString currentSequenceAuthor;        // AUTHOR of currently loaded sequence
 
     void debugCSDSfile(QString frameName); // DEBUG
@@ -1106,6 +1116,9 @@ public:
 
     QString translateCallToLevel(QString thePrettifiedCall);
     QString makeLevelString(const char *levelCalls[]);
+
+    bool newSequenceInProgress;
+    bool editSequenceInProgress;
 
 };
 

@@ -1199,3 +1199,205 @@ void MainWindow::on_actionAuto_format_Lyrics_triggered()
         cursor.insertHtml(HTMLreplacement);  // ...and put back in the stripped-down text
     cursor.endEditBlock(); // end of grouping for UNDO purposes
 }
+
+// =============================================
+void MainWindow::on_actionBold_triggered()
+{
+    bool isBoldNow = ui->pushButtonCueSheetEditBold->isChecked();
+    bool isEditable = ui->pushButtonEditLyrics->isChecked();
+    if (isEditable) {
+        ui->textBrowserCueSheet->setFontWeight(isBoldNow ? QFont::Normal : QFont::Bold);
+    }
+}
+
+void MainWindow::on_actionItalic_triggered()
+{
+    bool isItalicsNow = ui->pushButtonCueSheetEditItalic->isChecked();
+    bool isEditable = ui->pushButtonEditLyrics->isChecked();
+    if (isEditable) {
+        ui->textBrowserCueSheet->setFontItalic(!isItalicsNow);
+    }
+}
+
+// ===============================================
+void MainWindow::customLyricsMenuRequested(QPoint pos) {
+    Q_UNUSED(pos)
+
+    if (loadedCuesheetNameWithPath != "" && !loadedCuesheetNameWithPath.contains(".template.html")) {
+        // context menu is available, only if we have loaded a cuesheet
+        QMenu *menu = new QMenu(this);
+
+    if (ui->pushButtonEditLyrics->isChecked()) {
+        menu->addAction( "Cut", this, SLOT (cutIt()) );
+        menu->addAction( "Copy", this, SLOT (copyIt()) );
+        menu->addAction( "Paste", this, SLOT (pasteIt()) );
+        menu->addSeparator();
+        menu->addAction( "Select Line", this, SLOT (selectLine()) );
+        menu->addAction( "Select Section", this, SLOT (selectSection()) );
+        if (ui->textBrowserCueSheet->textCursor().hasSelection()) {
+            menu->addSeparator();
+            menu->addAction( "Swap Heads and Sides within selection" , this , SLOT (swapHeadsAndSidesInSelection()) );
+        }
+        menu->addSeparator();
+    }
+
+#if defined(Q_OS_MAC)
+        menu->addAction( "Reveal in Finder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_WIN)
+        menu->addAction( "Show in Explorer" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_LINUX)
+        menu->addAction( "Open containing folder" , this , SLOT (revealLyricsFileInFinder()) );
+#endif
+
+        menu->popup(QCursor::pos());
+        menu->exec();
+
+        delete(menu);
+    }
+}
+
+void MainWindow::selectLine(){
+    ui->textBrowserCueSheet->moveCursor(QTextCursor::StartOfLine, QTextCursor::MoveAnchor);
+    ui->textBrowserCueSheet->moveCursor(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+}
+
+void MainWindow::copyIt(){
+    ui->textBrowserCueSheet->copy();
+}
+
+void MainWindow::pasteIt() {
+    ui->textBrowserCueSheet->paste();
+}
+
+void MainWindow::cutIt() {
+    ui->textBrowserCueSheet->cut();
+}
+
+// Select which section the cursor is in.
+// Return true if sucessful.  Otherwise the problem might be that the cuesheet
+// was not [re-]formatted by SquareDesk.  Often just doing a Save will fix this.
+bool MainWindow::getSectionLimits(int &sectionStart, int &sectionEnd) {
+    QTextCursor cursor(ui->textBrowserCueSheet->textCursor());
+    QString html;
+    int initalPos = cursor.position();
+
+    sectionStart = 0;
+    sectionEnd = 0;
+    ui->statusBar->showMessage("");
+    // Find beginning of section by searching backwards for a header.
+    while (true) {
+        cursor.select(QTextCursor::LineUnderCursor);
+        html = cursor.selection().toHtml();
+        if (html.contains("color:#ff0002")) {
+            // qDebug() << "This line is a header!" << cursor.selectedText()
+            cursor.movePosition(QTextCursor::StartOfLine);
+            sectionStart = cursor.position();
+            break;
+        } else {
+            bool ok = cursor.movePosition(QTextCursor::StartOfLine) &&
+                cursor.movePosition(QTextCursor::PreviousWord);
+            if (!ok) {
+                // If you get here, the cuesheet is probably not formatted by us.
+                // qDebug() << "Could not move further";
+                break;
+            }
+        }
+    }
+    // Now find the end of the section by searching forwards.
+    cursor.setPosition(initalPos);  // Where we started from
+    int endOfLastLine;
+
+    // Search forward until find another header section, or the end.
+    while (true) {
+        cursor.movePosition(QTextCursor::EndOfLine);
+        endOfLastLine = cursor.position();
+        bool ok = cursor.movePosition(QTextCursor::NextWord);
+        if (ok) {
+            cursor.select(QTextCursor::LineUnderCursor);
+            html = cursor.selection().toHtml();
+            if (html.contains("color:#ff0002")) {
+                // qDebug() << "This line is a header!" << cursor.selectedText();
+                sectionEnd = endOfLastLine;
+                break;
+            }
+        } else {
+            // Could not move further, we must be at the end.
+            sectionEnd = endOfLastLine;
+            break;
+        }
+    }
+    return sectionStart > 0 && sectionEnd > 0;
+}
+
+// Set the current selection to the section where the cursor is.
+void MainWindow::selectSection(){
+    int sectionStart, sectionEnd;
+    if (getSectionLimits(sectionStart, sectionEnd)) {
+        QTextCursor cursor(ui->textBrowserCueSheet->textCursor());
+        cursor.setPosition(sectionStart, QTextCursor::MoveAnchor);
+        cursor.setPosition(sectionEnd, QTextCursor::KeepAnchor);
+        ui->textBrowserCueSheet->setTextCursor(cursor);
+        ui->statusBar->showMessage("");
+    } else {
+        // qDebug() << "Could not determine limits of section";
+        ui->statusBar->showMessage("Could not determine limits of section, try saving cuesheet and trying again.");
+    }
+}
+
+void MainWindow::swapHeadsAndSidesInSelection() {
+    QTextCursor cursor(ui->textBrowserCueSheet->textCursor());
+    QRegularExpression headsOrSidesRegExp("\\b(heads|sides)\\b",
+                                    QRegularExpression::CaseInsensitiveOption);
+    QRegularExpressionMatch match;
+    QString text = cursor.selection().toHtml();
+    
+    // qDebug() << "Before:" << text;
+    // qDebug() << text;
+    int pos = 0;
+    while (pos < text.length()) {
+        match = headsOrSidesRegExp.match(text, pos);
+        if (match.hasMatch()) {
+            int whereFound = match.capturedStart(0);
+            QString found = match.captured(0);
+            // We want to swap heads with sides, but to keep the existing case
+            // we transfer a lowercase replacement into the correct case version.
+            QString lcReplace;
+            if (found.toLower() == "heads") {
+                lcReplace = "sides";
+            } else {
+                lcReplace = "heads";
+            }
+            QString replace = "";       // Corrected case version of lcReplace
+            for (int i=0; i<5; i++) {
+                QChar chOld = found.at(i);
+                QChar chNew = lcReplace.at(i);
+                if (chOld.isLower()) {
+                    replace.append(chNew);
+                } else {
+                    replace.append(chNew.toUpper());
+                }
+            }
+            text.replace(whereFound, 5, replace);
+            pos = whereFound+5;
+        } else {
+            break;        // no more matches
+        }
+    }
+    // qDebug() << "After:";
+    // qDebug() << text;
+
+    cursor.beginEditBlock(); // start of grouping for UNDO purposes
+    cursor.removeSelectedText();
+    cursor.insertHtml(text);
+    cursor.endEditBlock(); // end of grouping for UNDO purposes
+}
+
+// =======================
+void MainWindow::revealLyricsFileInFinder() {
+//    qDebug() << "path: " << loadedCuesheetNameWithPath;
+    showInFinderOrExplorer(loadedCuesheetNameWithPath);
+}

@@ -343,7 +343,7 @@ void MainWindow::decode_formation_into_dancer_destinations(
                     else
                     {
                         sdpeople[dancerNum].setDestination(dancer_start_x, y, static_cast<int>(direction) );
-                        QString gend = (girl == 1 ? "G" : "B");
+//                        QString gend = (girl == 1 ? "G" : "B");
 //                        qDebug() << "Couple: " << coupleNumber + 1 << gend << ", x/y: " << dancer_start_x << "," << y;
                         dancers[dancerNum].coupleNum = coupleNumber;
                         dancers[dancerNum].gender = girl;
@@ -1052,6 +1052,36 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         }
         if (sdLastLineWasResolve)
         {
+            // Cleanup/shorten resolve line, so it doesn't expand the whole UI section
+            // TODO: This can be generalized.
+            // TODO: The current algorithm only captures the first of multiple resolve lines.  This could be fixed.
+
+            if (str == "promenade  (1/8 promenade, or couples 1/2 circulate, bend") {
+                str = "promenade or COUPLES 1/2 circ, BTL, HOME";
+            } else if (str == "reverse promenade  (7/8 promenade, or couples circulate") {
+                str = "rev promenade or COUPLES circ 3-1/2, BTL, HOME";
+            } else if (str == "reverse promenade  (1/8 promenade, or couples 1/2") {
+                str = "rev promenade or COUPLES 1/2 circ, BTL, HOME";
+            } else if (str == "promenade  (7/8 promenade, or couples circulate 3-1/2, bend") {
+                str = "promenade or COUPLES circ 3-1/2, BTL, HOME";
+            }
+
+            str.replace("right and left grand", "RLG");
+            str.replace("left allemande", "AL");
+            str.replace("promenade", "prom");
+            str.replace("swing and promenade", "SwProm");
+            str.replace("couples", "COUPLES");
+            str.replace("circulate", "circ");
+            str.replace("bend the line", "BTL");
+            str.replace("you're home", "HOME");
+            str.replace("at home", "HOME");
+
+            QRegularExpression parens("\\((.*)\\)");
+            str.replace(parens, ", \\1"); // Promenade (1/2 promenade) --> Prom, 1/2 prom
+            str = str.simplified(); // consolidate whitespace
+            str.replace(" ,", ","); // get rid of extra space before comma
+
+//            qDebug() << "str: " << str;
             ui->label_SD_Resolve->setText(str);
             sdLastLineWasResolve = false;
         }
@@ -1717,17 +1747,27 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
         QRegularExpression explodeAndRollCall("\\[explode and (.*)\\] and roll");
         QRegularExpression explodeAndNotRollCall("^explode and (.*)");
 
-//        if (cmd.indexOf(explodeAndRollCall) != -1) {
-//            cmd = "[explode and [" + explodeAndRollCall.cap(1).trimmed() + "]] and roll";
-//        } else if (cmd.indexOf(explodeAndNotRollCall) != -1) {
-//            // not a roll, for sure.  Must be a naked "explode and <anything>"
-//            cmd = "explode and [" + explodeAndNotRollCall.cap(1).trimmed() + "]";
-//        } else {
-//        }
-
         cmd.replace(explodeAndRollCall, "[explode and \\1] and roll");
         cmd.replace(explodeAndNotRollCall, "explode and [\\1]");
 
+        // similar for Transfer and Anything, Clover and Anything, and Cross Clover and Anything
+        QRegularExpression transferAndRollCall("\\[transfer and (.*)\\] and roll");
+        QRegularExpression transferAndNotRollCall("^transfer and (.*)");
+
+        cmd.replace(transferAndRollCall, "[transfer and \\1] and roll");
+        cmd.replace(transferAndNotRollCall, "transfer and [\\1]");
+
+        QRegularExpression cloverAndRollCall("\\[clover and (.*)\\] and roll");
+        QRegularExpression cloverAndNotRollCall("^clover and (.*)");
+
+        cmd.replace(cloverAndRollCall, "[clover and \\1] and roll");
+        cmd.replace(cloverAndNotRollCall, "clover and [\\1]");
+
+        QRegularExpression crossCloverAndRollCall("\\[cross clover and (.*)\\] and roll");
+        QRegularExpression crossCloverAndNotRollCall("^cross clover and (.*)");
+
+        cmd.replace(crossCloverAndRollCall, "[cross clover and \\1] and roll");
+        cmd.replace(crossCloverAndNotRollCall, "cross clover and [\\1]");
     }
 
     // handle <ANYTHING> and spread
@@ -2823,29 +2863,46 @@ void MainWindow::on_actionShow_Frames_triggered()
 void MainWindow::refreshSDframes() {
     // refreshSDframes ---------
     int whichSidebar = 0;
-    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2 [%3/%4]</span></p></body></html>");
+    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
+    QString editingInProgressIndicator = (newSequenceInProgress || editSequenceInProgress ? "*" : "");
+
     for (int i = 0; i < frameFiles.length(); i++) {
-//        qDebug() << "frameFile: " << frameFiles[i] << ", frameVisible: " << frameVisible[i] << ", frameLevel: " << frameLevel[i];
+//        qDebug() << "frameFile: " << frameFiles[i] << ", frameVisible: " << frameVisible[i];
         if (frameVisible[i] == "sidebar") {
             whichSidebar += 1;
             switch (whichSidebar) {
                 case 1:
-                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg(""));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listEasy);
                     break;
                 case 2:
-                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg(""));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listMedium);
                     break;
                 case 3:
-                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]));
+                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg(""));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listHard);
                     break;
                 default: break; // by design, only the first 3 sidebar frames found are loaded (FIX)
             }
 
         } else if (frameVisible[i] == "central") {
-            QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]);
+            loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"; also sets the currentSequenceRecordNumber
+
+//            qDebug() << "***** sequenceStatus: " << sequenceStatus;
+
+            int thisSequenceNumber = currentSequenceRecordNumberi;
+            int thisSequenceStatus = (sequenceStatus.contains(thisSequenceNumber) ? sequenceStatus[thisSequenceNumber] : 0); // 0 = not rated, 1 = good, else bad and # = reason code
+
+//            qDebug() << "thisSequenceNumber/Status: " << thisSequenceNumber << thisSequenceStatus;
+
+            QString statusString = "";
+            switch (thisSequenceStatus) {
+                case 0:  statusString = "";                                                              break;  // no string (not evaluated yet)
+                case 1:  statusString = "<span style=\"font-weight:700; color:#008000;\">GOOD: </span>"; break;  // dark green
+                default: statusString = "<span style=\"font-weight:700; color:#C00000;\">BAD: </span>";  break;  // red
+            }
+            QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator).arg(statusString);
             currentFrameTextName = frameFiles[i]; // save just the name of the frame
             currentFrameHTMLName = html1;         // save fancy string
 
@@ -2854,10 +2911,10 @@ void MainWindow::refreshSDframes() {
                 ui->pushButtonSDSave->menu()->actions()[1]->setText(QString("Delete Current Sequence from ") + currentFrameTextName);   // second one in the list is Delete from Current (item 1)
             }
 
-            ui->labelWorkshop->setText(html1);          // use fancy string
+//            ui->labelWorkshop->setText(html1);          // use fancy string
             ui->label_CurrentSequence->setText(html1);  // use fancy string
 
-            loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"
+//            loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"
 //            ui->tableWidgetCurrentSequence->selectRow(1);  // When we use F11 or F12 and refresh the frames, affecting the Current Sequence frame, select the first row (TODO: always, or just Dance Arranger mode?)
         }
     }
@@ -2874,90 +2931,13 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         list->clear();  // clear out the current contents
     }
 
-    QString origFilename = filename;
-    QFile theFile((musicRootPath + "/sd/" + filename + ".txt"));
+    // NOTE: THIS IS WHERE THE FILENAME STRUCTURE IS DEFINED:
+    QFile theFile((musicRootPath + "/sd/frames/" + frameName + "/" + filename + ".txt"));
 //    qDebug() << "loadFrame: " << theFile.fileName();
 
     if(!theFile.open(QIODevice::ReadOnly)) {
-//        QMessageBox::information(0, "ERROR", theFile.errorString()); // if file does not exist...
-        // before the user (or this app) has created the right files, we will use sample data
-
-        SDtestmode = true; // if any file not found, disable edit buttons.
-        qDebug() << "File does not exist: " << theFile.fileName();
-
-//        frameMaxSeq[i] = 1;  // for all fake data, there is exactly one sequence available.  Communicate this to everybody (like frame titles, and F11/F12 handler).
-
-//        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
-////        qDebug() << "FILE DOES NOT EXIST, level: " << level;
-
-//        QStringList defaultBasic = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "centers pass thru", "AL"};
-//        QStringList defaultMS    = {"heads pass thru", "cloverleaf", "zoom", "centers square thru 3", "AL"};
-//        QStringList defaultPlus  = {"heads square thru 4", "swing thru", "boys run", "ferris wheel", "double pass thru", "track 2", "hinge", "roll", "pass thru", "RLG"};
-//        QStringList defaultA1    = {"heads pass the ocean", "chain reaction"};
-//        QStringList defaultA2    = {"heads pass the ocean", "extend", "motivate"};
-//        QStringList defaultC1    = {"heads wheel fan thru", "swing thru", "tally ho"};
-
-//        QStringList theCalls = defaultBasic;  // basic calls are allowed at all levels, so this is the default
-//        dance_level dlevel = l_mainstream;
-//        if (level == "basic") {
-//            theCalls = defaultBasic;
-//            dlevel = l_mainstream;
-//        } else if (level == "ms") {
-//            theCalls = defaultMS;
-//            dlevel = l_mainstream;
-//        } else if (level == "plus") {
-//            theCalls = defaultPlus;
-//            dlevel = l_plus;
-//        } else if (level == "a1") {
-//            theCalls = defaultA1;
-//            dlevel = l_a1;
-//        } else if (level == "a2") {
-//            theCalls = defaultA2;
-//            dlevel = l_a2;
-//        } else if (level == "c1") {
-//            theCalls = defaultC1;
-//            dlevel = l_c1;
-//        }
-
-//        if (list != nullptr) {
-////            qDebug() << "Loading SIDEBAR widget with DEFAULT calls: " << theCalls;
-//            list->clear();
-//            for (auto i:theCalls) {
-//                list->addItem(i);    // add to a list widget
-//                // NOTE: the SD engine's level must NOT be set here.
-//            }
-//        } else {
-////            qDebug() << "Loading CENTRAL widget with DEFAULT calls: " << theCalls;
-////            qDebug() << "***** TEMPORARILY DISABLED *****";
-//            ui->labelWorkshop->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
-//            ui->label_CurrentSequence->setText("<B>Current Sequence"); // if file not found, OVERRIDE and use a generic string
-//            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
-////            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
-//            ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
-//            sdthread->resetAndExecute(theCalls);     // finally, load the list of calls
-//        }
-
+        QMessageBox::information(0, "ERROR", QString("ERROR: the file\n\"") + theFile.fileName() + "\" could not be opened."); // if file does not exist...
     } else {
-        // file found, but we need to tell SD what the level is first
-//        QString level = origFilename.replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
-//        qDebug() << "FILE EXISTS, setting level: " << level;
-
-//        // TODO: turn this into a function, it's used in 2 places...
-//        dance_level dlevel = l_mainstream;
-//        if (level == "basic") {
-//            dlevel = l_mainstream;
-//        } else if (level == "ms") {
-//            dlevel = l_mainstream;
-//        } else if (level == "plus") {
-//            dlevel = l_plus;
-//        } else if (level == "a1") {
-//            dlevel = l_a1;
-//        } else if (level == "a2") {
-//            dlevel = l_a2;
-//        } else if (level == "c1") {
-//            dlevel = l_c1;
-//        }
-
         // now read in the lines of the file, looking for the sequence we want
         QTextStream in(&theFile);
 
@@ -2976,6 +2956,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                     // if this is the central frame, then remember the REC
                     line = line.replace("#REC=", "").replace("#", "");  // #REC=<record number># --> <record number>
                     currentSequenceRecordNumber = line ;
+//                    qDebug() << "currentSequenceRecordNumber: " << currentSequenceRecordNumber;
                 }
                 continue;
             } else if (line.startsWith("#AUTHOR=")) {
@@ -2987,6 +2968,9 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                 continue;
             } else if (line.startsWith("@")) {
                 if (wantThisSequence) {
+//                    qDebug() << "ACTUAL currentSequenceRecordNumber: " << currentSequenceRecordNumber;
+                    currentSequenceRecordNumberi = currentSequenceRecordNumber.toInt();  // convert to int and squirrel it away for use by sequenceStatus
+
                     break;  // break out of the loop, if we just read all the lines for seqNum
                 }
             } else if (line.startsWith("#")) {
@@ -2994,6 +2978,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             } else if (wantThisSequence){
                 // this is the place!
 //                qDebug() << "FOUND SEQ: " << seq << ": " << line;
+
                 // TODO: this string processing needs to be made into a function that returns a QStringList (because
                 //   some strings like "Heads Lead Right & Veer Left" will return TWO calls to be sent to SD)
                 line = line.replace(QRegularExpression(",$"), "");
@@ -3050,6 +3035,10 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     bool shiftDown   = modifiers & Qt::ShiftModifier;       // true iff SHIFT was down when key was pressed
     bool commandDown = modifiers & Qt::ControlModifier;     // true iff CMD (MacOS) or CTRL (others) was down when key was pressed
 
+    const int kUNRATED = 0;
+    const int kGOOD = 1;
+    const int kBAD = 2;
+
 //    qDebug() << "handleSDFunctionKey(" << key << ")" << shiftDown;
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
         return false;
@@ -3059,7 +3048,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     int centralIndex = frameVisible.indexOf("central");
     int newIndex;
 
-    QString pathToSequenceUsedFile = (musicRootPath + "/sd/sequenceUsed.csv");
+    QString pathToSequenceUsedFile = (musicRootPath + "/sd/frames/" + frameName + "/sequenceUsed.csv");
     QFile currentFile(pathToSequenceUsedFile);
     QFileInfo info(pathToSequenceUsedFile);
 
@@ -3155,34 +3144,101 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
         case Qt::Key_B:
         case Qt::Key_G:
             // Mark current sequence as "used", either "BAD" or "GOOD"
+            // B will clear B to nothing, G will clear G to nothing. B will clear G to B, G will clear B to G.
 
-            if (!info.exists()) {
-                if (currentFile.open(QFile::WriteOnly | QFile::Append)) {
-                    // file is created, and CSV header is written
+            if (true ||    // FOR NOW, TURNING OFF AUTO_GOTO_NEXT
+                sequenceStatus.contains(currentSequenceRecordNumberi)) {
+//                qDebug() << "We are modifying sequence #" << currentSequenceRecordNumberi << " that has already been rated: " << sequenceStatus[currentSequenceRecordNumberi];
+
+                int currentRating = (sequenceStatus.contains(currentSequenceRecordNumberi) ? sequenceStatus[currentSequenceRecordNumberi] : kUNRATED);
+                int keyRating = (key == Qt::Key_B ? kBAD : kGOOD);
+
+                if ( ((currentRating == kBAD) && (keyRating == kBAD)) ||            // rated bad, press B, and B is cleared
+                     ((currentRating == kGOOD) && (keyRating == kGOOD)) ) {         // rated good, press G, and G is cleared
+                    // clear to nothing, DO NOT GO TO NEXT SEQUENCE
+                    sequenceStatus[currentSequenceRecordNumberi] = kUNRATED;
+                } else if (keyRating == kBAD) {
+                    // B keypress goes to B (G and unrated both go to B)
+                    sequenceStatus[currentSequenceRecordNumberi] = kBAD;
+                } else if (keyRating == kGOOD) {
+                    // G keypress goes to G (B and unrated both go to G)
+                    sequenceStatus[currentSequenceRecordNumberi] = kGOOD;
+                }
+
+                if (currentFile.open(QFile::WriteOnly | QFile::Append | QFile::ExistingOnly)) {
                     QTextStream out(&currentFile);
-                    out << "datetime,userID,sequenceID,status\n";
+
+                    QString now = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+                    if (sequenceStatus[currentSequenceRecordNumberi] == kBAD) {
+                        // MARK SEQUENCE AS BAD/USED, THEN MOVE TO NEXT SEQUENCE (equiv to CSDS Ctrl-P)
+                        //  Note: marking a sequence as BAD will override the GOOD flag that might have been set earlier.
+                        //        The LAST indicator in the sequenceUsed file will be the latest one.
+                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",BAD,NA\n"; // BAD: reason is always NA right now (TODO: add a reason code here!)
+                    } else if (sequenceStatus[currentSequenceRecordNumberi] == kGOOD) {
+                        // MARK SEQUENCE AS GOOD/USED, THEN MOVE TO NEXT SEQUENCE  (equiv to CSDS U)
+                        //  Note: marking a sequence as GOOD will override the BAD flag that might have been set earlier.
+                        //        The LAST indicator in the sequenceUsed file will be the latest one.
+                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",GOOD,NA\n"; // GOOD: reason is always NA
+                    } else {
+                        // MARK SEQUENCE AS UNRATED
+                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",UNRATED,NA\n"; // UNRATED: reason is always NA
+                    }
+
                     currentFile.close();
-                } else {
-                    qDebug() << "ERROR: could not make a new one: " << pathToSequenceUsedFile;
-                }
-            }
-
-            if (currentFile.open(QFile::WriteOnly | QFile::Append | QFile::ExistingOnly)) {
-                QTextStream out(&currentFile);
-
-                QString now = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
-                if (key == Qt::Key_B) {
-                    // MARK SEQUENCE AS BAD/USED, THEN MOVE TO NEXT SEQUENCE (equiv to CSDS Ctrl-P)
-                    out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",BAD\n";
-                } else {
-                    // MARK SEQUENCE AS GOOD/USED, THEN MOVE TO NEXT SEQUENCE  (equiv to CSDS U)
-                    out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",GOOD\n";
                 }
 
-                currentFile.close();
-            } else {
-                qDebug() << "ERROR: could not open for appending: " << pathToSequenceUsedFile;
+                refreshSDframes(); // need to update the title, GOOD/BAD might change or go away
+
+                break;  // NOTE: break out of the switch, DO NOT MOVE TO NEXT SEQUENCE via fallthrough!
+
             }
+//            else {
+////                qDebug() << "We are modifying sequence #" << currentSequenceRecordNumberi << " that is UNRATED.";
+//                if (!info.exists()) {
+//                    if (currentFile.open(QFile::WriteOnly | QFile::Append)) {
+//                        // file is created, and CSV header is written
+//                        QTextStream out(&currentFile);
+//                        out << "datetime,userID,sequenceID,status,reason\n";
+//                        currentFile.close();
+//                    } else {
+//                        qDebug() << "ERROR: could not make a new sequenceUsed file: " << pathToSequenceUsedFile;
+//                    }
+//                }
+
+//                if (currentFile.open(QFile::WriteOnly | QFile::Append | QFile::ExistingOnly)) {
+//                    QTextStream out(&currentFile);
+
+//                    int thisSequenceNumber = currentSequenceRecordNumberi; // the sequence number (REC) of the one in the current sequence pane
+
+//                    QString now = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+//                    if (key == Qt::Key_B) {
+//                        // MARK SEQUENCE AS BAD/USED, THEN MOVE TO NEXT SEQUENCE (equiv to CSDS Ctrl-P)
+//                        //  Note: marking a sequence as BAD will override the GOOD flag that might have been set earlier.
+//                        //        The LAST indicator in the sequenceUsed file will be the latest one.
+//                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",BAD,NA\n"; // BAD: reason is always NA right now (TODO: add a reason code here!)
+
+//                        // TODO XYZZY: Should B clear B (and NOT advance to the next sequence)? That would be simplest! ************
+
+//                        // UPDATE LOCAL CACHE: 0 = not rated, 1 = good, else bad and # = reason code
+//                        sequenceStatus[thisSequenceNumber] = 2;  // 2 = BAD and Reason Code == NA; later: >2 == reason code
+
+//                    } else {
+//                        // MARK SEQUENCE AS GOOD/USED, THEN MOVE TO NEXT SEQUENCE  (equiv to CSDS U)
+//                        //  Note: marking a sequence as GOOD will override the BAD flag that might have been set earlier.
+//                        //        The LAST indicator in the sequenceUsed file will be the latest one.
+//                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",GOOD,NA\n"; // GOOD: reason is always NA
+
+//                        // TODO XYZZY: Should G clear G (and NOT advance to the next sequence)?  That would be simplest! ************
+
+//                        // UPDATE LOCAL CACHE: 0 = not rated, 1 = good, else bad and # = reason code
+//                        sequenceStatus[thisSequenceNumber] = 1;  // 1 = GOOD and Reason Code == NA
+//                    }
+
+//                    currentFile.close();
+//                } else {
+//                    qDebug() << "ERROR: could not open sequenceUsed file for appending: " << pathToSequenceUsedFile;
+//                }
+//            }
 
             [[fallthrough]];
 
@@ -3215,9 +3271,13 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
 
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
+
+    editSequenceInProgress = true;
+    refreshSDframes();  // clear the * editing indicator
 }
 
 void MainWindow::SDExitEditMode() {
+
     ui->pushButtonSDSave->setVisible(false);
     ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDNew->setVisible(true);
@@ -3233,13 +3293,16 @@ void MainWindow::SDExitEditMode() {
         ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
     }
 
+    newSequenceInProgress = false;
+    editSequenceInProgress = false;
+    refreshSDframes();  // clear the * editing indicator
 }
 
 void MainWindow::SDSetCurrentSeqs(int i) {
     Q_UNUSED(i)
 //    qDebug() << "SDSet: " << i;
-    // persist the frameCurSeq values into /sd/.current.csv (don't worry, it won't take very long!)
-    QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
+    // persist the frameCurSeq values into /sd/<frameName>/.current.csv (don't worry, it won't take very long!)
+    QString pathToCurrentSeqFile = (musicRootPath + "/sd/frames/" + frameName + "/.current.csv");
     QFile currentFile(pathToCurrentSeqFile);
     if (currentFile.open(QFile::WriteOnly)) {
         QTextStream out(&currentFile);
@@ -3261,7 +3324,7 @@ void MainWindow::SDGetCurrentSeqs() {
     // This is a standard CSV file, with filename and sequence numbers.
     // If the current numbers are greater than the scanned-for max numbers, the current numbers are adjusted to the max.
 
-    QString pathToCurrentSeqFile = (musicRootPath + "/sd/.current.csv");
+    QString pathToCurrentSeqFile = (musicRootPath + "/sd/frames/" + frameName + "/.current.csv");
     QFile f(pathToCurrentSeqFile);
     if (QFileInfo::exists(pathToCurrentSeqFile)) {
         if (!f.open(QFile::ReadOnly | QFile::Text)) {
@@ -3307,7 +3370,6 @@ void MainWindow::SDGetCurrentSeqs() {
         }
     }
 //    qDebug() << "Final frameFiles: "  << frameFiles;
-//    qDebug() << "Final frameLevel: "  << frameLevel;
 //    qDebug() << "Final frameMaxSeq: " << frameMaxSeq;
 //    qDebug() << "Final frameCurSeq: " << frameCurSeq;
 }
@@ -3319,8 +3381,8 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
     for (int i = 0; i < frameVisible.length(); i++) {
 //        qDebug() << "MAGIC [" << i << "]:" << frameCurSeq[i];
         // for each frame (0 - 6)
-        QString frameName = frameFiles[i]; // get the filename
-        QString pathToScanFile = (musicRootPath + "/sd/%1.txt").arg(frameName);
+        QString fileName = frameFiles[i]; // get the filename
+        QString pathToScanFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
 
         QFile file(pathToScanFile);
         int AtCount = 0;
@@ -3384,6 +3446,9 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
             stream << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n";
         }
+
+//        qDebug() << "APPEND (RESOLVE TEXT): " << ui->label_SD_Resolve->text();
+
         stream << "@\n";  // end of sequence
         file.close();
 
@@ -3443,9 +3508,19 @@ void MainWindow::SDReplaceCurrentSequence() {
                 nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
                 writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
                 outFile << "#AUTHOR=" << authorID << "#\n";    // Use the new author here
-                for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
-//                    qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
-                    outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+
+                if (ui->tableWidgetCurrentSequence->rowCount() >= 1) {
+                    for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
+                        outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+                    }
+                } else {
+                    outFile << "just as you are\n"; // EMPTY SEQUENCE
+                }
+
+                QString resolve = ui->label_SD_Resolve->text().simplified();
+//                qDebug() << "REPLACE (RESOLVE TEXT): " << resolve;
+                if (resolve != "") {
+                    outFile << "( " << resolve << " )\n";  // write a comment with the resolve, if it's not NULL
                 }
             }
         }
@@ -3453,6 +3528,13 @@ void MainWindow::SDReplaceCurrentSequence() {
             // NOT the one we want to delete, so append to the NEW file
             outFile << line << "\n";
         }
+    }
+
+//    qDebug() << "XYZZY: " << currentSeqNum << frameMaxSeq[currentFrame] << newSequenceInProgress;
+    if (newSequenceInProgress) {
+        // if we're replace the very last "@" in the file, it means that this must be a NEW then SAVE
+        //   so, add the EOF @
+        outFile << "@\n";
     }
 
     // close both files
@@ -3581,34 +3663,45 @@ void MainWindow::on_pushButtonSDNew_clicked()
 //    QString who     = QString(currentFrameTextName).replace(QRegularExpression("\\..*"), "");
 //    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
-//    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToAppendFile = (musicRootPath + "/sd/%1.txt").arg(currentFrameTextName);
 
-//    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
+////    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+//    QString pathToAppendFile = (musicRootPath + "/sd/%1.txt").arg(currentFrameTextName);
 
-    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
+////    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
-    QFile file(pathToAppendFile);
-    if (file.open(QIODevice::Append))
-    {
-        QTextStream stream(&file);
-        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
-        nextSequenceID++;
-        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
-        stream << "#AUTHOR=" << authorID << "#\n";
-        stream << "@\n";
-        file.close();
+//    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
+
+//    QFile file(pathToAppendFile);
+//    if (file.open(QIODevice::Append))
+//    {
+//        QTextStream stream(&file);
+//        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
+//        nextSequenceID++;
+//        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
+//        stream << "#AUTHOR=" << authorID << "#\n";
+//        stream << "@\n";
+//        file.close();
+
+//        int centralNum = frameVisible.indexOf("central");
+//        frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
+//        frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+
+//        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+
+//        refreshSDframes();
+//    } else {
+////        qDebug() << "ERROR: could not append to " << pathToAppendFile;
+//    }
 
         int centralNum = frameVisible.indexOf("central");
         frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
         frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+        // NOTE: DO NOT CALL SDSETCURRENSEQS(7) HERE.  WE DO NOT WANT TO PERSIST UNTIL SAVE TIME.
+        // TODO: DISABLE ALL LEFT/RIGHT ARROW COMBINATIONS WHEN EDITING A SEQUENCE.  REENABLE WHEN SAVE OR ABORT.
 
-        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+        newSequenceInProgress = true;
 
         refreshSDframes();
-    } else {
-//        qDebug() << "ERROR: could not append to " << pathToAppendFile;
-    }
 
 }
 
@@ -3790,8 +3883,11 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                ) {
         return("A2");
     } else if (theCall.contains("any hand") ||
+               theCall.contains("clover and") ||
                theCall.contains("cross clover") ||
                theCall.contains("and cross") ||
+               theCall.contains("1/4 in") ||
+               theCall.contains("1/4 out") ||
                theCall.contains("chain reaction") ||    // takes care of "chain reaction, turn the star 1/2"
                allA1CallsString.contains(";" + theCall + ";")) {
         return("A1");
@@ -3801,4 +3897,236 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
         return("Plus");
     }
     return("Mainstream"); // else it's probably Basic or MS
+}
+
+// =================================
+// ----------------------------------------------------------------------
+void MainWindow::on_actionShow_group_station_toggled(bool showGroupStation)
+{
+//    Q_UNUSED(showGroupStation)
+//    qDebug() << "TOGGLED: " << showGroupStation;
+    ui->actionShow_group_station->setChecked(showGroupStation); // when called from constructor
+    prefsManager.Setenablegroupstation(showGroupStation);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+void MainWindow::on_actionShow_order_sequence_toggled(bool showOrderSequence)
+{
+//    Q_UNUSED(showOrderSequence)
+//    qDebug() << "TOGGLED ORDER SEQUENCE: " << showOrderSequence;
+    ui->actionShow_order_sequence->setChecked(showOrderSequence); // when called from constructor
+    prefsManager.Setenableordersequence(showOrderSequence);  // persistent menu item
+    on_sd_update_status_bar(sdLastFormationName);  // refresh SD graphical display
+}
+
+// ==================================
+// fetch the GLUID etc from .squaredesk/metadata.csv
+void MainWindow::getMetadata() {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
+
+    QFileInfo fi(metadata);
+
+    if (fi.exists()) {
+        QString line;
+        if (!metadata.open(QFile::ReadOnly)) {
+            qDebug() << "Could not open: " << metadata.fileName() << " for reading metadata";
+            return;
+        }
+
+//        qDebug() << "OPENED FOR READING: " << metadata.fileName();
+        QTextStream in(&metadata);
+
+        // read first line
+        line = in.readLine();
+        if (line != "key,value") {
+            qDebug() << "Unexpected header line: " << line;
+            metadata.close();
+            return;
+        }
+
+        userID = -1;
+        nextSequenceID = -1;
+        authorID = "";
+
+        // read key,value pairs
+        while (!in.atEnd()) {
+            line = in.readLine();
+            QStringList L = line.split(',');
+            QString key = L[0];
+            QString value = L[1];
+
+            if (key == "userID") {
+                userID = value.toInt();
+//                qDebug() << "***** USERID: " << userID;
+            } else if (key == "nextSequenceID") {
+                nextSequenceID = value.toInt();
+//                qDebug() << "***** NEXTSEQUENCEID: " << nextSequenceID;
+            } else if (key == "authorID") {
+                authorID = value;
+//                qDebug() << "***** AUTHODID: " << authorID;
+            } else {
+                qDebug() << "SKIPPING UNKNOWN KEY: " << key;
+            }
+        }
+
+        if (userID == -1 || nextSequenceID == -1 || authorID == "") {
+            qDebug() << "BAD METADATA: " << userID << nextSequenceID << authorID;
+        } else {
+//            qDebug() << "METADATA LOOKS OK!";
+        }
+
+        metadata.close();
+    } else {
+        userID = (int)(QRandomGenerator::global()->bounded(1, 21474)); // range: 1 - 21473 inclusive
+        nextSequenceID = 1;
+        authorID.setNum(userID);  // default Author is a number, unless user changes it manually in hidden file
+        writeMetadata(userID, nextSequenceID, authorID);
+//        qDebug() << "***** USERID/NEXTSEQUENCEID WRITTEN SUCCESSFULLY AND VALUES SET INTERNALLY: " << userID << nextSequenceID;
+    }
+}
+
+// update the metadata file real quick with the new nextSequenceID
+void MainWindow::writeMetadata(int userID, int nextSequenceID, QString authorID) {
+    QFile metadata(musicRootPath + "/.squaredesk/metadata.csv");
+    if (!metadata.open(QFile::WriteOnly)) {
+        qDebug() << "Could not open: " << metadata.fileName() << " for writing metadata";
+        return;
+    }
+
+//    qDebug() << "OPENED FOR WRITING: " << metadata.fileName();
+    QTextStream out(&metadata);
+
+    out << "key,value\n";
+
+    out << "userID," << userID << "\n";
+    out << "nextSequenceID," << nextSequenceID << "\n";
+    out << "authorID," << authorID << "\n";
+
+//    qDebug() << "***** USERID/NEXTSEQUENCEID UPDATED " << userID << nextSequenceID;
+    metadata.close();
+}
+
+// update the local cache with the status that was persisted in this sequencesUsed.csv
+void MainWindow::SDReadSequencesUsed() {
+
+    // TODO: read sequencesUsed file for this frame
+    //       and update sequenceStatus[] hash table
+    QFile file((musicRootPath + "/sd/frames/" + frameName + "/sequenceUsed.csv"));
+//    qDebug() << "Reading file: " << file.fileName();
+
+    if (file.open(QIODevice::ReadOnly))
+    {
+        while(!file.atEnd()) {
+            QString line = file.readLine().trimmed();
+//            qDebug() << "frameName: " << frameName << ", sequenceUsed line: " << line;
+            QStringList fields = line.split(','); // should be exactly 5 fields
+            if ((fields[0] != "datetime") && (fields.count() == 5)) {  // MUST have 5 fields, or ignore
+                // if not the header line: datetime,userID,sequenceID,status,reason
+//                QString datetime   = fields[0];
+//                QString userID     = fields[1];
+                QString sequenceID = fields[2];
+                QString status     = fields[3];
+//                QString reason     = fields[4];
+
+                int sequenceIDi = sequenceID.toInt();
+                if (status == "GOOD") {
+                    sequenceStatus[sequenceIDi] = 1;  // TODO: use named constants
+                } else if (status == "BAD") {
+                    sequenceStatus[sequenceIDi] = 2;  // TODO: use named constants
+                } else if (status == "UNRATED") {
+                    sequenceStatus[sequenceIDi] = 0;  // TODO: use named constants
+                }
+
+//                qDebug() << "decoded: " << sequenceIDi << status << sequenceStatus[sequenceIDi];
+            }
+        }
+        file.close();
+//        qDebug() << "sequenceStatus: " << sequenceStatus;
+    } else {
+        // TODO: This is duplicated code that could be factored into a single function.
+        qDebug() << "File " << file.fileName() << " could not be opened, so creating one.";
+        QFileInfo info(file.fileName());
+
+        if (!info.exists()) {
+            if (file.open(QFile::WriteOnly | QFile::Append)) {
+                // file is created, and CSV header is written
+                QTextStream out(&file);
+                out << "datetime,userID,sequenceID,status,reason\n";
+                file.close();
+            } else {
+                qDebug() << "ERROR: could not make a new sequenceUsed file: " << file.fileName();
+            }
+        }
+    }
+}
+
+
+void MainWindow::SDMakeFrameFilesIfNeeded() {
+    for (int i = 0; i < frameVisible.length(); i++) {
+        QString fileName = frameFiles[i]; // get the filename
+        QString pathToFrameFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+
+        QFile file(pathToFrameFile);
+        QFileInfo info(file.fileName());
+
+        if (!info.exists()) {
+            // file doesn't exist, so create one
+            qDebug() << "Making new frame sequence file: " << file.fileName();
+
+            if (file.open(QFile::WriteOnly | QFile::Append)) {
+                // file is created, and CSV header is written
+                QTextStream out(&file);
+
+                switch (i) {
+                    case 0: // biggie
+                        out << "@\n";
+                        out << "#REC=725900001#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Square Thru 3\n";
+                        out << "HEADS Partner Trade\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    case 1: // easy
+                        out << "@\n";
+                        out << "#REC=725900002#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Square Thru 4\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    case 2: // medium
+                        out << "@\n";
+                        out << "#REC=725900003#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Square Thru 4\n";
+                        out << "Right and Left Thru\n";
+                        out << "Dive Thru\n";
+                        out << "CENTERS Square Thru 3\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    case 3: // hard
+                        out << "@\n";
+                        out << "#REC=725900004#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "HEADS Pass The Ocean\n";
+                        out << "Extend\n";
+                        out << "Swing Thru\n";
+                        out << "BOYS Run\n";
+                        out << "Ferris Wheel\n";
+                        out << "CENTERS Square Thru 3\n";
+                        out << "( AL, HOME )\n";
+                        out << "@\n";
+                        break;
+                    default:
+                        break;
+                }
+
+                file.close();
+            } else {
+                qDebug() << "ERROR: could not make a new frame file: " << file.fileName();
+            }
+        }
+    }
 }

@@ -196,7 +196,12 @@ bool SDThread::on_user_input(QString str)
 {
     QByteArray inUtf8 = str.simplified().toUtf8();
     const char *data = inUtf8.constData();
-    return iofull->add_string_input(data);
+
+    if (iofull != nullptr) {
+        // only dereference after SD has been spun up
+        return iofull->add_string_input(data);
+    }
+    return false;
 }
 
 bool SquareDesk_iofull::add_string_input(const char *s)
@@ -1049,17 +1054,21 @@ SDThread::SDThread(MainWindow *mw, dance_level dance_program, QString dance_prog
 }
 
 void SDThread::resetSDState() {
-    iofull->answerYesToEverything = true;
-    abort = true;
-//    mutexSDAwaitingInput.lock();
-    while (iofull->currentInputState != InputStateNormal)
-    {
-//        mutexSDAwaitingInput.unlock();
-        do_user_input("Yes");
-//        mutexSDAwaitingInput.lock();
-    }
-//    mutexSDAwaitingInput.unlock();
 
+    if (iofull != nullptr) {
+        iofull->answerYesToEverything = true;
+        abort = true;
+    //    mutexSDAwaitingInput.lock();
+        while (iofull->currentInputState != InputStateNormal)
+        {
+    //        mutexSDAwaitingInput.unlock();
+            do_user_input("Yes");
+    //        mutexSDAwaitingInput.lock();
+        }
+    //    mutexSDAwaitingInput.unlock();
+    } else {
+        qDebug() << "warning: iofull was null";
+    }
 }
 
 void SDThread::resetAndExecute(QStringList &commands)

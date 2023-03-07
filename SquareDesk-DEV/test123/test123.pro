@@ -57,6 +57,10 @@ SOURCES += main.cpp\
     lyricsEditor.cpp \
     mainwindow.cpp \
 #    miniBPM/MiniBpm.cpp \
+    mainwindow_choreo1.cpp \
+    mainwindow_cuesheets.cpp \
+    mainwindow_flashcalls.cpp \
+    mainwindow_fonts.cpp \
     miniBPM/MiniBpm.cpp \
     playlists.cpp \
     preferencesdialog.cpp \
