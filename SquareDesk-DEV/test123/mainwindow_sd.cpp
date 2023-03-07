@@ -3660,7 +3660,7 @@ void MainWindow::SDMoveCurrentSequenceToFrame(int i) {  // i = 0 to 6
 
 void MainWindow::on_pushButtonSDNew_clicked()
 {
-    qDebug() << "on_pushButtonSDNew_clicked()";
+//    qDebug() << "on_pushButtonSDNew_clicked()";
     on_actionSDSquareYourSets_triggered(); // clear everything out of the Current Sequence window
     on_pushButtonSDUnlock_clicked(); // unlock
 
