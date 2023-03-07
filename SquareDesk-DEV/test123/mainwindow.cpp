@@ -1258,6 +1258,55 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    ui->actionSequence_Designer->setChecked(true);
     ui->actionDance_Arranger->setChecked(true);  // this sets the default view
 
+    // hide both menu items for now
+    ui->actionSequence_Designer->setVisible(false);
+    ui->actionDance_Arranger->setVisible(false);
+
+//    // ------------------
+//    // set up Dances menu, items are mutually exclusive
+//    sdActionGroupDances = new QActionGroup(this);  // Dances are mutually exclusive
+//    sdActionGroupDances->setExclusive(true);
+//    connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
+
+//    QString parentFolder = musicRootPath + "/sd/frames";
+////    QStringList allDances;
+////    QStringList allDancesShortnames;
+//    QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+
+//    QMenu *dancesSubmenu = new QMenu("Dances");
+
+//    int whichItem = 0;
+//    while(directories.hasNext()){
+//        directories.next();
+//        QString thePath = directories.filePath();
+////        allDances << thePath;
+//        QString shortName = thePath.split('/').takeLast();
+////        qDebug() << "shortName: " << shortName;
+
+//        QAction *actionOne = dancesSubmenu->addAction(shortName);
+//        actionOne->setActionGroup(sdActionGroupDances);
+//        actionOne->setCheckable(true);
+//        if (whichItem == 0) {
+//            sdActionTriggeredDances(actionOne); // call the init function for the very first item in the list TODO: remember item
+//            frameName = shortName;
+//        }
+//        actionOne->setChecked(whichItem++ == 0); // first item gets checked, others not
+//    }
+
+////    QAction *actionOne = dancesSubmenu->addAction("One");
+////    actionOne->setActionGroup(sdActionGroupDances);
+////    actionOne->setCheckable(true);
+////    actionOne->setChecked(true);
+
+////    QAction *actionTwo = dancesSubmenu->addAction("Two");
+////    actionTwo->setActionGroup(sdActionGroupDances);
+////    actionTwo->setCheckable(true);
+////    actionTwo->setChecked(false);
+
+//    ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
+//    ui->actionDance->setVisible(false);  // TODO: This is a kludge, because it's just a placeholder, so I could stick the Dances item at the top
+//    // ------------------
+
     connect(ui->boy1,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
     connect(ui->girl1, &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
     connect(ui->boy2,  &QLineEdit::textChanged, this, &MainWindow::dancerNameChanged);
@@ -1308,29 +1357,65 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     dance_level currentLevel = get_current_sd_dance_program(); // quick way to translate from string("Plus") to dance_level l_plus
     setCurrentSDDanceProgram(currentLevel);
 
-    // INIT SD FRAMES ----------------
-    frameName = "hoedown1";
-    frameFiles   << "biggie"           << "easy"           << "medium"            << "hard";
-    frameVisible << "sidebar"          << "central"        << "sidebar"           << "sidebar";
-    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
-    frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
+//    // INIT SD FRAMES ----------------
+//    frameName = "hoedown1";
+//    frameFiles   << "biggie"           << "easy"           << "medium"            << "hard";
+//    frameVisible << "sidebar"          << "central"        << "sidebar"           << "sidebar";
+//    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
+//    frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
 
 
-    QString pathToFrameFolder(musicRootPath + "/sd/frames/" + frameName);
-    if (!QDir(pathToFrameFolder).exists()) {
-        // if the frameName folder does not exist, make it.
-        qDebug() << "frameName: " << frameName << "does not exist, so making it.";
-        QDir().mkpath(pathToFrameFolder); // now the other file creators below should work
-    }
+//    QString pathToFrameFolder(musicRootPath + "/sd/frames/" + frameName);
+//    if (!QDir(pathToFrameFolder).exists()) {
+//        // if the frameName folder does not exist, make it.
+//        qDebug() << "frameName: " << frameName << "does not exist, so making it.";
+//        QDir().mkpath(pathToFrameFolder); // now the other file creators below should work
+//    }
 
-    // TODO: Do these whenever a new frame is loaded...
-    SDMakeFrameFilesIfNeeded(); // if there aren't any files in <frameName>, make some
-    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
-    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
-    SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
+//    // TODO: Do these whenever a new frame is loaded...
+//    SDMakeFrameFilesIfNeeded(); // if there aren't any files in <frameName>, make some
+//    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
+//    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
+//    SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
 
     SDtestmode = false;
-    refreshSDframes();
+//    refreshSDframes();
+
+    // ------------------
+    // set up Dances menu, items are mutually exclusive
+    sdActionGroupDances = new QActionGroup(this);  // Dances are mutually exclusive
+    sdActionGroupDances->setExclusive(true);
+    connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
+
+    QString parentFolder = musicRootPath + "/sd/frames";
+//    QStringList allDances;
+//    QStringList allDancesShortnames;
+    QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+
+    QMenu *dancesSubmenu = new QMenu("Dances");
+
+    int whichItem = 0;
+    while(directories.hasNext()){
+        directories.next();
+        QString thePath = directories.filePath();
+//        allDances << thePath;
+        QString shortName = thePath.split('/').takeLast();
+//        qDebug() << "shortName: " << shortName;
+
+        QAction *actionOne = dancesSubmenu->addAction(shortName);
+        actionOne->setActionGroup(sdActionGroupDances);
+        actionOne->setCheckable(true);
+        if (whichItem == 0) {
+            sdActionTriggeredDances(actionOne); // call the init function for the very first item in the list TODO: remember item
+            frameName = shortName;
+        }
+        actionOne->setChecked(whichItem++ == 0); // first item gets checked, others not
+    }
+
+    ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
+    ui->actionDance->setVisible(false);  // TODO: This is a kludge, because it's just a placeholder, so I could stick the Dances item at the top
+    // ------------------
+
 
     // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
     if (SDtestmode) {
@@ -5845,7 +5930,7 @@ void MainWindow::microphoneStatusUpdate() {
 //    QString micsON("MICS ON (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 //    QString micsOFF("MICS OFF (Voice: " + currentSDVUILevel + ", Kybd: " + currentSDKeyboardLevel + ")");
 
-    QString kybdStatus("Audio: " + lastAudioDeviceName + ",  SD Level: " + currentSDKeyboardLevel);
+    QString kybdStatus("Audio: " + lastAudioDeviceName + ", SD Level: " + currentSDKeyboardLevel + ", Dance: " + frameName);
     micStatusLabel->setStyleSheet("color: black");
     micStatusLabel->setText(kybdStatus);
 

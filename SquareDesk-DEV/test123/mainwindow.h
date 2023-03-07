@@ -251,6 +251,8 @@ public:
     QActionGroup *sdActionGroupNumbers;
     QActionGroup *sdActionGroupGenders;
 
+    QActionGroup *sdActionGroupDances;
+
     QActionGroup *flashCallTimingActionGroup;
 
     QSplashScreen *theSplash;
@@ -314,6 +316,8 @@ private slots:
     void sdActionTriggeredColors(QAction * action);  // checker style: Colors
     void sdActionTriggeredNumbers(QAction * action);  // checker style: Numbers
     void sdActionTriggeredGenders(QAction * action);  // checker style: Genders
+
+    void sdActionTriggeredDances(QAction * action);  // Dances/frames
 
     void sdViewActionTriggered(QAction *action); // Sequence Designer vs Dance Arranger
 

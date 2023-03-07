@@ -2862,6 +2862,12 @@ void MainWindow::on_actionShow_Frames_triggered()
 
 void MainWindow::refreshSDframes() {
     // refreshSDframes ---------
+
+//    qDebug() << "refreshSDframes frameName: " << frameName;
+//    qDebug() << "refreshSDframes frameVisible: " << frameVisible;
+//    qDebug() << "refreshSDframes frameCurSeq: " << frameCurSeq;
+//    qDebug() << "refreshSDframes frameMaxSeq: " << frameMaxSeq;
+
     int whichSidebar = 0;
     QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
     QString editingInProgressIndicator = (newSequenceInProgress || editSequenceInProgress ? "*" : "");
@@ -2887,6 +2893,7 @@ void MainWindow::refreshSDframes() {
             }
 
         } else if (frameVisible[i] == "central") {
+//            qDebug() << "Loading CENTRAL frame...";
             loadFrame(i, frameFiles[i], frameCurSeq[i], NULL); // NULL means "use the Central widget, which is a table"; also sets the currentSequenceRecordNumber
 
 //            qDebug() << "***** sequenceStatus: " << sequenceStatus;
@@ -2924,7 +2931,7 @@ void MainWindow::refreshSDframes() {
 
 // loads a specified frame from a file in <musicDir>/sd/ into a listWidget (if not NULL), else into the tableSequence widget
 void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *list) {
-//    qDebug() << "----- loadFrame: " << filename << seqNum;
+//    qDebug() << "----- loadFrame: " << i << filename << seqNum;
     QStringList callList;
 
     if (list != nullptr) {
@@ -3000,19 +3007,25 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             if (list != nullptr) {
                 list->addItem(QString("Sequence #%1 not found in file.").arg(seqNum));
             } else {
-//                qDebug() << "TODO: Sequence not found for Central widget, DO SOMETHING HERE";
+                qDebug() << "TODO: Sequence not found for Central widget, DO SOMETHING HERE";
             }
+        }
+
+        if (frameVisible[i] == "central") {
+            // if this loadFrame is for the current sequence pane, then:
+            // clear the current sequence pane; if NEW, then nothing will be added, else EXISTING then add via SD
+//            qDebug() << "Clearing CENTRAL sequence pane.";
+            ui->tableWidgetCurrentSequence->clear();
         }
 
         if (callList.length() != 0) {
             // we are loading the central widget now
-//            qDebug() << "Loading central widget with level: " << level << ", callList: " << callList;
+//            qDebug() << "Loading central widget with: " << callList;
 
             // in the new scheme, we do NOT change the level away from what the user selected.
 //            setCurrentSDDanceProgram(dlevel);        // first, we need to set the SD engine to the level for these calls
 
 //            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
-            ui->tableWidgetCurrentSequence->clear(); // third, clear the current sequence pane
             selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
 
 //            qDebug() << "**********************************";
@@ -3429,7 +3442,7 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 //    QString level   = QString(frameFiles[i]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
 //    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToAppendFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameFiles[i]);
+    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[i]);
 
 //    qDebug() << "APPEND: currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -3466,6 +3479,7 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 void MainWindow::SDReplaceCurrentSequence() {
     int currentFrame  = frameVisible.indexOf("central"); // 0 to M
     int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
+
 //    qDebug() << "SDReplaceCurrentSequence REPLACING SEQUENCE #" << currentSeqNum << " FROM " << frameFiles[currentFrame];
 
 //    QString who     = QString(frameFiles[currentFrame]).replace(QRegularExpression("\\..*"), "");
@@ -3473,7 +3487,7 @@ void MainWindow::SDReplaceCurrentSequence() {
 
     // open the current file for READ ONLY
 //    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToOLDFile = (musicRootPath + "/sd/%1.txt").arg(frameFiles[currentFrame]);
+    QString pathToOLDFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[currentFrame]);
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3483,7 +3497,7 @@ void MainWindow::SDReplaceCurrentSequence() {
 
     // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
 //    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
-    QString pathToNEWFile = (musicRootPath + "/sd/%1.txt.NEW").arg(frameFiles[currentFrame]);
+    QString pathToNEWFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt.NEW").arg(frameFiles[currentFrame]);
     QFile NEWfile(pathToNEWFile);
 
     if (!NEWfile.open(QIODevice::Append)) {
@@ -3534,7 +3548,7 @@ void MainWindow::SDReplaceCurrentSequence() {
     if (newSequenceInProgress) {
         // if we're replace the very last "@" in the file, it means that this must be a NEW then SAVE
         //   so, add the EOF @
-        outFile << "@\n";
+//        outFile << "@\n";
     }
 
     // close both files
@@ -3566,7 +3580,7 @@ void MainWindow::SDDeleteCurrentSequence() {
 
     // open the current file for READ ONLY
 //    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToOLDFile = (musicRootPath + "/sd/%1.seq.txt").arg(frameFiles[currentFrame]);
+    QString pathToOLDFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[currentFrame]);
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3646,7 +3660,7 @@ void MainWindow::SDMoveCurrentSequenceToFrame(int i) {  // i = 0 to 6
 
 void MainWindow::on_pushButtonSDNew_clicked()
 {
-//    qDebug() << "on_pushButtonSDNew_clicked()";
+    qDebug() << "on_pushButtonSDNew_clicked()";
     on_actionSDSquareYourSets_triggered(); // clear everything out of the Current Sequence window
     on_pushButtonSDUnlock_clicked(); // unlock
 
@@ -3664,45 +3678,47 @@ void MainWindow::on_pushButtonSDNew_clicked()
 //    QString level   = QString(currentFrameTextName).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
 
-////    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-//    QString pathToAppendFile = (musicRootPath + "/sd/%1.txt").arg(currentFrameTextName);
+//    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
+    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(currentFrameTextName);
 
-////    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
+//    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
-//    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
+    // TODO: When making a new Frame file, it must start out with a single "@\n" line.
 
-//    QFile file(pathToAppendFile);
-//    if (file.open(QIODevice::Append))
-//    {
-//        QTextStream stream(&file);
-//        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
-//        nextSequenceID++;
-//        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
-//        stream << "#AUTHOR=" << authorID << "#\n";
-//        stream << "@\n";
-//        file.close();
-
-//        int centralNum = frameVisible.indexOf("central");
-//        frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
-//        frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
-
-//        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
-
-//        refreshSDframes();
-//    } else {
-////        qDebug() << "ERROR: could not append to " << pathToAppendFile;
-//    }
+    QFile file(pathToAppendFile);
+    if (file.open(QIODevice::Append))
+    {
+        QTextStream stream(&file);
+        stream << "#REC=" << 100000 * userID + nextSequenceID << "#\n";  // nextSequenceID is 5 decimal digits
+        nextSequenceID++;
+        writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
+        stream << "#AUTHOR=" << authorID << "#\n";
+        stream << "( NEW SEQUENCE )\n"; // this is important, so that the SD engine DOES get reset in loadFrame()
+        stream << "@\n";
+        file.close();
 
         int centralNum = frameVisible.indexOf("central");
         frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
         frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
-        // NOTE: DO NOT CALL SDSETCURRENSEQS(7) HERE.  WE DO NOT WANT TO PERSIST UNTIL SAVE TIME.
-        // TODO: DISABLE ALL LEFT/RIGHT ARROW COMBINATIONS WHEN EDITING A SEQUENCE.  REENABLE WHEN SAVE OR ABORT.
+
+        qDebug() << "now showing: " << frameCurSeq[centralNum];
+
+        SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+
+        refreshSDframes();
+    } else {
+//        qDebug() << "ERROR: could not append to " << pathToAppendFile;
+    }
+
+//        int centralNum = frameVisible.indexOf("central");
+//        frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
+//        frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
+//        // NOTE: DO NOT CALL SDSETCURRENSEQS(7) HERE.  WE DO NOT WANT TO PERSIST UNTIL SAVE TIME.
+//        // TODO: DISABLE ALL LEFT/RIGHT ARROW COMBINATIONS WHEN EDITING A SEQUENCE.  REENABLE WHEN SAVE OR ABORT.
 
         newSequenceInProgress = true;
 
         refreshSDframes();
-
 }
 
 QString MainWindow::translateCall(QString call) {
@@ -4129,4 +4145,36 @@ void MainWindow::SDMakeFrameFilesIfNeeded() {
             }
         }
     }
+}
+
+// Dances/frames -------------------------------------
+void MainWindow::sdActionTriggeredDances(QAction * action) {
+//    qDebug() << "Dance selected:" << action->text();
+
+//    if (frameName == action->text()) {
+//        // if the name did not change (i.e. don't retrigger)
+//        return;
+//    }
+
+    frameName = action->text();
+
+    frameFiles.clear();
+    frameVisible.clear();
+    frameCurSeq.clear();
+    frameMaxSeq.clear();
+
+    frameFiles   << "biggie"           << "easy"           << "medium"            << "hard";
+    frameVisible << "sidebar"          << "central"        << "sidebar"           << "sidebar";
+    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
+    frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
+
+//    qDebug() << "FrameVisible: " << frameVisible;
+
+    // Do these whenever a new dance is loaded...
+    SDMakeFrameFilesIfNeeded(); // if there aren't any files in <frameName>, make some
+    SDGetCurrentSeqs();   // get the frameCurSeq's for each of the frameFiles (this must be
+    SDScanFramesForMax(); // update the framMaxSeq's with real numbers (MUST BE DONE AFTER GETCURRENTSEQS)
+    SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
+
+    refreshSDframes();
 }

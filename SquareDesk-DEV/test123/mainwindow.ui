@@ -2609,6 +2609,8 @@
      <addaction name="actionRandomize_3"/>
      <addaction name="actionNone_hex"/>
     </widget>
+    <addaction name="actionDance"/>
+    <addaction name="separator"/>
     <addaction name="actionSequence_Designer"/>
     <addaction name="actionDance_Arranger"/>
     <addaction name="separator"/>
@@ -4132,6 +4134,11 @@
    </property>
    <property name="text">
     <string>Show Frames</string>
+   </property>
+  </action>
+  <action name="actionDance">
+   <property name="text">
+    <string>Dance</string>
    </property>
   </action>
  </widget>
