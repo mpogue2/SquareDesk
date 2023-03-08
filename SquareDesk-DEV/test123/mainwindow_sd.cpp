@@ -1180,6 +1180,13 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                             // Surprisingly, both of the following are necessary to get the first row selected.
                             ui->tableWidgetCurrentSequence->setCurrentItem(ui->tableWidgetCurrentSequence->item(0,0));
                             ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
+
+                        }
+
+                        if (newSequenceInProgress && ui->lineEditSDInput->isVisible()) {
+                            // if this is a new sequence, and SD is done loading, and we're in edit mode, then set the focus
+                            //   to the SD input field.
+                            ui->lineEditSDInput->setFocus();
                         }
 
                         checkSDforErrors(); // DEBUG DEBUG DEBUG
@@ -3701,7 +3708,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
         frameMaxSeq[centralNum] += 1;                       // add a NEW sequence to the one currently loaded into the Current Sequence window
         frameCurSeq[centralNum] = frameMaxSeq[centralNum];  // look at the new one
 
-        qDebug() << "now showing: " << frameCurSeq[centralNum];
+//        qDebug() << "now showing: " << frameCurSeq[centralNum];
 
         SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
 
