@@ -1309,7 +1309,8 @@ bool MainWindow::getSectionLimits(int &sectionStart, int &sectionEnd) {
     }
     // Now find the end of the section by searching forwards.
     cursor.setPosition(initalPos);  // Where we started from
-    int endOfLastLine = 0;
+    cursor.movePosition(QTextCursor::EndOfLine);
+    int endOfLastLine = cursor.position();
     // Search forward until find another header section, or the end.
     while (true) {
         cursor.movePosition(QTextCursor::EndOfLine);
