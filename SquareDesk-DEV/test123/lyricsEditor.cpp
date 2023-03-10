@@ -1309,12 +1309,11 @@ bool MainWindow::getSectionLimits(int &sectionStart, int &sectionEnd) {
     }
     // Now find the end of the section by searching forwards.
     cursor.setPosition(initalPos);  // Where we started from
-    int endOfLastLine;
-
+    cursor.movePosition(QTextCursor::EndOfLine);
+    int endOfLastLine = cursor.position();
     // Search forward until find another header section, or the end.
     while (true) {
         cursor.movePosition(QTextCursor::EndOfLine);
-        endOfLastLine = cursor.position();
         bool ok = cursor.movePosition(QTextCursor::NextWord);
         if (ok) {
             cursor.select(QTextCursor::LineUnderCursor);
@@ -1323,6 +1322,11 @@ bool MainWindow::getSectionLimits(int &sectionStart, int &sectionEnd) {
                 // qDebug() << "This line is a header!" << cursor.selectedText();
                 sectionEnd = endOfLastLine;
                 break;
+            } else {
+                QString text = cursor.selection().toPlainText();
+                if (text.length() > 0) {
+                    endOfLastLine = cursor.position();
+                }
             }
         } else {
             // Could not move further, we must be at the end.
@@ -1350,7 +1354,7 @@ void MainWindow::selectSection(){
 
 void MainWindow::swapHeadsAndSidesInSelection() {
     QTextCursor cursor(ui->textBrowserCueSheet->textCursor());
-    QRegularExpression headsOrSidesRegExp("\\b(heads|sides)\\b",
+    QRegularExpression headsOrSidesRegExp("\\b(head|side)s?\\b",
                                     QRegularExpression::CaseInsensitiveOption);
     QRegularExpressionMatch match;
     QString text = cursor.selection().toHtml();
@@ -1361,18 +1365,18 @@ void MainWindow::swapHeadsAndSidesInSelection() {
     while (pos < text.length()) {
         match = headsOrSidesRegExp.match(text, pos);
         if (match.hasMatch()) {
-            int whereFound = match.capturedStart(0);
-            QString found = match.captured(0);
+            int whereFound = match.capturedStart(1);
+            QString found = match.captured(1);
             // We want to swap heads with sides, but to keep the existing case
             // we transfer a lowercase replacement into the correct case version.
             QString lcReplace;
-            if (found.toLower() == "heads") {
-                lcReplace = "sides";
+            if (found.toLower() == "head") {
+                lcReplace = "side";
             } else {
-                lcReplace = "heads";
+                lcReplace = "head";
             }
             QString replace = "";       // Corrected case version of lcReplace
-            for (int i=0; i<5; i++) {
+            for (int i=0; i<4; i++) {
                 QChar chOld = found.at(i);
                 QChar chNew = lcReplace.at(i);
                 if (chOld.isLower()) {
@@ -1381,8 +1385,8 @@ void MainWindow::swapHeadsAndSidesInSelection() {
                     replace.append(chNew.toUpper());
                 }
             }
-            text.replace(whereFound, 5, replace);
-            pos = whereFound+5;
+            text.replace(whereFound, 4, replace);
+            pos = whereFound+4;
         } else {
             break;        // no more matches
         }
