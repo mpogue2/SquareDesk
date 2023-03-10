@@ -3166,9 +3166,9 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
             // Mark current sequence as "used", either "BAD" or "GOOD"
             // B will clear B to nothing, G will clear G to nothing. B will clear G to B, G will clear B to G.
 
-            if (true ||    // FOR NOW, TURNING OFF AUTO_GOTO_NEXT
-                sequenceStatus.contains(currentSequenceRecordNumberi)) {
-//                qDebug() << "We are modifying sequence #" << currentSequenceRecordNumberi << " that has already been rated: " << sequenceStatus[currentSequenceRecordNumberi];
+//            if (true ||    // FOR NOW, TURNING OFF AUTO_GOTO_NEXT
+//                sequenceStatus.contains(currentSequenceRecordNumberi))
+            {
 
                 int currentRating = (sequenceStatus.contains(currentSequenceRecordNumberi) ? sequenceStatus[currentSequenceRecordNumberi] : kUNRATED);
                 int keyRating = (key == Qt::Key_B ? kBAD : kGOOD);
@@ -3209,56 +3209,10 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
 
                 refreshSDframes(); // need to update the title, GOOD/BAD might change or go away
 
-                break;  // NOTE: break out of the switch, DO NOT MOVE TO NEXT SEQUENCE via fallthrough!
+//                break;  // NOTE: break out of the switch, DO NOT MOVE TO NEXT SEQUENCE via fallthrough!
+                // Let's try the old way again: do NOT break out of the switch, and DO MOVE TO THE NEXT SEQUENCE via fallthrough
 
             }
-//            else {
-////                qDebug() << "We are modifying sequence #" << currentSequenceRecordNumberi << " that is UNRATED.";
-//                if (!info.exists()) {
-//                    if (currentFile.open(QFile::WriteOnly | QFile::Append)) {
-//                        // file is created, and CSV header is written
-//                        QTextStream out(&currentFile);
-//                        out << "datetime,userID,sequenceID,status,reason\n";
-//                        currentFile.close();
-//                    } else {
-//                        qDebug() << "ERROR: could not make a new sequenceUsed file: " << pathToSequenceUsedFile;
-//                    }
-//                }
-
-//                if (currentFile.open(QFile::WriteOnly | QFile::Append | QFile::ExistingOnly)) {
-//                    QTextStream out(&currentFile);
-
-//                    int thisSequenceNumber = currentSequenceRecordNumberi; // the sequence number (REC) of the one in the current sequence pane
-
-//                    QString now = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
-//                    if (key == Qt::Key_B) {
-//                        // MARK SEQUENCE AS BAD/USED, THEN MOVE TO NEXT SEQUENCE (equiv to CSDS Ctrl-P)
-//                        //  Note: marking a sequence as BAD will override the GOOD flag that might have been set earlier.
-//                        //        The LAST indicator in the sequenceUsed file will be the latest one.
-//                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",BAD,NA\n"; // BAD: reason is always NA right now (TODO: add a reason code here!)
-
-//                        // TODO XYZZY: Should B clear B (and NOT advance to the next sequence)? That would be simplest! ************
-
-//                        // UPDATE LOCAL CACHE: 0 = not rated, 1 = good, else bad and # = reason code
-//                        sequenceStatus[thisSequenceNumber] = 2;  // 2 = BAD and Reason Code == NA; later: >2 == reason code
-
-//                    } else {
-//                        // MARK SEQUENCE AS GOOD/USED, THEN MOVE TO NEXT SEQUENCE  (equiv to CSDS U)
-//                        //  Note: marking a sequence as GOOD will override the BAD flag that might have been set earlier.
-//                        //        The LAST indicator in the sequenceUsed file will be the latest one.
-//                        out << now << "," << currentSequenceAuthor << "," << currentSequenceRecordNumber << ",GOOD,NA\n"; // GOOD: reason is always NA
-
-//                        // TODO XYZZY: Should G clear G (and NOT advance to the next sequence)?  That would be simplest! ************
-
-//                        // UPDATE LOCAL CACHE: 0 = not rated, 1 = good, else bad and # = reason code
-//                        sequenceStatus[thisSequenceNumber] = 1;  // 1 = GOOD and Reason Code == NA
-//                    }
-
-//                    currentFile.close();
-//                } else {
-//                    qDebug() << "ERROR: could not open sequenceUsed file for appending: " << pathToSequenceUsedFile;
-//                }
-//            }
 
             [[fallthrough]];
 
