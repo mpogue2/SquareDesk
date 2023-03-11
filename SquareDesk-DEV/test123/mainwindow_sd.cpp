@@ -1026,11 +1026,19 @@ QString MainWindow::prettify(QString call) {
         call1.replace(match.capturedStart(), match.capturedLength(), matched.toUpper());  // replace the match with the toUpper of the match
     }
 
+    // SDCOMMENTS: Change SD comments (curly braces) to CSDS Online standard comments (parens) for presentation to the user
+#ifndef darkgreencomments
+    call1.replace('{', '(').replace('}', ')'); // replace parens
+#else
+    call1.replace('{', "<span style=\"color:darkgreen;\">(").replace('}', ")</span>");
+#endif
+
     return(call1);
 }
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
+//    qDebug() << "str: " << str;
     if (sdOutputtingAvailableCalls)
     {
         SDAvailableCall available_call;
@@ -1124,7 +1132,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     else
     {
         sdWasNotDrawingPicture = true;
-        static QRegularExpression regexMove("^\\s*(\\d+)\\:\\s*(.*)$");
+        static QRegularExpression regexMove("^\\s*(\\d+)\\:\\s*(.*)$"); // e.g. "2: call"
         QRegularExpressionMatch match = regexMove.match(str);
         if (match.hasMatch())
         {
@@ -1138,18 +1146,73 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             {
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
+//                    qDebug() << "Bumping up rowCount to: " << sdLastLine;
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                 }
+
+//                qDebug() << "ROW COUNT IS: " << ui->tableWidgetCurrentSequence->rowCount();
 
 #ifdef NO_TIMING_INFO
                 QString theCall = match.captured(2);
                 QString thePrettifiedCall = prettify(theCall);
 
+//                // SDCOMMENTS: lines sent back from SD, we are loading items into the currentSequence pane ====================
+//                // Example (incoming from file):
+//                // ( 'this is a single line comment' )
+//                // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
+//                static QRegularExpression singleLineComment4("^[\\(\\{]\\s*'(.*)'\\s*[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+//                QRegularExpressionMatch matchSLC4 = singleLineComment4.match(thePrettifiedCall);
+//                if (matchSLC4.hasMatch()) {
+//                    QString theSLC4 = matchSLC4.captured(1).simplified(); // and trim whitespace from single line comment
+//                    qDebug() << "SINGLE LINE COMMENT4: " << theSLC4;
+
+//                    // stick it into the currentSequence table
+//                    QTableWidgetItem *singleLineCommentItem4(new QTableWidgetItem(QString("( ") + theSLC4 + " )")); // no single quotes shown to user
+//                    singleLineCommentItem4->setFlags(singleLineCommentItem4->flags() & ~Qt::ItemIsEditable);
+//                    qDebug() << "SETTING IT TO 1: " << singleLineCommentItem4->text() << sdLastLine;
+//                    ui->tableWidgetCurrentSequence->setRowCount(ui->tableWidgetCurrentSequence->rowCount() + 1);
+//                    qDebug() << "Bumped up to: " << ui->tableWidgetCurrentSequence->rowCount();
+
+//                            // give us one extra, because the SD code always throws away the last line when it waits for input, assuming that the last line was blank.
+//                    ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, singleLineCommentItem4);
+//                    //return; // nothing else to process
+//                    // intentionally drop through to process the rest of the line, which might have a prefix comment on it
+//                }
+
+//                // SDCOMMENTS: lines sent back from SD, we are loading items into the currentSequence pane ====================
+//                // Example (incoming from file):
+//                // ( 'this is a single line comment' ) Square Thru
+//                // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
+//                static QRegularExpression singleLineComment2("^[\\(\\{]\\s*'(.*)'\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+//                QRegularExpressionMatch matchSLC2 = singleLineComment2.match(thePrettifiedCall);
+//                if (matchSLC2.hasMatch()) {
+//                    QString theSLC2 = matchSLC2.captured(1).simplified(); // and trim whitespace from single line comment
+//                    QString theRestOfTheLine = matchSLC2.captured(2).simplified(); // and trim whitespace from the rest of the line
+//                    qDebug() << "SINGLE LINE COMMENT3: " << theSLC2 << theRestOfTheLine;
+
+//                    // stick it into the currentSequence table
+//                    QTableWidgetItem *singleLineCommentItem(new QTableWidgetItem(QString("( ") + theSLC2 + " )")); // no single quotes shown to user
+//                    singleLineCommentItem->setFlags(singleLineCommentItem->flags() & ~Qt::ItemIsEditable);
+//                    qDebug() << "SETTING IT TO 2: " << singleLineCommentItem->text() << sdLastLine << sdLastLineOffset;
+//                    ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, singleLineCommentItem);
+//                    sdLastLineOffset++;  // we're sticking in the SLC, so we need to bump up for the call itself coming in next
+
+//                    thePrettifiedCall = theRestOfTheLine; // delete the SLC from the front end, process the next as normal
+//                    // intentionally drop through to process the rest of the line, which might have a prefix comment on it
+//                }
+                // =============================================================================================================
+//                qDebug() << "dropped through..." << thePrettifiedCall;
+#ifndef darkgreencomments
                 QTableWidgetItem *moveItem(new QTableWidgetItem(thePrettifiedCall));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
+#else
+                QLabel *moveItem(new QLabel(thePrettifiedCall));
+#endif
 
                 QString level = translateCallToLevel(thePrettifiedCall);
+//                qDebug() << "level: " << level;
 
+#ifndef darkgreencomments
                 if (level == "Mainstream") {
                     moveItem->setBackground(QBrush("#E0E0FF"));
                 } else if (level == "Plus") {
@@ -1162,7 +1225,24 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 //                    qDebug() << "ERROR: unknown level for setting BG color of SD item: " << level;
                 }
 
+//                ui->tableWidgetCurrentSequence->setRowCount(sdLastLine + sdLastLineOffset);
                 ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
+#else
+                if (level == "Mainstream") {
+                    moveItem->setStyleSheet("background-color: #E0E0FF;");
+                } else if (level == "Plus") {
+                    moveItem->setStyleSheet("background-color: #BFFFC0;");
+                } else if (level == "A1" || level == "A2") {
+                    moveItem->setStyleSheet("background-color: #FFF0C0;");
+                } else if (level == "C1") {
+                    moveItem->setStyleSheet("background-color: #FEE0E0;");
+                } else {
+//                    qDebug() << "ERROR: unknown level for setting BG color of SD item: " << level;
+                }
+
+                moveItem->setFont(ui->songTable->font());
+                ui->tableWidgetCurrentSequence->setCellWidget(sdLastLine - 1, kColCurrentSequenceCall, moveItem);
+#endif
 
 //                qDebug() << "on_sd_add_new_line: adding " << thePrettifiedCall;
 
@@ -1287,6 +1367,7 @@ void MainWindow::on_sd_awaiting_input()
         QTableWidgetItem *item(ui->tableWidgetCurrentSequence->item(rowCount - 1, kColCurrentSequenceFormation));
         render_sd_item_data(item);
     }
+//    qDebug() << "on_sd_awaiting_input()" << sdLastLine << rowCount;
     ui->tableWidgetCurrentSequence->setRowCount(rowCount);
     ui->tableWidgetCurrentSequence->scrollToBottom();
     on_lineEditSDInput_textChanged();
@@ -1630,7 +1711,8 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     sd_redo_stack->clear_doing_user_input();
 }
 
-void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall) // s defaults to ""
+// ================================================================================================
+void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall) // s defaults to "", firstCall default to 0
 {
 //    qDebug() << "original call: " << s;
     QString cmd;
@@ -1639,10 +1721,73 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
     } else {
         cmd = s;
     }
-//    QString cmd(ui->lineEditSDInput->text().simplified());  // both trims whitespace and consolidates whitespace
+
     cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
-//    qDebug() << "cmd: " << cmd;
+//    qDebug() << "original cmd: " << cmd << ", firstCall = " << firstCall;
+
     ui->lineEditSDInput->clear();
+
+    // SDCOMMENTS: INPUT SIDE OF COMMENT HANDLING ========================================
+
+//    // SINGLE LINE COMMENTS ---------------------
+//    // Example (incoming from user):
+//    // ( this is a single line comment )
+//    // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
+//    static QRegularExpression singleLineComment("^\\((.*)\\)$"); // with capture of the comment (not including the parens)
+//    QRegularExpressionMatch matchSLC = singleLineComment.match(cmd);
+//    if (matchSLC.hasMatch()) {
+//        QString theSLC = matchSLC.captured(1).simplified(); // and trim whitespace
+//        qDebug() << "SINGLE LINE COMMENT: " << theSLC;
+
+//        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
+//        sdthread->do_user_input(QString("'") + theSLC + "'");  // with single quotes (meaning: single line comment)
+
+//        return;  // do NOT submit any single line comments to SD
+//    }
+
+//    // Example (incoming from file)
+//    // ( 'this is a single line comment' ) Square Thru
+//    // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
+//    static QRegularExpression singleLineComment2("^[\\(\\{]\\s*'(.*)'\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+//    QRegularExpressionMatch matchSLC2 = singleLineComment2.match(cmd);
+//    if (matchSLC2.hasMatch()) {
+//        QString theSLC2 = matchSLC2.captured(1).simplified(); // and trim whitespace from single line comment
+//        QString theRestOfTheLine = matchSLC2.captured(2).simplified(); // and trim whitespace from the rest of the line
+//        qDebug() << "SINGLE LINE COMMENT2: " << theSLC2 << theRestOfTheLine;
+
+//        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
+//        sdthread->do_user_input(QString("'") + theSLC2 + "'");  // with single quotes (meaning: single line comment)
+
+//        cmd = theRestOfTheLine;
+//        // intentionally drop through to process the rest of the line, which might have a prefix comment on it
+//    }
+
+    // PREFIX COMMENTS --------------------------
+    // Example:
+    // ( this is a prefix comment ) Square Thru
+    // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
+    static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+    QRegularExpressionMatch matchPC = prefixComment.match(cmd);
+    if (matchPC.hasMatch()) {
+        QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
+        QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
+//        qDebug() << "PREFIX COMMENT: " << thePC << theCall;
+
+        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
+        sdthread->do_user_input(thePC);
+
+        cmd = theCall;  // and then send the call itself
+    }
+
+    // SUFFIX COMMENTS --------------------------
+    // Example:
+    // Square Thru ( this is a suffix comment )
+
+    // TODO:
+    // IDEA: Perhaps SUFFIX comments should be encoded as      ( "SUFFIX COMMENT" ) call
+    // IDEA: Perhaps SINGLE LINE comments should be encoded as ( 'SINGLE LINE COMMENT' ) call
+
+    // ==========================================================================================
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
     {
@@ -1664,7 +1809,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
 
     // new from CSDS PLUS ===================================
     cmd = cmd.replace(" & "," and "); // down here to not disturb 1-1/2 processing
-    cmd = cmd.replace(QRegularExpression("\\(.*\\)"),"").simplified(); // remove parens, trims whitespace
+//    cmd = cmd.replace(QRegularExpression("\\(.*\\)"),"").simplified(); // remove parens, trims whitespace (PARENS HANDLED ELSEWHERE NOW)
 
     // -------------------
     cmd = cmd.replace("four quarters","4/4");
@@ -1839,7 +1984,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, bool firstCall
         gTwoCouplesOnly = true;
     } else {
 //        qDebug() << "ui->tableWidgetCurrentSequence->rowCount(): " << ui->tableWidgetCurrentSequence->rowCount() << "firstCall: " << firstCall;
-        if ((firstCall || ui->tableWidgetCurrentSequence->rowCount() == 0) && !cmd.contains("1p2p")) {
+        if ((firstCall == 1 || firstCall == 0) && !cmd.contains("1p2p")) {
             if (cmd.startsWith("heads ")) {
 //                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: heads start";
                 sdthread->do_user_input("heads start");
@@ -3417,8 +3562,10 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
         stream << "#AUTHOR=" << authorID << "#\n";    // Use the new author string here
 
         for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
+            // SDCOMMENTS: APPEND
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
-            stream << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n";
+            QString theText = ui->tableWidgetCurrentSequence->item(i, 0)->text();
+            stream << theText.replace('{','(').replace('}', ')')  << "\n";
         }
 
 //        qDebug() << "APPEND (RESOLVE TEXT): " << ui->label_SD_Resolve->text();
@@ -3486,7 +3633,18 @@ void MainWindow::SDReplaceCurrentSequence() {
 
                 if (ui->tableWidgetCurrentSequence->rowCount() >= 1) {
                     for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
-                        outFile << ui->tableWidgetCurrentSequence->item(i, 0)->text() << "\n"; // COPY IN THE REPLACEMENT
+#ifndef darkgreencomments
+                        // SDCOMMENTS: REPLACE, CHANGE CURLY BRACES TO PARENS ON WRITE OUT TO FILE
+                        QString theText = ui->tableWidgetCurrentSequence->item(i, 0)->text();
+                        QString theText2 = theText.replace('{','(').replace('}', ')');
+                        outFile << theText2 << "\n"; // COPY IN THE REPLACEMENT
+#else
+                        QString theText = ((QLabel *)(ui->tableWidgetCurrentSequence->cellWidget(i,0)))->text();
+                        QString theText2 = theText.replace('{','(').replace('}', ')');
+                        QString theText3 = theText2.replace("<span style=\"color:darkgreen;\">","").replace("</span>","");
+                        qDebug() << "writing replacement sequence: " << theText << theText2 << theText3;
+                        outFile << theText3 << "\n"; // COPY IN THE REPLACEMENT
+#endif
                     }
                 } else {
                     outFile << "just as you are\n"; // EMPTY SEQUENCE
@@ -3860,6 +4018,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                ) {
         return("A2");
     } else if (theCall.contains("any hand") ||
+               theCall.contains("shadow") ||
                theCall.contains("clover and") ||
                theCall.contains("cross clover") ||
                theCall.contains("and cross") ||

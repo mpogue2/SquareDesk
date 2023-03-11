@@ -183,7 +183,7 @@ SDThread::CurrentInputState SDThread::currentInputState()
 
 bool SDThread::do_user_input(QString str)
 {
-//    qDebug() << "LINE ACTUALLY SENT TO SD:" << str;
+//    qDebug() << "***** do_user_input:" << str;
     if (on_user_input(str))
     {
         waitCondAckToMainThread.wait(&mutexAckToMainThread);
@@ -1083,13 +1083,13 @@ void SDThread::resetAndExecute(QStringList &commands)
         do_user_input("yes");
     }
 
-    bool firstCall = true;
+    int firstCall = 1; // 1 means "first call submitted"
     for (QString &cmd : commands)
     {
 //        qDebug() << "resetAndExecute: sending to SD: " << cmd;
 //        do_user_input(cmd);                           // without interpretation, e.g. heads start; square thru 4
         mw->submit_lineEditSDInput_contents_to_sd(cmd, firstCall); // with interpretation, e.g. HEADS Square Thru --> heads start; square thru 4
-        firstCall = false;
+        firstCall++;
     }
 
 }

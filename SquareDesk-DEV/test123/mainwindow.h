@@ -665,7 +665,7 @@ public:
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
-    void submit_lineEditSDInput_contents_to_sd(QString s = "", bool firstCall = false);
+    void submit_lineEditSDInput_contents_to_sd(QString s = "", int firstCall = 0); // 0 means not from initializing the SD engine
 
     QString musicRootPath; // needed by sd to do output_prefix
 private:
