@@ -667,7 +667,7 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
     sdLastFormationName = str;
 
     // get rid of "resolve: N out of M" --> "Resolve" (so text field doesn't grow without bound)
-    QRegularExpression re("resolve: \\d+ out of \\d+", QRegularExpression::CaseInsensitiveOption);
+    static QRegularExpression re("resolve: \\d+ out of \\d+", QRegularExpression::CaseInsensitiveOption);
     sdLastFormationName.replace(re, "Resolve");
 
     QString boyOrderString, girlOrderString;
@@ -1019,7 +1019,7 @@ QString MainWindow::prettify(QString call) {
     // from Mike's process_V1.5.R
     // ALL CAPS the who of each line (the following explicitly defined terms, at the beginning of a line)
     // This matches up with what Mike is doing for Ceder cards.
-    QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)");
+    static QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)");
     QRegularExpressionMatch match = who.match(call1);
     if (match.hasMatch()) {
         QString matched = match.captured(0);
@@ -1084,7 +1084,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
             str.replace("you're home", "HOME");
             str.replace("at home", "HOME");
 
-            QRegularExpression parens("\\((.*)\\)");
+            static QRegularExpression parens("\\((.*)\\)");
             str.replace(parens, ", \\1"); // Promenade (1/2 promenade) --> Prom, 1/2 prom
             str = str.simplified(); // consolidate whitespace
             str.replace(" ,", ","); // get rid of extra space before comma
@@ -1881,7 +1881,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
         // TODO: might want to make this A-level specific?
         if (!cmd.contains("pass and roll")) {  // at A-level, "Pass and Roll" must not be turned into "[Pass] and Roll"
-            QRegularExpression andRollCall("(.*) and roll.*");
+            static QRegularExpression andRollCall("(.*) and roll.*");
 //            if (cmd.indexOf(andRollCall) != -1) {
 //                cmd = "[" + andRollCall.cap(1) + "] and roll";
 //            }
@@ -1896,27 +1896,27 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         // first, handle both: "explode and <anything> and roll"
         //  by the time we're here, it's already "[explode and <anything>] and roll", because
         //  we've already done the roll processing.
-        QRegularExpression explodeAndRollCall("\\[explode and (.*)\\] and roll");
-        QRegularExpression explodeAndNotRollCall("^explode and (.*)");
+        static QRegularExpression explodeAndRollCall("\\[explode and (.*)\\] and roll");
+        static QRegularExpression explodeAndNotRollCall("^explode and (.*)");
 
         cmd.replace(explodeAndRollCall, "[explode and \\1] and roll");
         cmd.replace(explodeAndNotRollCall, "explode and [\\1]");
 
         // similar for Transfer and Anything, Clover and Anything, and Cross Clover and Anything
-        QRegularExpression transferAndRollCall("\\[transfer and (.*)\\] and roll");
-        QRegularExpression transferAndNotRollCall("^transfer and (.*)");
+        static QRegularExpression transferAndRollCall("\\[transfer and (.*)\\] and roll");
+        static QRegularExpression transferAndNotRollCall("^transfer and (.*)");
 
         cmd.replace(transferAndRollCall, "[transfer and \\1] and roll");
         cmd.replace(transferAndNotRollCall, "transfer and [\\1]");
 
-        QRegularExpression cloverAndRollCall("\\[clover and (.*)\\] and roll");
-        QRegularExpression cloverAndNotRollCall("^clover and (.*)");
+        static QRegularExpression cloverAndRollCall("\\[clover and (.*)\\] and roll");
+        static QRegularExpression cloverAndNotRollCall("^clover and (.*)");
 
         cmd.replace(cloverAndRollCall, "[clover and \\1] and roll");
         cmd.replace(cloverAndNotRollCall, "clover and [\\1]");
 
-        QRegularExpression crossCloverAndRollCall("\\[cross clover and (.*)\\] and roll");
-        QRegularExpression crossCloverAndNotRollCall("^cross clover and (.*)");
+        static QRegularExpression crossCloverAndRollCall("\\[cross clover and (.*)\\] and roll");
+        static QRegularExpression crossCloverAndNotRollCall("^cross clover and (.*)");
 
         cmd.replace(crossCloverAndRollCall, "[cross clover and \\1] and roll");
         cmd.replace(crossCloverAndNotRollCall, "cross clover and [\\1]");
@@ -1924,7 +1924,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     // handle <ANYTHING> and spread
     if (!cmd.contains("[")) {
-        QRegularExpression andSpreadCall("(.*) and spread");
+        static QRegularExpression andSpreadCall("(.*) and spread");
 //        if (cmd.indexOf(andSpreadCall) != -1) {
 //            cmd = "[" + andSpreadCall.cap(1) + "] and spread";
 //        }
@@ -1947,7 +1947,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     // FIX: this needs to add center boys, etc, but that messes up the QRegularExpression
 
     // <ANYTHING> AND SWEEP (A | ONE) QUARTER [MORE]
-    QRegularExpression andSweepPart(" and sweep.*");
+    static QRegularExpression andSweepPart(" and sweep.*");
     int found = cmd.indexOf(andSweepPart);
     if (found != -1) {
         if (cmd.contains("[")) {
@@ -3215,7 +3215,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
 
     QString pathToSequenceUsedFile = (musicRootPath + "/sd/frames/" + frameName + "/sequenceUsed.csv");
     QFile currentFile(pathToSequenceUsedFile);
-    QFileInfo info(pathToSequenceUsedFile);
+    // QFileInfo info(pathToSequenceUsedFile);
 
     if (shiftDown) {
         // SHIFT-something
