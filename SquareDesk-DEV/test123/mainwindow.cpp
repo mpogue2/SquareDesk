@@ -6243,10 +6243,11 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
             ui->tableWidgetCurrentSequence->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
         }
 
-        // FIX FIX FIX: Options tab needs to be visible all the time, OR ELSE we get weird crash **in Qt code** when going from SDesk to QtCreator
-//        ui->tabWidgetSDMenuOptions->setTabVisible(0, false); // Options
-        ui->tabWidgetSDMenuOptions->setTabVisible(1, false); // ?
-        ui->tabWidgetSDMenuOptions->setTabVisible(2, false); // Additional
+        // NOTE: These tabs need to be visible all the time, OR ELSE we get weird crash **in Qt code** when going from SDesk to QtCreator
+        ui->tabWidgetSDMenuOptions->setTabVisible(0, true); // Options
+        ui->tabWidgetSDMenuOptions->setTabVisible(1, true); // ?
+        ui->tabWidgetSDMenuOptions->setTabVisible(2, true); // Additional
+        ui->tabWidgetSDMenuOptions->setTabVisible(3, true); // Names
 
         // We're going to hide the SDInput field when in Dance Arranger mode for now, because if something is typed in here,
         //   I don't want to have to figure out what happens to changes to that sequence (do they get written back to the Fn frame automatically?
