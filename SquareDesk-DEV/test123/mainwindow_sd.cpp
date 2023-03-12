@@ -3979,6 +3979,14 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
     static QRegularExpression textInParens("\\(.*\\)");
     QString theCall = thePrettifiedCall.toLower().replace(textInParens, "").simplified(); // lowecase, remove comments, consolidate whitespace
 
+    // OK, sorry, but we CANNOT do this here, because the whole find_dance_program() function tells you the answer
+    //  based on the current state of the SD engine, BEFORE the call is sent to SD.  It's designed for the "? completion"
+    //  feature, and trying to look up something like "pass thru" will return "nope" if pass thru is not a valid
+    //  call to ADD to the end of the current sequence.  Nice try, though.  Leaving this comment here for future spelunkers.
+//    dance_level iDanceLevel = sdthread->find_dance_program(theCall); // use SD's leveler
+//    QString strDanceLevel = sdLevelEnumsToStrings[iDanceLevel];      //  human-readable name for the level
+//    qDebug() << "translateCallToLevel: " << theCall << strDanceLevel;
+
     QString allPlusCallsString = makeLevelString(danceprogram_plus);    // make big long string
     QString allA1CallsString   = makeLevelString(danceprogram_a1);      // make big long string
     QString allA2CallsString   = makeLevelString(danceprogram_a2);      // make big long string
