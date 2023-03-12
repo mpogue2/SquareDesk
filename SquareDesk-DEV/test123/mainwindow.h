@@ -1044,6 +1044,7 @@ private: // SD
     QShortcut *shortcutSDCurrentSequenceCopy;
     SDRedoStack *sd_redo_stack;
 
+    QString upperCaseWHO(QString call); // heads --> HEADS, etc.
     QString prettify(QString call);
 
     double sd_animation_t_value;

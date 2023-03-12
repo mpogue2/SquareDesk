@@ -1013,8 +1013,8 @@ QString toCamelCase(const QString& s)
     return s3;
 }
 
-QString MainWindow::prettify(QString call) {
-    QString call1 = toCamelCase(call);  // HEADS square thru 4 --> Heads Square Thru 4
+QString MainWindow::upperCaseWHO(QString call) {
+    QString call1 = call;
 
     // from Mike's process_V1.5.R
     // ALL CAPS the who of each line (the following explicitly defined terms, at the beginning of a line)
@@ -1025,6 +1025,46 @@ QString MainWindow::prettify(QString call) {
         QString matched = match.captured(0);
         call1.replace(match.capturedStart(), match.capturedLength(), matched.toUpper());  // replace the match with the toUpper of the match
     }
+    return (call1);
+}
+
+QString MainWindow::prettify(QString call) {
+//    QString call1 = toCamelCase(call);  // HEADS square thru 4 --> Heads Square Thru 4
+    QString call1 = call;
+
+//    qDebug() << "prettify: " << call;
+
+    // SUFFIX-AS-PREFIX COMMENTS
+    // SDCOMMENTS: Turn "(| suffix comment |) call" back to "call ( suffix comment )" for presentation to the user
+    static QRegularExpression suffixAsPrefixComment("^[\\(\\{]\\s*\\|(.*)\\|\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+    QRegularExpressionMatch matchSAPC = suffixAsPrefixComment.match(call1);
+    if (matchSAPC.hasMatch()) {
+        QString theSAPC = matchSAPC.captured(1).simplified(); // and trim whitespace
+        QString theCall = matchSAPC.captured(2).simplified(); // and trim whitespace
+//        qDebug() << "prettify: SUFFIX AS PREFIX COMMENT: " << theSAPC << theCall;
+
+        // now display it as a suffix comment again, NOTE: just the CALL portion is camelCase'd and upperCaseWHO'd
+        call1 = upperCaseWHO(toCamelCase(theCall)) + " ( " + theSAPC + " )";  // curly braces to parens replacement already done here
+    } else {
+        // PREFIX COMMENTS (must come AFTER the SUFFIX-AS-PREFIX COMMENTS processing, because SAP is a type of Prefix comment)
+        // SDCOMMENTS: Process prefix comments separately for presentation to the user
+        static QRegularExpression prefixComment("^[\\(\\{]\\s*(.*)\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+        QRegularExpressionMatch matchPC = prefixComment.match(call1);
+        if (matchPC.hasMatch()) {
+            QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
+            QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
+//            qDebug() << "prettify: PREFIX COMMENT: " << thePC << theCall;
+
+            // now display it as a prefix comment again, NOTE: just the CALL portion is camelCase'd and upperCaseWHO'd
+            call1 = "( " + thePC + " ) " + upperCaseWHO(toCamelCase(theCall));  // curly braces to parens replacement already done here
+        } else {
+            // there were NO prefix comments, so just operate on the whole call
+            call1 = upperCaseWHO(toCamelCase(call1));
+        }
+    }
+
+    // By the time we are here, the suffix-as-prefix comments have been turned back to suffix comments,
+    //  the call has been camelCase'd and WHO uppercased, and the comment has not.
 
     // SDCOMMENTS: Change SD comments (curly braces) to CSDS Online standard comments (parens) for presentation to the user
 #ifndef darkgreencomments
@@ -1722,7 +1762,10 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         cmd = s;
     }
 
-    cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
+    // NO.  toLower will be done farther down, after comment processing, so as not to lowercase the comments
+//    cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
+
+
 //    qDebug() << "original cmd: " << cmd << ", firstCall = " << firstCall;
 
     ui->lineEditSDInput->clear();
@@ -1762,16 +1805,33 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 //        // intentionally drop through to process the rest of the line, which might have a prefix comment on it
 //    }
 
+    // SUFFIX COMMENTS --------------------------
+    // Example:
+    // Square Thru ( this is a suffix comment )
+
+    static QRegularExpression suffixComment("^(.*)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+    QRegularExpressionMatch matchSC = suffixComment.match(cmd);
+    if (matchSC.hasMatch()) {
+        QString theSC    = matchSC.captured(2).simplified(); // and trim whitespace
+        QString theCall1 = matchSC.captured(1).simplified(); // and trim whitespace
+
+        // modify cmd to reverse, and use vertical bars to delimit, that is: suffix-as-prefix comment (with vertical bars)
+        cmd = QString("(|") + theSC + "|) " + theCall1; // reverse to "(|suffix comment|) call" == a type of prefix comment
+
+//        qDebug() << "submit_lineEditSDInput_contents_to_sd SUFFIX COMMENT: " << theSC << theCall1 << cmd;
+    }
+
     // PREFIX COMMENTS --------------------------
     // Example:
     // ( this is a prefix comment ) Square Thru
+
     // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
     static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
     QRegularExpressionMatch matchPC = prefixComment.match(cmd);
     if (matchPC.hasMatch()) {
         QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
         QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
-//        qDebug() << "PREFIX COMMENT: " << thePC << theCall;
+//        qDebug() << "submit_lineEditSDInput_contents_to_sd PREFIX COMMENT: " << thePC << theCall;
 
         sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
         sdthread->do_user_input(thePC);
@@ -1779,13 +1839,10 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         cmd = theCall;  // and then send the call itself
     }
 
-    // SUFFIX COMMENTS --------------------------
-    // Example:
-    // Square Thru ( this is a suffix comment )
-
     // TODO:
-    // IDEA: Perhaps SUFFIX comments should be encoded as      ( "SUFFIX COMMENT" ) call
-    // IDEA: Perhaps SINGLE LINE comments should be encoded as ( 'SINGLE LINE COMMENT' ) call
+    // IDEA: Perhaps SINGLE LINE comments should be encoded as ( SINGLE LINE COMMENT ) nullcall
+
+    cmd = cmd.toLower();  // JUST THE CALL portion is lower-cased
 
     // ==========================================================================================
 
@@ -2942,6 +2999,7 @@ void MainWindow::on_actionLoad_Sequence_triggered()
             QString entireSequence = in.readAll();
 //            qDebug() << file.size() << entireSequence; // print entire file!
 
+            // TODO: I think the toLower is handled elsewhere and is not needed here FIX FIX FIX?
             QStringList theCalls = entireSequence.toLower().split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
 //            qDebug() << "theCalls: " << theCalls;
 
@@ -3562,7 +3620,7 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
         stream << "#AUTHOR=" << authorID << "#\n";    // Use the new author string here
 
         for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
-            // SDCOMMENTS: APPEND
+            // SDCOMMENTS: APPEND, WRITE OUT TO FILE
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
             QString theText = ui->tableWidgetCurrentSequence->item(i, 0)->text();
             stream << theText.replace('{','(').replace('}', ')')  << "\n";
