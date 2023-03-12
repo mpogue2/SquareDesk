@@ -1303,7 +1303,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 
                         }
 
-                        if (newSequenceInProgress && ui->lineEditSDInput->isVisible()) {
+                        if ((newSequenceInProgress || editSequenceInProgress) && ui->lineEditSDInput->isVisible()) {
                             // if this is a new sequence, and SD is done loading, and we're in edit mode, then set the focus
                             //   to the SD input field.
                             ui->lineEditSDInput->setFocus();
