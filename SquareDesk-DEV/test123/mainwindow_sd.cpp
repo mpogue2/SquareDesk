@@ -2129,11 +2129,19 @@ void MainWindow::on_lineEditSDInput_textChanged()
     
     QString currentText = ui->lineEditSDInput->text().simplified();
     int currentTextLastChar = currentText.length() - 1;
+
+    // check to see if we are in the middle of writing a comment
+    static QRegularExpression unfinishedComment("\\([^\\)]*$"); // open paren followed by a bunch of non-closed-parens up to the end of line
+    bool containsUnfinishedComment = currentText.contains(unfinishedComment);
+//    qDebug() << "on_lineEditSDInput_textChanged: " << currentText << containsUnfinishedComment;
     
-    if (currentTextLastChar >= 0 &&
-        (currentText[currentTextLastChar] == '!' ||
-         currentText[currentTextLastChar] == '?'))
+    if (!containsUnfinishedComment &&
+        currentTextLastChar >= 0 &&
+        (currentText[currentTextLastChar] == '!' || currentText[currentTextLastChar] == '?')
+        )
     {
+        // '!' and '?' cause immediate execution, UNLESS they are in a comment
+//        qDebug() << "on_lineEditSDInput_textChanged: IMMEDIATE EXECUTION OF submit_lineEditSDInput_contents_to_sd";
         submit_lineEditSDInput_contents_to_sd();
         ui->lineEditSDInput->setText(currentText.left(currentTextLastChar));
         sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = currentTextLastChar;

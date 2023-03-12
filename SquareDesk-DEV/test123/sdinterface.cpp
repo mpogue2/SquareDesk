@@ -227,6 +227,7 @@ bool SquareDesk_iofull::add_string_input(const char *s)
 //    default:  // all the possible cases are explicity here, so default: is not needed
 //        qWarning() << "Unknown input state: " << currentInputState;
     case SDThread::InputStateNormal:
+//        qDebug() << "input state normal: " << s;
         int len = strlen(s);
              matcher_class &matcher = *gg77->matcher_p;
 
