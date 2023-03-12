@@ -432,6 +432,7 @@ private slots:
     void loadSong();
     void revealInFinder();
     void revealLyricsFileInFinder();
+    void revealAttachedLyricsFileInFinder();
     void copyIt();
     void pasteIt();
     void cutIt();

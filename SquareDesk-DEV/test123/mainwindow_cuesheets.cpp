@@ -24,6 +24,7 @@
 ****************************************************************************/
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 #include "downloadmanager.h"
+#include "songlistmodel.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
@@ -925,4 +926,31 @@ void MainWindow::cancelProgress() {
 
 
 void MainWindow::lyricsDownloadEnd() {
+}
+
+// =======================
+// invoked from context menu on Lyrics tab
+void MainWindow::revealLyricsFileInFinder() {
+    showInFinderOrExplorer(loadedCuesheetNameWithPath);
+}
+
+// --------------
+// invoked from context menu on songTable entry
+void MainWindow::revealAttachedLyricsFileInFinder() {
+
+    int selectedRow = selectedSongRow();  // get current row or -1
+    if (selectedRow == -1) {
+        qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
+        return;
+    }
+
+    QString currentMP3filenameWithPath = ui->songTable->item(selectedRow, kPathCol)->data(Qt::UserRole).toString();
+
+    SongSetting settings1;
+    if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
+        QString cuesheetPath = settings1.getCuesheetName();
+        showInFinderOrExplorer(cuesheetPath);
+    } else {
+        qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+    }
 }

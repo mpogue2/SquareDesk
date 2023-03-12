@@ -5130,7 +5130,18 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
     args << "select POSIX file \""+filePath+"\"";
     args << "-e";
     args << "end tell";
-    QProcess::startDetached("osascript", args);
+
+//    QProcess::startDetached("osascript", args);
+
+    // same as startDetached, but suppresses output from osascript to console
+    //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+    QProcess process;
+    process.setProgram("osascript");
+    process.setArguments(args);
+    process.setStandardOutputFile(QProcess::nullDevice());
+    process.setStandardErrorFile(QProcess::nullDevice());
+    qint64 pid;
+    process.startDetached(&pid);
 #endif
 
 #if defined(Q_OS_WIN)
@@ -5223,7 +5234,8 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
         menu.addSeparator();
 
 #if defined(Q_OS_MAC)
-        menu.addAction ( "Reveal in Finder" , this , SLOT (revealInFinder()) );
+        menu.addAction( "Reveal Audio File in Finder" , this , SLOT (revealInFinder()) );
+        menu.addAction( "Reveal Current Cuesheet in Finder" , this , SLOT (revealAttachedLyricsFileInFinder()) );
 #endif
 
 #if defined(Q_OS_WIN)

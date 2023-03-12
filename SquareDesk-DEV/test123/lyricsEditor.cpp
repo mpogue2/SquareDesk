@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "mainwindow.h"
+#include "songlistmodel.h"
 #include "ui_mainwindow.h"
 #include "utility.h"
 
@@ -1398,10 +1399,4 @@ void MainWindow::swapHeadsAndSidesInSelection() {
     cursor.removeSelectedText();
     cursor.insertHtml(text);
     cursor.endEditBlock(); // end of grouping for UNDO purposes
-}
-
-// =======================
-void MainWindow::revealLyricsFileInFinder() {
-//    qDebug() << "path: " << loadedCuesheetNameWithPath;
-    showInFinderOrExplorer(loadedCuesheetNameWithPath);
 }
