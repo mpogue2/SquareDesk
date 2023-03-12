@@ -3961,7 +3961,8 @@ QString MainWindow::makeLevelString(const char *levelCalls[]) {
             name = match.captured(4);
 
             // remove parenthesized stuff and trim spaces
-            name = name.replace(QRegularExpression("\\(.*\\)", QRegularExpression::InvertedGreedinessOption), "").trimmed().toLower();
+            static QRegularExpression textInParens1("\\(.*\\)", QRegularExpression::InvertedGreedinessOption);
+            name = name.replace(textInParens1, "").trimmed().toLower();
 
 //            qDebug() << number << name;
 
@@ -3973,7 +3974,10 @@ QString MainWindow::makeLevelString(const char *levelCalls[]) {
 }
 
 QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
-    QString theCall = thePrettifiedCall.toLower();
+//    qDebug() << "translateCallToLevel: " << thePrettifiedCall;
+
+    static QRegularExpression textInParens("\\(.*\\)");
+    QString theCall = thePrettifiedCall.toLower().replace(textInParens, "").simplified(); // lowecase, remove comments, consolidate whitespace
 
     QString allPlusCallsString = makeLevelString(danceprogram_plus);    // make big long string
     QString allA1CallsString   = makeLevelString(danceprogram_a1);      // make big long string
