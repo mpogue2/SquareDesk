@@ -1915,6 +1915,13 @@
                </widget>
               </item>
               <item>
+               <widget class="QLabel" name="warningLabelSD">
+                <property name="text">
+                 <string>warningLabelSD</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QLabel" name="label_SD_Resolve">
                 <property name="text">
                  <string/>

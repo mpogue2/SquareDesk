@@ -1294,6 +1294,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 // This kludge gives SD 100ms to do all its processing, and get at least one valid row and item in there.
                 QTimer::singleShot(100, [this]{
                     if (selectFirstItemOnLoad) {
+//                        qDebug() << "selectFirstItemOnLoad was TRUE, so setting focus to Current Sequence and selecting first item...";
                         selectFirstItemOnLoad = false;
                         ui->tableWidgetCurrentSequence->setFocus();
                         ui->tableWidgetCurrentSequence->clearSelection();
@@ -1307,6 +1308,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                         if ((newSequenceInProgress || editSequenceInProgress) && ui->lineEditSDInput->isVisible()) {
                             // if this is a new sequence, and SD is done loading, and we're in edit mode, then set the focus
                             //   to the SD input field.
+//                            qDebug() << "overriding that.  Set focus to SD Input field.";
                             ui->lineEditSDInput->setFocus();
                         }
 
@@ -3464,11 +3466,16 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
 
+    ui->warningLabelSD->setVisible(false);
+    ui->label_SD_Resolve->setVisible(true);
+
     ui->tabWidgetSDMenuOptions->setCurrentIndex(0); // When exiting Unlocked/Edit mode, bring up the Options tab
 //    qDebug() << "on_pushButtonSDUnlock_clicked setCurrentIndex set to 0";
 
     editSequenceInProgress = true;
     refreshSDframes();  // clear the * editing indicator
+
+    analogClock->setSDEditMode(true);
 }
 
 void MainWindow::SDExitEditMode() {
@@ -3481,6 +3488,9 @@ void MainWindow::SDExitEditMode() {
 
     ui->lineEditSDInput->setVisible(false);
     ui->tableWidgetCurrentSequence->setFocus();
+
+    ui->warningLabelSD->setVisible(true);
+    ui->label_SD_Resolve->setVisible(false);
 
     // we're exiting edit, so highlight the first line
     ui->tableWidgetCurrentSequence->clearSelection();
@@ -3495,6 +3505,8 @@ void MainWindow::SDExitEditMode() {
     newSequenceInProgress = false;
     editSequenceInProgress = false;
     refreshSDframes();  // clear the * editing indicator
+
+    analogClock->setSDEditMode(false);
 }
 
 void MainWindow::SDSetCurrentSeqs(int i) {

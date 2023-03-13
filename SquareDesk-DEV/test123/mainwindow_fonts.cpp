@@ -119,6 +119,8 @@ void MainWindow::setFontSizes()
     ui->pushButtonCueSheetEditBold->setFont(font);
     ui->pushButtonCueSheetEditItalic->setFont(font);
 
+    ui->warningLabelSD->setFont(font); // SD warning label (really the TIMER label) needs to be SMALL
+
     // preferred Warning Label (medium sized)
     font.setPointSize(preferredWarningLabelFontSize);
     ui->warningLabel->setFont(font);
@@ -375,9 +377,15 @@ void MainWindow::adjustFontSizes()
     ui->warningLabelCuesheet->setFont(currentFont);
     ui->currentLocLabel_2->setFont(currentFont);
 
+    int warningLabelFontSizeSD = warningLabelSize[0]; // special small font size for SD warning label (TIMER)
+    currentFont.setPointSize(warningLabelFontSizeSD);
+    ui->warningLabelSD->setFont(currentFont);
+
     ui->warningLabel->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
     ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
     ui->currentLocLabel_2->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
+
+    ui->warningLabelSD->setFixedWidth(warningLabelWidth[0]); // special small width for SD warning label (TIMER)
 
     // these are special BIG
     int nowPlayingLabelFontSize = (nowPlayingSize[(index != -1 ? index : 2)]); // keep ratio constant

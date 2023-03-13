@@ -890,6 +890,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->warningLabel->setStyleSheet("QLabel { color : red; }");
     ui->warningLabelCuesheet->setText("");
     ui->warningLabelCuesheet->setStyleSheet("QLabel { color : red; }");
+    ui->warningLabelSD->setText("");
+    ui->warningLabelSD->setStyleSheet("QLabel { color : red; }");
 
     t.elapsed(__LINE__);
 
@@ -904,7 +906,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->pushButtonTestLoop->setEnabled(false);
 
     t.elapsed(__LINE__);
-    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
+//    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
+    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet, ui->warningLabelSD);  // tell the clock which labels to use for the main patter timer
 
     t.elapsed(__LINE__);
 
@@ -1467,7 +1470,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     SDExitEditMode(); // make sure buttons are visible/invisible
 
-    selectFirstItemOnLoad = false;
+    selectFirstItemOnLoad = true; // TEST
 
     getMetadata();
 
@@ -2058,7 +2061,16 @@ void MainWindow::on_stopButton_clicked()
     Info_Seekbar(false);  // update just the text
 #endif
 
-    ui->songTable->setFocus();
+    int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
+    bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
+
+     // if it's the SD tab, do NOT change focus to songTable, leave it in the Current Sequence pane
+    if (!tabIsSD) {
+        ui->songTable->setFocus();
+    } else {
+//        qDebug() << "stopButtonClicked: Tab was SD, so NOT changing focus to songTable";
+    }
+
 }
 
 // ----------------------------------------------------------------------
@@ -2082,6 +2094,9 @@ void MainWindow::on_playButton_clicked()
     if (!songLoaded) {
         return;  // if there is no song loaded, no point in toggling anything.
     }
+
+    int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
+    bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
 
 //    if (currentState == kStopped || currentState == kPaused) {
     uint32_t Stream_State = cBass->currentStreamState();
@@ -2132,16 +2147,34 @@ void MainWindow::on_playButton_clicked()
             }
             ui->songTable->setSortingEnabled(true);
         }
+
         // If we just started playing, clear focus from all widgets
         if (QApplication::focusWidget() != nullptr) {
             lastWidgetBeforePlaybackWasSongTable = (QApplication::focusWidget() == ui->songTable); // for restore on STOP
             oldFocusWidget = QApplication::focusWidget();
-            QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
-                                                        //  or it will eat our keyboard shortcuts (like P, J, K, period, etc.)
+
+            if (!tabIsSD) {
+//                qDebug() << "playButtonClicked: Tab was NOT SD, so clearing focus from existing widget";
+                QApplication::focusWidget()->clearFocus();  // we don't want to continue editing the search fields after a STOP
+                                                            //  or it will eat our keyboard shortcuts (like P, J, K, period, etc.)
+            } else {
+//                qDebug() << "playButtonClicked: Tab was SD, so NOT clearing focus from existing widget";
+            }
         }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
-        ui->songTable->setFocus(); // while playing, songTable has focus
+
+//        ui->songTable->setFocus(); // while playing, songTable has focus
+
+        // if it's the SD tab, do NOT change focus to songTable, leave it in the Current Sequence pane
+        if (!tabIsSD) {
+//            qDebug() << "playButtonClicked: Tab was NOT SD, so changing focus to songTable";
+            ui->songTable->setFocus();
+        } else {
+//            qDebug() << "playButtonClicked: Tab was SD, so NOT changing focus to songTable";
+        }
+
+
 //        currentState = kPlaying;
     }
     else {
@@ -2154,7 +2187,7 @@ void MainWindow::on_playButton_clicked()
         setNowPlayingLabelWithColor(currentSongTitle);
 
         // restore focus
-        if (oldFocusWidget != nullptr) {
+        if (oldFocusWidget != nullptr  && !tabIsSD) { // only set focus back on pause when tab is NOT SD
             oldFocusWidget->setFocus();
         }
 //        if (lastWidgetBeforePlaybackWasSongTable) {
