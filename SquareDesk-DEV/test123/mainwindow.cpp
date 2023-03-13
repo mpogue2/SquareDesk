@@ -1425,9 +1425,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     }
 
     QMenu *saveSDMenu = new QMenu(this);
-    saveSDMenu->addAction("Save Sequence to Current Frame", /* QKeyCombination(Qt::ControlModifier, Qt::Key_S), */ this, [this]{ SDReplaceCurrentSequence(); }); // CMD-S to save (later)
-    saveSDMenu->addAction("Delete Sequence from Current Frame", this, [this]{ SDDeleteCurrentSequence(); });
-    saveSDMenu->addSeparator();
+//    saveSDMenu->addAction("Save Sequence to Current Frame", /* QKeyCombination(Qt::ControlModifier, Qt::Key_S), */ this, [this]{ SDReplaceCurrentSequence(); }); // CMD-S to save (later)
+////    saveSDMenu->addAction("Delete Sequence from Current Frame", this, [this]{ SDDeleteCurrentSequence(); });
+//    saveSDMenu->addAction("Delete Sequence from Current Frame", this, [this]{ on_pushButtonSDDelete_clicked(); });
+//    saveSDMenu->addSeparator();
 
     // TODO: passing parameters in the SLOT portion?  THIS IS THE IDIOMATIC WAY TO DO IT **********
     //   from: https://stackoverflow.com/questions/5153157/passing-an-argument-to-a-slot
@@ -1458,8 +1459,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         action->setShortcutVisibleInContextMenu(true);
     }
 
-    ui->pushButtonSDSave->setMenu(saveSDMenu);
-    ui->pushButtonSDSave->setVisible(false);
+    ui->pushButtonSDMove->setMenu(saveSDMenu);
+    ui->pushButtonSDMove->setVisible(false);
+
+    SDExitEditMode(); // make sure buttons are visible/invisible
 
     selectFirstItemOnLoad = false;
 

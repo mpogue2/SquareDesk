@@ -3131,10 +3131,10 @@ void MainWindow::refreshSDframes() {
             currentFrameTextName = frameFiles[i]; // save just the name of the frame
             currentFrameHTMLName = html1;         // save fancy string
 
-            if ( ui->pushButtonSDSave->menu() != nullptr ) {
-                ui->pushButtonSDSave->menu()->actions()[0]->setText(QString("Save Current Sequence to ") + currentFrameTextName);       // first one in the list is Save to Current (item 0)
-                ui->pushButtonSDSave->menu()->actions()[1]->setText(QString("Delete Current Sequence from ") + currentFrameTextName);   // second one in the list is Delete from Current (item 1)
-            }
+//            if ( ui->pushButtonSDMove->menu() != nullptr ) {
+//                ui->pushButtonSDMove->menu()->actions()[0]->setText(QString("Save Current Sequence to ") + currentFrameTextName);       // first one in the list is Save to Current (item 0)
+//                ui->pushButtonSDMove->menu()->actions()[1]->setText(QString("Delete Current Sequence from ") + currentFrameTextName);   // second one in the list is Delete from Current (item 1)
+//            }
 
 //            ui->labelWorkshop->setText(html1);          // use fancy string
             ui->label_CurrentSequence->setText(html1);  // use fancy string
@@ -3450,9 +3450,11 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
 void MainWindow::on_pushButtonSDUnlock_clicked()
 {
 //    qDebug() << "SDUnlock triggered";
-    ui->pushButtonSDSave->setVisible(true);
-    ui->pushButtonSDUnlock->setVisible(false);
     ui->pushButtonSDNew->setVisible(false);
+    ui->pushButtonSDUnlock->setVisible(false);
+    ui->pushButtonSDSave->setVisible(true);
+    ui->pushButtonSDMove->setVisible(false); // arrange menu
+    ui->pushButtonSDDelete->setVisible(true);
 
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
@@ -3463,9 +3465,11 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
 
 void MainWindow::SDExitEditMode() {
 
-    ui->pushButtonSDSave->setVisible(false);
-    ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDNew->setVisible(true);
+    ui->pushButtonSDUnlock->setVisible(true);
+    ui->pushButtonSDSave->setVisible(false);
+    ui->pushButtonSDMove->setVisible(true);  // arrange menu
+    ui->pushButtonSDDelete->setVisible(true);
 
     ui->lineEditSDInput->setVisible(false);
     ui->tableWidgetCurrentSequence->setFocus();
@@ -3614,7 +3618,10 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 //    QString level   = QString(frameFiles[i]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
 //    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[i]);
+
+    // NOTE: i == -1 means the "deleted" frame
+    QString whichFile = (i != -1 ? frameFiles[i] : "deleted");
+    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(whichFile);
 
 //    qDebug() << "APPEND: currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -3641,9 +3648,11 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 
         // Appending increases the number of sequences in a frame, but it does NOT take us to the new frame.  Continue with the CURRENT frame.
         //int centralNum = frameVisible.indexOf("central");
-        frameMaxSeq[i] += 1;    // add a NEW sequence to the receiving frame
-                                // but do not change the CurSeq of that receiving frame
-        refreshSDframes();
+        if (i != -1) { // if "deleted" frame, do not muck with frameMaxSeq, and do not refresh the frames
+            frameMaxSeq[i] += 1;    // add a NEW sequence to the receiving frame
+                                    // but do not change the CurSeq of that receiving frame
+            refreshSDframes();
+        }
     } else {
         qDebug() << "ERROR: could not append to " << pathToAppendFile;
     }
@@ -3651,6 +3660,7 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 }
 
 void MainWindow::SDReplaceCurrentSequence() {
+    // NOTE: replacement cannot be done on the "deleted" frame, since it is invisible, therefore no code here for that
     int currentFrame  = frameVisible.indexOf("central"); // 0 to M
     int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
 
@@ -3826,7 +3836,7 @@ void MainWindow::SDDeleteCurrentSequence() {
     SDExitEditMode();
 }
 
-void MainWindow::SDMoveCurrentSequenceToFrame(int i) {  // i = 0 to 6
+void MainWindow::SDMoveCurrentSequenceToFrame(int i) {  // i = 0 to 3, and -1 means move to the "deleted" frame
     int currentFrame = frameVisible.indexOf("central");
 
     if (i == currentFrame) {
@@ -3906,6 +3916,22 @@ void MainWindow::on_pushButtonSDNew_clicked()
         refreshSDframes();
 }
 
+void MainWindow::on_pushButtonSDDelete_clicked()
+{
+//    qDebug() << "on_pushButtonSDDelete_clicked";
+//    SDDeleteCurrentSequence(); // also exits edit mode [OBSOLETE]
+    SDMoveCurrentSequenceToFrame(-1); // instead of deleting, move it to the "deleted" frame
+    SDExitEditMode();  // NEEDED HERE: Move does not exit edit mode
+
+}
+
+void MainWindow::on_pushButtonSDSave_clicked()
+{
+//    qDebug() << "on_pushButtonSDSave_clicked";
+    SDReplaceCurrentSequence(); // this is a SAVE operation to the current frame
+}
+
+// -----------------------------------------------------------------------------
 QString MainWindow::translateCall(QString call) {
     // TODO: lots here
     return(call);
@@ -4276,8 +4302,8 @@ void MainWindow::SDReadSequencesUsed() {
 
 
 void MainWindow::SDMakeFrameFilesIfNeeded() {
-    for (int i = 0; i < frameVisible.length(); i++) {
-        QString fileName = frameFiles[i]; // get the filename
+    for (int i = -1; i < frameVisible.length(); i++) { // the -1 is for the invisible "deleted" frame
+        QString fileName = (i != -1 ? frameFiles[i] : "deleted"); // get the filename ('deleted' is invisible, so does not appear in frameFiles list
         QString pathToFrameFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
 
         QFile file(pathToFrameFile);
@@ -4292,6 +4318,13 @@ void MainWindow::SDMakeFrameFilesIfNeeded() {
                 QTextStream out(&file);
 
                 switch (i) {
+                    case -1: // deleted (archival storage for deleted sequences)
+                        out << "@\n";
+                        out << "#REC=725900005#\n";
+                        out << "#AUTHOR=SquareDesk#\n";
+                        out << "( ARCHIVE OF DELETED FILES )\n";
+                        out << "@\n";
+                        break;
                     case 0: // biggie
                         out << "@\n";
                         out << "#REC=725900001#\n";

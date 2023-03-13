@@ -1764,7 +1764,7 @@
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>35</width>
                     <height>30</height>
                    </size>
                   </property>
@@ -1812,7 +1812,7 @@
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>35</width>
                     <height>30</height>
                    </size>
                   </property>
@@ -1822,7 +1822,55 @@
                    </font>
                   </property>
                   <property name="text">
-                   <string>Save...    </string>
+                   <string>Save</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonSDMove">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>70</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Arrange</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="pushButtonSDDelete">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Delete</string>
                   </property>
                  </widget>
                 </item>

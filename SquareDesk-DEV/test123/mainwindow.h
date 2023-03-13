@@ -649,6 +649,10 @@ private slots:
 
     void on_pushButtonSDNew_clicked();
 
+    void on_pushButtonSDDelete_clicked();
+
+    void on_pushButtonSDSave_clicked();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
