@@ -990,7 +990,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
                     if (submenuName == "Colors") {
                         sdActionGroupColors->addAction(action2);
                     } else if (submenuName == "Labels") {
-                        sdActionGroupNumbers->addAction(action2);
+//                        qDebug() << "init labels into actionGroupNumbers " << action2;
+                        sdActionGroupNumbers->addAction(action2);  // set up the mutual exclusivity
+                        ui->actionNormal_3->setChecked(true); // KLUDGE: because sdViewActionTriggered happens before the actionGroupNumbers is set up, this does the init to "NUMBERS"
                     } else if (submenuName == "Genders") {
                         sdActionGroupGenders->addAction(action2);
                     }
@@ -1005,6 +1007,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //                qDebug() << "ag2 item: " << action->text(); // top level item
 //                if (action->text() == "Sequence Designer") {
                 if (action->text() == "Dance Arranger") {
+//                    qDebug() << "sdViewActionTriggered";
                     sdViewActionTriggered(action); // make sure this gets run at startup time
                 }
             }
@@ -1476,6 +1479,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     if (ui->songTable->rowCount() >= 1) {
         ui->songTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
     }
+
 }
 
 
@@ -6231,10 +6235,10 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         ui->actionFormation_Thumbnails->setChecked(false); // these are not shown, but they are still there..., so we can reference them onDoubleClick below
         on_actionFormation_Thumbnails_triggered();
 
-        // set Names as current tab
-        ui->tabWidgetSDMenuOptions->setCurrentIndex(3);
-        ui->actionNames->setChecked(true);
-        setSDCoupleNumberingScheme("Names");
+//        // set Names as current tab
+//        ui->tabWidgetSDMenuOptions->setCurrentIndex(3);
+//        ui->actionNames->setChecked(true);
+//        setSDCoupleNumberingScheme("Names");
 
         ui->tableWidgetCurrentSequence->clearSelection();
         ui->tableWidgetCurrentSequence->setFocus();

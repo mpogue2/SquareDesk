@@ -993,6 +993,7 @@ void MainWindow::on_listWidgetSDAdditionalOptions_itemDoubleClicked(QListWidgetI
         ui->lineEditSDInput->insert(item->text());
     }
     ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+//    qDebug() << "on_listWidgetSDAdditionalOptions_itemDoubleClicked setCurrentIndex to 0";
     highlight_sd_replaceables();
 }
 
@@ -1441,7 +1442,11 @@ void MainWindow::on_sd_set_matcher_options(QStringList options, QStringList leve
             ui->listWidgetSDOptions->addItem(item);
         }
     }
-    ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+
+    if (ui->lineEditSDInput->isVisible()) {
+        ui->tabWidgetSDMenuOptions->setCurrentIndex(0);
+//        qDebug() << "on_sd_set_matcher_options: setCurrentIndex to 0";
+    }
 
 }
 
@@ -3459,6 +3464,9 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
 
+    ui->tabWidgetSDMenuOptions->setCurrentIndex(0); // When exiting Unlocked/Edit mode, bring up the Options tab
+//    qDebug() << "on_pushButtonSDUnlock_clicked setCurrentIndex set to 0";
+
     editSequenceInProgress = true;
     refreshSDframes();  // clear the * editing indicator
 }
@@ -3482,6 +3490,8 @@ void MainWindow::SDExitEditMode() {
         ui->tableWidgetCurrentSequence->item(0,0)->setSelected(true);
     }
 
+    ui->tabWidgetSDMenuOptions->setCurrentIndex(3); // When exiting Unlocked/Edit mode, bring up the Names tab
+//    qDebug() << "SDExitEditMode setCurrentIndex to 3";
     newSequenceInProgress = false;
     editSequenceInProgress = false;
     refreshSDframes();  // clear the * editing indicator
