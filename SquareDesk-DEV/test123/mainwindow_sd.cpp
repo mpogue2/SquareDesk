@@ -3471,6 +3471,7 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->pushButtonSDSave->setVisible(true);
     ui->pushButtonSDMove->setVisible(false); // arrange menu
     ui->pushButtonSDDelete->setVisible(true);
+    ui->pushButtonSDRevert->setVisible(true);
 
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
@@ -3494,6 +3495,7 @@ void MainWindow::SDExitEditMode() {
     ui->pushButtonSDSave->setVisible(false);
     ui->pushButtonSDMove->setVisible(true);  // arrange menu
     ui->pushButtonSDDelete->setVisible(true);
+    ui->pushButtonSDRevert->setVisible(false);
 
     ui->lineEditSDInput->setVisible(false);
     ui->tableWidgetCurrentSequence->setFocus();
@@ -3947,6 +3949,19 @@ void MainWindow::on_pushButtonSDNew_clicked()
         refreshSDframes();
 }
 
+void MainWindow::on_pushButtonSDSave_clicked()
+{
+//    qDebug() << "on_pushButtonSDSave_clicked";
+    SDReplaceCurrentSequence(); // this is a SAVE operation to the current frame
+}
+
+void MainWindow::on_pushButtonSDRevert_clicked()
+{
+//    qDebug() << "on_pushButtonSDRevert_clicked";
+    SDExitEditMode();
+    refreshSDframes(); // show the old frame, before edits (by reloading from file)
+}
+
 void MainWindow::on_pushButtonSDDelete_clicked()
 {
 //    qDebug() << "on_pushButtonSDDelete_clicked";
@@ -3956,11 +3971,6 @@ void MainWindow::on_pushButtonSDDelete_clicked()
 
 }
 
-void MainWindow::on_pushButtonSDSave_clicked()
-{
-//    qDebug() << "on_pushButtonSDSave_clicked";
-    SDReplaceCurrentSequence(); // this is a SAVE operation to the current frame
-}
 
 // -----------------------------------------------------------------------------
 QString MainWindow::translateCall(QString call) {

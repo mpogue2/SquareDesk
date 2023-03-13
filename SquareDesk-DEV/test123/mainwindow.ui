@@ -1803,6 +1803,30 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QPushButton" name="pushButtonSDMove">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>70</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>10</pointsize>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Arrange</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="QPushButton" name="pushButtonSDSave">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1827,7 +1851,7 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButtonSDMove">
+                 <widget class="QPushButton" name="pushButtonSDRevert">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -1836,7 +1860,7 @@
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>70</width>
+                    <width>50</width>
                     <height>30</height>
                    </size>
                   </property>
@@ -1846,7 +1870,7 @@
                    </font>
                   </property>
                   <property name="text">
-                   <string>Arrange</string>
+                   <string>Revert</string>
                   </property>
                  </widget>
                 </item>

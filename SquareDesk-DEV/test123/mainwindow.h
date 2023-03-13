@@ -653,6 +653,8 @@ private slots:
 
     void on_pushButtonSDSave_clicked();
 
+    void on_pushButtonSDRevert_clicked();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
