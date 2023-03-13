@@ -3265,6 +3265,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 }
 
 // take care of F1 - F12 and UP/DOWN/LEFT/RIGHT and combinations when SD tab is showing ------------------------
+//  NOTE: LEFT/RIGHT are already translated to F11/F12 by the time we get here
 bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     Q_UNUSED(text)
 
@@ -3289,6 +3290,14 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
     QString pathToSequenceUsedFile = (musicRootPath + "/sd/frames/" + frameName + "/sequenceUsed.csv");
     QFile currentFile(pathToSequenceUsedFile);
     // QFileInfo info(pathToSequenceUsedFile);
+
+    bool inSDEditMode = ui->lineEditSDInput->isVisible(); // if we're in UNLOCK/EDIT mode,
+                                                          //   ignore all keys except UP/DOWN (moves Current Sequence selection up/down)
+
+    if (inSDEditMode && key != Qt::Key_Up && key != Qt::Key_Down) {
+//        qDebug() << "Ignoring key: " << key << modifiers;
+        return(true);
+    }
 
     if (shiftDown) {
         // SHIFT-something
