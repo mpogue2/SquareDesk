@@ -1916,6 +1916,9 @@
               </item>
               <item>
                <widget class="QLabel" name="warningLabelSD">
+                <property name="toolTip">
+                 <string>Time in Tip</string>
+                </property>
                 <property name="text">
                  <string>warningLabelSD</string>
                 </property>
