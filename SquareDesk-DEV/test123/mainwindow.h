@@ -1103,7 +1103,8 @@ public:
     void SDReadSequencesUsed();      // update the sequenceStatus hash table from the persisted log in sequencesUsed.csv
     QHash<int, int> sequenceStatus;  // maps a sequence number to a status (0 = good, else # = bad reason), and not present = not rated
 
-    QString currentFrameTextName; // e.g. local.plus
+    int     currentFrameNumber;   // e.g. 0
+    QString currentFrameTextName; // e.g. biggie
     QString currentFrameHTMLName; // e.g. <HTML>...F6...local.plus</HTML>
 
     bool SDtestmode;

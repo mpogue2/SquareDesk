@@ -3135,6 +3135,7 @@ void MainWindow::refreshSDframes() {
                 default: statusString = "<span style=\"font-weight:700; color:#C00000;\">BAD: </span>";  break;  // red
             }
             QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator).arg(statusString);
+            currentFrameNumber = i;
             currentFrameTextName = frameFiles[i]; // save just the name of the frame
             currentFrameHTMLName = html1;         // save fancy string
 
@@ -3164,11 +3165,18 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
     }
 
     // NOTE: THIS IS WHERE THE FILENAME STRUCTURE IS DEFINED:
-    QFile theFile((musicRootPath + "/sd/frames/" + frameName + "/" + filename + ".txt"));
+//    QFile theFile((musicRootPath + "/sd/frames/" + frameName + "/" + filename + ".txt"));
+    QFile theFile;
+    if (frameVisible[i] == "central") {
+        theFile.setFileName(musicRootPath + "/sd/frames/" + frameName + "/F" + QString::number(i+1) + "-" + filename + ".txt");
+    } else {
+        theFile.setFileName(musicRootPath + "/sd/frames/" + frameName + "/f" + QString::number(i+1) + "-" + filename + ".txt");
+    }
+
 //    qDebug() << "loadFrame: " << theFile.fileName();
 
     if(!theFile.open(QIODevice::ReadOnly)) {
-        QMessageBox::information(0, "ERROR", QString("ERROR: the file\n\"") + theFile.fileName() + "\" could not be opened."); // if file does not exist...
+        QMessageBox::information(0, "ERROR", QString("loadFrame: the file\n\"") + theFile.fileName() + "\" could not be opened."); // if file does not exist...
     } else {
         // now read in the lines of the file, looking for the sequence we want
         QTextStream in(&theFile);
@@ -3546,6 +3554,9 @@ void MainWindow::SDGetCurrentSeqs() {
     // This is a standard CSV file, with filename and sequence numbers.
     // If the current numbers are greater than the scanned-for max numbers, the current numbers are adjusted to the max.
 
+    // NOTE: The search is intentionally for "biggie" rather than "f1-biggie", so that the Fn can be changed at any time,
+    //  and the current sequence number will be retained.
+
     QString pathToCurrentSeqFile = (musicRootPath + "/sd/frames/" + frameName + "/.current.csv");
     QFile f(pathToCurrentSeqFile);
     if (QFileInfo::exists(pathToCurrentSeqFile)) {
@@ -3597,16 +3608,24 @@ void MainWindow::SDGetCurrentSeqs() {
 }
 
 
-void MainWindow::SDScanFramesForMax() { // i = 0 to 6
+void MainWindow::SDScanFramesForMax() { // i = 0 to 3
 //    qDebug() << "SDScanFramesForMax triggered";
 
     for (int i = 0; i < frameVisible.length(); i++) {
 //        qDebug() << "MAGIC [" << i << "]:" << frameCurSeq[i];
         // for each frame (0 - 6)
         QString fileName = frameFiles[i]; // get the filename
-        QString pathToScanFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+        QString pathToScanFile;
+//        = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+
+        if (frameVisible[i] == "central") {
+            pathToScanFile = musicRootPath + "/sd/frames/" + frameName + "/F" + QString::number(i+1) + "-" + fileName + ".txt";
+        } else {
+            pathToScanFile = musicRootPath + "/sd/frames/" + frameName + "/f" + QString::number(i+1) + "-" + fileName + ".txt";
+        }
 
         QFile file(pathToScanFile);
+
         int AtCount = 0;
         if (file.open(QIODevice::ReadOnly))
         {
@@ -3628,7 +3647,7 @@ void MainWindow::SDScanFramesForMax() { // i = 0 to 6
         } else {
             frameMaxSeq[i] = 1;
             frameCurSeq[i] = 1;
-            qDebug() << "File " << pathToScanFile << " could not be opened.";
+            qDebug() << "SDScanFramesForMax: File " << pathToScanFile << " could not be opened.";
         }
 
     }
@@ -3653,8 +3672,20 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 //    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
 
     // NOTE: i == -1 means the "deleted" frame
-    QString whichFile = (i != -1 ? frameFiles[i] : "deleted");
-    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(whichFile);
+    QString whichFile; //  = (i != -1 ? frameFiles[i] : "deleted");
+    QString pathToAppendFile; //  = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(whichFile);
+
+    if (i == -1) {
+         whichFile = "deleted";
+         pathToAppendFile = musicRootPath + "/sd/frames/" + frameName + "/deleted.txt";
+    } else {
+        whichFile = frameFiles[i]; // i = 0 to 3
+        if (frameVisible[i] == "central") {
+            pathToAppendFile = musicRootPath + "/sd/frames/" + frameName + "/F" + QString::number(i+1) + "-" + whichFile + ".txt";
+        } else {
+            pathToAppendFile = musicRootPath + "/sd/frames/" + frameName + "/f" + QString::number(i+1) + "-" + whichFile + ".txt";
+        }
+    }
 
 //    qDebug() << "APPEND: currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -3703,8 +3734,18 @@ void MainWindow::SDReplaceCurrentSequence() {
 //    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
     // open the current file for READ ONLY
-//    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToOLDFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[currentFrame]);
+//    QString pathToOLDFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[currentFrame]);
+//    QFile OLDfile(pathToOLDFile);
+
+    // NOTE: i == -1 means the "deleted" frame
+    QString pathToOLDFile;
+
+    if (frameVisible[currentFrame] == "central") {
+        pathToOLDFile = musicRootPath + "/sd/frames/" + frameName + "/F" + QString::number(currentFrame+1) + "-" + frameFiles[currentFrame] + ".txt";
+    } else {
+        pathToOLDFile = musicRootPath + "/sd/frames/" + frameName + "/f" + QString::number(currentFrame+1) + "-" + frameFiles[currentFrame] + ".txt";
+    }
+
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3714,7 +3755,10 @@ void MainWindow::SDReplaceCurrentSequence() {
 
     // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
 //    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
-    QString pathToNEWFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt.NEW").arg(frameFiles[currentFrame]);
+//    QString pathToNEWFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt.NEW").arg(frameFiles[currentFrame]);
+
+    QString pathToNEWFile = pathToOLDFile + ".NEW";
+
     QFile NEWfile(pathToNEWFile);
 
     if (!NEWfile.open(QIODevice::Append)) {
@@ -3807,8 +3851,15 @@ void MainWindow::SDDeleteCurrentSequence() {
 //    QString level   = QString(frameFiles[currentFrame]).replace(QRegularExpression("^.*\\."), ""); // TODO: filename is <name>.<level> right now
 
     // open the current file for READ ONLY
-//    QString pathToOLDFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToOLDFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[currentFrame]);
+//    QString pathToOLDFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(frameFiles[currentFrame]);
+
+    QString pathToOLDFile;
+    if (frameVisible[currentFrameNumber] == "central") {
+        pathToOLDFile = musicRootPath + "/sd/frames/" + frameName + "/F" + QString::number(currentFrameNumber+1) + "-" + frameFiles[currentFrameNumber] + ".txt";
+    } else {
+        pathToOLDFile = musicRootPath + "/sd/frames/" + frameName + "/f" + QString::number(currentFrameNumber+1) + "-" + frameFiles[currentFrameNumber] + ".txt";
+    }
+
     QFile OLDfile(pathToOLDFile);
 
     if (!OLDfile.open(QIODevice::ReadOnly)) {
@@ -3818,7 +3869,9 @@ void MainWindow::SDDeleteCurrentSequence() {
 
     // in SD directory, open a new file for APPEND called "foo.bar.NEW", which is where we will build a new file to replace the old one
 //    QString pathToNEWFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in.NEW").arg(who).arg(level);
-    QString pathToNEWFile = (musicRootPath + "/sd/%1.seq.txt.NEW").arg(frameFiles[currentFrame]);
+//    QString pathToNEWFile = (musicRootPath + "/sd/%1.seq.txt.NEW").arg(frameFiles[currentFrame]);
+
+    QString pathToNEWFile = pathToOLDFile + ".NEW";
     QFile NEWfile(pathToNEWFile);
 
     if (!NEWfile.open(QIODevice::Append)) {
@@ -3907,7 +3960,15 @@ void MainWindow::on_pushButtonSDNew_clicked()
 
 
 //    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
-    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(currentFrameTextName);
+//    QString pathToAppendFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(currentFrameTextName);
+
+    QString pathToAppendFile;
+
+    if (frameVisible[currentFrameNumber] == "central") {
+        pathToAppendFile = musicRootPath + "/sd/frames/" + frameName + "/F" + QString::number(currentFrameNumber+1) + "-" + frameFiles[currentFrameNumber] + ".txt";
+    } else {
+        pathToAppendFile = musicRootPath + "/sd/frames/" + frameName + "/f" + QString::number(currentFrameNumber+1) + "-" + frameFiles[currentFrameNumber] + ".txt";
+    }
 
 //    qDebug() << "currentFrameTextName/who/level/path: " << currentFrameTextName << who << level << pathToAppendFile;
 
@@ -4325,7 +4386,7 @@ void MainWindow::SDReadSequencesUsed() {
 //        qDebug() << "sequenceStatus: " << sequenceStatus;
     } else {
         // TODO: This is duplicated code that could be factored into a single function.
-        qDebug() << "File " << file.fileName() << " could not be opened, so creating one.";
+        qDebug() << "SDReadSequencesUsed: File " << file.fileName() << " could not be opened, so creating one.";
         QFileInfo info(file.fileName());
 
         if (!info.exists()) {
@@ -4342,31 +4403,69 @@ void MainWindow::SDReadSequencesUsed() {
 }
 
 
-void MainWindow::SDMakeFrameFilesIfNeeded() {
-    for (int i = -1; i < frameVisible.length(); i++) { // the -1 is for the invisible "deleted" frame
-        QString fileName = (i != -1 ? frameFiles[i] : "deleted"); // get the filename ('deleted' is invisible, so does not appear in frameFiles list
-        QString pathToFrameFile = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on F1 vs f1 on filename
 
-        QFile file(pathToFrameFile);
-        QFileInfo info(file.fileName());
+    // let's scan for files of the format: "fn-framename.txt" located in /sd/frames/danceName
+    //   and populate the frameName variable with what we find.
 
-        if (!info.exists()) {
-            // file doesn't exist, so create one
-            qDebug() << "Making new frame sequence file: " << file.fileName();
+    QStringList files;
+    QString pathToFrameFile = musicRootPath + "/sd/frames/" + frameName;
+    QDirIterator it(pathToFrameFile, {"*-*.txt"}, QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    while (it.hasNext()) {
+        files << it.next().replace(pathToFrameFile + "/", ""); // just the filename, not the path
+    }
+    files.sort();
+//    qDebug() << "SDMakeFrameFilesIfNeeded: " << files;
 
+    // Find all files that look like: "f1-foo.txt" or "F1-foo.txt"
+    static QRegularExpression f1to4Filter("[fF][1-4]-.*\\.txt");
+    QStringList fList = files.filter(f1to4Filter);
+
+    for (int ff = 1; ff < 5; ff++) { // f1-f4
+        QRegularExpression regex1(QString("f%1-(.*)\\.txt").arg(ff),
+                                  QRegularExpression::CaseInsensitiveOption); // case insensitive, matches f1-foo.txt and F1-foo.txt
+        QStringList thisf = fList.filter(regex1);
+        if (thisf.count() == 1) {
+//            qDebug() << "GOOD: " << ff << thisf[0];
+
+            QString which = "sidebar";
+            if (thisf[0].startsWith("F")) {
+                which = "central";          // capital F means "central", else "sidebar"
+            }
+
+            QRegularExpressionMatch match = regex1.match(thisf[0]);
+            if (match.hasMatch()) {
+                QString name = match.captured(1);
+//                qDebug() << "MATCH: " << name << which;
+
+                frameFiles[ff-1]   = name;  // e.g. frameFiles = "biggie"
+                frameVisible[ff-1] = which; // e.g. frameVisible = "central"
+
+            } else {
+                qDebug() << "SDMakeFrameFilesIfNeeded: SOMETHING WENT WRONG: " << thisf[0];
+            }
+
+
+        } else if (thisf.count() == 0) {
+            QString fileName = frameFiles[ff-1];                    // get the filename ('deleted' is invisible, so does not appear in frameFiles list
+            QString pathToFrameFile;
+
+            if (frameVisible[ff-1] == "central") {
+                pathToFrameFile = (musicRootPath + "/sd/frames/" + frameName + "/F%1-%2.txt").arg(QString::number(ff), fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+            } else {
+                pathToFrameFile = (musicRootPath + "/sd/frames/" + frameName + "/f%1-%2.txt").arg(QString::number(ff), fileName); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+            }
+
+            qDebug() << "MISSING A FRAME, SO MAKING ONE: " << ff << pathToFrameFile;  // counts on default existing in frameFiles that was NOT overwritten
+
+            // we already know that it doesn't exist yet
+            QFile file(pathToFrameFile);
             if (file.open(QFile::WriteOnly | QFile::Append)) {
                 // file is created, and CSV header is written
                 QTextStream out(&file);
 
-                switch (i) {
-                    case -1: // deleted (archival storage for deleted sequences)
-                        out << "@\n";
-                        out << "#REC=725900005#\n";
-                        out << "#AUTHOR=SquareDesk#\n";
-                        out << "( ARCHIVE OF DELETED FILES )\n";
-                        out << "@\n";
-                        break;
-                    case 0: // biggie
+                switch (ff) {
+                    case 1: // f1-biggie
                         out << "@\n";
                         out << "#REC=725900001#\n";
                         out << "#AUTHOR=SquareDesk#\n";
@@ -4375,7 +4474,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() {
                         out << "( AL, HOME )\n";
                         out << "@\n";
                         break;
-                    case 1: // easy
+                    case 2: // f2-easy
                         out << "@\n";
                         out << "#REC=725900002#\n";
                         out << "#AUTHOR=SquareDesk#\n";
@@ -4383,7 +4482,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() {
                         out << "( AL, HOME )\n";
                         out << "@\n";
                         break;
-                    case 2: // medium
+                    case 3: // f3-medium
                         out << "@\n";
                         out << "#REC=725900003#\n";
                         out << "#AUTHOR=SquareDesk#\n";
@@ -4394,7 +4493,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() {
                         out << "( AL, HOME )\n";
                         out << "@\n";
                         break;
-                    case 3: // hard
+                    case 4: // f4-hard
                         out << "@\n";
                         out << "#REC=725900004#\n";
                         out << "#AUTHOR=SquareDesk#\n";
@@ -4413,10 +4512,53 @@ void MainWindow::SDMakeFrameFilesIfNeeded() {
 
                 file.close();
             } else {
-                qDebug() << "ERROR: could not make a new frame file: " << file.fileName();
+                qDebug() << "SDMakeFrameFilesIfNeeded: ERROR: could not make a new frame file: " << file.fileName();
             }
+        } else {
+            qDebug() << "SDMakeFrameFilesIfNeeded: ERROR: MORE THAN ONE MATCH FOR F" << ff << ":" << thisf;
         }
     }
+
+    // special handling for "deleted.txt" file
+    QString pathToDeletedDotTxtFile = (musicRootPath + "/sd/frames/" + frameName + "/deleted.txt"); // NOTE: FILENAME STRUCTURE IS HERE, TOO (TODO: FACTOR THIS)
+    QFile file(pathToDeletedDotTxtFile);
+    QFileInfo deletedDotTxtFileInfo(pathToDeletedDotTxtFile);
+
+    if (!deletedDotTxtFileInfo.exists()) {
+        // file doesn't exist, so create one
+        qDebug() << "Making new deleted.txt file: " << file.fileName();
+        if (file.open(QFile::WriteOnly | QFile::Append)) {
+            // file is created, and CSV header is written
+            QTextStream out(&file);
+            out << "@\n";
+            out << "#REC=725900005#\n";
+            out << "#AUTHOR=SquareDesk#\n";
+            out << "( ARCHIVE OF DELETED FILES )\n";
+            out << "@\n";
+            file.close();
+        }
+    }
+
+    // SPECIAL CHECK: All of the frameVisible's must be "sidebar" except for one "central"
+    //  if this is not true, make it so.
+
+    int firstCentral = 100;
+    for (int i = 0; i < 4; i++) {
+        if (i > firstCentral) {
+            frameVisible[i] = "sidebar"; // all AFTER the first "central" are set to sidebar (takes care of more than one 'central')
+        }
+        if (frameVisible[i] == "central") {
+            firstCentral = i;
+        }
+    }
+
+    if (firstCentral == 100) {
+        frameVisible[0] = "central";   // after we've scanned all of them, if there are no 'central's, then make the first one (F1) the 'central'
+    }
+
+//    qDebug() << "frameFiles: " << frameFiles;
+//    qDebug() << "frameVisible: " << frameVisible;
+
 }
 
 // Dances/frames -------------------------------------
@@ -4435,9 +4577,10 @@ void MainWindow::sdActionTriggeredDances(QAction * action) {
     frameCurSeq.clear();
     frameMaxSeq.clear();
 
+    // NOTE: These are the default names for the files, if they don't already exist, e.g. f1-biggie, F2-easy, f3-medium, f4-sidebar
     frameFiles   << "biggie"           << "easy"           << "medium"            << "hard";
     frameVisible << "sidebar"          << "central"        << "sidebar"           << "sidebar";
-    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/.current.csv
+    frameCurSeq  << 1                  << 1                << 1                   << 1;          // These are persistent in /sd/<frameName>/.current.csv
     frameMaxSeq  << 1                  << 1                << 1                   << 1;          // These are updated at init time by scanning.
 
 //    qDebug() << "FrameVisible: " << frameVisible;
