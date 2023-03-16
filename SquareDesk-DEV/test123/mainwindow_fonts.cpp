@@ -119,12 +119,12 @@ void MainWindow::setFontSizes()
     ui->pushButtonCueSheetEditBold->setFont(font);
     ui->pushButtonCueSheetEditItalic->setFont(font);
 
-    ui->warningLabelSD->setFont(font); // SD warning label (really the TIMER label) needs to be SMALL
 
     // preferred Warning Label (medium sized)
     font.setPointSize(preferredWarningLabelFontSize);
     ui->warningLabel->setFont(font);
     ui->warningLabelCuesheet->setFont(font);
+    ui->warningLabelSD->setFont(font); // SD warning label (really the TIMER label) needs to be MEDIUM
     ui->currentLocLabel_2->setFont(font);
 
     // preferred Now Playing (large sized)
@@ -375,17 +375,20 @@ void MainWindow::adjustFontSizes()
     currentFont.setPointSize(warningLabelFontSize);
     ui->warningLabel->setFont(currentFont);
     ui->warningLabelCuesheet->setFont(currentFont);
+    ui->warningLabelSD->setFont(currentFont); // same size as the others
     ui->currentLocLabel_2->setFont(currentFont);
 
-    int warningLabelFontSizeSD = warningLabelSize[0]; // special small font size for SD warning label (TIMER)
-    currentFont.setPointSize(warningLabelFontSizeSD);
-    ui->warningLabelSD->setFont(currentFont);
+//    int warningLabelFontSizeSD = warningLabelSize[0]; // special small font size for SD warning label (TIMER)
+//    currentFont.setPointSize(warningLabelFontSizeSD);
+//    ui->warningLabelSD->setFont(currentFont);
 
     ui->warningLabel->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
     ui->warningLabelCuesheet->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
+    ui->warningLabelSD->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);  // this one is just like the others
+    //    ui->warningLabelSD->setFixedWidth(warningLabelWidth[0]); // special small width for SD warning label (TIMER)
+
     ui->currentLocLabel_2->setFixedWidth(warningLabelWidth[(index != -1 ? index : 2)]);
 
-    ui->warningLabelSD->setFixedWidth(warningLabelWidth[0]); // special small width for SD warning label (TIMER)
 
     // these are special BIG
     int nowPlayingLabelFontSize = (nowPlayingSize[(index != -1 ? index : 2)]); // keep ratio constant

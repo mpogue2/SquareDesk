@@ -3509,7 +3509,7 @@ void MainWindow::SDExitEditMode() {
     ui->tableWidgetCurrentSequence->setFocus();
 
     ui->warningLabelSD->setVisible(true);
-    ui->label_SD_Resolve->setVisible(false);
+    ui->label_SD_Resolve->setVisible(true); // always visible now
 
     // we're exiting edit, so highlight the first line
     ui->tableWidgetCurrentSequence->clearSelection();

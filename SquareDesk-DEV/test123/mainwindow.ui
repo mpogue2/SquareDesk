@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1057</width>
-    <height>578</height>
+    <width>1220</width>
+    <height>581</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1939,21 +1939,34 @@
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="warningLabelSD">
-                <property name="toolTip">
-                 <string>Time in Tip</string>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="topMargin">
+                 <number>0</number>
                 </property>
-                <property name="text">
-                 <string>warningLabelSD</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_SD_Resolve">
-                <property name="text">
-                 <string/>
-                </property>
-               </widget>
+                <item>
+                 <widget class="QLabel" name="label_SD_Resolve">
+                  <property name="text">
+                   <string>label_SD_resolve</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLabel" name="warningLabelSD">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>Time in Tip</string>
+                  </property>
+                  <property name="text">
+                   <string>warningLabelSD</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
                <widget class="SDLineEdit" name="lineEditSDInput"/>
@@ -2526,7 +2539,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1057</width>
+     <width>1220</width>
      <height>24</height>
     </rect>
    </property>
