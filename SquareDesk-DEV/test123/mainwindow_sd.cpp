@@ -1764,8 +1764,10 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 //    qDebug() << "original call: " << s;
     QString cmd;
     if (s.isEmpty()) {
+        // if s was empty, it means "get the input from the SDInput field
         cmd = ui->lineEditSDInput->text().simplified(); // both trims whitespace and consolidates whitespace
     } else {
+        // if s was NOT empty, it means "send this comment to SD"
         cmd = s;
     }
 
@@ -2033,7 +2035,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     // SD COMMANDS -------
 
-//    qDebug() << "CMD: " << cmd;
+//    qDebug() << "CMD: " << cmd << firstCall;
 
     // square your|the set -> square thru 4
     if (cmd == "square the set" || cmd == "square your set"
@@ -2048,18 +2050,33 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         gTwoCouplesOnly = true;
     } else {
 //        qDebug() << "ui->tableWidgetCurrentSequence->rowCount(): " << ui->tableWidgetCurrentSequence->rowCount() << "firstCall: " << firstCall;
-        if ((firstCall == 1 || firstCall == 0) && !cmd.contains("1p2p")) {
+        if ((
+             (firstCall == 0 && ui->tableWidgetCurrentSequence->rowCount() == 0) ||  // SD Input AND this is the first call being entered
+             firstCall == 1     // loading a frame, and this is the first call in the frame
+             ) &&
+                !cmd.contains("1p2p")) {
+            // TODO: something like "HEAD BOYS do X" as the first call will probably fail here...
             if (cmd.startsWith("heads ")) {
 //                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: heads start";
                 sdthread->do_user_input("heads start");
+//                qDebug() << "doing HEADS START";
                 cmd.replace("heads ", "");
             } else if (cmd.startsWith("sides")) {
 //                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: sides start";
                 sdthread->do_user_input("sides start");
+//                qDebug() << "doing SIDES START";
                 cmd.replace("sides ", "");
             }
         }
 //        qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: " << cmd;
+
+        if (cmd.isEmpty()) {
+            // nothing to submit, e.g. was a single-line comment like "( NEW SEQUENCE )"
+//            qDebug() << "no call here, so returning...";
+//            qDebug() << "------------";
+            return;
+        }
+
         if (sdthread->do_user_input(cmd))
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
@@ -2074,6 +2091,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
                 sd_redo_stack->add_command(row, cmd);
             }
         }
+
+//        qDebug() << "------------";
     }
 }
 
