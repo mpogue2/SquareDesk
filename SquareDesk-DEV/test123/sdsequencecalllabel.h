@@ -32,9 +32,37 @@ class MainWindow;
 class SDSequenceCallLabel : public QLabel {
 private:
     MainWindow *mw;
+
+    QString theText;
+    QString theHtml;
+
+    QPixmap thePixmap;
+
+    QString theFormation;
+
 public:
-SDSequenceCallLabel(MainWindow *mw) : QLabel(), mw(mw) {}
+    SDSequenceCallLabel(MainWindow *mw) : QLabel(), mw(mw) { }
     void mouseDoubleClickEvent(QMouseEvent *) override;
+
+//    void setSelected(bool b);  // these are inherited from QLabel
+//    bool isSelected();
+
+    void setData(int role, const QVariant &value);
+    QVariant data(int role);
+
+    // replacements for data/setData ------
+    void setFormation(QString formation);
+    QString formation();
+
+    void setPixmap(QPixmap pixmap);
+    QPixmap pixmap();
+
+    // -----------
+    void setPlainText(QString s);  // plain text only (HTML tags removed)
+    QString plainText();
+
+    void setHtml(QString s);  // rich text
+    QString html();
 };
 
 #endif /* ifndef SDSEQUENCECALLLABEL_H_INCLUDED */
