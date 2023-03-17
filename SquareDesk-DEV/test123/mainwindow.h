@@ -26,6 +26,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#define NO_TIMING_INFO 1
+
 #include <QObject>
 
 #include <QActionGroup>
@@ -671,7 +673,9 @@ public:
     void highlight_sd_replaceables();
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
+#ifndef NO_TIMING_INFO
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
+#endif
     void submit_lineEditSDInput_contents_to_sd(QString s = "", int firstCall = 0); // 0 means not from initializing the SD engine
 
     QString musicRootPath; // needed by sd to do output_prefix

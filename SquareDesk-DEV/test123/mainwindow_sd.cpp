@@ -47,7 +47,7 @@
 
 static const int kColCurrentSequenceCall = 0;
 static const int kColCurrentSequenceFormation = 1;
-#define NO_TIMING_INFO 1
+
 #ifndef NO_TIMING_INFO
 static const int kColCurrentSequenceTiming = 2;
 #include "sdsequencecalllabel.h"
@@ -1522,6 +1522,7 @@ void MainWindow::do_sd_double_click_call_completion(QListWidgetItem *item)
     highlight_sd_replaceables();
 }
 
+#ifndef NO_TIMING_INFO
 void MainWindow::sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */)
 {
     QItemSelectionModel *selectionModel = ui->listWidgetSDOutput->selectionModel();
@@ -1539,7 +1540,7 @@ void MainWindow::sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */)
     }
     
 }
-
+#endif
 
 void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(QListWidgetItem *item)
 {
