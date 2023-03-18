@@ -564,6 +564,9 @@ private slots:
     void toggle_sd_copy_html_formations_as_svg();
     void toggle_sd_copy_include_deep();
     void update_sd_animations();
+    void toggleHighlight();
+    void clearHighlights();
+    void refreshHighlights();
 
     void undo_sd_to_row();
     void undo_last_sd_action();

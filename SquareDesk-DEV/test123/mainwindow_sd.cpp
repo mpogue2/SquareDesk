@@ -1014,13 +1014,15 @@ QString toCamelCase(const QString& s)
     return s3;
 }
 
+static QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)",
+                              QRegularExpression::CaseInsensitiveOption);
+
 QString MainWindow::upperCaseWHO(QString call) {
     QString call1 = call;
 
     // from Mike's process_V1.5.R
     // ALL CAPS the who of each line (the following explicitly defined terms, at the beginning of a line)
     // This matches up with what Mike is doing for Ceder cards.
-    static QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)");
     QRegularExpressionMatch match = who.match(call1);
     if (match.hasMatch()) {
         QString matched = match.captured(0);
@@ -2845,6 +2847,40 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 {
     QMenu contextMenu(tr("Sequence"), this);
 
+    QAction actionA("Toggle Highlight", this);
+    connect(&actionA, SIGNAL(triggered()), this, SLOT(toggleHighlight()));
+    if (!ui->lineEditSDInput->isVisible()) {
+        actionA.setEnabled(false); // if not in EDIT mode, Toggle Highlight is greyed out
+    }
+    contextMenu.addAction(&actionA);
+
+    QAction actionB("Clear All Highlights", this);
+    connect(&actionB, SIGNAL(triggered()), this, SLOT(clearHighlights()));
+    if (!ui->lineEditSDInput->isVisible()) {
+        actionB.setEnabled(false);  // if not in EDIT mode, Toggle Highlight is greyed out
+    }
+    contextMenu.addAction(&actionB);
+
+    sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
+
+    int rowToToggle = ui->tableWidgetCurrentSequence->rowCount() - sdUndoToLine;
+//    qDebug() << "RowToToggle: " << rowToToggle;
+
+    if (rowToToggle != -1) { // if it's -1, we're not on a row that has a call
+        QString callToToggle = ui->tableWidgetCurrentSequence->item(rowToToggle,0)->text().simplified().toLower();
+        callToToggle = callToToggle.replace(who, "").simplified(); // remove the WHO at the front of the call (and collapse whitespace)
+
+        QString camelCall = toCamelCase(callToToggle);
+
+        QString contextMenuItemText("Toggle Highlighting of '");  // something like "Toggle Highlighting of 'Square Thru'"
+        contextMenuItemText += camelCall + "'";
+
+//        qDebug() << "contextMenuItemText: " << contextMenuItemText;
+        actionA.setText(contextMenuItemText);  // override the default generic text with specific call to highlight
+    }
+
+    contextMenu.addSeparator(); // ---------------
+
     QAction action1("Copy Sequence", this);
     connect(&action1, SIGNAL(triggered()), this, SLOT(copy_selection_from_tableWidgetCurrentSequence()));
     action1.setShortcut(QKeySequence::Copy);
@@ -2887,7 +2923,6 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 
     contextMenu.addSeparator(); // ---------------
 
-    sdUndoToLine = ui->tableWidgetCurrentSequence->rowCount() - ui->tableWidgetCurrentSequence->rowAt(pos.y());
     QAction action4("Go Back To Here", this);
     connect(&action4, SIGNAL(triggered()), this, SLOT(undo_sd_to_row()));
     contextMenu.addAction(&action4);
@@ -4653,4 +4688,66 @@ void MainWindow::sdActionTriggeredDances(QAction * action) {
     SDReadSequencesUsed();  // update the local cache with the status that was persisted in this sequencesUsed.csv
 
     refreshSDframes();
+}
+
+void MainWindow::toggleHighlight() {
+    if (!ui->lineEditSDInput->isVisible()) {
+//        qDebug() << "CANNOT TOGGLE, NOT IN EDIT MODE";
+        return;  // need to be in Unlock/Edit mode to change highlights
+    }
+
+    int rowToToggle = ui->tableWidgetCurrentSequence->rowCount() - sdUndoToLine;
+    if (rowToToggle == -1) {
+      return; // not on a real row
+    }
+
+    QString callToToggle = ui->tableWidgetCurrentSequence->item(rowToToggle,0)->text().simplified().toLower();
+    callToToggle = callToToggle.replace(who, "").simplified(); // remove the WHO at the front of the call (and collapse whitespace)
+
+    if (highlightedCalls.contains(callToToggle)) {
+      // remove it from the list
+      highlightedCalls.remove(highlightedCalls.indexOf(callToToggle));
+    } else {
+      // add it to the list
+      highlightedCalls.append((callToToggle));
+    }
+
+    // refresh central frame
+    refreshHighlights();
+}
+
+void MainWindow::clearHighlights() {
+    if (!ui->lineEditSDInput->isVisible()) {
+//        qDebug() << "CANNOT CLEAR, NOT IN EDIT MODE";
+        return;  // need to be in Unlock/Edit mode to change highlights
+    }
+
+    highlightedCalls.clear();
+
+    // refresh central frame
+    refreshHighlights();
+}
+
+void MainWindow::refreshHighlights() {
+    for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->tableWidgetCurrentSequence->item(i, 0);
+        QString theCall = theItem->text().simplified().toLower();
+
+        bool containsHighlightedCall = false;
+        for ( const auto& call : highlightedCalls )
+        {
+            if (theCall.contains(call)) {
+                containsHighlightedCall = true;
+            }
+        }
+
+        if (containsHighlightedCall) {
+            theItem->setForeground(QBrush(QColor("red"))); // set highlighted items to RED
+        } else {
+            theItem->setForeground(QBrush(QColor("black"))); // set unhighlighted items to BLACK (even if they were RED before)
+        }
+    }
+
+    ui->lineEditSDInput->setFocus(); // move the focus to the input field, so that all highlights are visible
+    // right now, if an item is selected, its foreground color is forced to WHITE.
 }
