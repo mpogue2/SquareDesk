@@ -1244,8 +1244,23 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 // =============================================================================================================
 //                qDebug() << "dropped through..." << thePrettifiedCall;
 #ifndef darkgreencomments
+                QString lcPrettifiedCall = thePrettifiedCall.toLower();
+                bool containsHighlightedCall = false;
+
+                for ( const auto& call : highlightedCalls )
+                {
+                    if (lcPrettifiedCall.contains(call)) {
+                        containsHighlightedCall = true;
+                    }
+                }
+
                 QTableWidgetItem *moveItem(new QTableWidgetItem(thePrettifiedCall));
                 moveItem->setFlags(moveItem->flags() & ~Qt::ItemIsEditable);
+
+                if (containsHighlightedCall) {
+                    moveItem->setForeground(QBrush(QColor("red"))); // set highlighted items to RED
+                }
+
 #else
                 QLabel *moveItem(new QLabel(thePrettifiedCall));
 #endif
@@ -3178,6 +3193,7 @@ void MainWindow::refreshSDframes() {
 // loads a specified frame from a file in <musicDir>/sd/ into a listWidget (if not NULL), else into the tableSequence widget
 void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *list) {
 //    qDebug() << "----- loadFrame: " << i << filename << seqNum;
+
     QStringList callList;
 
     if (list != nullptr) {
@@ -3208,6 +3224,9 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             // typical first two lines in a sequence:
             // #REC=1658300002#
             // #AUTHOR=16583#
+
+//            qDebug() << "LINE: " << line;
+
             if (line.startsWith("#REC=")) {
                 seq++;
                 wantThisSequence = (seq == seqNum); // want it, iff the seqNum matches the one we're looking at
@@ -3217,6 +3236,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                     line = line.replace("#REC=", "").replace("#", "");  // #REC=<record number># --> <record number>
                     currentSequenceRecordNumber = line ;
 //                    qDebug() << "currentSequenceRecordNumber: " << currentSequenceRecordNumber;
+                    highlightedCalls.clear();  // if this is the central, then clear (it will be filled in below, if there is a #HIGHLIGHT= line)
                 }
                 continue;
             } else if (line.startsWith("#AUTHOR=")) {
@@ -3224,6 +3244,17 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                     // if this is the central frame, then remember the AUTHOR
                     line = line.replace("#AUTHOR=", "").replace("#", "");  // #AUTHOR=<string># --> <string>
                     currentSequenceAuthor = line;
+                }
+                continue;
+            } else if (line.startsWith("#HIGHLIGHT=")) {
+                if (frameVisible[i] == "central") {
+                    // if this is the central frame, then remember the HIGHLIGHT
+                    line = line.replace("#HIGHLIGHT=", "").replace("#", "").simplified();  // #HIGHLIGHT=Zoom,square thru#
+                    if (line == "") {
+                        highlightedCalls.clear(); // if we don't clear, the resulting null string will match all calls
+                    } else {
+                        highlightedCalls = line.toLower().split(','); // highlighted calls list is always no whitespace and all lower case
+                    }
                 }
                 continue;
             } else if (line.startsWith("@")) {
@@ -3718,6 +3749,8 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
         writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
         stream << "#AUTHOR=" << authorID << "#\n";    // Use the new author string here
 
+        stream << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";    // remember what was highlighted in "central"
+
         for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
             // SDCOMMENTS: APPEND, WRITE OUT TO FILE
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
@@ -3803,6 +3836,8 @@ void MainWindow::SDReplaceCurrentSequence() {
                 nextSequenceID++;  // increment sequence number every time it's saved (it's a new sequence, right?)
                 writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
                 outFile << "#AUTHOR=" << authorID << "#\n";    // Use the new author here
+
+                outFile << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";
 
                 if (ui->tableWidgetCurrentSequence->rowCount() >= 1) {
                     for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
@@ -4002,6 +4037,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
         nextSequenceID++;
         writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
         stream << "#AUTHOR=" << authorID << "#\n";
+        stream << "#HIGHLIGHT=#\n"; // nothing highlighted right now
         stream << "( NEW SEQUENCE )\n"; // this is important, so that the SD engine DOES get reset in loadFrame()
         stream << "@\n";
         file.close();
@@ -4489,6 +4525,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900001#\n";
                         out << "#AUTHOR=SquareDesk#\n";
+                        out << "#HIGHLIGHT=#\n";
                         out << "HEADS Square Thru 3\n";
                         out << "HEADS Partner Trade\n";
                         out << "( AL, HOME )\n";
@@ -4498,6 +4535,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900002#\n";
                         out << "#AUTHOR=SquareDesk#\n";
+                        out << "#HIGHLIGHT=#\n";
                         out << "HEADS Square Thru 4\n";
                         out << "( AL, HOME )\n";
                         out << "@\n";
@@ -4506,6 +4544,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900003#\n";
                         out << "#AUTHOR=SquareDesk#\n";
+                        out << "#HIGHLIGHT=#\n";
                         out << "HEADS Square Thru 4\n";
                         out << "Right and Left Thru\n";
                         out << "Dive Thru\n";
@@ -4517,6 +4556,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900004#\n";
                         out << "#AUTHOR=SquareDesk#\n";
+                        out << "#HIGHLIGHT=#\n";
                         out << "HEADS Pass The Ocean\n";
                         out << "Extend\n";
                         out << "Swing Thru\n";
@@ -4553,6 +4593,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
             out << "@\n";
             out << "#REC=725900005#\n";
             out << "#AUTHOR=SquareDesk#\n";
+            out << "#HIGHLIGHT=#\n";
             out << "( ARCHIVE OF DELETED FILES )\n";
             out << "@\n";
             file.close();

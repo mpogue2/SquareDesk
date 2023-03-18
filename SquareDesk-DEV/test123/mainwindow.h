@@ -1137,6 +1137,7 @@ public:
     bool newSequenceInProgress;
     bool editSequenceInProgress;
 
+    QStringList highlightedCalls;
 };
 
 // currentState:
