@@ -1081,13 +1081,17 @@ QString MainWindow::prettify(QString call) {
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
-//    qDebug() << "str: " << str;
+//    qDebug() << "on_sd_add_new_line str: " << str;
     if (sdOutputtingAvailableCalls)
     {
         SDAvailableCall available_call;
         available_call.call_name = str.simplified();
         available_call.dance_program = sdthread->find_dance_program(str);
-        sdAvailableCalls.append(available_call);
+
+        // we can't show "exit from the program" to the user as an allowable thing to double-click on!
+        if (available_call.call_name.toLower() != "exit from the program") {
+            sdAvailableCalls.append(available_call);
+        }
         return;
     }
     
@@ -1779,7 +1783,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 // ================================================================================================
 void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall) // s defaults to "", firstCall default to 0
 {
-//    qDebug() << "original call: " << s;
+//    qDebug() << "submit_lineEditSDInput_contents_to_sd: " << s;
     QString cmd;
     if (s.isEmpty()) {
         // if s was empty, it means "get the input from the SDInput field
@@ -2177,7 +2181,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
     // check to see if we are in the middle of writing a comment
     static QRegularExpression unfinishedComment("\\([^\\)]*$"); // open paren followed by a bunch of non-closed-parens up to the end of line
     bool containsUnfinishedComment = currentText.contains(unfinishedComment);
-//    qDebug() << "on_lineEditSDInput_textChanged: " << currentText << containsUnfinishedComment;
     
     if (!containsUnfinishedComment &&
         currentTextLastChar >= 0 &&
@@ -2185,7 +2188,6 @@ void MainWindow::on_lineEditSDInput_textChanged()
         )
     {
         // '!' and '?' cause immediate execution, UNLESS they are in a comment
-//        qDebug() << "on_lineEditSDInput_textChanged: IMMEDIATE EXECUTION OF submit_lineEditSDInput_contents_to_sd";
         submit_lineEditSDInput_contents_to_sd();
         ui->lineEditSDInput->setText(currentText.left(currentTextLastChar));
         sdLineEditSDInputLengthWhenAvailableCallsWasBuilt = currentTextLastChar;

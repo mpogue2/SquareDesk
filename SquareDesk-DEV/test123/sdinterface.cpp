@@ -28,8 +28,14 @@
 #include "../sdlib/sd.h"
 #include <QDebug>
 #include "sdinterface.h"
+
+// Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
+#pragma clang diagnostic pop
+
+//#include "ui_mainwindow.h"
 
 #include <stdio.h>
 
@@ -157,10 +163,15 @@ dance_level SquareDesk_iofull::find_dance_program(QString call)
     dance_level dance_program(l_nonexistent_concept);
     int length_of_longest_match = 0;
     
+    if (nLastOne < 0) {
+        // either it was ui_undefined == -999, or it was -1 (uninitialized, perhaps?)
+        //    if we don't return here, subsequent attempts to access arrays will have negative indices below
+        return dance_program; // undefined, until nLastOne is itself defined properly
+    }
+
     for (int i=0; i<number_of_calls[nLastOne]; i++)
     {
         QString this_name(get_call_menu_name(main_call_lists[nLastOne][i]));
-
         if (call.endsWith(this_name, Qt::CaseInsensitive))
         {
             if (dance_program == l_nonexistent_concept
@@ -184,6 +195,12 @@ SDThread::CurrentInputState SDThread::currentInputState()
 bool SDThread::do_user_input(QString str)
 {
 //    qDebug() << "***** do_user_input:" << str;
+
+    if (str == "exit from the program") {
+        // failing to screen out this case results in app crashes
+        return false;
+    }
+
     if (on_user_input(str))
     {
         waitCondAckToMainThread.wait(&mutexAckToMainThread);
