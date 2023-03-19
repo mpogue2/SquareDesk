@@ -1931,6 +1931,12 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     cmd = cmd.replace("flutterwheel","flutter wheel");
     cmd = cmd.replace("reverse the flutter","reverse flutter wheel");
 
+    // better import from taminations
+    cmd = cmd.replace("wheelaround","wheel around");
+    cmd = cmd.replace("rollaway","roll away");
+    cmd = cmd.replace("crossfold","cross fold");
+    cmd = cmd.replace("clover leaf","cloverleaf");
+
     // handle specialized sd wording of first go *, next go *
     cmd = cmd.replace(QRegularExpression("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
     cmd = cmd.replace(QRegularExpression("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
