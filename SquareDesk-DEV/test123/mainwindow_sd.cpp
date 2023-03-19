@@ -1937,6 +1937,9 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     cmd = cmd.replace("crossfold","cross fold");
     cmd = cmd.replace("clover leaf","cloverleaf");
 
+    // better import from Canadians (and Brits (and Aussies (and ...)))!
+    cmd = cmd.replace("centres","centers");
+
     // handle specialized sd wording of first go *, next go *
     cmd = cmd.replace(QRegularExpression("first[a-z ]* go left[a-z ]* next[a-z ]* go right"),"first couple go left, next go right");
     cmd = cmd.replace(QRegularExpression("first[a-z ]* go right[a-z ]* next[a-z ]* go left"),"first couple go right, next go left");
