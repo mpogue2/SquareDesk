@@ -1904,6 +1904,9 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         cmd = str_abort_this_sequence;
     }
 
+    // handle C1 calls that SD misspells
+    cmd = cmd.replace("jay walk","jaywalk");
+
     // handle quarter, a quarter, one quarter, half, one half, two quarters, three quarters
     // must be in this order, and must be before number substitution.
     cmd = cmd.replace("1 & 1/2","1-1/2");
@@ -4329,6 +4332,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("galaxy") ||
             theCall.contains("interlocked") ||
             theCall.contains("jaywalk") ||
+            theCall.contains("jay walk") ||
             theCall.contains("linear action") ||
             theCall.contains("magic") ||
             theCall.contains("O ") ||
