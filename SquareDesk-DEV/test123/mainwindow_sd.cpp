@@ -1160,6 +1160,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
     {
         // end of copyright section, so reinit the engine
         sdLastLine = 0;
+        sdLastNonEmptyLine = 0;
         sd_redo_stack->initialize();
         ui->label_SD_Resolve->clear(); // get rid of extra "(no matches)" or "left allemande" in resolve area when changing levels
     }
@@ -1195,6 +1196,7 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 {
 //                    qDebug() << "Bumping up rowCount to: " << sdLastLine;
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
+                    sdLastNonEmptyLine = sdLastLine;
                 }
 
 //                qDebug() << "ROW COUNT IS: " << ui->tableWidgetCurrentSequence->rowCount();
@@ -1431,8 +1433,8 @@ void MainWindow::on_sd_awaiting_input()
         QTableWidgetItem *item(ui->tableWidgetCurrentSequence->item(rowCount - 1, kColCurrentSequenceFormation));
         render_sd_item_data(item);
     }
-//    qDebug() << "on_sd_awaiting_input()" << sdLastLine << rowCount;
-    ui->tableWidgetCurrentSequence->setRowCount(rowCount);
+//    qDebug() << "on_sd_awaiting_input()" << sdLastLine << rowCount << sdLastNonEmptyLine;
+    ui->tableWidgetCurrentSequence->setRowCount(sdLastNonEmptyLine);
     ui->tableWidgetCurrentSequence->scrollToBottom();
     on_lineEditSDInput_textChanged();
 }

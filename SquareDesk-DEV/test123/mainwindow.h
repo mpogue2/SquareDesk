@@ -1025,6 +1025,7 @@ private: // SD
     bool sdSliderSidesAreSwapped;
 
     int sdLastLine;
+    int sdLastNonEmptyLine;
     int sdUndoToLine;
     bool sdWasNotDrawingPicture;
     bool sdHasSubsidiaryCallContinuation;
