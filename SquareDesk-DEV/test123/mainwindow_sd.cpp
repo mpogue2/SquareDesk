@@ -1936,6 +1936,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     cmd = cmd.replace("rollaway","roll away");
     cmd = cmd.replace("crossfold","cross fold");
     cmd = cmd.replace("clover leaf","cloverleaf");
+    cmd = cmd.replace("allemande left", "").replace("left allemande", ""); // SD does not understand these
 
     // better import from Canadians (and Brits (and Aussies (and ...)))!
     cmd = cmd.replace("centres","centers");
@@ -2598,28 +2599,58 @@ void MainWindow::undo_sd_to_row()
 
 void MainWindow::paste_to_tableWidgetCurrentSequence() {
 
-    // Clear out existing sequence, if there is one...
-    on_actionSDSquareYourSets_triggered();
-    ui->tableWidgetCurrentSequence->clear(); // clear the current sequence pane
-
     const QClipboard *clipboard = QApplication::clipboard();
     const QMimeData *mimeData = clipboard->mimeData();
 
-    if (mimeData->hasHtml()) {
-       qDebug() << "ERROR: HTML FOUND -- " << mimeData->html();
+    QString theText;
+    if (mimeData->hasHtml() && !mimeData->hasText()) {
+//        qDebug() << "TRYING TO CONVERT HTML TO TXT" << mimeData;
+    // if there is HTML (and NOT Plain Text), try to convert HTML to plain text...
+    static QRegularExpression htmlTags("<.*>", QRegularExpression::InvertedGreedinessOption); // <...>
+    theText = mimeData->html().replace(htmlTags, "");  // delete HTML tags and let's try that
     } else if (mimeData->hasText()) {
-//        qDebug() << "PLAIN TEXT: " << mimeData->text();
-        QString theText = mimeData->text(); // get plain text from clipboard
-        theText.replace(QRegularExpression("\\(.*\\)", QRegularExpression::InvertedGreedinessOption), ""); // delete comments
-        QStringList theCalls = theText.split(QRegularExpression("[\r\n]"),Qt::SkipEmptyParts); // listify, and remove blank lines
-//        qDebug() << "theCalls: " << theCalls;
-
-        selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
-        sdthread->resetAndExecute(theCalls);  // OK LET'S TRY THIS
-
+//        qDebug() << "WE HAVE TEXT DATA:" << mimeData;
+        theText = mimeData->text();
     } else {
         qDebug() << "ERROR: CANNOT UNDERSTAND CLIPBOARD DATA"; // error? warning?
+        return;
     }
+
+    static QRegularExpression comments("\\(.*\\)", QRegularExpression::InvertedGreedinessOption); // (...) anywhere in the line
+    static QRegularExpression singleLineComments("^\\(.*\\)$", QRegularExpression::InvertedGreedinessOption); // ^(...)$
+    static QRegularExpression EOLs("[\r\n]");    // CR or NL or CR/NL
+    static QRegularExpression nonNullStrings("^.+$");    // one or more characters
+
+    QStringList theNewCalls =
+            theText
+            .replace(",", "\n")                     // commas become NLs
+            .split(EOLs, Qt::SkipEmptyParts)
+            .replaceInStrings(singleLineComments, "")   // ^(...)$ are reduced to null strings
+            .filter(nonNullStrings)                     // null strings (single line comments) removed
+            ;
+
+//    qDebug() << "theNewCalls: " << theNewCalls;
+
+    // get all existing calls -----
+    QStringList theExistingCalls;
+    for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
+    {
+        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+        theExistingCalls << item->text();
+    }
+
+    QStringList allTheCalls = theExistingCalls + theNewCalls;
+
+    // TODO: right now, we can't deal with ANY comments on the first line, so just delete them for now, for safety
+    //   and greater chance of success in pasting
+    allTheCalls[0] = allTheCalls[0].replace(comments, ""); // just the first line!
+
+//    qDebug() << "allTheCalls:" << allTheCalls;
+
+    // reset the SD engine, and load in the new concatenated list -----
+    selectFirstItemOnLoad = false;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
+    sdthread->resetAndExecute(allTheCalls);
+    ui->lineEditSDInput->setFocus();  // leave the focus in the SD input field
 }
 
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
