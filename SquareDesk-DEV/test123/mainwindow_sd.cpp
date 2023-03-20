@@ -1840,11 +1840,13 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     // Example:
     // Square Thru ( this is a suffix comment )
 
-    static QRegularExpression suffixComment("^(.*)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+    static QRegularExpression suffixComment("([a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+    // must not match single line comments
     QRegularExpressionMatch matchSC = suffixComment.match(cmd);
     if (matchSC.hasMatch()) {
         QString theSC    = matchSC.captured(2).simplified(); // and trim whitespace
         QString theCall1 = matchSC.captured(1).simplified(); // and trim whitespace
+//        qDebug() << "SUFFIX COMMENT DETECTED: " << cmd << theSC << theCall1;
 
         // modify cmd to reverse, and use vertical bars to delimit, that is: suffix-as-prefix comment (with vertical bars)
         cmd = QString("(|") + theSC + "|) " + theCall1; // reverse to "(|suffix comment|) call" == a type of prefix comment
