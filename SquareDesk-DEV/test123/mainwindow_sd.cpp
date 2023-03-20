@@ -1081,7 +1081,7 @@ QString MainWindow::prettify(QString call) {
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 {
-//    qDebug() << "on_sd_add_new_line str: " << str;
+//    qDebug() << "on_sd_add_new_line str: " << str << sdLastLine << sdLastNonEmptyLine;
     if (sdOutputtingAvailableCalls)
     {
         SDAvailableCall available_call;
@@ -1156,13 +1156,21 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         ui->listWidgetSDOutput->clear();
     }
 
-    if (str.startsWith("Output file is"))
+    if (str.startsWith("Output file is") || str.contains("uiSquareDesk"))
     {
-        // end of copyright section, so reinit the engine
+        // UNDO does "refresh", which spits out another of these:
+        //    Sd 39.45 : db39.45 : uiSquareDesk-1.0.3
+        // which needs to reset the sdLastNonEmptyLine counter.
+        // then we will get the whole sequence from 1 to N again
+
+        // OR end of copyright section, so reinit the engine
+//        qDebug() << "Output file OR uiSquareDesk";
         sdLastLine = 0;
         sdLastNonEmptyLine = 0;
+        ui->tableWidgetCurrentSequence->clear();
         sd_redo_stack->initialize();
         ui->label_SD_Resolve->clear(); // get rid of extra "(no matches)" or "left allemande" in resolve area when changing levels
+        return;
     }
 
     while (str.length() > 1 && str[str.length() - 1] == '\n')
@@ -1190,11 +1198,14 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 sdHasSubsidiaryCallContinuation = true;
             }
             sdLastLine = match.captured(1).toInt();
+//            qDebug() << "   MATCH: " << sdLastLine << sdLastNonEmptyLine;
             if (sdLastLine > 0 && !move.isEmpty())
             {
+                sdLastNonEmptyLine = fmax(sdLastNonEmptyLine, sdLastLine); // if we're here, sdLastLine means it's a non-empty line
+//                qDebug() << "HERE 1: " << ui->tableWidgetCurrentSequence->rowCount() << sdLastLine << sdLastNonEmptyLine;
                 if (ui->tableWidgetCurrentSequence->rowCount() < sdLastLine)
                 {
-//                    qDebug() << "Bumping up rowCount to: " << sdLastLine;
+//                    qDebug() << "     Bumping up rowCount to: " << sdLastLine;
                     ui->tableWidgetCurrentSequence->setRowCount(sdLastLine);
                     sdLastNonEmptyLine = sdLastLine;
                 }
@@ -1383,6 +1394,8 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 //                qDebug() << "Appending additional call info " << lastCall;
                 moveItem->setText(lastCall);
                 sdHasSubsidiaryCallContinuation = false;
+        } else {
+//            qDebug() << "NO MATCH.";
         }
 
         // Drawing the people happens over in on_sd_update_status_bar
@@ -3379,7 +3392,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         if (frameVisible[i] == "central") {
             // if this loadFrame is for the current sequence pane, then:
             // clear the current sequence pane; if NEW, then nothing will be added, else EXISTING then add via SD
-//            qDebug() << "Clearing CENTRAL sequence pane.";
+            qDebug() << "Clearing CENTRAL sequence pane.";
             ui->tableWidgetCurrentSequence->clear();
         }
 
@@ -3393,8 +3406,8 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 //            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
             selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
 
-//            qDebug() << "**********************************";
-//            qDebug() << "loadFrame() SEQUENCE TO BE SENT TO SD: " << callList;
+            qDebug() << "**********************************";
+            qDebug() << "loadFrame() SEQUENCE TO BE SENT TO SD: " << callList;
 
             sdthread->resetAndExecute(callList);     // finally, send the calls in the list to SD.
         }
