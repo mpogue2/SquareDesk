@@ -1860,7 +1860,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     // Example:
     // Square Thru ( this is a suffix comment )
 
-    static QRegularExpression suffixComment("([a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+    static QRegularExpression suffixComment("([/a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
     // must not match single line comments
     QRegularExpressionMatch matchSC = suffixComment.match(cmd);
     if (matchSC.hasMatch()) {
