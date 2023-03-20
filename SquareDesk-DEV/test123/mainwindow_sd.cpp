@@ -1167,11 +1167,15 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
 //        qDebug() << "Output file OR uiSquareDesk";
         sdLastLine = 0;
         sdLastNonEmptyLine = 0;
-        ui->tableWidgetCurrentSequence->clear();
         sd_redo_stack->initialize();
         ui->label_SD_Resolve->clear(); // get rid of extra "(no matches)" or "left allemande" in resolve area when changing levels
+        if (str.contains("uiSquareDesk"))
+        {
+            ui->tableWidgetCurrentSequence->clear();
+        }
         return;
     }
+
 
     while (str.length() > 1 && str[str.length() - 1] == '\n')
         str = str.left(str.length() - 1);
@@ -1786,6 +1790,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
                     SDDebug(QString("    %1").arg(s));
                 }
             }
+            SDDebug("-----------------", true);
         }
         ui->lineEditSDInput->clear();
     }
@@ -3392,7 +3397,7 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
         if (frameVisible[i] == "central") {
             // if this loadFrame is for the current sequence pane, then:
             // clear the current sequence pane; if NEW, then nothing will be added, else EXISTING then add via SD
-            qDebug() << "Clearing CENTRAL sequence pane.";
+//            qDebug() << "Clearing CENTRAL sequence pane.";
             ui->tableWidgetCurrentSequence->clear();
         }
 
@@ -3406,8 +3411,8 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
 //            on_actionSDSquareYourSets_triggered();   // second, init the SD engine (NOT NEEDED?)
             selectFirstItemOnLoad = true;  // one-shot, when we get the first item actually loaded into tableWidgetCurrentSequence, select the first row
 
-            qDebug() << "**********************************";
-            qDebug() << "loadFrame() SEQUENCE TO BE SENT TO SD: " << callList;
+//            qDebug() << "**********************************";
+//            qDebug() << "loadFrame() SEQUENCE TO BE SENT TO SD: " << callList;
 
             sdthread->resetAndExecute(callList);     // finally, send the calls in the list to SD.
         }
@@ -3871,6 +3876,18 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 }
 
 void MainWindow::SDReplaceCurrentSequence() {
+
+    if (ui->listWidgetSDOptions->item(0) != nullptr) {
+//        qDebug() << "FIRST ITEM: " << ui->listWidgetSDOptions->item(0)->text();
+
+        if (ui->listWidgetSDOptions->item(0)->text().contains("search")) {
+            // if we are resolving, and user clicked SAVE, they probably want what the resolver
+            //   suggested.  So, just accept it and move on.  If we don't get out of resolve mode,
+            //   Bad Things will happen.
+            sdthread->do_user_input("accept current choice"); // end the search
+        }
+    }
+
     // NOTE: replacement cannot be done on the "deleted" frame, since it is invisible, therefore no code here for that
     int currentFrame  = frameVisible.indexOf("central"); // 0 to M
     int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
