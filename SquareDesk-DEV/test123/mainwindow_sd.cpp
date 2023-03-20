@@ -2576,7 +2576,9 @@ void MainWindow::select_all_sd_current_sequence()
         for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
-            item->setSelected(true);
+            if (item != nullptr) {
+                item->setSelected(true);
+            }
         }
     }    
 }
@@ -2686,7 +2688,7 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
         for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
-            if (item->isSelected())
+            if (item != nullptr && item->isSelected())
             {
                 if (copyOnlySelectedCells)
                 {
@@ -2822,7 +2824,7 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
         for (int col = 0; col < ui->tableWidgetCurrentSequence->columnCount(); ++col)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,col);
-            if (item->isSelected())
+            if (item != nullptr && item->isSelected())
             {
                 if (copyOnlySelectedCells)
                 {
@@ -2848,9 +2850,9 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
         if (selected)
         {
             QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceCall);
-            selection += "<li><b>" + item->text().toHtmlEscaped() + "</b>";
+            selection += "      <li><b>" + item->text().toHtmlEscaped() + "</b>";
             QTableWidgetItem *imageItem = ui->tableWidgetCurrentSequence->item(row,kColCurrentSequenceFormation);
-            if ( (1) || imageItem->isSelected() )
+            if ( imageItem != nullptr && imageItem->isSelected() )
             {
                 selection += render_image_item_as_html(imageItem, scene, people, graphics_as_text);
             }
