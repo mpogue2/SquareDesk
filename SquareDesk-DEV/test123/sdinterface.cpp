@@ -468,8 +468,14 @@ void SquareDesk_iofull::ShowListBox(int nWhichOne) {
         else if (nLastOne == matcher_class::e_match_resolve_commands) {
             for (int i=0 ; i<number_of_resolve_commands ; i++)
             {
-                options.append(resolve_command_strings[i]);
-                dance_levels.append(QString("%1").arg(0));
+//                qDebug() << "ShowListBox resolve command:" << resolve_command_strings[i];
+                // get rid of other commands from the Options list (can still access those by typing them manually)
+                QStringList showOnlyTheseResolveCommands({"exit the search", "find another", "accept current choice"});
+
+                if (showOnlyTheseResolveCommands.contains(resolve_command_strings[i])) {
+                    options.append(resolve_command_strings[i]);
+                    dance_levels.append(QString("%1").arg(0));
+                }
             }
         }
         else if (nLastOne == matcher_class::e_match_directions) {
