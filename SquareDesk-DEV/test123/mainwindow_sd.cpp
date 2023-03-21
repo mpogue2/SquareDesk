@@ -3826,6 +3826,16 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 
 //    QString pathToAppendFile = (musicRootPath + "/sd/%1/SStoSS/%2.choreodb_to_csds.in").arg(who).arg(level);
 
+    if (ui->listWidgetSDOptions->item(0) != nullptr) {
+
+        if (ui->listWidgetSDOptions->item(0)->text().contains("search")) {
+            // if we are resolving, and user clicked SAVE, they probably want what the resolver
+            //   suggested.  So, just accept it and move on.  If we don't get out of resolve mode,
+            //   Bad Things will happen.
+            sdthread->do_user_input("accept current choice"); // end the search
+        }
+    }
+
     // NOTE: i == -1 means the "deleted" frame
     QString whichFile; //  = (i != -1 ? frameFiles[i] : "deleted");
     QString pathToAppendFile; //  = (musicRootPath + "/sd/frames/" + frameName + "/%1.txt").arg(whichFile);
@@ -3883,7 +3893,6 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 void MainWindow::SDReplaceCurrentSequence() {
 
     if (ui->listWidgetSDOptions->item(0) != nullptr) {
-//        qDebug() << "FIRST ITEM: " << ui->listWidgetSDOptions->item(0)->text();
 
         if (ui->listWidgetSDOptions->item(0)->text().contains("search")) {
             // if we are resolving, and user clicked SAVE, they probably want what the resolver
@@ -4014,6 +4023,17 @@ void MainWindow::SDReplaceCurrentSequence() {
 }
 
 void MainWindow::SDDeleteCurrentSequence() {
+
+    if (ui->listWidgetSDOptions->item(0) != nullptr) {
+
+        if (ui->listWidgetSDOptions->item(0)->text().contains("search")) {
+            // if we are resolving, and user clicked SAVE, they probably want what the resolver
+            //   suggested.  So, just accept it and move on.  If we don't get out of resolve mode,
+            //   Bad Things will happen.
+            sdthread->do_user_input("accept current choice"); // end the search
+        }
+    }
+
     int currentFrame  = frameVisible.indexOf("central"); // 0 to M
     int currentSeqNum = frameCurSeq[currentFrame]; // 1 to N
 //    qDebug() << "SDDeleteCurrentSequence DELETING SEQUENCE #" << currentSeqNum << " FROM " << frameFiles[currentFrame];
@@ -4185,12 +4205,25 @@ void MainWindow::on_pushButtonSDNew_clicked()
 void MainWindow::on_pushButtonSDSave_clicked()
 {
 //    qDebug() << "on_pushButtonSDSave_clicked";
+
     SDReplaceCurrentSequence(); // this is a SAVE operation to the current frame
 }
 
 void MainWindow::on_pushButtonSDRevert_clicked()
 {
-//    qDebug() << "on_pushButtonSDRevert_clicked";
+    //    qDebug() << "on_pushButtonSDRevert_clicked";
+
+    // TODO: Factor this code into a function!
+    if (ui->listWidgetSDOptions->item(0) != nullptr) {
+
+        if (ui->listWidgetSDOptions->item(0)->text().contains("search")) {
+            // if we are resolving, and user clicked SAVE, they probably want what the resolver
+            //   suggested.  So, just accept it and move on.  If we don't get out of resolve mode,
+            //   Bad Things will happen.
+            sdthread->do_user_input("accept current choice"); // end the search
+        }
+    }
+
     SDExitEditMode();
     refreshSDframes(); // show the old frame, before edits (by reloading from file)
 }
@@ -4199,9 +4232,9 @@ void MainWindow::on_pushButtonSDDelete_clicked()
 {
 //    qDebug() << "on_pushButtonSDDelete_clicked";
 //    SDDeleteCurrentSequence(); // also exits edit mode [OBSOLETE]
+
     SDMoveCurrentSequenceToFrame(-1); // instead of deleting, move it to the "deleted" frame
     SDExitEditMode();  // NEEDED HERE: Move does not exit edit mode
-
 }
 
 
