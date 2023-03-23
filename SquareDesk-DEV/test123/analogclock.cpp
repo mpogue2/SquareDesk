@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include <QtWidgets>
+#include <QLocale>
 
 #include "analogclock.h"
 #include <QDebug>
@@ -342,11 +343,14 @@ void AnalogClock::paintEvent(QPaintEvent *)
     painter.scale(side / 200.0, side / 200.0);
 
     // digital part of the analog clock -----
-    QString theTime = time.toString("h:mmA"); // TODO: Europe uses 24 hour time (preference)
-    theTime.replace("AM","");
-    theTime.replace("PM","");  // cheesy way to get 12 hour clock string...
-//    if ((time.second() % 2) == 0)
-//        theTime.replace(":"," ");  // FIX: this doesn't work well, because ":" and " " have different widths in the default font
+    QLocale myLocale;
+    QString theLocaleTimeFormat = myLocale.timeFormat(QLocale::NarrowFormat);
+
+    QString theTime = time.toString(theLocaleTimeFormat); // Europe uses 24 hour time, US = 12 hr time (no AM/PM)
+    theTime = theTime.replace("AM","").replace("PM", "").simplified();
+//    theTime.replace("PM","").simplified();  // cheesy way to get 12 hour clock string...
+
+//    QString theTime = time.toString("H:mm"); // Europe uses 24 hour time (use system pref)
 
     QPointF pt(0, 45);
     painter.setPen(Qt::blue);
