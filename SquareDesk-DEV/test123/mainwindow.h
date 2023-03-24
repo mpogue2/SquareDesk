@@ -660,6 +660,12 @@ private slots:
 
     void on_pushButtonSDRevert_clicked();
 
+    void on_actionSquareDesk_Help_triggered();
+
+    void on_actionSD_Help_triggered();
+
+    void on_actionReport_a_Bug_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

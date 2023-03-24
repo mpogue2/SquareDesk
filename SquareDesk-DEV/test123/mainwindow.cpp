@@ -7368,3 +7368,71 @@ void MainWindow::handleDurationBPM() {
     }
 
 }
+
+void MainWindow::on_actionSquareDesk_Help_triggered()
+{
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString referenceDir = musicDirPath + "/reference";
+
+    // ---------------
+    // Find something that looks like the SquareDesk doc (we probably copied it there)
+    bool hasSDESKpdf = false;
+    QString pathToSquareDeskDoc;
+
+    QDirIterator it2(referenceDir);
+    while(it2.hasNext()) {
+        it2.next();
+        QString s1 = it2.fileName();
+        // if 123.SDESK.pdf or SDESK.pdf, then do NOT copy one in as 190.SDESK.pdf
+        static QRegularExpression re12("^[0-9]+\\.SDESK.pdf");
+        static QRegularExpression re13("^SDESK.pdf");
+        if (s1.contains(re12) || s1.contains(re13)) {
+           hasSDESKpdf = true;
+           pathToSquareDeskDoc = QString("file://") + referenceDir + "/" + s1;
+           break;
+        }
+    }
+
+    if (hasSDESKpdf) {
+//        qDebug() << "FOUND SQUAREDESK DOC:" << pathToSquareDeskDoc;
+        QDesktopServices::openUrl(QUrl(pathToSquareDeskDoc, QUrl::TolerantMode));
+    }
+}
+
+void MainWindow::on_actionSD_Help_triggered()
+{
+    QString musicDirPath = prefsManager.GetmusicPath();
+    QString referenceDir = musicDirPath + "/reference";
+
+    // ---------------
+    // Find something that looks like the SD doc (we probably copied it there)
+    bool hasSDpdf = false;
+    QString pathToSDdoc;
+
+    QDirIterator it(referenceDir);
+    while(it.hasNext()) {
+        it.next();
+        QString s1 = it.fileName();
+        // if 123.SD.pdf or SD.pdf, then do NOT copy one in as 195.SD.pdf
+        static QRegularExpression re10("^[0-9]+\\.SD.pdf");
+        static QRegularExpression re11("^SD.pdf");
+        if (s1.contains(re10) || s1.contains(re11)) {
+           hasSDpdf = true;
+           pathToSDdoc = QString("file://") + referenceDir + "/" + s1;
+           break;
+        }
+    }
+
+    if (hasSDpdf) {
+//        qDebug() << "FOUND SD DOC:" << pathToSDdoc;
+        QDesktopServices::openUrl(QUrl(pathToSDdoc, QUrl::TolerantMode));
+    }
+
+}
+
+void MainWindow::on_actionReport_a_Bug_triggered()
+{
+    QString pathToGithubSquaredeskIssues = "https://github.com/mpogue2/SquareDesk/issues";
+    QDesktopServices::openUrl(QUrl(pathToGithubSquaredeskIssues, QUrl::TolerantMode));
+}
+
