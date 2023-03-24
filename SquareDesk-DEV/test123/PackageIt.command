@@ -29,7 +29,7 @@ WHICH=Release-X86
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
-VERSION="1.0.3X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
+VERSION="1.0.4X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
 QTVERSION="6.4.1"
 QT_VERSION="6_4_1"   # same thing, but with underscores (yes, change both of them at the same time!)
