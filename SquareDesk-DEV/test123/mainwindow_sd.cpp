@@ -4341,26 +4341,29 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
     // ***** TODO: only makeLevelString once at startup for each level
     // ***** TODO: make a C1 level string, AND stick it into a Dance Programs file
 
-//    qDebug() << "CHECKING: " << theCall;
-//    qDebug() << "AGAINST: " << allPlusCallsString;
-//    qDebug() << "AGAINST: " << allA1CallsString;
-//    qDebug() << "AGAINST: " << allA2CallsString;
+//    qDebug() << "******** CHECKING: " << theCall;
+//    qDebug() << "AGAINST PLUS: " << allPlusCallsString;
+//    qDebug() << "AGAINST A1: " << allA1CallsString;
+//    qDebug() << "AGAINST A2: " << allA2CallsString;
 
     // must go from highest level to lowest!
     if (theCall.contains("block") ||
             theCall.contains("butterfly") ||
             theCall.contains("cast back") ||
             theCall.contains("concentric") ||
-            (theCall.contains("counter rotate") && !theCall.contains("split counter rotate")) ||
+            (theCall.contains("counter rotate") && !theCall.contains("split counter rotate") && !theCall.contains("box counter rotate")) ||
             theCall.contains("cross chain") ||
             theCall.contains("cross extend") ||
             theCall.contains("cross roll") ||
             theCall.contains("cross your neighbor") ||
             theCall.contains("pass and roll your cross neighbor") ||
-            (theCall.contains("chain thru") && !theCall.contains("spin chain")) ||
+            (theCall.contains("chain thru") && !theCall.contains("spin chain") &&
+             !theCall.contains("scoot chain") && !theCall.contains("diamond chain thru")
+             && !theCall.contains("square chain thru")
+             ) ||
             theCall.contains("dixie diamond") ||
             theCall.contains("dixie sashay") ||
-            theCall.contains("flip") ||
+            (theCall.contains("flip") && !theCall.contains("hourglass") && (!theCall.contains("diamond"))) ||
             theCall.contains("follow thru") ||
             theCall.contains("galaxy") ||
             theCall.contains("interlocked") ||
@@ -4380,7 +4383,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("relay the top") ||
             theCall.contains("reverse explode") ||
             theCall.contains("rotary spin") ||
-            theCall.contains("rotate") ||
+            (theCall.contains("rotate")  && (!theCall.contains("counter rotate"))) ||
             theCall.contains("scatter") ||
             theCall.contains("little") ||
             theCall.contains("plenty") ||
@@ -4414,36 +4417,60 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("triple wave") ||
             theCall.contains("twist") ||
             theCall.contains("vertical tag") ||
-            (theCall.contains("to a wave") && !theCall.contains("single circle") && !theCall.contains("step to a")) ||
-            (theCall.contains("weave") && !theCall.contains("the ring")) ||
+            (theCall.contains("to a wave") &&
+             !theCall.contains("single circle") &&
+             !theCall.contains("step to a") &&
+             !theCall.contains("roll to a")
+             ) ||
+            (theCall.contains("weave") && !theCall.contains("the ring") && !theCall.contains("scoot and weave")) ||
             (theCall.contains("wheel and") && !theCall.contains("deal")) ||
             theCall.contains("wheel fan thru") ||
-            theCall.contains("wheel thru") ||
             theCall.contains("with the flow") ||
             theCall.contains("zing") ||
             allC1CallsString.contains(";" + theCall + ";")
             ) {
+//        qDebug() << theCall << "is C1.";
         return("C1");
     } else if (theCall.contains("windmill") ||
             allA2CallsString.contains(";" + theCall + ";") ||
-            theCall.contains("motivate")                // takes care of "motivate, turn the star 1/4"
+               theCall.contains("in roll circulate") ||
+               theCall.contains("out roll circulate") ||
+               theCall.contains("scoot and weave") ||
+               theCall.contains("counter rotate") ||
+               theCall.startsWith("all 8") ||
+               theCall.contains("motivate")                // takes care of "motivate, turn the star 1/4"
                ) {
+//        qDebug() << theCall << "is A2.";
         return("A2");
     } else if (theCall.contains("any hand") ||
+               theCall.contains("belles") ||
+               theCall.contains("beaus") ||
                theCall.contains("shadow") ||
                theCall.contains("clover and") ||
                theCall.contains("cross clover") ||
                theCall.contains("and cross") ||
+               theCall.contains("explode and") ||
+               theCall.contains("6x2 acey") ||
+               theCall.contains("split square thru") ||
+               theCall.contains("reverse swap around") ||
+               theCall.contains("transfer and") ||
                theCall.contains("1/4 in") ||
                theCall.contains("1/4 out") ||
                theCall.contains("chain reaction") ||    // takes care of "chain reaction, turn the star 1/2"
+               theCall.contains("wheel thru") ||
                allA1CallsString.contains(";" + theCall + ";")) {
+//        qDebug() << theCall << "is A1.";
         return("A1");
     } else if (theCall.contains("and roll") ||
                theCall.contains("and spread") ||
+               theCall.contains("flip the diamond") ||
+               theCall.contains("cut the diamond") ||
                allPlusCallsString.contains(";" + theCall + ";")) {
+//        qDebug() << theCall << "is Plus.";
         return("Plus");
     }
+//    qDebug() << theCall << "is Mainstream.";
+
     return("Mainstream"); // else it's probably Basic or MS
 }
 
