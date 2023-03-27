@@ -308,6 +308,8 @@ protected:
 
     void airplaneMode(bool turnItOn);
 
+    void sdLoadDance(QString danceName);
+
 private slots:
 
     void dancerNameChanged(); // when text in any dancerName field changes
@@ -1106,7 +1108,7 @@ public:
 
     // one file = one frame, length(frameFiles) = F<max> key assignment
     // TODO: these will be saved as preferences eventually, or maybe these will somewhere in the sqlite DB
-    QString     frameName;    // name of the currently loaded frame: sd/frames/<frameName>/{biggie,easy,med,hard).txt
+    QString     frameName;    // name of the currently loaded DANCE: sd/dances/<frameName>/{biggie,easy,med,hard).txt
     QStringList frameFiles;   // list of which files are assigned to keys F1-F10, e.g. "ceder/basic", "mpogue/hard"
     QStringList frameVisible; // strings representing frame visibility/placement, e.g. ["sidebar", "", "central"], there must be exactly one "central" and 3 "sidebar"
 //    QStringList frameLevel;   // strings representing the level ["basic", "ssd", "ms", "plus", "a1", "a2", "c1"] of the frame, e.g. ["basic", "plus", ...]

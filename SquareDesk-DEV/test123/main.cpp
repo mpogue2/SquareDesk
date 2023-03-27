@@ -27,7 +27,9 @@
 #include <QApplication>
 #include <QSplashScreen>
 
-#include "startupwizard.h"
+//#include "startupwizard.h"
+
+//#include <execinfo.h>  // for debugging using backtrace()
 
 int main(int argc, char *argv[])
 {
@@ -89,6 +91,16 @@ int main(int argc, char *argv[])
     // this is needed, because when the splash screen happens, we don't get the usual appState change message
     //  so, SD doesn't work until you click on another window and come back.
     w.changeApplicationState(a.applicationState()); // make sure we get one event with current state
+
+//    // DEBUG ========================================================
+//    void* callstack[128];
+//    int i, frames = backtrace(callstack, 128);
+//    char** strs = backtrace_symbols(callstack, frames);
+//    for (i = 0; i < frames; ++i) {
+//        printf("%s\n", strs[i]);
+//    }
+//    free(strs);
+//    // DEBUG ========================================================
 
     return a.exec();
 }
