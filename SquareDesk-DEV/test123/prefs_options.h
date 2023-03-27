@@ -51,7 +51,7 @@
  *
  */
 
-CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/music")
+CONFIG_ATTRIBUTE_STRING(musicPath, musicPath, QDir::homePath() + "/squareDeskMusic")
 
 CONFIG_ATTRIBUTE_COLOR(patterColorButton,  patterColorString,  DEFAULTPATTERCOLOR)
 CONFIG_ATTRIBUTE_COLOR(singingColorButton, singingColorString, DEFAULTSINGINGCOLOR)

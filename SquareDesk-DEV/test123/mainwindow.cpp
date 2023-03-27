@@ -621,7 +621,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // where is the root directory where all the music is stored?
     pathStack = new QList<QString>();
 
-    musicRootPath = prefsManager.GetmusicPath();
+    musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
     guestRootPath = ""; // initially, no guest music
     guestVolume = "";   // and no guest volume present
     guestMode = "main"; // and not guest mode
@@ -1393,7 +1393,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sdActionGroupDances->setExclusive(true);
     connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
 
-    QString parentFolder = musicRootPath + "/sd/frames";
+    QString parentFolder = musicRootPath + "/sd/dances";
 //    QStringList allDances;
 //    QStringList allDancesShortnames;
     QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
@@ -1401,6 +1401,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QMenu *dancesSubmenu = new QMenu("Dances");
 
     int whichItem = 0;
+    frameName = "";
     while(directories.hasNext()){
         directories.next();
         QString thePath = directories.filePath();
@@ -1416,6 +1417,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             frameName = shortName;
         }
         actionOne->setChecked(whichItem++ == 0); // first item gets checked, others not
+    }
+
+    if (frameName == "") {
+        // if ZERO dances found, make one
+        sdLoadDance("SampleDance"); // TODO: is there a better name for this?
+        // NOTE: if there was SOME frame (dance) found, then don't load it until later, when we make the menu
     }
 
     ui->menuSequence->insertMenu(ui->actionDance, dancesSubmenu);
