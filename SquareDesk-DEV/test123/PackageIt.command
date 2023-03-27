@@ -31,8 +31,8 @@ WHICH=Release-X86
 APP_NAME="SquareDesk"
 VERSION="1.0.4X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
-QTVERSION="6.4.1"
-QT_VERSION="6_4_1"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="6.3.1"
+QT_VERSION="6_3_1"   # same thing, but with underscores (yes, change both of them at the same time!)
 
 HOMEDIR="/Users/mpogue"
 SOURCEDIR="${HOMEDIR}/clean3/SquareDesk/SquareDesk-DEV/test123"
@@ -67,6 +67,7 @@ popd
 echo Now running Mac Deploy Qt step...  NOTE: MUST BE UNCOMMENTED OUT AND RUN ONCE
 # NOT THIS ONE: ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 #~/Qt/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+~/Qt${QTVERSION}/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 
 echo Mac Deploy Qt step done.
 echo

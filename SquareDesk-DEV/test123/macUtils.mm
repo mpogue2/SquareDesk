@@ -24,7 +24,7 @@
 ****************************************************************************/
 
 #include "macUtils.h"
-#import <AppKit/AppKit.h>
+//#import <AppKit/AppKit.h>
 
 // https://forum.qt.io/topic/38504/solved-qdialog-in-fullscreen-disable-os-screensaver/27
 MacUtils::MacUtils() {
@@ -46,7 +46,7 @@ MacUtils::~MacUtils() {
 // Disables auto window tabbing where supported, otherwise a no-op.
 //    from: http://lists.qt-project.org/pipermail/interest/2016-September/024488.html
 void MacUtils::disableWindowTabbing() {
-    if ([NSWindow respondsToSelector:@selector(allowsAutomaticWindowTabbing)]) {
-        NSWindow.allowsAutomaticWindowTabbing = NO;
-    }
+//    if ([NSWindow respondsToSelector:@selector(allowsAutomaticWindowTabbing)]) {
+//        NSWindow.allowsAutomaticWindowTabbing = NO;
+//    }
 }
