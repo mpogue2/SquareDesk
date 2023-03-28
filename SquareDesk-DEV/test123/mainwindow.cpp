@@ -3945,10 +3945,13 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     cBass->StreamSetPosition(startOfSong_sec);  // last thing we do is move the stream position to 1 sec before start of music
 
     songLoaded = true;  // now seekBar can be updated
-
     setInOutButtonState();
     loadingSong = false;
 
+    if (ui->actionAutostart_playback->isChecked()) {
+//        qDebug() << "----- AUTO START PRESSING PLAY, BECAUSE SONG IS NOW LOADED";
+        on_playButton_clicked();
+    }
 }
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
