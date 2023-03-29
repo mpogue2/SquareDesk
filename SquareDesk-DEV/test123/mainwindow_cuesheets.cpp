@@ -854,14 +854,22 @@ QList<QString> MainWindow::getListOfCuesheets() {
 //            line_number++;
             QString line = in.readLine();
 
+            // OLD FORMAT:
             // <li><a href="RR%20147%20-%20Amarillo%20By%20Morning.html"> RR 147 - Amarillo By Morning.html</a></li>
 
-            static QRegularExpression regex_cuesheetName("^<li><a href=\"(.*?)\">(.*)</a></li>$"); // don't be greedy!
+            // NEW FORMAT (at SquareDesk.net):
+            // <a href="RR%20147%20-%20Amarillo%20By%20Morning.html">RR 147 - Amarillo By..&gt;</a>
+
+//            static QRegularExpression regex_cuesheetName("^<li><a href=\"(.*?)\">(.*)</a></li>$"); // don't be greedy!
+            static QRegularExpression regex_cuesheetName("^.*<a href=\"(.*?)\">(.*)</a>.*$"); // don't be greedy!
             QRegularExpressionMatch match = regex_cuesheetName.match(line);
 //            qDebug() << "line: " << line;
             if (match.hasMatch())
             {
-                QString cuesheetFilename(match.captured(2).trimmed());
+//                QString cuesheetFilename(match.captured(2).trimmed());
+                // we do NOT want the elided filename ending in ".."
+                // AND we want to replace HTML-encoded spaces with real spaces
+                QString cuesheetFilename(match.captured(1).replace("%20"," ").trimmed());
 //                qDebug() << "****** Cloud has cuesheet: " << cuesheetFilename << " *****";
 
                 list.append(cuesheetFilename);
