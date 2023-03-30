@@ -77,7 +77,6 @@ public:
     SongSettings();
     void openDatabase(const QString &path,
                       const QString &mainRootDir,
-                      const QString &guestRootDir,
                       bool in_memory);
     void closeDatabase();
     void saveSettings(const QString &filenameWithPath,

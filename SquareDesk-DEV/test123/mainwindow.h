@@ -345,7 +345,6 @@ private slots:
     void on_UIUpdateTimerTick(void);
     void on_vuMeterTimerTick(void);
 
-    void on_newVolumeMounted();
     void aboutBox();
 
     void on_actionSpeed_Up_triggered();
@@ -747,7 +746,6 @@ private:
 
     int iFontsize;  // preferred font size (for eyeballs that can use some help)
     bool inPreferencesDialog;
-    QString guestRootPath, guestVolume, guestMode;
     QString lastCuesheetSavePath;
     QString loadedCuesheetNameWithPath;
     enum SongFilenameMatchingType songFilenameFormat;
@@ -820,7 +818,7 @@ private:
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
 
-    void findMusic(QString mainRootDir, QString guestRootDir, QString mode, bool refreshDatabase);    // get the filenames into pathStack
+    void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
@@ -918,9 +916,6 @@ private:
 
     QFileSystemWatcher *fileWatcher;
     bool filewatcherShouldIgnoreOneFileSave;
-    QStringList getCurrentVolumes();
-    QStringList lastKnownVolumeList;  // list of volume pathnames, one per volume
-    QStringList newVolumeList;    // list of volume pathnames, one per volume
 
     QStringList flashCalls;
 

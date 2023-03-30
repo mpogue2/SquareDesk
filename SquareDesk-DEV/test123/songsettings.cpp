@@ -349,15 +349,12 @@ static const char *default_session_names[] =
 static const char database_type_name[] = "QSQLITE";
 void SongSettings::openDatabase(const QString& path,
                                 const QString& root_dir,
-                                const QString& guest_dir,
                                 bool in_memory)
 {
     closeDatabase();
     root_directories.clear();
     if (root_dir.length() > 0)
         root_directories.push_back(root_dir);
-    if (guest_dir.length() > 0)
-        root_directories.push_back(guest_dir);
 
     m_db = QSqlDatabase::addDatabase(database_type_name);
     if (in_memory)
