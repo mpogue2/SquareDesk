@@ -180,7 +180,7 @@ public:
                     Stop(); // we reached the end, so reset the player back to the beginning (disable the writing, move playback position to 0)
                 }
             } // activelyPlaying
-            msleep(5); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink  // CHECK THIS!
+            msleep((activelyPlaying ? 5 : 50)); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink  // CHECK THIS!
         } // while
     }
 
