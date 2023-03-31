@@ -397,10 +397,17 @@ void MainWindow::adjustFontSizes()
     ui->nowPlayingLabel->setFixedHeight(static_cast<int>(nowPlayingHeightFactor * nowPlayingLabelFontSize));
 
     // BUTTON SIZES ---------
+#ifndef COOLGUI
     ui->stopButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
     ui->playButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
     ui->previousSongButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
     ui->nextSongButton->setFixedSize(static_cast<int>(buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(buttonSizeV*nowPlayingLabelFontSize));
+#else
+    ui->stopButton->setFixedSize(static_cast<int>(0.5 * buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(0.5 * buttonSizeV*nowPlayingLabelFontSize));
+    ui->playButton->setFixedSize(static_cast<int>(0.5 * buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(0.5 * buttonSizeV*nowPlayingLabelFontSize));
+    ui->previousSongButton->setFixedSize(static_cast<int>(0.5 * buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(0.5 * buttonSizeV*nowPlayingLabelFontSize));
+    ui->nextSongButton->setFixedSize(static_cast<int>(0.5 * buttonSizeH*nowPlayingLabelFontSize), static_cast<int>(0.5 * buttonSizeV*nowPlayingLabelFontSize));
+#endif
 }
 
 

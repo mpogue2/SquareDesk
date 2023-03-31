@@ -42,6 +42,19 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Zenstar Software");
     a.setOrganizationDomain("zenstarstudio.com");
 
+#ifdef COOLGUI
+    QFont font("Avenir Next");
+    QApplication::setFont(font);
+
+    QFont font1 = QApplication::font();
+    QFontMetrics fm1(font1);
+    qDebug() << "metrics:" << fm1.height() << fm1.leading() << fm1.boundingRect("THIS IS A TEST.");
+
+    QFont font2("Avenir Next");
+    QFontMetrics fm2(font2);
+    qDebug() << "metrics:" << fm2.height() << fm2.leading() << fm2.boundingRect("THIS IS A TEST.");
+#endif
+
     // splash screen ------
     QPixmap pixmap(":/graphics/SplashScreen1.png");
 

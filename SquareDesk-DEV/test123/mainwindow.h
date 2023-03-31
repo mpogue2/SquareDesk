@@ -206,6 +206,9 @@ public:
 
 #define NUMBEREDSOUNDFXFILES 8
 
+// Define this for the new Cool GUI prototyping
+//#define COOLGUI
+
 namespace Ui
 {
 class MainWindow;
