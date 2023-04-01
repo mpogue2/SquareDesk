@@ -31,8 +31,8 @@ WHICH=Release-X86
 APP_NAME="SquareDesk"
 VERSION="1.0.4X"  # <-- THIS IS THE ONE TO CHANGE (X = X86)
 
-QTVERSION="6.3.1"
-QT_VERSION="6_3_1"   # same thing, but with underscores (yes, change both of them at the same time!)
+QTVERSION="6.4.3"
+QT_VERSION="6_4_3"   # same thing, but with underscores (yes, change both of them at the same time!)
 
 HOMEDIR="/Users/mpogue"
 SOURCEDIR="${HOMEDIR}/clean3/SquareDesk/SquareDesk-DEV/test123"
