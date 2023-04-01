@@ -193,9 +193,11 @@ public:
     void setColor(const QColor &color);
 };
 
+// WHEN WE RELEASE A NEW VERSION:
+//   remember to change the VERSIONSTRING below
+//   remember to change the VERSION in PackageIt.command and PackageIt_X86.command
+//   remember to change the version in the .plist file
 
-// REMEMBER TO CHANGE THIS WHEN WE RELEASE A NEW VERSION.
-// ALSO REMEMBER TO CHANGE THE VERSION IN PackageIt.command !
 // Also remember to change the "latest" file on GitHub (for Beta releases)!
 #define VERSIONSTRING "1.0.4"
 
