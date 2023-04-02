@@ -610,6 +610,7 @@ AudioDecoder::AudioDecoder()
     newSystemAudioOutputDevice();  // this will make m_audiosink and m_currentAudioOutputDeviceName valid
 
     myPlayer.start();  // starts the playback thread (in STOPPED mode)
+    myPlayer.setPriority(QThread::TimeCriticalPriority);  // this stops audio dropouts on older X86 macbook when screensaver kicks in
 }
 
 AudioDecoder::~AudioDecoder()
