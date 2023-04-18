@@ -1393,19 +1393,32 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(sdActionGroupDances, SIGNAL(triggered(QAction*)), this, SLOT(sdActionTriggeredDances(QAction*)));
 
     QString parentFolder = musicRootPath + "/sd/dances";
-//    QStringList allDances;
+    QStringList allDances;
 //    QStringList allDancesShortnames;
     QDirIterator directories(parentFolder, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+
+    while(directories.hasNext()){
+        directories.next();
+        QString thePath = directories.filePath();
+        QString shortName = thePath.split('/').takeLast();
+        allDances << shortName;
+    }
+
+    auto dances = allDances;
+
+    QCollator collator;
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+
+    std::sort(dances.begin(), dances.end(), collator); // sort by natural alphanumeric order
+
+//    qDebug() << "allDances, dances: " << allDances << dances;
 
     QMenu *dancesSubmenu = new QMenu("Dances");
 
     int whichItem = 0;
     frameName = "";
-    while(directories.hasNext()){
-        directories.next();
-        QString thePath = directories.filePath();
-//        allDances << thePath;
-        QString shortName = thePath.split('/').takeLast();
+    for (const auto& shortName : dances) {
 //        qDebug() << "shortName: " << shortName;
 
         QAction *actionOne = dancesSubmenu->addAction(shortName);
