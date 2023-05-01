@@ -3190,6 +3190,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         //   If you want to do this, hit ESC to get out of edit search field mode, then SPACE.
 
         if (tabIsSD) {
+//            qDebug() << "eventFilter: " << ui->tableWidgetCurrentSequence->hasFocus() << (theKey == Qt::Key_Left);
+
             // TODO: Move this stuff to handleSDFunctionKey()....
             if (ui->lineEditSDInput->hasFocus() && theKey == Qt::Key_Tab) {
                 maybeMainWindow->do_sd_tab_completion();

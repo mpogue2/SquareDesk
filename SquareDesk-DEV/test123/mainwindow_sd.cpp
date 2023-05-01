@@ -30,6 +30,7 @@
 
 #include "ui_mainwindow.h"
 #include "utility.h"
+#include "addcommentdialog.h"
 #include <QGraphicsItemGroup>
 #include <QGraphicsTextItem>
 #include <QCoreApplication>
@@ -1776,6 +1777,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
     {
         if (cmd == "debug undo")
         {
+            SDDebug("------------------", true);
             SDDebug("Undo Command Stack", true);
             for (QString s : sd_redo_stack->command_stack)
             {
@@ -1790,7 +1792,7 @@ void MainWindow::on_lineEditSDInput_returnPressed()
                     SDDebug(QString("    %1").arg(s));
                 }
             }
-            SDDebug("-----------------", true);
+            SDDebug("------------------", true);
         }
         ui->lineEditSDInput->clear();
     }
@@ -2680,6 +2682,99 @@ void MainWindow::paste_to_tableWidgetCurrentSequence() {
     ui->lineEditSDInput->setFocus();  // leave the focus in the SD input field
 }
 
+void MainWindow::add_comment_to_tableWidgetCurrentSequence() {
+//    qDebug() << "add_comment_to_tableWidgetCurrentSequence() called";
+
+    // get all existing calls -----
+    QStringList theExistingCalls;
+    for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
+    {
+        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+        theExistingCalls << item->text();
+    }
+
+//    qDebug() << "theExistingCalls: " << theExistingCalls;
+//    qDebug() << "sdUndoToLine: " << sdUndoToLine; // number of calls to undo to get to this one
+    // if we undo sdUndoToLine calls, then the last entry in the tableWidgetCurrentSequence is the one to modify
+    int rowCount = ui->tableWidgetCurrentSequence->rowCount();
+//    qDebug() << "rowCount: " << rowCount;
+    int itemNumberToModify = rowCount - sdUndoToLine;
+    QString item = ui->tableWidgetCurrentSequence->item(itemNumberToModify,0)->text();
+//    qDebug() << "item number/item: " << itemNumberToModify << item;
+
+    QString modifiedItem;
+
+    // ASK THE USER FOR THE NEW COMMENT
+    RecursionGuard dialog_guard(inPreferencesDialog);
+    trapKeypresses = false;
+
+    AddCommentDialog *dialog = new AddCommentDialog();
+    dialog->populateFields(item);
+    int dialogCode = dialog->exec();
+    trapKeypresses = true;
+//    RecursionGuard keypress_guard(trapKeypresses);
+    QString newComment;
+    if (dialogCode == QDialog::Accepted)
+    {
+        newComment = dialog->getComment();
+//        qDebug() << "new comment is: " << newComment;
+        modifiedItem = item + " ( " + newComment + " )";
+    } else {
+//        qDebug() << "USER CANCELLED.";
+        return; // user clicked CANCEL
+    }
+    delete dialog;
+    dialog = nullptr;
+
+//    qDebug() <<  "newComment: " << newComment;
+
+//    qDebug() << "modifiedItem: " << modifiedItem;
+    QStringList modifiedCalls = theExistingCalls;
+    modifiedCalls[itemNumberToModify] = modifiedItem;
+//    qDebug() << "modified list of calls: " << modifiedCalls;
+
+    // Now just replace the current sequence with this one!
+    on_actionSDSquareYourSets_triggered();      // init everything
+    ui->tableWidgetCurrentSequence->clear();    // clear the current sequence pane
+    selectFirstItemOnLoad = true;              // when the resetAndExecute is done, do NOT select the first item in the sequence
+    sdthread->resetAndExecute(modifiedCalls);        // DO IT
+//    ui->tableWidgetCurrentSequence->setFocus();
+}
+
+void MainWindow::delete_comments_from_tableWidgetCurrentSequence() {
+//    qDebug() << "delete_comments_from_tableWidgetCurrentSequence() called";
+
+    // get all existing calls -----
+    QStringList theExistingCalls;
+    for (int row = 0; row < ui->tableWidgetCurrentSequence->rowCount(); ++row)
+    {
+        QTableWidgetItem *item = ui->tableWidgetCurrentSequence->item(row,0);
+        theExistingCalls << item->text();
+    }
+
+//    qDebug() << "theExistingCalls: " << theExistingCalls;
+//    qDebug() << "sdUndoToLine: " << sdUndoToLine; // number of calls to undo to get to this one
+    // if we undo sdUndoToLine calls, then the last entry in the tableWidgetCurrentSequence is the one to modify
+    int rowCount = ui->tableWidgetCurrentSequence->rowCount();
+//    qDebug() << "rowCount: " << rowCount;
+    int itemNumberToModify = rowCount - sdUndoToLine;
+    QString item = ui->tableWidgetCurrentSequence->item(itemNumberToModify,0)->text();
+//    qDebug() << "item number/item: " << itemNumberToModify << item;
+    static QRegularExpression comments2("\\(.*\\)");
+    QString modifiedItem = item.replace(comments2, ""); // delete the comment
+//    qDebug() << "modifiedItem: " << modifiedItem;
+    QStringList modifiedCalls = theExistingCalls;
+    modifiedCalls[itemNumberToModify] = modifiedItem;
+//    qDebug() << "modified list of calls: " << modifiedCalls;
+
+    // Now just replace the current sequence with this one!
+    on_actionSDSquareYourSets_triggered();      // init everything
+    ui->tableWidgetCurrentSequence->clear();    // clear the current sequence pane
+    selectFirstItemOnLoad = false;              // when the resetAndExecute is done, do NOT select the first item in the sequence
+    sdthread->resetAndExecute(modifiedCalls);        // DO IT
+
+}
+
 void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
 {
     bool copyAllRows(prefsManager.GetSDCallListCopyOptions() == 1);
@@ -2935,11 +3030,18 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     int rowToToggle = ui->tableWidgetCurrentSequence->rowCount() - sdUndoToLine;
 //    qDebug() << "RowToToggle: " << rowToToggle;
 
+    static QRegularExpression regex_comment("\\(.*\\)");
+    bool hasComment = false;
+
     if (rowToToggle != -1) { // if it's -1, we're not on a row that has a call
         QString callToToggle = ui->tableWidgetCurrentSequence->item(rowToToggle,0)->text().simplified().toLower();
         callToToggle = callToToggle.replace(who, "").simplified(); // remove the WHO at the front of the call (and collapse whitespace)
+        QString beforeCommentReplacement = callToToggle; // WHO has been removed
 
-        QString camelCall = toCamelCase(callToToggle);
+        QString callToToggleNoComments = callToToggle.replace(regex_comment, ""); // now COMMENT has been removed
+        hasComment = (callToToggle != beforeCommentReplacement); // if they are different, it must have had a comment
+
+        QString camelCall = toCamelCase(callToToggleNoComments);
 
         QString contextMenuItemText("Toggle Highlighting of '");  // something like "Toggle Highlighting of 'Square Thru'"
         contextMenuItemText += camelCall + "'";
@@ -2947,6 +3049,19 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 //        qDebug() << "contextMenuItemText: " << contextMenuItemText;
         actionA.setText(contextMenuItemText);  // override the default generic text with specific call to highlight
     }
+
+    contextMenu.addSeparator(); // ---------------
+    bool inSDEditMode = ui->lineEditSDInput->isVisible(); // if we're in UNLOCK/EDIT mode, can do Add/Delete Comments
+
+    QAction action100("Add Comment", this);
+    connect(&action100, SIGNAL(triggered()), this, SLOT(add_comment_to_tableWidgetCurrentSequence()));
+    action100.setEnabled((rowToToggle != -1) && !hasComment && inSDEditMode);  // if has a comment, can't add another one
+    contextMenu.addAction(&action100);
+
+    QAction action101("Delete Comment", this);
+    connect(&action101, SIGNAL(triggered()), this, SLOT(delete_comments_from_tableWidgetCurrentSequence()));
+    action101.setEnabled((rowToToggle != -1) && hasComment && inSDEditMode);  // if has no comments, can't delete comments
+    contextMenu.addAction(&action101);
 
     contextMenu.addSeparator(); // ---------------
 
@@ -3443,6 +3558,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
 
 //    qDebug() << "handleSDFunctionKey(" << key << ")" << shiftDown;
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
+//        qDebug() << "Returning because: " << inPreferencesDialog << !trapKeypresses << (prefDialog != nullptr);
         return false;
     }
 //    qDebug() << "YES: handleSDFunctionKey(" << key << ")";

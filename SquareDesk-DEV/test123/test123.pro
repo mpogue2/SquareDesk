@@ -50,6 +50,7 @@ DEFINES += QT_QML_DEBUG_NO_WARNING
 
 SOURCES += main.cpp\
 #    AppleMusicLibraryXMLReader.cpp \  # no longer need this
+    addcommentdialog.cpp \
     audiodecoder.cpp \
     flexible_audio.cpp \
 #    bass_audio.cpp \  # this is now #include'd by flexible_audio.cpp on non-M1-based Macs
@@ -124,6 +125,7 @@ QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@
 
 HEADERS  += mainwindow.h \
 #    ../miniBPM/MiniBpm.h \
+    addcommentdialog.h \
     audiodecoder.h \
     flexible_audio.h \
     miniBPM/MiniBpm.h \
@@ -201,6 +203,7 @@ INCLUDEPATH += $$PWD/../qpdfjs
 }
 
 FORMS    += mainwindow.ui \
+    addcommentdialog.ui \
     importdialog.ui \
     exportdialog.ui \
     songhistoryexportdialog.ui \
