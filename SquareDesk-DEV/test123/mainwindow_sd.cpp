@@ -1015,7 +1015,7 @@ QString toCamelCase(const QString& s)
     return s3;
 }
 
-static QRegularExpression who("^(Center Box|Center Lady|That Boy|That Girl|Those Girls|Those Boys|Points|On Each Side|Center Line Of 4|New Outsides|Each Wave|Outside Boys|Lines Of 3 Boys|Side Boys|Side Ladies|Out-Facing Girls|Line Of 8|Line Of 3|Lead Boy|Lead Girl|Lead Boys|Just The Boys|Heads In Your Box|Sides In Your Box|All Four Ladies|Four Ladies|Four Girls|Four Boys|Center Girls|Center Four|All 8|Both|Side Position|Same Girl|Couples 1 and 2|Head Men and Corner|Outer 4|Outer 6|Couples|New Couples 1 and 3|New Couples 1 and 4|Couples 1 & 2|Ladies|Head Man|Head Men|Lead Couple|Men|Those Who Can|New Ends|End Ladies|Other Ladies|Lines Of 3|Waves Of 3|All 4 Girls|All 4 Ladies|Each Side Boys|Those Boys|Each Side Centers|Center 4|Center 6|Center Boys|Center Couples|Center Diamond|Center Boy|Center Girl|Center Wave|Center Line|All Eight|Other Boy|Other Girl|Centers Only|Ends Only|Outside Boy|All The Boys|All The Girls|Centers|Ends|All 8|Boys Only|Girls Only|Boys|Girls|Heads|Sides|All|New Centers|Wave Of 6|Others|Outsides|Leaders|Side Boy|4 Girls|4 Ladies|Very Center Boy|Very Center Boys|Very End Boys|Very Centers|Very Center Girls|Those Facing|Those Boys|Head Position|Head Boys|Head Ladies|End Boy|End Girl|Everybody|Each Side|4 Boys|4 Girls|Same 4)",
+static QRegularExpression who("(Center Box |Center Lady |That Boy |That Girl |Those Girls |Those Boys |Points |On Each Side |Center Line Of 4 |New Outsides |Each Wave |Outside Boys |Lines Of 3 Boys |Side Boys |Side Ladies |Out-Facing Girls |Line Of 8 |Line Of 3 |Lead Boy |Lead Girl |Lead Boys |Just The Boys |Heads In Your Box |Sides In Your Box |All Four Ladies |Four Ladies |Four Girls |Four Boys |Center Girls |Center Four |All 8 |Both |Side Position |Same Girl |Couples 1 and 2 |Head Men and Corner |Outer 4 |Outer 6 |Couples |New Couples 1 and 3 |New Couples 1 and 4 |Couples 1 & 2 |Ladies |Head Man |Head Men |Lead Couple |Men |Those Who Can |New Ends |End Ladies |Other Ladies |Lines Of 3 |Waves Of 3 |All 4 Girls |All 4 Ladies |Each Side Boys |Those Boys |Each Side Centers |Center 4 |Center 6 |Center Boys |Center Couples |Center Diamond |Center Boy |Center Girl |Center Wave |Center Line |All Eight |Other Boy |Other Girl |Centers Only |Ends Only |Outside Boy |All The Boys |All The Girls |Centers |Ends |All 8 |Boys Only |Girls Only |Boys |Girls |Heads |Sides |All |New Centers |Wave Of 6 |Others |Outsides |Leaders |Side Boy |4 Girls |4 Ladies |Very Center Boy |Very Center Boys |Very End Boys |Very Centers |Very Center Girls |Those Facing |Those Boys |Head Position |Head Boys |Head Ladies |End Boy |End Girl |Everybody |Each Side |4 Boys |4 Girls |Same 4 )",
                               QRegularExpression::CaseInsensitiveOption);
 
 QString MainWindow::upperCaseWHO(QString call) {
@@ -1033,51 +1033,7 @@ QString MainWindow::upperCaseWHO(QString call) {
 }
 
 QString MainWindow::prettify(QString call) {
-//    QString call1 = toCamelCase(call);  // HEADS square thru 4 --> Heads Square Thru 4
-    QString call1 = call;
-
-//    qDebug() << "prettify: " << call;
-
-    // SUFFIX-AS-PREFIX COMMENTS
-    // SDCOMMENTS: Turn "(| suffix comment |) call" back to "call ( suffix comment )" for presentation to the user
-    static QRegularExpression suffixAsPrefixComment("^[\\(\\{]\\s*\\|(.*)\\|\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
-    QRegularExpressionMatch matchSAPC = suffixAsPrefixComment.match(call1);
-    if (matchSAPC.hasMatch()) {
-        QString theSAPC = matchSAPC.captured(1).simplified(); // and trim whitespace
-        QString theCall = matchSAPC.captured(2).simplified(); // and trim whitespace
-//        qDebug() << "prettify: SUFFIX AS PREFIX COMMENT: " << theSAPC << theCall;
-
-        // now display it as a suffix comment again, NOTE: just the CALL portion is camelCase'd and upperCaseWHO'd
-        call1 = upperCaseWHO(toCamelCase(theCall)) + " ( " + theSAPC + " )";  // curly braces to parens replacement already done here
-    } else {
-        // PREFIX COMMENTS (must come AFTER the SUFFIX-AS-PREFIX COMMENTS processing, because SAP is a type of Prefix comment)
-        // SDCOMMENTS: Process prefix comments separately for presentation to the user
-        static QRegularExpression prefixComment("^[\\(\\{]\\s*(.*)\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
-        QRegularExpressionMatch matchPC = prefixComment.match(call1);
-        if (matchPC.hasMatch()) {
-            QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
-            QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
-//            qDebug() << "prettify: PREFIX COMMENT: " << thePC << theCall;
-
-            // now display it as a prefix comment again, NOTE: just the CALL portion is camelCase'd and upperCaseWHO'd
-            call1 = "( " + thePC + " ) " + upperCaseWHO(toCamelCase(theCall));  // curly braces to parens replacement already done here
-        } else {
-            // there were NO prefix comments, so just operate on the whole call
-            call1 = upperCaseWHO(toCamelCase(call1));
-        }
-    }
-
-    // By the time we are here, the suffix-as-prefix comments have been turned back to suffix comments,
-    //  the call has been camelCase'd and WHO uppercased, and the comment has not.
-
-    // SDCOMMENTS: Change SD comments (curly braces) to CSDS Online standard comments (parens) for presentation to the user
-#ifndef darkgreencomments
-    call1.replace('{', '(').replace('}', ')'); // replace parens
-#else
-    call1.replace('{', "<span style=\"color:darkgreen;\">(").replace('}', ")</span>");
-#endif
-
-    return(call1);
+    return(SDOutputToUserOutput(call));
 }
 
 void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
@@ -1221,52 +1177,6 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
                 QString theCall = match.captured(2);
                 QString thePrettifiedCall = prettify(theCall);
 
-//                // SDCOMMENTS: lines sent back from SD, we are loading items into the currentSequence pane ====================
-//                // Example (incoming from file):
-//                // ( 'this is a single line comment' )
-//                // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
-//                static QRegularExpression singleLineComment4("^[\\(\\{]\\s*'(.*)'\\s*[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
-//                QRegularExpressionMatch matchSLC4 = singleLineComment4.match(thePrettifiedCall);
-//                if (matchSLC4.hasMatch()) {
-//                    QString theSLC4 = matchSLC4.captured(1).simplified(); // and trim whitespace from single line comment
-//                    qDebug() << "SINGLE LINE COMMENT4: " << theSLC4;
-
-//                    // stick it into the currentSequence table
-//                    QTableWidgetItem *singleLineCommentItem4(new QTableWidgetItem(QString("( ") + theSLC4 + " )")); // no single quotes shown to user
-//                    singleLineCommentItem4->setFlags(singleLineCommentItem4->flags() & ~Qt::ItemIsEditable);
-//                    qDebug() << "SETTING IT TO 1: " << singleLineCommentItem4->text() << sdLastLine;
-//                    ui->tableWidgetCurrentSequence->setRowCount(ui->tableWidgetCurrentSequence->rowCount() + 1);
-//                    qDebug() << "Bumped up to: " << ui->tableWidgetCurrentSequence->rowCount();
-
-//                            // give us one extra, because the SD code always throws away the last line when it waits for input, assuming that the last line was blank.
-//                    ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, singleLineCommentItem4);
-//                    //return; // nothing else to process
-//                    // intentionally drop through to process the rest of the line, which might have a prefix comment on it
-//                }
-
-//                // SDCOMMENTS: lines sent back from SD, we are loading items into the currentSequence pane ====================
-//                // Example (incoming from file):
-//                // ( 'this is a single line comment' ) Square Thru
-//                // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
-//                static QRegularExpression singleLineComment2("^[\\(\\{]\\s*'(.*)'\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
-//                QRegularExpressionMatch matchSLC2 = singleLineComment2.match(thePrettifiedCall);
-//                if (matchSLC2.hasMatch()) {
-//                    QString theSLC2 = matchSLC2.captured(1).simplified(); // and trim whitespace from single line comment
-//                    QString theRestOfTheLine = matchSLC2.captured(2).simplified(); // and trim whitespace from the rest of the line
-//                    qDebug() << "SINGLE LINE COMMENT3: " << theSLC2 << theRestOfTheLine;
-
-//                    // stick it into the currentSequence table
-//                    QTableWidgetItem *singleLineCommentItem(new QTableWidgetItem(QString("( ") + theSLC2 + " )")); // no single quotes shown to user
-//                    singleLineCommentItem->setFlags(singleLineCommentItem->flags() & ~Qt::ItemIsEditable);
-//                    qDebug() << "SETTING IT TO 2: " << singleLineCommentItem->text() << sdLastLine << sdLastLineOffset;
-//                    ui->tableWidgetCurrentSequence->setItem(sdLastLine - 1, kColCurrentSequenceCall, singleLineCommentItem);
-//                    sdLastLineOffset++;  // we're sticking in the SLC, so we need to bump up for the call itself coming in next
-
-//                    thePrettifiedCall = theRestOfTheLine; // delete the SLC from the front end, process the next as normal
-//                    // intentionally drop through to process the rest of the line, which might have a prefix comment on it
-//                }
-                // =============================================================================================================
-//                qDebug() << "dropped through..." << thePrettifiedCall;
 #ifndef darkgreencomments
                 QString lcPrettifiedCall = thePrettifiedCall.toLower();
                 bool containsHighlightedCall = false;
@@ -1805,6 +1715,8 @@ void MainWindow::on_lineEditSDInput_returnPressed()
 // ================================================================================================
 void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall) // s defaults to "", firstCall default to 0
 {
+    // SDCOMMENTS: INPUT SIDE OF COMMENT HANDLING ========================================
+
 //    qDebug() << "submit_lineEditSDInput_contents_to_sd: " << s;
     QString cmd;
     if (s.isEmpty()) {
@@ -1815,87 +1727,60 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
         cmd = s;
     }
 
-    // NO.  toLower will be done farther down, after comment processing, so as not to lowercase the comments
-//    cmd = cmd.toLower(); // on input, convert everything to lower case, to make it easier for the user
-
-
 //    qDebug() << "original cmd: " << cmd << ", firstCall = " << firstCall;
 
     ui->lineEditSDInput->clear();
 
-    // SDCOMMENTS: INPUT SIDE OF COMMENT HANDLING ========================================
+//    // SUFFIX COMMENTS --------------------------
+//    // Example:
+//    // Square Thru ( this is a suffix comment )
 
-//    // SINGLE LINE COMMENTS ---------------------
-//    // Example (incoming from user):
-//    // ( this is a single line comment )
-//    // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
-//    static QRegularExpression singleLineComment("^\\((.*)\\)$"); // with capture of the comment (not including the parens)
-//    QRegularExpressionMatch matchSLC = singleLineComment.match(cmd);
-//    if (matchSLC.hasMatch()) {
-//        QString theSLC = matchSLC.captured(1).simplified(); // and trim whitespace
-//        qDebug() << "SINGLE LINE COMMENT: " << theSLC;
+//    static QRegularExpression suffixComment("([/a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+//    // must not match single line comments
+//    QRegularExpressionMatch matchSC = suffixComment.match(cmd);
+//    if (matchSC.hasMatch()) {
+//        QString theSC    = matchSC.captured(2).simplified(); // and trim whitespace
+//        QString theCall1 = matchSC.captured(1).simplified(); // and trim whitespace
+////        qDebug() << "SUFFIX COMMENT DETECTED: " << cmd << theSC << theCall1;
 
-//        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
-//        sdthread->do_user_input(QString("'") + theSLC + "'");  // with single quotes (meaning: single line comment)
+//        // modify cmd to reverse, and use vertical bars to delimit, that is: suffix-as-prefix comment (with vertical bars)
+//        cmd = QString("(|") + theSC + "|) " + theCall1; // reverse to "(|suffix comment|) call" == a type of prefix comment
 
-//        return;  // do NOT submit any single line comments to SD
+////        qDebug() << "submit_lineEditSDInput_contents_to_sd SUFFIX COMMENT: " << theSC << theCall1 << cmd;
 //    }
 
-//    // Example (incoming from file)
-//    // ( 'this is a single line comment' ) Square Thru
+//    // PREFIX COMMENTS --------------------------
+//    // Example:
+//    // ( this is a prefix comment ) Square Thru
+
 //    // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
-//    static QRegularExpression singleLineComment2("^[\\(\\{]\\s*'(.*)'\\s*[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
-//    QRegularExpressionMatch matchSLC2 = singleLineComment2.match(cmd);
-//    if (matchSLC2.hasMatch()) {
-//        QString theSLC2 = matchSLC2.captured(1).simplified(); // and trim whitespace from single line comment
-//        QString theRestOfTheLine = matchSLC2.captured(2).simplified(); // and trim whitespace from the rest of the line
-//        qDebug() << "SINGLE LINE COMMENT2: " << theSLC2 << theRestOfTheLine;
+//    static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+//    QRegularExpressionMatch matchPC = prefixComment.match(cmd);
+//    if (matchPC.hasMatch()) {
+//        QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
+//        QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
+////        qDebug() << "submit_lineEditSDInput_contents_to_sd PREFIX COMMENT: " << thePC << theCall;
 
 //        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
-//        sdthread->do_user_input(QString("'") + theSLC2 + "'");  // with single quotes (meaning: single line comment)
+//        sdthread->do_user_input(thePC);
 
-//        cmd = theRestOfTheLine;
-//        // intentionally drop through to process the rest of the line, which might have a prefix comment on it
+//        cmd = theCall;  // and then send the call itself
 //    }
 
-    // SUFFIX COMMENTS --------------------------
-    // Example:
-    // Square Thru ( this is a suffix comment )
+//    // TODO:
+//    // IDEA: Perhaps SINGLE LINE comments should be encoded as ( SINGLE LINE COMMENT ) nullcall
 
-    static QRegularExpression suffixComment("([/a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
-    // must not match single line comments
-    QRegularExpressionMatch matchSC = suffixComment.match(cmd);
-    if (matchSC.hasMatch()) {
-        QString theSC    = matchSC.captured(2).simplified(); // and trim whitespace
-        QString theCall1 = matchSC.captured(1).simplified(); // and trim whitespace
-//        qDebug() << "SUFFIX COMMENT DETECTED: " << cmd << theSC << theCall1;
 
-        // modify cmd to reverse, and use vertical bars to delimit, that is: suffix-as-prefix comment (with vertical bars)
-        cmd = QString("(|") + theSC + "|) " + theCall1; // reverse to "(|suffix comment|) call" == a type of prefix comment
+    QStringList todo = UserInputToSDCommand(cmd); // returns either 1 (call) or 2 items (entire user input, call)
 
-//        qDebug() << "submit_lineEditSDInput_contents_to_sd SUFFIX COMMENT: " << theSC << theCall1 << cmd;
+    if (todo.count() == 2) {
+//        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
+//        sdthread->do_user_input(todo[0]); // first item was the entire thing the user typed, including comments
+
+        cmd = todo[1];  // and then send the call itself
+    } else {
+        cmd = todo[0];  // possibly cleaned up user input line
     }
-
-    // PREFIX COMMENTS --------------------------
-    // Example:
-    // ( this is a prefix comment ) Square Thru
-
-    // BUG: cannot put a comment on the very first line, because it's waiting for HEADS/SIDES START
-    static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
-    QRegularExpressionMatch matchPC = prefixComment.match(cmd);
-    if (matchPC.hasMatch()) {
-        QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
-        QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
-//        qDebug() << "submit_lineEditSDInput_contents_to_sd PREFIX COMMENT: " << thePC << theCall;
-
-        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
-        sdthread->do_user_input(thePC);
-
-        cmd = theCall;  // and then send the call itself
-    }
-
-    // TODO:
-    // IDEA: Perhaps SINGLE LINE comments should be encoded as ( SINGLE LINE COMMENT ) nullcall
 
     cmd = cmd.toLower();  // JUST THE CALL portion is lower-cased
 
@@ -2118,16 +2003,25 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
             if (cmd.startsWith("heads ")) {
 //                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: heads start";
                 sdthread->do_user_input("heads start");
-//                qDebug() << "doing HEADS START";
                 cmd.replace("heads ", "");
             } else if (cmd.startsWith("sides")) {
 //                qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: sides start";
                 sdthread->do_user_input("sides start");
-//                qDebug() << "doing SIDES START";
                 cmd.replace("sides ", "");
             }
         }
 //        qDebug() << "ready to call do_user_input in submit_lineEditSDInput_contents_to_sd with: " << cmd;
+
+        if (todo.count() == 2) {
+            // if first call is "HEADS ( foo ) Square Thru"
+            // we will do:
+            // heads start
+            // insert a comment
+            // "HEADS ( Foo ) Square Thru"
+            // square thru 4
+            sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
+            sdthread->do_user_input(todo[0]); // first item was the entire thing the user typed, including comments
+        }
 
         if (cmd.isEmpty()) {
             // nothing to submit, e.g. was a single-line comment like "( NEW SEQUENCE )"
@@ -4101,7 +3995,8 @@ void MainWindow::SDReplaceCurrentSequence() {
 
                 QString resolve = ui->label_SD_Resolve->text().simplified();
 //                qDebug() << "REPLACE (RESOLVE TEXT): " << resolve;
-                if (resolve != "") {
+                if (resolve != "" && resolve != "(no matches)" && resolve != "SUBSIDIARY CALL") {
+                    // TODO: really should write out the LAST KNOWN RESOLVE rather than just suppressing "(no matches)"
                     outFile << "( " << resolve << " )\n";  // write a comment with the resolve, if it's not NULL
                 }
             }
@@ -4974,7 +4869,10 @@ void MainWindow::toggleHighlight() {
     }
 
     QString callToToggle = ui->tableWidgetCurrentSequence->item(rowToToggle,0)->text().simplified().toLower();
-    callToToggle = callToToggle.replace(who, "").simplified(); // remove the WHO at the front of the call (and collapse whitespace)
+    static QRegularExpression userComment("\\(.*\\)");  // user typed comment, e.g. "( foo )"
+    callToToggle = callToToggle.replace(who, "").replace(userComment, "").simplified(); // remove the WHO at the front of the call and the optional comment (and collapse whitespace)
+
+//    qDebug() << "TOGGLING: " << callToToggle;
 
     if (highlightedCalls.contains(callToToggle)) {
       // remove it from the list
@@ -5022,4 +4920,151 @@ void MainWindow::refreshHighlights() {
 
     ui->lineEditSDInput->setFocus(); // move the focus to the input field, so that all highlights are visible
     // right now, if an item is selected, its foreground color is forced to WHITE.
+}
+
+// ---------------------------------------------------------------------------------------------------
+// translates a user command to either 1 (if no comments) or 2 (if comments) strings
+//   if 2, then first is user input line cleaned up, second is the call
+QStringList MainWindow::UserInputToSDCommand(QString userInputString) {
+//    qDebug() << "UserInputToSDCommand input: " << userInputString;
+
+    QStringList outList;
+
+    // SUFFIX COMMENTS --------------------------
+    // Example:
+    // Square Thru ( this is a suffix comment )
+
+    static QRegularExpression suffixComment("([/a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
+    // must not match single line comments
+    QRegularExpressionMatch matchSC = suffixComment.match(userInputString);
+
+    if (matchSC.hasMatch()) {
+        QString theSC   = matchSC.captured(2).simplified(); // and trim whitespace
+        QString theCall = matchSC.captured(1).simplified(); // and trim whitespace
+
+        outList << QString("|" + theSC + "|"); // suffix comments are coded as prefix comments with vertical bars
+        outList << theCall;   // the call with suffix comments removed
+
+        return (outList);
+    }
+
+    // PREFIX COMMENTS --------------------------
+    // Example:
+    // ( this is a prefix comment ) Square Thru
+    static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+    QRegularExpressionMatch matchPC = prefixComment.match(userInputString);
+
+    if (matchPC.hasMatch()) {
+        QString thePC   = matchPC.captured(1).simplified(); // and trim whitespace
+        QString theCall = matchPC.captured(2).simplified(); // and trim whitespace
+
+        outList << thePC;   // prefix comments are sent to SD as normal prefix comments
+        outList << theCall; // the call with prefix comments removed
+
+        return (outList);
+    }
+
+    // TODO: prefix-suffix comment ---------------
+    // Example:
+    // ( prefix ) call ( suffix )
+    // this could be encoded into a single prefix comment for SD, and restored on the other end
+
+    // TODO: single-line comments ----------------
+    // Example:
+    // ( this is a singleline comment )
+
+    // NO COMMENTS AT ALL ------------------------
+    outList << userInputString;
+
+    return (outList);
+
+}
+
+// translates an SD output string to a string to be presented to the user in the Current Sequence table
+QString MainWindow::SDOutputToUserOutput(QString SDoutputString) {
+//    qDebug() << "===============================";
+//    qDebug() << "SDOutputToUserOutput input: " << SDoutputString;
+
+    static QRegularExpression sdCommentAndCall("(.*)\\s*\\{(.*)\\}\\s+(.*)");  // capture the SD prefix comment and call
+    // note: 2 cases
+    //   1. { comment } call
+    //   2. HEADS { comment } call
+
+    QString theWHO;
+    QString theComment;
+    QString theCall;
+
+    QRegularExpressionMatch matchSDcomment = sdCommentAndCall.match(SDoutputString);
+    if (matchSDcomment.hasMatch()) {
+        theWHO     = matchSDcomment.captured(1);
+        theComment = matchSDcomment.captured(2);
+        theCall    = matchSDcomment.captured(3);
+    } else {
+        theWHO     = "";
+        theComment = "";
+        theCall    = SDoutputString;
+    }
+
+    QString finalUserVisibleResult;
+    theCall    = upperCaseWHO(toCamelCase(theWHO + theCall)).simplified();
+
+    if (theComment.contains("|")) {
+        // SUFFIX COMMENT
+        theComment = theComment.replace("|","").simplified(); // replace all
+        finalUserVisibleResult = theCall + " (" + theComment + ")";
+    } else if (theComment != "") {
+        // PREFIX COMMENT
+        finalUserVisibleResult = "(" + theComment.simplified() + ") " + theCall;
+    } else {
+        // NO COMMENT AT ALL
+        finalUserVisibleResult = theCall;
+    }
+
+//    qDebug() << "SDOutputToUserOutput output:" << finalUserVisibleResult;
+    return finalUserVisibleResult;
+}
+
+void MainWindow::sdtest() {
+#ifdef NEWCOMMENTS
+//    QStringList list1 = {"Square Thru 4",
+//                         "( prefix comment ) Square Thru 4",
+//                         "Square  ( infix comment ) Thru 4",
+//                         "Square Thru 4 ( suffix comment )",
+//                         "( comment1 ) Square ( comment 2 ) Thru (comment 3) 4 ( comment 4)",
+//                         "Swing Thru"};
+//    UserInputToSDCommand(list1);
+//    qDebug() << "-------------";
+//    UserInputToSDCommand(QStringList("HEADS Square Thru 4"));
+//    UserInputToSDCommand(QStringList("( prefix comment ) HEADS Square Thru 4"));
+//    UserInputToSDCommand(QStringList("HEADS Square  ( infix comment ) Thru 4"));
+//    UserInputToSDCommand(QStringList("HEADS Square Thru 4 ( suffix comment )"));
+//    UserInputToSDCommand(QStringList("( comment1 ) Square ( comment 2 ) Thru (comment 3) 4 ( comment 4)"));
+//    qDebug() << "-------------";
+//    UserInputToSDCommand(QStringList("HEADS Square Thru 4"), true);
+//    UserInputToSDCommand(QStringList("( prefix comment ) HEADS Square Thru 4"), true);
+//    UserInputToSDCommand(QStringList("HEADS Square  ( infix comment ) Thru 4"), true);
+//    UserInputToSDCommand(QStringList("HEADS Square Thru 4 ( suffix comment )"), true);
+//    UserInputToSDCommand(QStringList("( comment1 ) Square ( comment 2 ) Thru (comment 3) 4 ( comment 4)"), true);
+//    QStringList list2 = {
+//                         "( comment1 ) HEADS Square ( comment 2 ) Thru (comment 3) 4 ( comment 4)",
+//                         "Heads Square Thru 4",
+//                         "( prefix comment ) Square Thru 4",
+//                         "heads Square  ( infix comment ) Thru 4",
+//                         "Sides Square Thru 4 ( suffix comment )",
+//                         "Sides Swing Thru"};
+//    UserInputToSDCommand(list2, true);
+//    qDebug() << "-------------";
+//    SDOutputToUserOutput(QStringList("square thru 4"));
+//    SDOutputToUserOutput(QStringList("{ ( comment1 ) heads Square ( comment 2 ) Thru (comment 3) 4 ( comment 4) } heads square thru 4"));
+//    SDOutputToUserOutput(QStringList("heads square thru 4"));
+//    SDOutputToUserOutput(QStringList("{ ( comment1 ) sides Square ( comment 2 ) Thru (comment 3) 4 ( comment 4) } heads square thru 4"));
+//    QStringList list3 = {
+//                         "{( comment1 ) HEADS Square ( comment 2 ) Thru (comment 3) 4 ( comment 4)} heads square thru 4",
+//                         "Heads Square Thru 4",
+//                         "{( prefix comment ) Square Thru 4} square thru 4",
+//                         "{heads Square  ( infix comment ) Thru 4} heads square thru 4",
+//                         "{Sides Square Thru 4 ( suffix comment )} sides square thru 4",
+//                         "Sides Swing Thru"};
+//    SDOutputToUserOutput(list3);
+#endif
 }

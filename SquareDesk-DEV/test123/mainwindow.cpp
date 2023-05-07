@@ -328,6 +328,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+//    sdtest();
+
     cBass = new flexible_audio();
     //Q_UNUSED(splash)
     longSongTableOperationCount = 0;  // initialize counter to zero (unblocked)

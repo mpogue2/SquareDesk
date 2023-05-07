@@ -576,6 +576,10 @@ private slots:
     void clearHighlights();
     void refreshHighlights();
 
+    QStringList UserInputToSDCommand(QString userInputString); // returns 1 or 3 items
+    QString     SDOutputToUserOutput(QString sdOutputString);
+    void sdtest();
+
     void undo_sd_to_row();
     void undo_last_sd_action();
     void redo_last_sd_action();
