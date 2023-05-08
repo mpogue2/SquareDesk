@@ -3359,6 +3359,13 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                     currentSequenceAuthor = line;
                 }
                 continue;
+            } else if (line.startsWith("#TITLE=")) {
+                if (frameVisible[i] == "central") {
+                    // if this is the central frame, then remember the TITLE
+                    line = line.replace("#TITLE=", "").replace("#", "");  // #TITLE=<string># --> <string>
+                    currentSequenceTitle = line;
+                }
+                continue;
             } else if (line.startsWith("#HIGHLIGHT=")) {
                 if (frameVisible[i] == "central") {
                     // if this is the central frame, then remember the HIGHLIGHT
@@ -3413,6 +3420,15 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
             // clear the current sequence pane; if NEW, then nothing will be added, else EXISTING then add via SD
 //            qDebug() << "Clearing CENTRAL sequence pane.";
             ui->tableWidgetCurrentSequence->clear();
+
+            currentSequenceTitle = currentSequenceTitle.replace("%%%", "#"); // # is a comment delimiter, so we have to escape it here
+//            qDebug() << "loadFrame TITLE: " << currentSequenceTitle;
+            ui->sdCurrentSequenceTitle->setText(currentSequenceTitle);
+            ui->sdCurrentSequenceTitle->setVisible(currentSequenceTitle != "" || ui->lineEditSDInput->isVisible());
+
+//            ui->sdCurrentSequenceTitle->setText(QString("<html><head/><body><p><span style=\" font-weight:700; color:#ff0000;\">%1</span></p></body></html>").arg(currentSequenceTitle));
+
+            currentSequenceTitle = ""; // start afresh each time
         }
 
         if (callList.length() != 0) {
@@ -3649,6 +3665,16 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->lineEditSDInput->setVisible(true);
     ui->lineEditSDInput->setFocus();
 
+    ui->sdCurrentSequenceTitle->setVisible(true);
+    ui->sdCurrentSequenceTitle->setFrame(true);
+    ui->sdCurrentSequenceTitle->setReadOnly(false);
+    ui->sdCurrentSequenceTitle->setPlaceholderText("Sequence Title");
+    ui->sdCurrentSequenceTitle->setFocusPolicy(Qt::ClickFocus); // NOT TabFocus
+
+    QPalette palette = ui->sdCurrentSequenceTitle->palette();
+    palette.setColor(QPalette::Base, QColor(255,255,255)); // back to original color (Mac)
+    ui->sdCurrentSequenceTitle->setPalette(palette);
+
     ui->warningLabelSD->setVisible(false);
     ui->label_SD_Resolve->setVisible(true);
 
@@ -3669,6 +3695,16 @@ void MainWindow::SDExitEditMode() {
     ui->pushButtonSDMove->setVisible(true);  // arrange menu
     ui->pushButtonSDDelete->setVisible(true);
     ui->pushButtonSDRevert->setVisible(false);
+
+    ui->sdCurrentSequenceTitle->setVisible(ui->sdCurrentSequenceTitle->text() != "");
+    ui->sdCurrentSequenceTitle->setFrame(false);
+    ui->sdCurrentSequenceTitle->setReadOnly(true);
+    ui->sdCurrentSequenceTitle->setPlaceholderText("");
+    ui->sdCurrentSequenceTitle->setFocusPolicy(Qt::NoFocus);
+
+    QPalette palette = ui->sdCurrentSequenceTitle->palette();
+    palette.setColor(QPalette::Base, QColor(227,227,227));   // background to "not there" (Mac)
+    ui->sdCurrentSequenceTitle->setPalette(palette);
 
     ui->lineEditSDInput->setVisible(false);
     ui->tableWidgetCurrentSequence->setFocus();
@@ -3875,6 +3911,10 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
 
         stream << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";    // remember what was highlighted in "central"
 
+        if (ui->sdCurrentSequenceTitle->text() != "") {
+            stream << "#TITLE=" << ui->sdCurrentSequenceTitle->text().replace("#", "%%%") << "#\n";    // Use the new title string here, and escape "#"
+        }
+
         for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
             // SDCOMMENTS: APPEND, WRITE OUT TO FILE
 //            qDebug() << "APPENDING: " << ui->tableWidgetCurrentSequence->item(i, 0)->text();
@@ -3973,6 +4013,10 @@ void MainWindow::SDReplaceCurrentSequence() {
                 outFile << "#AUTHOR=" << authorID << "#\n";    // Use the new author here
 
                 outFile << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";
+
+                if (ui->sdCurrentSequenceTitle->text() != "") {
+                    outFile << "#TITLE=" << ui->sdCurrentSequenceTitle->text().replace("#", "%%%") << "#\n";    // Use the new title string here and escape "#"
+                }
 
                 if (ui->tableWidgetCurrentSequence->rowCount() >= 1) {
                     for (int i = 0; i < ui->tableWidgetCurrentSequence->rowCount(); i++) {
@@ -4185,6 +4229,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
         writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
         stream << "#AUTHOR=" << authorID << "#\n";
         stream << "#HIGHLIGHT=#\n"; // nothing highlighted right now
+        // NO TITLE RIGHT NOW, since this is new
         stream << "( NEW SEQUENCE )\n"; // this is important, so that the SD engine DOES get reset in loadFrame()
         stream << "@\n";
         file.close();
@@ -4714,6 +4759,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "#REC=725900001#\n";
                         out << "#AUTHOR=SquareDesk#\n";
                         out << "#HIGHLIGHT=#\n";
+                        out << "#TITLE=Sample Opening Biggie#\n";
                         out << "HEADS Square Thru 3\n";
                         out << "HEADS Partner Trade\n";
                         out << "( AL, HOME )\n";
@@ -4724,6 +4770,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "#REC=725900002#\n";
                         out << "#AUTHOR=SquareDesk#\n";
                         out << "#HIGHLIGHT=#\n";
+                        out << "#TITLE=Sample Easy Sequence#\n";
                         out << "HEADS Square Thru 4\n";
                         out << "( AL, HOME )\n";
                         out << "@\n";
@@ -4733,6 +4780,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "#REC=725900003#\n";
                         out << "#AUTHOR=SquareDesk#\n";
                         out << "#HIGHLIGHT=#\n";
+                        out << "#TITLE=Sample Medium Sequence#\n";
                         out << "HEADS Square Thru 4\n";
                         out << "Right and Left Thru\n";
                         out << "Dive Thru\n";
@@ -4745,6 +4793,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "#REC=725900004#\n";
                         out << "#AUTHOR=SquareDesk#\n";
                         out << "#HIGHLIGHT=#\n";
+                        out << "#TITLE=Sample Hard Sequence#\n";
                         out << "HEADS Pass The Ocean\n";
                         out << "Extend\n";
                         out << "Swing Thru\n";
@@ -4782,6 +4831,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
             out << "#REC=725900005#\n";
             out << "#AUTHOR=SquareDesk#\n";
             out << "#HIGHLIGHT=#\n";
+            out << "#TITLE=Archive of Deleted Files#\n";
             out << "( ARCHIVE OF DELETED FILES )\n";
             out << "@\n";
             file.close();

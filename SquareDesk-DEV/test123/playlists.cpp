@@ -130,7 +130,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
             theItem->setText("");
         }
 
-        int lineCount = 1;
+//        int lineCount = 1;
         linesInCurrentPlaylist = 0;
 
         QTextStream in(&inputFile);
@@ -191,7 +191,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 
                 }
 
-                lineCount++;
+//                lineCount++;
             } // while
         }
 //        else {
@@ -1200,7 +1200,7 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
         int *renumberTo = new int[numRows]();
         int minNum = 1E6;
         int maxNum = -1000;
-        int numNums = 0;
+//        int numNums = 0;
         for (int i = 0; i < numRows; i++) {
             QTableWidgetItem *p = ui->songTable->item(i, kNumberCol); // get pointer to item
             QString s = p->text();
@@ -1210,7 +1210,7 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
                 count[i1]++;  // bump the count
                 minNum = qMin(minNum, i1);
                 maxNum = qMax(maxNum, i1);
-                numNums++;
+//                numNums++;
             }
         }
 

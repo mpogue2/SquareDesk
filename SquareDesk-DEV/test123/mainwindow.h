@@ -1143,6 +1143,7 @@ public:
     QString currentSequenceRecordNumber;  // REC of currently loaded sequence
     int currentSequenceRecordNumberi;     //  int version of that
     QString currentSequenceAuthor;        // AUTHOR of currently loaded sequence
+    QString currentSequenceTitle;         // TITLE of currently loaded sequence
 
     void debugCSDSfile(QString frameName); // DEBUG
     bool checkSDforErrors(); // DEBUG

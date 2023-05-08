@@ -1901,20 +1901,23 @@
                </layout>
               </item>
               <item>
-               <widget class="QLabel" name="labelWorkshop">
-                <property name="enabled">
-                 <bool>true</bool>
+               <widget class="QLineEdit" name="sdCurrentSequenceTitle">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
                 </property>
                 <property name="font">
                  <font>
-                  <pointsize>15</pointsize>
+                  <pointsize>24</pointsize>
+                  <italic>true</italic>
+                  <bold>true</bold>
+                  <underline>true</underline>
                  </font>
                 </property>
                 <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700; color:#ff2600;&quot;&gt;BAD&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="textFormat">
-                 <enum>Qt::RichText</enum>
+                 <string>Spin the Top Variations</string>
                 </property>
                </widget>
               </item>

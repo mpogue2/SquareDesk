@@ -3199,7 +3199,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 maybeMainWindow->do_sd_tab_completion();
                 return true;
             } else if ((theKey >= Qt::Key_F1 && theKey <= Qt::Key_F12) ||
-                       (!ui->lineEditSDInput->hasFocus() && (theKey == Qt::Key_G || theKey == Qt::Key_B))
+                       (!ui->lineEditSDInput->hasFocus() && !ui->sdCurrentSequenceTitle->hasFocus() && (theKey == Qt::Key_G || theKey == Qt::Key_B))
                        ) {
                 // this has to come first.
                 return (maybeMainWindow->handleSDFunctionKey(KeyEvent->keyCombination(), KeyEvent->text()));
@@ -6090,7 +6090,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
     action->setChecked(true);  // check the new one
 //    qDebug() << "***** sdViewActionTriggered()" << action << action->isChecked();
 
-    ui->labelWorkshop->setHidden(true); // DEBUG
+//    ui->labelWorkshop->setHidden(true); // DEBUG
 
     if (action->text() == "Sequence Designer") {
         // turn on thumbnails
@@ -6121,12 +6121,15 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         ui->actionShow_Frames->setChecked(false); // hide frames
         on_actionShow_Frames_triggered();
 
-        ui->labelWorkshop->setText("<B>BAD</B>");
+//        ui->labelWorkshop->setText("<B>BAD</B>");
         ui->label_CurrentSequence->setText("<B>Current Sequence");
     } else {
         // Dance Arranger
         ui->actionFormation_Thumbnails->setChecked(false); // these are not shown, but they are still there..., so we can reference them onDoubleClick below
         on_actionFormation_Thumbnails_triggered();
+
+        bool inSDEditMode = ui->lineEditSDInput->isVisible(); // if we're in UNLOCK/EDIT mode, can do Add/Delete Comments
+        ui->sdCurrentSequenceTitle->setFrame(inSDEditMode);  // edit is enabled, so show the frame
 
 //        // set Names as current tab
 //        ui->tabWidgetSDMenuOptions->setCurrentIndex(3);
@@ -6161,7 +6164,7 @@ void MainWindow::sdViewActionTriggered(QAction * action) {
         ui->actionShow_Frames->setChecked(true); // show frames
         on_actionShow_Frames_triggered();
 
-        ui->labelWorkshop->setText("<html><head/><body><p><span style=\" font-weight:700; color:#ff0000;\">BAD</span></p></body></html>");
+//        ui->labelWorkshop->setText("<html><head/><body><p><span style=\" font-weight:700; color:#ff0000;\">BAD</span></p></body></html>");
     }
 }
 
