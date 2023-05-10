@@ -825,6 +825,7 @@ private:
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
+    bool nextSong(QString &pathToMP3, QString &songType);
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
