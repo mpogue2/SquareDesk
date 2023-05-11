@@ -534,8 +534,6 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
                 break;
             }
             // Patter, no lyrics -- if next song is a Singer then get its lyrics.
-	    // For some reason musicRootModified seems to get triggered by this checking...
-	    filewatcherShouldIgnoreOneFileSave = true;
             QString nextSongType;
             if (nextSong(filenameToCheck, nextSongType) &&
                 songTypeNamesForSinging.contains(nextSongType)) {
