@@ -41,8 +41,8 @@
  *  
  */
 
-KEYACTION(StopSong, "Stop Song", mw->on_stopButton_clicked() )
-KEYACTION(RestartSong, "Restart Song", mw->on_stopButton_clicked(); mw->on_playButton_clicked();mw->on_warningLabel_clicked() )
+KEYACTION(StopSong, "Stop Song", mw->on_stopButton_clicked(false) )
+KEYACTION(RestartSong, "Restart Song", mw->on_stopButton_clicked(true); mw->on_playButton_clicked();mw->on_warningLabel_clicked() )
 KEYACTION(Forward15Seconds, "Forward 15 Seconds", mw->on_actionSkip_Ahead_15_sec_triggered())
 KEYACTION(Backward15Seconds, "Backward 15 Seconds", mw->on_actionSkip_Back_15_sec_triggered())
 KEYACTION(VolumeMinus, "Volume -", mw->on_actionVolume_Down_triggered())

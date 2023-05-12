@@ -349,7 +349,7 @@ void MainWindow::markPlaylistModified(bool isModified) {
 
 void MainWindow::on_actionLoad_Playlist_triggered()
 {
-    on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
+    on_stopButton_clicked(true);  // if we're loading a new PLAYLIST file, stop current playback
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
     const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
@@ -590,7 +590,7 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
 void MainWindow::on_actionNext_Playlist_Item_triggered()
 {
     // This code is similar to the row double clicked code...
-    on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
+    on_stopButton_clicked(true);  // if we're going to the next file in the playlist, stop current playback
     saveCurrentSongSettings();
 
     // figure out which row is currently selected
@@ -659,12 +659,12 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 {
     cBass->StreamGetPosition();  // get ready to look at the playhead position
     if (cBass->Current_Position != 0.0) {
-        on_stopButton_clicked();  // if the playhead was not at the beginning, just stop current playback and go to START
+        on_stopButton_clicked(true);  // if the playhead was not at the beginning, just stop current playback and go to START
         return;                   //   and return early... (don't save the current song settings)
     }
     // else, stop and move to the previous song...
 
-    on_stopButton_clicked();  // if we were playing, just stop current playback
+    on_stopButton_clicked(true);  // if we were playing, just stop current playback
     // This code is similar to the row double clicked code...
     saveCurrentSongSettings();
 
@@ -1075,7 +1075,7 @@ void MainWindow::on_actionClear_Recent_List_triggered()
 
 void MainWindow::loadRecentPlaylist(int i) {
 
-    on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
+    on_stopButton_clicked(true);  // if we're loading a new PLAYLIST file, stop current playback
 
     QStringList recentFilePaths = prefsManager.MySettings.value("recentFiles").toStringList();
 

@@ -230,7 +230,7 @@ public:
     int longSongTableOperationCount;
 
     bool lyricsCopyIsAvailable;
-
+    bool scanMusicDirRequired;
     Ui::MainWindow *ui;
     bool handleKeypress(int key, QString text);
     bool handleSDFunctionKey(QKeyCombination key, QString text);
@@ -330,7 +330,7 @@ private slots:
 
     void sdViewActionTriggered(QAction *action); // Sequence Designer vs Dance Arranger
 
-    void on_stopButton_clicked();
+    void on_stopButton_clicked(bool fake);
     void on_playButton_clicked();
     void on_pitchSlider_valueChanged(int value);
     void on_volumeSlider_valueChanged(int value);
@@ -503,6 +503,7 @@ private slots:
     void makeProgress();
     void cancelProgress();
 
+    void scanMusicDir();
     void fileWatcherTriggered();
     void musicRootModified(QString s);
     void maybeLyricsChanged();

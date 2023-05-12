@@ -347,6 +347,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
     
     filewatcherShouldIgnoreOneFileSave = false;
+    scanMusicDirRequired = false;
 
     PerfTimer t("MainWindow::MainWindow", __LINE__);
 
@@ -1507,6 +1508,22 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 }
 
 
+void MainWindow::scanMusicDir() {
+//    qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
+    scanMusicDirRequired = false;
+    if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
+        // qDebug() << "*** musicRootModified!!!";
+        Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
+        int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
+        // reload the musicTable.  Note that it will switch to default sort order.
+        //   TODO: At some point, this probably should save the sort order, and then restore it.
+        findMusic(musicRootPath, true);  // get the filenames from the user's directories
+        loadMusicList(); // and filter them into the songTable
+        ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+    }
+    filewatcherShouldIgnoreOneFileSave = false;
+}
+
 void MainWindow::fileWatcherTriggered() {
 //    qDebug() << "fileWatcherTriggered()";
     musicRootModified(QString("DONE"));
@@ -1523,18 +1540,11 @@ void MainWindow::musicRootModified(QString s)
 
     fileWatcherTimer->stop();  // 500ms expired, so we don't need to be notified again.
 
-//    qDebug() << "Music root modified (File Watcher awakened for real!): " << s;
-    if (!filewatcherShouldIgnoreOneFileSave) { // yes, we need this here, too...because root watcher watches playlists (don't ask me!)
-        // qDebug() << "*** musicRootModified!!!";
-        Qt::SortOrder sortOrder(ui->songTable->horizontalHeader()->sortIndicatorOrder());
-        int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
-        // reload the musicTable.  Note that it will switch to default sort order.
-        //   TODO: At some point, this probably should save the sort order, and then restore it.
-        findMusic(musicRootPath, true);  // get the filenames from the user's directories
-        loadMusicList(); // and filter them into the songTable
-        ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
+    if (cBass->currentStreamState() == BASS_ACTIVE_STOPPED) {
+        scanMusicDir();
+    } else {
+        scanMusicDirRequired = true;
     }
-    filewatcherShouldIgnoreOneFileSave = false;
 }
 
 void MainWindow::changeApplicationState(Qt::ApplicationState state)
@@ -2054,7 +2064,7 @@ void MainWindow::on_monoButton_toggled(bool checked)
 }
 
 // ----------------------------------------------------------------------
-void MainWindow::on_stopButton_clicked()
+void MainWindow::on_stopButton_clicked(bool fake)
 {
 // TODO: instead of removing focus on STOP, better we should restore focus to the previous focused widget on STOP
 //    if (QApplication::focusWidget() != NULL) {
@@ -2091,7 +2101,9 @@ void MainWindow::on_stopButton_clicked()
     } else {
 //        qDebug() << "stopButtonClicked: Tab was SD, so NOT changing focus to songTable";
     }
-
+    if (!fake && scanMusicDirRequired) {
+        scanMusicDir();
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -2515,7 +2527,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // avoids the problem of manual seek to max slider value causing auto-STOP
             if (!ui->actionContinuous_Play->isChecked()) {
 //                qDebug() << "AUTO_STOP TRIGGERED (NORMAL): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
-                on_stopButton_clicked(); // pretend we pressed the STOP button when EOS is reached
+                on_stopButton_clicked(false); // pretend we pressed the STOP button when EOS is reached
             }
             else {
 //                qDebug() << "AUTO_STOP TRIGGERED (CONT PLAY): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
@@ -2540,7 +2552,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
                     on_playButton_clicked();     // pretend we pressed the PLAY button
                 }
                 else {
-                    on_stopButton_clicked();     // pretend we pressed the STOP button when End of Playlist is reached
+                    on_stopButton_clicked(true);     // pretend we pressed the STOP button when End of Playlist is reached
                 }
             }
             return;
@@ -3689,7 +3701,7 @@ void MainWindow::on_actionPlay_triggered()
 
 void MainWindow::on_actionStop_triggered()
 {
-    on_stopButton_clicked();
+    on_stopButton_clicked(false);
 }
 
 // ------------------------------------------------------------------------
@@ -3961,7 +3973,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
 void MainWindow::on_actionOpen_MP3_file_triggered()
 {
-    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    on_stopButton_clicked(true);  // if we're loading a new MP3 file, stop current playback
 
     saveCurrentSongSettings();
 
@@ -4674,7 +4686,7 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
     PerfTimer t("on_songTable_itemDoubleClicked", __LINE__);
 
-    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    on_stopButton_clicked(true);  // if we're loading a new MP3 file, stop current playback
     saveCurrentSongSettings();
 
     t.elapsed(__LINE__);
