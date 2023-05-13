@@ -625,30 +625,9 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     }
     ui->songTable->selectRow(row); // select new row!
 
-    // load all the UI fields, as if we double-clicked on the new row
-    QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-    QString songTitle = getTitleColTitle(ui->songTable, row);
-    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+    on_songTable_itemDoubleClicked(ui->songTable->item(row,1)); // as if we double clicked the next line
 
-    QString songType = ui->songTable->item(row,kTypeCol)->text();
-    QString songLabel = ui->songTable->item(row,kLabelCol)->text();
-
-//    // must be up here...
-//    QString pitch = ui->songTable->item(row,kPitchCol)->text();
-//    QString tempo = ui->songTable->item(row,kTempoCol)->text();
-
-    loadMP3File(pathToMP3, songTitle, songType, songLabel);
-
-//    // must be down here...
-//    int pitchInt = pitch.toInt();
-//    ui->pitchSlider->setValue(pitchInt);
-
-//    if (tempo != "0") {
-//        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", slider->setValue will do the right thing
-//        int tempoInt = tempo2.toInt();
-//        ui->tempoSlider->setValue(tempoInt);
-//    }
-
+    // start playback automatically, if Autostart is enabled
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -699,31 +678,9 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
 
     ui->songTable->selectRow(row); // select new row!
 
-    // load all the UI fields, as if we double-clicked on the new row
-    QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-    QString songTitle = getTitleColTitle(ui->songTable, row);
-    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+    on_songTable_itemDoubleClicked(ui->songTable->item(row,1)); // as if we double clicked the previous line
 
-    QString songType = ui->songTable->item(row,kTypeCol)->text();
-    QString songLabel = ui->songTable->item(row,kLabelCol)->text();
-
-    // must be up here...
-    QString pitch = ui->songTable->item(row,kPitchCol)->text();
-    QString tempo = ui->songTable->item(row,kTempoCol)->text();
-
-    loadMP3File(pathToMP3, songTitle, songType, songLabel);
-
-    // must be down here...
-    int pitchInt = pitch.toInt();
-    ui->pitchSlider->setValue(pitchInt);
-
-// not sure this is needed anymore...test with next song, previous song to be sure
-//    if (tempo != "0") {
-//        QString tempo2 = tempo.replace("%",""); // get rid of optional "%", setValue will take care of it
-//        int tempoInt = tempo.toInt();
-//        ui->tempoSlider->setValue(tempoInt);
-//    }
-
+    // start playback automatically, if Autostart is enabled
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
