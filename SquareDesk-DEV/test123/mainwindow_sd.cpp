@@ -4499,6 +4499,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
 //        qDebug() << theCall << "is A2.";
         return("A2");
     } else if (theCall.contains("any hand") ||
+               theCall.contains("as couples") ||
                theCall.contains("belles") ||
                theCall.contains("beaus") ||
                theCall.contains("shadow") ||
