@@ -2720,6 +2720,11 @@ void MainWindow::copy_selection_from_tableWidgetCurrentSequence()
             selection += s + "\n";
         }
     }
+
+    QString resolve = ui->label_SD_Resolve->text();
+    if (resolve != "") {
+        selection += "(" + resolve + ")\n"; // stick the resolve on at the end as a comment
+    }
     QApplication::clipboard()->setText(selection);
 }
 
@@ -2853,6 +2858,11 @@ QString MainWindow::get_current_sd_sequence_as_html(bool all_fields, bool graphi
         }
     }
 
+    QString resolve = ui->label_SD_Resolve->text();
+    if (resolve != "") {
+        selection += "      <li><b>(" + resolve.toHtmlEscaped() + ")</b></li>\n";  // stick the resolve on at the end as a comment
+    }
+
     if (prefsManager.GetSDCallListCopyHTMLIncludeHeaders())
     {
         selection += "    </ol>\n"
@@ -2975,6 +2985,7 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     connect(&action1a, SIGNAL(triggered()), this, SLOT(paste_to_tableWidgetCurrentSequence()));
     action1a.setShortcut(QKeySequence::Paste);
     action1a.setShortcutVisibleInContextMenu(true);
+    action1a.setEnabled(inSDEditMode);  // if has not editing, can't PASTE SEQUENCE
     contextMenu.addAction(&action1a);
 
     contextMenu.addSeparator(); // ---------------
@@ -2983,15 +2994,15 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
     connect(&action2, SIGNAL(triggered()), this, SLOT(undo_last_sd_action()));
     action2.setShortcut(QKeySequence::Undo);
     action2.setShortcutVisibleInContextMenu(true);
+    action2.setEnabled(inSDEditMode);  // if has not editing, can't UNDO
     contextMenu.addAction(&action2);
 
     QAction action25("Redo", this);
     connect(&action25, SIGNAL(triggered()), this, SLOT(redo_last_sd_action()));
     action25.setShortcut(QKeySequence::Redo);
     action25.setShortcutVisibleInContextMenu(true);
-    action25.setEnabled(sd_redo_stack->can_redo());
+    action25.setEnabled(sd_redo_stack->can_redo() & inSDEditMode); // if not editing, can't REDO
     contextMenu.addAction(&action25);
-
     
     QAction action3("Select All", this);
     connect(&action3, SIGNAL(triggered()), this, SLOT(select_all_sd_current_sequence()));
@@ -3003,10 +3014,12 @@ void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(const 
 
     QAction action4("Go Back To Here", this);
     connect(&action4, SIGNAL(triggered()), this, SLOT(undo_sd_to_row()));
+    action4.setEnabled(inSDEditMode);  // if has not editing, can't UNDO BACK TO HERE
     contextMenu.addAction(&action4);
 
     QAction action4a("Square Your Sets", this);
     connect(&action4a, SIGNAL(triggered()), this, SLOT(on_actionSDSquareYourSets_triggered()));
+    action4a.setEnabled(inSDEditMode);  // if has not editing, can't SQUARE YOUR SETS
     contextMenu.addAction(&action4a);
 
     contextMenu.addSeparator(); // ---------------
