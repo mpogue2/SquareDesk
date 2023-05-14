@@ -896,7 +896,18 @@ void MainWindow::PlaylistItemMoveUp() {
     }
 
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+
+    if (currentNumberText == "") {
+        // return, this is not an item that is on the playlist
+        return;
+    }
+
     int currentNumberInt = currentNumberText.toInt();
+
+    if (currentNumberInt <= 1) {
+        // return, if we're already at the top of the playlist
+        return;
+    }
 
     // Iterate over the entire songTable, find the item just above this one, and move IT down (only)
     ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
@@ -939,9 +950,20 @@ void MainWindow::PlaylistItemMoveDown() {
     }
 
     QString currentNumberText = ui->songTable->item(selectedRow, kNumberCol)->text();  // get current number
+
+    if (currentNumberText == "") {
+        // return, this is not an item that is on the playlist
+        return;
+    }
+
     int currentNumberInt = currentNumberText.toInt();
 
-    // add to list, and make it the bottom
+    int playlistItemCount = PlaylistItemCount();
+
+    if (currentNumberInt >= playlistItemCount) {
+        // return, if we're already at the bottom of the playlist
+        return;
+    }
 
     // Iterate over the entire songTable, find the item just BELOW this one, and move it UP (only)
     ui->songTable->blockSignals(true); // while updating, do NOT call itemChanged
