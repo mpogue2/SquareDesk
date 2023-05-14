@@ -593,35 +593,10 @@ void MainWindow::on_actionNext_Playlist_Item_triggered()
     on_stopButton_clicked();  // if we're going to the next file in the playlist, stop current playback
     saveCurrentSongSettings();
 
-    // figure out which row is currently selected
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
-    }
-    else {
-        // more than 1 row or no rows at all selected (BAD)
-        return;
-    }
-
-    int maxRow = ui->songTable->rowCount() - 1;
-
-    // which is the next VISIBLE row?
-    int lastVisibleRow = row;
-    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
-    while (ui->songTable->isRowHidden(row) && row < maxRow) {
-        // keep bumping, until the next VISIBLE row is found, or we're at the END
-        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
-    }
-    if (ui->songTable->isRowHidden(row)) {
-        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
-        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
-        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
-        //   hilarity will ensue.
-        row = lastVisibleRow;
+    int row = nextVisibleSongRow(); 
+    if (row < 0) {
+      // more than 1 row or no rows at all selected (BAD)
+      return;
     }
     ui->songTable->selectRow(row); // select new row!
 
@@ -647,33 +622,10 @@ void MainWindow::on_actionPrevious_Playlist_Item_triggered()
     // This code is similar to the row double clicked code...
     saveCurrentSongSettings();
 
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
-    }
-    else {
+    int row = previousVisibleSongRow();
+    if (row < 0) {
         // more than 1 row or no rows at all selected (BAD)
         return;
-    }
-
-    // which is the next VISIBLE row?
-    int lastVisibleRow = row;
-    row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
-
-    while (ui->songTable->isRowHidden(row) && row > 0) {
-        // keep bumping backwards, until the previous VISIBLE row is found, or we're at the BEGINNING
-        row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
-    }
-    if (ui->songTable->isRowHidden(row)) {
-        // if we try to go past the beginning of the VISIBLE rows, stick at the first visible row (which
-        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
-        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
-        //   hilarity will ensue.
-        row = lastVisibleRow;
     }
 
     ui->songTable->selectRow(row); // select new row!

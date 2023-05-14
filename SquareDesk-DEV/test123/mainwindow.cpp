@@ -2520,15 +2520,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             else {
 //                qDebug() << "AUTO_STOP TRIGGERED (CONT PLAY): currentPos_i:" << currentPos_i << ", fileLen_i:" << fileLen_i;
                 // figure out which row is currently selected
-                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-                QModelIndexList selected = selectionModel->selectedRows();
-                int row = -1;
-                if (selected.count() == 1) {
-                    // exactly 1 row was selected (good)
-                    QModelIndex index = selected.at(0);
-                    row = index.row();
-                }
-                else {
+                int row = selectedSongRow();
+                if (row < 0) {
                     // more than 1 row or no rows at all selected (BAD)
                     return;
                 }
@@ -2834,17 +2827,7 @@ void MainWindow::on_clearSearchButton_clicked()
     // FIX: bug when clearSearch is pressed, the order in the songTable can change.
 
     // figure out which row is currently selected
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
-    }
-    else {
-        // more than 1 row or no rows at all selected (BAD)
-    }
+    int row = selectedSongRow();
 
     ui->labelSearch->setText("");
     ui->typeSearch->setText("");
@@ -3521,15 +3504,8 @@ bool MainWindow::handleKeypress(int key, QString text)
 //                QWidget *lastWidget = QApplication::focusWidget(); // save current focus (destroyed by itemDoubleClicked) because reasons
 
                 // figure out which row is currently selected
-                QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-                QModelIndexList selected = selectionModel->selectedRows();
-                int row = -1;
-                if (selected.count() == 1) {
-                    // exactly 1 row was selected (good)
-                    QModelIndex index = selected.at(0);
-                    row = index.row();
-                }
-                else {
+                int row = selectedSongRow();
+                if (row < 0) {
                     // more than 1 row or no rows at all selected (BAD)
                     return true;
                 }
@@ -3548,54 +3524,16 @@ bool MainWindow::handleKeypress(int key, QString text)
                     ui->songTable->hasFocus()) {
 //                qDebug() << "   and search OR songTable has focus.";
                 if (key == Qt::Key_Up) {
-                    // TODO: this same code appears FOUR times.  FACTOR IT
-                    // on_actionPrevious_Playlist_Item_triggered();
-                    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-                    QModelIndexList selected = selectionModel->selectedRows();
-                    int row = -1;
-                    if (selected.count() == 1) {
-                        // exactly 1 row was selected (good)
-                        QModelIndex index = selected.at(0);
-                        row = index.row();
-                    }
-                    else {
+                    int row = previousVisibleSongRow();
+                    if (row < 0) { 
                         // more than 1 row or no rows at all selected (BAD)
                         return true;
                     }
-
-// SONGTABLEREFACTOR
-                    // which is the next VISIBLE row?
-                    int lastVisibleRow = row;
-                    row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
-
-                    while (ui->songTable->isRowHidden(row) && row > 0) {
-                        // keep bumping backwards, until the previous VISIBLE row is found, or we're at the BEGINNING
-                        row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
-                    }
-                    if (ui->songTable->isRowHidden(row)) {
-                        // if we try to go past the beginning of the VISIBLE rows, stick at the first visible row (which
-                        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
-                        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
-                        //   hilarity will ensue.
-                        row = lastVisibleRow;
-                    }
-
                     ui->songTable->selectRow(row); // select new row!
 
                 } else {
-// SONGTABLEREFACTOR
-                    // TODO: this same code appears FOUR times.  FACTOR IT
-                    // on_actionNext_Playlist_Item_triggered();
-                    // figure out which row is currently selected
-                    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-                    QModelIndexList selected = selectionModel->selectedRows();
-                    int row = -1;
-                    if (selected.count() == 1) {
-                        // exactly 1 row was selected (good)
-                        QModelIndex index = selected.at(0);
-                        row = index.row();
-                    }
-                    else {
+                    int row = nextVisibleSongRow();
+                    if (row < 0) {
                         // more than 1 row or no rows at all selected (BAD)
                         return true;
                     }
@@ -4655,16 +4593,10 @@ void MainWindow::on_titleSearch_textChanged()
 
 void MainWindow::titleLabelDoubleClicked(QMouseEvent * /* event */)
 {
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
+    int row = selectedSongRow();
+    if (row >= 0) {
         on_songTable_itemDoubleClicked(ui->songTable->item(row,kPathCol));
-    }
-    else {
+    } else {
         // more than 1 row or no rows at all selected (BAD)
     }
     
@@ -5044,13 +4976,11 @@ void MainWindow::on_songTable_itemSelectionChanged()
     //   if at least one item in the table is selected.
     //
     // figure out which row is currently selected
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    if (selected.count() == 1) {
+    int row = selectedSongRow();
+    if (row >= 0) {
         ui->nextSongButton->setEnabled(true);
         ui->previousSongButton->setEnabled(true);
-    }
-    else {
+    } else {
         ui->nextSongButton->setEnabled(false);
         ui->previousSongButton->setEnabled(false);
     }
@@ -5186,15 +5116,71 @@ void MainWindow::showInFinderOrExplorer(QString filePath)
 }
 
 // ----------------------------------------------------------------------
-int MainWindow::selectedSongRow() {
+int MainWindow::selectedSongRow()
+{
     QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
     QModelIndexList selected = selectionModel->selectedRows();
     int row = -1;
+    
     if (selected.count() == 1) {
         // exactly 1 row was selected (good)
         QModelIndex index = selected.at(0);
         row = index.row();
     } // else more than 1 row or no rows, just return -1
+    return row;
+}
+
+// Return the previous visible song row if just one selected, else -1
+int MainWindow::previousVisibleSongRow()
+{
+    int row = selectedSongRow();
+    if (row < 0) {
+        // more than 1 row or no rows at all selected (BAD)
+        return row;
+    }
+
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
+    row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+
+    while (ui->songTable->isRowHidden(row) && row > 0) {
+        // keep bumping backwards, until the previous VISIBLE row is found, or we're at the BEGINNING
+        row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+    }
+    if (ui->songTable->isRowHidden(row)) {
+        // if we try to go past the beginning of the VISIBLE rows, stick at the first visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
+    return row;
+}
+
+// Return the next visible song row if just one selected, else -1
+int MainWindow::nextVisibleSongRow() {
+    int row = selectedSongRow();
+    if (row < 0) {
+        return row;
+    }
+
+    int maxRow = ui->songTable->rowCount() - 1;
+
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
+    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    while (ui->songTable->isRowHidden(row) && row < maxRow) {
+        // keep bumping, until the next VISIBLE row is found, or we're at the END
+        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    }
+    if (ui->songTable->isRowHidden(row)) {
+        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
+    
     return row;
 }
 
@@ -5317,13 +5303,9 @@ void MainWindow::on_songTable_customContextMenuRequested(const QPoint &pos)
 
 void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
 {
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
+    int row = selectedSongRow();
+    if (row >= 0) {
         // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
         QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
         SongSetting settings;
         songSettings.loadSettings(pathToMP3, settings);
@@ -5357,13 +5339,9 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
 
 void MainWindow::editTags()
 {
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
+    int row = selectedSongRow();
+    if (row >= 0) {
         // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
         QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
         SongSetting settings;
         songSettings.loadSettings(pathToMP3, settings);
@@ -5393,13 +5371,9 @@ void MainWindow::editTags()
 
 void MainWindow::loadSong()
 {
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
+    int row = selectedSongRow();
+    if (row >= 0) {
         // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
         on_songTable_itemDoubleClicked(ui->songTable->item(row,kPathCol));
     }
     else {
@@ -5409,14 +5383,9 @@ void MainWindow::loadSong()
 
 void MainWindow::revealInFinder()
 {
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
+    int row = selectedSongRow();
+    if (row >= 0) {
         // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
-
         QString pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
         showInFinderOrExplorer(pathToMP3);
     }

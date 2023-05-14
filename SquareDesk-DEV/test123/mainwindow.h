@@ -825,7 +825,6 @@ private:
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
     void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
-    bool nextSong(QString &pathToMP3, QString &songType);
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
@@ -895,6 +894,8 @@ private:
     void updateSongTableColumnView();
 
     int selectedSongRow();  // returns -1 if none selected
+    int previousVisibleSongRow();   // previous visible row or -1
+    int nextVisibleSongRow();       // return next visible row or -1
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
     int getSelectionRowForFilename(const QString &filePath);
 

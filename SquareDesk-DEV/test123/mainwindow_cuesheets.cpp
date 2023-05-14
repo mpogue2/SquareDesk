@@ -278,45 +278,6 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
         return 0;
 }
 
-// Copied from on_actionNext_Playlist_Item_triggered
-bool MainWindow::nextSong(QString &pathToMP3, QString &songType)
-{
-    // figure out which row is currently selected
-    QItemSelectionModel *selectionModel = ui->songTable->selectionModel();
-    QModelIndexList selected = selectionModel->selectedRows();
-    int row = -1;
-    if (selected.count() == 1) {
-        // exactly 1 row was selected (good)
-        QModelIndex index = selected.at(0);
-        row = index.row();
-    }
-    else {
-        // more than 1 row or no rows at all selected (BAD)
-        return false;
-    }
-
-    int maxRow = ui->songTable->rowCount() - 1;
-
-    // which is the next VISIBLE row?
-    int lastVisibleRow = row;
-    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
-    while (ui->songTable->isRowHidden(row) && row < maxRow) {
-        // keep bumping, until the next VISIBLE row is found, or we're at the END
-        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
-    }
-    if (ui->songTable->isRowHidden(row)) {
-        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
-        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
-        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
-        //   hilarity will ensue.
-        row = lastVisibleRow;
-    }
-
-    pathToMP3 = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
-    songType = ui->songTable->item(row,kTypeCol)->text();
-
-    return true;
-}
 
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
@@ -534,13 +495,18 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
                 break;
             }
             // Patter, no lyrics -- if next song is a Singer then get its lyrics.
-            QString nextSongType;
-            if (nextSong(filenameToCheck, nextSongType) &&
-                songTypeNamesForSinging.contains(nextSongType)) {
+            int row = nextVisibleSongRow();
+            if (row < 0) {
+                break;          // no next song
+            }
+            filenameToCheck = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+            QString nextSongType = ui->songTable->item(row,kTypeCol)->text();
+            
+            if (songTypeNamesForSinging.contains(nextSongType)) {
                 // Try this song
 //              qDebug() << "loadCuesheets: now trying " << filenameToCheck;
             } else {
-                break;  // no next song or it's not a singer
+                break;  // it's not a singer
             }
         } else {
             // Second time around, whether or not we found lyrics the actual song played is patter
