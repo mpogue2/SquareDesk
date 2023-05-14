@@ -347,6 +347,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lastFlashcardsUserDirectory = prefsManager.Getlastflashcalluserdirectory();
     
     filewatcherShouldIgnoreOneFileSave = false;
+    filewatcherIsTemporarilyDisabled = false;
 
     PerfTimer t("MainWindow::MainWindow", __LINE__);
 
@@ -657,8 +658,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    fileWatcherTimer = new QTimer();  // Retriggerable timer for file watcher events
+    fileWatcherTimer = new QTimer();            // Retriggerable timer for file watcher events
     QObject::connect(fileWatcherTimer, SIGNAL(timeout()), this, SLOT(fileWatcherTriggered())); // this calls musicRootModified again (one last time!)
+
+    fileWatcherDisabledTimer = new QTimer();    // 5 sec timer for working around the Venture extended attribute problem
+    QObject::connect(fileWatcherDisabledTimer, SIGNAL(timeout()), this, SLOT(fileWatcherDisabledTriggered())); // this calls musicRootModified again (one last time!)
 
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
@@ -1512,9 +1516,22 @@ void MainWindow::fileWatcherTriggered() {
     musicRootModified(QString("DONE"));
 }
 
+void MainWindow::fileWatcherDisabledTriggered() {
+//    qDebug() << "***** fileWatcherDisabledTriggered(): FileWatcher is re-enabled now....";
+    filewatcherIsTemporarilyDisabled = false;   // no longer disabled when this fires!
+    fileWatcherDisabledTimer->stop();  // 5s expired, so we don't need to be notified again
+
+}
+
 void MainWindow::musicRootModified(QString s)
 {
 //    qDebug() << "musicRootModified() = " << s;
+
+    if (filewatcherIsTemporarilyDisabled) {
+//        qDebug() << "filewatcher is disabled, skipping the re-scan of songTable....";
+        return;
+    }
+
     if (s != "DONE") {
 //        qDebug() << "(Re)triggering File Watcher for 3 seconds...";
         fileWatcherTimer->start(std::chrono::milliseconds(500)); // wait 500ms for things to settle
@@ -1530,6 +1547,7 @@ void MainWindow::musicRootModified(QString s)
         int sortSection(ui->songTable->horizontalHeader()->sortIndicatorSection());
         // reload the musicTable.  Note that it will switch to default sort order.
         //   TODO: At some point, this probably should save the sort order, and then restore it.
+//        qDebug() << "WE ARE RELOADING THE SONG TABLE NOW ------";
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         loadMusicList(); // and filter them into the songTable
         ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
@@ -3756,6 +3774,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 {
     PerfTimer t("loadMP3File", __LINE__);
     songLoaded = false;  // seekBar updates are disabled, while we are loading
+
+    filewatcherIsTemporarilyDisabled = true;  // disable the FileWatcher for a few seconds to workaround the Ventura extended attribute problem
+    fileWatcherDisabledTimer->start(std::chrono::milliseconds(5000)); // re-enable the FileWatcher after 5s
+//    qDebug() << "***** filewatcher is disabled for 5 seconds!";
 
 //    qDebug() << "MainWindow::loadMP3File: songTitle: " << songTitle << ", songType: " << songType << ", songLabel: " << songLabel;
 //    RecursionGuard recursion_guard(loadingSong);

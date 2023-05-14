@@ -504,6 +504,7 @@ private slots:
     void cancelProgress();
 
     void fileWatcherTriggered();
+    void fileWatcherDisabledTriggered();
     void musicRootModified(QString s);
     void maybeLyricsChanged();
 
@@ -908,7 +909,8 @@ private:
     QTimer *UIUpdateTimer;
     QTimer *vuMeterTimer;
 
-    QTimer *fileWatcherTimer;  // after all changes are made, THEN reload the songTable.
+    QTimer *fileWatcherTimer;           // after all changes are made, THEN reload the songTable.
+    QTimer *fileWatcherDisabledTimer;   // disable the filewatcher for 5 sec after a LOAD operation (workaround Ventura problem)
 
     LevelMeter *vuMeter;
 
@@ -927,6 +929,7 @@ private:
 
     QFileSystemWatcher *fileWatcher;
     bool filewatcherShouldIgnoreOneFileSave;
+    bool filewatcherIsTemporarilyDisabled;  // to workaround the Ventura extended attribute problem
 
     QStringList flashCalls;
 
