@@ -3585,9 +3585,9 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
 //            qDebug() << "F11";
             if (frameCurSeq[centralIndex] > 1) {
                 frameCurSeq[centralIndex] = (int)(fmax(1, frameCurSeq[centralIndex] - 1)); // decrease, but not below ONE
+                SDSetCurrentSeqs(3); // persist the new Current Sequence numbers
+                refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
             }
-            SDSetCurrentSeqs(3); // persist the new Current Sequence numbers
-            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
             break;
 
         case Qt::Key_B:
@@ -3651,9 +3651,9 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
 //            qDebug() << "F12";
             if (frameCurSeq[centralIndex] < frameMaxSeq[centralIndex]) {
                 frameCurSeq[centralIndex] = (int)(fmin(frameMaxSeq[centralIndex], frameCurSeq[centralIndex] + 1)); // increase, but not above how many we have
+                SDSetCurrentSeqs(4); // persist the new Current Sequence numbers
+                refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
             }
-            SDSetCurrentSeqs(4); // persist the new Current Sequence numbers
-            refreshSDframes(); // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
             // TODO: should set selection to first item in list, if in Dance Arranger
             break;
 
