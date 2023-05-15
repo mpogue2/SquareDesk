@@ -339,6 +339,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     lyricsCopyIsAvailable = false;
     lyricsTabNumber = 1;
+    lyricsForDifferentSong = false;
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
 
@@ -5502,7 +5503,7 @@ void MainWindow::saveCurrentSongSettings()
         int pitch = ui->pitchSlider->value();
         int tempo = ui->tempoSlider->value();
         int cuesheetIndex = ui->comboBoxCuesheetSelector->currentIndex();
-        QString cuesheetFilename = cuesheetIndex >= 0 ?
+        QString cuesheetFilename = !lyricsForDifferentSong && cuesheetIndex >= 0 ?
             ui->comboBoxCuesheetSelector->itemData(cuesheetIndex).toString()
             : "";
 
@@ -5518,7 +5519,9 @@ void MainWindow::saveCurrentSongSettings()
         setting.setOutroPos(ui->seekBarCuesheet->GetOutro());
 //        qDebug() << "saveCurrentSongSettings: " << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
         setting.setIntroOutroIsTimeBased(false);
-        setting.setCuesheetName(cuesheetFilename);
+        if (!lyricsForDifferentSong) {
+            setting.setCuesheetName(cuesheetFilename);
+        }
         setting.setSongLength(static_cast<double>(ui->seekBarCuesheet->maximum()));
 
         setting.setTreble( ui->trebleSlider->value() );

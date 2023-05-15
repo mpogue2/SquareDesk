@@ -438,12 +438,14 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
 }
 
-void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
+void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet)
 {
     hasLyrics = false;
     bool isPatter;
 
+    QString preferredCuesheet = prefCuesheet;
     QString filenameToCheck = MP3FileName;
+    lyricsForDifferentSong = false;
     // We may search twice:  for a patter with no lyrics we see if next is singer with lyrics
     for(int attempt=0; attempt<2; attempt++) {
 //    QString HTML;
@@ -453,11 +455,23 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferr
 
 //    qDebug() << "possibleCuesheets:" << possibleCuesheets;
 
+        ui->comboBoxCuesheetSelector->clear();
+        
+        if (attempt) {
+            SongSetting settings;
+            if (songSettings.loadSettings(filenameToCheck, settings)) {
+                QString cuesheetName = settings.getCuesheetName();
+                if (cuesheetName.length() > 0) {
+                    preferredCuesheet = cuesheetName;
+                    lyricsForDifferentSong = true;
+                }
+            }
+        }
+        
         int defaultCuesheetIndex = 0;
         loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
 //    QString firstCuesheet(preferredCuesheet);
-        ui->comboBoxCuesheetSelector->clear();
 
         foreach (const QString &cuesheet, possibleCuesheets)
             {

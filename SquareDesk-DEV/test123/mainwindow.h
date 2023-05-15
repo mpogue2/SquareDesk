@@ -797,6 +797,7 @@ private:
     QString currentMP3filenameWithPath;
     bool songLoaded;
     bool fileModified;
+    bool lyricsForDifferentSong;
 
     QString currentSongType;
     QString currentSongTitle;
