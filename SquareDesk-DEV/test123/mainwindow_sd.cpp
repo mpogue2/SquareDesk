@@ -1622,7 +1622,23 @@ void MainWindow::do_sd_tab_completion()
     QString callSearch = sdthread->sd_strip_leading_selectors(originalText);
     QString prefix = originalText.left(originalText.length() - callSearch.length());
 
-    
+    static QRegularExpression prefixComment("^([\\(\\{].*[\\)\\}]\\s*)(.*)$"); // with capture of the comment (INCLUDES the parens/curly braces)
+    QRegularExpressionMatch matchPrefixComment = prefixComment.match(callSearch);
+
+    QString thePrefixComment;
+
+    if (matchPrefixComment.hasMatch()) {
+        thePrefixComment   = matchPrefixComment.captured(1);              // do NOT trim whitespace here
+        callSearch         = matchPrefixComment.captured(2).simplified(); // and trim whitespace
+        originalText       = originalText.replace(thePrefixComment, "");  // remove it from the originalText, for searching
+    }
+
+//    qDebug() << "-------------------";
+//    qDebug() << "originalText: " << originalText;
+//    qDebug() << "callSearch: " << callSearch;
+//    qDebug() << "prefix: " << prefix;
+//    qDebug() << "thePrefixComment: " << thePrefixComment;
+
     QString longestMatch(get_longest_match_from_list_widget(ui->listWidgetSDOptions,
                                                             originalText,
                                                             callSearch));
@@ -1630,7 +1646,7 @@ void MainWindow::do_sd_tab_completion()
                                                       originalText,
                                                       originalText,
                                                       longestMatch);
-//    qDebug() << "longest match is " << longestMatch;
+//    qDebug() << "longestMatch: " << longestMatch;
     
     if (longestMatch.length() > callSearch.length())
     {
@@ -1639,6 +1655,8 @@ void MainWindow::do_sd_tab_completion()
             prefix = prefix + " ";
         }
         QString new_line((longestMatch.startsWith(prefix)) ? longestMatch : (prefix + longestMatch));
+
+        new_line = thePrefixComment + new_line;  // stick the prefix comment back onto the start of the line
 
         bool forceAnEnter(false);
         
@@ -1772,6 +1790,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
 
     QStringList todo = UserInputToSDCommand(cmd); // returns either 1 (call) or 2 items (entire user input, call)
+//    qDebug() << "TODO: " << todo;
 
     if (todo.count() == 2) {
 //        sdthread->do_user_input("insert a comment"); // insert the comment into the SD stream
@@ -2030,6 +2049,7 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
             return;
         }
 
+//        qDebug() << "SUBMIT: " << cmd;
         if (sdthread->do_user_input(cmd))
         {
             int row = ui->tableWidgetCurrentSequence->rowCount() - 1;
@@ -2130,6 +2150,19 @@ void MainWindow::on_lineEditSDInput_textChanged()
             sdAvailableCalls.clear();
     }
     
+//    qDebug() << "on_lineEditSDInput_textChanged: " << currentText;
+
+    static QRegularExpression prefixComment("^([\\(\\{].*[\\)\\}]\\s*)(.*)$"); // with capture of the comment (INCLUDES the parens/curly braces)
+    QRegularExpressionMatch matchPrefixComment = prefixComment.match(currentText);
+
+    QString thePrefixComment;
+
+    if (matchPrefixComment.hasMatch()) {
+        thePrefixComment   = matchPrefixComment.captured(1);              // do NOT trim whitespace here
+        currentText        = matchPrefixComment.captured(2).simplified(); // and trim whitespace
+//        qDebug() << "on_lineEditSDInput_textChanged: NEW currentText: " << currentText;
+    }
+
     QString strippedText = sdthread->sd_strip_leading_selectors(currentText);
 
     dance_level current_dance_program = get_current_sd_dance_program();
@@ -5015,7 +5048,7 @@ QStringList MainWindow::UserInputToSDCommand(QString userInputString) {
     // PREFIX COMMENTS --------------------------
     // Example:
     // ( this is a prefix comment ) Square Thru
-    static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]+(.*)$"); // with capture of the comment (not including the parens/curly braces)
+    static QRegularExpression prefixComment("^[\\(\\{](.*)[\\)\\}][ ]*(.*)$"); // with capture of the comment (not including the parens/curly braces)
     QRegularExpressionMatch matchPC = prefixComment.match(userInputString);
 
     if (matchPC.hasMatch()) {
