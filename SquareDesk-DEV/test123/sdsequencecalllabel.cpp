@@ -31,6 +31,8 @@ void SDSequenceCallLabel::mouseDoubleClickEvent(QMouseEvent *e)
     Q_UNUSED(e)
 #ifndef NO_TIMING_INFO
     mw->sdSequenceCallLabelDoubleClicked(e);
+#else
+    Q_UNUSED(mw)
 #endif
 }
 
