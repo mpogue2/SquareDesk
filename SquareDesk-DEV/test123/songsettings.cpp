@@ -857,6 +857,7 @@ QDebug operator<<(QDebug dbg, const SongSetting &setting)
     return dbg;
 }
 
+
 void SongSettings::saveSettings(const QString &filenameWithPath,
                                 const SongSetting &settings)
 {

@@ -798,6 +798,7 @@ private:
     QString currentMP3filenameWithPath;
     bool songLoaded;
     bool fileModified;
+    bool lyricsForDifferentSong;
 
     QString currentSongType;
     QString currentSongTitle;
@@ -895,6 +896,8 @@ private:
     void updateSongTableColumnView();
 
     int selectedSongRow();  // returns -1 if none selected
+    int previousVisibleSongRow();   // previous visible row or -1
+    int nextVisibleSongRow();       // return next visible row or -1
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
     int getSelectionRowForFilename(const QString &filePath);
 

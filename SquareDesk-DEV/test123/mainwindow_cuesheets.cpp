@@ -279,6 +279,7 @@ int compareSortedWordListsForRelevance(const QStringList &l1, const QStringList 
         return 0;
 }
 
+
 // TODO: the match needs to be a little fuzzier, since RR103B - Rocky Top.mp3 needs to match RR103 - Rocky Top.html
 void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets)
 {
@@ -438,53 +439,95 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
 }
 
-void MainWindow::loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet)
+void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet)
 {
     hasLyrics = false;
+    bool isPatter;
 
+    QString preferredCuesheet = prefCuesheet;
+    QString filenameToCheck = MP3FileName;
+    lyricsForDifferentSong = false;
+    // We may search twice:  for a patter with no lyrics we see if next is singer with lyrics
+    for(int attempt=0; attempt<2; attempt++) {
 //    QString HTML;
 
-    QStringList possibleCuesheets;
-    findPossibleCuesheets(MP3FileName, possibleCuesheets);
+        QStringList possibleCuesheets;
+        findPossibleCuesheets(filenameToCheck, possibleCuesheets);
 
 //    qDebug() << "possibleCuesheets:" << possibleCuesheets;
 
-    int defaultCuesheetIndex = 0;
-    loadedCuesheetNameWithPath = ""; // nothing loaded yet
+        ui->comboBoxCuesheetSelector->clear();
+        
+        if (attempt) {
+            SongSetting settings;
+            if (songSettings.loadSettings(filenameToCheck, settings)) {
+                QString cuesheetName = settings.getCuesheetName();
+                if (cuesheetName.length() > 0) {
+                    preferredCuesheet = cuesheetName;
+                    lyricsForDifferentSong = true;
+                }
+            }
+        }
+        
+        int defaultCuesheetIndex = 0;
+        loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
 //    QString firstCuesheet(preferredCuesheet);
-    ui->comboBoxCuesheetSelector->clear();
 
-    foreach (const QString &cuesheet, possibleCuesheets)
-    {
-        RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
-        if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
-            && cuesheet == preferredCuesheet)
-        {
-            defaultCuesheetIndex = ui->comboBoxCuesheetSelector->count();
-        }
+        foreach (const QString &cuesheet, possibleCuesheets)
+            {
+                RecursionGuard guard(cuesheetEditorReactingToCursorMovement);
+                if ((!preferredCuesheet.isNull()) && preferredCuesheet.length() >= 0
+                    && cuesheet == preferredCuesheet)
+                    {
+                        defaultCuesheetIndex = ui->comboBoxCuesheetSelector->count();
+                    }
 
-        QString displayName = cuesheet;
-        if (displayName.startsWith(musicRootPath))
-            displayName.remove(0, musicRootPath.length());
+                QString displayName = cuesheet;
+                if (displayName.startsWith(musicRootPath))
+                    displayName.remove(0, musicRootPath.length());
 
-        ui->comboBoxCuesheetSelector->addItem(displayName,
-                                              cuesheet);
+                ui->comboBoxCuesheetSelector->addItem(displayName,
+                                                      cuesheet);
+            }
+
+        if (ui->comboBoxCuesheetSelector->count() > 0)
+            {
+                ui->comboBoxCuesheetSelector->setCurrentIndex(defaultCuesheetIndex);
+                // if it was zero, we didn't load it because the index didn't change,
+                // and we skipped loading it above. Sooo...
+                if (0 == defaultCuesheetIndex)
+                    on_comboBoxCuesheetSelector_currentIndexChanged(0);
+                hasLyrics = true;
+            }
+
+        // be careful here.  The Lyrics tab can now be the Patter tab.
+        isPatter = songTypeNamesForPatter.contains(currentSongType);
+
+        if (attempt == 0) {
+            // Checking the real file;  continue if have lyrics or not patter
+            if (hasLyrics || !isPatter) {
+                break;
+            }
+            // Patter, no lyrics -- if next song is a Singer then get its lyrics.
+            int row = nextVisibleSongRow();
+            if (row < 0) {
+                break;          // no next song
+            }
+            filenameToCheck = ui->songTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+            QString nextSongType = ui->songTable->item(row,kTypeCol)->text();
+            
+            if (songTypeNamesForSinging.contains(nextSongType)) {
+                // Try this song
+//              qDebug() << "loadCuesheets: now trying " << filenameToCheck;
+            } else {
+                break;  // it's not a singer
+            }
+        } else {
+            // Second time around, whether or not we found lyrics the actual song played is patter
+            isPatter = true;
+        }               
     }
-
-    if (ui->comboBoxCuesheetSelector->count() > 0)
-    {
-        ui->comboBoxCuesheetSelector->setCurrentIndex(defaultCuesheetIndex);
-        // if it was zero, we didn't load it because the index didn't change,
-        // and we skipped loading it above. Sooo...
-        if (0 == defaultCuesheetIndex)
-            on_comboBoxCuesheetSelector_currentIndexChanged(0);
-        hasLyrics = true;
-    }
-
-    // be careful here.  The Lyrics tab can now be the Patter tab.
-    bool isPatter = songTypeNamesForPatter.contains(currentSongType);
-
 //    qDebug() << "loadCuesheets: " << currentSongType << isPatter;
 
     if (isPatter) {

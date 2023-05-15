@@ -1,0 +1,3295 @@
+
+addcommentdialog.h,107
+#define ADDCOMMENTDIALOG_H27,947
+class AddCommentDialog 42,1138
+    Ui::AddCommentDialog *ui;ui53,1354
+
+analogclock.h,1029
+#define ANALOGCLOCK_H77,3397
+#define TIMERNOTEXPIRED 83,3493
+#define LONGTIPTIMEREXPIRED 84,3528
+#define BREAKTIMEREXPIRED 85,3563
+#define THIRTYSECWARNING 86,3598
+class AnalogClock 91,3694
+    QTimer *analogClockTimer;analogClockTimer97,3791
+    unsigned int typeInMinute[typeInMinute100,3923
+    unsigned int lastHourSet[lastHourSet101,3996
+    QColor colorForType[colorForType104,4145
+    bool coloringIsHidden;107,4208
+    bool tipLengthAlarm;108,4235
+    bool breakLengthAlarm;109,4260
+    bool tipLengthTimerEnabled;111,4288
+    bool tipLength30secEnabled;112,4365
+    int tipLengthAlarmMinutes;113,4414
+    bool breakLengthTimerEnabled;114,4491
+    int breakLengthAlarmMinutes;115,4525
+    unsigned int currentTimerState;117,4559
+    QString singingCallSection;122,4828
+    clickableLabel *timerLabel;timerLabel124,4861
+    QLabel *timerLabelSD;timerLabelSD125,4893
+    bool editModeSD;126,4949
+    QLabel *timerLabelCuesheet;timerLabelCuesheet127,4970
+    TypeTracker typeTracker;129,5003
+
+audiodecoder.h,715
+#define AUDIODECODER_H77,3398
+#define BASS_ACTIVE_STOPPED 105,4129
+#define BASS_ACTIVE_PLAYING 106,4159
+#define BASS_ACTIVE_STALLED 107,4189
+#define BASS_ACTIVE_PAUSED 108,4219
+class AudioDecoder 110,4250
+    unsigned int playPosition_frames;163,5456
+    QTimer *playTimer;playTimer165,5495
+    bool activelyPlaying;166,5518
+    QAudioDecoder m_decoder;181,5773
+    QAudioSink   *m_audioSink;m_audioSink183,5803
+    QIODevice    *m_audioDevice;m_audioDevice184,5834
+    unsigned int  m_audioBufferSize;185,5867
+    qreal m_progress;187,5905
+    QBuffer *m_input;m_input189,5928
+    QByteArray *m_data;m_data190,5950
+    double BPM;192,5975
+    QString m_currentAudioOutputDeviceName;194,5992
+
+bass.h,22228
+#define BASS_H9,166
+typedef unsigned __int64 QWORD;13,216
+#define WINAPI16,274
+#define CALLBACK17,289
+typedef uint8_t BYTE;18,306
+typedef uint16_t WORD;19,328
+typedef uint32_t DWORD;20,351
+typedef uint64_t QWORD;21,375
+typedef int BOOL;23,416
+#define TRUE 26,454
+#define FALSE 27,469
+#define LOBYTE(29,492
+#define HIBYTE(30,520
+#define LOWORD(31,553
+#define HIWORD(32,581
+#define MAKEWORD(33,615
+#define MAKELONG(34,665
+#define BASSVERSION 41,767
+#define BASSVERSIONTEXT 42,818
+#define BASSDEF(45,869
+typedef DWORD HMUSIC;48,905
+typedef DWORD HSAMPLE;49,953
+typedef DWORD HCHANNEL;50,998
+typedef DWORD HSTREAM;51,1061
+typedef DWORD HRECORD;52,1113
+typedef DWORD HSYNC;53,1161
+typedef DWORD HDSP;54,1212
+typedef DWORD HFX;55,1254
+typedef DWORD HPLUGIN;56,1303
+#define BASS_OK 59,1394
+#define BASS_ERROR_MEM 60,1439
+#define BASS_ERROR_FILEOPEN 61,1487
+#define BASS_ERROR_DRIVER 62,1542
+#define BASS_ERROR_BUFLOST 63,1608
+#define BASS_ERROR_HANDLE 64,1670
+#define BASS_ERROR_FORMAT 65,1720
+#define BASS_ERROR_POSITION 66,1781
+#define BASS_ERROR_INIT 67,1833
+#define BASS_ERROR_START 68,1911
+#define BASS_ERROR_ALREADY 69,1990
+#define BASS_ERROR_NOCHAN 70,2061
+#define BASS_ERROR_ILLTYPE 71,2121
+#define BASS_ERROR_ILLPARAM 72,2186
+#define BASS_ERROR_NO3D 73,2256
+#define BASS_ERROR_NOEAX 74,2305
+#define BASS_ERROR_DEVICE 75,2355
+#define BASS_ERROR_NOPLAY 76,2412
+#define BASS_ERROR_FREQ 77,2459
+#define BASS_ERROR_NOTFILE 78,2514
+#define BASS_ERROR_NOHW 79,2581
+#define BASS_ERROR_EMPTY 80,2645
+#define BASS_ERROR_NONET 81,2715
+#define BASS_ERROR_CREATE 82,2789
+#define BASS_ERROR_NOFX 83,2849
+#define BASS_ERROR_NOTAVAIL 84,2910
+#define BASS_ERROR_DECODE 85,2977
+#define BASS_ERROR_DX 86,3054
+#define BASS_ERROR_TIMEOUT 87,3135
+#define BASS_ERROR_FILEFORM 88,3190
+#define BASS_ERROR_SPEAKER 89,3249
+#define BASS_ERROR_VERSION 90,3304
+#define BASS_ERROR_CODEC 91,3378
+#define BASS_ERROR_ENDED 92,3446
+#define BASS_ERROR_BUSY 93,3508
+#define BASS_ERROR_UNKNOWN 94,3562
+#define BASS_CONFIG_BUFFER 97,3651
+#define BASS_CONFIG_UPDATEPERIOD 98,3689
+#define BASS_CONFIG_GVOL_SAMPLE 99,3727
+#define BASS_CONFIG_GVOL_STREAM 100,3765
+#define BASS_CONFIG_GVOL_MUSIC 101,3803
+#define BASS_CONFIG_CURVE_VOL 102,3841
+#define BASS_CONFIG_CURVE_PAN 103,3879
+#define BASS_CONFIG_FLOATDSP 104,3917
+#define BASS_CONFIG_3DALGORITHM 105,3955
+#define BASS_CONFIG_NET_TIMEOUT 106,3994
+#define BASS_CONFIG_NET_BUFFER 107,4033
+#define BASS_CONFIG_PAUSE_NOPLAY 108,4072
+#define BASS_CONFIG_NET_PREBUF 109,4111
+#define BASS_CONFIG_NET_PASSIVE 110,4150
+#define BASS_CONFIG_REC_BUFFER 111,4189
+#define BASS_CONFIG_NET_PLAYLIST 112,4228
+#define BASS_CONFIG_MUSIC_VIRTUAL 113,4267
+#define BASS_CONFIG_VERIFY 114,4306
+#define BASS_CONFIG_UPDATETHREADS 115,4345
+#define BASS_CONFIG_DEV_BUFFER 116,4384
+#define BASS_CONFIG_VISTA_TRUEPOS 117,4423
+#define BASS_CONFIG_IOS_MIXAUDIO 118,4462
+#define BASS_CONFIG_DEV_DEFAULT 119,4501
+#define BASS_CONFIG_NET_READTIMEOUT 120,4540
+#define BASS_CONFIG_VISTA_SPEAKERS 121,4579
+#define BASS_CONFIG_IOS_SPEAKER 122,4618
+#define BASS_CONFIG_HANDLES 123,4657
+#define BASS_CONFIG_UNICODE 124,4696
+#define BASS_CONFIG_SRC 125,4735
+#define BASS_CONFIG_SRC_SAMPLE 126,4774
+#define BASS_CONFIG_ASYNCFILE_BUFFER 127,4813
+#define BASS_CONFIG_OGG_PRESCAN 128,4853
+#define BASS_CONFIG_NET_AGENT 131,4922
+#define BASS_CONFIG_NET_PROXY 132,4961
+#define BASS_CONFIG_IOS_NOTIFY 133,5000
+#define BASS_DEVICE_8BITS 136,5059
+#define BASS_DEVICE_MONO 137,5132
+#define BASS_DEVICE_3D 138,5193
+#define BASS_DEVICE_LATENCY 139,5260
+#define BASS_DEVICE_CPSPEAKERS 140,5347
+#define BASS_DEVICE_SPEAKERS 141,5432
+#define BASS_DEVICE_NOSPEAKER 142,5512
+#define BASS_DEVICE_DMIX 143,5582
+#define BASS_DEVICE_FREQ 144,5648
+#define BASS_OBJECT_DS 147,5777
+#define BASS_OBJECT_DS3DL 148,5825
+    const wchar_t *name;name153,5944
+    const wchar_t *driver;driver154,5987
+    const char *name;name156,6031
+    const char *driver;driver157,6070
+    DWORD flags;159,6111
+} BASS_DEVICEINFO;160,6128
+#define BASS_DEVICE_ENABLED 163,6173
+#define BASS_DEVICE_DEFAULT 164,6207
+#define BASS_DEVICE_INIT 165,6241
+    DWORD flags;168,6293
+    DWORD hwsize;169,6355
+    DWORD hwfree;170,6415
+    DWORD freesam;171,6474
+    DWORD free3d;172,6541
+    DWORD minrate;173,6611
+    DWORD maxrate;174,6676
+    BOOL eax;175,6741
+    DWORD minbuf;176,6831
+    DWORD dsver;177,6925
+    DWORD latency;178,6968
+    DWORD initflags;179,7061
+    DWORD speakers;180,7113
+    DWORD freq;181,7165
+} BASS_INFO;182,7208
+#define DSCAPS_CONTINUOUSRATE 185,7257
+#define DSCAPS_EMULDRIVER 186,7350
+#define DSCAPS_CERTIFIED 187,7447
+#define DSCAPS_SECONDARYMONO 188,7540
+#define DSCAPS_SECONDARYSTEREO 189,7592
+#define DSCAPS_SECONDARY8BIT 190,7646
+#define DSCAPS_SECONDARY16BIT 191,7699
+    DWORD flags;195,7806
+    DWORD formats;196,7869
+    DWORD inputs;197,7943
+    BOOL singlein;198,7983
+    DWORD freq;199,8047
+} BASS_RECORDINFO;200,8089
+#define DSCCAPS_EMULDRIVER 203,8150
+#define DSCCAPS_CERTIFIED 204,8265
+#define WAVE_FORMAT_1M08 208,8458
+#define WAVE_FORMAT_1S08 209,8539
+#define WAVE_FORMAT_1M16 210,8620
+#define WAVE_FORMAT_1S16 211,8701
+#define WAVE_FORMAT_2M08 212,8782
+#define WAVE_FORMAT_2S08 213,8863
+#define WAVE_FORMAT_2M16 214,8944
+#define WAVE_FORMAT_2S16 215,9025
+#define WAVE_FORMAT_4M08 216,9106
+#define WAVE_FORMAT_4S08 217,9187
+#define WAVE_FORMAT_4M16 218,9268
+#define WAVE_FORMAT_4S16 219,9349
+    DWORD freq;224,9480
+    float volume;225,9525
+    float pan;226,9569
+    DWORD flags;227,9633
+    DWORD length;228,9678
+    DWORD max;229,9719
+    DWORD origres;230,9773
+    DWORD chans;231,9821
+    DWORD mingap;232,9863
+    DWORD mode3d;233,9929
+    float mindist;234,9973
+    float maxdist;235,10013
+    DWORD iangle;236,10053
+    DWORD oangle;237,10108
+    float outvol;238,10164
+    DWORD vam;239,10228
+    DWORD priority;240,10300
+} BASS_SAMPLE;241,10363
+#define BASS_SAMPLE_8BITS 243,10379
+#define BASS_SAMPLE_FLOAT 244,10424
+#define BASS_SAMPLE_MONO 245,10485
+#define BASS_SAMPLE_LOOP 246,10529
+#define BASS_SAMPLE_3D 247,10575
+#define BASS_SAMPLE_SOFTWARE 248,10631
+#define BASS_SAMPLE_MUTEMAX 249,10696
+#define BASS_SAMPLE_VAM 250,10766
+#define BASS_SAMPLE_FX 251,10839
+#define BASS_SAMPLE_OVER_VOL 252,10912
+#define BASS_SAMPLE_OVER_POS 253,10978
+#define BASS_SAMPLE_OVER_DIST 254,11046
+#define BASS_STREAM_PRESCAN 256,11132
+#define BASS_MP3_SETPOS 257,11221
+#define BASS_STREAM_AUTOFREE 258,11273
+#define BASS_STREAM_RESTRATE 259,11364
+#define BASS_STREAM_BLOCK 260,11459
+#define BASS_STREAM_DECODE 261,11554
+#define BASS_STREAM_STATUS 262,11655
+#define BASS_MUSIC_FLOAT 264,11756
+#define BASS_MUSIC_MONO 265,11806
+#define BASS_MUSIC_LOOP 266,11855
+#define BASS_MUSIC_3D 267,11904
+#define BASS_MUSIC_FX 268,11951
+#define BASS_MUSIC_AUTOFREE 269,11998
+#define BASS_MUSIC_DECODE 270,12051
+#define BASS_MUSIC_PRESCAN 271,12102
+#define BASS_MUSIC_CALCLEN 272,12183
+#define BASS_MUSIC_RAMP 273,12234
+#define BASS_MUSIC_RAMPS 274,12292
+#define BASS_MUSIC_SURROUND 275,12353
+#define BASS_MUSIC_SURROUND2 276,12411
+#define BASS_MUSIC_FT2MOD 277,12478
+#define BASS_MUSIC_PT1MOD 278,12553
+#define BASS_MUSIC_NONINTER 279,12627
+#define BASS_MUSIC_SINCINTER 280,12701
+#define BASS_MUSIC_POSRESET 281,12777
+#define BASS_MUSIC_POSRESETEX 282,12856
+#define BASS_MUSIC_STOPBACK 283,12954
+#define BASS_MUSIC_NOSAMPLE 284,13039
+#define BASS_SPEAKER_FRONT 287,13135
+#define BASS_SPEAKER_REAR 288,13193
+#define BASS_SPEAKER_CENLFE 289,13255
+#define BASS_SPEAKER_REAR2 290,13326
+#define BASS_SPEAKER_N(291,13396
+#define BASS_SPEAKER_LEFT 292,13470
+#define BASS_SPEAKER_RIGHT 293,13528
+#define BASS_SPEAKER_FRONTLEFT 294,13587
+#define BASS_SPEAKER_FRONTRIGHT 295,13656
+#define BASS_SPEAKER_REARLEFT 296,13726
+#define BASS_SPEAKER_REARRIGHT 297,13794
+#define BASS_SPEAKER_CENTER 298,13863
+#define BASS_SPEAKER_LFE 299,13933
+#define BASS_SPEAKER_REAR2LEFT 300,14004
+#define BASS_SPEAKER_REAR2RIGHT 301,14073
+#define BASS_ASYNCFILE 303,14144
+#define BASS_UNICODE 304,14187
+#define BASS_RECORD_PAUSE 306,14231
+#define BASS_VAM_HARDWARE 309,14341
+#define BASS_VAM_SOFTWARE 310,14375
+#define BASS_VAM_TERM_TIME 311,14409
+#define BASS_VAM_TERM_DIST 312,14443
+#define BASS_VAM_TERM_PRIO 313,14477
+    DWORD freq;317,14556
+    DWORD chans;318,14601
+    DWORD flags;319,14633
+    DWORD ctype;320,14695
+    DWORD origres;321,14734
+    HPLUGIN plugin;322,14777
+    HSAMPLE sample;323,14807
+    const char *filename;filename324,14837
+} BASS_CHANNELINFO;325,14875
+#define BASS_CTYPE_SAMPLE 328,14922
+#define BASS_CTYPE_RECORD 329,14956
+#define BASS_CTYPE_STREAM 330,14990
+#define BASS_CTYPE_STREAM_OGG 331,15030
+#define BASS_CTYPE_STREAM_MP1 332,15070
+#define BASS_CTYPE_STREAM_MP2 333,15110
+#define BASS_CTYPE_STREAM_MP3 334,15150
+#define BASS_CTYPE_STREAM_AIFF 335,15190
+#define BASS_CTYPE_STREAM_CA 336,15230
+#define BASS_CTYPE_STREAM_MF 337,15270
+#define BASS_CTYPE_STREAM_WAV 338,15310
+#define BASS_CTYPE_STREAM_WAV_PCM 339,15377
+#define BASS_CTYPE_STREAM_WAV_FLOAT 340,15421
+#define BASS_CTYPE_MUSIC_MOD 341,15465
+#define BASS_CTYPE_MUSIC_MTM 342,15505
+#define BASS_CTYPE_MUSIC_S3M 343,15545
+#define BASS_CTYPE_MUSIC_XM 344,15585
+#define BASS_CTYPE_MUSIC_IT 345,15625
+#define BASS_CTYPE_MUSIC_MO3 346,15665
+    DWORD ctype;349,15735
+    const wchar_t *name;name351,15793
+    const wchar_t *exts;exts352,15843
+    const char *name;name354,15925
+    const char *exts;exts355,15971
+} BASS_PLUGINFORM;357,16050
+    DWORD version;360,16087
+    DWORD formatc;361,16165
+    const BASS_PLUGINFORM *formats;formats362,16222
+} BASS_PLUGININFO;363,16282
+typedef struct BASS_3DVECTOR 366,16358
+    BASS_3DVECTOR(368,16408
+    BASS_3DVECTOR(369,16432
+    float x;371,16513
+    float y;372,16548
+    float z;373,16580
+} BASS_3DVECTOR;374,16617
+#define BASS_3DMODE_NORMAL 377,16655
+#define BASS_3DMODE_RELATIVE 378,16715
+#define BASS_3DMODE_OFF 379,16791
+#define BASS_3DALG_DEFAULT 382,16917
+#define BASS_3DALG_OFF 383,16947
+#define BASS_3DALG_FULL 384,16977
+#define BASS_3DALG_LIGHT 385,17007
+    EAX_ENVIRONMENT_GENERIC,389,17097
+    EAX_ENVIRONMENT_PADDEDCELL,390,17126
+    EAX_ENVIRONMENT_ROOM,391,17158
+    EAX_ENVIRONMENT_BATHROOM,392,17184
+    EAX_ENVIRONMENT_LIVINGROOM,393,17214
+    EAX_ENVIRONMENT_STONEROOM,394,17246
+    EAX_ENVIRONMENT_AUDITORIUM,395,17277
+    EAX_ENVIRONMENT_CONCERTHALL,396,17309
+    EAX_ENVIRONMENT_CAVE,397,17342
+    EAX_ENVIRONMENT_ARENA,398,17368
+    EAX_ENVIRONMENT_HANGAR,399,17395
+    EAX_ENVIRONMENT_CARPETEDHALLWAY,400,17423
+    EAX_ENVIRONMENT_HALLWAY,401,17460
+    EAX_ENVIRONMENT_STONECORRIDOR,402,17489
+    EAX_ENVIRONMENT_ALLEY,403,17524
+    EAX_ENVIRONMENT_FOREST,404,17551
+    EAX_ENVIRONMENT_CITY,405,17579
+    EAX_ENVIRONMENT_MOUNTAINS,406,17605
+    EAX_ENVIRONMENT_QUARRY,407,17636
+    EAX_ENVIRONMENT_PLAIN,408,17664
+    EAX_ENVIRONMENT_PARKINGLOT,409,17691
+    EAX_ENVIRONMENT_SEWERPIPE,410,17723
+    EAX_ENVIRONMENT_UNDERWATER,411,17754
+    EAX_ENVIRONMENT_DRUGGED,412,17786
+    EAX_ENVIRONMENT_DIZZY,413,17815
+    EAX_ENVIRONMENT_PSYCHOTIC,414,17842
+    EAX_ENVIRONMENT_COUNT 416,17874
+#define EAX_PRESET_GENERIC 420,18007
+#define EAX_PRESET_PADDEDCELL 421,18083
+#define EAX_PRESET_ROOM 422,18161
+#define EAX_PRESET_BATHROOM 423,18236
+#define EAX_PRESET_LIVINGROOM 424,18317
+#define EAX_PRESET_STONEROOM 425,18398
+#define EAX_PRESET_AUDITORIUM 426,18478
+#define EAX_PRESET_CONCERTHALL 427,18559
+#define EAX_PRESET_CAVE 428,18639
+#define EAX_PRESET_ARENA 429,18714
+#define EAX_PRESET_HANGAR 430,18792
+#define EAX_PRESET_CARPETEDHALLWAY 431,18866
+#define EAX_PRESET_HALLWAY 432,18952
+#define EAX_PRESET_STONECORRIDOR 433,19030
+#define EAX_PRESET_ALLEY 434,19116
+#define EAX_PRESET_FOREST 435,19193
+#define EAX_PRESET_CITY 436,19272
+#define EAX_PRESET_MOUNTAINS 437,19349
+#define EAX_PRESET_QUARRY 438,19431
+#define EAX_PRESET_PLAIN 439,19506
+#define EAX_PRESET_PARKINGLOT 440,19584
+#define EAX_PRESET_SEWERPIPE 441,19665
+#define EAX_PRESET_UNDERWATER 442,19746
+#define EAX_PRESET_DRUGGED 443,19825
+#define EAX_PRESET_DIZZY 444,19905
+#define EAX_PRESET_PSYCHOTIC 445,19984
+typedef DWORD (CALLBACK STREAMPROC)447,20067
+#define BASS_STREAMPROC_END 457,20612
+#define STREAMPROC_DUMMY 460,20707
+#define STREAMPROC_PUSH 461,20777
+#define STREAMFILE_NOBUFFER 464,20887
+#define STREAMFILE_BUFFER 465,20921
+#define STREAMFILE_BUFFERPUSH 466,20955
+typedef void (CALLBACK FILECLOSEPROC)469,21029
+typedef QWORD (CALLBACK FILELENPROC)470,21080
+typedef DWORD (CALLBACK FILEREADPROC)471,21130
+typedef BOOL (CALLBACK FILESEEKPROC)472,21209
+    FILECLOSEPROC *close;close475,21291
+    FILELENPROC *length;length476,21317
+    FILEREADPROC *read;read477,21342
+    FILESEEKPROC *seek;seek478,21366
+} BASS_FILEPROCS;479,21390
+#define BASS_FILEDATA_END 482,21443
+#define BASS_FILEPOS_CURRENT 485,21540
+#define BASS_FILEPOS_DECODE 486,21574
+#define BASS_FILEPOS_DOWNLOAD 487,21627
+#define BASS_FILEPOS_END 488,21661
+#define BASS_FILEPOS_START 489,21695
+#define BASS_FILEPOS_CONNECTED 490,21729
+#define BASS_FILEPOS_BUFFER 491,21763
+#define BASS_FILEPOS_SOCKET 492,21797
+typedef void (CALLBACK DOWNLOADPROC)494,21832
+#define BASS_SYNC_POS 501,22182
+#define BASS_SYNC_END 502,22216
+#define BASS_SYNC_META 503,22250
+#define BASS_SYNC_SLIDE 504,22284
+#define BASS_SYNC_STALL 505,22318
+#define BASS_SYNC_DOWNLOAD 506,22352
+#define BASS_SYNC_FREE 507,22386
+#define BASS_SYNC_SETPOS 508,22420
+#define BASS_SYNC_MUSICPOS 509,22455
+#define BASS_SYNC_MUSICINST 510,22490
+#define BASS_SYNC_MUSICFX 511,22524
+#define BASS_SYNC_OGG_CHANGE 512,22558
+#define BASS_SYNC_MIXTIME 513,22593
+#define BASS_SYNC_ONETIME 514,22680
+typedef void (CALLBACK SYNCPROC)516,22768
+typedef void (CALLBACK DSPPROC)526,23313
+typedef BOOL (CALLBACK RECORDPROC)536,23812
+#define BASS_ACTIVE_STOPPED 545,24212
+#define BASS_ACTIVE_PLAYING 546,24242
+#define BASS_ACTIVE_STALLED 547,24272
+#define BASS_ACTIVE_PAUSED 548,24302
+#define BASS_ATTRIB_FREQ 551,24355
+#define BASS_ATTRIB_VOL 552,24393
+#define BASS_ATTRIB_PAN 553,24431
+#define BASS_ATTRIB_EAXMIX 554,24469
+#define BASS_ATTRIB_NOBUFFER 555,24507
+#define BASS_ATTRIB_CPU 556,24545
+#define BASS_ATTRIB_SRC 557,24583
+#define BASS_ATTRIB_MUSIC_AMPLIFY 558,24621
+#define BASS_ATTRIB_MUSIC_PANSEP 559,24663
+#define BASS_ATTRIB_MUSIC_PSCALER 560,24705
+#define BASS_ATTRIB_MUSIC_BPM 561,24747
+#define BASS_ATTRIB_MUSIC_SPEED 562,24789
+#define BASS_ATTRIB_MUSIC_VOL_GLOBAL 563,24831
+#define BASS_ATTRIB_MUSIC_VOL_CHAN 564,24874
+#define BASS_ATTRIB_MUSIC_VOL_INST 565,24931
+#define BASS_DATA_AVAILABLE 568,25021
+#define BASS_DATA_FLOAT 569,25096
+#define BASS_DATA_FFT256 570,25179
+#define BASS_DATA_FFT512 571,25237
+#define BASS_DATA_FFT1024 572,25288
+#define BASS_DATA_FFT2048 573,25340
+#define BASS_DATA_FFT4096 574,25392
+#define BASS_DATA_FFT8192 575,25444
+#define BASS_DATA_FFT16384 576,25496
+#define BASS_DATA_FFT_INDIVIDUAL 577,25549
+#define BASS_DATA_FFT_NOWINDOW 578,25642
+#define BASS_DATA_FFT_REMOVEDC 579,25713
+#define BASS_DATA_FFT_COMPLEX 580,25785
+#define BASS_TAG_ID3 583,25906
+#define BASS_TAG_ID3V2 584,25972
+#define BASS_TAG_OGG 585,26042
+#define BASS_TAG_HTTP 586,26132
+#define BASS_TAG_ICY 587,26221
+#define BASS_TAG_META 588,26309
+#define BASS_TAG_APE 589,26371
+#define BASS_TAG_MP4 590,26457
+#define BASS_TAG_VENDOR 591,26554
+#define BASS_TAG_LYRICS3 592,26616
+#define BASS_TAG_CA_CODEC 593,26679
+#define BASS_TAG_MF 594,26760
+#define BASS_TAG_WAVEFORMAT 595,26859
+#define BASS_TAG_RIFF_INFO 596,26932
+#define BASS_TAG_RIFF_BEXT 597,27027
+#define BASS_TAG_RIFF_CART 598,27106
+#define BASS_TAG_RIFF_DISP 599,27185
+#define BASS_TAG_APE_BINARY 600,27257
+#define BASS_TAG_MUSIC_NAME 601,27349
+#define BASS_TAG_MUSIC_MESSAGE 602,27421
+#define BASS_TAG_MUSIC_ORDERS 603,27490
+#define BASS_TAG_MUSIC_INST 604,27580
+#define BASS_TAG_MUSIC_SAMPLE 605,27673
+    char id[id609,27799
+    char title[title610,27815
+    char artist[artist611,27835
+    char album[album612,27856
+    char year[year613,27876
+    char comment[comment614,27894
+    BYTE genre;615,27916
+} TAG_ID3;616,27932
+    const char *key;key620,27989
+    const void *data;data621,28010
+    DWORD length;622,28032
+} TAG_APE_BINARY;623,28050
+    char Description[Description632,28210
+    char Originator[Originator633,28261
+    char OriginatorReference[OriginatorReference634,28323
+    char OriginationDate[OriginationDate635,28390
+    char OriginationTime[OriginationTime636,28459
+    QWORD TimeReference;637,28526
+    WORD Version;638,28615
+    BYTE UMID[UMID639,28682
+    BYTE Reserved[Reserved640,28732
+    char CodingHistory[CodingHistory642,28792
+    char CodingHistory[CodingHistory644,28899
+    char CodingHistory[CodingHistory646,28952
+} TAG_BEXT;648,29006
+    DWORD dwUsage;653,29083
+    DWORD dwValue;654,29144
+} TAG_CART_TIMER;655,29216
+    char Version[Version658,29252
+    char Title[Title659,29321
+    char Artist[Artist660,29389
+    char CutID[CutID661,29451
+    char ClientID[ClientID662,29516
+    char Category[Category663,29577
+    char Classification[Classification664,29644
+    char OutCue[OutCue665,29715
+    char StartDate[StartDate666,29767
+    char StartTime[StartTime667,29817
+    char EndDate[EndDate668,29865
+    char EndTime[EndTime669,29915
+    char ProducerAppID[ProducerAppID670,29963
+    char ProducerAppVersion[ProducerAppVersion671,30032
+    char UserDef[UserDef672,30103
+    DWORD dwLevelReference;673,30160
+    TAG_CART_TIMER PostTimer[PostTimer674,30231
+    char Reserved[Reserved675,30296
+    char URL[URL676,30320
+    char TagText[TagText678,30420
+    char TagText[TagText680,30554
+    char TagText[TagText682,30634
+} TAG_CART;684,30715
+    DWORD ftype;691,30823
+    DWORD atype;692,30874
+    const char *name;name693,30926
+} TAG_CA_CODEC;694,30977
+#define _WAVEFORMATEX_697,31017
+typedef struct tWAVEFORMATEX 699,31061
+    WORD wFormatTag;700,31092
+    WORD nChannels;701,31113
+    DWORD nSamplesPerSec;702,31133
+    DWORD nAvgBytesPerSec;703,31159
+    WORD nBlockAlign;704,31186
+    WORD wBitsPerSample;705,31208
+    WORD cbSize;706,31233
+} WAVEFORMATEX, *PWAVEFORMATEX, *LPWAVEFORMATEX;LPWAVEFORMATEX707,31250
+typedef const WAVEFORMATEX *LPCWAVEFORMATEX;LPCWAVEFORMATEX708,31299
+#define BASS_POS_BYTE 713,31425
+#define BASS_POS_MUSIC_ORDER 714,31482
+#define BASS_POS_OGG 715,31565
+#define BASS_POS_DECODE 716,31629
+#define BASS_POS_DECODETO 717,31721
+#define BASS_INPUT_OFF 720,31845
+#define BASS_INPUT_ON 721,31881
+#define BASS_INPUT_TYPE_MASK 723,31918
+#define BASS_INPUT_TYPE_UNDEF 724,31965
+#define BASS_INPUT_TYPE_DIGITAL 725,32012
+#define BASS_INPUT_TYPE_LINE 726,32059
+#define BASS_INPUT_TYPE_MIC 727,32106
+#define BASS_INPUT_TYPE_SYNTH 728,32153
+#define BASS_INPUT_TYPE_CD 729,32200
+#define BASS_INPUT_TYPE_PHONE 730,32247
+#define BASS_INPUT_TYPE_SPEAKER 731,32294
+#define BASS_INPUT_TYPE_WAVE 732,32341
+#define BASS_INPUT_TYPE_AUX 733,32388
+#define BASS_INPUT_TYPE_ANALOG 734,32435
+    BASS_FX_DX8_CHORUS,738,32538
+    BASS_FX_DX8_COMPRESSOR,739,32562
+    BASS_FX_DX8_DISTORTION,740,32590
+    BASS_FX_DX8_ECHO,741,32618
+    BASS_FX_DX8_FLANGER,742,32640
+    BASS_FX_DX8_GARGLE,743,32665
+    BASS_FX_DX8_I3DL2REVERB,744,32689
+    BASS_FX_DX8_PARAMEQ,745,32718
+    BASS_FX_DX8_REVERB746,32743
+    float       fWetDryMix;750,32787
+    float       fDepth;751,32815
+    float       fFeedback;752,32839
+    float       fFrequency;753,32866
+    DWORD       lWaveform;754,32894
+    float       fDelay;755,32944
+    DWORD       lPhase;756,32968
+} BASS_DX8_CHORUS;757,33018
+    float   fGain;760,33055
+    float   fAttack;761,33074
+    float   fRelease;762,33095
+    float   fThreshold;763,33117
+    float   fRatio;764,33141
+    float   fPredelay;765,33161
+} BASS_DX8_COMPRESSOR;766,33184
+    float   fGain;769,33225
+    float   fEdge;770,33244
+    float   fPostEQCenterFrequency;771,33263
+    float   fPostEQBandwidth;772,33299
+    float   fPreLowpassCutoff;773,33329
+} BASS_DX8_DISTORTION;774,33360
+    float   fWetDryMix;777,33401
+    float   fFeedback;778,33425
+    float   fLeftDelay;779,33448
+    float   fRightDelay;780,33472
+    BOOL    lPanDelay;781,33497
+} BASS_DX8_ECHO;782,33520
+    float       fWetDryMix;785,33555
+    float       fDepth;786,33583
+    float       fFeedback;787,33607
+    float       fFrequency;788,33634
+    DWORD       lWaveform;789,33662
+    float       fDelay;790,33712
+    DWORD       lPhase;791,33736
+} BASS_DX8_FLANGER;792,33786
+    DWORD       dwRateHz;795,33824
+    DWORD       dwWaveShape;796,33892
+} BASS_DX8_GARGLE;797,33956
+    int     lRoom;800,33993
+    int     lRoomHF;801,34067
+    float   flRoomRolloffFactor;802,34137
+    float   flDecayTime;803,34206
+    float   flDecayHFRatio;804,34277
+    int     lReflections;805,34347
+    float   flReflectionsDelay;806,34421
+    int     lReverb;807,34494
+    float   flReverbDelay;808,34566
+    float   flDiffusion;809,34639
+    float   flDensity;810,34712
+    float   flHFReference;811,34785
+} BASS_DX8_I3DL2REVERB;812,34860
+    float   fCenter;815,34902
+    float   fBandwidth;816,34923
+    float   fGain;817,34947
+} BASS_DX8_PARAMEQ;818,34966
+    float   fInGain;821,35004
+    float   fReverbMix;822,35082
+    float   fReverbTime;823,35160
+    float   fHighFreqRTRatio;824,35241
+} BASS_DX8_REVERB;825,35318
+#define BASS_DX8_PHASE_NEG_180 827,35338
+#define BASS_DX8_PHASE_NEG_90 828,35378
+#define BASS_DX8_PHASE_ZERO 829,35418
+#define BASS_DX8_PHASE_90 830,35458
+#define BASS_DX8_PHASE_180 831,35498
+typedef void (CALLBACK IOSNOTIFYPROC)833,35539
+#define BASS_IOSNOTIFY_INTERRUPT 837,35682
+#define BASS_IOSNOTIFY_INTERRUPT_END 838,35750
+static inline HPLUGIN BASS_PluginLoad(962,42782
+static inline HMUSIC BASS_MusicLoad(967,42925
+static inline HSAMPLE BASS_SampleLoad(972,43142
+static inline HSTREAM BASS_StreamCreateFile(977,43360
+static inline HSTREAM BASS_StreamCreateURL(982,43574
+
+bass_audio.h,1114
+#define FREQ_KHZ 33,1098
+#define BW_OCT 34,1118
+#define GAIN_DB 35,1137
+class bass_audio37,1158
+    double                  FileLength;42,1322
+    double                  Current_Position;43,1363
+    int                     Stream_Volume;44,1410
+    double                  Stream_MaxVolume;45,1454
+    int                     Stream_Tempo;47,1698
+    double                  Stream_Eq[Stream_Eq48,1741
+    bool                    IntelBoostShouldBeEnabled;50,1786
+    float                   Global_IntelBoostEq[Global_IntelBoostEq51,1842
+    int                     Stream_Pitch;53,1963
+    double                  Stream_BPM;56,2095
+    bool                    bPaused;58,2138
+    double                  loopFromPoint_sec;61,2200
+    double                  loopToPoint_sec;62,2248
+    QWORD                   startPoint_bytes;64,2296
+    QWORD                   endPoint_bytes;65,2343
+    int  currentSoundEffectID;127,4928
+    HSTREAM                         Stream;134,5286
+    HSTREAM                         FXStream;135,5331
+    HFX fxEQ;137,5380
+    HSYNC  syncHandle;138,5430
+
+bass_fx.h,6784
+#define BASS_FX_H18,771
+#define BASS_FXDEF(25,856
+#define BASS_CTYPE_STREAM_TEMPO 29,925
+#define BASS_CTYPE_STREAM_REVERSE 30,970
+#define BASS_FX_FREESOURCE 33,1055
+#define BASS_BFX_CHANALL 52,1937
+#define BASS_BFX_CHANNONE 53,2022
+#define BASS_BFX_CHAN1 54,2105
+#define BASS_BFX_CHAN2 55,2172
+#define BASS_BFX_CHAN3 56,2240
+#define BASS_BFX_CHAN4 57,2303
+#define BASS_BFX_CHAN5 58,2366
+#define BASS_BFX_CHAN6 59,2429
+#define BASS_BFX_CHAN7 60,2492
+#define BASS_BFX_CHAN8 61,2555
+#define BASS_BFX_CHANNEL_N(64,2679
+    BASS_FX_BFX_ROTATE 68,2749
+    BASS_FX_BFX_ECHO,69,2842
+    BASS_FX_BFX_FLANGER,70,2952
+    BASS_FX_BFX_VOLUME,71,3062
+    BASS_FX_BFX_PEAKEQ,72,3155
+    BASS_FX_BFX_REVERB,73,3248
+    BASS_FX_BFX_LPF,74,3358
+    BASS_FX_BFX_MIX,75,3468
+    BASS_FX_BFX_DAMP,76,3561
+    BASS_FX_BFX_AUTOWAH,77,3654
+    BASS_FX_BFX_ECHO2,78,3747
+    BASS_FX_BFX_PHASER,79,3857
+    BASS_FX_BFX_ECHO3,80,3950
+    BASS_FX_BFX_CHORUS,81,4060
+    BASS_FX_BFX_APF,82,4153
+    BASS_FX_BFX_COMPRESSOR,83,4263
+    BASS_FX_BFX_DISTORTION,84,4373
+    BASS_FX_BFX_COMPRESSOR2,85,4466
+    BASS_FX_BFX_VOLUME_ENV,86,4559
+    BASS_FX_BFX_BQF,87,4652
+    BASS_FX_BFX_ECHO4,88,4745
+    BASS_FX_BFX_PITCHSHIFT,89,4838
+    BASS_FX_BFX_FREEVERB 90,4961
+    float fRate;108,5717
+    int   lChannel;109,5843
+} BASS_BFX_ROTATE;110,5956
+    float fLevel;114,6018
+    int   lDelay;115,6087
+} BASS_BFX_ECHO;116,6149
+    float fWetDry;120,6212
+    float fSpeed;121,6281
+    int   lChannel;122,6343
+} BASS_BFX_FLANGER;123,6415
+    int   lChannel;127,6467
+    float fVolume;128,6570
+} BASS_BFX_VOLUME;129,6639
+    int   lBand;133,6701
+    float fBandwidth;134,6810
+    float fQ;135,6943
+    float fCenter;136,7073
+    float fGain;137,7147
+    int   lChannel;138,7255
+} BASS_BFX_PEAKEQ;139,7327
+    float fLevel;143,7391
+    int   lDelay;144,7460
+} BASS_BFX_REVERB;145,7522
+    float fResonance;149,7595
+    float fCutOffFreq;150,7663
+    int   lChannel;151,7748
+} BASS_BFX_LPF;152,7820
+    const int *lChannel;lChannel156,7881
+} BASS_BFX_MIX;157,8020
+    float fTarget;161,8083
+    float fQuiet;162,8191
+    float fRate;163,8299
+    float fGain;164,8407
+    float fDelay;165,8515
+    int   lChannel;166,8623
+} BASS_BFX_DAMP;167,8695
+    float fDryMix;171,8746
+    float fWetMix;172,8847
+    float fFeedback;173,8948
+    float fRate;174,9049
+    float fRange;175,9150
+    float fFreq;176,9251
+    int   lChannel;177,9352
+} BASS_BFX_AUTOWAH;178,9424
+    float fDryMix;182,9489
+    float fWetMix;183,9590
+    float fFeedback;184,9691
+    float fDelay;185,9792
+    int   lChannel;186,9893
+} BASS_BFX_ECHO2;187,9965
+    float fDryMix;191,10015
+    float fWetMix;192,10116
+    float fFeedback;193,10217
+    float fRate;194,10318
+    float fRange;195,10419
+    float fFreq;196,10520
+    int   lChannel;197,10621
+} BASS_BFX_PHASER;198,10693
+    float fDryMix;202,10757
+    float fWetMix;203,10858
+    float fDelay;204,10959
+    int   lChannel;205,11060
+} BASS_BFX_ECHO3;206,11132
+    float fDryMix;210,11190
+    float fWetMix;211,11291
+    float fFeedback;212,11392
+    float fMinSweep;213,11493
+    float fMaxSweep;214,11594
+    float fRate;215,11695
+    int   lChannel;216,11796
+} BASS_BFX_CHORUS;217,11868
+    float fGain;221,11941
+    float fDelay;222,12042
+    int   lChannel;223,12143
+} BASS_BFX_APF;224,12215
+    float fThreshold;228,12280
+    float fAttacktime;229,12381
+    float fReleasetime;230,12482
+    int   lChannel;231,12583
+} BASS_BFX_COMPRESSOR;232,12655
+    float fDrive;236,12714
+    float fDryMix;237,12815
+    float fWetMix;238,12916
+    float fFeedback;239,13017
+    float fVolume;240,13118
+    int   lChannel;241,13219
+} BASS_BFX_DISTORTION;242,13291
+    float fGain;246,13352
+    float fThreshold;247,13459
+    float fRatio;248,13566
+    float fAttack;249,13667
+    float fRelease;250,13768
+    int   lChannel;251,13869
+} BASS_BFX_COMPRESSOR2;252,13941
+    int   lChannel;256,14006
+    int   lNodeCount;257,14078
+    const struct BASS_BFX_ENV_NODE *pNodes;pNodes258,14142
+    BOOL  bFollow;259,14200
+} BASS_BFX_VOLUME_ENV;260,14271
+typedef struct BASS_BFX_ENV_NODE 263,14319
+    double pos;264,14355
+    float  val;265,14470
+} BASS_BFX_ENV_NODE;266,14529
+    BASS_BFX_BQF_LOWPASS,271,14599
+    BASS_BFX_BQF_HIGHPASS,272,14626
+    BASS_BFX_BQF_BANDPASS,273,14654
+    BASS_BFX_BQF_BANDPASS_Q,274,14726
+    BASS_BFX_BQF_NOTCH,275,14809
+    BASS_BFX_BQF_ALLPASS,276,14834
+    BASS_BFX_BQF_PEAKINGEQ,277,14861
+    BASS_BFX_BQF_LOWSHELF,278,14890
+    BASS_BFX_BQF_HIGHSHELF279,14918
+    int   lFilter;283,14970
+    float fCenter;284,15048
+    float fGain;285,15149
+    float fBandwidth;286,15302
+    float fQ;289,15617
+    float fS;290,15748
+    int   lChannel;293,16073
+} BASS_BFX_BQF;294,16145
+    float fDryMix;298,16193
+    float fWetMix;299,16295
+    float fFeedback;300,16397
+    float fDelay;301,16499
+    BOOL  bStereo;302,16601
+    int   lChannel;303,16703
+} BASS_BFX_ECHO4;304,16775
+    float fPitchShift;308,16856
+    float fSemitones;310,17098
+    long  lFFTsize;311,17195
+    long  lOsamp;313,17413
+    int   lChannel;315,17711
+} BASS_BFX_PITCHSHIFT;316,17783
+#define BASS_BFX_FREEVERB_MODE_FREEZE 319,17822
+    float fDryMix;322,17885
+    float fWetMix;323,17995
+    float fRoomSize;324,18108
+    float fDamp;325,18221
+    float fWidth;326,18334
+    DWORD lMode;327,18444
+    int   lChannel;328,18547
+} BASS_BFX_FREEVERB;329,18619
+    BASS_ATTRIB_TEMPO 347,19400
+    BASS_ATTRIB_TEMPO_PITCH,348,19434
+    BASS_ATTRIB_TEMPO_FREQ349,19464
+    BASS_ATTRIB_TEMPO_OPTION_USE_AA_FILTER 354,19535
+    BASS_ATTRIB_TEMPO_OPTION_AA_FILTER_LENGTH,355,19684
+    BASS_ATTRIB_TEMPO_OPTION_USE_QUICKALGO,356,19771
+    BASS_ATTRIB_TEMPO_OPTION_SEQUENCE_MS,357,19903
+    BASS_ATTRIB_TEMPO_OPTION_SEEKWINDOW_MS,358,19989
+    BASS_ATTRIB_TEMPO_OPTION_OVERLAP_MS,359,20075
+    BASS_ATTRIB_TEMPO_OPTION_PREVENT_CLICK 360,20146
+#define BASS_FX_TEMPO_ALGO_LINEAR 364,20261
+#define BASS_FX_TEMPO_ALGO_CUBIC 365,20308
+#define BASS_FX_TEMPO_ALGO_SHANNON 366,20376
+#define BASS_ATTRIB_REVERSE_DIR 380,21018
+#define BASS_FX_RVS_REVERSE 383,21085
+#define BASS_FX_RVS_FORWARD 384,21117
+#define BASS_FX_BPM_BKGRND 394,21501
+#define BASS_FX_BPM_MULT2 395,21659
+    BASS_FX_BPM_TRAN_X2,399,21806
+    BASS_FX_BPM_TRAN_2FREQ,400,21945
+    BASS_FX_BPM_TRAN_FREQ2,401,22004
+    BASS_FX_BPM_TRAN_2PERCENT,402,22063
+    BASS_FX_BPM_TRAN_PERCENT2 403,22121
+typedef void (CALLBACK BPMPROC)406,22185
+typedef void (CALLBACK BPMPROGRESSPROC)407,22254
+typedef BPMPROGRESSPROC BPMPROCESSPROC;408,22335
+typedef void (CALLBACK BPMBEATPROC)422,23130
+#define BASS_BFX_Linear2dB(437,24015
+#define BASS_BFX_dB2Linear(440,24115
+
+bassmix.h,985
+#define BASSMIX_H9,183
+#define BASSMIXDEF(22,369
+#define BASS_CONFIG_MIXER_BUFFER 26,448
+#define BASS_CONFIG_MIXER_POSEX 27,493
+#define BASS_CONFIG_SPLIT_BUFFER 28,538
+#define BASS_MIXER_END 31,619
+#define BASS_MIXER_NONSTOP 32,704
+#define BASS_MIXER_RESUME 33,786
+#define BASS_MIXER_POSEX 34,882
+#define BASS_MIXER_BUFFER 37,992
+#define BASS_MIXER_LIMIT 38,1084
+#define BASS_MIXER_MATRIX 39,1192
+#define BASS_MIXER_PAUSE 40,1250
+#define BASS_MIXER_DOWNMIX 41,1319
+#define BASS_MIXER_NORAMPIN 42,1387
+#define BASS_ATTRIB_MIXER_LATENCY 45,1479
+#define BASS_SPLIT_SLAVE 48,1545
+    QWORD pos;52,1651
+    float value;53,1667
+} BASS_MIXER_NODE;54,1685
+#define BASS_MIXER_ENV_FREQ 57,1726
+#define BASS_MIXER_ENV_VOL 58,1761
+#define BASS_MIXER_ENV_PAN 59,1796
+#define BASS_MIXER_ENV_LOOP 60,1831
+#define BASS_SYNC_MIXER_ENVELOPE 63,1913
+#define BASS_SYNC_MIXER_ENVELOPE_NODE 64,1962
+#define BASS_CTYPE_STREAM_MIXER 67,2039
+#define BASS_CTYPE_STREAM_SPLIT 68,2080
+
+calllistcheckbox.h,283
+#define CALLLISTCHECKBOX_H27,947
+class CallListCheckBox:CallListCheckBox33,1018
+  MainWindow *mainWindow;mainWindow38,1084
+  int row;39,1110
+CallListCheckBox(42,1136
+  CallListCheckBox(46,1278
+  ~CallListCheckBox(51,1468
+  void setRow(54,1497
+  void setMainWindow(58,1551
+
+choreosequencedialog.h,171
+#define CHOREOSEQUENCEDIALOG_H27,951
+namespace Ui42,1203
+class ChoreoSequenceDialog 49,1251
+    Ui::ChoreoSequenceDialog *ui;ui61,1496
+    MainWindow *mw;mw62,1530
+
+clickablelabel.h,61
+#define CLICKABLELABEL_H27,945
+class clickableLabel 31,990
+
+common.h,688
+#define COMMON_H27,937
+#define COUPLE1COLOR 29,955
+#define COUPLE2COLOR 30,998
+#define COUPLE3COLOR 31,1041
+#define COUPLE4COLOR 32,1082
+#define GREYCOUPLECOLOR 33,1125
+#define COUPLE4COLOR_DARK 35,1172
+#define COUPLE1 37,1220
+#define COUPLE2 38,1238
+#define COUPLE3 39,1256
+#define COUPLE4 40,1274
+#define COUPLECOLOR_RED 42,1293
+#define COUPLECOLOR_GREEN 43,1339
+#define COUPLECOLOR_BLUE 44,1387
+#define COUPLECOLOR_YELLOW 45,1432
+#define RANDOMCOLOR1 48,1582
+#define RANDOMCOLOR2 49,1625
+#define RANDOMCOLOR3 50,1666
+#define RANDOMCOLOR4 51,1708
+#define RANDOMCOLOR5 52,1749
+#define RANDOMCOLOR6 53,1791
+#define RANDOMCOLOR7 54,1832
+#define RANDOMCOLOR8 55,1872
+
+common_enums.h,1068
+#define COMMON_ENUMS_H27,943
+enum SongFilenameMatchingType 29,967
+    SongFilenameLabelDashName 30,999
+    SongFilenameNameDashLabel,31,1034
+    SongFilenameBestGuess32,1065
+enum SessionDefaultType 35,1095
+    SessionDefaultPractice 36,1121
+    SessionDefaultDOW37,1153
+enum ColumnExportData40,1179
+    ExportDataFileName 42,1203
+    ExportDataPitch,43,1231
+    ExportDataTempo,44,1252
+    ExportDataIntro,45,1273
+    ExportDataOutro,46,1294
+    ExportDataVolume,47,1315
+    ExportDataCuesheetPath,48,1337
+    ExportDataNone49,1365
+enum CheckerColorScheme52,1388
+    CheckerColorSchemeNormal 54,1414
+    CheckerColorSchemeColorOnly,55,1448
+    CheckerColorSchemeMentalImage,56,1481
+    CheckerColorSchemeSight57,1516
+enum AnimationSpeed60,1548
+    AnimationSpeedOff 62,1570
+    AnimationSpeedSlow,63,1597
+    AnimationSpeedMedium,64,1621
+    AnimationSpeedFast,65,1647
+enum Gender68,1675
+    Boys 70,1689
+    Girls,71,1703
+    UnknownGender72,1714
+enum Order75,1736
+    InOrder 77,1749
+    OutOfOrder,78,1766
+    UnknownOrder79,1782
+
+console.h,85
+#define CONSOLE_H78,3553
+class Console 82,3603
+    bool localEchoEnabled;104,4123
+
+danceprograms.h,175
+#define DANCEPROGRAMS_H_INCLUDED27,953
+struct DanceProgramCallInfo 37,1273
+    const char * program;38,1303
+    const char * name;39,1329
+    const char * timing;40,1352
+
+danceprogramsmodel.h,578
+#define DANCEPROGRAMSMODEL_H_INCLUDED27,958
+#define kDanceProgramTeachOrderCol 34,1088
+#define kDanceProgramTaughtCheckboxCol 35,1129
+#define kDanceProgramMoveName 36,1170
+#define kDanceProgramCompletedDate 37,1211
+#define kDanceProgramTiming 38,1252
+class DanceProgramMoveRow41,1295
+    QString teachOrder;44,1331
+    QString name;45,1355
+    QString completed;46,1373
+    QString timing;47,1396
+class DanceProgramsModel 50,1420
+    SongSettings *songSettings;songSettings54,1497
+    QList<DanceProgramMoveRow> moveRows;55,1529
+    void SetSongSettings(59,1609
+
+default_colors.h,230
+#define DEFAULTPATTERCOLOR 26,920
+#define DEFAULTSINGINGCOLOR 27,957
+#define DEFAULTCALLEDCOLOR 28,995
+#define DEFAULTEXTRASCOLOR 29,1032
+#define DEFAULTTAGSBACKGROUNDCOLOR 30,1069
+#define DEFAULTTAGSFOREGROUNDCOLOR 31,1114
+
+downloadmanager.h,190
+#define DOWNLOADER_H27,941
+class Downloader 38,1145
+    QNetworkAccessManager *manager;manager54,1435
+    QString destPath;55,1471
+    QNetworkReply *networkReply;networkReply56,1493
+
+exportdialog.h,95
+#define EXPORTDIALOG_H27,943
+class ExportDialog 46,1174
+    Ui::ExportDialog *ui;ui60,1457
+
+flexible_audio.h,1500
+#define FREQ_KHZ 56,1729
+#define BW_OCT 57,1748
+#define GAIN_DB 58,1766
+#define BASS_ACTIVE_STOPPED 61,1823
+#define BASS_ACTIVE_PLAYING 62,1853
+#define BASS_ACTIVE_STALLED 63,1883
+#define BASS_ACTIVE_PAUSED 64,1913
+class flexible_audio 66,1944
+    AudioDecoder decoder;71,2009
+    double                  FileLength;76,2235
+    double                  Current_Position;77,2275
+    int                     Stream_Volume;78,2321
+    double                  Stream_MaxVolume;79,2364
+    int                     Stream_Tempo;81,2606
+    double                  Stream_Eq[Stream_Eq82,2648
+    bool                    IntelBoostShouldBeEnabled;84,2691
+    float                   Global_IntelBoostEq[Global_IntelBoostEq85,2746
+    int                     Stream_Pitch;87,2865
+    double                  Stream_BPM;90,2994
+    bool                    bPaused;92,3035
+    double                  loopFromPoint_sec;95,3094
+    double                  loopToPoint_sec;96,3141
+    unsigned long           startPoint_bytes;98,3187
+    unsigned long           endPoint_bytes;99,3233
+    QMediaPlayer *player;player101,3326
+    int  currentSoundEffectID;166,5839
+    QString currentAudioDevice;168,5871
+    QAudioOutput  *audioOutput;audioOutput171,5977
+    QFile m_file;173,6010
+    QBuffer m_input;174,6028
+    QByteArray m_data;175,6049
+    QAudioDecoder m_decoder;176,6072
+    int totalBytes;178,6102
+    QMediaPlayer soundEffect;180,6123
+    bool StreamIsMono;182,6193
+
+importdialog.h,95
+#define IMPORTDIALOG_H27,943
+class ImportDialog 46,1222
+    Ui::ImportDialog *ui;ui63,1651
+
+keyactions.h,19
+KEYACTION(44,1704
+
+keybindings.h,356
+#define KEYBINDINGS_H_INCLUDED27,951
+#define CURRENT_VERSION_OF_KEY_DEFAULTS 40,1094
+#define MAX_KEYPRESSES_PER_ACTION 41,1136
+class KeyAction 43,1173
+    Q_OBJECT;45,1208
+    static QHash<QHash51,1379
+    static QHash<QHash52,1463
+    void setMainWindow(56,1688
+    MainWindow *mw;mw63,1810
+#define KEYACTION(68,1873
+#undef KEYACTION70,1979
+
+levelmeter.h,153
+#define LEVELMETER_H67,2963
+class LevelMeter 78,3233
+    qreal m_peakLevelL_mono;97,3634
+    qreal m_peakLevelR;103,3752
+    bool m_isMono;105,3779
+
+macUtils.h,48
+#define MACUTILS_H29,974
+class MacUtils31,994
+
+mainwindow.h,12432
+#define MAINWINDOW_H27,941
+#define NO_TIMING_INFO 29,963
+class SDDancer95,2271
+    QGraphicsItemGroup *graphics;graphics103,2375
+    QGraphicsItem *boyItem;boyItem105,2440
+    QGraphicsItem *girlItem;girlItem106,2468
+    QGraphicsItem *hexItem;hexItem107,2497
+    QGraphicsRectItem *directionRectItem;directionRectItem109,2526
+    QGraphicsTextItem *label;label110,2568
+    void setDestination(114,2658
+    void setDestinationScalingFactors(131,3136
+    double getX(139,3502
+    double getY(144,3591
+    double getDirection(149,3680
+    double source_x;182,4641
+    double source_y;183,4662
+    double source_direction;184,4683
+    double dest_x;185,4712
+    double dest_y;186,4731
+    double dest_direction;187,4750
+    double labelTranslateX;190,4819
+    double labelTranslateY;191,4847
+#define VERSIONSTRING 202,5217
+#define CURRENTSQVIEWLYRICSNAME 206,5362
+#define CURRENTSQVIEWCUESHEETSDIR 207,5423
+#define NUMBEREDSOUNDFXFILES 209,5521
+namespace Ui214,5620
+class MainWindow 220,5657
+    int longSongTableOperationCount;230,5862
+    bool lyricsCopyIsAvailable;232,5900
+    Ui::MainWindow *ui;ui234,5933
+    static QString logFilePath;247,6507
+    PreferencesDialog *prefDialog;prefDialog249,6540
+    QActionGroup *sdViewActionGroup;sdViewActionGroup250,6575
+    QActionGroup *sessionActionGroup;sessionActionGroup251,6612
+    QAction **sessionActions;sessionActions252,6650
+    QActionGroup *sdActionGroup1;sdActionGroup1253,6680
+    QActionGroup *sdActionGroup2;sdActionGroup2254,6714
+    QActionGroup *sdActionGroupDanceProgram;sdActionGroupDanceProgram255,6748
+    QActionGroup *sdActionGroupColors;sdActionGroupColors257,6794
+    QActionGroup *sdActionGroupNumbers;sdActionGroupNumbers258,6833
+    QActionGroup *sdActionGroupGenders;sdActionGroupGenders259,6873
+    QActionGroup *sdActionGroupDances;sdActionGroupDances261,6914
+    QActionGroup *flashCallTimingActionGroup;flashCallTimingActionGroup263,6954
+    QSplashScreen *theSplash;theSplash265,7001
+    unsigned int numWebviews;277,7457
+#define MAX_WEB_VIEWS 278,7487
+    QWebEngineView* webview[webview279,7512
+    QTabWidget *documentsTab;documentsTab280,7575
+    QString musicRootPath;702,23134
+    QString lastAudioDeviceName;705,23207
+    bool flashCallsVisible;707,23241
+    int lastSongTableRowSelected;709,23270
+    QString cuesheetSquareDeskVersion;712,23334
+    enum charsType 713,23477
+    enum charsType { TitleChars=713,23477
+    enum charsType { TitleChars=1, LabelChars=713,23477
+    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=713,23477
+    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=713,23477
+    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=713,23477
+    enum charsType { TitleChars=1, LabelChars=96, ArtistChars=255, HeaderChars=2, LyricsChars=3, NoneChars=713,23477
+    QTextCharFormat lastKnownTextCharFormat;715,23683
+    const int titleBit 717,23764
+    const int labelBit 718,23795
+    const int artistBit 719,23826
+    const int headerBit 720,23858
+    const int lyricsBit 721,23890
+    const int noneBit 722,23922
+    unsigned int screensaverSeconds;725,24058
+    QLabel *micStatusLabel;micStatusLabel727,24162
+    int linesInCurrentPlaylist;739,24525
+    QString lastSavedPlaylist;740,24626
+    QString lastFlashcardsUserFile;741,24710
+    QString lastFlashcardsUserDirectory;742,24788
+    int preferredVerySmallFontSize;744,24872
+    int preferredSmallFontSize;745,24946
+    int preferredWarningLabelFontSize;746,24978
+    int preferredNowPlayingFontSize;747,25017
+    unsigned int oldTimerState,749,25055
+    unsigned int oldTimerState, newTimerState;749,25055
+    QAction *closeAct;closeAct751,25156
+    QWidget *oldFocusWidget;oldFocusWidget752,25196
+    bool lastWidgetBeforePlaybackWasSongTable;754,25280
+    bool justWentActive;756,25328
+    int iFontsize;758,25354
+    bool inPreferencesDialog;759,25435
+    QString lastCuesheetSavePath;760,25465
+    QString loadedCuesheetNameWithPath;761,25499
+    enum SongFilenameMatchingType songFilenameFormat;762,25539
+    QFileSystemWatcher musicRootWatcher;764,25594
+    QFileSystemWatcher lyricsWatcher;765,25678
+    bool showTimersTab;767,25770
+    bool showLyricsTab;768,25831
+    bool clockColoringHidden;769,25892
+    QMap<QMap771,25962
+    QMap<int,QPair<QWidget *,QString> > tabmap;771,25962
+    int currentPitch;774,26080
+    unsigned short currentVolume;775,26102
+    int previousVolume;776,26136
+    double startOfSong_sec;778,26161
+    double endOfSong_sec;779,26230
+    bool tempoIsBPM;781,26294
+    double baseBPM;782,26315
+    QString targetPitch;783,26411
+    QString targetTempo;784,26488
+    QString targetNumber;785,26565
+    bool switchToLyricsOnPlay;786,26658
+    double previousPosition;790,26759
+    bool closeEventHappened;794,26885
+    QString currentMP3filename;796,26915
+    QString currentMP3filenameWithPath;797,26947
+    bool songLoaded;798,26987
+    bool fileModified;799,27008
+    QString currentSongType;801,27032
+    QString currentSongTitle;802,27061
+    QString currentSongLabel;803,27091
+    int randCallIndex;805,27149
+    int currentMacPointSize;846,29109
+    int col0_width;854,29303
+    int lyricsTabNumber;871,30085
+    bool hasLyrics;872,30110
+    QList<QString> *pathStack;pathStack876,30197
+    bool trapKeypresses;883,30396
+    QString reverseLabelTitle;884,30421
+    QStringList songTypeNamesForPatter;903,31238
+    QStringList songTypeNamesForSinging;904,31278
+    QStringList songTypeNamesForCalled;905,31319
+    QStringList songTypeNamesForExtras;906,31359
+    QStringList songTypeToggleList;908,31400
+    QTimer *UIUpdateTimer;UIUpdateTimer910,31460
+    QTimer *vuMeterTimer;vuMeterTimer911,31487
+    QTimer *fileWatcherTimer;fileWatcherTimer913,31514
+    LevelMeter *vuMeter;vuMeter915,31604
+    AnalogClock *analogClock;analogClock917,31630
+    QString patterColorString,919,31661
+    QString patterColorString, singingColorString,919,31661
+    QString patterColorString, singingColorString, calledColorString,919,31661
+    QString patterColorString, singingColorString, calledColorString, extrasColorString;919,31661
+    bool tipLengthTimerEnabled,922,31814
+    bool tipLengthTimerEnabled, breakLengthTimerEnabled,922,31814
+    bool tipLengthTimerEnabled, breakLengthTimerEnabled, tipLength30secEnabled;922,31814
+    int tipLengthTimerLength,923,31894
+    int tipLengthTimerLength, breakLengthTimerLength;923,31894
+    int tipLengthAlarmAction,924,31948
+    int tipLengthAlarmAction, breakLengthAlarmAction;924,31948
+    MacUtils macUtils;927,32019
+    QFileSystemWatcher *fileWatcher;fileWatcher930,32064
+    bool filewatcherShouldIgnoreOneFileSave;931,32101
+    QStringList flashCalls;933,32147
+    QString currentSDVUILevel;939,32244
+    QString currentSDKeyboardLevel;940,32275
+    Highlighter *highlighter;highlighter944,32363
+    QString uneditedData;946,32423
+    QString editedData;947,32449
+    QString copyrightText;948,32473
+    bool copyrightShown;949,32546
+    bool voiceInputEnabled;951,32572
+    SongSettings songSettings;953,32601
+    PreferencesManager prefsManager;954,32632
+    bool firstTimeSongIsPlayed;956,32670
+    bool loadingSong;957,32702
+    bool cuesheetEditorReactingToCursorMovement;958,32785
+    QDateTime recentFenceDateTime;968,33146
+    bool autoScrollLyricsEnabled;971,33285
+    Qt::ApplicationState currentApplicationState;974,33377
+    QMap<QMap984,33912
+    QMap<int, QString> soundFXfilenames;984,33912
+    QMap<QMap985,33996
+    QMap<int, QString> soundFXname;985,33996
+    int totalZoom;989,34146
+    QProgressDialog *progressDialog;progressDialog995,34438
+    QTimer *progressTimer;progressTimer996,34475
+    double progressTotal;997,34502
+    double progressOffset;998,34599
+    bool progressCancelled;999,34693
+    QHash<QHash1002,34757
+    QHash<QString, QVector<QShortcut *> > hotkeyShortcuts;1002,34757
+#define KEYACTION(1010,35145
+#undef KEYACTION1012,35240
+    QStringList callListOriginalOrder;1025,35630
+    QHash<QHash1030,35882
+    QHash<QString, QAction *> keybindingActionToMenuAction;1030,35882
+    SDThread *sdthread;sdthread1033,35958
+    QStringList sdformation;1034,35982
+    QGraphicsScene sd_animation_scene;1035,36011
+    QGraphicsScene sd_fixed_scene;1036,36050
+    bool sd_animation_running;1037,36085
+    QList<SDDancer> sd_animation_people;1038,36116
+    QList<SDDancer> sd_fixed_people;1039,36157
+    bool sdSliderSidesAreSwapped;1041,36195
+    int sdLastLine;1043,36230
+    int sdLastNonEmptyLine;1044,36250
+    int sdUndoToLine;1045,36278
+    bool sdWasNotDrawingPicture;1046,36300
+    bool sdHasSubsidiaryCallContinuation;1047,36333
+    bool sdLastLineWasResolve;1048,36375
+    bool sdOutputtingAvailableCalls;1049,36406
+    QList<SDAvailableCall> sdAvailableCalls;1050,36443
+    int sdLineEditSDInputLengthWhenAvailableCallsWasBuilt;1051,36488
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText_fixed;graphicsTextItemSDStatusBarText_fixed1052,36547
+    QGraphicsTextItem *graphicsTextItemSDStatusBarText_animated;graphicsTextItemSDStatusBarText_animated1053,36609
+    QGraphicsTextItem *graphicsTextItemSDLeftGroupText_fixed;graphicsTextItemSDLeftGroupText_fixed1055,36675
+    QGraphicsTextItem *graphicsTextItemSDLeftGroupText_animated;graphicsTextItemSDLeftGroupText_animated1056,36767
+    QGraphicsTextItem *graphicsTextItemSDTopGroupText_fixed;graphicsTextItemSDTopGroupText_fixed1057,36832
+    QGraphicsTextItem *graphicsTextItemSDTopGroupText_animated;graphicsTextItemSDTopGroupText_animated1058,36893
+    int leftGroup,1060,36958
+    int leftGroup, topGroup;1060,36958
+    Order boyOrder,1061,37044
+    Order boyOrder, girlOrder;1061,37044
+    QAction **danceProgramActions;danceProgramActions1063,37141
+    QShortcut *shortcutSDTabUndo;shortcutSDTabUndo1071,37538
+    QShortcut *shortcutSDTabRedo;shortcutSDTabRedo1072,37572
+    QShortcut *shortcutSDCurrentSequenceSelectAll;shortcutSDCurrentSequenceSelectAll1073,37606
+    QShortcut *shortcutSDCurrentSequenceCopy;shortcutSDCurrentSequenceCopy1074,37657
+    SDRedoStack *sd_redo_stack;sd_redo_stack1075,37703
+    double sd_animation_t_value;1080,37838
+    double sd_animation_delta_t;1081,37871
+    double sd_animation_msecs_per_frame;1082,37904
+    QString sdLastFormationName;1115,39340
+    QString     frameName;1119,39553
+    QStringList frameFiles;1120,39671
+    QStringList frameVisible;1121,39787
+    QVector<int> frameCurSeq;1123,40111
+    QVector<int> frameMaxSeq;1124,40141
+    bool selectFirstItemOnLoad;1125,40171
+    QHash<QHash1128,40325
+    QHash<int, int> sequenceStatus;1128,40325
+    int     currentFrameNumber;1130,40462
+    QString currentFrameTextName;1131,40506
+    QString currentFrameHTMLName;1132,40555
+    bool SDtestmode;1134,40630
+    int userID;1139,40864
+    int nextSequenceID;1140,40937
+    QString authorID;1141,41043
+    QString currentSequenceRecordNumber;1145,41262
+    int currentSequenceRecordNumberi;1146,41340
+    QString currentSequenceAuthor;1147,41406
+    QString currentSequenceTitle;1148,41487
+    bool newSequenceInProgress;1158,41818
+    bool editSequenceInProgress;1159,41850
+    QStringList highlightedCalls;1161,41884
+#define kStopped 1165,41939
+#define kPlaying 1166,41958
+#define kPaused 1167,41977
+#define SMALLESTZOOM 1171,42012
+#define BIGGESTZOOM 1172,42038
+#define ZOOMINCREMENT 1173,42063
+#define kCallListOrderCol 1183,42334
+#define kCallListCheckedCol 1184,42368
+#define kCallListNameCol 1185,42402
+#define kCallListWhenCheckedCol 1186,42436
+#define kCallListTimingCol 1187,42470
+class MyProxyStyle 1192,42670
+    int styleHint(1196,42733
+class GlobalEventFilter:GlobalEventFilter1210,43157
+    GlobalEventFilter(1214,43208
+    Ui::MainWindow *ui;ui1218,43281
+class SelectionRetainer 1223,43389
+    QTextEdit *textEdit;textEdit1224,43415
+    QTextCursor cursor;1225,43440
+    int anchorPosition;1226,43464
+    int cursorPosition;1227,43488
+    SelectionRetainer(1230,43550
+    SelectionRetainer(1231,43578
+    SelectionRetainer(1233,43639
+    ~SelectionRetainer(1238,43833
+struct PlaylistExportRecord1248,44125
+    int index;1250,44155
+    QString title;1251,44170
+    QString pitch;1252,44189
+    QString tempo;1253,44208
+
+makeflashdrivewizard.h,336
+#define MAKEFLASHDRIVEWIZARD_H2,31
+class MakeFlashDriveWizard 41,1199
+class IntroMakeFlashDrivePage 51,1395
+    QLabel *label;label59,1530
+class VolumeMakeFlashDrivePage 64,1596
+    QLabel *label;label75,1788
+    QComboBox *combobox;combobox76,1807
+class ConclusionMakeFlashDrivePage 81,1879
+    QLabel *label;label92,2079
+
+mydatetimeedit.h,62
+#define MYDATETIMEEDIT_H27,945
+class myDateTimeEdit 32,1016
+
+myslider.h,425
+#define MYSLIDER_H27,939
+class MySlider 35,1080
+    bool drawLoopPoints;62,1991
+    bool singingCall,63,2016
+    bool singingCall, previousSingingCall;63,2016
+    double introPosition;64,2117
+    double outroPosition;65,2143
+    int origin;66,2169
+    bool drawMarkers;68,2230
+    QSet<double> markers;69,2252
+    QString singer1,71,2279
+    QString singer1, else1,71,2279
+    QString singer1, else1, s2;71,2279
+
+mytablewidget.h,59
+#define MYTABLEWIDGET_H27,944
+class MyTableWidget 31,994
+
+perftimer.h,230
+#define PERFTIMER_H_INCLUDED27,949
+class PerfTimer 30,1004
+    const char *name;name32,1031
+    QElapsedTimer timer;33,1053
+    bool stopped;34,1078
+    qint64 lastElapsedTime_ms;35,1096
+    static int indentLevel;36,1127
+
+preferencesdialog.h,1354
+#define PREFERENCESDIALOG_H27,948
+namespace Ui43,1220
+class PreferencesDialog 50,1265
+    bool swallowSoundFX;59,1476
+    QString musicPath;61,1572
+    QValidator *validator;validator64,1621
+    bool songTableReloadNeeded;66,1649
+    QHash<QHash68,1682
+    QHash<QHash71,1849
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(92,2625
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(93,2680
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(94,2736
+#define CONFIG_ATTRIBUTE_STRING(96,2789
+#define CONFIG_ATTRIBUTE_BOOLEAN(97,2903
+#define CONFIG_ATTRIBUTE_COMBO(98,3012
+#define CONFIG_ATTRIBUTE_COLOR(99,3117
+#define CONFIG_ATTRIBUTE_INT(100,3230
+#define CONFIG_ATTRIBUTE_SLIDER(101,3333
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS105,3472
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS106,3512
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS107,3553
+#undef CONFIG_ATTRIBUTE_STRING109,3591
+#undef CONFIG_ATTRIBUTE_BOOLEAN110,3622
+#undef CONFIG_ATTRIBUTE_COMBO111,3654
+#undef CONFIG_ATTRIBUTE_COLOR112,3684
+#undef CONFIG_ATTRIBUTE_INT113,3714
+#undef CONFIG_ATTRIBUTE_SLIDER114,3742
+    Ui::PreferencesDialog *ui;ui168,5498
+    MainWindow *mw;mw169,5529
+    Qt::SortOrder sortOrder;171,5600
+class PushButtonColorTag 174,5633
+    PreferencesDialog *prefsDialog;prefsDialog177,5703
+    QString tagName;178,5739
+    QString color;179,5760
+    bool foreground;180,5779
+
+prefs_options.h,33
+CONFIG_ATTRIBUTE_STRING(54,2164
+
+prefsmanager.h,1012
+#define PREFSMANAGER_H_INCLUDED29,1011
+class PreferencesManager 35,1116
+    QSettings MySettings;37,1151
+    const QHash<QHash43,1418
+    QHash<QHash45,1484
+    QHash<QHash49,1604
+    QHash<QString,QPair<QString,QString>> tagColors;49,1604
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(52,1666
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(53,1770
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(54,1879
+#define CONFIG_ATTRIBUTE_STRING(56,1977
+#define CONFIG_ATTRIBUTE_BOOLEAN(57,2085
+#define CONFIG_ATTRIBUTE_INT(58,2188
+#define CONFIG_ATTRIBUTE_COMBO(59,2285
+#define CONFIG_ATTRIBUTE_COLOR(60,2384
+#define CONFIG_ATTRIBUTE_SLIDER(61,2491
+#undef CONFIG_ATTRIBUTE_STRING65,2624
+#undef CONFIG_ATTRIBUTE_BOOLEAN66,2655
+#undef CONFIG_ATTRIBUTE_INT67,2687
+#undef CONFIG_ATTRIBUTE_COMBO68,2715
+#undef CONFIG_ATTRIBUTE_COLOR69,2745
+#undef CONFIG_ATTRIBUTE_SLIDER70,2775
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS72,2807
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS73,2848
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS74,2888
+
+renderarea.h,374
+#define RENDERAREA_H27,967
+class RenderArea 38,1136
+    QString coupleColoringScheme;61,1677
+    QPen pen;63,1714
+    QBrush brush;64,1729
+    QPixmap pixmap;65,1748
+    QString layout1;66,1769
+    QStringList layout2;67,1791
+    unsigned long bad;68,1817
+    QString formation;69,1841
+    QColor coupleColor[coupleColor71,1867
+    bool mentalImageMode;72,1895
+
+sdformationutils.h,388
+#define SDFORMATION_UTILS_INCLUDED27,956
+struct dancer 31,1019
+struct dancer { int coupleNum,31,1019
+struct dancer { int coupleNum, gender,31,1019
+struct dancer { int coupleNum, gender, x,31,1019
+struct dancer { int coupleNum, gender, x, y,31,1019
+struct dancer { int coupleNum, gender, x, y, topside,31,1019
+struct dancer { int coupleNum, gender, x, y, topside, leftside;31,1019
+
+sdhighlighter.h,407
+#define SDHIGHLIGHTER_H27,944
+class Highlighter 33,1050
+    struct HighlightingRule44,1248
+        QRegularExpression pattern;46,1282
+        QTextCharFormat format;47,1318
+    QVector<HighlightingRule> highlightingRules;50,1358
+    QTextCharFormat couple1Format;52,1408
+    QTextCharFormat couple2Format;53,1443
+    QTextCharFormat couple3Format;54,1478
+    QTextCharFormat couple4Format;55,1513
+
+sdinterface.h,811
+#define SDINTERFACE_H_INCLUDED27,951
+class SDAvailableCall 37,1234
+    dance_level dance_program;39,1267
+    QString call_name;40,1298
+SDAvailableCall(41,1321
+const int kSDCallTypeConcepts 49,1453
+const int kSDCallTypeCommands 50,1495
+class SDThread 53,1539
+    enum CurrentInputState 67,1801
+        InputStateNormal,68,1830
+        InputStateYesNo,69,1856
+        InputStateText 70,1881
+    QString dance_program_name;85,2439
+    MainWindow *mw;mw100,3040
+    QWaitCondition waitCondSDAwaitingInput;101,3060
+    QMutex mutexSDAwaitingInput;102,3104
+    QWaitCondition waitCondAckToMainThread;104,3138
+    QMutex mutexAckToMainThread;105,3182
+    QStringList selectors;106,3215
+    QMutex mutexThreadRunning;109,3244
+    bool abort;110,3275
+    SquareDesk_iofull *iofull;iofull111,3291
+
+sdlineedit.h,211
+#define SDLINEEDIT_H24,851
+class SDLineEdit:SDLineEdit30,916
+  MainWindow *mainWindow;mainWindow35,976
+SDLineEdit(38,1013
+  SDLineEdit(41,1054
+  virtual ~SDLineEdit(45,1144
+  void setMainWindow(48,1175
+
+sdredostack.h,297
+#define SD_REDO_STACK_INCLUDED 26,950
+class SDRedoStack 29,1007
+    QStringList command_stack;31,1035
+    QList<QStringList> redo_stack;32,1066
+    QString last_seen_formation;33,1101
+    int last_seen_row;34,1134
+    int last_seen_formation_line;35,1157
+    bool doing_user_input;36,1191
+
+sdsequencecalllabel.h,268
+#define SDSEQUENCECALLLABEL_H_INCLUDED27,959
+class SDSequenceCallLabel 32,1036
+    MainWindow *mw;mw34,1089
+    QString theText;36,1110
+    QString theHtml;37,1131
+    QPixmap thePixmap;39,1153
+    QString theFormation;41,1177
+    SDSequenceCallLabel(44,1212
+
+sessioninfo.h,221
+#define SESSIONINFO_H_INCLUDED27,951
+class SessionInfo 29,983
+    QString name;31,1011
+    int day_of_week;32,1029
+    int id;33,1099
+    int order_number;34,1111
+    int start_minutes;35,1133
+SessionInfo(37,1157
+
+songhistoryexportdialog.h,128
+#define SONGHISTORYEXPORTDIALOG_H27,954
+class SongHistoryExportDialog 46,1207
+    Ui::SongHistoryExportDialog *ui;ui62,1605
+
+songlistmodel.h,581
+#define SONGLISTMODEL_H_INCLUDED31,1076
+#define kNumberCol 39,1225
+#define kTypeCol 40,1246
+#define kPathCol 41,1265
+#define kLabelCol 43,1348
+#define kTitleCol 44,1368
+#define kRecentCol 47,1417
+#define kAgeCol 48,1438
+#define kPitchCol 49,1458
+#define kTempoCol 50,1478
+class SongRow 52,1499
+SongRow(55,1544
+    int playlistNum;57,1575
+class SongListModel 60,1600
+    SongSettings *songSettings;songSettings64,1672
+    QList<SongRow> songRows;65,1704
+    QHash<QHash66,1733
+    QHash<QString, int> songListByFilename;66,1733
+    void SetSongSettings(70,1811
+
+songsetting_attributes.h,29
+SONGSETTING_ELEMENT(28,1024
+
+songsettings.h,825
+#define SONGSETTINGS_H_INCLUDED27,952
+class SongPlayEvent 34,1070
+    virtual ~SongPlayEvent(44,1547
+class SongSetting48,1583
+#define SONGSETTING_ELEMENT(51,1657
+#undef SONGSETTING_ELEMENT59,2141
+    bool dummy;64,2324
+class SongSettings74,2499
+    void setCurrentSession(87,2915
+    int getCurrentSession(88,2979
+    QHash<QHash105,3885
+    QPair<QPair107,3965
+    QString tagsBackgroundColorString;130,5228
+    QString tagsForegroundColorString;131,5267
+    bool databaseOpened;132,5306
+    QSqlDatabase m_db;133,5331
+    int current_session_id;134,5354
+    QHash<QHash135,5382
+    QHash<QString, int> tagCounts;135,5382
+    bool tagColorCacheSet;143,5729
+    QHash<QHash144,5756
+    QHash<QString,QPair<QString,QString>> tagColorCache;144,5756
+    std::vector<QString> root_directories;146,5818
+
+songtitlelabel.h,161
+#define SONGTITLELABEL_H_INCLUDED27,954
+class SongTitleLabel 32,1026
+    MainWindow *mw;mw34,1074
+    SongTitleLabel(36,1102
+    QString textColor;38,1215
+
+squaredancerscene.h,104
+#define SQUAREDANCERSCENE_H_INCLUDED27,957
+class SquareDancerScene 32,1039
+SquareDancerScene(34,1096
+
+startupwizard.h,1678
+#define STARTUPWIZARD_H27,970
+class StartupWizard 41,1209
+class IntroPage 52,1403
+    QLabel *label;label60,1518
+class OutputFilesPage 65,1589
+    QLabel *outputDirLabel;outputDirLabel76,1774
+    QLabel *patterLabel;patterLabel77,1803
+    QLabel *singingCallLabel;singingCallLabel78,1829
+    QLabel *vocalsLabel;vocalsLabel79,1860
+    QLabel *extrasLabel;extrasLabel80,1886
+    QLineEdit *outputDirLineEdit;outputDirLineEdit82,1914
+    QLineEdit *patterLineEdit;patterLineEdit83,1949
+    QLineEdit *singingCallLineEdit;singingCallLineEdit84,1981
+    QLineEdit *vocalsLineEdit;vocalsLineEdit85,2018
+    QLineEdit *extrasLineEdit;extrasLineEdit86,2050
+class CopyFilesPage 94,2236
+    QCheckBox *patterCheckBox;patterCheckBox105,2417
+    QCheckBox *singingCallCheckBox;singingCallCheckBox106,2449
+    QCheckBox *vocalsCheckBox;vocalsCheckBox107,2486
+    QCheckBox *extrasCheckBox;extrasCheckBox108,2518
+    QLabel *patterLabel;patterLabel110,2552
+    QLabel *singingCallLabel;singingCallLabel111,2578
+    QLabel *vocalsLabel;vocalsLabel112,2609
+    QLabel *extrasLabel;extrasLabel113,2635
+    QLineEdit *patterLineEdit;patterLineEdit115,2663
+    QLineEdit *singingCallLineEdit;singingCallLineEdit116,2695
+    QLineEdit *vocalsLineEdit;vocalsLineEdit117,2732
+    QLineEdit *extrasLineEdit;extrasLineEdit118,2764
+    QPushButton *patterPushButton;patterPushButton120,2798
+    QPushButton *singingCallPushButton;singingCallPushButton121,2834
+    QPushButton *vocalsPushButton;vocalsPushButton122,2875
+    QPushButton *extrasPushButton;extrasPushButton123,2911
+class ConclusionPage 127,2996
+    QLabel *label;label138,3179
+
+tablelabelitem.h,62
+#define TABLELABELITEM_H27,945
+class TableLabelItem 39,1292
+
+tablenumberitem.h,64
+#define TABLENUMBERITEM_H27,946
+class TableNumberItem 35,1138
+
+tablewidgettimingitem.h,76
+#define TABLEWIDGETTIMINGITEM_H27,952
+class TableWidgetTimingItem 31,1010
+
+taminationsinterface.h,2930
+#define TAMINATIONSINTERFACE_H_INCLUDED26,959
+class TamVector 37,1119
+    double x,39,1145
+    double x, y;39,1145
+    TamVector(42,1261
+    TamVector add(43,1311
+    TamVector subtract(44,1385
+    double length(45,1464
+class TamAffineTransform 49,1514
+    double x1,51,1549
+    double x1, x2,51,1549
+    double x1, x2, x3,51,1549
+    double x1, x2, x3, y1,51,1549
+    double x1, x2, x3, y1, y2,51,1549
+    double x1, x2, x3, y1, y2, y3;51,1549
+    double scaleX(55,1701
+    double scaleY(56,1736
+    double shearX(57,1771
+    double shearY(58,1806
+    double translateX(59,1841
+    double translateY(60,1880
+    TamVector location(61,1919
+    double angle(62,1973
+class TamBezier 89,3263
+    double x1,91,3289
+    double x1, y1,91,3289
+    double x1, y1, ctrlx1,91,3289
+    double x1, y1, ctrlx1, ctrly1,91,3289
+    double x1, y1, ctrlx1, ctrly1, ctrlx2,91,3289
+    double x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2,91,3289
+    double x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2,91,3289
+    double x1, y1, ctrlx1, ctrly1, ctrlx2, ctrly2, x2, y2;91,3289
+    double cx,92,3348
+    double cx, bx,92,3348
+    double cx, bx, ax,92,3348
+    double cx, bx, ax, cy,92,3348
+    double cx, bx, ax, cy, by,92,3348
+    double cx, bx, ax, cy, by, ay;92,3348
+    TamBezier(93,3383
+    TamHandsBoth,112,4024
+    TamHandsGripBoth,113,4061
+    TamHandsGripLeft,114,4106
+    TamHandsGripRight,115,4151
+    TamHandsLeft,116,4198
+    TamHandsNone,117,4235
+    TamHandsRight,118,4272
+    TamHandsAnyGrip,119,4311
+} TamHands;120,4352
+typedef TamMovement *TamMovementPtr;TamMovementPtr126,4438
+class TamMovement 129,4477
+    double fullbeats;131,4505
+    TamHands hands;132,4527
+    double cx1,133,4547
+    double cx1, cy1,133,4547
+    double cx1, cy1, cx2,133,4547
+    double cx1, cy1, cx2, cy2,133,4547
+    double cx1, cy1, cx2, cy2, x2,133,4547
+    double cx1, cy1, cx2, cy2, x2, y2,133,4547
+    double cx1, cy1, cx2, cy2, x2, y2, cx3,133,4547
+    double cx1, cy1, cx2, cy2, x2, y2, cx3, /* cy3?, */ cx4,133,4547
+    double cx1, cy1, cx2, cy2, x2, y2, cx3, /* cy3?, */ cx4, cy4,133,4547
+    double cx1, cy1, cx2, cy2, x2, y2, cx3, /* cy3?, */ cx4, cy4, x4,133,4547
+    double cx1, cy1, cx2, cy2, x2, y2, cx3, /* cy3?, */ cx4, cy4, x4, y4;133,4547
+    double beats;134,4621
+    TamBezier btranslate;137,4644
+    TamBezier brotate;138,4670
+    static TamHands NOHANDS;141,4702
+    static TamHands LEFTHAND;142,4731
+    static TamHands RIGHTHAND;143,4761
+    static TamHands BOTHHANDS;144,4792
+    static TamHands GRIPLEFT;145,4823
+    static TamHands GRIPRIGHT;146,4853
+    static TamHands GRIPBOTH;147,4884
+    static TamHands ANYGRIP;148,4914
+typedef TamPath* TamPathPtr;180,6155
+class TamPath 182,6185
+    std::vector<TamMovementPtr> movelist;184,6209
+    std::vector<TamAffineTransform> transformlist;185,6251
+class TaminationsInterface 209,7000
+private:private215,7159
+
+typetracker.h,400
+#define TYPETRACKER_H27,942
+#define NONE 31,983
+#define PATTER 32,998
+#define SINGING 33,1015
+#define SINGING_CALLED 34,1033
+#define XTRAS 35,1058
+typedef struct TimeSegments37,1075
+    int type;39,1105
+    int length;40,1119
+} TimeSegment;41,1135
+class TypeTracker43,1151
+    QList<TimeSegment> timeSegmentList;50,1261
+    int consolidateNSecondsOfNone;56,1675
+private:private58,1806
+
+utility.h,321
+#define UTILITY_H_INCLUDED27,947
+#define KEEP_EMPTY_PARTS 34,1041
+#define SKIP_EMPTY_PARTS 35,1085
+#define KEEP_EMPTY_PARTS 37,1135
+#define SKIP_EMPTY_PARTS 38,1184
+#define ENDL 41,1241
+class RecursionGuard43,1264
+    bool &guard_value;guard_value46,1296
+    RecursionGuard(48,1327
+    ~RecursionGuard(53,1440
+
+AppleMusicLibraryXMLReader.cpp,1489
+class AppleMusicLibraryXMLReader50,2832
+    AppleMusicLibraryXMLReader(53,2875
+    ~AppleMusicLibraryXMLReader(63,3181
+    QString key;66,3224
+    QString lastTrackID;67,3241
+    QString lastChars;68,3266
+    QString currentTrackName,69,3289
+    QString currentTrackName, currentPlaylistName,69,3289
+    QString currentTrackName, currentPlaylistName, currentFileLocation;69,3289
+    int pass 71,3362
+    enum mode 73,3424
+    enum mode {nothing,nothing73,3424
+    enum mode {nothing, tracks,73,3424
+    enum mode {nothing, tracks, playlists}playlists73,3424
+    enum mode {nothing, tracks, playlists} currentMode 73,3424
+    bool seenVisible 74,3490
+    bool currentVisible 75,3520
+    QMap<QMap77,3553
+    QMap<int, QString> knownTrackLocations;77,3553
+    QMap<QMap78,3652
+    QMap<int, QString> knownTrackTitles;78,3652
+    QMap<QMap79,3732
+    QMap<int, QString> knownTrackGenres;79,3732
+    QMap<QMap80,3824
+    QMap<int, int> knownTrackBPMs;80,3824
+    bool readThing(82,3879
+    bool read(189,9745
+    QString errorString(217,10800
+    static inline QString versionAttribute(224,11027
+    static inline QString hrefAttribute(225,11110
+    static inline QString foldedAttribute(226,11187
+    QMap<QMap228,11269
+    QMap<QString, QVector<int>> allPlaylists;228,11269
+    QSet<int> allTrackNumbers;229,11380
+    void getPlaylists(232,11536
+    void getTrackInfos(238,11759
+    QFile libraryFile;243,11886
+    QXmlStreamReader xml;244,11909
+
+addcommentdialog.cpp,226
+AddCommentDialog::AddCommentDialog(35,1085
+AddCommentDialog::~AddCommentDialog(~AddCommentDialog44,1290
+void AddCommentDialog::populateFields(populateFields49,1348
+QString AddCommentDialog::getComment(getComment56,1592
+
+analogclock.cpp,743
+AnalogClock::AnalogClock(32,1005
+void AnalogClock::redrawTimerExpired(redrawTimerExpired60,1748
+#define SECSPERMIN 86,2601
+#define SECSPERMIN 88,2629
+void AnalogClock::setColorForType(setColorForType293,16015
+void AnalogClock::paintEvent(paintEvent298,16116
+void AnalogClock::setSegment(setSegment449,20390
+void AnalogClock::setHidden(setHidden472,21285
+void AnalogClock::setSDEditMode(setSDEditMode477,21362
+void AnalogClock::setTimerLabel(setTimerLabel481,21494
+void AnalogClock::resetPatter(resetPatter497,21963
+void AnalogClock::setSingingCallSection(setSingingCallSection504,22107
+void AnalogClock::customMenuRequested(customMenuRequested509,22191
+void AnalogClock::clearClockColoring(clearClockColoring523,22532
+
+audiodecoder.cpp,5011
+#define SOUNDTOUCH_BUFF_SIZE 62,1800
+QElapsedTimer timer1;65,1873
+class PlayerThread 72,2112
+    PlayerThread(77,2174
+    virtual ~PlayerThread(124,3797
+    void run(137,4347
+    void Play(188,7781
+    void Stop(207,8223
+    void Pause(227,8816
+    void setVolume(238,9114
+    unsigned int getVolume(242,9184
+    void fadeOutAndPause(246,9248
+    void fadeComplete(252,9608
+    void StartVolumeDucking(256,9763
+    void StopVolumeDucking(261,9991
+    void setPan(267,10165
+    void setMono(272,10252
+    void setStreamPosition(277,10361
+    double getStreamPosition(281,10494
+    unsigned char getCurrentState(285,10648
+    double getPeakLevelL_mono(289,10762
+    double getPeakLevelR(294,10980
+    void setLoop(299,11270
+    void clearLoop(304,11392
+    void updateEQ(309,11554
+    void setBassBoost(324,12496
+    void setMidBoost(330,12633
+    void setTrebleBoost(336,12767
+    void SetIntelBoost(342,12910
+    void SetIntelBoostEnabled(356,13531
+    void setPitch(362,13707
+    void setTempo(367,13896
+    unsigned int processDSP(373,14148
+    QIODevice      *m_audioDevice;m_audioDevice517,22691
+    QAudioSink     *m_audioSink;m_audioSink518,22726
+    unsigned char  *m_data;m_data519,22759
+    unsigned int   totalFramesInSong;520,22787
+    unsigned int bytesPerFrame;522,22826
+    unsigned int sampleRate;523,22858
+    float  currentFadeFactor;525,22920
+    float  fadeFactorDecrementPerFrame;526,23006
+    float  currentDuckingFactor;528,23100
+    float  duckingFactorFramesRemaining;529,23210
+    float bassBoost_dB 532,23332
+    float midBoost_dB 533,23362
+    float trebleBoost_dB 534,23391
+    float intelligibilityBoost_fKHz 537,23464
+    float intelligibilityBoost_widthOctaves 538,23507
+    float intelligibilityBoost_dB 539,23558
+    bool  intelligibilityBoost_enabled 540,23599
+    biquad_params<float> bq[bq542,23648
+    biquad_filter<float> *filter;filter543,23680
+    biquad_filter<float> *filterR;filterR544,23805
+    SoundTouch soundTouch;547,23959
+    float tempoSpeedup_percent 548,24001
+    float pitchUp_semitones 549,24039
+    bool clearSoundTouch 550,24077
+    unsigned int m_volume;553,24121
+    double       m_pan;554,24148
+    bool         m_mono;555,24172
+    double       m_peakLevelL_mono;557,24229
+    double       m_peakLevelR;558,24285
+    bool         m_resetPeakDetector;559,24341
+    unsigned int currentState;561,24380
+    bool         activelyPlaying;562,24411
+    unsigned int   playPosition_frames;564,24446
+    double       loopFrom_sec;565,24486
+    double       loopTo_sec;566,24577
+    float       processedData[processedData568,24607
+    float       processedDataR[processedDataR569,24644
+    unsigned int numProcessedFrames;570,24682
+    unsigned int sourceFramesConsumed;571,24783
+    bool newFilterNeeded;573,24905
+    bool threadDone;574,24931
+PlayerThread myPlayer;577,24956
+AudioDecoder::AudioDecoder(AudioDecoder580,25073
+AudioDecoder::~AudioDecoder(~AudioDecoder616,26687
+void AudioDecoder::newSystemAudioOutputDevice(newSystemAudioOutputDevice624,26806
+void AudioDecoder::setSource(setSource668,28889
+void AudioDecoder::start(start689,29625
+void AudioDecoder::stop(stop702,30068
+QAudioDecoder::Error AudioDecoder::getError(getError709,30178
+void AudioDecoder::bufferReady(bufferReady715,30292
+void AudioDecoder::error(error739,31276
+void AudioDecoder::isDecodingChanged(isDecodingChanged762,31912
+void AudioDecoder::finished(finished771,32094
+void AudioDecoder::updateProgress(updateProgress827,34970
+void AudioDecoder::Play(Play842,35539
+void AudioDecoder::Pause(Pause856,36062
+void AudioDecoder::Stop(Stop861,36157
+bool AudioDecoder::isPlaying(isPlaying866,36299
+void AudioDecoder::setVolume(setVolume870,36389
+void AudioDecoder::setPan(setPan874,36466
+void AudioDecoder::setMono(setMono878,36531
+void AudioDecoder::setStreamPosition(setStreamPosition882,36598
+double AudioDecoder::getStreamPosition(getStreamPosition886,36685
+double AudioDecoder::getStreamLength(getStreamLength890,36773
+unsigned char AudioDecoder::getCurrentState(getCurrentState894,36865
+void AudioDecoder::setBassBoost(setBassBoost899,37002
+void AudioDecoder::setMidBoost(setMidBoost903,37078
+void AudioDecoder::setTrebleBoost(setTrebleBoost907,37152
+void AudioDecoder::SetIntelBoost(SetIntelBoost911,37232
+void AudioDecoder::SetIntelBoostEnabled(SetIntelBoostEnabled915,37341
+double AudioDecoder::getBPM(getBPM919,37442
+void AudioDecoder::setTempo(setTempo924,37639
+void AudioDecoder::setPitch(setPitch931,37877
+void AudioDecoder::setLoop(setLoop938,38130
+void AudioDecoder::clearLoop(clearLoop944,38346
+double AudioDecoder::getPeakLevelL_mono(getPeakLevelL_mono950,38453
+double AudioDecoder::getPeakLevelR(getPeakLevelR954,38543
+void AudioDecoder::fadeOutAndPause(fadeOutAndPause958,38623
+void AudioDecoder::StartVolumeDucking(StartVolumeDucking962,38763
+void AudioDecoder::StopVolumeDucking(StopVolumeDucking966,38904
+
+bass_audio.cpp,1809
+float  gStream_Pan 35,1121
+bool gStream_Mono 36,1148
+HDSP gMono_dsp 37,1176
+void CALLBACK DSP_Mono(45,1592
+bass_audio::bass_audio(bass_audio91,2993
+bass_audio::~bass_audio(~bass_audio130,4309
+void bass_audio::Init(Init135,4419
+void bass_audio::Exit(Exit146,4898
+void bass_audio::SetVolume(SetVolume152,5024
+void bass_audio::SetTempo(SetTempo187,6874
+void bass_audio::SetPitch(SetPitch195,7202
+void bass_audio::SetPan(SetPan203,7500
+void bass_audio::SetEq(SetEq211,7827
+void bass_audio::SetIntelBoost(SetIntelBoost238,8990
+void bass_audio::SetIntelBoostEnabled(SetIntelBoostEnabled290,10925
+void bass_audio::SetGlobals(SetGlobals324,12113
+void CALLBACK MyFadeIsDoneProc(338,12768
+void bass_audio::songStartDetector(songStartDetector355,13317
+void bass_audio::StreamCreate(StreamCreate430,16009
+bool bass_audio::isPaused(isPaused567,21088
+void bass_audio::StreamSetPosition(StreamSetPosition573,21222
+void bass_audio::StreamGetLength(StreamGetLength580,21506
+void bass_audio::StreamGetPosition(StreamGetPosition587,21752
+uint32_t bass_audio::currentStreamState(currentStreamState595,22110
+int bass_audio::StreamGetVuMeter(StreamGetVuMeter601,22337
+void CALLBACK MySyncProc(626,23040
+void bass_audio::SetLoop(SetLoop637,23411
+void bass_audio::ClearLoop(ClearLoop653,24089
+void bass_audio::SetMono(SetMono667,24508
+void bass_audio::Play(Play673,24646
+void bass_audio::Stop(Stop684,25193
+void bass_audio::Pause(Pause693,25461
+void bass_audio::FadeOutAndPause(FadeOutAndPause701,25634
+void bass_audio::StartVolumeDucking(StartVolumeDucking711,26018
+void bass_audio::StopVolumeDucking(StopVolumeDucking723,26615
+void bass_audio::PlayOrStopSoundEffect(PlayOrStopSoundEffect731,27074
+void bass_audio::StopAllSoundEffects(StopAllSoundEffects763,28676
+
+calllistcheckbox.cpp,73
+void CallListCheckBox::checkBoxStateChanged(checkBoxStateChanged29,975
+
+choreosequencedialog.cpp,127
+ChoreoSequenceDialog::ChoreoSequenceDialog(36,1205
+ChoreoSequenceDialog::~ChoreoSequenceDialog(~ChoreoSequenceDialog46,1509
+
+clickablelabel.cpp,198
+clickableLabel::clickableLabel(28,949
+clickableLabel::clickableLabel(33,1023
+clickableLabel::~clickableLabel(~clickableLabel39,1137
+void clickableLabel::mousePressEvent(mousePressEvent43,1176
+
+console.cpp,413
+Console::Console(84,3665
+void Console::putData(putData100,4111
+void Console::setLocalEchoEnabled(setLocalEchoEnabled135,5331
+void Console::keyPressEvent(keyPressEvent140,5413
+void Console::mousePressEvent(mousePressEvent172,6478
+void Console::mouseDoubleClickEvent(mouseDoubleClickEvent178,6567
+void Console::contextMenuEvent(contextMenuEvent183,6645
+QString Console::getAllText(getAllText188,6724
+
+danceprograms.cpp,723
+const char *danceprogram_basic1[danceprogram_basic130,1000
+const char *danceprogram_basic2[danceprogram_basic289,2765
+const char *danceprogram_SSD[danceprogram_SSD115,3400
+const char *danceprogram_mainstream[danceprogram_mainstream210,6416
+const char *danceprogram_plus[danceprogram_plus242,7294
+const char *danceprogram_a1[danceprogram_a1275,8183
+const char *danceprogram_a2[danceprogram_a2335,9943
+static const char *b1 b1387,11491
+static const char *b2 b2388,11521
+static const char *ms ms389,11551
+static const char *plus plus390,11581
+static const char *a1 a1391,11615
+static const char *a2 a2392,11645
+const struct DanceProgramCallInfo danceprogram_callinfo[danceprogram_callinfo393,11675
+
+danceprogramsmodel.cpp,478
+DanceProgramsModel::DanceProgramsModel(29,983
+void DanceProgramsModel::loadCallList(loadCallList34,1056
+QModelIndex DanceProgramsModel::index(index75,2393
+QModelIndex DanceProgramsModel::parent(parent81,2559
+int DanceProgramsModel::rowCount(rowCount87,2704
+int DanceProgramsModel::columnCount(columnCount93,2826
+QVariant DanceProgramsModel::data(data99,2935
+Qt::ItemFlags DanceProgramsModel::flags(flags126,3601
+bool DanceProgramsModel::setData(setData142,3980
+
+downloadmanager.cpp,187
+Downloader::Downloader(28,950
+void Downloader::doDownload(doDownload34,1039
+void Downloader::abortTransfer(abortTransfer43,1324
+void Downloader::replyFinished(replyFinished51,1510
+
+exportdialog.cpp,295
+ExportDialog::ExportDialog(32,1046
+ExportDialog::~ExportDialog(~ExportDialog41,1239
+void ExportDialog::on_pushButtonChooseFile_clicked(on_pushButtonChooseFile_clicked46,1289
+static void outputString(59,1690
+void exportSongList(73,1963
+void ExportDialog::exportSongs(exportSongs175,6008
+
+flexible_audio.cpp,2713
+QMediaDevices md;38,1351
+flexible_audio::flexible_audio(flexible_audio43,1493
+flexible_audio::~flexible_audio(~flexible_audio71,2542
+void flexible_audio::systemAudioOutputsChanged(systemAudioOutputsChanged77,2675
+void flexible_audio::Init(Init120,4630
+void flexible_audio::Exit(Exit126,4781
+void flexible_audio::SetVolume(SetVolume132,4932
+void flexible_audio::SetTempo(SetTempo139,5168
+void flexible_audio::SetPitch(SetPitch147,5457
+void flexible_audio::SetPan(SetPan155,5709
+void flexible_audio::SetEq(SetEq163,5976
+void flexible_audio::SetIntelBoost(SetIntelBoost186,6527
+void flexible_audio::SetIntelBoostEnabled(SetIntelBoostEnabled192,6675
+void flexible_audio::SetGlobals(SetGlobals198,6817
+void flexible_audio::songStartDetector(songStartDetector210,7366
+void flexible_audio::StreamCreate(StreamCreate218,7711
+qint64 flexible_audio::readData(readData231,8258
+qint64 flexible_audio::writeData(writeData239,8438
+void flexible_audio::decoder_error(decoder_error247,8619
+void flexible_audio::posChanged(posChanged252,8718
+void flexible_audio::durChanged(durChanged258,8840
+void flexible_audio::decoderDone(decoderDone264,8962
+void flexible_audio::bufferReady(bufferReady271,9274
+void flexible_audio::finished(finished276,9379
+bool flexible_audio::isPaused(isPaused281,9547
+void flexible_audio::StreamSetPosition(StreamSetPosition287,9679
+void flexible_audio::StreamGetLength(StreamGetLength294,9962
+void flexible_audio::StreamGetPosition(StreamGetPosition301,10176
+uint32_t flexible_audio::currentStreamState(currentStreamState309,10631
+int flexible_audio::StreamGetVuMeterL_mono(StreamGetVuMeterL_mono315,10849
+int flexible_audio::StreamGetVuMeterR(StreamGetVuMeterR329,11216
+void flexible_audio::SetLoop(SetLoop343,11573
+void flexible_audio::ClearLoop(ClearLoop352,11875
+void flexible_audio::SetMono(SetMono360,12130
+bool flexible_audio::GetMono(GetMono367,12291
+void flexible_audio::Play(Play373,12427
+void flexible_audio::Stop(Stop388,12858
+void flexible_audio::Pause(Pause397,13082
+void flexible_audio::FadeOutAndPause(FadeOutAndPause406,13353
+void flexible_audio::StartVolumeDucking(StartVolumeDucking412,13592
+void flexible_audio::StopVolumeDucking(StopVolumeDucking419,13960
+void flexible_audio::FXChannelStartPlaying(FXChannelStartPlaying424,14112
+void flexible_audio::FXChannelStopPlaying(FXChannelStopPlaying431,14357
+bool flexible_audio::FXChannelIsPlaying(FXChannelIsPlaying436,14474
+void flexible_audio::FXChannelStatusChanged(FXChannelStatusChanged442,14673
+void flexible_audio::PlayOrStopSoundEffect(PlayOrStopSoundEffect451,15119
+void flexible_audio::StopAllSoundEffects(StopAllSoundEffects470,15883
+
+importdialog.cpp,393
+ImportDialog::ImportDialog(31,1020
+ImportDialog::~ImportDialog(~ImportDialog40,1213
+QStringList splitCSV(46,1264
+QStringList readLine(110,3001
+static void setComboBoxColumn(130,3376
+void ImportDialog::on_pushButtonChooseFile_clicked(on_pushButtonChooseFile_clicked149,3856
+void ImportDialog::readImportFile(readImportFile208,5822
+void ImportDialog::importSongs(importSongs292,9048
+
+keybindings.cpp,835
+#define KEYACTION(32,1000
+#undef KEYACTION34,1109
+#define KEYACTION(38,1202
+#undef KEYACTION54,2219
+KeyAction::KeyAction(56,2237
+KeyAction::~KeyAction(~KeyAction60,2276
+void KeyAction::do_activated(do_activated65,2306
+QVector<KeyAction*> KeyAction::availableActions(availableActions71,2376
+#define KEYACTION(75,2462
+#undef KEYACTION77,2571
+static QHash<QString, KeyAction*> actionNameToActionMap;81,2611
+QHash<QString, KeyAction*> KeyAction::actionNameToActionMappings(actionNameToActionMappings84,2670
+KeyAction * KeyAction::actionByName(actionByName98,3048
+QHash<QString, KeyAction *>menuKeyMappings;menuKeyMappings108,3240
+void KeyAction::setKeybindingsFromMenuObjects(setKeybindingsFromMenuObjects110,3285
+QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(defaultKeyToActionMappings115,3419
+
+levelmeter.cpp,216
+LevelMeter::LevelMeter(75,3069
+LevelMeter::~LevelMeter(~LevelMeter83,3227
+void LevelMeter::reset(reset87,3262
+void LevelMeter::levelChanged(levelChanged96,3396
+void LevelMeter::paintEvent(paintEvent109,3945
+
+lyricsEditor.cpp,3127
+QString MainWindow::getResourceFile(getResourceFile35,1179
+void MainWindow::showHTML(showHTML111,4067
+void MainWindow::setInOutButtonState(setInOutButtonState121,4492
+void MainWindow::on_pushButtonEditLyrics_toggled(on_pushButtonEditLyrics_toggled132,4892
+void MainWindow::on_textBrowserCueSheet_selectionChanged(on_textBrowserCueSheet_selectionChanged171,6622
+static void setSelectedTextToClass(217,9127
+void MainWindow::on_pushButtonCueSheetEditHeader_clicked(on_pushButtonCueSheetEditHeader_clicked255,10883
+void MainWindow::on_pushButtonCueSheetEditItalic_toggled(on_pushButtonCueSheetEditItalic_toggled264,11120
+void MainWindow::on_pushButtonCueSheetEditBold_toggled(on_pushButtonCueSheetEditBold_toggled273,11344
+void MainWindow::on_pushButtonCueSheetEditTitle_clicked(on_pushButtonCueSheetEditTitle_clicked283,11597
+void MainWindow::on_pushButtonCueSheetEditArtist_clicked(on_pushButtonCueSheetEditArtist_clicked293,11851
+void MainWindow::on_pushButtonCueSheetEditLabel_clicked(on_pushButtonCueSheetEditLabel_clicked303,12107
+void MainWindow::on_pushButtonCueSheetEditLyrics_clicked(on_pushButtonCueSheetEditLyrics_clicked313,12361
+int MainWindow::currentSelectionContains(currentSelectionContains323,12617
+void MainWindow::on_pushButtonCueSheetClearFormatting_clicked(on_pushButtonCueSheetClearFormatting_clicked353,13445
+MainWindow::charsType MainWindow::FG_BG_to_type(FG_BG_to_type414,17159
+void MainWindow::on_textBrowserCueSheet_currentCharFormatChanged(on_textBrowserCueSheet_currentCharFormatChanged420,17400
+static bool isFileInPathStack(448,18535
+static const char *cuesheet_file_extensions[cuesheet_file_extensions467,19284
+void MainWindow::writeCuesheet(writeCuesheet469,19426
+#define WRITETHEMODIFIEDLYRICSFILE495,20231
+void MainWindow::on_pushButtonCueSheetEditSave_clicked(on_pushButtonCueSheetEditSave_clicked536,22104
+void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked(on_pushButtonCueSheetEditSaveAs_clicked557,23098
+QString MainWindow::postProcessHTMLtoSemanticHTML(postProcessHTMLtoSemanticHTML576,23939
+void MainWindow::maybeLoadCSSfileIntoTextBrowser(maybeLoadCSSfileIntoTextBrowser912,48310
+QString MainWindow::txtToHTMLlyrics(txtToHTMLlyrics937,49774
+void MainWindow::loadCuesheet(loadCuesheet956,50415
+void MainWindow::saveLyrics(saveLyrics1044,54905
+void MainWindow::saveLyricsAs(saveLyricsAs1070,56048
+void MainWindow::on_actionAuto_format_Lyrics_triggered(on_actionAuto_format_Lyrics_triggered1124,58680
+void MainWindow::on_actionBold_triggered(on_actionBold_triggered1205,64182
+void MainWindow::on_actionItalic_triggered(on_actionItalic_triggered1214,64474
+void MainWindow::customLyricsMenuRequested(customLyricsMenuRequested1224,64798
+void MainWindow::selectLine(selectLine1264,66212
+void MainWindow::copyIt(copyIt1269,66428
+void MainWindow::pasteIt(pasteIt1273,66495
+void MainWindow::cutIt(cutIt1277,66565
+bool MainWindow::getSectionLimits(getSectionLimits1284,66833
+void MainWindow::selectSection(selectSection1342,69127
+void MainWindow::swapHeadsAndSidesInSelection(swapHeadsAndSidesInSelection1356,69746
+
+main.cpp,18
+int main(34,1085
+
+mainwindow.cpp,15905
+class InvisibleTableWidgetItem 94,2601
+    QString text;98,2743
+InvisibleTableWidgetItem::InvisibleTableWidgetItem(106,2967
+InvisibleTableWidgetItem::~InvisibleTableWidgetItem(~InvisibleTableWidgetItem107,3069
+bool InvisibleTableWidgetItem::operator< operator<108,3126
+flexible_audio *cBass;cBass209,7294
+static const char *music_file_extensions[music_file_extensions211,7318
+static const char *cuesheet_file_extensions[cuesheet_file_extensions212,7459
+class MySliderClickToMoveStyle 224,7989
+    int styleHint(229,8090
+void MainWindow::SetKeyMappings(SetKeyMappings239,8483
+void MainWindow::LyricsCopyAvailable(LyricsCopyAvailable282,10056
+void MainWindow::haveDuration2(haveDuration2288,10202
+MainWindow::MainWindow(302,10989
+#define OS_FALLTHROUGH 382,13578
+#define OS_FALLTHROUGH384,13641
+void MainWindow::fileWatcherTriggered(fileWatcherTriggered1510,66144
+void MainWindow::musicRootModified(musicRootModified1515,66273
+void MainWindow::changeApplicationState(changeApplicationState1540,67592
+void MainWindow::focusChanged(focusChanged1550,67864
+void MainWindow::setCurrentSessionId(setCurrentSessionId1556,67967
+QString MainWindow::ageToIntString(ageToIntString1561,68057
+QString MainWindow::ageToRecent(ageToRecent1571,68452
+void MainWindow::reloadSongAges(reloadSongAges1588,69260
+void MainWindow::setCurrentSessionIdReloadSongAges(setCurrentSessionIdReloadSongAges1612,70290
+void MainWindow::setCurrentSessionIdReloadSongAgesCheckMenu(setCurrentSessionIdReloadSongAgesCheckMenu1619,70538
+static CallListCheckBox * AddItemToCallList(1624,70654
+static QString findTimingForCall(1667,72685
+void MainWindow::loadCallList(loadCallList1707,74171
+void breakDanceProgramIntoParts(1748,75658
+void MainWindow::tableWidgetCallList_checkboxStateChanged(tableWidgetCallList_checkboxStateChanged1786,76563
+void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(on_comboBoxCallListProgram_currentIndexChanged1824,77941
+void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(on_comboBoxCuesheetSelector_currentIndexChanged1842,78634
+void MainWindow::action_session_change_triggered(action_session_change_triggered1850,78941
+void MainWindow::populateMenuSessionOptions(populateMenuSessionOptions1872,79529
+void MainWindow::on_menuLyrics_aboutToShow(on_menuLyrics_aboutToShow1899,80439
+void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(on_actionLyricsCueSheetRevert_Edits_triggered1906,80807
+void MainWindow::on_actionCompact_triggered(on_actionCompact_triggered1911,80992
+void MainWindow::on_actionShow_All_Ages_triggered(on_actionShow_All_Ages_triggered1945,81970
+MainWindow::~MainWindow(~MainWindow1953,82144
+void MainWindow::updateSongTableColumnView(updateSongTableColumnView1986,83039
+void MainWindow::on_loopButton_toggled(on_loopButton_toggled2015,84813
+void MainWindow::on_monoButton_toggled(on_monoButton_toggled2041,85673
+void MainWindow::on_stopButton_clicked(on_stopButton_clicked2057,86193
+void MainWindow::randomizeFlashCall(randomizeFlashCall2098,87933
+void MainWindow::on_playButton_clicked(on_playButton_clicked2112,88392
+int MainWindow::getSelectionRowForFilename(getSelectionRowForFilename2224,93319
+void MainWindow::on_pitchSlider_valueChanged(on_pitchSlider_valueChanged2235,93690
+void MainWindow::Info_Volume(Info_Volume2272,94940
+void MainWindow::on_volumeSlider_valueChanged(on_volumeSlider_valueChanged2294,95750
+void MainWindow::on_actionMute_triggered(on_actionMute_triggered2314,96510
+void MainWindow::on_tempoSlider_valueChanged(on_tempoSlider_valueChanged2328,96926
+void MainWindow::on_mixSlider_valueChanged(on_mixSlider_valueChanged2372,98955
+QString MainWindow::position2String(position2String2399,100004
+void InitializeSeekBar(2425,100851
+void SetSeekBarPosition(2432,101084
+void SetSeekBarNoSongLoaded(2439,101303
+void MainWindow::Info_Seekbar(Info_Seekbar2447,101512
+#define WATCHDOG4602468,102391
+bool isChildWidgetOfAnyLayout(2642,111392
+void setVisibleWidgetsInLayout(2659,111749
+bool isVisibleWidgetsInLayout(2675,112078
+void MainWindow::setCueSheetAdditionalControlsVisible(setCueSheetAdditionalControlsVisible2693,112421
+bool MainWindow::cueSheetAdditionalControlsVisible(cueSheetAdditionalControlsVisible2698,112572
+double timeToDouble(2706,112782
+void MainWindow::on_pushButtonClearTaughtCalls_clicked(on_pushButtonClearTaughtCalls_clicked2727,113325
+void MainWindow::getCurrentPointInStream(getCurrentPointInStream2745,114122
+void MainWindow::on_pushButtonSetIntroTime_clicked(on_pushButtonSetIntroTime_clicked2767,114966
+void MainWindow::on_pushButtonSetOutroTime_clicked(on_pushButtonSetOutroTime_clicked2789,116012
+void MainWindow::on_seekBarCuesheet_valueChanged(on_seekBarCuesheet_valueChanged2811,117061
+void MainWindow::on_seekBar_valueChanged(on_seekBar_valueChanged2817,117236
+void MainWindow::on_clearSearchButton_clicked(on_clearSearchButton_clicked2825,117469
+void MainWindow::on_actionLoop_triggered(on_actionLoop_triggered2848,118393
+void MainWindow::on_UIUpdateTimerTick(on_UIUpdateTimerTick2854,118571
+void MainWindow::on_vuMeterTimerTick(on_vuMeterTimerTick2973,123722
+bool MainWindow::maybeSave(maybeSave2990,124427
+void MainWindow::closeEvent(closeEvent3040,126298
+void MainWindow::aboutBox(aboutBox3105,128350
+bool MainWindow::someWebViewHasFocus(someWebViewHasFocus3125,129638
+#define WEBVIEWSWORK3126,129679
+bool GlobalEventFilter::eventFilter(eventFilter3144,130313
+void MainWindow::actionTempoPlus(actionTempoPlus3322,141652
+void MainWindow::actionTempoMinus(actionTempoMinus3327,141811
+void MainWindow::actionFadeOutAndPause(actionFadeOutAndPause3332,141971
+void MainWindow::actionNextTab(actionNextTab3336,142046
+void MainWindow::actionSwitchToTab(actionSwitchToTab3352,142537
+void MainWindow::actionFilterSongsPatterSingersToggle(actionFilterSongsPatterSingersToggle3366,142870
+void MainWindow::actionFilterSongsToPatter(actionFilterSongsToPatter3402,143787
+void MainWindow::actionFilterSongsToSingers(actionFilterSongsToSingers3408,143942
+bool MainWindow::handleKeypress(handleKeypress3416,144175
+void MainWindow::on_actionSpeed_Up_triggered(on_actionSpeed_Up_triggered3583,152049
+void MainWindow::on_actionSlow_Down_triggered(on_actionSlow_Down_triggered3589,152221
+void MainWindow::on_actionSkip_Ahead_15_sec_triggered(on_actionSkip_Ahead_15_sec_triggered3596,152470
+void MainWindow::on_actionSkip_Back_15_sec_triggered(on_actionSkip_Back_15_sec_triggered3604,152812
+void MainWindow::on_actionVolume_Up_triggered(on_actionVolume_Up_triggered3612,153119
+void MainWindow::on_actionVolume_Down_triggered(on_actionVolume_Down_triggered3617,153235
+void MainWindow::on_actionPlay_triggered(on_actionPlay_triggered3623,153429
+void MainWindow::on_actionStop_triggered(on_actionStop_triggered3628,153506
+void MainWindow::on_actionForce_Mono_Aahz_mode_triggered(on_actionForce_Mono_Aahz_mode_triggered3634,153659
+void MainWindow::on_bassSlider_valueChanged(on_bassSlider_valueChanged3641,153872
+void MainWindow::on_midrangeSlider_valueChanged(on_midrangeSlider_valueChanged3647,154012
+void MainWindow::on_trebleSlider_valueChanged(on_trebleSlider_valueChanged3653,154156
+double MainWindow::getID3BPM(getID3BPM3662,154410
+void MainWindow::reloadCurrentMP3File(reloadCurrentMP3File3685,155261
+void MainWindow::loadMP3File(loadMP3File3693,155652
+void MainWindow::secondHalfOfLoad(secondHalfOfLoad3820,161015
+void MainWindow::on_actionOpen_MP3_file_triggered(on_actionOpen_MP3_file_triggered3900,164841
+void findFilesRecursively(3932,166188
+void MainWindow::checkLockFile(checkLockFile3993,169436
+void MainWindow::clearLockFile(clearLockFile4041,171466
+void MainWindow::findMusic(findMusic4054,171838
+void addStringToLastRowOfSongTable(4092,173049
+static QString getTitleColText(4111,174013
+QString getTitleColTitle(4116,174164
+bool filterContains(4133,174692
+void MainWindow::filterMusic(filterMusic4189,176276
+QString MainWindow::FormatTitlePlusTags(FormatTitlePlusTags4233,177857
+void MainWindow::loadMusicList(loadMusicList4264,179222
+QStringList MainWindow::getUncheckedItemsFromCurrentCallList(getUncheckedItemsFromCurrentCallList4464,188075
+static void addToProgramsAndWriteTextFile(4477,188515
+void MainWindow::loadDanceProgramList(loadDanceProgramList4505,189620
+void MainWindow::on_labelSearch_textChanged(on_labelSearch_textChanged4578,192712
+void MainWindow::on_typeSearch_textChanged(on_typeSearch_textChanged4583,192782
+void MainWindow::on_titleSearch_textChanged(on_titleSearch_textChanged4588,192851
+void MainWindow::titleLabelDoubleClicked(titleLabelDoubleClicked4594,192922
+void MainWindow::on_songTable_itemDoubleClicked(on_songTable_itemDoubleClicked4605,193207
+void MainWindow::on_actionClear_Search_triggered(on_actionClear_Search_triggered4654,195289
+void MainWindow::on_actionPitch_Up_triggered(on_actionPitch_Up_triggered4659,195381
+void MainWindow::on_actionPitch_Down_triggered(on_actionPitch_Down_triggered4664,195494
+void MainWindow::on_actionAutostart_playback_triggered(on_actionAutostart_playback_triggered4669,195609
+void MainWindow::on_actionImport_triggered(on_actionImport_triggered4675,195848
+void MainWindow::on_actionExport_Play_Data_triggered(on_actionExport_Play_Data_triggered4692,196328
+void MainWindow::on_actionExport_triggered(on_actionExport_triggered4708,196787
+void MainWindow::AddHotkeyMappingsFromMenus(AddHotkeyMappingsFromMenus4759,198616
+void MainWindow::AddHotkeyMappingsFromShortcuts(AddHotkeyMappingsFromShortcuts4772,199127
+void MainWindow::on_actionPreferences_triggered(on_actionPreferences_triggered4789,199762
+QString MainWindow::removePrefix(removePrefix4959,207504
+bool MainWindow::compareRelative(compareRelative4965,207621
+void MainWindow::on_songTable_itemSelectionChanged(on_songTable_itemSelectionChanged4973,208070
+void MainWindow::showInFinderOrExplorer(showInFinderOrExplorer5078,213294
+int MainWindow::selectedSongRow(selectedSongRow5119,214562
+int MainWindow::previousVisibleSongRow(previousVisibleSongRow5134,215054
+int MainWindow::nextVisibleSongRow(nextVisibleSongRow5161,216111
+void MainWindow::on_songTable_customContextMenuRequested(on_songTable_customContextMenuRequested5189,217120
+void MainWindow::changeTagOnCurrentSongSelection(changeTagOnCurrentSongSelection5304,222125
+void MainWindow::editTags(editTags5340,223466
+void MainWindow::loadSong(loadSong5372,224732
+void MainWindow::revealInFinder(revealInFinder5384,225021
+void MainWindow::columnHeaderSorted(columnHeaderSorted5397,225378
+void MainWindow::columnHeaderResized(columnHeaderResized5405,225600
+void MainWindow::saveCurrentSongSettings(saveCurrentSongSettings5492,228592
+void MainWindow::loadSettingsForSong(loadSettingsForSong5559,231458
+void MainWindow::loadGlobalSettingsForSong(loadGlobalSettingsForSong5686,236607
+QString MainWindow::loadLyrics(loadLyrics5693,236861
+void MainWindow::on_warningLabel_clicked(on_warningLabel_clicked5721,237757
+void MainWindow::on_warningLabelCuesheet_clicked(on_warningLabelCuesheet_clicked5725,237837
+void MainWindow::on_tabWidget_currentChanged(on_tabWidget_currentChanged5730,237959
+void MainWindow::microphoneStatusUpdate(microphoneStatusUpdate5806,242160
+void MainWindow::initReftab(initReftab5822,242902
+void MainWindow::initSDtab(initSDtab5957,249463
+void MainWindow::on_actionAuto_scroll_during_playback_toggled(on_actionAuto_scroll_during_playback_toggled5962,249609
+void MainWindow::on_actionAt_TOP_triggered(on_actionAt_TOP_triggered5977,250144
+void MainWindow::on_actionAt_BOTTOM_triggered(on_actionAt_BOTTOM_triggered5982,250238
+void MainWindow::on_actionRemove_from_Playlist_triggered(on_actionRemove_from_Playlist_triggered5987,250339
+void MainWindow::on_actionUP_in_Playlist_triggered(on_actionUP_in_Playlist_triggered5992,250429
+void MainWindow::on_actionDOWN_in_Playlist_triggered(on_actionDOWN_in_Playlist_triggered5997,250513
+void MainWindow::on_actionStartup_Wizard_triggered(on_actionStartup_Wizard_triggered6002,250601
+void MainWindow::sortByDefaultSortOrder(sortByDefaultSortOrder6041,252173
+void MainWindow::sdActionTriggered(sdActionTriggered6050,252608
+void MainWindow::sdViewActionTriggered(sdViewActionTriggered6058,253004
+void MainWindow::sdActionTriggeredColors(sdActionTriggeredColors6141,258065
+void MainWindow::sdActionTriggeredNumbers(sdActionTriggeredNumbers6147,258314
+void MainWindow::sdActionTriggeredGenders(sdActionTriggeredGenders6153,258566
+void MainWindow::sdAction2Triggered(sdAction2Triggered6159,258818
+void MainWindow::airplaneMode(airplaneMode6166,259191
+void MainWindow::on_action_1_triggered(on_action_1_triggered6180,259601
+void MainWindow::on_action_2_triggered(on_action_2_triggered6185,259665
+void MainWindow::on_action_3_triggered(on_action_3_triggered6190,259729
+void MainWindow::on_action_4_triggered(on_action_4_triggered6195,259793
+void MainWindow::on_action_5_triggered(on_action_5_triggered6200,259857
+void MainWindow::on_action_6_triggered(on_action_6_triggered6205,259921
+void MainWindow::stopSFX(stopSFX6210,259985
+void MainWindow::playSFX(playSFX6214,260051
+void MainWindow::on_actionCheck_for_Updates_triggered(on_actionCheck_for_Updates_triggered6235,260811
+void MainWindow::maybeInstallReferencefiles(maybeInstallReferencefiles6301,263834
+void MainWindow::maybeInstallSoundFX(maybeInstallSoundFX6361,266173
+void MainWindow::on_actionStop_Sound_FX_triggered(on_actionStop_Sound_FX_triggered6457,270168
+void MainWindow::on_actionViewTags_toggled(on_actionViewTags_toggled6464,270304
+void MainWindow::on_actionRecent_toggled(on_actionRecent_toggled6472,270620
+void MainWindow::on_actionAge_toggled(on_actionAge_toggled6482,270975
+void MainWindow::on_actionPitch_toggled(on_actionPitch_toggled6492,271318
+void MainWindow::on_actionTempo_toggled(on_actionTempo_toggled6502,271667
+void MainWindow::on_actionFade_Out_triggered(on_actionFade_Out_triggered6512,272016
+void MainWindow::startLongSongTableOperation(startLongSongTableOperation6529,272792
+void MainWindow::stopLongSongTableOperation(stopLongSongTableOperation6540,273121
+QString MainWindow::filepath2SongType(filepath2SongType6553,273490
+void MainWindow::on_actionFilePrint_triggered(on_actionFilePrint_triggered6578,274403
+void MainWindow::on_actionSave_triggered(on_actionSave_triggered6709,279832
+void MainWindow::on_actionSave_As_triggered(on_actionSave_As_triggered6730,280519
+QList<QString> MainWindow::getListOfMusicFiles(getListOfMusicFiles6753,281208
+void MainWindow::on_actionTest_Loop_triggered(on_actionTest_Loop_triggered6779,282224
+void MainWindow::on_dateTimeEditIntroTime_timeChanged(on_dateTimeEditIntroTime_timeChanged6803,283016
+void MainWindow::on_dateTimeEditOutroTime_timeChanged(on_dateTimeEditOutroTime_timeChanged6833,284434
+void MainWindow::on_pushButtonTestLoop_clicked(on_pushButtonTestLoop_clicked6863,285855
+void MainWindow::on_actionClear_Recent_triggered(on_actionClear_Recent_triggered6868,285945
+QString MainWindow::logFilePath;6888,287016
+void MainWindow::customMessageOutput(customMessageOutput6890,287119
+void MainWindow::customMessageOutputQt(customMessageOutputQt6921,288368
+void MainWindow::setNowPlayingLabelWithColor(setNowPlayingLabelWithColor6948,289737
+int MainWindow::getRsyncFileCount(getRsyncFileCount6957,290075
+void MainWindow::on_actionMake_Flash_Drive_Wizard_triggered(on_actionMake_Flash_Drive_Wizard_triggered6984,290927
+void MainWindow::handleDurationBPM(handleDurationBPM7122,296331
+void MainWindow::on_actionSquareDesk_Help_triggered(on_actionSquareDesk_Help_triggered7204,300896
+void MainWindow::on_actionSD_Help_triggered(on_actionSD_Help_triggered7234,301942
+void MainWindow::on_actionReport_a_Bug_triggered(on_actionReport_a_Bug_triggered7265,302905
+
+mainwindow_choreo1.cpp,678
+QString processSequence(47,1533
+void extractSequencesFromFile(76,2249
+void MainWindow::filterChoreography(filterChoreography187,5928
+void MainWindow::on_listWidgetChoreographySequences_itemDoubleClicked(on_listWidgetChoreographySequences_itemDoubleClicked231,7293
+void MainWindow::on_listWidgetChoreography_itemDoubleClicked(on_listWidgetChoreography_itemDoubleClicked237,7520
+void MainWindow::on_lineEditChoreographySearch_textChanged(on_lineEditChoreographySearch_textChanged243,7698
+void MainWindow::on_listWidgetChoreographyFiles_itemChanged(on_listWidgetChoreographyFiles_itemChanged248,7790
+void MainWindow::loadChoreographyList(loadChoreographyList254,7964
+
+mainwindow_cuesheets.cpp,1720
+struct FilenameMatchers 44,1470
+    QRegularExpression regex;45,1496
+    int title_match;46,1526
+    int label_match;47,1547
+    int number_match;48,1568
+    int additional_label_match;49,1590
+    int additional_title_match;50,1622
+struct FilenameMatchers *getFilenameMatchersForType(getFilenameMatchersForType53,1658
+bool MainWindow::breakFilenameIntoParts(breakFilenameIntoParts104,5647
+class CuesheetWithRanking 177,8340
+    QString filename;179,8376
+    QString name;180,8398
+    int score;181,8416
+static bool CompareCuesheetWithRanking(185,8464
+QStringList splitIntoWords(195,8861
+int compareSortedWordListsForRelevance(240,10560
+void MainWindow::findPossibleCuesheets(findPossibleCuesheets283,11693
+void MainWindow::loadCuesheets(loadCuesheets441,18483
+void MainWindow::fetchListOfCuesheetsFromCloud(fetchListOfCuesheetsFromCloud578,24337
+bool MainWindow::fuzzyMatchFilenameToCuesheetname(fuzzyMatchFilenameToCuesheetname617,26231
+void MainWindow::cuesheetListDownloadEnd(cuesheetListDownloadEnd700,29752
+void MainWindow::downloadCuesheetFileIfNeeded(downloadCuesheetFileIfNeeded807,34399
+QList<QString> MainWindow::getListOfCuesheets(getListOfCuesheets864,36581
+void MainWindow::maybeLyricsChanged(maybeLyricsChanged910,38459
+void MainWindow::on_actionDownload_Cuesheets_triggered(on_actionDownload_Cuesheets_triggered927,39318
+void MainWindow::makeProgress(makeProgress932,39417
+void MainWindow::cancelProgress(cancelProgress948,39909
+void MainWindow::lyricsDownloadEnd(lyricsDownloadEnd959,40146
+void MainWindow::revealLyricsFileInFinder(revealLyricsFileInFinder964,40258
+void MainWindow::revealAttachedLyricsFileInFinder(revealAttachedLyricsFileInFinder970,40429
+
+mainwindow_flashcalls.cpp,2351
+void MainWindow::on_flashcallbasic_toggled(on_flashcallbasic_toggled42,1467
+void MainWindow::on_actionFlashCallBasic_triggered(on_actionFlashCallBasic_triggered50,1737
+void MainWindow::on_flashcallmainstream_toggled(on_flashcallmainstream_toggled56,1891
+void MainWindow::on_actionFlashCallMainstream_triggered(on_actionFlashCallMainstream_triggered64,2181
+void MainWindow::on_flashcallplus_toggled(on_flashcallplus_toggled70,2350
+void MainWindow::on_actionFlashCallPlus_triggered(on_actionFlashCallPlus_triggered78,2616
+void MainWindow::on_flashcalla1_toggled(on_flashcalla1_toggled84,2767
+void MainWindow::on_actionFlashCallA1_triggered(on_actionFlashCallA1_triggered92,3025
+void MainWindow::on_flashcalla2_toggled(on_flashcalla2_toggled98,3170
+void MainWindow::on_actionFlashCallA2_triggered(on_actionFlashCallA2_triggered106,3428
+void MainWindow::on_flashcallc1_toggled(on_flashcallc1_toggled112,3573
+void MainWindow::on_actionFlashCallC1_triggered(on_actionFlashCallC1_triggered120,3831
+void MainWindow::on_flashcallc2_toggled(on_flashcallc2_toggled126,3976
+void MainWindow::on_actionFlashCallC2_triggered(on_actionFlashCallC2_triggered134,4234
+void MainWindow::on_flashcallc3a_toggled(on_flashcallc3a_toggled140,4379
+void MainWindow::on_actionFlashCallC3a_triggered(on_actionFlashCallC3a_triggered148,4641
+void MainWindow::on_flashcallc3b_toggled(on_flashcallc3b_toggled154,4789
+void MainWindow::on_actionFlashCallC3b_triggered(on_actionFlashCallC3b_triggered162,5051
+void MainWindow::on_flashcalluserfile_toggled(on_flashcalluserfile_toggled168,5199
+void MainWindow::on_actionFlashCallUserFile_triggered(on_actionFlashCallUserFile_triggered176,5481
+void MainWindow::on_actionFlashCallFilechooser_triggered(on_actionFlashCallFilechooser_triggered182,5644
+void MainWindow::updateFlashFileMenu(updateFlashFileMenu191,5913
+void MainWindow::selectUserFlashFile(selectUserFlashFile207,6531
+void MainWindow::readFlashCallsList(readFlashCallsList236,7511
+void MainWindow::on_action5_seconds_triggered(on_action5_seconds_triggered336,11445
+void MainWindow::on_action10_seconds_triggered(on_action10_seconds_triggered341,11540
+void MainWindow::on_action15_seconds_triggered(on_action15_seconds_triggered346,11637
+void MainWindow::on_action20_seconds_triggered(on_action20_seconds_triggered351,11734
+
+mainwindow_fonts.cpp,719
+void MainWindow::setSongTableFont(setSongTableFont44,1481
+int MainWindow::pointSizeToIndex(pointSizeToIndex50,1720
+int MainWindow::indexToPointSize(indexToPointSize60,2070
+void MainWindow::setFontSizes(setFontSizes70,2329
+void MainWindow::adjustFontSizes(adjustFontSizes135,4601
+void MainWindow::usePersistentFontSize(usePersistentFontSize414,17858
+void MainWindow::persistNewFontSize(persistNewFontSize453,19303
+void MainWindow::zoomInOut(zoomInOut460,19596
+void MainWindow::on_actionZoom_In_triggered(on_actionZoom_In_triggered486,20670
+void MainWindow::on_actionZoom_Out_triggered(on_actionZoom_Out_triggered491,20751
+void MainWindow::on_actionReset_triggered(on_actionReset_triggered496,20834
+
+mainwindow_sd.cpp,12564
+static const int kColCurrentSequenceCall 49,1580
+static const int kColCurrentSequenceFormation 50,1626
+static const int kColCurrentSequenceTiming 53,1701
+static const double dancerGridSize 58,1791
+static const double backgroundSquareCount 59,1832
+static const double gridSize 60,1879
+static const double halfBackgroundSize 61,1914
+static const double currentSequenceIconSize 62,1993
+static int initialTableWidgetCurrentSequenceDefaultSectionSize 63,2043
+static const double sdListIconSize 64,2112
+static QBrush coupleColorBrushes[coupleColorBrushes65,2154
+static QStringList initialDancerLocations;70,2371
+static QHash<dance_level, QString> sdLevelEnumsToStrings;71,2414
+static const char *str_exit_from_the_program str_exit_from_the_program73,2473
+static const char *str_abort_this_sequence str_abort_this_sequence74,2545
+static const char *str_square_your_sets str_square_your_sets75,2613
+static const char *strBracketsSubsidiaryCall strBracketsSubsidiaryCall76,2675
+static const char *strLTAnythingGT strLTAnythingGT77,2743
+static const char *str_undo_last_call str_undo_last_call78,2794
+static QFont dancerLabelFont;80,2853
+static bool gTwoCouplesOnly 83,2939
+static QGraphicsItemGroup *generateDancer(generateDancer85,2977
+void move_dancers(149,5526
+static struct dancer dancers[dancers179,6890
+void MainWindow::inOrder(inOrder186,7132
+int MainWindow::groupNum(groupNum193,7262
+bool MainWindow::sameGroup(sameGroup209,7860
+int MainWindow::whichGroup whichGroup214,8031
+void MainWindow::decode_formation_into_dancer_destinations(decode_formation_into_dancer_destinations268,10524
+void MainWindow::update_sd_animations(update_sd_animations438,16018
+static void initialize_scene(456,16503
+void MainWindow::reset_sd_dancer_locations(reset_sd_dancer_locations527,19226
+void MainWindow::initialize_internal_sd_tab(initialize_internal_sd_tab542,20026
+void MainWindow::on_threadSD_errorString(on_threadSD_errorString658,25281
+void MainWindow::on_sd_set_window_title(on_sd_set_window_title662,25346
+void MainWindow::set_sd_last_formation_name(set_sd_last_formation_name666,25410
+void MainWindow::set_sd_last_groupness(set_sd_last_groupness721,27402
+void MainWindow::SetAnimationSpeed(SetAnimationSpeed775,29316
+void MainWindow::on_sd_update_status_bar(on_sd_update_status_bar810,30401
+void MainWindow::sd_begin_available_call_list_output(sd_begin_available_call_list_output864,32432
+void MainWindow::sd_end_available_call_list_output(sd_end_available_call_list_output869,32560
+void MainWindow::highlight_sd_replaceables(highlight_sd_replaceables912,34150
+void MainWindow::on_listWidgetSDAdditionalOptions_itemDoubleClicked(on_listWidgetSDAdditionalOptions_itemDoubleClicked981,36518
+void MainWindow::on_listWidgetSDQuestionMarkComplete_itemDoubleClicked(on_listWidgetSDQuestionMarkComplete_itemDoubleClicked1001,37200
+QString toCamelCase(1006,37345
+QString MainWindow::upperCaseWHO(upperCaseWHO1021,39174
+QString MainWindow::prettify(prettify1035,39751
+void MainWindow::on_sd_add_new_line(on_sd_add_new_line1039,39839
+void MainWindow::render_sd_item_data(render_sd_item_data1324,52772
+void MainWindow::on_sd_awaiting_input(on_sd_awaiting_input1351,53788
+void MainWindow::on_sd_set_pick_string(on_sd_set_pick_string1370,54727
+void MainWindow::on_sd_dispose_of_abbreviation(on_sd_dispose_of_abbreviation1376,54855
+void MainWindow::on_sd_set_matcher_options(on_sd_set_matcher_options1383,55000
+void MainWindow::on_tableWidgetCurrentSequence_itemDoubleClicked(on_tableWidgetCurrentSequence_itemDoubleClicked1407,55723
+void MainWindow::on_tableWidgetCurrentSequence_itemSelectionChanged(on_tableWidgetCurrentSequence_itemSelectionChanged1415,56116
+void MainWindow::render_current_sd_scene_to_tableWidgetCurrentSequence(render_current_sd_scene_to_tableWidgetCurrentSequence1425,56630
+void MainWindow::set_current_sequence_icons_visible(set_current_sequence_icons_visible1447,57498
+void MainWindow::do_sd_double_click_call_completion(do_sd_double_click_call_completion1462,58077
+void MainWindow::sdSequenceCallLabelDoubleClicked(sdSequenceCallLabelDoubleClicked1477,58481
+void MainWindow::on_listWidgetSDOutput_itemDoubleClicked(on_listWidgetSDOutput_itemDoubleClicked1496,59147
+void MainWindow::on_listWidgetSDOptions_itemDoubleClicked(on_listWidgetSDOptions_itemDoubleClicked1524,60023
+static int compareEnteredCallToCall(1537,60565
+static QString get_longest_match_from_list_widget(1578,61929
+void MainWindow::do_sd_tab_completion(do_sd_tab_completion1619,63791
+void MainWindow::SDDebug(SDDebug1673,66140
+void MainWindow::on_lineEditSDInput_returnPressed(on_lineEditSDInput_returnPressed1683,66453
+void MainWindow::submit_lineEditSDInput_contents_to_sd(submit_lineEditSDInput_contents_to_sd1716,67606
+dance_level MainWindow::get_current_sd_dance_program(get_current_sd_dance_program2052,83891
+void MainWindow::on_lineEditSDInput_textChanged(on_lineEditSDInput_textChanged2104,85177
+void MainWindow::startSDThread(startSDThread2189,88603
+void MainWindow::restartSDThread(restartSDThread2196,88872
+void MainWindow::setCurrentSDDanceProgram(setCurrentSDDanceProgram2210,89155
+void MainWindow::on_actionSDDanceProgramMainstream_triggered(on_actionSDDanceProgramMainstream_triggered2251,90769
+void MainWindow::on_actionSDDanceProgramPlus_triggered(on_actionSDDanceProgramPlus_triggered2255,90880
+void MainWindow::on_actionSDDanceProgramA1_triggered(on_actionSDDanceProgramA1_triggered2259,90979
+void MainWindow::on_actionSDDanceProgramA2_triggered(on_actionSDDanceProgramA2_triggered2263,91074
+void MainWindow::on_actionSDDanceProgramC1_triggered(on_actionSDDanceProgramC1_triggered2267,91169
+void MainWindow::on_actionSDDanceProgramC2_triggered(on_actionSDDanceProgramC2_triggered2271,91264
+void MainWindow::on_actionSDDanceProgramC3A_triggered(on_actionSDDanceProgramC3A_triggered2275,91359
+void MainWindow::on_actionSDDanceProgramC3_triggered(on_actionSDDanceProgramC3_triggered2279,91456
+void MainWindow::on_actionSDDanceProgramC3x_triggered(on_actionSDDanceProgramC3x_triggered2283,91551
+void MainWindow::on_actionSDDanceProgramC4_triggered(on_actionSDDanceProgramC4_triggered2287,91648
+void MainWindow::on_actionSDDanceProgramC4x_triggered(on_actionSDDanceProgramC4x_triggered2291,91743
+void MainWindow::on_actionShow_Concepts_triggered(on_actionShow_Concepts_triggered2296,91841
+void MainWindow::on_actionShow_Commands_triggered(on_actionShow_Commands_triggered2301,91936
+void MainWindow::on_actionFormation_Thumbnails_triggered(on_actionFormation_Thumbnails_triggered2306,92031
+void MainWindow::on_actionSD_Output_triggered(on_actionSD_Output_triggered2311,92180
+void SDDancer::setColor(setColor2318,92437
+static void setPeopleColoringScheme(2332,92911
+void MainWindow::setPeopleNumberingScheme(setPeopleNumberingScheme2384,95691
+static void setPeopleGenderingScheme(2425,97197
+void MainWindow::setSDCoupleColoringScheme(setSDCoupleColoringScheme2451,98815
+void MainWindow::setSDCoupleNumberingScheme(setSDCoupleNumberingScheme2457,99013
+void MainWindow::setSDCoupleGenderingScheme(setSDCoupleGenderingScheme2464,99283
+void MainWindow::select_all_sd_current_sequence(select_all_sd_current_sequence2471,99553
+void MainWindow::undo_last_sd_action(undo_last_sd_action2485,99983
+void MainWindow::redo_last_sd_action(redo_last_sd_action2494,100192
+void MainWindow::undo_sd_to_row(undo_sd_to_row2514,100840
+void MainWindow::paste_to_tableWidgetCurrentSequence(paste_to_tableWidgetCurrentSequence2523,100983
+void MainWindow::add_comment_to_tableWidgetCurrentSequence(add_comment_to_tableWidgetCurrentSequence2579,103652
+void MainWindow::delete_comments_from_tableWidgetCurrentSequence(delete_comments_from_tableWidgetCurrentSequence2638,106108
+void MainWindow::copy_selection_from_tableWidgetCurrentSequence(copy_selection_from_tableWidgetCurrentSequence2672,107884
+void MainWindow::copy_selection_from_listWidgetSDOutput(copy_selection_from_listWidgetSDOutput2726,109773
+QString MainWindow::render_image_item_as_html(render_image_item_as_html2743,110207
+QString MainWindow::get_current_sd_sequence_as_html(get_current_sd_sequence_as_html2790,111967
+void MainWindow::copy_selection_from_tableWidgetCurrentSequence_html(copy_selection_from_tableWidgetCurrentSequence_html2865,114973
+void MainWindow::set_sd_copy_options_entire_sequence(set_sd_copy_options_entire_sequence2873,115315
+void MainWindow::set_sd_copy_options_selected_rows(set_sd_copy_options_selected_rows2878,115421
+void MainWindow::set_sd_copy_options_selected_cells(set_sd_copy_options_selected_cells2883,115525
+void MainWindow::toggle_sd_copy_html_includes_headers(toggle_sd_copy_html_includes_headers2888,115630
+void MainWindow::toggle_sd_copy_html_formations_as_svg(toggle_sd_copy_html_formations_as_svg2893,115798
+void MainWindow::toggle_sd_copy_include_deep(toggle_sd_copy_include_deep2898,115969
+void MainWindow::on_tableWidgetCurrentSequence_customContextMenuRequested(on_tableWidgetCurrentSequence_customContextMenuRequested2904,116121
+void MainWindow::on_listWidgetSDOutput_customContextMenuRequested(on_listWidgetSDOutput_customContextMenuRequested3076,123744
+void MainWindow::on_actionSDSquareYourSets_triggered(on_actionSDSquareYourSets_triggered3097,124559
+void MainWindow::on_actionSDHeadsStart_triggered(on_actionSDHeadsStart_triggered3113,125140
+void MainWindow::on_actionSDHeadsSquareThru_triggered(on_actionSDHeadsSquareThru_triggered3122,125448
+void MainWindow::on_actionSDHeads1p2p_triggered(on_actionSDHeads1p2p_triggered3129,125716
+void MainWindow::dancerNameChanged(dancerNameChanged3138,126022
+void MainWindow::on_actionLoad_Sequence_triggered(on_actionLoad_Sequence_triggered3147,126419
+void MainWindow::on_actionSave_Sequence_As_triggered(on_actionSave_Sequence_As_triggered3183,128041
+void MainWindow::saveSequenceAs(saveSequenceAs3189,128214
+void MainWindow::on_actionShow_Frames_triggered(on_actionShow_Frames_triggered3225,129539
+void MainWindow::refreshSDframes(refreshSDframes3236,129862
+void MainWindow::loadFrame(loadFrame3307,134597
+bool MainWindow::handleSDFunctionKey(handleSDFunctionKey3457,142786
+void MainWindow::on_pushButtonSDUnlock_clicked(on_pushButtonSDUnlock_clicked3655,152514
+void MainWindow::SDExitEditMode(SDExitEditMode3690,153895
+void MainWindow::SDSetCurrentSeqs(SDSetCurrentSeqs3732,155773
+void MainWindow::SDGetCurrentSeqs(SDGetCurrentSeqs3750,156613
+void MainWindow::SDScanFramesForMax(SDScanFramesForMax3812,159863
+void MainWindow::SDAppendCurrentSequenceToFrame(SDAppendCurrentSequenceToFrame3867,162127
+void MainWindow::SDReplaceCurrentSequence(SDReplaceCurrentSequence3943,166053
+void MainWindow::SDDeleteCurrentSequence(SDDeleteCurrentSequence4080,172667
+void MainWindow::SDMoveCurrentSequenceToFrame(SDMoveCurrentSequenceToFrame4171,176522
+void MainWindow::on_pushButtonSDNew_clicked(on_pushButtonSDNew_clicked4188,177461
+void MainWindow::on_pushButtonSDSave_clicked(on_pushButtonSDSave_clicked4261,181343
+void MainWindow::on_pushButtonSDRevert_clicked(on_pushButtonSDRevert_clicked4268,181526
+void MainWindow::on_pushButtonSDDelete_clicked(on_pushButtonSDDelete_clicked4287,182253
+QString MainWindow::translateCall(translateCall4298,182670
+bool MainWindow::checkSDforErrors(checkSDforErrors4303,182764
+void MainWindow::debugCSDSfile(debugCSDSfile4323,183245
+QString MainWindow::makeLevelString(makeLevelString4337,183699
+QString MainWindow::translateCallToLevel(translateCallToLevel4373,184966
+void MainWindow::on_actionShow_group_station_toggled(on_actionShow_group_station_toggled4536,193372
+void MainWindow::on_actionShow_order_sequence_toggled(on_actionShow_order_sequence_toggled4545,193799
+void MainWindow::getMetadata(getMetadata4556,194340
+void MainWindow::writeMetadata(writeMetadata4621,196608
+void MainWindow::SDReadSequencesUsed(SDReadSequencesUsed4642,197377
+void MainWindow::SDMakeFrameFilesIfNeeded(SDMakeFrameFilesIfNeeded4696,199763
+void MainWindow::sdLoadDance(sdLoadDance4865,207351
+void MainWindow::sdActionTriggeredDances(sdActionTriggeredDances4898,209075
+void MainWindow::toggleHighlight(toggleHighlight4911,209394
+void MainWindow::clearHighlights(clearHighlights4940,210508
+void MainWindow::refreshHighlights(refreshHighlights4952,210813
+QStringList MainWindow::UserInputToSDCommand(UserInputToSDCommand4979,212045
+QString MainWindow::SDOutputToUserOutput(SDOutputToUserOutput5035,214276
+void MainWindow::sdtest(sdtest5078,215780
+
+makeflashdrivewizard.cpp,435
+MakeFlashDriveWizard::MakeFlashDriveWizard(35,1141
+void MakeFlashDriveWizard::accept(accept53,1754
+IntroMakeFlashDrivePage::IntroMakeFlashDrivePage(59,1860
+VolumeMakeFlashDrivePage::VolumeMakeFlashDrivePage(82,2825
+void VolumeMakeFlashDrivePage::initializePage(initializePage104,3440
+ConclusionMakeFlashDrivePage::ConclusionMakeFlashDrivePage(123,4083
+void ConclusionMakeFlashDrivePage::initializePage(initializePage142,4637
+
+mydatetimeedit.cpp,199
+myDateTimeEdit::myDateTimeEdit(29,967
+myDateTimeEdit::myDateTimeEdit(33,1044
+QDateTimeEdit::StepEnabled myDateTimeEdit::stepEnabled(stepEnabled38,1172
+void myDateTimeEdit::stepBy(stepBy46,1415
+
+myslider.cpp,795
+MySlider::MySlider(32,1091
+bool MySlider::eventFilter(eventFilter55,2231
+void MySlider::SetDefaultIntroOutroPositions(SetDefaultIntroOutroPositions68,2572
+void MySlider::SetLoop(SetLoop118,5205
+void MySlider::SetIntro(SetIntro124,5279
+void MySlider::SetOutro(SetOutro130,5400
+double MySlider::GetIntro(GetIntro136,5521
+double MySlider::GetOutro(GetOutro140,5585
+void MySlider::SetSingingCall(SetSingingCall145,5650
+void MySlider::SetOrigin(SetOrigin152,5729
+void MySlider::mouseDoubleClickEvent(mouseDoubleClickEvent157,5798
+void MySlider::AddMarker(AddMarker165,5990
+void MySlider::DeleteMarker(DeleteMarker170,6093
+QSet<double> MySlider::GetMarkers(GetMarkers175,6254
+void MySlider::ClearMarkers(ClearMarkers179,6316
+void MySlider::paintEvent(paintEvent186,6511
+
+mytablewidget.cpp,86
+MyTableWidget::MyTableWidget(29,966
+bool MyTableWidget::isEditing(isEditing36,1219
+
+perftimer.cpp,221
+int PerfTimer::indentLevel 32,1042
+PerfTimer::PerfTimer(34,1086
+void PerfTimer::start(start44,1297
+void PerfTimer::elapsed(elapsed58,1701
+void PerfTimer::stop(stop73,2236
+PerfTimer::~PerfTimer(~PerfTimer89,2660
+
+playlists.cpp,2584
+#define OS_FALLTHROUGH 40,1322
+#define OS_FALLTHROUGH42,1385
+QStringList MainWindow::parseCSV(parseCSV54,1776
+    enum State 56,1834
+    enum State {Normal,Normal56,1834
+    enum State {Normal, Quote}Quote56,1834
+QString MainWindow::loadPlaylistFromFile(loadPlaylistFromFile117,3266
+void MainWindow::finishLoadingPlaylist(finishLoadingPlaylist266,10180
+void MainWindow::markPlaylistModified(markPlaylistModified329,13204
+void MainWindow::on_actionLoad_Playlist_triggered(on_actionLoad_Playlist_triggered350,14090
+bool comparePlaylistExportRecord(378,15245
+void MainWindow::saveCurrentPlaylistToFile(saveCurrentPlaylistToFile384,15408
+void MainWindow::savePlaylistAgain(savePlaylistAgain488,20959
+void MainWindow::on_actionSave_Playlist_triggered(on_actionSave_Playlist_triggered528,22701
+void MainWindow::on_actionNext_Playlist_Item_triggered(on_actionNext_Playlist_Item_triggered590,25525
+void MainWindow::on_actionPrevious_Playlist_Item_triggered(on_actionPrevious_Playlist_Item_triggered612,26234
+void MainWindow::on_previousSongButton_clicked(on_previousSongButton_clicked641,27333
+void MainWindow::on_nextSongButton_clicked(on_nextSongButton_clicked646,27436
+void MainWindow::on_actionClear_Playlist_triggered(on_actionClear_Playlist_triggered652,27532
+int MainWindow::PlaylistItemCount(PlaylistItemCount694,29681
+void MainWindow::PlaylistItemToTop(PlaylistItemToTop709,30146
+void MainWindow::PlaylistItemToBottom(PlaylistItemToBottom784,33288
+void MainWindow::PlaylistItemMoveUp(PlaylistItemMoveUp843,35931
+void MainWindow::PlaylistItemMoveDown(PlaylistItemMoveDown886,37853
+void MainWindow::PlaylistItemRemove(PlaylistItemRemove932,39860
+void MainWindow::on_actionClear_Recent_List_triggered(on_actionClear_Recent_List_triggered977,41774
+void MainWindow::loadRecentPlaylist(loadRecentPlaylist985,42012
+void MainWindow::updateRecentPlaylistMenu(updateRecentPlaylistMenu1000,42463
+void MainWindow::addFilenameToRecentPlaylist(addFilenameToRecentPlaylist1032,44237
+void MainWindow::on_actionRecent1_triggered(on_actionRecent1_triggered1047,44946
+void MainWindow::on_actionRecent2_triggered(on_actionRecent2_triggered1052,45024
+void MainWindow::on_actionRecent3_triggered(on_actionRecent3_triggered1057,45102
+void MainWindow::on_actionRecent4_triggered(on_actionRecent4_triggered1062,45180
+void MainWindow::on_actionRecent5_triggered(on_actionRecent5_triggered1067,45258
+void MainWindow::on_actionRecent6_triggered(on_actionRecent6_triggered1072,45336
+void MainWindow::tableItemChanged(tableItemChanged1078,45443
+
+preferencesdialog.cpp,5891
+static const int kSessionsColName 39,1266
+static const int kSessionsColDay 40,1305
+static const int kSessionsColTime 41,1343
+static const int kSessionsColID 42,1382
+static const int kTagsColTag 44,1420
+static const int kTagsColForeground 45,1454
+static const int kTagsColBackground 46,1495
+static const int kTagsColExample 47,1536
+static const char *strWhiteHashFFFFFF strWhiteHashFFFFFF49,1575
+static void  SetTimerPulldownValuesToFirstDigit(54,1717
+static void SetPulldownValuesToItemNumberPlusN(65,2065
+static void RemoveAllOtherHotkeysFromTable(74,2257
+void PreferencesDialog::onSortIndicatorChanged(onSortIndicatorChanged97,3252
+PreferencesDialog::PreferencesDialog(110,3694
+PreferencesDialog::~PreferencesDialog(~PreferencesDialog218,8436
+void PreferencesDialog::setFontSizes(setFontSizes224,8564
+static int getLastSelectedRow(247,9200
+static void setPushButtonColor(269,9748
+static void setTagColorsSample(278,10023
+PushButtonColorTag::PushButtonColorTag(296,10821
+void PushButtonColorTag::selectColor(selectColor306,11291
+static void addRowToTagColors(319,11623
+void PreferencesDialog::on_pushButtonTagAdd_clicked(on_pushButtonTagAdd_clicked341,12685
+void PreferencesDialog::on_pushButtonTagRemove_clicked(on_pushButtonTagRemove_clicked347,12928
+void PreferencesDialog::setTagColors(setTagColors365,13520
+void PreferencesDialog::setTagColor(setTagColor380,14044
+QHash<QString,QPair<QString,QString>> PreferencesDialog::getTagColors(getTagColors392,14455
+QHash<QString, KeyAction *> PreferencesDialog::getHotkeys(getHotkeys408,15231
+bool LongStringsFirstThenAlpha(429,16007
+void PreferencesDialog::setHotkeys(setHotkeys447,16309
+static QComboBox *weekSelectionComboBox(weekSelectionComboBox486,17658
+static QTimeEdit *timeSelectionControl(timeSelectionControl501,18066
+void PreferencesDialog::setSessionInfoList(setSessionInfoList510,18335
+QList<SessionInfo> PreferencesDialog::getSessionInfoList(getSessionInfoList534,19233
+void PreferencesDialog::on_toolButtonSessionAddItem_clicked(on_toolButtonSessionAddItem_clicked561,20307
+void PreferencesDialog::on_toolButtonSessionRemoveItem_clicked(on_toolButtonSessionRemoveItem_clicked573,20924
+static void swapSessionInfoRows(592,21508
+void PreferencesDialog::on_toolButtonSessionMoveItemDown_clicked(on_toolButtonSessionMoveItemDown_clicked647,23748
+void PreferencesDialog::on_toolButtonSessionMoveItemUp_clicked(on_toolButtonSessionMoveItemUp_clicked667,24418
+void PreferencesDialog::on_pushButtonResetHotkeysToDefaults_clicked(on_pushButtonResetHotkeysToDefaults_clicked691,25092
+void PreferencesDialog::on_comboBoxMusicFormat_currentIndexChanged(on_comboBoxMusicFormat_currentIndexChanged703,25585
+void PreferencesDialog::on_chooseMusicPathButton_clicked(on_chooseMusicPathButton_clicked709,25716
+void PreferencesDialog::on_calledColorButton_clicked(on_calledColorButton_clicked729,26409
+void PreferencesDialog::on_extrasColorButton_clicked(on_extrasColorButton_clicked745,27060
+void PreferencesDialog::on_patterColorButton_clicked(on_patterColorButton_clicked761,27704
+void PreferencesDialog::on_singingColorButton_clicked(on_singingColorButton_clicked777,28348
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(796,29061
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(797,29117
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(798,29172
+#define CONFIG_ATTRIBUTE_STRING(800,29225
+#define CONFIG_ATTRIBUTE_COLOR(804,29469
+#define CONFIG_ATTRIBUTE_BOOLEAN(811,29745
+#define CONFIG_ATTRIBUTE_COMBO(815,29976
+#define CONFIG_ATTRIBUTE_INT(822,30377
+#define CONFIG_ATTRIBUTE_SLIDER(827,30716
+#undef CONFIG_ATTRIBUTE_STRING833,30982
+#undef CONFIG_ATTRIBUTE_BOOLEAN834,31013
+#undef CONFIG_ATTRIBUTE_COMBO835,31045
+#undef CONFIG_ATTRIBUTE_COLOR836,31075
+#undef CONFIG_ATTRIBUTE_INT837,31105
+#undef CONFIG_ATTRIBUTE_SLIDER838,31133
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS840,31165
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS841,31206
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS842,31246
+void PreferencesDialog::on_initialBPMLineEdit_textChanged(on_initialBPMLineEdit_textChanged844,31284
+void PreferencesDialog::on_lineEditMusicTypePatter_textChanged(on_lineEditMusicTypePatter_textChanged858,31714
+void PreferencesDialog::on_lineEditMusicTypeExtras_textChanged(on_lineEditMusicTypeExtras_textChanged864,31916
+void PreferencesDialog::on_lineEditMusicTypeSinging_textChanged(on_lineEditMusicTypeSinging_textChanged870,32118
+void PreferencesDialog::on_lineEditMusicTypeCalled_textChanged(on_lineEditMusicTypeCalled_textChanged876,32321
+void PreferencesDialog::on_pushButtonTagsBackgroundColor_clicked(on_pushButtonTagsBackgroundColor_clicked885,32541
+void PreferencesDialog::on_pushButtonTagsForegroundColor_clicked(on_pushButtonTagsForegroundColor_clicked898,33112
+void PreferencesDialog::SetLabelTagAppearanceColors(SetLabelTagAppearanceColors911,33683
+void PreferencesDialog::on_tabWidget_currentChanged(on_tabWidget_currentChanged918,34186
+void PreferencesDialog::finishPopulation(finishPopulation926,34508
+int PreferencesDialog::getActiveTab(getActiveTab931,34591
+void PreferencesDialog::setActiveTab(setActiveTab936,34676
+void PreferencesDialog::on_afterLongTipAction_currentIndexChanged(on_afterLongTipAction_currentIndexChanged941,34774
+void PreferencesDialog::on_afterBreakAction_currentIndexChanged(on_afterBreakAction_currentIndexChanged957,35146
+void PreferencesDialog::on_intelCenterFreqDial_valueChanged(on_intelCenterFreqDial_valueChanged988,36082
+void PreferencesDialog::on_intelWidthDial_valueChanged(on_intelWidthDial_valueChanged996,36399
+void PreferencesDialog::on_intelGainDial_valueChanged(on_intelGainDial_valueChanged1004,36723
+void PreferencesDialog::on_intelResetButton_clicked(on_intelResetButton_clicked1016,37135
+void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(on_intelBoostEnabledCheckbox_toggled1027,37517
+
+prefsmanager.cpp,2998
+PreferencesManager::PreferencesManager(35,1110
+static const char * hotkeyPrefix 39,1171
+QHash<QString, KeyAction *> PreferencesManager::GetHotkeyMappings(GetHotkeyMappings41,1218
+void PreferencesManager::SetHotkeyMappings(SetHotkeyMappings79,2413
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(108,3297
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(126,4261
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(144,5225
+#define CONFIG_ATTRIBUTE_STRING(163,6186
+#define CONFIG_ATTRIBUTE_COLOR(182,7253
+#define CONFIG_ATTRIBUTE_BOOLEAN(200,8201
+#define CONFIG_ATTRIBUTE_INT(219,9166
+#define CONFIG_ATTRIBUTE_SLIDER(237,10055
+#define CONFIG_ATTRIBUTE_COMBO(256,10996
+#undef CONFIG_ATTRIBUTE_STRING275,11882
+#undef CONFIG_ATTRIBUTE_BOOLEAN276,11913
+#undef CONFIG_ATTRIBUTE_INT277,11945
+#undef CONFIG_ATTRIBUTE_COMBO278,11973
+#undef CONFIG_ATTRIBUTE_COLOR279,12003
+#undef CONFIG_ATTRIBUTE_SLIDER280,12033
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS282,12065
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS283,12106
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS284,12146
+void PreferencesManager::setTagColors(setTagColors286,12184
+const QHash<QString,QPair<QString,QString>> &PreferencesManager::getTagColors(getTagColors291,12317
+void PreferencesManager::populatePreferencesDialog(populatePreferencesDialog296,12430
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(302,12675
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(303,12731
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(304,12788
+#define CONFIG_ATTRIBUTE_STRING(306,12842
+#define CONFIG_ATTRIBUTE_BOOLEAN(307,12934
+#define CONFIG_ATTRIBUTE_INT(308,13027
+#define CONFIG_ATTRIBUTE_COMBO(309,13116
+#define CONFIG_ATTRIBUTE_COLOR(310,13207
+#define CONFIG_ATTRIBUTE_SLIDER(311,13298
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS315,13423
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS316,13464
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS317,13504
+#undef CONFIG_ATTRIBUTE_STRING319,13542
+#undef CONFIG_ATTRIBUTE_BOOLEAN320,13573
+#undef CONFIG_ATTRIBUTE_INT321,13605
+#undef CONFIG_ATTRIBUTE_COMBO322,13633
+#undef CONFIG_ATTRIBUTE_COLOR323,13663
+#undef CONFIG_ATTRIBUTE_SLIDER324,13693
+void PreferencesManager::extractValuesFromPreferencesDialog(extractValuesFromPreferencesDialog331,13788
+#define CONFIG_ATTRIBUTE_STRING_NO_PREFS(337,14042
+#define CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(338,14098
+#define CONFIG_ATTRIBUTE_INT_NO_PREFS(339,14155
+#define CONFIG_ATTRIBUTE_STRING(341,14209
+#define CONFIG_ATTRIBUTE_BOOLEAN(342,14301
+#define CONFIG_ATTRIBUTE_INT(343,14394
+#define CONFIG_ATTRIBUTE_COMBO(344,14483
+#define CONFIG_ATTRIBUTE_COLOR(345,14574
+#define CONFIG_ATTRIBUTE_SLIDER(346,14665
+#undef CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS350,14790
+#undef CONFIG_ATTRIBUTE_STRING_NO_PREFS351,14831
+#undef CONFIG_ATTRIBUTE_INT_NO_PREFS352,14871
+#undef CONFIG_ATTRIBUTE_STRING354,14909
+#undef CONFIG_ATTRIBUTE_BOOLEAN355,14940
+#undef CONFIG_ATTRIBUTE_INT356,14972
+#undef CONFIG_ATTRIBUTE_COMBO357,15000
+#undef CONFIG_ATTRIBUTE_COLOR358,15030
+#undef CONFIG_ATTRIBUTE_SLIDER359,15060
+
+renderarea.cpp,491
+RenderArea::RenderArea(32,1036
+QSize RenderArea::minimumSizeHint(minimumSizeHint44,1308
+QSize RenderArea::sizeHint(sizeHint49,1388
+void RenderArea::setPen(setPen54,1461
+void RenderArea::setBrush(setBrush61,1588
+void RenderArea::setLayout1(setLayout168,1727
+void RenderArea::setLayout2(setLayout275,1852
+void RenderArea::setFormation(setFormation82,1984
+void RenderArea::setCoupleColoringScheme(setCoupleColoringScheme89,2119
+void RenderArea::paintEvent(paintEvent116,3184
+
+sdformationutils.cpp,79
+#define BETWEEN(29,986
+Order whichOrder(32,1036
+void getDancerOrder(55,1888
+
+sdhighlighter.cpp,90
+Highlighter::Highlighter(29,966
+void Highlighter::highlightBlock(highlightBlock76,2370
+
+sdinterface.cpp,4957
+typedef unsigned int uint32;42,1316
+static int numberOfSDThreadsActive 44,1346
+class SquareDesk_iofull 46,1387
+    SquareDesk_iofull(48,1437
+    virtual ~SquareDesk_iofull(64,2137
+    ui_utils *m_ui_utils_ptr;m_ui_utils_ptr110,4063
+    SDThread *sdthread;sdthread121,4291
+    MainWindow *mw;mw122,4315
+    QWaitCondition *waitCondSDAwaitingInput;waitCondSDAwaitingInput123,4335
+    bool WaitingForCommand;124,4380
+    QMutex *mutexSDAwaitingInput;mutexSDAwaitingInput125,4408
+    QWaitCondition *waitCondAckToMainThread;waitCondAckToMainThread127,4443
+    QMutex *mutexAckToMainThread;mutexAckToMainThread128,4488
+    char szResolveWndTitle 129,4522
+    int nLastOne;131,4574
+#define ui_undefined 132,4592
+    uims_reply_kind MenuKind;133,4618
+    popup_return PopupStatus;134,4648
+    bool answerYesToEverything;137,4706
+    bool seenAFormation;138,4738
+    SDThread::CurrentInputState currentInputState;140,4764
+    QString currentInputText;141,4815
+    bool currentInputYesNo;142,4845
+void SDThread::set_dance_program(set_dance_program151,5030
+dance_level SDThread::find_dance_program(find_dance_program156,5130
+dance_level SquareDesk_iofull::find_dance_program(find_dance_program161,5235
+SDThread::CurrentInputState SDThread::currentInputState(currentInputState190,6363
+bool SDThread::do_user_input(do_user_input195,6464
+bool SDThread::on_user_input(on_user_input212,6838
+bool SquareDesk_iofull::add_string_input(add_string_input224,7134
+void SquareDesk_iofull::UpdateStatusBar(UpdateStatusBar308,10603
+void SquareDesk_iofull::wait_for_input(wait_for_input314,10720
+void SquareDesk_iofull::EnterMessageLoop(EnterMessageLoop327,11006
+int SquareDesk_iofull::do_abort_popup(do_abort_popup342,11290
+void SquareDesk_iofull::prepare_for_listing(prepare_for_listing356,11713
+void SquareDesk_iofull::set_window_title(set_window_title362,11814
+void SquareDesk_iofull::add_new_line(add_new_line368,11998
+void SquareDesk_iofull::add_new_line(add_new_line374,12210
+void SquareDesk_iofull::no_erase_before_n(no_erase_before_n381,12430
+void SquareDesk_iofull::reduce_line_count(reduce_line_count387,12618
+void SquareDesk_iofull::update_resolve_menu(update_resolve_menu393,12834
+void SquareDesk_iofull::show_match(show_match407,13419
+const char *SquareDesk_iofull::version_string(version_string414,13637
+void SquareDesk_iofull::ShowListBox(ShowListBox421,13797
+uims_reply_thing SquareDesk_iofull::get_resolve_command(get_resolve_command543,18593
+bool SquareDesk_iofull::choose_font(choose_font561,19302
+bool SquareDesk_iofull::print_this(print_this567,19419
+bool SquareDesk_iofull::print_any(print_any574,19560
+bool SquareDesk_iofull::help_manual(help_manual581,19699
+bool SquareDesk_iofull::help_faq(help_faq589,19909
+popup_return SquareDesk_iofull::get_popup_string(get_popup_string596,20112
+void SquareDesk_iofull::fatal_error_exit(fatal_error_exit643,21374
+void SquareDesk_iofull::serious_error_print(serious_error_print659,21736
+void SquareDesk_iofull::create_menu(create_menu665,21891
+selector_kind SquareDesk_iofull::do_selector_popup(do_selector_popup671,22116
+direction_kind SquareDesk_iofull::do_direction_popup(do_direction_popup683,22729
+int SquareDesk_iofull::do_circcer_popup(do_circcer_popup690,22950
+int SquareDesk_iofull::do_tagger_popup(do_tagger_popup713,23738
+int SquareDesk_iofull::yesnoconfirm(yesnoconfirm719,23898
+void SquareDesk_iofull::set_pick_string(set_pick_string754,24847
+uint32 SquareDesk_iofull::get_one_number(get_one_number759,24967
+uims_reply_thing SquareDesk_iofull::get_call_command(get_call_command790,25762
+void SquareDesk_iofull::dispose_of_abbreviation(dispose_of_abbreviation839,27815
+void SquareDesk_iofull::display_help(display_help845,27990
+void SquareDesk_iofull::terminate(terminate849,28034
+void SquareDesk_iofull::process_command_line(process_command_line855,28172
+void SquareDesk_iofull::bad_argument(bad_argument860,28352
+void SquareDesk_iofull::final_initialize(final_initialize865,28538
+bool SquareDesk_iofull::init_step(init_step872,28700
+void SquareDesk_iofull::set_utils_ptr(set_utils_ptr918,29955
+ui_utils *SquareDesk_iofull::get_utils_ptr(get_utils_ptr923,30051
+bool SquareDesk_iofull::do_popup(do_popup929,30129
+uims_reply_thing SquareDesk_iofull::get_startup_command(get_startup_command943,30499
+void SDThread::add_selectors_to_list_widget(add_selectors_to_list_widget970,31456
+void SDThread::add_directions_to_list_widget(add_directions_to_list_widget979,31661
+SDThread::SDThread(988,31894
+void SDThread::resetSDState(resetSDState1080,35574
+void SDThread::resetAndExecute(resetAndExecute1098,36058
+void SDThread::finishAndShutdownSD(finishAndShutdownSD1121,36821
+SDThread::~SDThread(~SDThread1134,37146
+void SDThread::run(run1147,37439
+void SDThread::unlock(unlock1190,39416
+QString SDThread::sd_strip_leading_selectors(sd_strip_leading_selectors1200,39651
+
+sdlineedit.cpp,90
+bool SDLineEdit::event(event31,1028
+void SDLineEdit::focusInEvent(focusInEvent55,1774
+
+sdredostack.cpp,728
+SDRedoStack::SDRedoStack(28,975
+void SDRedoStack::set_doing_user_input(set_doing_user_input35,1073
+void SDRedoStack::clear_doing_user_input(clear_doing_user_input40,1148
+void SDRedoStack::initialize(initialize46,1227
+bool SDRedoStack::can_redo(can_redo56,1436
+void SDRedoStack::add_command(add_command62,1506
+static bool areFormationsEqual(76,1830
+void SDRedoStack::checkpoint_formation(checkpoint_formation91,2348
+const QStringList &SDRedoStack::get_redo_commands(get_redo_commands115,3140
+void SDRedoStack::discard_redo_commands(discard_redo_commands123,3321
+void SDRedoStack::did_an_undo(did_an_undo130,3433
+int SDRedoStack::build_redo_stack_from_command_tail(build_redo_stack_from_command_tail137,3677
+
+sdsequencecalllabel.cpp,622
+void SDSequenceCallLabel::mouseDoubleClickEvent(mouseDoubleClickEvent29,978
+void SDSequenceCallLabel::setData(setData50,1695
+QVariant SDSequenceCallLabel::data(data53,1831
+void SDSequenceCallLabel::setFormation(setFormation59,1997
+QString SDSequenceCallLabel::formation(formation62,2073
+void SDSequenceCallLabel::setPixmap(setPixmap66,2144
+QPixmap SDSequenceCallLabel::pixmap(pixmap69,2224
+void SDSequenceCallLabel::setPlainText(setPlainText75,2343
+QString SDSequenceCallLabel::plainText(plainText80,2567
+void SDSequenceCallLabel::setHtml(setHtml85,2654
+QString SDSequenceCallLabel::html(html91,2949
+
+songhistoryexportdialog.cpp,748
+SongHistoryExportDialog::SongHistoryExportDialog(33,1095
+SongHistoryExportDialog::~SongHistoryExportDialog(~SongHistoryExportDialog42,1321
+static void outputString(47,1393
+void SongHistoryExportDialog::populateOptions(populateOptions61,1675
+class FileExportSongPlayEvent 80,2223
+    QTextStream &stream;stream81,2278
+    FileExportSongPlayEvent(83,2311
+    virtual void operator() operator()84,2380
+    virtual ~FileExportSongPlayEvent(108,3352
+void SongHistoryExportDialog::exportSongPlayData(exportSongPlayData112,3399
+void SongHistoryExportDialog::on_checkBoxOmitStart_stateChanged(on_checkBoxOmitStart_stateChanged146,4713
+void SongHistoryExportDialog::on_checkBoxOmitEnd_stateChanged(on_checkBoxOmitEnd_stateChanged151,4862
+
+songlistmodel.cpp,374
+SongListModel::SongListModel(33,1072
+QModelIndex SongListModel::index(index38,1135
+QModelIndex SongListModel::parent(parent44,1296
+int SongListModel::rowCount(rowCount50,1436
+int SongListModel::columnCount(columnCount56,1553
+QVariant SongListModel::data(data62,1657
+Qt::ItemFlags SongListModel::flags(flags100,2486
+bool SongListModel::setData(setData115,2816
+
+songsettings.cpp,3534
+void SongSettings::exec(exec41,1179
+void SongSettings::exec(exec47,1282
+bool SongSettings::debugErrors(debugErrors57,1449
+class RowDefinition 76,1957
+    RowDefinition(78,1987
+    const char *name;name83,2129
+    const char *definition;definition84,2151
+    bool found;85,2179
+class TableDefinition 88,2199
+    TableDefinition(90,2231
+    const char *name;name94,2338
+    RowDefinition *rows;rows95,2360
+class IndexDefinition 98,2389
+    IndexDefinition(100,2421
+    const char *name;name104,2573
+    const char *definition;definition105,2595
+    bool unique;106,2623
+void SongSettings::ensureIndex(ensureIndex110,2645
+void SongSettings::ensureSchema(ensureSchema131,3238
+RowDefinition song_rows[song_rows199,5229
+RowDefinition session_rows[session_rows226,6195
+RowDefinition song_play_rows[song_play_rows237,6597
+RowDefinition call_taught_on_rows[call_taught_on_rows247,6957
+RowDefinition tag_colors_rows[tag_colors_rows257,7354
+IndexDefinition index_definitions[index_definitions267,7641
+RowDefinition markers_rows[markers_rows280,8470
+SongSettings::SongSettings(297,8964
+void SongSettings::setDefaultTagColors(setDefaultTagColors306,9200
+int SongSettings::currentSessionIDByTime(currentSessionIDByTime313,9389
+static const char *default_session_names[default_session_names335,10215
+static const char database_type_name[database_type_name349,10411
+void SongSettings::openDatabase(openDatabase350,10463
+void SongSettings::setTagColors(setTagColors422,12485
+void SongSettings::addTags(addTags496,14727
+void SongSettings::removeTags(removeTags512,15037
+QPair<QString,QString> SongSettings::getColorForTag(getColorForTag531,15455
+QHash<QString,QPair<QString,QString>> SongSettings::getTagColors(getTagColors541,15745
+int SongSettings::getSongIDFromFilenameAlone(getSongIDFromFilenameAlone591,17574
+int SongSettings::getSongIDFromFilename(getSongIDFromFilename608,17959
+int SongSettings::getSessionIDFromName(getSessionIDFromName627,18605
+QString SongSettings::primaryRootDir(primaryRootDir644,18970
+QString SongSettings::removeRootDirs(removeRootDirs649,19046
+void SongSettings::markSongPlayed(markSongPlayed663,19435
+QString SongSettings::getCallTaughtOn(getCallTaughtOn674,19946
+void SongSettings::setCallTaught(setCallTaught689,20499
+void SongSettings::deleteCallTaught(deleteCallTaught698,20918
+void SongSettings::clearTaughtCalls(clearTaughtCalls708,21350
+void SongSettings::getSongPlayHistory(getSongPlayHistory718,21688
+void SongSettings::getSongAges(getSongAges772,23518
+QString SongSettings::getSongAge(getSongAge792,24240
+SongSetting::SongSetting(838,25673
+#define SONGSETTING_ELEMENT(840,25706
+#undef SONGSETTING_ELEMENT842,25812
+QDebug operator<<(849,26022
+#define SONGSETTING_ELEMENT(853,26159
+#undef SONGSETTING_ELEMENT855,26314
+void SongSettings::saveSettings(saveSettings860,26386
+void setSongSettingFromSQLQuery(964,30371
+bool SongSettings::loadSettings(loadSettings985,31703
+void SongSettings::closeDatabase(closeDatabase1069,34916
+QList<SessionInfo> SongSettings::getSessionInfo(getSessionInfo1082,35159
+void SongSettings::setSessionInfo(setSessionInfo1106,35918
+void SongSettings::getSongMarkers(getSongMarkers1167,37852
+void SongSettings::setSongMarkers(setSongMarkers1189,38685
+void SongSettings::addMarker(addMarker1232,40242
+const float markerTolerance 1237,40374
+float SongSettings::getNearbyMarker(getNearbyMarker1241,40659
+void SongSettings::deleteNearbyMarker(deleteNearbyMarker1256,41361
+
+songtitlelabel.cpp,73
+void SongTitleLabel::mouseDoubleClickEvent(mouseDoubleClickEvent29,973
+
+squaredancerscene.cpp,57
+void SquareDancerScene::resizeEvent(resizeEvent32,1037
+
+startupwizard.cpp,489
+StartupWizard::StartupWizard(34,1105
+void StartupWizard::accept(accept52,1707
+IntroPage::IntroPage(163,5493
+OutputFilesPage::OutputFilesPage(187,6556
+void OutputFilesPage::initializePage(initializePage240,8810
+int countMP3FilesInDir(251,9190
+void copyMP3FilesFromTo(264,9537
+CopyFilesPage::CopyFilesPage(277,10112
+void CopyFilesPage::initializePage(initializePage430,16622
+ConclusionPage::ConclusionPage(454,17679
+void ConclusionPage::initializePage(initializePage473,18224
+
+tablelabelitem.cpp,91
+TableLabelItem::TableLabelItem(28,949
+bool TableLabelItem::operator <(operator <33,1035
+
+tablenumberitem.cpp,94
+TableNumberItem::TableNumberItem(28,950
+bool TableNumberItem::operator <(operator <33,1038
+
+tablewidgettimingitem.cpp,388
+TableWidgetTimingItem::TableWidgetTimingItem(29,975
+TableWidgetTimingItem::TableWidgetTimingItem(34,1064
+TableWidgetTimingItem::TableWidgetTimingItem(39,1180
+TableWidgetTimingItem::TableWidgetTimingItem(44,1323
+TableWidgetTimingItem::~TableWidgetTimingItem(~TableWidgetTimingItem49,1435
+int extractFirstNumberOrZero(53,1488
+bool TableWidgetTimingItem::operator< operator<83,2017
+
+taminationsinterface.cpp,3200
+static bool anglesEqual(32,999
+TamAffineTransform::TamAffineTransform(36,1108
+TamAffineTransform::TamAffineTransform(37,1207
+TamAffineTransform TamAffineTransform::getTranslateInstance(getTranslateInstance39,1366
+TamAffineTransform TamAffineTransform::getRotateInstance(getRotateInstance48,1574
+TamAffineTransform TamAffineTransform::getScaleInstance(getScaleInstance61,1867
+TamAffineTransform TamAffineTransform::translate(translate69,2047
+void  TamAffineTransform::scale(scale77,2222
+TamAffineTransform TamAffineTransform::rotate(rotate86,2369
+TamAffineTransform TamAffineTransform::preConcatenate(preConcatenate99,2732
+TamAffineTransform TamAffineTransform::concatenate(concatenate112,3159
+TamAffineTransform TamAffineTransform::concatenate(concatenate125,3589
+TamAffineTransform TamAffineTransform::getInverse(getInverse134,3846
+QString TamAffineTransform::toString(toString164,4810
+TamHands TamHandsFromQString(171,4952
+TamBezier::TamBezier(192,5537
+void TamBezier::calculatecoefficients(calculatecoefficients205,5825
+double TamBezier::xt(xt217,6098
+double TamBezier::yt(yt220,6173
+double TamBezier::dxt(dxt224,6297
+double TamBezier::dyt(dyt227,6372
+double TamBezier::angle(angle230,6447
+TamAffineTransform TamBezier::translate(translate235,6585
+TamAffineTransform TamBezier::rotate(rotate243,6808
+double TamBezier::rolling(rolling250,6989
+double TamBezier::turn(turn265,7376
+QString TamBezier::toString(toString274,7532
+TamHands TamMovement::NOHANDS 283,7709
+TamHands TamMovement::LEFTHAND 284,7755
+TamHands TamMovement::RIGHTHAND 285,7802
+TamHands TamMovement::BOTHHANDS 286,7851
+TamHands TamMovement::GRIPLEFT 287,7899
+TamHands TamMovement::GRIPRIGHT 288,7950
+TamHands TamMovement::GRIPBOTH 289,8003
+TamHands TamMovement::ANYGRIP 290,8054
+TamMovement::TamMovement(293,8105
+TamMovement::TamMovement(319,8963
+TamMovement::TamMovement(344,9806
+TamMovementPtr TamMovement::time(time367,10179
+TamMovementPtr TamMovement::useHands(useHands374,10425
+double TamMovement::scaled_tt(scaled_tt381,10672
+TamAffineTransform TamMovement::translate(translate392,10867
+TamAffineTransform TamMovement::rotate(rotate397,10993
+TamAffineTransform TamMovement::transform(transform402,11113
+TamMovementPtr TamMovement::clone(clone410,11294
+TamMovementPtr TamMovement::reflect(reflect423,11651
+TamMovementPtr TamMovement::scale(scale427,11722
+TamMovementPtr TamMovement::skew(skew437,12292
+TamMovementPtr TamMovement::skewFull(skewFull444,12446
+TamMovementPtr TamMovement::clip(clip452,12714
+TamMovementPtr TamMovement::skewClip(skewClip466,13155
+QString TamMovement::toString(toString487,13928
+bool TamMovement::isStand(isStand491,14026
+void TamPath::clear(clear498,14115
+void TamPath::recalculate(recalculate506,14252
+double TamPath::beats(beats517,14509
+TamPathPtr TamPath::changebeats(changebeats526,14635
+TamPathPtr TamPath::changehands(changehands538,14915
+TamPathPtr TamPath::scale(scale550,15192
+TamPathPtr TamPath::skew(skew563,15493
+TamPathPtr TamPath::add(add575,15788
+TamPathPtr TamPath::add(add582,15898
+TamMovementPtr TamPath::pop(pop592,16132
+TamPathPtr TamPath::reflect(reflect600,16303
+
+typetracker.cpp,318
+TypeTracker::TypeTracker(TypeTracker29,964
+void TypeTracker::addSecond(addSecond54,2269
+void TypeTracker::printState(printState112,4954
+int TypeTracker::currentPatterLength(currentPatterLength130,5716
+int TypeTracker::currentBreakLength(currentBreakLength150,6686
+void TypeTracker::addStop(addStop172,7682
+
+utility.cpp,58
+QString doubleToTime(29,965
+double timeToDouble(38,1171
+
+platform.h,0
+
+buffio.h,0
