@@ -194,7 +194,8 @@ static bool CompareCuesheetWithRanking(CuesheetWithRanking *a, CuesheetWithRanki
 // -----------------------------------------------------------------
 QStringList splitIntoWords(const QString &str)
 {
-    static QRegularExpression regexNotAlnum(QRegularExpression("\\W+"));
+//    static QRegularExpression regexNotAlnum(QRegularExpression("\\W+"));
+    static QRegularExpression regexNotAlnum(QRegularExpression("[^a-zA-Z0-9_']+"));
 
     QStringList words = str.split(regexNotAlnum);
 

@@ -4218,8 +4218,8 @@ bool filterContains(QString str, const QStringList &list)
 {
     if (list.isEmpty())
         return true;
-    // Make "it's" and "its" equivalent.
-    str.replace("'","");
+//    // Make "it's" and "its" equivalent.
+//    str.replace("'","");
 
     str.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
 
@@ -4272,12 +4272,14 @@ bool filterContains(QString str, const QStringList &list)
 // --------------------------------------------------------------------------------
 void MainWindow::filterMusic()
 {
-    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
+//    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
+    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t', does NOT include ' now
 
     QStringList label = ui->labelSearch->text().split(rx);
     QStringList type = ui->typeSearch->text().split(rx);
     QStringList title = ui->titleSearch->text().split(rx);
 
+//    qDebug() << "filterMusic: title: " << title;
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
 
     ui->songTable->setSortingEnabled(false);
