@@ -5027,9 +5027,28 @@ QStringList MainWindow::UserInputToSDCommand(QString userInputString) {
 
     QStringList outList;
 
+    // STANDALONE COMMENTS ----------------
+    // Example:
+    // ( this is a standalone comment )
+    // NOTE: This must be checked first, so it matches the whole line.
+
+    static QRegularExpression standaloneComment("^[\\(\\{](.*)[\\)\\}]$"); // with capture of the standalone comment (not including the parens/curly braces)
+    QRegularExpressionMatch matchSAC = standaloneComment.match(userInputString.trimmed()); // just get rid of spaces at start and end!
+
+    if (matchSAC.hasMatch()) {
+        QString theSAC  = matchSAC.captured(1).simplified(); // and trim whitespace
+
+        outList << theSAC;        // standalone comment
+        outList << "nothing";     // the call "nothing" is allowed by SD, and indicates a standalone comment
+
+        return (outList);
+    }
+
     // SUFFIX COMMENTS --------------------------
     // Example:
     // Square Thru ( this is a suffix comment )
+    //
+    // This will get translated to a prefix comment: "|this is a suffix comment|"
 
     static QRegularExpression suffixComment("([/a-zA-Z0-9\\s]+)\\s*[\\(\\{](.*)[\\)\\}]$"); // with capture of the comment (not including the parens/curly braces)
     // must not match single line comments
@@ -5066,15 +5085,10 @@ QStringList MainWindow::UserInputToSDCommand(QString userInputString) {
     // ( prefix ) call ( suffix )
     // this could be encoded into a single prefix comment for SD, and restored on the other end
 
-    // TODO: single-line comments ----------------
-    // Example:
-    // ( this is a singleline comment )
-
     // NO COMMENTS AT ALL ------------------------
     outList << userInputString;
 
     return (outList);
-
 }
 
 // translates an SD output string to a string to be presented to the user in the Current Sequence table
@@ -5083,9 +5097,11 @@ QString MainWindow::SDOutputToUserOutput(QString SDoutputString) {
 //    qDebug() << "SDOutputToUserOutput input: " << SDoutputString;
 
     static QRegularExpression sdCommentAndCall("(.*)\\s*\\{(.*)\\}\\s+(.*)");  // capture the SD prefix comment and call
-    // note: 2 cases
-    //   1. { comment } call
+    // note: 3 cases
+    //   1a. { comment } call
+    //   1b. { comment } nothing <-- standalone comment!
     //   2. HEADS { comment } call
+    //   3. call
 
     QString theWHO;
     QString theComment;
@@ -5105,15 +5121,18 @@ QString MainWindow::SDOutputToUserOutput(QString SDoutputString) {
     QString finalUserVisibleResult;
     theCall    = upperCaseWHO(toCamelCase(theWHO + theCall)).simplified();
 
-    if (theComment.contains("|")) {
-        // SUFFIX COMMENT
+    if (theCall == "Nothing" && theComment != "") {
+        // 1b. STANDALONE COMMENT
+        finalUserVisibleResult = "(" + theComment.simplified() + ")";
+    } else if (theComment.contains("|")) {
+        // 1a. SUFFIX COMMENT
         theComment = theComment.replace("|","").simplified(); // replace all
         finalUserVisibleResult = theCall + " (" + theComment + ")";
     } else if (theComment != "") {
-        // PREFIX COMMENT
+        // 1a. PREFIX COMMENT
         finalUserVisibleResult = "(" + theComment.simplified() + ") " + theCall;
     } else {
-        // NO COMMENT AT ALL
+        // 3. NO COMMENT AT ALL
         finalUserVisibleResult = theCall;
     }
 
