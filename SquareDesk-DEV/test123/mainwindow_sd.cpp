@@ -3429,6 +3429,11 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                     currentSequenceRecordNumberi = currentSequenceRecordNumber.toInt();  // convert to int and squirrel it away for use by sequenceStatus
 
                     break;  // break out of the loop, if we just read all the lines for seqNum
+                } else {
+                    // @ ending a sequence that we DID NOT want
+//                    highlightedCalls.clear();
+                    currentSequenceAuthor = "";
+                    currentSequenceTitle = "";
                 }
             } else if (line.startsWith("#")) {
                 continue; // skip #PROOFREAD#, #EASY#, #SEQTYPE#, #AUTHOR=...#, etc.
@@ -3955,9 +3960,13 @@ void MainWindow::SDAppendCurrentSequenceToFrame(int i) {
         writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
         stream << "#AUTHOR=" << authorID << "#\n";    // Use the new author string here
 
-        stream << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";    // remember what was highlighted in "central"
+        if (highlightedCalls.count() > 0) {
+            // only write this if there are highlighted calls
+            stream << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";    // remember what was highlighted in "central"
+        }
 
         if (ui->sdCurrentSequenceTitle->text() != "") {
+            // only write this if there is a title
             stream << "#TITLE=" << ui->sdCurrentSequenceTitle->text().replace("#", "%%%") << "#\n";    // Use the new title string here, and escape "#"
         }
 
@@ -4058,9 +4067,13 @@ void MainWindow::SDReplaceCurrentSequence() {
                 writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
                 outFile << "#AUTHOR=" << authorID << "#\n";    // Use the new author here
 
-                outFile << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";
+                if (highlightedCalls.count() > 0) {
+                    // only write this if there are highlighted calls
+                    outFile << "#HIGHLIGHT=" << highlightedCalls.join(',') << "#\n";
+                }
 
                 if (ui->sdCurrentSequenceTitle->text() != "") {
+                    // only write this if there is a non-blank title
                     outFile << "#TITLE=" << ui->sdCurrentSequenceTitle->text().replace("#", "%%%") << "#\n";    // Use the new title string here and escape "#"
                 }
 
@@ -4274,7 +4287,7 @@ void MainWindow::on_pushButtonSDNew_clicked()
         nextSequenceID++;
         writeMetadata(userID, nextSequenceID, authorID);   // update the metadata file real quick with the new nextSequenceID
         stream << "#AUTHOR=" << authorID << "#\n";
-        stream << "#HIGHLIGHT=#\n"; // nothing highlighted right now
+//        stream << "#HIGHLIGHT=#\n"; // no highlights, since nothing highlighted right now
         // NO TITLE RIGHT NOW, since this is new
         stream << "( NEW SEQUENCE )\n"; // this is important, so that the SD engine DOES get reset in loadFrame()
         stream << "@\n";
@@ -4287,6 +4300,9 @@ void MainWindow::on_pushButtonSDNew_clicked()
 //        qDebug() << "now showing: " << frameCurSeq[centralNum];
 
         SDSetCurrentSeqs(7); // persist the new Current Sequence numbers
+
+        currentSequenceTitle = "";
+        ui->sdCurrentSequenceTitle->setText("");
 
         refreshSDframes();
     } else {
@@ -4805,7 +4821,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900001#\n";
                         out << "#AUTHOR=SquareDesk#\n";
-                        out << "#HIGHLIGHT=#\n";
+//                        out << "#HIGHLIGHT=#\n";  // no highlights yet
                         out << "#TITLE=Sample Opening Biggie#\n";
                         out << "HEADS Square Thru 3\n";
                         out << "HEADS Partner Trade\n";
@@ -4816,7 +4832,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900002#\n";
                         out << "#AUTHOR=SquareDesk#\n";
-                        out << "#HIGHLIGHT=#\n";
+//                        out << "#HIGHLIGHT=#\n";  // no highlights yet
                         out << "#TITLE=Sample Easy Sequence#\n";
                         out << "HEADS Square Thru 4\n";
                         out << "( AL, HOME )\n";
@@ -4826,7 +4842,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900003#\n";
                         out << "#AUTHOR=SquareDesk#\n";
-                        out << "#HIGHLIGHT=#\n";
+//                        out << "#HIGHLIGHT=#\n";  // no highlights yet
                         out << "#TITLE=Sample Medium Sequence#\n";
                         out << "HEADS Square Thru 4\n";
                         out << "Right and Left Thru\n";
@@ -4839,7 +4855,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
                         out << "@\n";
                         out << "#REC=725900004#\n";
                         out << "#AUTHOR=SquareDesk#\n";
-                        out << "#HIGHLIGHT=#\n";
+//                        out << "#HIGHLIGHT=#\n";  // no highlights yet
                         out << "#TITLE=Sample Hard Sequence#\n";
                         out << "HEADS Pass The Ocean\n";
                         out << "Extend\n";
@@ -4877,7 +4893,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
             out << "@\n";
             out << "#REC=725900005#\n";
             out << "#AUTHOR=SquareDesk#\n";
-            out << "#HIGHLIGHT=#\n";
+//                        out << "#HIGHLIGHT=#\n";  // no highlights yet
             out << "#TITLE=Archive of Deleted Files#\n";
             out << "( ARCHIVE OF DELETED FILES )\n";
             out << "@\n";
