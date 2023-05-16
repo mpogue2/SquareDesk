@@ -2517,31 +2517,39 @@ void MainWindow::select_all_sd_current_sequence()
 
 void MainWindow::undo_last_sd_action()
 {
-    sdthread->do_user_input(str_undo_last_call);
-    sdthread->do_user_input("refresh");
-    sd_redo_stack->did_an_undo();
-    
-    ui->lineEditSDInput->setFocus();
+    bool inSDEditMode = ui->lineEditSDInput->isVisible(); // if we're in UNLOCK/EDIT mode
+
+    if (inSDEditMode) {
+        sdthread->do_user_input(str_undo_last_call);
+        sdthread->do_user_input("refresh");
+        sd_redo_stack->did_an_undo();
+
+        ui->lineEditSDInput->setFocus();
+    }
 }
 
 void MainWindow::redo_last_sd_action()
 {
-    int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
-    if (redoRow < 0) redoRow = 0;
-    QStringList redoCommands(sd_redo_stack->get_redo_commands());
-    sd_redo_stack->set_doing_user_input();
-    for (auto redoCommand : redoCommands)
-    {
-        if (!redoCommand.startsWith("<")) {
-            ui->lineEditSDInput->setText(redoCommand);
-            submit_lineEditSDInput_contents_to_sd();
-//            sdthread->do_user_input(redoCommand);
-        }
-    }
-    sd_redo_stack->clear_doing_user_input();
-    sd_redo_stack->discard_redo_commands();
+    bool inSDEditMode = ui->lineEditSDInput->isVisible(); // if we're in UNLOCK/EDIT mode
 
-    ui->lineEditSDInput->setFocus();
+    if (inSDEditMode) {
+        int redoRow = ui->tableWidgetCurrentSequence->rowCount() - 1;
+        if (redoRow < 0) redoRow = 0;
+        QStringList redoCommands(sd_redo_stack->get_redo_commands());
+        sd_redo_stack->set_doing_user_input();
+        for (auto redoCommand : redoCommands)
+        {
+            if (!redoCommand.startsWith("<")) {
+                ui->lineEditSDInput->setText(redoCommand);
+                submit_lineEditSDInput_contents_to_sd();
+    //            sdthread->do_user_input(redoCommand);
+            }
+        }
+        sd_redo_stack->clear_doing_user_input();
+        sd_redo_stack->discard_redo_commands();
+
+        ui->lineEditSDInput->setFocus();
+    }
 }
 
 void MainWindow::undo_sd_to_row()
@@ -3431,7 +3439,6 @@ void MainWindow::loadFrame(int i, QString filename, int seqNum, QListWidget *lis
                     break;  // break out of the loop, if we just read all the lines for seqNum
                 } else {
                     // @ ending a sequence that we DID NOT want
-//                    highlightedCalls.clear();
                     currentSequenceAuthor = "";
                     currentSequenceTitle = "";
                 }
