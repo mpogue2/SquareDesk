@@ -2522,7 +2522,8 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             if (autoScrollLyricsEnabled &&
                     !ui->pushButtonEditLyrics->isChecked() &&
 //                    currentState == kPlaying) {
-                    cBass->currentStreamState() == BASS_ACTIVE_PLAYING) {
+                    cBass->currentStreamState() == BASS_ACTIVE_PLAYING &&
+                    !lyricsForDifferentSong) {
                 // lyrics scrolling at the same time as the InfoBar
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(static_cast<int>(targetScroll));
             }
