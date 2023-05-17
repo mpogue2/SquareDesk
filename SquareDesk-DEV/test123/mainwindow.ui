@@ -990,7 +990,7 @@
       </widget>
       <widget class="QWidget" name="lyricsTab">
        <attribute name="title">
-        <string>Lyrics</string>
+        <string>Cuesheet</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
