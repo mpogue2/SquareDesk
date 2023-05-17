@@ -4443,7 +4443,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
 //    qDebug() << "translateCallToLevel: " << thePrettifiedCall;
 
     static QRegularExpression textInParens("\\(.*\\)");
-    QString theCall = thePrettifiedCall.toLower().replace(textInParens, "").simplified(); // lowecase, remove comments, consolidate whitespace
+    QString theCall = thePrettifiedCall.toLower().replace(textInParens, "").replace(who, "").simplified(); // lowecase, remove comments, remove WHO, consolidate whitespace
 
     // OK, sorry, but we CANNOT do this here, because the whole find_dance_program() function tells you the answer
     //  based on the current state of the SD engine, BEFORE the call is sent to SD.  It's designed for the "? completion"
@@ -4557,7 +4557,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
 //        qDebug() << theCall << "is C1.";
         return("C1");
     } else if (theCall.contains("windmill") ||
-            allA2CallsString.contains(";" + theCall + ";") ||
+               (allA2CallsString.contains(";" + theCall + ";") && (theCall != "recycle")) ||
                theCall.contains("in roll circulate") ||
                theCall.contains("out roll circulate") ||
                theCall.contains("scoot and weave") ||
