@@ -2176,14 +2176,10 @@ void MainWindow::on_playButton_clicked()
                     (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)))
             {
                 // switch to Lyrics tab ONLY for singing calls or vocals
-                for (int i = 0; i < ui->tabWidget->count(); ++i)
-                {
-                    if (ui->tabWidget->tabText(i).endsWith("*Lyrics"))  // do not switch if *Patter or Patter (using Lyrics tab for written Patter)
+              if (currentSongType == "singing")  // do not switch if patter (using Cuesheet tab for written Patter)
                     {
-                        ui->tabWidget->setCurrentIndex(i);
-                        break;
+                      ui->tabWidget->setCurrentIndex(1);
                     }
-                }
             }
             ui->songTable->setSortingEnabled(true);
         }
@@ -3177,14 +3173,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //        qDebug() << "Key event: " << KeyEvent->key() << KeyEvent->modifiers() << ui->tableWidgetCurrentSequence->hasFocus();
 
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
-        bool tabIsLyricsOrPatter = (ui->tabWidget->tabText(cindex) == "Lyrics" || ui->tabWidget->tabText(cindex) == "*Lyrics" ||  // and I'm on the Lyrics/Patter tab
-                                    ui->tabWidget->tabText(cindex) == "Patter" || ui->tabWidget->tabText(cindex) == "*Patter");
+        bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
 
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
 
-//        qDebug() << "tabIsLyricsOrPatter: " << tabIsLyricsOrPatter << ", cmdC_KeyPressed: " << cmdC_KeyPressed <<
+//        qDebug() << "tabIsCuesheet: " << tabIsCuesheet << ", cmdC_KeyPressed: " << cmdC_KeyPressed <<
 //                    "lyricsCopyIsAvailable: " << maybeMainWindow->lyricsCopyIsAvailable << "has focus: " << ui->textBrowserCueSheet->hasFocus();
 
         // if any of these widgets has focus, let them process the key
@@ -3258,7 +3253,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                     return QObject::eventFilter(Object,Event); // let the lineEditWidget handle it normally
                 }
             }
-        } else if (tabIsLyricsOrPatter &&  // we're on the Lyrics editor tab
+        } else if (tabIsCuesheet &&  // we're on the Lyrics editor tab
                  cmdC_KeyPressed &&      // When CMD-C is pressed
                  maybeMainWindow->lyricsCopyIsAvailable    // and the lyrics edit widget told us that copy was available
                  ) {
@@ -3380,6 +3375,7 @@ void MainWindow::actionSwitchToTab(const char *tabname)
             return;
         }
     }
+    qDebug() << "Could not find tab " << tabname;
 }
 
 
@@ -3490,7 +3486,7 @@ bool MainWindow::handleKeypress(int key, QString text)
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
             //   or if Patter is currently showing and patter is loaded
             tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
-            if (tabTitle.endsWith("*Lyrics") || tabTitle.endsWith("*Patter")) {
+            if (tabTitle == CUESHEET_TAB_NAME) {
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() + 200);
             }
             break;
@@ -3499,7 +3495,7 @@ bool MainWindow::handleKeypress(int key, QString text)
             // only move the scrolled Lyrics area, if the Lyrics tab is currently showing, and lyrics are loaded
             //   or if Patter is currently showing and patter is loaded
             tabTitle = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
-            if (tabTitle.endsWith("*Lyrics") || tabTitle.endsWith("*Patter")) {
+            if (tabTitle == CUESHEET_TAB_NAME) {
                 ui->textBrowserCueSheet->verticalScrollBar()->setValue(ui->textBrowserCueSheet->verticalScrollBar()->value() - 200);
             }
             break;
@@ -4902,19 +4898,7 @@ void MainWindow::on_actionPreferences_triggered()
         bool isPatter = songTypeNamesForPatter.contains(currentSongType);
 //        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;
 
-        if (isPatter) {
-            if (hasLyrics && lyricsTabNumber != -1) {
-                ui->tabWidget->setTabText(lyricsTabNumber, "*Patter");
-            } else {
-                ui->tabWidget->setTabText(lyricsTabNumber, "Patter");
-            }
-        } else {
-            if (hasLyrics && lyricsTabNumber != -1) {
-                ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
-            } else {
-                ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
-            }
-        }
+        ui->tabWidget->setTabText(lyricsTabNumber, CUESHEET_TAB_NAME);
 
         // -----------------------------------------------------------------------
         // Save the new settings for experimental break and patter timers --------
@@ -5773,8 +5757,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         ui->actionSave->setText("Save SD Sequence");        // greyed out
         ui->actionSave_As->setDisabled(false);  // sequences can be saved
         ui->actionSave_As->setText("Save SD Sequence As...");
-    } else if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
-               ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
+    } else if (ui->tabWidget->tabText(index) == CUESHEET_TAB_NAME) {
         // Lyrics Tab ---------------
 //        ui->actionPrint_Lyrics->setDisabled(false);
 //        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
@@ -5786,7 +5769,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         ui->actionSave->setEnabled(okToSave);      // lyrics/patter can be saved when there are lyrics to save
         ui->actionSave_As->setEnabled(okToSave);   // lyrics/patter can be saved as when there are lyrics to save
 
-        if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics") {
+        if (currentSongType == "singing") {
             ui->actionSave->setText("Save Lyrics"); // but greyed out, until modified
             ui->actionSave_As->setText("Save Lyrics As...");  // greyed out until modified
 
@@ -6611,9 +6594,9 @@ void MainWindow::on_actionFilePrint_triggered()
     QPrintDialog printDialog(&printer, this);
 
     int i = ui->tabWidget->currentIndex();
-    if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+    if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
         // PRINT CUESHEET FOR PATTER OR SINGER -------------------------------------------------------
-        if (ui->tabWidget->tabText(i).endsWith("Lyrics")) {
+        if (currentSongType == "singing") {
             printDialog.setWindowTitle("Print Cuesheet");
         } else {
             printDialog.setWindowTitle("Print Patter");
@@ -6741,7 +6724,7 @@ void MainWindow::on_actionSave_triggered()
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
         savePlaylistAgain(); // Now a true SAVE (if one was already saved)
-    } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+    } else if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
         // lyrics/patter
         saveLyrics();
     } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
@@ -6762,7 +6745,7 @@ void MainWindow::on_actionSave_As_triggered()
     if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
         // playlist
         on_actionSave_Playlist_triggered(); // really "Save As..."
-    } else if (ui->tabWidget->tabText(i).endsWith("Lyrics") || ui->tabWidget->tabText(i).endsWith("Patter")) {
+    } else if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
         // lyrics/patter
         saveLyricsAs();
     } else if (ui->tabWidget->tabText(i).endsWith("SD")) {

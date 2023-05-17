@@ -530,6 +530,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
     }
 //    qDebug() << "loadCuesheets: " << currentSongType << isPatter;
 
+    ui->tabWidget->setTabText(lyricsTabNumber, CUESHEET_TAB_NAME);
     if (isPatter) {
         // ----- PATTER -----
         ui->menuLyrics->setTitle("Patter");
@@ -538,12 +539,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
 //        ui->actionSave_Lyrics_As->setText("Save Patter As...");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Patter");
 
-        if (hasLyrics && lyricsTabNumber != -1) {
-//            qDebug() << "loadCuesheets 2: " << "setting to *";
-            ui->tabWidget->setTabText(lyricsTabNumber, "*Patter");
-        } else {
-//            qDebug() << "loadCuesheets 2: " << "setting to NOT *";
-            ui->tabWidget->setTabText(lyricsTabNumber, "Patter");
+        if (!hasLyrics || lyricsTabNumber == -1) {
 
             // ------------------------------------------------------------------
             // get pre-made patter.template.html file, if it exists
@@ -563,10 +559,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         ui->menuLyrics->setTitle("Lyrics");
         ui->actionAuto_scroll_during_playback->setText("Auto-scroll Cuesheet");
 
-        if (hasLyrics && lyricsTabNumber != -1) {
-            ui->tabWidget->setTabText(lyricsTabNumber, "*Lyrics");
-        } else {
-            ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");
+        if (!hasLyrics || lyricsTabNumber == -1) {
 
             // ------------------------------------------------------------------
             // get pre-made lyrics.template.html file, if it exists
