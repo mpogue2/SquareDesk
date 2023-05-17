@@ -399,6 +399,7 @@ copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata2.commands = $(COPY_DIR) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata4s.commands = $(COPY_DIR) $$PWD/sd.ini     $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
 # SquareDesk Manual (PDF)
 copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
@@ -460,7 +461,7 @@ macx {
     DEFINES += M1MAC=1
     QT += multimedia
 
-    first.depends = $(first) copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
+    first.depends = $(first) copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 copydata4s installer1 installer2 installer3 copydata10 copydata11a copydata11b copydata11c copydata11d copydata11e copydata11f copydata11f2 copydata11f3 copydata11g copydata11h copydata12h
 
     # lyrics and patter templates
     export(copydata0a.commands)
@@ -473,8 +474,9 @@ macx {
     export(copydata2.commands)
     export(copydata2b.commands)
     export(copydata3.commands)
+    export(copydata4s.commands)
 
-    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3
+    QMAKE_EXTRA_TARGETS += first copydata0a copydata0b copydata0c copydata1dir copydata1 copydata2 copydata2b copydata3 copydata4s
 
     # For the PDF viewer -----------------
     copydata1p.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS/minified
@@ -815,6 +817,7 @@ DISTFILES += \
     cuesheet2.css \
     lyrics.template.html \
     PackageIt.command \
+    sd.ini \
     soundtouch/include/soundtouch_config.h.in
 
 CONFIG += c++11
