@@ -1030,8 +1030,7 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
 
     int index = ui->tabWidget->currentIndex();
-    if (ui->tabWidget->tabText(index) == "Lyrics" || ui->tabWidget->tabText(index) == "*Lyrics" ||
-                   ui->tabWidget->tabText(index) == "Patter" || ui->tabWidget->tabText(index) == "*Patter") {
+    if (ui->tabWidget->tabText(index) == CUESHEET_TAB_NAME) {
         // only do this if we are on the Lyrics/Patter tab.  If on MusicPlayer, playlist load will turn ON Save As.
         ui->actionSave->setEnabled(false);  // save is disabled to start out
         ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
