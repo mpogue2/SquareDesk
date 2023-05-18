@@ -508,6 +508,7 @@ private slots:
     void fileWatcherDisabledTriggered();
     void musicRootModified(QString s);
     void maybeLyricsChanged();
+    void lockForEditing();
 
     void readAbbreviations();
     QString expandAbbreviations(QString s);
@@ -1197,6 +1198,9 @@ public:
 #define kCallListWhenCheckedCol 3
 #define kCallListTimingCol      4
 
+// If this is changed, change the string for lyricsTab in mainwindow.ui
+// and in keyactions.h
+#define CUESHEET_TAB_NAME "Cuesheet"
 
 // ---------------------------------------------
 // http://stackoverflow.com/questions/24719739/how-to-use-qstylesh-tooltip-wakeupdelay-to-set-tooltip-wake-up-time
