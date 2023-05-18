@@ -772,6 +772,7 @@ private:
 
     QFileSystemWatcher musicRootWatcher;  // watch for add/deletes in musicRootPath
     QFileSystemWatcher lyricsWatcher;     // watch for add/deletes in musicRootPath/lyrics
+    QFileSystemWatcher abbrevsWatcher;    // watch for changes to abbreviations
 
     bool showTimersTab;         // EXPERIMENTAL TIMERS STUFF
     bool showLyricsTab;         // EXPERIMENTAL LYRICS STUFF

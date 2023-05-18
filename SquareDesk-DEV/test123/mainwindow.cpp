@@ -1262,6 +1262,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
                 ui->titleSearch->setFocus();
             }
+
+            // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
+            abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
+            QObject::connect(&abbrevsWatcher, SIGNAL(fileChanged(QString)), this, SLOT(readAbbreviations()));
+
         });
 
     on_actionSD_Output_triggered(); // initialize visibility of SD Output tab in SD tab

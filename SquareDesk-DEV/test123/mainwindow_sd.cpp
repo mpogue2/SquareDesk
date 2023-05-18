@@ -5254,6 +5254,7 @@ void MainWindow::readAbbreviations() {
 //                qDebug() << "Skipping comment: " << line;
             }
         }
+        file.close();  // close the file when done reading
     } else {
         qDebug() << "ERROR: COULD NOT OPEN ABBREVS.TXT, EVEN AFTER COPY.";
     }
