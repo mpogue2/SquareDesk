@@ -507,6 +507,7 @@ private slots:
     void fileWatcherDisabledTriggered();
     void musicRootModified(QString s);
     void maybeLyricsChanged();
+    void lockForEditing();
 
     // END SLOTS -----------
 
