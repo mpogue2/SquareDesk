@@ -1028,7 +1028,6 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 //    cursor.movePosition(QTextCursor::Start);  // move cursor back to the start of the document
 
     ui->pushButtonEditLyrics->setChecked(false);  // locked for editing, in case this is just a change in the dropdown
-
     lockForEditing();
     setInOutButtonState();
 }

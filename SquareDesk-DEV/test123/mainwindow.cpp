@@ -5769,7 +5769,6 @@ void MainWindow::on_tabWidget_currentChanged(int index)
         ui->actionSave->setEnabled(okToSave);      // cuesheet can be saved when there are lyrics to save
         ui->actionSave_As->setEnabled(okToSave);   // cuesheet can be saved as when there are lyrics to save
 
-
         ui->actionSave->setText("Save Cuesheet"); // but greyed out, until modified
         ui->actionSave_As->setText("Save Cuesheet As...");  // greyed out until modified
         
