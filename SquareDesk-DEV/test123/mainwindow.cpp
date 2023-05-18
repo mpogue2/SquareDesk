@@ -627,6 +627,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     musicRootPath = prefsManager.GetmusicPath();      // defaults to ~/squareDeskMusic at very first startup
 
+    // SD ------
+    readAbbreviations();
+
     // ERROR LOGGING ------
     logFilePath = musicRootPath + "/.squaredesk/debug.log";
 

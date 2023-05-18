@@ -267,13 +267,15 @@ bool SquareDesk_iofull::add_string_input(const char *s)
 
         matcher.copy_to_user_input(s);
 
-        // expand sd.ini-style abbreviations ------
-        if (gg77->look_up_abbreviations(1)) { // 1 = normal call
-            // this was a Hail Mary, and it worked. :-)
-            WaitingForCommand = false;
-            waitCondSDAwaitingInput->wakeAll();
-            woke = true;
-        }
+// THIS USE OF SD.INI IS OBSOLETE.  REPLACED WITH OUR OWN ABBREVS.TXT FILE *****
+//        // expand sd.ini-style abbreviations ------
+//        if (gg77->look_up_abbreviations(1)) { // 1 = normal call
+//            // this was a Hail Mary, and it worked. :-)
+//            WaitingForCommand = false;
+//            waitCondSDAwaitingInput->wakeAll();
+//            woke = true;
+//        }
+// *******
 
         int matches = matcher.match_user_input(nLastOne, false, false, false);
 

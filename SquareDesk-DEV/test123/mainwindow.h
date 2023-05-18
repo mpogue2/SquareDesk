@@ -41,6 +41,7 @@
 #include <QListIterator>
 #include <QListWidget>
 #include <QKeyEvent>
+#include <QMap>
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
@@ -508,6 +509,9 @@ private slots:
     void musicRootModified(QString s);
     void maybeLyricsChanged();
 
+    void readAbbreviations();
+    QString expandAbbreviations(QString s);
+
     // END SLOTS -----------
 
     void on_action_1_triggered();
@@ -699,6 +703,9 @@ public:
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
 #endif
     void submit_lineEditSDInput_contents_to_sd(QString s = "", int firstCall = 0); // 0 means not from initializing the SD engine
+
+    // SD
+    QMap<QString, QString> abbrevs;
 
     QString musicRootPath; // needed by sd to do output_prefix
 private:

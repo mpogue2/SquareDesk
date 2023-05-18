@@ -1,0 +1,176 @@
+# ---- Abbreviations for SD ----
+# First word on a line is the abbreviation
+# Remaining words on a line are the expansion (must be an SD call)
+# Comment lines start with a "#"
+14     1/4
+34     3/4
+34t    3/4 tag
+4l34   4 ladies chain 3/4
+acd    acey deucey
+#al     allemande left
+#alr    allemande left to an alamo ring
+b      boys
+br     boys run
+bt     boys trade
+bt     brace thru
+btg    box the gnat
+btl    bend the line
+#bwgd   boys walk girl dodge
+c      centers
+c34    cast off 3/4
+cas    cast a shadow
+cat    california twirl
+cc     couples circulate
+cd     coordinate
+cf     crossfire
+ch     couples hinge
+chdl   chain down the line
+chr    chain reaction
+ci     centers in
+cir    circulate
+cl     cloverleaf
+clcl   first couple go left next couple go left
+clcr   first couple go left next couple go right
+#cp    right and left thru pass thru trade by
+#cp3   square thru 3 trade by
+#cpz   pass thru trade by pass thru trade by
+cr     centers run
+crcl   first couple go right next couple go left
+crcr   first couple go right next couple go right
+ct     courtesy turn
+ctd    cut the diamond
+ctl    circle to a line
+ctt    cross trail thru
+cxc    cross over circulate
+cxf    cross fold
+dc     diamond circulate
+dg     dixie grand
+dpt    double pass thru
+dst    double star thru
+dt     dive thru
+dx     dixie style to a wave
+dyp    do your part
+e      ends
+e7     explode and
+er     ends run
+etl    explode the line
+etw    explode the wave
+ext    extend
+#f      face
+f      fold
+#fb     forward and back
+fl     flutterwheel
+fo     face out
+fr     face right
+ftd    flip the diamond
+ftt    fan the top
+fw     ferris wheel
+fyn    follow your neighbor
+g      girls
+gfyn   grand follow your neighbor
+glswt  grand left swing thru
+gr     girl run
+gswt   grand swing thru
+gwbd   girl walk boy dodge
+h      heads
+hs     half sashay
+hst    horseshoe turn
+ht     half tag
+l      left
+lc     linear cycle
+li     lockit
+ll     lead left
+lr     lead right
+lrtw   left roll to a wave
+ltb    load the boat
+#pc     promenade corner
+ph     promenade home
+pi     pass in
+plo    peel off
+pnt    peel and trail
+po     pass out
+ppc    ping pong circulate
+pr     pass and roll
+prom   promenade
+pryn   pass and roll your neighbor
+pryns  pass and roll your neighbor and spread
+pt     pass thru
+#ptb    pass thru trade by
+ptc    pass to the center
+pto    pass the ocean
+ptrd   partner trade
+pts    pass the sea
+ptt    peel the top
+qi     quarter in
+qo     quarter out
+qt     quarter thru
+r      run
+re     remake
+rec    recycle
+rev    reverse
+rfl    reverse flutterwheel
+rlg    right and left grand
+rlt    right and left thru
+rrtw   right roll to a wave
+rsa    reverse swap around
+rtd    relay the deucey
+s      sides
+s2l    separate, around 2 to a line
+sa     swap around
+sb     scoot back
+#scp    swing corner promenade
+scw    single circle to a wave
+sd     scoot and dodge
+sh     single hinge
+sldt   slide thru
+#sp2m   centers split 2, around 1 come into the middle and
+spchg  spin chain the gears
+spcht  spin chain thru
+spchx  spin chain and exchange the gears
+spl    split the outsides, around 1 to a line
+#spm    split the outside couple, separate, go around one come into the middle
+sptw   spin the windmill
+sq     square thru
+sq2    square thru 2
+sq3    square thru 3
+sq4    square thru 4
+sqcht  square chain thru
+ss     step and slide
+st     star thru
+sth    step thru
+stl    separate, around 1 to a line
+#stm    separate around 1 and come into the middle
+sts    square your sets
+stt    spin the top
+stw    step to a wave
+sw     single wheel
+swp    sweep 1/4
+swt    swing thru
+sys    square your sets
+#t      triple
+t      trade
+t14    touch a quarter
+t2     track 2
+tb     trade by
+td     turn and deal
+tq     touch a quarter
+tr     trade
+ts     triple scoot
+tst    triple star thru
+ttc    transfer the column
+ttl    tag the line
+ttw    trade the wave
+ut     u turn back
+utb    u turn back
+vc     very centers
+vl     veer left
+vr     veer right
+wa     wheel around
+wad    walk and dodge
+wd     wheel and deal
+whd    wheel and deal
+wt     wheel thru
+x      cross
+xf     cross fold
+xr     cross run
+zo     zoom

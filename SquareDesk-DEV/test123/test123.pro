@@ -399,7 +399,7 @@ copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
 copydata2.commands = $(COPY_DIR) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
 copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata4s.commands = $(COPY_DIR) $$PWD/sd.ini     $$OUT_PWD/SquareDesk.app/Contents/MacOS
+copydata4s.commands = $(COPY_DIR) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SquareDesk Manual (PDF)
 copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
@@ -814,10 +814,10 @@ DISTFILES += \
     LICENSE.GPL3 \
     LICENSE.GPL2 \
     PackageIt_M1.command \
+    abbrevs.txt \
     cuesheet2.css \
     lyrics.template.html \
     PackageIt.command \
-    sd.ini \
     soundtouch/include/soundtouch_config.h.in
 
 CONFIG += c++11

@@ -1803,6 +1803,9 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     cmd = cmd.toLower();  // JUST THE CALL portion is lower-cased
 
+    // ***** EXPAND ABBREVIATIONS *****
+    cmd = expandAbbreviations(cmd); // TODO: maybe not when read from file, but yes when user input?
+
     // ==========================================================================================
 
     if (!cmd.compare("quit", Qt::CaseInsensitive))
@@ -5206,4 +5209,76 @@ void MainWindow::sdtest() {
 //                         "Sides Swing Thru"};
 //    SDOutputToUserOutput(list3);
 #endif
+}
+
+void MainWindow::readAbbreviations() {
+    // reads the abbrevs.txt file into a struct called abbreviations
+    // if there isn't one, a default one is copied in
+
+    abbrevs.clear();
+
+//    qDebug() << "reading abbrevs.txt file...";
+
+    QString fileName(musicRootPath + "/sd/abbrevs.txt");  // user-editable file in the SD directory
+    QFile file(fileName);
+
+    bool fileExists = QFileInfo::exists(fileName);
+
+    if (!fileExists) {
+//        qDebug() << "***** readAbbreviations: abbrevs.txt file not found, so making one";
+        QString source = QCoreApplication::applicationDirPath() + "/../Resources/abbrevs.txt"; // default abbreviations file location
+        QString destination = musicRootPath + "/sd/abbrevs.txt";
+        QFile::copy(source, destination);
+//        qDebug() << "***** file copied from: " << source << " to: " << destination;
+    }
+
+    if ( file.open(QIODevice::ReadOnly) )
+    {
+        QTextStream in(&file);
+
+        while(!in.atEnd()) {
+            QString line = in.readLine();
+
+            static QRegularExpression commentDelimiter("^\\s*#");
+            if (!line.contains(commentDelimiter)) {
+                // if it's NOT a comment...
+                static QRegularExpression whitespace("\\s+");
+                QStringList list = line.split(whitespace);  // tokenize it
+
+                if (list.count() >= 2) { // ignore malformed lines
+                        QString abbrev = list[0];                             // first item is the key
+                        QString call   = list.last(list.count()-1).join(" "); // last N items concatenated is the value
+                        abbrevs[abbrev] = call;  // add to the table
+                }
+            } else {
+//                qDebug() << "Skipping comment: " << line;
+            }
+        }
+    } else {
+        qDebug() << "ERROR: COULD NOT OPEN ABBREVS.TXT, EVEN AFTER COPY.";
+    }
+//    qDebug() << "abbrevs: " << abbrevs;
+//    qDebug() << "DONE reading abbreviations.";
+}
+
+QString MainWindow::expandAbbreviations(QString s) {
+    // expands a string based on the current abbreviations table
+
+//    qDebug() << "expandAbbreviations: " << s;
+
+    static QRegularExpression whitespace("\\s+");
+    QStringList tokens = s.replace("[", " [ ").replace("]", " ] ").split(whitespace); // Note special handling for brackets
+    QStringList result;
+    for (const auto &token : tokens) {
+        if (abbrevs.contains(token)) {
+            result << abbrevs[token]; // if a match is found, replace token with replacement string
+        } else {
+            result << token;          // if no match is found, just use the token itself, no replacement
+        }
+    }
+
+    QString r = result.join(" ").replace(" [ ", " [").replace(" ] ", "] ").simplified();
+//    qDebug() << "FINAL RESULT: " << r;
+
+    return(r);
 }
