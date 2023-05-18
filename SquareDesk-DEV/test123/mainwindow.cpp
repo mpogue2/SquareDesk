@@ -1160,11 +1160,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
-    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-    ui->pushButtonCueSheetEditSaveAs->hide();
-    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-    ui->actionSave->setEnabled(false);  // save is disabled to start out
-    ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+    lockForEditing();
     ui->pushButtonSetIntroTime->setEnabled(false);
     ui->pushButtonSetOutroTime->setEnabled(false);
     ui->dateTimeEditIntroTime->setEnabled(false);
@@ -3740,6 +3736,10 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     t.elapsed(__LINE__);
 
     ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
+    
 
     QStringList pieces = MP3FileName.split( "/" );
     QString filebase = pieces.value(pieces.length()-1);
@@ -5766,20 +5766,15 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
         // THIS IS WRONG: enabled iff hasLyrics and editing is enabled
         bool okToSave = hasLyrics && ui->pushButtonEditLyrics->isChecked();
-        ui->actionSave->setEnabled(okToSave);      // lyrics/patter can be saved when there are lyrics to save
-        ui->actionSave_As->setEnabled(okToSave);   // lyrics/patter can be saved as when there are lyrics to save
+        ui->actionSave->setEnabled(okToSave);      // cuesheet can be saved when there are lyrics to save
+        ui->actionSave_As->setEnabled(okToSave);   // cuesheet can be saved as when there are lyrics to save
 
-        if (currentSongType == "singing") {
-            ui->actionSave->setText("Save Lyrics"); // but greyed out, until modified
-            ui->actionSave_As->setText("Save Lyrics As...");  // greyed out until modified
 
-            ui->actionFilePrint->setText("Print Lyrics...");
-        } else {
-            ui->actionSave->setText("Save Patter"); // but greyed out, until modified
-            ui->actionSave_As->setText("Save Patter As...");  // greyed out until modified
+        ui->actionSave->setText("Save Cuesheet"); // but greyed out, until modified
+        ui->actionSave_As->setText("Save Cuesheet As...");  // greyed out until modified
+        
+        ui->actionFilePrint->setText("Print Cuesheet...");
 
-            ui->actionFilePrint->setText("Print Patter...");
-        }
     } else if (ui->tabWidget->tabText(index) == "Music Player") {
         bool playlistModified = ui->statusBar->currentMessage().endsWith("*");
 //        qDebug() << "tabWidget" << linesInCurrentPlaylist << lastSavedPlaylist << playlistModified;

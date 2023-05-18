@@ -129,6 +129,14 @@ void MainWindow::setInOutButtonState() {
     ui->dateTimeEditOutroTime->setEnabled(checked);
 }
 
+void MainWindow::lockForEditing() {
+    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->pushButtonEditLyrics->show();        // and the "unlock for editing" button is now visible
+    ui->actionSave->setEnabled(false);      // save is disabled now
+    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+}
+
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
 {
 //    qDebug() << "on_pushButtonEditLyrics_toggled" << checkState;
@@ -152,12 +160,16 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
     if (checked) {
         // unlocked now, so must set up button state, too
 //        qDebug() << "setting up button state using lastKnownTextCharFormat...";
+        QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+        bool haveCuesheet = !cuesheetFilename.isEmpty();
         on_textBrowserCueSheet_currentCharFormatChanged(lastKnownTextCharFormat);
         ui->textBrowserCueSheet->setFocusPolicy(Qt::ClickFocus);  // now it can get focus
-        ui->pushButtonCueSheetEditSave->show();   // the two save buttons are now visible
-        ui->pushButtonCueSheetEditSaveAs->show();
+        if (haveCuesheet) {
+            ui->pushButtonCueSheetEditSave->show();   // the save button conditionally visible
+        }
+        ui->pushButtonCueSheetEditSaveAs->show();   // the save as button visible regardless
         ui->pushButtonEditLyrics->hide();  // and this button goes away!
-        ui->actionSave->setEnabled(true);  // save is enabled now
+        ui->actionSave->setEnabled(haveCuesheet);  // save is enabled if there is a cuesheet
         ui->actionSave_As->setEnabled(true);  // save as... is enabled now
 
     } else {
@@ -539,16 +551,12 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
 //    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
 
-        saveLyrics();
+          saveLyrics();
 
 //        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
 //    }
 
-    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-    ui->pushButtonCueSheetEditSaveAs->hide();
-    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
-    ui->actionSave->setEnabled(false);  // save is disabled now
-    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+    lockForEditing();    
     setInOutButtonState();
 
 //    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save  // NOTE: THis doesn't seem to work in recent Qt versions. Always sets to end.
@@ -561,12 +569,7 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
     //    qDebug() << "on_pushButtonCueSheetEditSaveAs_clicked";
     saveLyricsAs();  // we probably want to save with a different name, so unlike "Save", this is always called here.
 
-    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-    ui->pushButtonCueSheetEditSaveAs->hide();
-    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button is now visible
-    ui->actionSave->setEnabled(false);  // save is disabled now
-    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
-
+    lockForEditing();
     setInOutButtonState();
 
 //    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
@@ -1025,17 +1028,8 @@ void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 //    cursor.movePosition(QTextCursor::Start);  // move cursor back to the start of the document
 
     ui->pushButtonEditLyrics->setChecked(false);  // locked for editing, in case this is just a change in the dropdown
-    ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-    ui->pushButtonCueSheetEditSaveAs->hide();
-    ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
 
-    int index = ui->tabWidget->currentIndex();
-    if (ui->tabWidget->tabText(index) == CUESHEET_TAB_NAME) {
-        // only do this if we are on the Lyrics/Patter tab.  If on MusicPlayer, playlist load will turn ON Save As.
-        ui->actionSave->setEnabled(false);  // save is disabled to start out
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
-    }
-
+    lockForEditing();
     setInOutButtonState();
 }
 
@@ -1105,12 +1099,7 @@ void MainWindow::saveLyricsAs()
     if (!filename.isNull())
     {
         // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
-        ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
-        ui->pushButtonCueSheetEditSaveAs->hide();
-        ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-        ui->actionSave->setEnabled(false);  // save is disabled to start out
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
-
+        lockForEditing();
         filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
         writeCuesheet(filename);            // this will NOT trigger FileWatcher
 
