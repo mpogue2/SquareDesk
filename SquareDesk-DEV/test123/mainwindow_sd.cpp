@@ -4935,7 +4935,7 @@ void MainWindow::SDMakeFrameFilesIfNeeded() { // also sets frameVisible based on
 
 // Dances/frames -------------------------------------
 void MainWindow::sdLoadDance(QString danceName) {
-
+    prefsManager.SetlastDance(danceName);
     QDir danceFolder(musicRootPath + "/sd/dances/" + danceName);
     if (!danceFolder.exists()) {
         qDebug() << "danceFolder does not exist, so we're gonna make one: " << danceFolder.dirName();

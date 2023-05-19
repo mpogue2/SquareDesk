@@ -1426,21 +1426,26 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    qDebug() << "allDances, dances: " << allDances << dances;
 
     QMenu *dancesSubmenu = new QMenu("Dances");
-
+    QString lastDance = prefsManager.GetlastDance();
+    QAction *matchAction = NULL;	// which item to be made selected
     int whichItem = 0;
     frameName = "";
     for (const auto& shortName : dances) {
 //        qDebug() << "shortName: " << shortName;
-
         QAction *actionOne = dancesSubmenu->addAction(shortName);
         actionOne->setActionGroup(sdActionGroupDances);
         actionOne->setCheckable(true);
-        if (whichItem == 0) {
-            sdActionTriggeredDances(actionOne); // call the init function for the very first item in the list TODO: remember item
+        actionOne->setChecked(false);	// one will be checked below
+        if (whichItem == 0 || lastDance == shortName) {
             frameName = shortName;
+            matchAction = actionOne;
         }
-        actionOne->setChecked(whichItem++ == 0); // first item gets checked, others not
+        whichItem++;
     }
+    if (matchAction != NULL) {
+        sdActionTriggeredDances(matchAction); // call the init function for the last dance if found else the first one
+        matchAction->setChecked(true);        // make it selected
+    } // else there were not dances found at all (should be caught by test below)
 
     if (frameName == "") {
         // if ZERO dances found, make one
