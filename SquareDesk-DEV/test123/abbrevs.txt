@@ -6,24 +6,38 @@
 34     3/4
 34t    3/4 tag
 4l34   4 ladies chain 3/4
+ac     as couples
+acc    couples circulate
 acd    acey deucey
+ach    couples hinge
+act    couples trade
 #al     allemande left
 #alr    allemande left to an alamo ring
 b      boys
+bc     boys circulate
+bf     boys fold
+bh     boys hinge
 br     boys run
 bt     boys trade
-bt     brace thru
+#bt     brace thru
+b-     brace thru
 btg    box the gnat
 btl    bend the line
 #bwgd   boys walk girl dodge
 c      centers
+cc     centers circulate
+#cf     centers fold
+cf     crossfire
+ch     centers hinge
+cr     centers run
+ct     centers trade
 c34    cast off 3/4
 cas    cast a shadow
 cat    california twirl
-cc     couples circulate
+#cc     couples circulate
 cd     coordinate
-cf     crossfire
-ch     couples hinge
+cdl    chain down the line
+#ch     couples hinge
 chdl   chain down the line
 chr    chain reaction
 ci     centers in
@@ -34,43 +48,60 @@ clcr   first couple go left next couple go right
 #cp    right and left thru pass thru trade by
 #cp3   square thru 3 trade by
 #cpz   pass thru trade by pass thru trade by
-cr     centers run
 crcl   first couple go right next couple go left
 crcr   first couple go right next couple go right
-ct     courtesy turn
+#ct     courtesy turn
 ctd    cut the diamond
 ctl    circle to a line
 ctt    cross trail thru
+ct-    cross trail thru
 cxc    cross over circulate
 cxf    cross fold
 dc     diamond circulate
 dg     dixie grand
 dpt    double pass thru
+dp-    double pass thru
 dst    double star thru
+ds-    double star thru
 dt     dive thru
+d-     dive thru
 dx     dixie style to a wave
 dyp    do your part
 e      ends
+ea     explode and
 e7     explode and
+ec     ends circulate
+ef     ends fold
 er     ends run
+et     ends trade
 etl    explode the line
 etw    explode the wave
 ext    extend
 #f      face
 f      fold
 #fb     forward and back
-fl     flutterwheel
+#fl    flutterwheel
+flut   flutterwheel
+fi     face in
+fl     face left
 fo     face out
 fr     face right
 ftd    flip the diamond
 ftt    fan the top
 fw     ferris wheel
 fyn    follow your neighbor
+fyns   [follow your neighbor] and spread
 g      girls
 gfyn   grand follow your neighbor
 glswt  grand left swing thru
-gr     girl run
+glsw-  grand left swing thru
+gc     girls circulate
+gf     girls fold
+gh     girls hinge
+gr     girls run
+gt     girls trade
 gswt   grand swing thru
+gsw-   grand swing thru
 gwbd   girl walk boy dodge
 h      heads
 hs     half sashay
@@ -83,8 +114,10 @@ ll     lead left
 lr     lead right
 lrtw   left roll to a wave
 ltb    load the boat
+par    pass and roll
+pat    peel and trail
 #pc     promenade corner
-ph     promenade home
+#ph     promenade home
 pi     pass in
 plo    peel off
 pnt    peel and trail
@@ -93,8 +126,9 @@ ppc    ping pong circulate
 pr     pass and roll
 prom   promenade
 pryn   pass and roll your neighbor
-pryns  pass and roll your neighbor and spread
+pryns  [pass and roll your neighbor] and spread
 pt     pass thru
+p-     pass thru
 #ptb    pass thru trade by
 ptc    pass to the center
 pto    pass the ocean
@@ -102,15 +136,20 @@ ptrd   partner trade
 pts    pass the sea
 ptt    peel the top
 qi     quarter in
+ql     quarter left
 qo     quarter out
+qr     quarter right
 qt     quarter thru
+q-     quarter thru
 r      run
 re     remake
 rec    recycle
 rev    reverse
 rfl    reverse flutterwheel
-rlg    right and left grand
+rflut  reverse flutterwheel
+#rlg    right and left grand
 rlt    right and left thru
+rl-    right and left thru
 rrtw   right roll to a wave
 rsa    reverse swap around
 rtd    relay the deucey
@@ -118,25 +157,35 @@ s      sides
 s2l    separate, around 2 to a line
 sa     swap around
 sb     scoot back
+sc-  spin chain thru
+scx  spin chain and exchange the gears
+scg  spin chain the gears
 #scp    swing corner promenade
+sct  spin chain thru
 scw    single circle to a wave
 sd     scoot and dodge
 sh     single hinge
+sl-    slide thru
 sldt   slide thru
 #sp2m   centers split 2, around 1 come into the middle and
 spchg  spin chain the gears
 spcht  spin chain thru
+spch-  spin chain thru
 spchx  spin chain and exchange the gears
 spl    split the outsides, around 1 to a line
 #spm    split the outside couple, separate, go around one come into the middle
+stw    spin the windmill
 sptw   spin the windmill
 sq     square thru
+sqc-   square chain thru
+sq-    square thru
 sq2    square thru 2
 sq3    square thru 3
 sq4    square thru 4
 sqcht  square chain thru
 ss     step and slide
 st     star thru
+st-    star thru
 sth    step thru
 stl    separate, around 1 to a line
 #stm    separate around 1 and come into the middle
@@ -146,6 +195,7 @@ stw    step to a wave
 sw     single wheel
 swp    sweep 1/4
 swt    swing thru
+sw-    swing thru
 sys    square your sets
 #t      triple
 t      trade
@@ -157,6 +207,7 @@ tq     touch a quarter
 tr     trade
 ts     triple scoot
 tst    triple star thru
+ts-    triple star thru
 ttc    transfer the column
 ttl    tag the line
 ttw    trade the wave
@@ -170,7 +221,10 @@ wad    walk and dodge
 wd     wheel and deal
 whd    wheel and deal
 wt     wheel thru
+w-     wheel thru
 x      cross
 xf     cross fold
+xfr    crossfire
+xoc    cross over circulate
 xr     cross run
 zo     zoom
