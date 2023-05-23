@@ -6,6 +6,8 @@
 34     3/4
 34t    3/4 tag
 4l34   4 ladies chain 3/4
+8ch    eight chain
+8ch4   eight chain 4
 ac     as couples
 acc    couples circulate
 acd    acey deucey
