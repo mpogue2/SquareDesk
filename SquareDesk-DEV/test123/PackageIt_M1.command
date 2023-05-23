@@ -4,10 +4,23 @@
 # http://asmaloney.com/2013/07/howto/packaging-a-mac-os-x-application-using-a-dmg/
 
 # make sure we are in the correct dir when we double-click a .command file
-# dir=${0%/*}
-# if [ -d "$dir" ]; then
-#   cd "$dir"
-# fi
+dir=${0%/*}
+if [ -d "$dir" ]; then
+    cd "$dir"
+fi
+
+# we need to be in the directory above the test123 directory
+cd ..
+
+# check we are in a build directory
+echo checking we are in suitable directory $PWD
+case $PWD in
+     */build-SquareDesk-Qt_*_for_macOS-* )
+          echo ok;;
+     * )
+	 echo >&2 "$PWD doesn't seem to be a valid build directory"
+	 exit 1;;
+esac
 
 # echo $dir
 
@@ -22,19 +35,28 @@
 # ERROR: no file at "/opt/local/lib/mysql55/mysql/libmysqlclient.18.dylib"
 # ERROR: no file at "/usr/local/lib/libpq.5.dylib"
 
-#WHICH=Debug
-WHICH=Release
+case $PWD in
+    *-Debug )
+	WHICH=Debug;;
+    *-Release )
+	WHICH=Release;;
+    * )
+	echo >&2 "cannot determine $WHICH (Debug or Release)"
+	exit 1;;
+esac
+echo WHICH is $WHICH
 
 # set up your app name, version number, and background image file name
 APP_NAME="SquareDesk"
 VERSION="1.0.4"  # <-- THIS IS THE ONE TO CHANGE
 
-QTVERSION="6.4.3"
-QT_VERSION="6_4_3"   # same thing, but with underscores (yes, change both of them at the same time!)
+QT_VERSION=$(echo $PWD | sed -e 's/.*Qt_//' -e 's/_for.*//')
+QTVERSION=$(echo $QT_VERSION | sed -e 's/_/./g')
 
-HOMEDIR="/Users/mpogue"
-SOURCEDIR="${HOMEDIR}/clean3/SquareDesk/SquareDesk-DEV/test123"
-MIKEBUILDDIR="${HOMEDIR}/clean3/SquareDesk/build-SquareDesk-Qt_${QT_VERSION}_for_macOS-${WHICH}"
+HOMEDIR=$HOME
+
+SOURCEDIR=$(pwd | sed -e 's|/build.*||')/SquareDesk-DEV/test123 
+BUILDDIR=$PWD
 QTDIR="${HOMEDIR}/Qt"
 
 DMG_BACKGROUND_IMG_SHORT="installer3.png"
@@ -44,7 +66,7 @@ echo
 echo HOMEDIR: ${HOMEDIR}
 echo SOURCEDIR: ${SOURCEDIR}
 echo QTDIR: ${QTDIR}
-echo MIKEBUILDDIR: ${MIKEBUILDDIR}
+echo BUILDDIR: ${BUILDDIR}
 echo DMG_BACKGROUND_IMG: ${DMG_BACKGROUND_IMG}
 echo DYLD_FRAMEWORK_PATH: ${DYLD_FRAMEWORK_PATH}
 echo
@@ -54,7 +76,7 @@ echo WARNING: libquazip not present in M1 build yet
 
 echo Now running otool to fixup libraries...
 # # Note: The 64bit5 may be specific to my machine, since I have a bunch of Qt installations...
-pushd ${MIKEBUILDDIR}/test123/SquareDesk.app/Contents/MacOS
+pushd ${BUILDDIR}/test123/SquareDesk.app/Contents/MacOS
 otool -L SquareDesk | egrep "qua"
 # install_name_tool -change libquazip.1.dylib @executable_path/libquazip.1.dylib SquareDesk
 echo Those two lines should now start with executable_path...
@@ -63,8 +85,7 @@ popd
 
 # ----------------------------------------------------------------------------------------
 echo Now running Mac Deploy Qt step...  NOTE: MUST BE UNCOMMENTED OUT AND RUN ONCE
-# NOT THIS ONE: ~/Qt6.2.3/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
-#~/Qt/${QTVERSION}/macos/bin/macdeployqt ${MIKEBUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
+$QTDIR/${QTVERSION}/macos/bin/macdeployqt ${BUILDDIR}/test123/SquareDesk.app 2>&1 | grep -v "ERROR: Could not parse otool output line"
 
 echo Mac Deploy Qt step done.
 echo
@@ -82,7 +103,7 @@ RENAMED_APP_EXE="${APP_NAME}_${VERSION}.app/Contents/MacOS/${APP_NAME}"
 VOL_NAME="${APP_NAME}_${VERSION}"   # volume name will be "SquareDesk_0.9.6"
 DMG_TMP="${VOL_NAME}-temp.dmg"
 DMG_FINAL="${VOL_NAME}.dmg"         # final DMG name will be "SquareDesk_0.9.6.dmg"
-STAGING_DIR="${MIKEBUILDDIR}/Install"             # we copy all our stuff into this dir
+STAGING_DIR="${BUILDDIR}/Install"             # we copy all our stuff into this dir
 
 echo STAGING_DIR: ${STAGING_DIR}
 
@@ -113,12 +134,12 @@ mkdir -p "${STAGING_DIR}"
 # ----------------------------------------------------------------------------------------
 echo "================================================================"
 echo "Running xattr to clean up permissions... (no need for sudo here)"
-xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
-xattr -cr "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
-xattr -r "${MIKEBUILDDIR}/test123/${APP_NAME}.app"
+xattr -r "${BUILDDIR}/test123/${APP_NAME}.app"
+xattr -cr "${BUILDDIR}/test123/${APP_NAME}.app"
+xattr -r "${BUILDDIR}/test123/${APP_NAME}.app"
 
 echo "Copying .app to STAGING_DIR and renaming to ${APP_NAME}_${VERSION}.app..."
-cp -Rpf "${MIKEBUILDDIR}/test123/${APP_NAME}.app" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
+cp -Rpf "${BUILDDIR}/test123/${APP_NAME}.app" "${STAGING_DIR}/${APP_NAME}_${VERSION}.app"
 
 # ----------------------------------------------------------------------------------------
 echo "============================================================================"
