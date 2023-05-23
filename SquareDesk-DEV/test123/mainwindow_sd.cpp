@@ -3593,7 +3593,7 @@ bool MainWindow::handleSDFunctionKey(QKeyCombination keyCombo, QString text) {
         case Qt::Key_F10:   break;
         case Qt::Key_F11:
             // CMD-F11 = go to sequence 1 in current frame
-            qDebug() << "CMD-F11";
+//            qDebug() << "CMD-F11";
             frameCurSeq[centralIndex] = 1;
             SDSetCurrentSeqs(1); // persist the new Current Sequence numbers
             refreshSDframes();  // load 3 sidebar and 1 central frame, update labels, update context menu for Save button
@@ -5248,7 +5248,7 @@ void MainWindow::readAbbreviations() {
                 if (list.count() >= 2) { // ignore malformed lines
                         QString abbrev = list[0];                             // first item is the key
                         QString call   = list.last(list.count()-1).join(" "); // last N items concatenated is the value
-                        abbrevs[abbrev] = call;  // add to the table
+                        abbrevs[abbrev] = call.toLower();  // add to the table (lower case it first to make it case insensitive
                 }
             } else {
 //                qDebug() << "Skipping comment: " << line;
