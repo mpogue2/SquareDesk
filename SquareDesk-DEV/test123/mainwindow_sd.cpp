@@ -1912,7 +1912,9 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     if (!cmd.contains("[")) {
 
         // TODO: might want to make this A-level specific?
-        if (!cmd.contains("pass and roll")) {  // at A-level, "Pass and Roll" must not be turned into "[Pass] and Roll"
+        // at A-level, "Pass and Roll" must not be turned into "[Pass] and Roll"
+        // at C-level, "Cross Chain and Roll" must not be turned into "[Cross Chain] and Roll"
+        if (!cmd.contains("pass and roll") && !cmd.contains("cross chain and roll")) {
             static QRegularExpression andRollCall("(.*) and roll.*");
 //            if (cmd.indexOf(andRollCall) != -1) {
 //                cmd = "[" + andRollCall.cap(1) + "] and roll";
