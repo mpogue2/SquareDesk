@@ -1803,8 +1803,13 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     cmd = cmd.toLower();  // JUST THE CALL portion is lower-cased
 
+    // Protect "X" from abbreviation expansion, just for the "circle by" case
+    cmd = cmd.replace("circle by ", "CBY ").replace("x 1/4", "by 1/4").replace("x 1/2", "by 1/2").replace("x 2/4", "by 2/4").replace("x 3/4", "by 3/4").replace("x [", "by [");
+
     // ***** EXPAND ABBREVIATIONS *****
     cmd = expandAbbreviations(cmd); // TODO: maybe not when read from file, but yes when user input?
+
+    cmd = cmd.replace("by 1/4", "x 1/4").replace("by 1/2", "x 1/2").replace("by 2/4", "x 2/4").replace("by 3/4", "x 3/4").replace("by [", "x [").replace("CBY ", "circle by ");
 
     // ==========================================================================================
 
@@ -4477,9 +4482,12 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
 //    qDebug() << "AGAINST A2: " << allA2CallsString;
 
     // must go from highest level to lowest!
-    if (theCall.contains("block") ||
-            theCall.contains("butterfly") ||
+    if (theCall.contains("alter") ||
+        theCall.contains("block") ||
+        theCall.contains("butterfly") ||
+            theCall.contains("but ") ||  // NOTE: intentional space after "but"
             theCall.contains("cast back") ||
+            theCall.contains("circle by") ||
             theCall.contains("concentric") ||
             (theCall.contains("counter rotate") && !theCall.contains("split counter rotate") && !theCall.contains("box counter rotate")) ||
             theCall.contains("cross chain") ||
@@ -4501,7 +4509,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("jay walk") ||
             theCall.contains("linear action") ||
             theCall.contains("magic") ||
-            theCall.contains("O ") ||
+            theCall.contains("O ") || // NOTE: Intentional space after "O"
             theCall.contains("the axle") ||
             theCall.contains("percolate") ||
             theCall.contains("phantom") ||
@@ -4546,7 +4554,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             theCall.contains("triple column") ||
             theCall.contains("triple wave") ||
             theCall.contains("twist") ||
-            theCall.contains("vertical tag") ||
+            theCall.contains("vertical") ||
             (theCall.contains("to a wave") &&
              !theCall.contains("single circle") &&
              !theCall.contains("step to a") &&
