@@ -109,6 +109,7 @@ h      heads
 hs     half sashay
 hst    horseshoe turn
 ht     half tag
+iyb    in your blocks
 l      left
 lc     linear cycle
 li     lockit
@@ -213,6 +214,7 @@ ts-    triple star thru
 ttc    transfer the column
 ttl    tag the line
 ttw    trade the wave
+tx     triple boxes
 ut     u turn back
 utb    u turn back
 vc     very centers
