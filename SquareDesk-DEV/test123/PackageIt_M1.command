@@ -41,7 +41,7 @@ case $PWD in
     *-Release )
 	WHICH=Release;;
     * )
-	echo >&2 "cannot determine $WHICH (Debug or Release)"
+        echo >&2 "cannot determine WHICH (Debug or Release)"
 	exit 1;;
 esac
 echo WHICH is $WHICH
