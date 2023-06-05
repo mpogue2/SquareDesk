@@ -70,6 +70,7 @@ flexible_audio::flexible_audio(void)
 // ------------------------------------------------------------------
 flexible_audio::~flexible_audio(void)
 {
+    decoder.disconnect();  // no more signals from you that will crash everything (new to 6.5.1)
     decoder.stop();
 }
 
