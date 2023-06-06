@@ -3562,25 +3562,7 @@ bool MainWindow::handleKeypress(int key, QString text)
                         // more than 1 row or no rows at all selected (BAD)
                         return true;
                     }
-
-                    int maxRow = ui->songTable->rowCount() - 1;
-
-                    // which is the next VISIBLE row?
-                    int lastVisibleRow = row;
-                    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
-                    while (ui->songTable->isRowHidden(row) && row < maxRow) {
-                        // keep bumping, until the next VISIBLE row is found, or we're at the END
-                        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
-                    }
-                    if (ui->songTable->isRowHidden(row)) {
-                        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
-                        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
-                        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
-                        //   hilarity will ensue.
-                        row = lastVisibleRow;
-                    }
                     ui->songTable->selectRow(row); // select new row!
-
                 }
             }
             break;
