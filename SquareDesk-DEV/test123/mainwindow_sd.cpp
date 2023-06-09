@@ -1126,10 +1126,10 @@ void MainWindow::on_sd_add_new_line(QString str, int drawing_picture)
         sdLastNonEmptyLine = 0;
         sd_redo_stack->initialize();
         ui->label_SD_Resolve->clear(); // get rid of extra "(no matches)" or "left allemande" in resolve area when changing levels
-        if (str.contains("uiSquareDesk"))
-        {
-            ui->tableWidgetCurrentSequence->clear();
-        }
+//        if (str.contains("uiSquareDesk"))
+//        {
+//            ui->tableWidgetCurrentSequence->clear(); // this cannot be here, see #878.  TODO: Figure out why I put this here later...or, just delete it
+//        }
         return;
     }
 
