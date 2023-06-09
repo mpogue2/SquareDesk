@@ -684,6 +684,8 @@ private slots:
 
     void on_actionReport_a_Bug_triggered();
 
+    void on_actionSave_Current_Dance_As_HTML_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

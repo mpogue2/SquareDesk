@@ -5293,3 +5293,103 @@ QString MainWindow::expandAbbreviations(QString s) {
 
     return(r);
 }
+
+void MainWindow::on_actionSave_Current_Dance_As_HTML_triggered()
+{
+    // Ask me where to save it...
+    RecursionGuard dialog_guard(inPreferencesDialog);
+
+    QString nowISO8601 = QDateTime::currentDateTime().toString(Qt::ISODate).replace("-","").replace(":","");
+    QString pathToDefaultHTMLOutputFile = (musicRootPath + "/sd/dances/" + frameName + "/" + frameName + "_" + nowISO8601 + "Z.html"); // frameName here is really "dance name"
+//    qDebug() << "pathToDefaultHTML: " << pathToDefaultHTMLOutputFile;
+
+    QString outputFilename = QFileDialog::getSaveFileName(this,
+                                                            tr("Save Dance As HTML"),
+                                                            pathToDefaultHTMLOutputFile,
+                                                            tr("HTML (*.html *.htm)"));
+    if (!outputFilename.isNull())
+    {
+        // ====== get the list of filenames to output
+        QDirIterator dirIt(musicRootPath + "/sd/dances/" + frameName);
+        QStringList files;
+        while (dirIt.hasNext()) {
+            dirIt.next();
+            QFileInfo fileInfo(dirIt.filePath());
+            if (fileInfo.isFile() && fileInfo.suffix() == "txt") {
+                if (!dirIt.filePath().endsWith("deleted.txt")) { // we do NOT want to output the deleted sequences
+                        files << dirIt.filePath();
+                }
+            }
+        }
+
+        files.sort(Qt::CaseInsensitive);
+        //    qDebug() << "sorted file list: " << files;
+
+        // ======= now open up the HTML output file
+        QFile file(outputFilename);
+        if ( !file.open(QIODevice::WriteOnly) ) {
+            return;  // could not open the file for writing
+        }
+
+        QTextStream stream( &file );
+
+        stream << "<HTML>\n";
+        stream << "    <HEAD>\n";
+        stream << "        <STYLE>\n";
+        stream << "            body, p, font { font-family: Verdana; font-size: large; font-weight: Normal; color: #000000; background: #FFFFFF; margin-top: 0px; margin-bottom: 0px;}\n";
+        stream << "        </STYLE>\n";
+        stream << "    </HEAD>\n";
+        stream << "    <BODY>\n";
+        stream << "        <H1>" << frameName << "</H1>\n";
+
+        // ====== FOR EACH OF THE INPUT FILES
+        for ( const auto& f : files )
+        {
+            QFile inFile(f);
+
+            if (inFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                QTextStream in(&inFile);
+
+                QString shortFilename = f.split("/").last().replace(".txt","");
+
+                stream << "\n\n            <BR><H2>" << shortFilename << "</H2>\n";
+
+                // READ THE ENTIRE FILE
+                QString allLines = in.readAll();
+                QStringList allLines2 = allLines.split("\n");
+
+                while (allLines2.last().startsWith("@") || allLines2.last() == "") {
+                        allLines2.removeLast(); // remove blank lines and last @ line
+                }
+
+                // Now iterate over the lines, splitting into sequences in the HTML file
+                int sequenceNumber = 0;
+                for ( const auto& line : allLines2 )
+                {
+                    if (line.startsWith("@")) {
+                        sequenceNumber++;
+                        if (sequenceNumber != 1) {
+                            stream << "            <BR>\n";
+                        }
+                        stream << "\n            # " << sequenceNumber << " ---------------------------------<BR>\n"; // horizontal rule between sequences
+                    } else if (line.startsWith("#")) {
+                        // do nothing, it's a comment
+                    } else {
+                        // normal line, just spit it out
+                        stream << "            " << line << "<BR>\n";
+                    }
+                }
+
+                inFile.close();
+            } else {
+                // Could not open file
+            }
+        }
+
+        stream << "    </BODY>\n";
+        stream << "</HTML>\n";
+
+        stream.flush();
+        file.close();
+    }
+}

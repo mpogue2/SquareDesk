@@ -2708,6 +2708,7 @@
      <addaction name="actionNone_hex"/>
     </widget>
     <addaction name="actionDance"/>
+    <addaction name="actionSave_Current_Dance_As_HTML"/>
     <addaction name="separator"/>
     <addaction name="actionSequence_Designer"/>
     <addaction name="actionDance_Arranger"/>
@@ -2729,7 +2730,6 @@
     <addaction name="actionSight"/>
     <addaction name="actionRandom"/>
     <addaction name="actionRandom_Color_only"/>
-    <addaction name="separator"/>
     <addaction name="actionSD_Output"/>
     <addaction name="actionFormation_Thumbnails"/>
     <addaction name="actionShow_Frames"/>
@@ -4262,6 +4262,11 @@
   <action name="actionReport_a_Bug">
    <property name="text">
     <string>Report a Bug...</string>
+   </property>
+  </action>
+  <action name="actionSave_Current_Dance_As_HTML">
+   <property name="text">
+    <string>Save Current Dance As HTML...</string>
    </property>
   </action>
  </widget>
