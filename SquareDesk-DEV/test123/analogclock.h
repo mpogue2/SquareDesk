@@ -129,6 +129,9 @@ public:
     TypeTracker typeTracker;
     void resetPatter(void);
 
+    void setTimerLabelColor(QString col); // sets the color of all the stylesheets
+    QString lastTimerLabelColor;
+
 private slots:
     void redrawTimerExpired();
     void clearClockColoring();

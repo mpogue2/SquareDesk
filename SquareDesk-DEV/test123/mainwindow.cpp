@@ -6947,12 +6947,19 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
 //   this is done many times, so factoring it out to here.
 // flashcall defaults to false
 void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
-    if (flashcall) {
-        ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
-    } else {
-        ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+    if (flashcall != lastFlashcall) {
+        // if what user sees is not what we want them to see...
+        lastFlashcall = flashcall;
+        if (flashcall) {
+            ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+        } else {
+            ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+        }
     }
-    ui->nowPlayingLabel->setText(s);
+    if (ui->nowPlayingLabel->text() != s) {
+        // update ONLY if there is a change, to save CPU time in relayout
+        ui->nowPlayingLabel->setText(s);
+    }
 }
 
 int MainWindow::getRsyncFileCount(QString sourceDir, QString destDir) {

@@ -57,6 +57,23 @@ AnalogClock::AnalogClock(QWidget *parent)
     singingCallSection = "";
 }
 
+void AnalogClock::setTimerLabelColor(QString col) {
+    if (lastTimerLabelColor != col) {
+        // only change it, if it is actually changing
+//        qDebug() << "setting TimerLabelColors to: " << col;
+        QString style = "QLabel { color : " + col + "; }";
+
+        timerLabel->setAlignment(Qt::AlignCenter);          // NOTE: these never change, so sticking them here, called rarely
+        timerLabelSD->setAlignment(Qt::AlignCenter);
+        timerLabelCuesheet->setAlignment(Qt::AlignCenter);
+
+        timerLabel->setStyleSheet(style);
+        timerLabelSD->setStyleSheet(style);
+        timerLabelCuesheet->setStyleSheet(style);
+        lastTimerLabelColor = col;
+    }
+}
+
 void AnalogClock::redrawTimerExpired()
 {
 //    qDebug() << "redrawTimerExpired";
@@ -107,49 +124,37 @@ void AnalogClock::redrawTimerExpired()
                 // AND if also it's not break or the break timer is disabled
                 //timerLabel->setVisible(false);  // make the timerLabel disappear
                 // it's either a singing call, or we're stopped.  Leave it VISIBLE.
-                timerLabel->setAlignment(Qt::AlignCenter);
-                timerLabelSD->setAlignment(Qt::AlignCenter);
-                timerLabelCuesheet->setAlignment(Qt::AlignCenter);
-                timerLabel->setStyleSheet("QLabel { color : red; }");
-                timerLabelSD->setStyleSheet("QLabel { color : red; }");
-                timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");
+
+                setTimerLabelColor("red");  // set all 3 labels to red, only if they are not already red (to save CPU cycles)
 
                 if (singingCallSection != "") {
                     timerLabel->setVisible(true);  // make the timerLabel appear
                     timerLabel->setText(singingCallSection);
-//                    timerLabelSD->setVisible(true);  // make the timerLabelSD appear
                     timerLabelSD->setVisible(!editModeSD);  // make the timerLabelSD appear if we're NOT in editing mode
                     timerLabelSD->setText(singingCallSection);
-//                    timerLabelCuesheet->setVisible(true);  // make the timerLabel appear
                     timerLabelCuesheet->setText(singingCallSection);
+                    update();
                 } else {
-//                    timerLabel->setVisible(false);  // make the timerLabel disappear
-                    timerLabel->setText("");
-                    timerLabelSD->setText("");
-//                    timerLabelCuesheet->setVisible(false);  // make the timerLabel disappear
+                    if (timerLabel->text() != "") {
+                        timerLabel->setText("");
+                    }
+                    if (timerLabelSD->text() != "") {
+                        timerLabelSD->setText("");
+                    }
                 }
             } else if (breakLengthSecs < maxBreakLength && typeTracker.timeSegmentList.length()>=2 && typeTracker.timeSegmentList.at(0).type == NONE) {
                 // it is for sure a BREAK, the break timer is enabled, and it's under the break time limit,
                 //   and we played something before the break, and we're currently in state NONE (NOTE: can't use patter or singing calls or extras as break music)
 //                qDebug() << "for sure a BREAK";
-                timerLabel->setAlignment(Qt::AlignCenter);
                 timerLabel->setVisible(true);
-                timerLabel->setStyleSheet("QLabel { color : blue; }");
-//                timerLabel->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
                 timerLabel->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
-                timerLabelSD->setAlignment(Qt::AlignCenter);
-//                timerLabelSD->setVisible(true);
                 timerLabelSD->setVisible(!editModeSD); // make it visible if we are NOT in edit mode
-                timerLabelSD->setStyleSheet("QLabel { color : blue; }");
-//                timerLabelSD->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
                 timerLabelSD->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
-//                timerLabelCuesheet->setVisible(true);
-                timerLabelCuesheet->setAlignment(Qt::AlignCenter);
-                timerLabelCuesheet->setStyleSheet("QLabel { color : blue; }");
-//                timerLabelCuesheet->setText(QString(" BK=") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
                 timerLabelCuesheet->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+
+                setTimerLabelColor("blue");
 
                 currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
                 currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
@@ -157,22 +162,12 @@ void AnalogClock::redrawTimerExpired()
                 // the break has expired.  We played something before the break, and we're currently in NONE state.
 //                qDebug() << "expired BREAK";
                 timerLabel->setVisible(true);
-                timerLabel->setAlignment(Qt::AlignCenter);
-                timerLabel->setStyleSheet("QLabel { color : red; }");  // turns red when break is over
-
-//                timerLabelSD->setVisible(true);
                 timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
-                timerLabelSD->setAlignment(Qt::AlignCenter);
-                timerLabelSD->setStyleSheet("QLabel { color : red; }");  // turns red when break is over
 
-//                timerLabelCuesheet->setVisible(true);
-                timerLabelCuesheet->setAlignment(Qt::AlignCenter);
-                timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");  // turns red when break is over
+                setTimerLabelColor("red"); // turns red when break is over
 
                 // alternate the time (negative now), and "END BREAK"
                 if (b_ss % 2 == 0) {
-//                    timerLabel->setText("END BREAK");
-//                    timerLabelCuesheet->setText("END BREAK");
                     timerLabel->setText("End BRK");
                     timerLabelSD->setText("End BRK");
                     timerLabelCuesheet->setText("End BRK");
@@ -186,35 +181,21 @@ void AnalogClock::redrawTimerExpired()
                 // either we have 1 state known (e.g. NONE for 3600 secs), OR
                 //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
 //                qDebug() << "none state";
-//                timerLabel->setVisible(false);
                 timerLabel->setText("");
                 timerLabelSD->setText("");
-//                timerLabelCuesheet->setVisible(false);
             }
         } else if (patterLengthSecs < maxPatterLength) {
 //            qDebug() << "patter under the time limit";
             // UNDER THE TIME LIMIT
             timerLabel->setVisible(true);
-//            timerLabel->setAlignment(Qt::AlignLeft);
-            timerLabel->setAlignment(Qt::AlignCenter);
-            timerLabel->setStyleSheet("QLabel { color : black; }");
-//            timerLabel->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
-//            timerLabelCuesheet->setVisible(true);
 
-//            timerLabelSD->setVisible(true);
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
-//            timerLabelSD->setAlignment(Qt::AlignLeft);
-            timerLabelSD->setAlignment(Qt::AlignCenter);
-            timerLabelSD->setStyleSheet("QLabel { color : black; }");
-//            timerLabelSD->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
-//            timerLabelCuesheet->setAlignment(Qt::AlignLeft);
-            timerLabelCuesheet->setAlignment(Qt::AlignCenter);
-            timerLabelCuesheet->setStyleSheet("QLabel { color : black; }");
-//            timerLabelCuesheet->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+
+            setTimerLabelColor("black");
 
             currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
@@ -230,26 +211,14 @@ void AnalogClock::redrawTimerExpired()
 //            qDebug() << "patter OVER the time limit";
             // OVER THE TIME LIMIT, so make the time-in-patter RED.
             timerLabel->setVisible(true);
-//            timerLabel->setAlignment(Qt::AlignLeft);
-            timerLabel->setAlignment(Qt::AlignCenter);
-            timerLabel->setStyleSheet("QLabel { color : red; }");
-//            timerLabel->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
-//            timerLabelSD->setVisible(true);
             timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
-//            timerLabelSD->setAlignment(Qt::AlignLeft);
-            timerLabelSD->setAlignment(Qt::AlignCenter);
-            timerLabelSD->setStyleSheet("QLabel { color : red; }");
-//            timerLabelSD->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
-//            timerLabelCuesheet->setVisible(true);
-//            timerLabelCuesheet->setAlignment(Qt::AlignLeft);
-            timerLabelCuesheet->setAlignment(Qt::AlignCenter);
-            timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");
-//            timerLabelCuesheet->setText(QString("PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+
+            setTimerLabelColor("red");
 
             currentTimerState |= LONGTIPTIMEREXPIRED;  // set
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
@@ -258,25 +227,15 @@ void AnalogClock::redrawTimerExpired()
 //            qDebug() << "patter REALLY over the time limit";
             // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
             timerLabel->setVisible(true);
-            timerLabel->setAlignment(Qt::AlignCenter);
-            timerLabel->setStyleSheet("QLabel { color : red; }");
-
-//            timerLabelSD->setVisible(true);
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
-            timerLabelSD->setAlignment(Qt::AlignCenter);
-            timerLabelSD->setStyleSheet("QLabel { color : red; }");
 
-//            timerLabelCuesheet->setVisible(true);
-            timerLabelCuesheet->setAlignment(Qt::AlignCenter);
-            timerLabelCuesheet->setStyleSheet("QLabel { color : red; }");
+            setTimerLabelColor("red");
 
             if (ss % 2 == 0) {
                 timerLabel->setText("LONG");
                 timerLabelSD->setText("LONG");
                 timerLabelCuesheet->setText("LONG");
             } else {
-//                timerLabel->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
-//                timerLabelCuesheet->setText(QString(" PT=") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
                 timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
                 timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
                 timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
@@ -287,7 +246,8 @@ void AnalogClock::redrawTimerExpired()
         }
     }
 
-    update();
+    update();  // for future reference, only call update() when absolutely needed.  Most widgets will call update() automatically when
+    //   something changes on them.
 }
 
 void AnalogClock::setColorForType(int type, QColor theColor)

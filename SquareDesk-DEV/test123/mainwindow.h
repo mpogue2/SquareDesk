@@ -1174,6 +1174,8 @@ public:
     bool editSequenceInProgress;
 
     QStringList highlightedCalls;
+
+    bool lastFlashcall;  // cached previous value of flashcall
 };
 
 // currentState:
