@@ -5333,14 +5333,20 @@ void MainWindow::on_actionSave_Current_Dance_As_HTML_triggered()
 
         QTextStream stream( &file );
 
+        QString newVersionString = QString("<!-- squaredesk:version = ") + QString(VERSIONSTRING) + QString(" -->");
+
+        stream << "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n\n";
         stream << "<HTML>\n";
-        stream << "    <HEAD>\n";
+        stream << "    <HEAD> " + newVersionString + "\n";
+        stream << "    <TITLE> " + frameName + "</TITLE>\n";
         stream << "        <STYLE>\n";
-        stream << "            body, p, font { font-family: Verdana; font-size: large; font-weight: Normal; color: #000000; background: #FFFFFF; margin-top: 0px; margin-bottom: 0px;}\n";
+        stream << "            body, p, font { font-family: Verdana; font-size: 3.0em; font-weight: Normal; color: #000000; background: #FFFFFF; margin-top: 0px; margin-bottom: 0px;}\n";
+        stream << "            .dance        { font-size: 2.0em;     font-weight: 699;    color: #000000;}\n";
+        stream << "            .frame        { font-size: 1.5em;     font-weight: Normal; color: #FF0002;}\n";
         stream << "        </STYLE>\n";
         stream << "    </HEAD>\n";
         stream << "    <BODY>\n";
-        stream << "        <H1>" << frameName << "</H1>\n";
+        stream << "        <SPAN class=\"dance\">" << frameName << "</SPAN>\n";
 
         // ====== FOR EACH OF THE INPUT FILES
         for ( const auto& f : files )
@@ -5352,7 +5358,7 @@ void MainWindow::on_actionSave_Current_Dance_As_HTML_triggered()
 
                 QString shortFilename = f.split("/").last().replace(".txt","");
 
-                stream << "\n\n            <BR><H2>" << shortFilename << "</H2>\n";
+                stream << "            <BR><SPAN class=\"frame\">" << shortFilename << "</SPAN><BR>\n";
 
                 // READ THE ENTIRE FILE
                 QString allLines = in.readAll();
