@@ -768,29 +768,24 @@ void AudioDecoder::isDecodingChanged(bool isDecoding)
     }
 }
 
-void AudioDecoder::finished()
-{
-//    qDebug() << "AudioDecoder::finished()";
-//    qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
-//    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
+float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance) {
+    // returns BPM if in range
+    // return zero if not in range
+
+    float finalBPMresult;
 
     unsigned char *p_data = (unsigned char *)(m_data->data());
     myPlayer.m_data = p_data;  // we are done decoding, so tell the player where the data is
 
     myPlayer.totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
-//    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
+    //    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
     // BPM detection -------
     //   this estimate will be based on mono mixed-down samples from T={30,40} sec
     const float *songPointer = (const float *)p_data;
 
-    float sampleStart_sec = 60.0;
-    float sampleLength_sec = 10.0; // 30.0 - 40.0 sec
     float sampleEnd_sec = sampleStart_sec + sampleLength_sec;
-
     float songLength_sec = myPlayer.totalFramesInSong/44100.0;
-//    float start_sec =  (songLength_sec >= sampleStart_sec + sampleLength_sec ? 10.0 : 0.0);
-//    float end_sec   =  (songLength_sec >= start_sec + 10.0 ? start_sec + 10.0 : songLength_sec );
 
     // if song is longer than 40, end_sec will be 40; else end_sec will be the end of the song.
     float end_sec = (songLength_sec >= sampleEnd_sec ? sampleEnd_sec : songLength_sec);
@@ -802,7 +797,7 @@ void AudioDecoder::finished()
     unsigned int offsetIntoSong_samples = 44100 * start_sec;            // start looking at time T = 10 sec
     unsigned int numSamplesToLookAt = 44100 * (end_sec - start_sec);    //   look at 10 sec of samples
 
-//    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
+    //    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
 
     float monoBuffer[numSamplesToLookAt];
     for (unsigned int i = 0; i < numSamplesToLookAt; i++) {
@@ -811,16 +806,23 @@ void AudioDecoder::finished()
     }
 
     MiniBPM BPMestimator(44100.0);
-    BPMestimator.setBPMRange(125.0-15.0, 125.0+15.0);  // limited range for square dance songs, else use percent
-    BPM = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
+    BPMestimator.setBPMRange(BPMbase-BPMtolerance, BPMbase+BPMtolerance);  // limited range for square dance songs, else use percent
+    finalBPMresult = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
 
     if (end_sec - start_sec < 10.0) {
         // if we don't have enough song left to really know what the BPM is, just say "I don't know"
-        BPM = 0.0;
+        finalBPMresult = 0.0;
     }
+    return finalBPMresult;
+}
 
-//    qDebug() << "***** BPM RESULT: " << BPM;  // -1 = overwritten by here, 0 = undetectable, else double
+void AudioDecoder::finished()
+{
+//    qDebug() << "AudioDecoder::finished()";
+//    qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
+//    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
 
+    BPM = BPMsample(60,30,125,15);  // this was the best compromise, now gets almost all of the problematic songs right
     emit done();
 }
 

@@ -158,6 +158,8 @@ public:
 
     double getBPM();
 
+    float BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
+
     unsigned char getCurrentState();
 
     unsigned int playPosition_frames;
