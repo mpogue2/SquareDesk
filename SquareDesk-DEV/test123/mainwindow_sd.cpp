@@ -4558,8 +4558,8 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
             (theCall.contains("to a wave") &&
              !theCall.contains("single circle") &&
              !theCall.contains("step to a") &&
-             !theCall.contains("roll to a")
-             ) ||
+             !theCall.contains("roll to a") &&
+             !theCall.contains("dixie style to a wave")) ||
             (theCall.contains("weave") && !theCall.contains("the ring") && !theCall.contains("scoot and weave")) ||
             (theCall.contains("wheel and") && !theCall.contains("deal")) ||
             theCall.contains("wheel fan thru") ||
@@ -4575,6 +4575,7 @@ QString MainWindow::translateCallToLevel(QString thePrettifiedCall) {
                theCall.contains("out roll circulate") ||
                theCall.contains("scoot and weave") ||
                theCall.contains("counter rotate") ||
+               theCall.contains("remake") ||
                theCall.startsWith("all 8") ||
                theCall.contains("motivate")                // takes care of "motivate, turn the star 1/4"
                ) {
