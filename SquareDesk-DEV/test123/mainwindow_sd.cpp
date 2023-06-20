@@ -1856,9 +1856,11 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     // handle numbers: one -> 1, etc.
     cmd = cmd.replace("eight chain","EIGHT CHAIN"); // sd wants "eight chain 4", not "8 chain 4", so protect it
+    cmd = cmd.replace("twosome", "TWOSOME"); // protect "twosome" from two -> 2
     cmd = cmd.replace("one","1").replace("two","2").replace("three","3").replace("four","4");
     cmd = cmd.replace("five","5").replace("six","6").replace("seven","7").replace("eight","8");
     cmd = cmd.replace("EIGHT CHAIN","eight chain"); // sd wants "eight chain 4", not "8 chain 4", so protect it
+    cmd = cmd.replace("TWOSOME", "twosome"); // protect "twosome" from two -> 2
 
     // handle optional words at the beginning
 
