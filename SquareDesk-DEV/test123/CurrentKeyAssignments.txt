@@ -1,0 +1,40 @@
+Current Key Assignments
+-----------------------
+A Select All [editing]
+B Bold [editing]
+C Copy [editing]
+D Pitch DOWN
+E Load Playlist
+F
+G
+H
+I Italic [editing]
+J Previous Song
+K Next Song
+L Loop
+M Mute
+N
+O Open Audio file
+P Play/Pause
+Q Test Loop
+R
+S Save (whatever)
+T Toggle Music/Lyrics Tab, Toggle Songs Filter
+U Pitch UP
+V Paste [editing]
+W
+X Cut [editing]
+Y Fade Out
+Z Undo/Redo [editing, SD]
+
++ Tempo UP
+- Tempo DOWN
+. STOP
+
+/ Clear Search
+ESC Clear Search/Stop
+
+HOME Restart song
+UP Volume UP
+DOWN Volume DOWN
+SP Play/Pause

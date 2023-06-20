@@ -810,6 +810,7 @@ OBJECTIVE_SOURCES += \
 
 DISTFILES += \
     ../../README.md \
+    CurrentKeyAssignments.txt \
     Info.plist \
     LICENSE.GPL3 \
     LICENSE.GPL2 \

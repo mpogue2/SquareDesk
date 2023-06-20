@@ -69,6 +69,8 @@ KEYACTION(FilterPatter, "Filter Songs to Patter", mw->actionFilterSongsToPatter(
 KEYACTION(FilterSingers, "Filter Songs to Singing", mw->actionFilterSongsToSingers())
 KEYACTION(FilterToggle, "Toggle Songs Filter", mw->actionFilterSongsPatterSingersToggle())
 
+KEYACTION(AutoscrollToggle, "Toggle Cuesheet Auto-scrolling", mw->actionToggleCuesheetAutoscroll())
+
 KEYACTION(SDSquareYourSets, "SD Square Your Sets", mw->on_actionSDSquareYourSets_triggered())
 KEYACTION(SDHeadsStart, "SD Heads Start", mw->on_actionSDHeadsStart_triggered())
 KEYACTION(SDHeadsSquareThru, "SD Heads Square Thru", mw->on_actionSDHeadsSquareThru_triggered())

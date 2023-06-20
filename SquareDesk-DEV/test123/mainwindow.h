@@ -1037,6 +1037,8 @@ public:
     void actionFilterSongsToSingers();
     void actionFilterSongsPatterSingersToggle();
 
+    void actionToggleCuesheetAutoscroll();
+
     QStringList callListOriginalOrder;
     void loadCallList(SongSettings &songSettings, QTableWidget *tableWidget, const QString &danceProgram, const QString &filename);
     void tableWidgetCallList_checkboxStateChanged(int row, int state);

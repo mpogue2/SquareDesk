@@ -3436,6 +3436,12 @@ void MainWindow::actionFilterSongsToSingers()
         ui->typeSearch->setText(songTypeNamesForSinging[0]);
 }
 
+void MainWindow::actionToggleCuesheetAutoscroll()
+{
+    // toggle automatic scrolling of the cuesheet
+    ui->actionAuto_scroll_during_playback->setChecked(!ui->actionAuto_scroll_during_playback->isChecked());
+}
+
 
 // ----------------------------------------------------------------------
 bool MainWindow::handleKeypress(int key, QString text)
