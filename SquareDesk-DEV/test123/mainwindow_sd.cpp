@@ -650,7 +650,8 @@ void MainWindow::initialize_internal_sd_tab()
     verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
 
     verticalHeader->setVisible(false); // turn off row numbers in the current sequence pane
-    const QString gridStyle = "QTableWidget { font-family: \"Courier New\"; gridline-color: #000000; }";
+    const QString gridStyle = "QTableWidget { gridline-color: #000000; }";
+//    const QString gridStyle = "QTableWidget { font-family: \"Courier New\"; gridline-color: #000000; }";  // how to change font
     ui->tableWidgetCurrentSequence->setStyleSheet(gridStyle);
 }
 
@@ -2007,6 +2008,9 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
     if (cmd.endsWith("square thru")) {
         cmd.replace("square thru", "square thru 4");
     }
+
+    cmd.replace("1/2 breed thru", "brace thru");
+    cmd.replace(" 1 times", ""); // 1 times can always be deleted, as in "Circulate 1 TIMES"
 
     // SD COMMANDS -------
 
