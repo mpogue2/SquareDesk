@@ -523,7 +523,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <item row="15" column="2" colspan="3">
           <widget class="QCheckBox" name="checkBoxSwitchToLyricsOnPlay">
            <property name="text">
-            <string>Switch to Lyrics tab on first play (when lyrics are available)</string>
+            <string>Switch to Cuesheet tab on first play (when a cuesheet is available)</string>
            </property>
           </widget>
          </item>

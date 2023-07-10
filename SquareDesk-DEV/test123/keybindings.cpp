@@ -135,6 +135,8 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::CTRL | Qt::META | Qt::Key_B).toString()] = &keyaction_KeyActionSDHeadsSquareThru;
     keyMappings[QKeySequence(Qt::CTRL | Qt::META | Qt::Key_L).toString()] = &keyaction_KeyActionSDHeads1p2p;
 
+    keyMappings[QKeySequence(Qt::Key_A).toString()] = &keyaction_KeyActionAutoscrollToggle;
+
     if (revisionNumber > 1)
         return keyMappings;
     
@@ -147,8 +149,8 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::Key_Space).toString()] = &keyaction_KeyActionPlaySong;
     keyMappings[QKeySequence(Qt::Key_Home).toString()] = &keyaction_KeyActionRestartSong;
     keyMappings[QKeySequence(Qt::Key_Period).toString()] = &keyaction_KeyActionRestartSong;
-    keyMappings[QKeySequence(Qt::Key_Right).toString()] = &keyaction_KeyActionForward15Seconds;
-    keyMappings[QKeySequence(Qt::Key_Left).toString()] = &keyaction_KeyActionBackward15Seconds;
+//    keyMappings[QKeySequence(Qt::Key_Right).toString()] = &keyaction_KeyActionForward15Seconds;
+//    keyMappings[QKeySequence(Qt::Key_Left).toString()] = &keyaction_KeyActionBackward15Seconds;
 //    keyMappings[QKeySequence(Qt::Key_Down).toString()] = &keyaction_KeyActionVolumeMinus;
 //    keyMappings[QKeySequence(Qt::Key_Up).toString()] = &keyaction_KeyActionVolumePlus;
     keyMappings[QKeySequence(Qt::Key_Plus).toString()] = &keyaction_KeyActionTempoPlus;

@@ -650,7 +650,7 @@ void MainWindow::initialize_internal_sd_tab()
     verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
 
     verticalHeader->setVisible(false); // turn off row numbers in the current sequence pane
-    const QString gridStyle = "QTableWidget { gridline-color: #000000; }";
+    const QString gridStyle = "QTableWidget { font-family: \"Courier New\"; gridline-color: #000000; }";
     ui->tableWidgetCurrentSequence->setStyleSheet(gridStyle);
 }
 

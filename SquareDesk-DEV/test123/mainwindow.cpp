@@ -4896,7 +4896,7 @@ void MainWindow::on_actionPreferences_triggered()
         // Show the Lyrics tab, if it is enabled now
 //        lyricsTabNumber = (showTimersTab ? 2 : 1);
 
-        bool isPatter = songTypeNamesForPatter.contains(currentSongType);
+//        bool isPatter = songTypeNamesForPatter.contains(currentSongType);
 //        qDebug() << "actionPreferences_triggered: " << currentSongType << isPatter;
 
         ui->tabWidget->setTabText(lyricsTabNumber, CUESHEET_TAB_NAME);

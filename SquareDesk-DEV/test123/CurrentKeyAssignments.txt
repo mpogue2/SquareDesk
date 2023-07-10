@@ -19,7 +19,7 @@ P Play/Pause
 Q Test Loop
 R
 S Save (whatever)
-T Toggle Music/Lyrics Tab, Toggle Songs Filter
+T Toggle Music/Cuesheet Tab, Toggle Songs Filter
 U Pitch UP
 V Paste [editing]
 W

@@ -2744,7 +2744,7 @@
    </widget>
    <widget class="QMenu" name="menuLyrics">
     <property name="title">
-     <string>Lyrics</string>
+     <string>Cuesheet</string>
     </property>
     <widget class="QMenu" name="menuFont">
      <property name="title">
@@ -4185,7 +4185,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Auto-format Lyrics</string>
+    <string>Auto-format Cuesheet</string>
    </property>
   </action>
   <action name="actionSD_Output">
