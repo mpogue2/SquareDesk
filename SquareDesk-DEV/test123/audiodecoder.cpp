@@ -838,7 +838,10 @@ void AudioDecoder::finished()
 
     BPM = BPMsample(60,30,125,15);  // this was the best compromise, now gets almost all of the problematic songs right
 
-    beatBarDetection(); // NOTE: can only call this when the audio is completely in memory
+//    beatBarDetection(); // NOTE: can only call this when the audio is completely in memory
+
+    beatMap.clear();  // when an audio file is loaded, it has no beatMap or measureMap calculated yet
+    measureMap.clear();
 
     emit done();
 }
@@ -990,14 +993,10 @@ void AudioDecoder::beatBarDetection() {
 // NOTE: this can only be called after the file is completely loaded into memory!
 
 // set to 1 to enable beat detection
-#define DOBEATDETECTION 0
+#define DOBEATDETECTION 1
 
 #if DOBEATDETECTION==1
-    qDebug() << "AudioDecoder::beatBarDetection() START";
-
-    // IF IT'S ALREADY IN THE SQLITE CACHE, READ IT, DECOMPRESS IT, AND RETURN RESULTS =======
-
-        // TO DO ---------
+//    qDebug() << "AudioDecoder::beatBarDetection() START =============";
 
     // CREATE MONO VERSION OF AUDIO DATA =============================================
     unsigned char *p_data = (unsigned char *)(m_data->data());
@@ -1042,7 +1041,7 @@ void AudioDecoder::beatBarDetection() {
     }
 #endif
 
-    qDebug() << "Temp WAV filename: " << WAVfilename;
+//    qDebug() << "Temp WAV filename: " << WAVfilename;
 
     WAV_FILE_INFO wavInfo2 = wav_set_info(44100, framesInSong,1,16,2,1);   // assumes 44.1KHz sample rate, floats, range: -1.0 to 1.0
     wav_write_file_float1(monoBuffer, WAVfilename.toStdString().c_str(), wavInfo2, framesInSong);   // write entire song as mono to a file
@@ -1072,96 +1071,185 @@ void AudioDecoder::beatBarDetection() {
     }
 #endif
 
-    qDebug() << "Temp RESULTS filename: " << resultsFilename;
+//    qDebug() << "Temp RESULTS filename: " << resultsFilename;
 
     // ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
     QString pathNameToVamp("/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk/host/vamp-simple-host");  // TODO: stick vamp-simple-host into SquareDesk_1.0.5.app/Contents/MacOS
     QProcess vamp;
     vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
 
-    // synchronous: wait for vamp to finish
+    // SYNCHRONOUS: wait for vamp to finish
     if (!vamp.waitForFinished()) {
         return;
     }
 
-    // READ IN THE RESULTS AND DO FIRST LEVEL COMPRESSION TO STRING =====================
+    // READ IN THE RESULTS, AND SETUP THE BEATMAP AND THE MEASUREMAP =====================
+
     QFile resultsFile(resultsFilename);
     if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
-        qDebug() << "ERROR 7";
+        qDebug() << "ERROR 7: Could not open results of Vamp";
         return;
     }
+
     QTextStream in(&resultsFile);
-    bool foundFirstLine = false;
-    QString deltaString;
-    unsigned long lastSample;
     for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
         QStringList pieces = line.split(":");
         bool ok1, ok2;
         unsigned long sampleNum = pieces[0].toULong(&ok1);
         unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
 //        qDebug() << "Line: " << line << sampleNum << beatNum;
-        if (!foundFirstLine) {
-            if (beatNum == 1) {
-                foundFirstLine = true;
-                deltaString.append(pieces[0]);
-            }
-        } else {
-            QString s = QString::number(sampleNum - lastSample);
-            if (beatNum != 1) {
-                deltaString.append(',');
-            }
-            deltaString.append(s);
-            if (beatNum == 4) {
-//                deltaString.append(";"); // TODO: assumes always finds 4/4 time
-                deltaString.append(","); // TODO: assumes always finds 4/4 time
-            }
+
+        beatMap.push_back(sampleNum/44100.0); // time_sec
+        if (beatNum == 1) {
+            measureMap.push_back(sampleNum/44100.0); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
         }
-        lastSample = sampleNum;
     }
 
-    // SECOND LEVEL COMPRESSION TO BINARY ================================================
-    qDebug() << "COMPRESSED STRING: " << deltaString << deltaString.length();
+//    // READ IN THE RESULTS AND DO FIRST LEVEL COMPRESSION TO STRING =====================
+//    QFile resultsFile(resultsFilename);
+//    if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
+//        qDebug() << "ERROR 7";
+//        return;
+//    }
+//    QTextStream in(&resultsFile);
+//    bool foundFirstLine = false;
+//    QString deltaString;
+//    unsigned long lastSample;
+//    for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
+//        QStringList pieces = line.split(":");
+//        bool ok1, ok2;
+//        unsigned long sampleNum = pieces[0].toULong(&ok1);
+//        unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
+////        qDebug() << "Line: " << line << sampleNum << beatNum;
+//        if (!foundFirstLine) {
+//            if (beatNum == 1) {
+//                foundFirstLine = true;
+//                deltaString.append(pieces[0]);
+//            }
+//        } else {
+//            QString s = QString::number(sampleNum - lastSample);
+//            if (beatNum != 1) {
+//                deltaString.append(',');
+//            }
+//            deltaString.append(s);
+//            if (beatNum == 4) {
+////                deltaString.append(";"); // TODO: assumes always finds 4/4 time
+//                deltaString.append(","); // TODO: assumes always finds 4/4 time
+//            }
+//        }
+//        lastSample = sampleNum;
+//    }
 
-    QByteArray ba = qCompress(deltaString.toUtf8());
-    QString compressedString = ba.toBase64();
+//    // SECOND LEVEL COMPRESSION TO BINARY ================================================
+//    qDebug() << "COMPRESSED STRING: " << deltaString << deltaString.length();
 
-    qDebug() << "ba: " << ba << ba.length();
-    qDebug() << "compressedString: " << compressedString << compressedString.length();  // only 232 bytes for Hawk Mountain beat map
+//    QByteArray ba = qCompress(deltaString.toUtf8());
+//    QString compressedString = ba.toBase64();
 
-    // WRITE RESULTS TO CACHE IN SQLITE DB ===============================================
+//    qDebug() << "ba: " << ba << ba.length();
+//    qDebug() << "compressedString: " << compressedString << compressedString.length();  // only 232 bytes for Hawk Mountain beat map
 
-        // TO DO ------------
+//    // DECOMPRESS AND COMPARE (FOR TESTING ONLY) =========================================
+//    QByteArray ba1(compressedString.toUtf8());      // convert QString to QByteArray
+//    qDebug() << "ba1: " << ba1 << ba1.length();
 
-    // DECOMPRESS AND COMPARE (FOR TESTING ONLY) =========================================
-    QByteArray ba1(compressedString.toUtf8());      // convert QString to QByteArray
-    qDebug() << "ba1: " << ba1 << ba1.length();
+//    QByteArray ba2 = QByteArray::fromBase64(ba1);   // remove base64 encoding
+//    qDebug() << "ba2: " << ba2 << ba2.length();
 
-    QByteArray ba2 = QByteArray::fromBase64(ba1);   // remove base64 encoding
-    qDebug() << "ba2: " << ba2 << ba2.length();
+//    QString deltaString2 = QString(qUncompress(ba2));     // uncompress it
+//    qDebug() << "uncompressed deltaString: " << deltaString2 << deltaString2.length();
 
-    QString deltaString2 = QString(qUncompress(ba2));     // uncompress it
-    qDebug() << "uncompressed deltaString: " << deltaString2 << deltaString2.length();
+//    QStringList slist = deltaString2.split(',');
 
-    QStringList slist = deltaString2.split(',');
+//    QVector<ulong> beats;
+//    int whichBeat = 1;
+//    bool ok3;
+//    unsigned long lastSampleNum = 0;
 
-    QVector<ulong> beats;
-    int whichBeat = 1;
-    bool ok3;
-    unsigned long lastSampleNum = 0;
+//    for ( const auto& s : slist )
+//    {
+//        if (whichBeat++ == 1) {
+//            lastSampleNum = s.toLong(&ok3);
+//        } else {
+//            lastSampleNum += s.toLong(&ok3);
+//        }
+//        beats.append(lastSampleNum);
+//    }
 
-    for ( const auto& s : slist )
-    {
-        if (whichBeat++ == 1) {
-            lastSampleNum = s.toLong(&ok3);
-        } else {
-            lastSampleNum += s.toLong(&ok3);
-        }
-        beats.append(lastSampleNum);
-    }
+//    qDebug() << "beats: " << beats; // implicitly starts at beat 1, use modulo 4 on index to determine beat-in-measure
 
-    qDebug() << "beats: " << beats; // implicitly starts at beat 1, use modulo 4 on index to determine beat-in-measure
-
-    // CLEANUP ===========================================================================
-    qDebug() << "AudioDecoder::beatBarDetection DONE ===========";
 #endif
+}
+
+// Helper function (only used below in this file)
+unsigned int find_closest(const std::vector<double>& sorted_array, double x) {
+
+    auto iter_geq = std::lower_bound(
+        sorted_array.begin(),
+        sorted_array.end(),
+        x
+        );
+
+    if (iter_geq == sorted_array.begin()) {
+        return 0;
+    }
+
+    double a = *(iter_geq - 1);
+    double b = *(iter_geq);
+
+    if (fabs(x - a) < fabs(x - b)) {
+        return iter_geq - sorted_array.begin() - 1;
+    }
+
+    return iter_geq - sorted_array.begin();
+}
+
+// -----------------------------------
+double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
+
+    if (granularity == GRANULARITY_NONE) {
+        // don't bother to calculate the beatMap and measureMap, if snapping is disabled
+        return(time_sec);
+    }
+
+    // if no beapMap has been calculated, do it now
+    if (beatMap.empty()) {
+
+        beatBarDetection(); // calculate both the beatMap and the measureMap
+
+// DEBUG: show me the results -----
+//        for (unsigned long i = 0; i < beatMap.size(); i+=4)
+//        {
+//            qDebug() << "BEAT:" << beatMap[i] << beatMap[i+1] << beatMap[i+2] << beatMap[i+3];
+//        }
+
+//        for (unsigned long i = 0; i < measureMap.size(); i+=4)
+//        {
+//            qDebug() << "MEASURE: " << measureMap[i] << measureMap[i+1] << measureMap[i+2] << measureMap[i+3];
+//        }
+    }
+
+    double result_sec = time_sec;
+    unsigned int result_index = 0;
+
+    switch (granularity) {
+       case GRANULARITY_NONE:
+        // should never get here, we exited early in this case
+        qDebug() << "ERROR 122: unexpected GRANULARITY_NONE";
+        break;
+       case GRANULARITY_BEAT:
+        result_index = find_closest(beatMap, time_sec);
+        result_sec = beatMap[result_index];
+        break;
+       case GRANULARITY_MEASURE:
+        result_index = find_closest(measureMap, time_sec);
+        result_sec = measureMap[result_index];
+        break;
+       default:
+        qDebug() << "ERROR 123: unexpected Granularity" << granularity;
+        break;
+    }
+
+//    qDebug() << "AudioDecoder::snapToClosest: " << time_sec << granularity << ", returns: " << result_index << result_sec;
+    return(result_sec);
 }

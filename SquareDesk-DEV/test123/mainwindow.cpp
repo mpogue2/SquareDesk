@@ -2788,6 +2788,11 @@ void MainWindow::getCurrentPointInStream(double *pos, double *len) {
     *len = length;
 }
 
+// DEBUG DEBUG DEBUG ==========================
+#define TEST_GRANULARITY (GRANULARITY_NONE)
+//#define TEST_GRANULARITY (GRANULARITY_BEAT)
+//#define TEST_GRANULARITY (GRANULARITY_MEASURE)
+
 // --------------------------------1--------------------------------------
 void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
@@ -2798,6 +2803,9 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     QTime currentOutroTime = ui->dateTimeEditOutroTime->time();
     double currentOutroTimeSec = 60.0*currentOutroTime.minute() + currentOutroTime.second() + currentOutroTime.msec()/1000.0;
     position = fmax(0.0, fmin(position, static_cast<int>(currentOutroTimeSec)-6) );
+
+    // snap to nothing/bar/beat, depending on current snap setting --------
+    position = cBass->snapToClosest(position, TEST_GRANULARITY);
 
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
@@ -2820,6 +2828,11 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     QTime currentIntroTime = ui->dateTimeEditIntroTime->time();
     double currentIntroTimeSec = 60.0*currentIntroTime.minute() + currentIntroTime.second() + currentIntroTime.msec()/1000.0;
     position = fmin(length, fmax(position, static_cast<int>(currentIntroTimeSec)+6) );
+
+    // snap to nothing/bar/beat, depending on current snap setting --------
+    //   this call dups that of setIntroTimeClicked above, in case we need to snap in and out points separately
+    //   so I am intentionally NOT putting this into getCurrentPointInStream() right now...
+    position = cBass->snapToClosest(position, TEST_GRANULARITY);
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds

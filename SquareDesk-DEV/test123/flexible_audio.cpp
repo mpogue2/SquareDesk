@@ -476,3 +476,9 @@ void flexible_audio::StopAllSoundEffects() {
     currentSoundEffectID = 0;   // no sound effect is playing now
 }
 
+double flexible_audio::snapToClosest(double time_sec, unsigned char granularity) {
+//    qDebug() << "flexible_audio::snapToClosest: " << time_sec << granularity;
+
+    double result_sec = decoder.snapToClosest(time_sec, granularity);  // ask the AudioDecoder
+    return(result_sec);
+}

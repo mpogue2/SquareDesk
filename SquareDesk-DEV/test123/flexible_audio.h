@@ -137,6 +137,8 @@ public:
     void StreamSetPosition(double Position);
     void StreamGetPosition(void);
 
+    double snapToClosest(double time_sec, unsigned char granularity);
+
     bool isPaused(void); // returns true if paused, false if playing
 
     //Controls

@@ -101,11 +101,14 @@
 #include <QAudioDevice>
 #include <QAudioSink>
 #endif /* else if defined Q_OS_LINUX */
+
 // BASS_ChannelIsActive return values
 #define BASS_ACTIVE_STOPPED 0
 #define BASS_ACTIVE_PLAYING 1
 #define BASS_ACTIVE_STALLED 2
 #define BASS_ACTIVE_PAUSED  3
+
+#include <vector>
 
 class AudioDecoder : public QObject
 {
@@ -161,6 +164,12 @@ public:
     float BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
     void beatBarDetection();
 
+#define GRANULARITY_NONE 0
+#define GRANULARITY_BEAT 1
+#define GRANULARITY_MEASURE 2
+
+    double snapToClosest(double time_sec, unsigned char granularity);
+
     unsigned char getCurrentState();
 
     unsigned int playPosition_frames;
@@ -195,6 +204,9 @@ private:
     double BPM;
 
     QString m_currentAudioOutputDeviceName;
+
+    std::vector<double> beatMap;    // contains all beats
+    std::vector<double> measureMap; // contains all the beat 1's
 };
 
 #endif // AUDIODECODER_H
