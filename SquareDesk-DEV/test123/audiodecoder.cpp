@@ -34,7 +34,9 @@
 #include <QAudioDevice>
 #endif /* else if defined Q_OS_LINUX */
 #include <QElapsedTimer>
+#include <QProcess>
 #include <QThread>
+#include <QTemporaryFile>
 
 // EQ ----------
 #include <kfr/base.hpp>
@@ -57,6 +59,9 @@ using namespace breakfastquay;
 // PITCH/TEMPO ==============
 // SoundTouch BPM detection and pitch/tempo changing --------
 #include "SoundTouch.h"
+
+// BEAT/BAR DETECTION =======
+#include "wav_file.h"
 
 // Processing chunk size (size chosen to be divisible by 2, 4, 6, etc. channels ...)
 #define SOUNDTOUCH_BUFF_SIZE           6720
@@ -780,6 +785,8 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     myPlayer.totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
     //    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
+//    qDebug() << "BPMsample: " << m_data->size()/myPlayer.bytesPerFrame << p_data;
+
     // BPM detection -------
     //   this estimate will be based on mono mixed-down samples from T={30,40} sec
     const float *songPointer = (const float *)p_data;
@@ -799,7 +806,9 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
 
     //    qDebug() << "***** BPM DEBUG: " << songLength_sec << start_sec << end_sec << offsetIntoSong_samples << numSamplesToLookAt;
 
-    float monoBuffer[numSamplesToLookAt];
+    // ==================
+    float *monoBuffer = new float[numSamplesToLookAt];
+
     for (unsigned int i = 0; i < numSamplesToLookAt; i++) {
         // mixdown to mono
         monoBuffer[i] = 0.5*songPointer[2*(i+offsetIntoSong_samples)] + 0.5*songPointer[2*(i+offsetIntoSong_samples)+1];
@@ -809,10 +818,15 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     BPMestimator.setBPMRange(BPMbase-BPMtolerance, BPMbase+BPMtolerance);  // limited range for square dance songs, else use percent
     finalBPMresult = BPMestimator.estimateTempoOfSamples(monoBuffer, numSamplesToLookAt); // 10 seconds of samples
 
+//    qDebug() << "finalBPMresult: " << finalBPMresult;
+
     if (end_sec - start_sec < 10.0) {
         // if we don't have enough song left to really know what the BPM is, just say "I don't know"
         finalBPMresult = 0.0;
     }
+
+    delete[] monoBuffer;
+
     return finalBPMresult;
 }
 
@@ -823,6 +837,9 @@ void AudioDecoder::finished()
 //    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
 
     BPM = BPMsample(60,30,125,15);  // this was the best compromise, now gets almost all of the problematic songs right
+
+    beatBarDetection(); // NOTE: can only call this when the audio is completely in memory
+
     emit done();
 }
 
@@ -967,4 +984,184 @@ void AudioDecoder::StartVolumeDucking(int duckToPercent, double forSeconds) {
 
 void AudioDecoder::StopVolumeDucking() {
     myPlayer.StopVolumeDucking();
+}
+
+void AudioDecoder::beatBarDetection() {
+// NOTE: this can only be called after the file is completely loaded into memory!
+
+// set to 1 to enable beat detection
+#define DOBEATDETECTION 0
+
+#if DOBEATDETECTION==1
+    qDebug() << "AudioDecoder::beatBarDetection() START";
+
+    // IF IT'S ALREADY IN THE SQLITE CACHE, READ IT, DECOMPRESS IT, AND RETURN RESULTS =======
+
+        // TO DO ---------
+
+    // CREATE MONO VERSION OF AUDIO DATA =============================================
+    unsigned char *p_data = (unsigned char *)(m_data->data());
+    unsigned int framesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
+    const float *songPointer = (const float *)p_data;  // these are floats, range: -1.0 to 1.0
+
+    float *monoBuffer = new float[framesInSong];
+
+    for (unsigned int i = 0; i < framesInSong; i++) {
+        monoBuffer[i] = 0.5*(songPointer[2*i] + songPointer[2*i+1]); // mixdown ENTIRE SONG to mono
+    }
+
+    // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK =======================
+    biquad_params<float> bq[1];
+    bq[0] = biquad_lowpass(1500.0 / 44100.0, 0.5); // Q = 0.5
+    biquad_filter<float> *filter = new biquad_filter<float>(bq);  // init the filter
+
+    filter->apply(monoBuffer, framesInSong);   // NOTE: applies IN PLACE
+
+    delete filter;
+
+    // WRITE MONO VERSION OF FILE OUT TO DISK ==========================================
+#define USETEMPFILES 0
+    // Make a temp file name (or not) -----------
+    QString WAVfilename;
+#if USETEMPFILES==1
+    QTemporaryFile temp1;  // use a temporary file
+    bool errOpen = temp1.open();
+    WAVfilename = temp1.fileName(); // the open created it, if it's a temp file
+    if (!errOpen) {
+        qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
+        delete[] monoBuffer;
+        return;
+    }
+#else
+    WAVfilename = "/Users/mpogue/beatDetect.wav";
+    QFile temp1(WAVfilename);  // use a file in a known location
+    if (!temp1.open(QIODevice::WriteOnly)) {
+        qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
+        delete[] monoBuffer;
+        return;
+    }
+#endif
+
+    qDebug() << "Temp WAV filename: " << WAVfilename;
+
+    WAV_FILE_INFO wavInfo2 = wav_set_info(44100, framesInSong,1,16,2,1);   // assumes 44.1KHz sample rate, floats, range: -1.0 to 1.0
+    wav_write_file_float1(monoBuffer, WAVfilename.toStdString().c_str(), wavInfo2, framesInSong);   // write entire song as mono to a file
+
+    delete[] monoBuffer;  // we don't need the data anymore (until we decide to call the library directly, instead of via QProcess)
+
+    // NOW DO BAR/BEAT DETECTION ON THAT WAV FILE VIA EXTERNAL VAMP PROCESS =============
+
+    // Make a file for the results ----------
+    QString resultsFilename;
+#if USETEMPFILES==1
+    QTemporaryFile temp2;  // use a temporary file
+    bool errOpen2 = temp2.open();
+    resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
+    if (!errOpen2) {
+        resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
+        qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
+        return;
+    }
+#else
+    resultsFilename = "/Users/mpogue/beatDetect.results.txt";
+    QFile temp2(resultsFilename); // use a file in a known location
+    if (!temp2.open(QIODevice::WriteOnly)) {
+        resultsFilename = temp2.fileName();
+        qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
+        return;
+    }
+#endif
+
+    qDebug() << "Temp RESULTS filename: " << resultsFilename;
+
+    // ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
+    QString pathNameToVamp("/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk/host/vamp-simple-host");  // TODO: stick vamp-simple-host into SquareDesk_1.0.5.app/Contents/MacOS
+    QProcess vamp;
+    vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
+
+    // synchronous: wait for vamp to finish
+    if (!vamp.waitForFinished()) {
+        return;
+    }
+
+    // READ IN THE RESULTS AND DO FIRST LEVEL COMPRESSION TO STRING =====================
+    QFile resultsFile(resultsFilename);
+    if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
+        qDebug() << "ERROR 7";
+        return;
+    }
+    QTextStream in(&resultsFile);
+    bool foundFirstLine = false;
+    QString deltaString;
+    unsigned long lastSample;
+    for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
+        QStringList pieces = line.split(":");
+        bool ok1, ok2;
+        unsigned long sampleNum = pieces[0].toULong(&ok1);
+        unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
+//        qDebug() << "Line: " << line << sampleNum << beatNum;
+        if (!foundFirstLine) {
+            if (beatNum == 1) {
+                foundFirstLine = true;
+                deltaString.append(pieces[0]);
+            }
+        } else {
+            QString s = QString::number(sampleNum - lastSample);
+            if (beatNum != 1) {
+                deltaString.append(',');
+            }
+            deltaString.append(s);
+            if (beatNum == 4) {
+//                deltaString.append(";"); // TODO: assumes always finds 4/4 time
+                deltaString.append(","); // TODO: assumes always finds 4/4 time
+            }
+        }
+        lastSample = sampleNum;
+    }
+
+    // SECOND LEVEL COMPRESSION TO BINARY ================================================
+    qDebug() << "COMPRESSED STRING: " << deltaString << deltaString.length();
+
+    QByteArray ba = qCompress(deltaString.toUtf8());
+    QString compressedString = ba.toBase64();
+
+    qDebug() << "ba: " << ba << ba.length();
+    qDebug() << "compressedString: " << compressedString << compressedString.length();  // only 232 bytes for Hawk Mountain beat map
+
+    // WRITE RESULTS TO CACHE IN SQLITE DB ===============================================
+
+        // TO DO ------------
+
+    // DECOMPRESS AND COMPARE (FOR TESTING ONLY) =========================================
+    QByteArray ba1(compressedString.toUtf8());      // convert QString to QByteArray
+    qDebug() << "ba1: " << ba1 << ba1.length();
+
+    QByteArray ba2 = QByteArray::fromBase64(ba1);   // remove base64 encoding
+    qDebug() << "ba2: " << ba2 << ba2.length();
+
+    QString deltaString2 = QString(qUncompress(ba2));     // uncompress it
+    qDebug() << "uncompressed deltaString: " << deltaString2 << deltaString2.length();
+
+    QStringList slist = deltaString2.split(',');
+
+    QVector<ulong> beats;
+    int whichBeat = 1;
+    bool ok3;
+    unsigned long lastSampleNum = 0;
+
+    for ( const auto& s : slist )
+    {
+        if (whichBeat++ == 1) {
+            lastSampleNum = s.toLong(&ok3);
+        } else {
+            lastSampleNum += s.toLong(&ok3);
+        }
+        beats.append(lastSampleNum);
+    }
+
+    qDebug() << "beats: " << beats; // implicitly starts at beat 1, use modulo 4 on index to determine beat-in-measure
+
+    // CLEANUP ===========================================================================
+    qDebug() << "AudioDecoder::beatBarDetection DONE ===========";
+#endif
 }

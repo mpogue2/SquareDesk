@@ -159,6 +159,7 @@ public:
     double getBPM();
 
     float BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
+    void beatBarDetection();
 
     unsigned char getCurrentState();
 

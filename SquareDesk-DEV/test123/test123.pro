@@ -189,7 +189,8 @@ HEADERS  += mainwindow.h \
     mydatetimeedit.h \
     keyactions.h \
     songsetting_attributes.h \
-    tablelabelitem.h
+    tablelabelitem.h \
+    wav_file.h
 
 unix {
 HEADERS += ../qpdfjs/src/communicator.h
