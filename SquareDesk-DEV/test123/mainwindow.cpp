@@ -3177,6 +3177,7 @@ void MainWindow::aboutBox()
                    QString("<a href=\"https://github.com/breakfastquay/minibpm\">miniBPM</a>, ") +
 //                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
 //                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
+                   QString("<a href=\"https://vamp-plugins.org/plugin-doc/qm-vamp-plugins.html\">QM Vamp</a>, ") +
                    QString("<a href=\"https://www.kfrlib.com\">kfr</a>, and ") +
                    QString("<a href=\"https://www.surina.net/soundtouch/\">SoundTouch</a>.") +
                    QString("<p>Thanks to: <a href=\"http://all8.com\">all8.com</a>"));
