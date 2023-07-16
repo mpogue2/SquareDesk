@@ -24,7 +24,9 @@
 ****************************************************************************/
 
 #include "audiodecoder.h"
+#include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <stdio.h>
 #if defined(Q_OS_LINUX)
 #include <QtMultimedia/QMediaDevices>
@@ -34,6 +36,7 @@
 #include <QAudioDevice>
 #endif /* else if defined Q_OS_LINUX */
 #include <QElapsedTimer>
+#include <QMessageBox>
 #include <QProcess>
 #include <QThread>
 #include <QTemporaryFile>
@@ -1073,8 +1076,48 @@ void AudioDecoder::beatBarDetection() {
 
 //    qDebug() << "Temp RESULTS filename: " << resultsFilename;
 
-    // ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
-    QString pathNameToVamp("/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk/host/vamp-simple-host");  // TODO: stick vamp-simple-host into SquareDesk_1.0.5.app/Contents/MacOS
+    // TEST: ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
+//    QString pathNameToVamp("/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk/host/vamp-simple-host");  // TODO: stick vamp-simple-host into SquareDesk_1.0.5.app/Contents/MacOS
+    QString pathNameToVamp(QCoreApplication::applicationDirPath());
+    pathNameToVamp.append("/vamp-simple-host");
+//    qDebug() << "VAMP path: " << pathNameToVamp;
+
+    // TO BUILD VAMP ON MAC OS X:
+    //   add "." to path list on PluginHostAdapter.cpp:L87  <-- this allows the vamp-simple-host to find the .dylib, if in the same folder as the executable
+    //   in Makefile.osx, change "./lib/vamp-plugin-sdk/libvamp-sdk.a" to "../vamp-plugin-sdk/libvamp-sdk.a"
+    //   NOTE: This will be an X86 executable, that will run on either M1 or X86 Mac
+    //
+    //   cd qm_vamp-plugins-1.8.0
+    //   make -f build/osx/Makefile.osx
+    //
+    //   cd /Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk
+    //   make -f build/Makefile.osx
+    //
+    // TO INSTALL VAMP:
+    // cd host
+    // cp ../../../qm-vamp-plugins.dylib .
+    // ./vamp-simple-host should already be there (because it's built here)
+    //
+    // Manually copy the dylib and the executable to the folder where the SquareDesk executable lives
+    // cp *.dylib /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_6_4_3_for_macOS-Release/test123/SquareDesk.app/Contents/MacOS
+    // cp vamp-simple-host /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_6_4_3_for_macOS-Release/test123/SquareDesk.app/Contents/MacOS
+    //
+    // TEST IT:
+    //   cd host   OR cd /Users/mpogue/clean3/SquareDesk/build-SquareDesk-Qt_6_4_3_for_macOS-Release/test123/SquareDesk.app/Contents/MacOS
+    //   ./vamp-simple-host -l
+    //       should include "." in the path (so we know you got the one we just built)
+    //       AND it should list "qm-barbeattracker" (so we know it found the dylib)
+
+    if (!QFileInfo::exists(pathNameToVamp) ) {
+        QMessageBox msgBox;
+        msgBox.setText(QString("ERROR: Could not find Vamp executable.<P>Snapping is disabled."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+        return;
+    }
+
     QProcess vamp;
     vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
 
@@ -1209,9 +1252,10 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
 
     if (granularity == GRANULARITY_NONE) {
         // don't bother to calculate the beatMap and measureMap, if snapping is disabled
-        return(time_sec);
+        return(time_sec);    // no snapping, just return the time we were given
     }
 
+    // SNAPPING IS ON ==============================
     // if no beapMap has been calculated, do it now
     if (beatMap.empty()) {
 
@@ -1227,6 +1271,11 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
 //        {
 //            qDebug() << "MEASURE: " << measureMap[i] << measureMap[i+1] << measureMap[i+2] << measureMap[i+3];
 //        }
+    }
+
+    // OOPS: if beatMap is empty here, that means that the Vamp executable wasn't found, and we really can't do anything
+    if (beatMap.empty()) {
+        return(time_sec);  // no snapping, just return the time we were given
     }
 
     double result_sec = time_sec;

@@ -492,6 +492,19 @@ macx {
     export(copydata3p.commands)
     export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
+
+    # For the Beat/Bar Detector (Vamp): modify the VAMPPATH according to where you built the executable and dylib --------------
+    #  FIX: THIS PATH IS TEMPORARY AND SPECIFIC TO MY MACHINE (this will change when VAMP is checked into our repo)
+    #  For now, for manual VAMP build instructions for MAC OS X, see AudioDecoder.cpp:L1085
+    #  If you don't want beat/bar detection right now, just comment out the following 8 lines:
+#    VAMPPATH="/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0"
+#    copydata1v.commands = $(COPY_DIR) $${VAMPPATH}/lib/vamp-plugin-sdk/host/vamp-simple-host    $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    copydata2v.commands = $(COPY_DIR) $${VAMPPATH}/qm-vamp-plugins.dylib                        $$OUT_PWD/SquareDesk.app/Contents/MacOS
+#    first.depends += copydata1v copydata2v
+#    export(first.depends)
+#    export(copydata1v.commands)
+#    export(copydata2v.commands)
+#    QMAKE_EXTRA_TARGETS += copydata1v copydata2v
 }
 
 # USE THIS ONE FOR STUFF THAT IS FOR NON-M1 (i.e. X86_64) MACS ONLY *********
