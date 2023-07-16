@@ -1022,7 +1022,7 @@ void AudioDecoder::beatBarDetection() {
     delete filter;
 
     // WRITE MONO VERSION OF FILE OUT TO DISK ==========================================
-#define USETEMPFILES 0
+#define USETEMPFILES 1
     // Make a temp file name (or not) -----------
     QString WAVfilename;
 #if USETEMPFILES==1
