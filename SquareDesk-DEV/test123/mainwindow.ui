@@ -2586,6 +2586,14 @@
      <addaction name="separator"/>
      <addaction name="actionStop_Sound_FX"/>
     </widget>
+    <widget class="QMenu" name="menuSnap_Loop_Points">
+     <property name="title">
+      <string>Snap Loop Points</string>
+     </property>
+     <addaction name="actionDisabled"/>
+     <addaction name="actionNearest_Beat"/>
+     <addaction name="actionNearest_Measure"/>
+    </widget>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
@@ -2607,6 +2615,7 @@
     <addaction name="actionLoop"/>
     <addaction name="actionTest_Loop"/>
     <addaction name="actionIn_Out_Loop_points_to_default"/>
+    <addaction name="menuSnap_Loop_Points"/>
     <addaction name="separator"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
     <addaction name="actionAutostart_playback"/>
@@ -4267,6 +4276,33 @@
   <action name="actionSave_Current_Dance_As_HTML">
    <property name="text">
     <string>Save Current Dance As HTML...</string>
+   </property>
+  </action>
+  <action name="actionDisabled">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Disabled</string>
+   </property>
+  </action>
+  <action name="actionNearest_Beat">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Nearest Beat</string>
+   </property>
+  </action>
+  <action name="actionNearest_Measure">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Nearest Measure</string>
    </property>
   </action>
  </widget>

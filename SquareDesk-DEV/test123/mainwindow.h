@@ -263,6 +263,8 @@ public:
 
     QActionGroup *flashCallTimingActionGroup;
 
+    QActionGroup *snapActionGroup; // snapping in Music menu
+
     QSplashScreen *theSplash;
     void checkLockFile();  // implicitly accesses theSplash
     void clearLockFile(QString path);
@@ -685,6 +687,12 @@ private slots:
     void on_actionReport_a_Bug_triggered();
 
     void on_actionSave_Current_Dance_As_HTML_triggered();
+
+    void on_actionDisabled_triggered();
+
+    void on_actionNearest_Beat_triggered();
+
+    void on_actionNearest_Measure_triggered();
 
 public:
     void on_threadSD_errorString(QString str);

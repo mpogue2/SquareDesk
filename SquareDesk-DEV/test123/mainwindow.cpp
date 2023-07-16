@@ -1146,6 +1146,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->action20_seconds->setActionGroup(flashCallTimingActionGroup);
     ui->action15_seconds->setChecked(true);
 
+    // mutually exclusive items in Music > Snap To menu
+    snapActionGroup = new QActionGroup(this);
+    ui->actionDisabled->setActionGroup(snapActionGroup);
+    ui->actionNearest_Beat->setActionGroup(snapActionGroup);
+    ui->actionNearest_Measure->setActionGroup(snapActionGroup);
+
     t.elapsed(__LINE__);
 
     QString flashCallTimingSecs = prefsManager.Getflashcalltiming();
@@ -1160,6 +1166,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     }
     updateFlashFileMenu();
     readFlashCallsList();
+
+    QString snapSetting = prefsManager.Getsnap();
+    if (snapSetting == "disabled") {
+        ui->actionDisabled->setChecked(true);
+    } else if (snapSetting == "beat") {
+        ui->actionNearest_Beat->setChecked(true);
+    } else {
+        // "measure"
+        ui->actionNearest_Measure->setChecked(true);
+    }
 
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
@@ -2788,11 +2804,6 @@ void MainWindow::getCurrentPointInStream(double *pos, double *len) {
     *len = length;
 }
 
-// DEBUG DEBUG DEBUG ==========================
-#define TEST_GRANULARITY (GRANULARITY_NONE)
-//#define TEST_GRANULARITY (GRANULARITY_BEAT)
-//#define TEST_GRANULARITY (GRANULARITY_MEASURE)
-
 // --------------------------------1--------------------------------------
 void MainWindow::on_pushButtonSetIntroTime_clicked()
 {
@@ -2805,7 +2816,14 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     position = fmax(0.0, fmin(position, static_cast<int>(currentOutroTimeSec)-6) );
 
     // snap to nothing/bar/beat, depending on current snap setting --------
-    position = cBass->snapToClosest(position, TEST_GRANULARITY);
+    unsigned char granularity = GRANULARITY_NONE;
+    if (ui->actionNearest_Beat->isChecked()) {
+        granularity = GRANULARITY_BEAT;
+    } else if (ui->actionNearest_Measure->isChecked()) {
+        granularity = GRANULARITY_MEASURE;
+    }
+
+    position = cBass->snapToClosest(position, granularity);
 
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
@@ -2832,7 +2850,14 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     // snap to nothing/bar/beat, depending on current snap setting --------
     //   this call dups that of setIntroTimeClicked above, in case we need to snap in and out points separately
     //   so I am intentionally NOT putting this into getCurrentPointInStream() right now...
-    position = cBass->snapToClosest(position, TEST_GRANULARITY);
+    unsigned char granularity = GRANULARITY_NONE;
+    if (ui->actionNearest_Beat->isChecked()) {
+        granularity = GRANULARITY_BEAT;
+    } else if (ui->actionNearest_Measure->isChecked()) {
+        granularity = GRANULARITY_MEASURE;
+    }
+
+    position = cBass->snapToClosest(position, granularity);
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
@@ -7295,3 +7320,19 @@ void MainWindow::on_actionReport_a_Bug_triggered()
     QDesktopServices::openUrl(QUrl(pathToGithubSquaredeskIssues, QUrl::TolerantMode));
 }
 
+
+// SNAP actions (mutually exclusive) ---------------------
+void MainWindow::on_actionDisabled_triggered()
+{
+    prefsManager.Setsnap("disabled");
+}
+
+void MainWindow::on_actionNearest_Beat_triggered()
+{
+    prefsManager.Setsnap("beat");
+}
+
+void MainWindow::on_actionNearest_Measure_triggered()
+{
+    prefsManager.Setsnap("measure");
+}
