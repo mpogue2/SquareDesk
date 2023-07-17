@@ -102,6 +102,9 @@
 #include <QAudioSink>
 #endif /* else if defined Q_OS_LINUX */
 
+#include <QProcess>
+#include "perftimer.h"
+
 // BASS_ChannelIsActive return values
 #define BASS_ACTIVE_STOPPED 0
 #define BASS_ACTIVE_PLAYING 1
@@ -207,6 +210,12 @@ private:
 
     std::vector<double> beatMap;    // contains all beats
     std::vector<double> measureMap; // contains all the beat 1's
+
+    QProcess vamp;
+    QString WAVfilename;        // these are in the temp directory, and when done, need to be deleted
+    QString resultsFilename;
+
+    PerfTimer *t;
 };
 
 #endif // AUDIODECODER_H

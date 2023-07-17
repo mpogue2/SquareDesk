@@ -296,6 +296,13 @@ void MainWindow::haveDuration2(void) {
     handleDurationBPM();  // finish up the UI stuff, when we know duration and BPM
 
     secondHalfOfLoad(currentSongTitle);  // now that we have duration and BPM, can finish up asynchronous load.
+
+    if (!ui->actionDisabled->isChecked()) {
+        cBass->snapToClosest(0.0, GRANULARITY_BEAT); // this is a throwaway call, just to initiate beat detection ONLY if beat detection is ON
+//           it will take about 1/2 second to initiate the VAMP process, but the UX should already be updated at this point
+//           another 1.6 sec later, the beatMap and measureMap will be filled in.  User should see minimal delay, and ONLY
+//           if beat detection is ON.
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -7331,9 +7338,19 @@ void MainWindow::on_actionDisabled_triggered()
 void MainWindow::on_actionNearest_Beat_triggered()
 {
     prefsManager.Setsnap("beat");
+    if (songLoaded) {
+        // if a song is loaded, and we're just switching to BEAT detect ON,
+        //   initiate a VAMP beat detection in the background (it'll be done after 2 sec)
+        cBass->snapToClosest(0.0, GRANULARITY_BEAT);
+    }
 }
 
 void MainWindow::on_actionNearest_Measure_triggered()
 {
     prefsManager.Setsnap("measure");
+    if (songLoaded) {
+        // if a song is loaded, and we're just switching to BEAT detect ON,
+        //   initiate a VAMP beat detection in the background (it'll be done after 2 sec)
+        cBass->snapToClosest(0.0, GRANULARITY_MEASURE);
+    }
 }

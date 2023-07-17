@@ -66,6 +66,8 @@ using namespace breakfastquay;
 // BEAT/BAR DETECTION =======
 #include "wav_file.h"
 
+#include "perftimer.h"
+
 // Processing chunk size (size chosen to be divisible by 2, 4, 6, etc. channels ...)
 #define SOUNDTOUCH_BUFF_SIZE           6720
 using namespace soundtouch;
@@ -839,14 +841,23 @@ void AudioDecoder::finished()
 //    qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
 //    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
 
+    t = new PerfTimer("AudioDecoder", __LINE__);
+    t->start(__LINE__);
+
     BPM = BPMsample(60,30,125,15);  // this was the best compromise, now gets almost all of the problematic songs right
 
-//    beatBarDetection(); // NOTE: can only call this when the audio is completely in memory
+    t->elapsed(__LINE__); // 74ms
 
-    beatMap.clear();  // when an audio file is loaded, it has no beatMap or measureMap calculated yet
+//    qDebug() << "======================================================";
+//    qDebug() << "AudioDecoder::finished is calling beatBarDetection...";
+
+    beatMap.clear();  // when a new audio file is loaded, it has no beatMap or measureMap calculated yet
     measureMap.clear();
+//    beatBarDetection(); // NOTE: can only call this when the audio is completely in memory, this calculates beatMap and measureMap
 
-    emit done();
+    t->elapsed(__LINE__); // 583ms, so starting up the process takes about 0.6sec every time a song is loaded
+
+    emit done(); // triggers haveDuration, which invokes haveDuration2, which initiates beat detection (ONLY if enabled).
 }
 
 void AudioDecoder::updateProgress()
@@ -1001,6 +1012,8 @@ void AudioDecoder::beatBarDetection() {
 #if DOBEATDETECTION==1
 //    qDebug() << "AudioDecoder::beatBarDetection() START =============";
 
+    t->elapsed(__LINE__);
+
     // CREATE MONO VERSION OF AUDIO DATA =============================================
     unsigned char *p_data = (unsigned char *)(m_data->data());
     unsigned int framesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
@@ -1012,6 +1025,8 @@ void AudioDecoder::beatBarDetection() {
         monoBuffer[i] = 0.5*(songPointer[2*i] + songPointer[2*i+1]); // mixdown ENTIRE SONG to mono
     }
 
+    t->elapsed(__LINE__); // toMono takes 11ms
+
     // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK =======================
     biquad_params<float> bq[1];
     bq[0] = biquad_lowpass(1500.0 / 44100.0, 0.5); // Q = 0.5
@@ -1021,14 +1036,19 @@ void AudioDecoder::beatBarDetection() {
 
     delete filter;
 
+    t->elapsed(__LINE__); // LPF takes 57ms
+
     // WRITE MONO VERSION OF FILE OUT TO DISK ==========================================
 #define USETEMPFILES 1
     // Make a temp file name (or not) -----------
-    QString WAVfilename;
 #if USETEMPFILES==1
-    QTemporaryFile temp1;  // use a temporary file
-    bool errOpen = temp1.open();
+    QTemporaryFile temp1;           // use a temporary file
+    bool errOpen = temp1.open();    // this creates the WAV file
     WAVfilename = temp1.fileName(); // the open created it, if it's a temp file
+    temp1.setAutoRemove(false);  // don't remove it until after we process it asynchronously
+
+//    qDebug() << "WAVfilename: " << WAVfilename;
+
     if (!errOpen) {
         qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
         delete[] monoBuffer;
@@ -1051,14 +1071,19 @@ void AudioDecoder::beatBarDetection() {
 
     delete[] monoBuffer;  // we don't need the data anymore (until we decide to call the library directly, instead of via QProcess)
 
+    t->elapsed(__LINE__); // write WAV file takes 484ms (these can be pretty big, 27Mb or so)
+
     // NOW DO BAR/BEAT DETECTION ON THAT WAV FILE VIA EXTERNAL VAMP PROCESS =============
 
     // Make a file for the results ----------
-    QString resultsFilename;
 #if USETEMPFILES==1
     QTemporaryFile temp2;  // use a temporary file
     bool errOpen2 = temp2.open();
     resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
+    temp2.setAutoRemove(false);  // don't remove it until after we process it asynchronously
+
+//    qDebug() << "resultsFilename: " << resultsFilename;
+
     if (!errOpen2) {
         resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
         qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
@@ -1118,108 +1143,78 @@ void AudioDecoder::beatBarDetection() {
         return;
     }
 
-    QProcess vamp;
+//    QProcess vamp;
+    vamp.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
     vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
 
-    // SYNCHRONOUS: wait for vamp to finish
-    if (!vamp.waitForFinished()) {
-        return;
-    }
-
-    // READ IN THE RESULTS, AND SETUP THE BEATMAP AND THE MEASUREMAP =====================
-
-    QFile resultsFile(resultsFilename);
-    if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
-        qDebug() << "ERROR 7: Could not open results of Vamp";
-        return;
-    }
-
-    QTextStream in(&resultsFile);
-    for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
-        QStringList pieces = line.split(":");
-        bool ok1, ok2;
-        unsigned long sampleNum = pieces[0].toULong(&ok1);
-        unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
-//        qDebug() << "Line: " << line << sampleNum << beatNum;
-
-        beatMap.push_back(sampleNum/44100.0); // time_sec
-        if (beatNum == 1) {
-            measureMap.push_back(sampleNum/44100.0); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
-        }
-    }
-
-//    // READ IN THE RESULTS AND DO FIRST LEVEL COMPRESSION TO STRING =====================
-//    QFile resultsFile(resultsFilename);
-//    if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
-//        qDebug() << "ERROR 7";
+//    // SYNCHRONOUS: wait for vamp to finish
+//    if (!vamp.waitForFinished()) {
 //        return;
 //    }
-//    QTextStream in(&resultsFile);
-//    bool foundFirstLine = false;
-//    QString deltaString;
-//    unsigned long lastSample;
-//    for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
-//        QStringList pieces = line.split(":");
-//        bool ok1, ok2;
-//        unsigned long sampleNum = pieces[0].toULong(&ok1);
-//        unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
-////        qDebug() << "Line: " << line << sampleNum << beatNum;
-//        if (!foundFirstLine) {
-//            if (beatNum == 1) {
-//                foundFirstLine = true;
-//                deltaString.append(pieces[0]);
+
+    // ASYNCHRONOUS: beatMap and measureMap will have non-zero lengths when we're done processing.
+    QObject::connect(&vamp, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus exitStatus)
+                     {
+        Q_UNUSED(exitCode)
+//        qDebug() << "***** VAMP FINISHED:" << exitCode << exitStatus;
+
+        t->elapsed(__LINE__); // 1600ms to have VAMP process the file
+
+        if (exitStatus == QProcess::NormalExit) {
+            // READ IN THE RESULTS, AND SETUP THE BEATMAP AND THE MEASUREMAP =====================
+
+//            qDebug() << "Processing:" << resultsFilename;
+
+            QFile resultsFile(resultsFilename);
+            if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
+                qDebug() << "ERROR 7: Could not open results of Vamp from file:" << resultsFilename;
+                return;
+            }
+//            qDebug() << "OPEN SUCCEEDED:" << resultsFilename;
+
+            QTextStream in(&resultsFile);
+            for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
+                QStringList pieces = line.split(":");
+                bool ok1, ok2;
+                unsigned long sampleNum = pieces[0].toULong(&ok1);
+                unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
+//                qDebug() << "Line: " << line << sampleNum << beatNum;
+
+                beatMap.push_back(sampleNum/44100.0); // time_sec
+                if (beatNum == 1) {
+                    measureMap.push_back(sampleNum/44100.0); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
+                }
+            }
+
+//             // DEBUG: show me the results -----
+//            for (unsigned long i = 0; i < beatMap.size(); i+=4)
+//            {
+//                qDebug() << "BEAT:" << beatMap[i] << beatMap[i+1] << beatMap[i+2] << beatMap[i+3];
 //            }
-//        } else {
-//            QString s = QString::number(sampleNum - lastSample);
-//            if (beatNum != 1) {
-//                deltaString.append(',');
+
+//            for (unsigned long i = 0; i < measureMap.size(); i+=4)
+//            {
+//                qDebug() << "MEASURE: " << measureMap[i] << measureMap[i+1] << measureMap[i+2] << measureMap[i+3];
 //            }
-//            deltaString.append(s);
-//            if (beatNum == 4) {
-////                deltaString.append(";"); // TODO: assumes always finds 4/4 time
-//                deltaString.append(","); // TODO: assumes always finds 4/4 time
-//            }
-//        }
-//        lastSample = sampleNum;
-//    }
 
-//    // SECOND LEVEL COMPRESSION TO BINARY ================================================
-//    qDebug() << "COMPRESSED STRING: " << deltaString << deltaString.length();
+            t->elapsed(__LINE__);
 
-//    QByteArray ba = qCompress(deltaString.toUtf8());
-//    QString compressedString = ba.toBase64();
+            // delete the temp files
+            QFile WAVfile(WAVfilename);
+            if (!WAVfile.remove()) {
+                qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
+            }
 
-//    qDebug() << "ba: " << ba << ba.length();
-//    qDebug() << "compressedString: " << compressedString << compressedString.length();  // only 232 bytes for Hawk Mountain beat map
+            if (!resultsFile.remove()) {
+                qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
+            }
 
-//    // DECOMPRESS AND COMPARE (FOR TESTING ONLY) =========================================
-//    QByteArray ba1(compressedString.toUtf8());      // convert QString to QByteArray
-//    qDebug() << "ba1: " << ba1 << ba1.length();
-
-//    QByteArray ba2 = QByteArray::fromBase64(ba1);   // remove base64 encoding
-//    qDebug() << "ba2: " << ba2 << ba2.length();
-
-//    QString deltaString2 = QString(qUncompress(ba2));     // uncompress it
-//    qDebug() << "uncompressed deltaString: " << deltaString2 << deltaString2.length();
-
-//    QStringList slist = deltaString2.split(',');
-
-//    QVector<ulong> beats;
-//    int whichBeat = 1;
-//    bool ok3;
-//    unsigned long lastSampleNum = 0;
-
-//    for ( const auto& s : slist )
-//    {
-//        if (whichBeat++ == 1) {
-//            lastSampleNum = s.toLong(&ok3);
-//        } else {
-//            lastSampleNum += s.toLong(&ok3);
-//        }
-//        beats.append(lastSampleNum);
-//    }
-
-//    qDebug() << "beats: " << beats; // implicitly starts at beat 1, use modulo 4 on index to determine beat-in-measure
+            t->elapsed(__LINE__);
+        } else {
+            qDebug() << "ERROR: BAD EXIT FROM VAMP.";
+        }
+                     });
 
 #endif
 }
@@ -1258,23 +1253,19 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
     // SNAPPING IS ON ==============================
     // if no beapMap has been calculated, do it now
     if (beatMap.empty()) {
-
+//        qDebug() << "beatMap is empty, so calculating it now...";
         beatBarDetection(); // calculate both the beatMap and the measureMap
+    }
 
-// DEBUG: show me the results -----
-//        for (unsigned long i = 0; i < beatMap.size(); i+=4)
-//        {
-//            qDebug() << "BEAT:" << beatMap[i] << beatMap[i+1] << beatMap[i+2] << beatMap[i+3];
-//        }
-
-//        for (unsigned long i = 0; i < measureMap.size(); i+=4)
-//        {
-//            qDebug() << "MEASURE: " << measureMap[i] << measureMap[i+1] << measureMap[i+2] << measureMap[i+3];
-//        }
+    // if it's a post-load init of beat detection (time_sec == 0.0), just return (beatMap will get filled in after 2 sec)
+    if (time_sec == 0.0) {
+//        qDebug() << "Post-load init of beat detection...";
+        return(0.0);
     }
 
     // OOPS: if beatMap is empty here, that means that the Vamp executable wasn't found, and we really can't do anything
     if (beatMap.empty()) {
+        qDebug() << "ERROR: beatMap is empty, maybe VAMP could not be run?";
         return(time_sec);  // no snapping, just return the time we were given
     }
 

@@ -295,27 +295,31 @@ void wav_write_data_float1 (const float *pData,
 {
     int    i;
 
+    if (WavInfo.WordLength != 16) {
+        return; // we only support 16 right now...
+    }
+
     for(i = 0; i < BufLen; i++) {                   // Write the data
 
         float data = pData[i];  // get the same
         short convertedData = (short)(data * 32767.0); // scale and convert to short
 
-        if (WavInfo.WordLength == 32) {             // Write 32 bit data
-            wav_write_long ((int)*(pData + i), FPtr);
-        }
+//        if (WavInfo.WordLength == 32) {             // Write 32 bit data
+//            wav_write_long ((int)*(pData + i), FPtr);  // TODO TODO TODO THIS IS WRONG
+//        }
 
-        else if (WavInfo.WordLength == 16) {        // Write 16 bit data
-            wav_write_word (convertedData, FPtr);
-        }
+//        else if (WavInfo.WordLength == 16) {        // Write 16 bit data
+            wav_write_word (convertedData, FPtr);   // THIS ONE IS CORRECT
+//        }
 
-        else if (WavInfo.WordLength == 8) {         // Write 8 bit data
-            putc (((short)(*(pData + i) + 128.0)) & 0x0ff, FPtr);
-        }
+//        else if (WavInfo.WordLength == 8) {         // Write 8 bit data
+//            putc (((short)(*(pData + i) + 128.0)) & 0x0ff, FPtr);   // TODO TODO TODO THIS IS WRONG
+//        }
 
-        else {
-            printf ("Input wave file word length format error\n");
-            return;
-        }
+//        else {
+//            printf ("Input wave file word length format error\n");
+//            return;
+//        }
     }
 }       // End of wav_write_data ()
 
