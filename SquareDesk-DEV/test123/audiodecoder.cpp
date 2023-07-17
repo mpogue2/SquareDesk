@@ -413,11 +413,14 @@ public:
             if (filter != NULL) {
                 delete filter;
             }
-            filter = new biquad_filter<float>(bq);  // (re)initialize the mono/L filter from the latest bq coefficients
+
+            size_t biquadCount = (intelligibilityBoost_enabled ? 4 : 3); // the intelligibility boost must always be the 4th biquad_params
+
+            filter = new biquad_filter<float>(bq, biquadCount);  // (re)initialize the mono/L filter from the latest bq coefficients
             if (filterR != NULL) {
                 delete filterR;
             }
-            filterR = new biquad_filter<float>(bq);  // (re)initialize the R filter from the latest bq coefficients
+            filterR = new biquad_filter<float>(bq, biquadCount);  // (re)initialize the R filter from the latest bq coefficients
             newFilterNeeded = false;
         }
 
