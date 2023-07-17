@@ -1197,6 +1197,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     cBass->SetIntelBoost(BW_OCT,  static_cast<float>(prefsManager.GetintelWidth_oct()/10.0));
     cBass->SetIntelBoost(GAIN_DB, static_cast<float>(prefsManager.GetintelGain_dB()/10.0));  // expressed as positive number
 
+    cBass->SetPanEQVolumeCompensation(static_cast<float>(prefsManager.GetpanEQGain_dB()/2.0)); // expressed as signed half-dB's
+
     on_actionShow_group_station_toggled(prefsManager.Getenablegroupstation());
     on_actionShow_order_sequence_toggled(prefsManager.Getenableordersequence());
     {

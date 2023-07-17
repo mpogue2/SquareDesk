@@ -154,7 +154,9 @@ CONFIG_ATTRIBUTE_BOOLEAN(checkBoxInOutEditOnlyWhenLyricsUnlocked, InOutEditingOn
 CONFIG_ATTRIBUTE_BOOLEAN(intelBoostEnabledCheckbox, intelBoostIsEnabled, false)
 CONFIG_ATTRIBUTE_SLIDER(intelCenterFreqDial, intelCenterFreq_KHz, 16)  // sliders are integers controlled by value()/setValue()
 CONFIG_ATTRIBUTE_SLIDER(intelWidthDial, intelWidth_oct, 20)
-CONFIG_ATTRIBUTE_SLIDER(intelGainDial, intelGain_dB, 30) // expressed as a positive number
+CONFIG_ATTRIBUTE_SLIDER(intelGainDial, intelGain_dB, 30) // expressed as a positive number (actually tenths of a dB)
+
+CONFIG_ATTRIBUTE_SLIDER(panEQGainDial, panEQGain_dB, 0)  // expressed as a signed number (actually tenths of a dB)
 
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwapSDTabInputAndAvailableCallsSides, SwapSDTabInputAndAvailableCallsSides, false)
     

@@ -1053,3 +1053,13 @@ void PreferencesDialog::on_intelBoostEnabledCheckbox_toggled(bool checked)
 
     cBass->SetIntelBoostEnabled(checked);
 }
+
+void PreferencesDialog::on_panEQGainDial_valueChanged(int value)
+{
+    // value is in gain dB * 10
+    float gain_dB = static_cast<float>(value)/2.0f;  // only in increments of 0.5dB
+    ui->panEQGain_dB->setText(QStringLiteral("%1dB").arg(gain_dB));
+
+    cBass->SetPanEQVolumeCompensation(gain_dB);
+}
+

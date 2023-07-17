@@ -118,6 +118,8 @@ public:
     void SetIntelBoost(unsigned int which, float val);    // Global intelligibility boost parameters
     void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
 
+    void SetPanEQVolumeCompensation(float val);    // Global compensation for Pan (0.707) and EQ (0.767) losses
+
     void SetPitch(int newPitch);  // in semitones, -5 .. 5
     void SetPan(double  newPan);  // -1.0 .. 0.0 .. 1.0
 

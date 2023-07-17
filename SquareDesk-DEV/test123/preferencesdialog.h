@@ -163,6 +163,8 @@ private slots:
     void onSortIndicatorChanged(int column, Qt::SortOrder order);
 
 
+    void on_panEQGainDial_valueChanged(int value);
+
 private:
     void SetLabelTagAppearanceColors();
     Ui::PreferencesDialog *ui;

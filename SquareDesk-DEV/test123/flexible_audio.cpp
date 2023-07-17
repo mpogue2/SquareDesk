@@ -208,6 +208,12 @@ void flexible_audio::SetGlobals()
     SetIntelBoost(GAIN_DB, Global_IntelBoostEq[GAIN_DB]);
 }
 
+// ------------------------------------------------------------------
+void flexible_audio::SetPanEQVolumeCompensation(float val)
+{
+    decoder.SetPanEQVolumeCompensation(val);
+}
+
 void flexible_audio::songStartDetector(const char *filepath, double  *pSongStart, double  *pSongEnd) {
     Q_UNUSED(filepath)
     Q_UNUSED(pSongStart)

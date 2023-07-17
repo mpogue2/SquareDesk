@@ -152,6 +152,8 @@ public:
     void SetIntelBoost(unsigned int which, float val);
     void SetIntelBoostEnabled(bool enable);
 
+    void SetPanEQVolumeCompensation(float val);
+
     void setPitch(float p);
     void setTempo(float t);
 

@@ -369,6 +369,11 @@ public:
         updateEQ();
     }
 
+    void SetPanEQVolumeCompensation(float val) { // val is signed dB
+        currentPanEQFactor = pow(10.0, val/20.0);
+//        qDebug() << "AudioDecoder::setPanEQVolumeCompensation:" << val << currentPanEQFactor;
+    }
+
     void setPitch(float newPitchSemitones) {
 //        qDebug() << "new Pitch value: " << newPitchSemitones << " semitones";
         soundTouch.setPitchSemiTones(newPitchSemitones);
@@ -428,7 +433,7 @@ public:
         float thePeakLevelR = 0.0;
         if (m_mono) {
             // Force Mono is ENABLED
-            scaleFactor = currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
+            scaleFactor = currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
 //    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
@@ -456,7 +461,7 @@ public:
             }
         } else {
             // stereo (Force Mono is DISABLED)
-            scaleFactor = currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
+            scaleFactor = currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
@@ -540,6 +545,8 @@ public:
 
     float  currentDuckingFactor;            // goes from 1.0 to something like 0.75 (75%), then resets to 1.0
     float  duckingFactorFramesRemaining;    // decrements each until 0.0, then resets itself
+
+    float currentPanEQFactor;   // compensates for the PAN (0.707) and EQ (0.767) volume losses
 
     // EQ -----------------
     float bassBoost_dB = 0.0;
@@ -954,6 +961,11 @@ void AudioDecoder::SetIntelBoost(unsigned int which, float val) {
 void AudioDecoder::SetIntelBoostEnabled(bool enable) {
     myPlayer.SetIntelBoostEnabled(enable);
 }
+
+void AudioDecoder::SetPanEQVolumeCompensation(float val) {
+    myPlayer.SetPanEQVolumeCompensation(val);
+}
+
 
 double AudioDecoder::getBPM() {
     return (BPM);  // -1 = no BPM yet, 0 = out of range or undetectable, else returns a BPM
