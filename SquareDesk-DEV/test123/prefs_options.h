@@ -81,6 +81,8 @@ CONFIG_ATTRIBUTE_BOOLEAN(initialBPMcheckbox,tryToSetInitialBPM, false)
 CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwitchToLyricsOnPlay,switchToLyricsOnPlay, false)
 CONFIG_ATTRIBUTE_INT(initialBPMLineEdit,initialBPM, (ushort)125)
 
+CONFIG_ATTRIBUTE_SLIDER(limitVolumespinBox,limitVolume, (ushort)0) // spin boxes are done with setValue not setText, like sliders
+
 CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)

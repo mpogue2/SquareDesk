@@ -1543,6 +1543,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         ui->songTable->selectRow(0); // select row 1 after initial load of the songTable (if there are rows)
     }
 
+    minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
 }
 
 
@@ -2325,6 +2326,13 @@ void MainWindow::Info_Volume(void)
         ui->currentVolumeLabel->setText("MUTE");
         ui->currentVolumeLabel->setStyleSheet("QLabel { color : red; }");
     }
+    else if ((volSliderPos == minimumVolume) && (minimumVolume != 0)) {
+        // if we are limiting the min volume to something other than zero,
+        //  AND we are currently at that minimum volume, indicate to the user that
+        //  we are at MIN, not at MUTE.
+        ui->currentVolumeLabel->setText("MIN");
+        ui->currentVolumeLabel->setStyleSheet("QLabel { color : red; }");
+    }
     else if (volSliderPos == 100) {
         ui->currentVolumeLabel->setText("MAX");
         ui->currentVolumeLabel->setStyleSheet("QLabel { color : black; }");
@@ -2342,6 +2350,11 @@ void MainWindow::Info_Volume(void)
 // ----------------------------------------------------------------------
 void MainWindow::on_volumeSlider_valueChanged(int value)
 {
+    if (value < minimumVolume) {
+//        qDebug() << "volume too low, setting volume to:" << minimumVolume;
+        ui->volumeSlider->setValue(minimumVolume); // this will NOT recurse more than once
+    }
+
     int voltageLevelToSet = static_cast<int>(100.0*pow(10.0,(((value*0.8)+20)/2.0 - 50)/20.0));
     if (value == 0) {
         voltageLevelToSet = 0;  // special case for slider all the way to the left (MUTE)
@@ -5007,6 +5020,12 @@ void MainWindow::on_actionPreferences_triggered()
         } else {
             // if the user JUST set the preference, turn Airplane Mode OFF RIGHT NOW (radios ON).
             airplaneMode(false);
+        }
+
+        minimumVolume = prefsManager.GetlimitVolume(); // volume can't go lower than this!
+        if (ui->volumeSlider->value() < minimumVolume) {
+            // coming out of the prefs dialog, if we set the min pref to be lower than current vol, fix the slider.
+            ui->volumeSlider->setValue(minimumVolume);
         }
     }
     setInOutButtonState();
