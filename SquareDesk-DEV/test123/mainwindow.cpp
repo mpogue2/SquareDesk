@@ -6860,6 +6860,10 @@ void MainWindow::on_actionTest_Loop_triggered()
 
     cBass->Stop();  // always pause playback
 
+    // If we clicked on Test Loop, we want to make sure that looping is enabled.
+    //  Doesn't really make sense otherwise, right?
+    on_loopButton_toggled(true);
+
     double songLength = cBass->FileLength;
 //    double intro = ui->seekBar->GetIntro(); // 0.0 - 1.0
     double outro = ui->seekBar->GetOutro(); // 0.0 - 1.0
