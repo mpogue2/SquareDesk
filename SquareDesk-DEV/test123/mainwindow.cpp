@@ -5687,6 +5687,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 //        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
         ui->seekBarCuesheet->SetOutro(outro);
 
+        // we need to set this in both places
+        ui->seekBar->SetIntro(intro);
+        ui->seekBar->SetOutro(outro);
+
         QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
 //        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
