@@ -3907,6 +3907,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     startOfSong_sec = 0.0;
     endOfSong_sec = cBass->FileLength;  // used by setDefaultIntroOutroPositions below
 
+//    qDebug() << "***** secondHalfOfLoad(): " << startOfSong_sec << endOfSong_sec;
+
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
     InitializeSeekBar(ui->seekBarCuesheet);
@@ -5683,9 +5685,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->pitchSlider->setValue(pitch);
         ui->tempoSlider->setValue(tempo); // qDebug() << "loadSettingsForSong: just set tempo slider to: " << tempo;
         ui->volumeSlider->setValue(volume);
+
         ui->seekBarCuesheet->SetIntro(intro);
-//        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
         ui->seekBarCuesheet->SetOutro(outro);
+//        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
 
         // we need to set this in both places
         ui->seekBar->SetIntro(intro);
@@ -6930,7 +6933,7 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
     position_sec = fmin(length, fmax(position_sec, static_cast<int>(currentIntroTimeSec)+6) );
 
     // set in ms
-//    qDebug() << "dateTimeEditOutro changed: " << currentIntroTimeSec << "," << position_sec;
+//    qDebug() << "dateTimeEditOutro changed: " << currentIntroTimeSec << "," << position_sec << time << length;
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
@@ -7002,24 +7005,27 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
 
 void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    Q_UNUSED(type)
     Q_UNUSED(context)
-    QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
+//    QHash<QtMsgType, QString> msgLevelHash({{QtDebugMsg, "Debug"}, {QtInfoMsg, "Info"}, {QtWarningMsg, "Warning"}, {QtCriticalMsg, "Critical"}, {QtFatalMsg, "Fatal"}});
 //    QByteArray localMsg = msg.toLocal8Bit();
 
 //    QString dateTime = QDateTime::currentDateTime().toTimeSpec(Qt::OffsetFromUTC).toString(Qt::ISODate);  // use ISO8601 UTC timestamps
-    QString logLevelName = msgLevelHash[type];
-//    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
-    QString txt = QString("%1: %2").arg(logLevelName, msg);
+//    QString logLevelName = msgLevelHash[type];
+////    QString txt = QString("%1 %2: %3 (%4)").arg(dateTime, logLevelName, msg, context.file);
+//    QString txt = QString("%1: %2").arg(logLevelName, msg);
 
     // suppress known warnings from QtCreator Application Output window
     if (msg.contains("The provided value 'moz-chunked-arraybuffer' is not a valid enum value of type XMLHttpRequestResponseType") ||
             msg.contains("js:") ||
-            txt.contains("Warning: #") ||
+//            txt.contains("Warning: #") ||
+            msg.startsWith("#") ||
             msg.contains("GL Type: core_profile")) {
         return;
     }
 
-    qDebug() << txt; // inside QtCreator, just log it to the console
+//    qDebug() << txt; // inside QtCreator, just log it to the console
+    qDebug() << msg; // inside QtCreator, just log it to the console
 
 }
 

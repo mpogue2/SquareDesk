@@ -689,21 +689,22 @@ void AudioDecoder::setSource(const QString &fileName)
 {
 //    qDebug() << "AudioDecoder:: setSource" << fileName;
     if (m_decoder.isDecoding()) {
-//        qDebug() << "\thad to stop decoding...";
+//        qDebug() << "*** had to stop decoding...";
         m_decoder.stop();
     }
     if (m_input->isOpen()) {
-//        qDebug() << "\thad to close m_input...";
+//        qDebug() << "*** had to close m_input...";
         m_input->close();
     }
     if (!m_data->isEmpty()) {
-//        qDebug() << "\thad to throw away m_data...";
+//        qDebug() << "*** had to throw away m_data...";
         delete(m_data);  // throw the whole thing away
         m_data = new QByteArray();
         m_input->setBuffer(m_data); // and make a new one (empty)
     }
-//    qDebug() << "m_input now has " << m_input->size() << " bytes (should be zero).";
+//    qDebug() << "***** m_input now has " << m_input->size() << " bytes (should be zero).";
     m_decoder.setSource(QUrl::fromLocalFile(fileName));
+//    qDebug() << "***** back from setSource()";
 }
 
 void AudioDecoder::start()
@@ -798,7 +799,7 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
     myPlayer.m_data = p_data;  // we are done decoding, so tell the player where the data is
 
     myPlayer.totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
-    //    qDebug() << "** totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
+//    qDebug() << "** AudioDecoder::BPMsample totalFramesInSong: " << myPlayer.totalFramesInSong;  // TODO: this is really frames
 
 //    qDebug() << "BPMsample: " << m_data->size()/myPlayer.bytesPerFrame << p_data;
 
@@ -847,9 +848,16 @@ float AudioDecoder::BPMsample(float sampleStart_sec, float sampleLength_sec, flo
 
 void AudioDecoder::finished()
 {
-//    qDebug() << "AudioDecoder::finished()";
+//    qDebug() << "AudioDecoder::finished()" << m_decoder.isDecoding();
 //    qDebug() << "Decoding progress:  100%; m_input:" << m_input->size() << " bytes, m_data:" << m_data->size() << " bytes";
 //    qDebug() << timer1.elapsed() << "milliseconds to decode";  // currently about 250ms to fully read in, decode, and save to the buffer.
+
+    if ((m_input->size() == 0) && (m_data->size() == 0)) {
+        // if really it's just getting started, just return, and finished() will be called a second time.
+        //  This seems to me to be a bug that was introduced in Qt6.5 .
+//        qDebug() << "***** IGNORING FINISHED(), BECAUSE IT'S NOT REALLY FINISHED";
+        return;
+    }
 
     t = new PerfTimer("AudioDecoder", __LINE__);
     t->start(__LINE__);

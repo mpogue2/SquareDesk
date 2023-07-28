@@ -31,6 +31,7 @@
 // ==========================================================================================
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
 {
+//    qDebug() << "MySlider::MySlider()";
     drawLoopPoints = false;
     singingCall = false;
     SetDefaultIntroOutroPositions(false, 0.0, 0.0, 0.0, 0.0);  // bare minimum init
@@ -72,6 +73,7 @@ void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBP
         double defaultSingerLengthInBeats = (64 * 7 + 24);  // 16 beat intro + 8 beat tag = 24
         introPosition = (16 / defaultSingerLengthInBeats);           // 0.0 - 1.0
         outroPosition = (1.0 - 8 / defaultSingerLengthInBeats );     // 0.0 - 1.0
+//        qDebug() << "MySlider::SetDefault" << introPosition << outroPosition;
     } else {
         // we are using BPM (not %)
 //        double songLength_beats = (songEnd_sec - songStart_sec)/60.0 * estimatedBPM;
@@ -93,22 +95,23 @@ void MySlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBP
 //            qDebug() << "TOO CLOSE TRIGGERED!";
         }
 
-//        qDebug() << "songLength_beats" << songLength_beats;
-//        qDebug() << "songLength_phrases" << songLength_phrases;
+////        qDebug() << "MySlider::songLength_beats" << songLength_beats;
+////        qDebug() << "MySlider::songLength_phrases" << songLength_phrases;
+//        qDebug() << "=====================";
+//        qDebug() << "MySlider::tempoIsBPM" << tempoIsBPM;
+//        qDebug() << "MySlider::estimatedBPM" << estimatedBPM;
+//        qDebug() << "MySlider::songStart_sec" << songStart_sec;
+//        qDebug() << "MySlider::songEnd_sec" << songEnd_sec;
+//        qDebug() << "MySlider::songLength_sec" << songLength_sec;
 //        qDebug() << "--------------";
-//        qDebug() << "estimatedBPM" << estimatedBPM;
-//        qDebug() << "songStart_sec" << songStart_sec;
-//        qDebug() << "songEnd_sec" << songEnd_sec;
-//        qDebug() << "songLength_sec" << songLength_sec;
-
-//        qDebug() << "phraseLength_beats" << phraseLength_beats;
-//        qDebug() << "phraseLength_sec" << phraseLength_sec;
-//        qDebug() << "loopStart_sec" << loopStart_sec;
-//        qDebug() << "loopStart_frac" << loopStart_frac;
-//        qDebug() << "numPhrasesThatFit" << numPhrasesThatFit;
-//        qDebug() << "loopEnd_sec" << loopEnd_sec;
-//        qDebug() << "loopEnd_frac" << loopEnd_frac;
-//        qDebug() << "--------------";
+//        qDebug() << "MySlider::phraseLength_beats" << phraseLength_beats;
+//        qDebug() << "MySlider::phraseLength_sec" << phraseLength_sec;
+//        qDebug() << "MySlider::loopStart_sec" << loopStart_sec;
+//        qDebug() << "MySlider::loopStart_frac" << loopStart_frac;
+//        qDebug() << "MySlider::numPhrasesThatFit" << numPhrasesThatFit;
+//        qDebug() << "MySlider::loopEnd_sec" << loopEnd_sec;
+//        qDebug() << "MySlider::loopEnd_frac" << loopEnd_frac;
+////        qDebug() << "--------------";
 
         introPosition = loopStart_frac;
         outroPosition = loopEnd_frac;
