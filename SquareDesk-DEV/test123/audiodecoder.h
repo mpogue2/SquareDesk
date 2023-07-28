@@ -167,7 +167,7 @@ public:
     double getBPM();
 
     float BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
-    void beatBarDetection();
+    int beatBarDetection(); // returns -1 if no Vamp
 
 #define GRANULARITY_NONE 0
 #define GRANULARITY_BEAT 1

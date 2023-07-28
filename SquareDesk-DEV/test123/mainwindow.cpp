@@ -298,10 +298,17 @@ void MainWindow::haveDuration2(void) {
     secondHalfOfLoad(currentSongTitle);  // now that we have duration and BPM, can finish up asynchronous load.
 
     if (!ui->actionDisabled->isChecked()) {
-        cBass->snapToClosest(0.0, GRANULARITY_BEAT); // this is a throwaway call, just to initiate beat detection ONLY if beat detection is ON
+//        qDebug() << "haveDuration2 snapToClosest starting";
+        double maybeError = cBass->snapToClosest(0.1, GRANULARITY_BEAT); // this is a throwaway call, just to initiate beat detection ONLY if beat detection is ON
+        // This is 0.1, so that if Vamp is not present, it will return -0.1 (error indication)
 //           it will take about 1/2 second to initiate the VAMP process, but the UX should already be updated at this point
 //           another 1.6 sec later, the beatMap and measureMap will be filled in.  User should see minimal delay, and ONLY
 //           if beat detection is ON.
+//        qDebug() << "haveDuration2 snapToClosest returned" << maybeError;
+        if (maybeError < 0.0) {
+//            qDebug() << "haveDuration2: snap failed, turning off snapping!";
+            ui->actionDisabled->setChecked(true); // turn off snapping
+        }
     }
 }
 
@@ -2847,6 +2854,12 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 
     position = cBass->snapToClosest(position, granularity);
 
+    if (position < 0) {
+//        qDebug() << "on_pushButtonSetIntroTime_clicked: snap failed, turning off snapping!";
+        ui->actionDisabled->setChecked(true); // turn off snapping
+        position *= -1; // and make it positive
+    }
+
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
 
@@ -2880,6 +2893,12 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     }
 
     position = cBass->snapToClosest(position, granularity);
+
+    if (position < 0) {
+//        qDebug() << "on_pushButtonSetOutroTime_clicked: snap failed, turning off snapping!";
+        ui->actionDisabled->setChecked(true); // turn off snapping
+        position *= -1; // and make it positive
+    }
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
@@ -7376,7 +7395,12 @@ void MainWindow::on_actionNearest_Beat_triggered()
     if (songLoaded) {
         // if a song is loaded, and we're just switching to BEAT detect ON,
         //   initiate a VAMP beat detection in the background (it'll be done after 2 sec)
-        cBass->snapToClosest(0.0, GRANULARITY_BEAT);
+        double maybeError = cBass->snapToClosest(0.1, GRANULARITY_BEAT);  // intentionally 0.1, so that -0.1 is error flag
+        if (maybeError < 0.0) {
+           // error! vamp didn't work
+//           qDebug() << "on_actionNearest_Beat_triggered: snap didn't work, disabling snapping.";
+           ui->actionDisabled->setChecked(true);
+        }
     }
 }
 
@@ -7386,6 +7410,11 @@ void MainWindow::on_actionNearest_Measure_triggered()
     if (songLoaded) {
         // if a song is loaded, and we're just switching to BEAT detect ON,
         //   initiate a VAMP beat detection in the background (it'll be done after 2 sec)
-        cBass->snapToClosest(0.0, GRANULARITY_MEASURE);
+        double maybeError = cBass->snapToClosest(0.1, GRANULARITY_MEASURE);  // intentionally 0.1, so that -0.1 is error flag
+        if (maybeError < 0.0) {
+           // error! vamp didn't work
+//           qDebug() << "on_actionNearest_Beat_triggered: snap didn't work, disabling snapping.";
+           ui->actionDisabled->setChecked(true);
+        }
     }
 }

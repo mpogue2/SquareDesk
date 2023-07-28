@@ -1026,14 +1026,30 @@ void AudioDecoder::StopVolumeDucking() {
     myPlayer.StopVolumeDucking();
 }
 
-void AudioDecoder::beatBarDetection() {
+int AudioDecoder::beatBarDetection() {
 // NOTE: this can only be called after the file is completely loaded into memory!
+// returns -1 if no vamp
 
 // set to 1 to enable beat detection
 #define DOBEATDETECTION 1
 
 #if DOBEATDETECTION==1
 //    qDebug() << "AudioDecoder::beatBarDetection() START =============";
+
+    QString pathNameToVamp(QCoreApplication::applicationDirPath());
+    pathNameToVamp.append("/vamp-simple-host");
+    //    qDebug() << "VAMP path: " << pathNameToVamp;
+
+    if (!QFileInfo::exists(pathNameToVamp) ) {
+
+        QMessageBox msgBox;
+        msgBox.setText(QString("ERROR: Could not find Vamp executable.<P>Snapping is disabled."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+        return(-1); // ERROR, VAMP DOES NOT EXIST
+    }
 
     t->elapsed(__LINE__);
 
@@ -1075,7 +1091,7 @@ void AudioDecoder::beatBarDetection() {
     if (!errOpen) {
         qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
         delete[] monoBuffer;
-        return;
+        return(-2); // ERROR
     }
 #else
     WAVfilename = "/Users/mpogue/beatDetect.wav";
@@ -1083,7 +1099,7 @@ void AudioDecoder::beatBarDetection() {
     if (!temp1.open(QIODevice::WriteOnly)) {
         qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
         delete[] monoBuffer;
-        return;
+        return(-2);
     }
 #endif
 
@@ -1110,7 +1126,7 @@ void AudioDecoder::beatBarDetection() {
     if (!errOpen2) {
         resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
         qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
-        return;
+        return(-3); // ERROR
     }
 #else
     resultsFilename = "/Users/mpogue/beatDetect.results.txt";
@@ -1118,7 +1134,7 @@ void AudioDecoder::beatBarDetection() {
     if (!temp2.open(QIODevice::WriteOnly)) {
         resultsFilename = temp2.fileName();
         qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
-        return;
+        return(-3);
     }
 #endif
 
@@ -1126,9 +1142,6 @@ void AudioDecoder::beatBarDetection() {
 
     // TEST: ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
 //    QString pathNameToVamp("/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk/host/vamp-simple-host");  // TODO: stick vamp-simple-host into SquareDesk_1.0.5.app/Contents/MacOS
-    QString pathNameToVamp(QCoreApplication::applicationDirPath());
-    pathNameToVamp.append("/vamp-simple-host");
-//    qDebug() << "VAMP path: " << pathNameToVamp;
 
     // TO BUILD VAMP ON MAC OS X:
     //   add "." to path list on PluginHostAdapter.cpp:L87  <-- this allows the vamp-simple-host to find the .dylib, if in the same folder as the executable
@@ -1156,15 +1169,8 @@ void AudioDecoder::beatBarDetection() {
     //       should include "." in the path (so we know you got the one we just built)
     //       AND it should list "qm-barbeattracker" (so we know it found the dylib)
 
-    if (!QFileInfo::exists(pathNameToVamp) ) {
-        QMessageBox msgBox;
-        msgBox.setText(QString("ERROR: Could not find Vamp executable.<P>Snapping is disabled."));
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        msgBox.setDefaultButton(QMessageBox::Ok);
-        msgBox.exec();
 
-        return;
-    }
+    // by this point, we know that the Vamp executable exists -----
 
 //    QProcess vamp;
     vamp.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
@@ -1192,7 +1198,7 @@ void AudioDecoder::beatBarDetection() {
             QFile resultsFile(resultsFilename);
             if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
                 qDebug() << "ERROR 7: Could not open results of Vamp from file:" << resultsFilename;
-                return;
+                return; // ERROR from lambda
             }
 //            qDebug() << "OPEN SUCCEEDED:" << resultsFilename;
 
@@ -1227,17 +1233,24 @@ void AudioDecoder::beatBarDetection() {
             QFile WAVfile(WAVfilename);
             if (!WAVfile.remove()) {
                 qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
+                return; // ERROR from lambda
             }
 
             if (!resultsFile.remove()) {
                 qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
+                return; // ERROR from lambda
             }
 
             t->elapsed(__LINE__);
         } else {
             qDebug() << "ERROR: BAD EXIT FROM VAMP.";
+            return; // ERROR from lambda
         }
+
+        return;  // NO ERROR from lambda
                      });
+
+    return(0);  // no error from beatBarDetection()
 
 #endif
 }
@@ -1267,7 +1280,9 @@ unsigned int find_closest(const std::vector<double>& sorted_array, double x) {
 
 // -----------------------------------
 double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
-
+    // returns -time_sec, if Vamp error of some kind
+    // passing in 0.1 means a post-load init (not an actual snap)
+//    qDebug() << "AudioDecoder::snapToClosest: " << time_sec;
     if (granularity == GRANULARITY_NONE) {
         // don't bother to calculate the beatMap and measureMap, if snapping is disabled
         return(time_sec);    // no snapping, just return the time we were given
@@ -1276,20 +1291,25 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
     // SNAPPING IS ON ==============================
     // if no beapMap has been calculated, do it now
     if (beatMap.empty()) {
-//        qDebug() << "beatMap is empty, so calculating it now...";
-        beatBarDetection(); // calculate both the beatMap and the measureMap
+//        qDebug() << "AudioDecoder::snapToClosest, beatMap is empty, so calculating it now...";
+        int maybeError = beatBarDetection(); // calculate both the beatMap and the measureMap
+//        qDebug() << "AudioDecoder::snapToClosest maybeError:" << maybeError;
+        if (maybeError != 0) {
+            return(-time_sec);
+        }
     }
 
     // if it's a post-load init of beat detection (time_sec == 0.0), just return (beatMap will get filled in after 2 sec)
-    if (time_sec == 0.0) {
+    if (time_sec == 0.1) {
+        // 0.1 means post-load init
 //        qDebug() << "Post-load init of beat detection...";
         return(0.0);
     }
 
     // OOPS: if beatMap is empty here, that means that the Vamp executable wasn't found, and we really can't do anything
     if (beatMap.empty()) {
-        qDebug() << "ERROR: beatMap is empty, maybe VAMP could not be run?";
-        return(time_sec);  // no snapping, just return the time we were given
+//        qDebug() << "ERROR: beatMap is empty, maybe VAMP could not be run?";
+        return(-time_sec);  // no snapping, just return the time we were given (times -1 to signal that Vamp needs to be disabled)
     }
 
     double result_sec = time_sec;
@@ -1299,6 +1319,7 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
        case GRANULARITY_NONE:
         // should never get here, we exited early in this case
         qDebug() << "ERROR 122: unexpected GRANULARITY_NONE";
+        result_sec = -time_sec;  // error return
         break;
        case GRANULARITY_BEAT:
         result_index = find_closest(beatMap, time_sec);
@@ -1310,9 +1331,10 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
         break;
        default:
         qDebug() << "ERROR 123: unexpected Granularity" << granularity;
+        result_sec = -time_sec;  // error return
         break;
     }
 
 //    qDebug() << "AudioDecoder::snapToClosest: " << time_sec << granularity << ", returns: " << result_index << result_sec;
-    return(result_sec);
+    return(result_sec); // normal return
 }

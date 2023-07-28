@@ -486,5 +486,5 @@ double flexible_audio::snapToClosest(double time_sec, unsigned char granularity)
 //    qDebug() << "flexible_audio::snapToClosest: " << time_sec << granularity;
 
     double result_sec = decoder.snapToClosest(time_sec, granularity);  // ask the AudioDecoder
-    return(result_sec);
+    return(result_sec);  // NOTE: could be negative, if error
 }
