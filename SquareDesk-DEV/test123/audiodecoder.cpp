@@ -149,45 +149,77 @@ public:
 //            unsigned int bytesFree = m_audioSink->bytesFree();  // the audioSink has room to accept this many bytes
             unsigned int bytesFree = 0;
             if ( activelyPlaying && (m_audioSink) && (bytesFree = m_audioSink->bytesFree()) > 0) {  // let's be careful not to dereference a null pointer
-                const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
-
-                // write the smaller of bytesFree and how much we have left in the song
-                unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
-                if (bytesPerFrame * (totalFramesInSong - playPosition_frames) < bytesFree) {
-                    // but if the song ends sooner than that, just send the last samples in the song
-                    bytesNeededToWrite = bytesPerFrame * (totalFramesInSong - playPosition_frames);
-                }
-
                 unsigned int framesFree = bytesFree/bytesPerFrame;  // One frame = LR
-                unsigned int loopEndpoint_frames = 44100 * loopFrom_sec;
-                bool straddlingLoopFromPoint =
-                        !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&
-                        (playPosition_frames < loopEndpoint_frames) &&
-                        (playPosition_frames + framesFree) >= loopEndpoint_frames;
+                if (framesFree > 100) {
+                    // if we are actively playing, AND there are less than 100 frames (2.25ms) available in the m_audioSink, let's wait
+                    //   5ms and try again.  This should get around the (currently theoretical) problem where bytesFree > 0, but
+                    //   framesFree == 0, which I think might be messing up our straddlingLoopFromPoint calculation below,
+                    //   and causing the loop back to the start loop point to be missed.
 
-                if (straddlingLoopFromPoint) {
-                    // but if the song loops here, just send the frames up to the loop point
-                    bytesNeededToWrite = bytesPerFrame * (loopEndpoint_frames - playPosition_frames);
-                }
+//                    qDebug() << "framesFree OK:" << framesFree; // most of the time it's 512 LR frames = 11.6ms
 
-                if (bytesNeededToWrite > 0) {
-                    // if we need bytes, let's go get them.  BUT, if processDSP only gives us less than that, then write just those.
-                    numProcessedFrames = 0;
-                    sourceFramesConsumed = 0;
-                    processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+                    const char *p_data = (const char *)(m_data) + (bytesPerFrame * playPosition_frames);  // next samples to play
+
+                    // write the smaller of bytesFree and how much we have left in the song
+                    unsigned int bytesNeededToWrite = bytesFree;  // default is to write all we can
+                    if (bytesPerFrame * (totalFramesInSong - playPosition_frames) < bytesFree) {
+                        // but if the song ends sooner than that, just send the last samples in the song
+                        bytesNeededToWrite = bytesPerFrame * (totalFramesInSong - playPosition_frames);
+                    }
+
+                    unsigned int loopStartpoint_frames = 44100 * loopTo_sec;
+                    unsigned int loopEndpoint_frames = 44100 * loopFrom_sec;
+                    bool straddlingLoopFromPoint =
+                            !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&
+                            (playPosition_frames < loopEndpoint_frames) &&
+                            (playPosition_frames + framesFree) >= loopEndpoint_frames;
+
+//                    qDebug() << "h: " << straddlingLoopFromPoint << playPosition_frames << loopEndpoint_frames << framesFree;
 
                     if (straddlingLoopFromPoint) {
-                        playPosition_frames = (unsigned int)(loopTo_sec * 44100.0); // reset the playPosition to the loop start point
-                    } else {
-                        playPosition_frames += sourceFramesConsumed; // move the data pointer to the next place to read from
-                                                                      // if at the end, this will point just beyond the last sample
-                                                                      // these were consumed (sent to soundTouch) in any case.
+                        // but if the song loops here, just send the frames up to the loop point
+                        bytesNeededToWrite = bytesPerFrame * (loopEndpoint_frames - playPosition_frames);
                     }
-                    if (numProcessedFrames > 0) {  // but, maybe we didn't get any back from soundTouch.
-                        m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
+
+                    if (bytesNeededToWrite > 0) {
+                        // if we need bytes, let's go get them.  BUT, if processDSP only gives us less than that, then write just those.
+                        numProcessedFrames = 0;
+                        sourceFramesConsumed = 0;
+                        processDSP(p_data, bytesNeededToWrite);  // processes 8-byte-per-frame stereo to 8-byte-per-frame *processedData (dual mono)
+
+                        int excessFramesPlayed = playPosition_frames - loopEndpoint_frames;
+                        bool weSnuckPastTheLoopEndpoint = !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&  // loop is NOT disabled
+                                                          (playPosition_frames >= loopEndpoint_frames);   //  AND we got beyond the endpoint
+
+                        if (straddlingLoopFromPoint || weSnuckPastTheLoopEndpoint) {
+
+                            playPosition_frames = loopStartpoint_frames; // reset the playPosition to the loop start point, in both cases
+
+                            if (weSnuckPastTheLoopEndpoint) {
+                                // This can happen when the playPosition exactly equals or is slightly larger than the loopEndpoint, which can happen
+                                //   when the tempo control is faster than normal, and so the number of frames consumed is just larger
+                                //   that the number of frames free.
+                                // I think this is the simplest possible solution, since the DSP has in_frames != out_frames.
+                                // If we snuck past, then we need to move the play position later that the loop start by the number of frames
+                                //   by which we went past the end point.  That should allow us to still be frame accurate.
+//                                qDebug() << "***** WARNING: We snuck past the Loop endpoint: " << playPosition_frames << loopEndpoint_frames << loopFrom_sec << loopTo_sec;
+                                playPosition_frames += excessFramesPlayed;
+//                                qDebug() << "   New playPosition_frames: " << excessFramesPlayed << playPosition_frames << loopStartpoint_frames;
+                            }
+                        } else {
+                            playPosition_frames += sourceFramesConsumed; // move the data pointer to the next place to read from
+                                                                          // if at the end, this will point just beyond the last sample
+                                                                          // these were consumed (sent to soundTouch) in any case.
+//                            qDebug() << "consumed: " << sourceFramesConsumed;
+                        }
+                        if (numProcessedFrames > 0) {  // but, maybe we didn't get any back from soundTouch.
+                            m_audioDevice->write((const char *)&processedData, bytesPerFrame * numProcessedFrames);  // DSP processed audio is 8 bytes/frame floats
+                        }
+                    } else {
+                        Stop(); // we reached the end, so reset the player back to the beginning (disable the writing, move playback position to 0)
                     }
                 } else {
-                    Stop(); // we reached the end, so reset the player back to the beginning (disable the writing, move playback position to 0)
+//                    qDebug() << "***** framesFree was small: " << framesFree;
                 }
             } // activelyPlaying
             msleep((activelyPlaying ? 5 : 50)); // sleep 10 milliseconds, this sets the polling rate for writing bytes to the audioSink  // CHECK THIS!
