@@ -189,7 +189,8 @@ public:
 
                         int excessFramesPlayed = playPosition_frames - loopEndpoint_frames;
                         bool weSnuckPastTheLoopEndpoint = !(loopFrom_sec == 0.0 && loopTo_sec == 0.0) &&  // loop is NOT disabled
-                                                          (playPosition_frames >= loopEndpoint_frames);   //  AND we got beyond the endpoint
+                                                          ((excessFramesPlayed >= 0) && (excessFramesPlayed < 1000));   //  AND we got beyond the endpoint (but the user didn't
+                                                                                                           //  put us there intentionally, i.e. >22.6ms after the endpoint)
 
                         if (straddlingLoopFromPoint || weSnuckPastTheLoopEndpoint) {
 
