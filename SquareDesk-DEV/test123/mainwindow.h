@@ -888,6 +888,7 @@ private:
     void loadRecentPlaylist(int num);
     void updateRecentPlaylistMenu();
     void addFilenameToRecentPlaylist(QString filename);
+    QString getShortPlaylistName();
 
     // Lyrics stuff ----------
     QString loadLyrics(QString MP3FileName);

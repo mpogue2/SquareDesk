@@ -524,6 +524,24 @@ void MainWindow::savePlaylistAgain() // saves without asking for a filename (Fil
     markPlaylistModified(false); // after File > Save, file is NOT modified
 }
 
+QString MainWindow::getShortPlaylistName() {
+
+    if (lastSavedPlaylist == "") {
+        return("Untitled");
+    }
+
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
+    QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
+    QString shortPlaylistName("ERROR 17");
+
+    if (match.hasMatch())
+    {
+        shortPlaylistName = match.captured(1);
+    }
+
+    return(shortPlaylistName);
+}
+
 // TODO: strip off the root directory before saving...
 void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really misnamed, it's (File > Save As)
 {

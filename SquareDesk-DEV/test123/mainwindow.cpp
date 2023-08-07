@@ -3094,30 +3094,32 @@ void MainWindow::on_vuMeterTimerTick(void)
 bool MainWindow::maybeSave() {
     QString current = ui->statusBar->currentMessage();
     bool isModified = current.endsWith('*');
-    static QRegularExpression asteriskAtEndRegex("\\*$");
-    current.replace(asteriskAtEndRegex, "");  // delete the star at the end, if present
-    static QRegularExpression playlistColonAtStartRegex("^Playlist: ");
-    current.replace(playlistColonAtStartRegex, ""); // delete off the start of the string
+//    static QRegularExpression asteriskAtEndRegex("\\*$");
+//    current.replace(asteriskAtEndRegex, "");  // delete the star at the end, if present
+//    static QRegularExpression playlistColonAtStartRegex("^Playlist: ");
+//    current.replace(playlistColonAtStartRegex, ""); // delete off the start of the string
 
     if (!isModified) {
 //        qDebug() << "maybeSave() returning, because playlist has not been modified";
         return true; // user wants application to close
     }
 
-    if (current == "") {
-        current = "Untitled";
-    }
+//    if (current == "") {
+//        current = "Untitled";
+//    }
+
+    QString playlistName = getShortPlaylistName();
 
     const QMessageBox::StandardButton ret
         = QMessageBox::warning(this, "SquareDesk",
-                               QString("The playlist '") + current + "' has been modified.\n\nDo you want to save your changes?",
+                               QString("The playlist '") + playlistName + "' has been modified.\n\nDo you want to save your changes?",
                                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
 
     switch (ret) {
 
         case QMessageBox::Save:
 //            qDebug() << "User clicked SAVE";
-            if (current == "Untitled") {
+            if (playlistName == "Untitled") {
                 // qDebug() << "No known filename, so asking for new filename now (Save As)";
                 on_actionSave_Playlist_triggered(); // File > Save As...
             } else {
