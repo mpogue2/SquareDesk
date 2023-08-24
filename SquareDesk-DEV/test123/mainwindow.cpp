@@ -1965,8 +1965,8 @@ void MainWindow::populateMenuSessionOptions()
 void MainWindow::on_menuLyrics_aboutToShow()
 {
     // only allow Save if it's not a template, and the doc was modified
-    ui->actionSave_Playlist_2->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
-    ui->actionSave_Playlist->setEnabled(hasLyrics);  // Cuesheet > Save Cuesheet As... is enabled if there are lyrics
+    ui->actionSave_Cuesheet->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
+    ui->actionSave_Cuesheet_As->setEnabled(hasLyrics);  // Cuesheet > Save Cuesheet As... is enabled if there are lyrics
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -3825,11 +3825,14 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     t.elapsed(__LINE__);
 
     ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
+
     ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
     ui->actionSave_Cuesheet->setEnabled(false);  // if locked, we can't Cuesheet > Save Cuesheet
 
     ui->pushButtonCueSheetEditSaveAs->hide();
     ui->actionSave_Cuesheet->setEnabled(false);  // FIX: we can Cuesheet > Save Cuesheet As, if there is a cuesheet
+
+    ui->pushButtonRevertEdits->hide();   // the revert edits buttons is also now invisible
 
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
     

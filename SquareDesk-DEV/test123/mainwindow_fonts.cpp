@@ -326,6 +326,7 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonEditLyrics->setFont(currentFont);
     ui->pushButtonCueSheetEditSave->setFont(currentFont);
     ui->pushButtonCueSheetEditSaveAs->setFont(currentFont);
+    ui->pushButtonRevertEdits->setFont(currentFont);
 
     ui->pushButtonCueSheetEditBold->setFont(currentFont);
     ui->pushButtonCueSheetEditItalic->setFont(currentFont);

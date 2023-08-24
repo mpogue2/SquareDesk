@@ -1026,3 +1026,9 @@ void MainWindow::on_actionPrint_Cuesheet_triggered()
 
     ui->textBrowserCueSheet->print(&printer);
 }
+
+void MainWindow::on_pushButtonRevertEdits_clicked()
+{
+    on_actionLyricsCueSheetRevert_Edits_triggered(true);
+}
+

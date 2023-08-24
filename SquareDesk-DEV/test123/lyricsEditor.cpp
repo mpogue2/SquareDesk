@@ -136,6 +136,8 @@ void MainWindow::lockForEditing() {
     ui->pushButtonCueSheetEditSaveAs->hide();
     ui->actionSave_Cuesheet_As->setEnabled(hasLyrics); // we can Cuesheet > Save Cuesheet As if there are lyrics
 
+    ui->pushButtonRevertEdits->hide();
+
     ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
 
     ui->pushButtonEditLyrics->show();        // and the "unlock for editing" button is now visible
@@ -173,8 +175,11 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
         if (haveCuesheet) {
             ui->pushButtonCueSheetEditSave->show();   // the save button conditionally visible
             ui->actionSave_Cuesheet->setEnabled(true); // we can Cuesheet > Save Cuesheet if there is a cuesheet
+
+            ui->pushButtonCueSheetEditSaveAs->show();
+
+            ui->pushButtonRevertEdits->show();   // the save button conditionally visible
         }
-        ui->pushButtonCueSheetEditSaveAs->show();   // the save as button visible regardless
         ui->actionSave_Cuesheet_As->setEnabled(hasLyrics); // we can Cuesheet > Save Cuesheet As... if there are lyrics
 
         ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
@@ -585,6 +590,7 @@ void MainWindow::on_pushButtonCueSheetEditSaveAs_clicked()
 
 //    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save
 }
+
 
 // ------------------------
 QString MainWindow::postProcessHTMLtoSemanticHTML(QString cuesheet) {
@@ -1056,6 +1062,7 @@ void MainWindow::saveLyrics()
         // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
         ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
         ui->pushButtonCueSheetEditSaveAs->hide();
+        ui->pushButtonRevertEdits->hide();
         ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
 
 //        ui->actionSave->setEnabled(false);  // save is disabled to start out
