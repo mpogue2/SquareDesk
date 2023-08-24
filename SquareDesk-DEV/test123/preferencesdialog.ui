@@ -538,7 +538,7 @@ Click on a color square to change the color associated with that Music Type.  Se
             </font>
            </property>
            <property name="text">
-            <string>Toggle Sequence:</string>
+            <string>Filter Sequence:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -548,7 +548,7 @@ Click on a color square to change the color associated with that Music Type.  Se
          <item row="14" column="2" colspan="4">
           <widget class="QLabel" name="labelToggleSequenceHelpTextLabel">
            <property name="text">
-            <string>a ';' separated list, default is toggling between the first Patter entry and the first Singing entry.</string>
+            <string>';' separated list, when Toggle Songs Filter hotkey is pressed (defaults to &quot;patter;singing&quot; first items)</string>
            </property>
           </widget>
          </item>
