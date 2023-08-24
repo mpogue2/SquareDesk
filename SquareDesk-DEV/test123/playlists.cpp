@@ -250,8 +250,9 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
         if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
             // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
 //            qDebug() << "LOADED CORRECTLY. enabling Save As";
-            ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
-            ui->actionSave_As->setEnabled(true);  // save playlist as...
+            ui->actionSave_Playlist_2->setEnabled(true);  // Playlist > Save Playlist 'name' is enabled, because you can always save a playlist with a diff name
+            ui->actionSave_Playlist->setEnabled(true);  // Playlist > Save Playlist As...
+            ui->actionPrint_Playlist->setEnabled(true);  // Playlist > Print Playlist...
         }
     }
     else {
@@ -299,7 +300,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
         shortPlaylistName = match.captured(1);
     }
 
-    ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
+    ui->actionSave_Playlist_2->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name, because it was loaded (possibly with errors)
 
 //    QString msg1 = QString("Loaded playlist with ") + QString::number(songCount) + QString(" items.");
     QString msg1 = QString("Playlist: ") + shortPlaylistName;
@@ -315,8 +316,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     ui->statusBar->showMessage(msg1);
 
 //    qDebug() << "FINISHED LOADED CORRECTLY. enabling Save As";
-    ui->actionSave->setEnabled(false);  // save playlist is disabled, because we haven't changed it yet
-    ui->actionSave_As->setEnabled(true);  // save playlist as...
+    ui->actionSave_Playlist_2->setEnabled(false);  // Playlist > Save Playlist 'name' is disabled, because it's not modified yet
+    ui->actionSave_Playlist->setEnabled(true);  // Playlist > Save Playlist As...
+    ui->actionPrint_Playlist->setEnabled(true);  // Playlist > Print Playlist...
 
     ui->songTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0
     ui->songTable->selectRow(0); // select first row of newly loaded and sorted playlist!
@@ -477,7 +479,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             markPlaylistModified(false); // turn off the * in the status bar
             lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
             prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
-            ui->actionSave->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now it has a name, because it was loaded (possibly with errors)
+            ui->actionSave_Playlist_2->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name, because it was loaded (possibly with errors)
         }
         else {
             ui->statusBar->showMessage(QString("ERROR: could not open CSV file."));
@@ -601,8 +603,8 @@ void MainWindow::on_actionSave_Playlist_triggered()  // NOTE: this is really mis
     lastSavedPlaylist = PlaylistFileName; // remember it, for the next SAVE operation (defaults to last saved in this session)
 //    qDebug() << "Save As::lastSavedPlaylist: " << lastSavedPlaylist;
 
-    ui->actionSave->setEnabled(false);  // now that we have Save As'd something, we can't Save that thing until modified
-    ui->actionSave->setText(QString("Save Playlist") + " '" + shortPlaylistName + "'"); // and now it has a name
+    ui->actionSave_Playlist_2->setEnabled(false);  // now that we have Save As'd something, we can't Save that thing until modified
+    ui->actionSave_Playlist_2->setText(QString("Save Playlist") + " '" + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name
 }
 
 void MainWindow::on_actionNext_Playlist_Item_triggered()
@@ -683,9 +685,10 @@ void MainWindow::on_actionClear_Playlist_triggered()
 
     lastSavedPlaylist = "";       // clear the name of the last playlist, since none is loaded
     linesInCurrentPlaylist = 0;   // the number of lines in the playlist is zero
-    ui->actionSave->setText(QString("Save Playlist")); // and now it has no name, because not loaded
-    ui->actionSave->setDisabled(true);
-    ui->actionSave_As->setDisabled(true);
+    ui->actionSave_Playlist_2->setText(QString("Save Playlist")); // and now it has no name, because not loaded
+    ui->actionSave_Playlist_2->setDisabled(true);
+    ui->actionSave_Playlist->setDisabled(true);
+    ui->actionPrint_Playlist->setDisabled(true);
 
     sortByDefaultSortOrder();
 
@@ -1233,4 +1236,103 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
     markPlaylistModified(true); // turn ON the * in the status bar, because some # entry changed
 
     // TODO: remove any non-numeric chars from the string before updating
+}
+
+// ----------------------------------------------------------------
+void MainWindow::on_actionSave_Playlist_2_triggered()
+{
+    // This is Playlist > Save Playlist
+    savePlaylistAgain();
+}
+
+// NOTE: Save Playlist As is handled by:
+
+void MainWindow::on_actionPrint_Playlist_triggered()
+{
+    // Playlist > Print Playlist...
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    printDialog.setWindowTitle("Print Playlist");
+
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+
+    // --------
+    QList<PlaylistExportRecord> exports;
+
+    // Iterate over the songTable to get all the info about the playlist
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();
+        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+        //            QString songTitle = getTitleColTitle(ui->songTable, i);
+        QString pitch = ui->songTable->item(i,kPitchCol)->text();
+        QString tempo = ui->songTable->item(i,kTempoCol)->text();
+
+        if (playlistIndex != "") {
+            // item HAS an index (that is, it is on the list, and has a place in the ordering)
+            // TODO: reconcile int here with double elsewhere on insertion
+            PlaylistExportRecord rec;
+            rec.index = playlistIndex.toInt();
+            //            rec.title = songTitle;
+            rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
+            rec.pitch = pitch;
+            rec.tempo = tempo;
+            exports.append(rec);
+        }
+    }
+
+    std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+
+    // GET SHORT NAME FOR PLAYLIST ---------
+    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
+    QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
+    QString shortPlaylistName("ERROR 7");
+
+    if (match.hasMatch())
+    {
+        shortPlaylistName = match.captured(1);
+    }
+
+    QString toBePrinted = "<h2>PLAYLIST: " + shortPlaylistName + "</h2>\n"; // TITLE AT TOP OF PAGE
+
+    QTextDocument doc;
+    QSizeF paperSize;
+    paperSize.setWidth(printer.width());
+    paperSize.setHeight(printer.height());
+    doc.setPageSize(paperSize);
+
+    patterColorString = prefsManager.GetpatterColorString();
+    singingColorString = prefsManager.GetsingingColorString();
+    calledColorString = prefsManager.GetcalledColorString();
+    extrasColorString = prefsManager.GetextrasColorString();
+
+    char buf[256];
+    foreach (const PlaylistExportRecord &rec, exports)
+    {
+        QString baseName = rec.title;
+        baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
+
+        snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
+
+        QStringList parts = baseName.split("/");
+        QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
+        QString colorString("black");
+        if (songTypeNamesForPatter.contains(folderTypename)) {
+            colorString = patterColorString;
+        } else if (songTypeNamesForSinging.contains(folderTypename)) {
+            colorString = singingColorString;
+        } else if (songTypeNamesForCalled.contains(folderTypename)) {
+            colorString = calledColorString;
+        } else if (songTypeNamesForExtras.contains(folderTypename)) {
+            colorString = extrasColorString;
+        }
+        toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
+    }
+
+    //        qDebug() << "PRINT: " << toBePrinted;
+
+    doc.setHtml(toBePrinted);
+    doc.print(&printer);
 }

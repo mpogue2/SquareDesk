@@ -131,10 +131,16 @@ void MainWindow::setInOutButtonState() {
 
 void MainWindow::lockForEditing() {
     ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->actionSave_Cuesheet->setEnabled(false);  // if locked, we can't Cuesheet > Save Cuesheet
+
     ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->actionSave_Cuesheet_As->setEnabled(hasLyrics); // we can Cuesheet > Save Cuesheet As if there are lyrics
+
+    ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
+
     ui->pushButtonEditLyrics->show();        // and the "unlock for editing" button is now visible
-    ui->actionSave->setEnabled(false);      // save is disabled now
-    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+//    ui->actionSave->setEnabled(false);      // save is disabled now
+//    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
 }
 
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
@@ -166,11 +172,16 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
         ui->textBrowserCueSheet->setFocusPolicy(Qt::ClickFocus);  // now it can get focus
         if (haveCuesheet) {
             ui->pushButtonCueSheetEditSave->show();   // the save button conditionally visible
+            ui->actionSave_Cuesheet->setEnabled(true); // we can Cuesheet > Save Cuesheet if there is a cuesheet
         }
         ui->pushButtonCueSheetEditSaveAs->show();   // the save as button visible regardless
+        ui->actionSave_Cuesheet_As->setEnabled(hasLyrics); // we can Cuesheet > Save Cuesheet As... if there are lyrics
+
+        ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
+
         ui->pushButtonEditLyrics->hide();  // and this button goes away!
-        ui->actionSave->setEnabled(haveCuesheet);  // save is enabled if there is a cuesheet
-        ui->actionSave_As->setEnabled(true);  // save as... is enabled now
+//        ui->actionSave->setEnabled(haveCuesheet);  // save is enabled if there is a cuesheet
+//        ui->actionSave_As->setEnabled(true);  // save as... is enabled now
 
     } else {
         ui->textBrowserCueSheet->clearFocus();  // if the user locks the editor, remove focus
@@ -1046,8 +1057,14 @@ void MainWindow::saveLyrics()
         ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
         ui->pushButtonCueSheetEditSaveAs->hide();
         ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
-        ui->actionSave->setEnabled(false);  // save is disabled to start out
-        ui->actionSave_As->setEnabled(false);  // save as... is also disabled at the start
+
+//        ui->actionSave->setEnabled(false);  // save is disabled to start out
+        ui->actionSave_Cuesheet->setEnabled(false);  // if locked, we can't Cuesheet > Save Cuesheet
+
+//        ui->actionSave_As->setEnabled(true);  // we can always Save As...
+        ui->actionSave_Cuesheet_As->setEnabled(hasLyrics);  // we can always Cuesheet > Save Cuesheet As... if there are lyrics
+
+        ui->actionPrint_Cuesheet->setEnabled(hasLyrics); // we can Cuesheet > Print Cuesheet if there are lyrics
 
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
         writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)

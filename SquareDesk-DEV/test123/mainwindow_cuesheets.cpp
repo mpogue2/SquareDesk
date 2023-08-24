@@ -993,3 +993,36 @@ void MainWindow::revealAttachedLyricsFileInFinder() {
         qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
     }
 }
+
+// ------------------------------------------------
+void MainWindow::on_actionSave_Cuesheet_triggered()
+{
+    // This is the Cuesheet > Save Cuesheet
+    on_pushButtonCueSheetEditSave_clicked();
+}
+
+void MainWindow::on_actionSave_Cuesheet_As_triggered()
+{
+    // This is Cuesheet > Save Cuesheet As
+    on_pushButtonCueSheetEditSaveAs_clicked();
+}
+
+void MainWindow::on_actionPrint_Cuesheet_triggered()
+{
+    // Cuesheet > Print Cuesheet...
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+
+    // PRINT CUESHEET FOR PATTER OR SINGER -------------------------------------------------------
+    if (currentSongType == "singing") {
+        printDialog.setWindowTitle("Print Cuesheet");
+    } else {
+        printDialog.setWindowTitle("Print Patter");
+    }
+
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+
+    ui->textBrowserCueSheet->print(&printer);
+}

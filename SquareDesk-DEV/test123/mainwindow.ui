@@ -21,11 +21,11 @@
        <enum>Qt::NoFocus</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="musicPlayerTab">
        <attribute name="title">
-        <string>Music Player</string>
+        <string>Music</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="1" column="1">
@@ -2550,11 +2550,6 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionOpen_MP3_file"/>
-    <addaction name="separator"/>
-    <addaction name="actionSave"/>
-    <addaction name="actionSave_As"/>
-    <addaction name="separator"/>
     <addaction name="actionImport"/>
     <addaction name="actionExport"/>
     <addaction name="separator"/>
@@ -2567,7 +2562,6 @@
     <addaction name="separator"/>
     <addaction name="actionCheck_for_Updates"/>
     <addaction name="separator"/>
-    <addaction name="actionFilePrint"/>
    </widget>
    <widget class="QMenu" name="menuMusic">
     <property name="title">
@@ -2594,6 +2588,8 @@
      <addaction name="actionNearest_Beat"/>
      <addaction name="actionNearest_Measure"/>
     </widget>
+    <addaction name="actionOpen_Audio_File"/>
+    <addaction name="separator"/>
     <addaction name="actionPlay"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
@@ -2657,7 +2653,9 @@
     </widget>
     <addaction name="actionLoad_Playlist"/>
     <addaction name="menuLoad_Recent_Playlist"/>
+    <addaction name="actionSave_Playlist_2"/>
     <addaction name="actionSave_Playlist"/>
+    <addaction name="actionPrint_Playlist"/>
     <addaction name="separator"/>
     <addaction name="actionClear_Playlist"/>
     <addaction name="separator"/>
@@ -2723,7 +2721,9 @@
     <addaction name="actionDance_Arranger"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Sequence"/>
+    <addaction name="actionSave_Sequence"/>
     <addaction name="actionSave_Sequence_As"/>
+    <addaction name="actionPrint_Sequence"/>
     <addaction name="separator"/>
     <addaction name="menuDance_Program"/>
     <addaction name="actionShow_Concepts"/>
@@ -2762,6 +2762,10 @@
      <addaction name="actionBold"/>
      <addaction name="actionItalic"/>
     </widget>
+    <addaction name="actionSave_Cuesheet"/>
+    <addaction name="actionSave_Cuesheet_As"/>
+    <addaction name="actionPrint_Cuesheet"/>
+    <addaction name="separator"/>
     <addaction name="menuFont"/>
     <addaction name="actionAuto_format_Lyrics"/>
     <addaction name="separator"/>
@@ -4242,7 +4246,7 @@
   </action>
   <action name="actionSave_Sequence_As">
    <property name="text">
-    <string>Save Sequence As...</string>
+    <string>Save Sequence To File...</string>
    </property>
   </action>
   <action name="actionShow_Frames">
@@ -4255,7 +4259,7 @@
   </action>
   <action name="actionDance">
    <property name="text">
-    <string>Dance</string>
+    <string>Load Dance</string>
    </property>
   </action>
   <action name="actionSquareDesk_Help">
@@ -4306,6 +4310,46 @@
    </property>
    <property name="text">
     <string>Nearest Measure</string>
+   </property>
+  </action>
+  <action name="actionSave_Playlist_2">
+   <property name="text">
+    <string>Save Playlist</string>
+   </property>
+  </action>
+  <action name="actionSave_Cuesheet">
+   <property name="text">
+    <string>Save Cuesheet</string>
+   </property>
+  </action>
+  <action name="actionSave_Cuesheet_As">
+   <property name="text">
+    <string>Save Cuesheet As...</string>
+   </property>
+  </action>
+  <action name="actionOpen_Audio_File">
+   <property name="text">
+    <string>Open Audio File...</string>
+   </property>
+  </action>
+  <action name="actionSave_Sequence">
+   <property name="text">
+    <string>Save Sequence</string>
+   </property>
+  </action>
+  <action name="actionPrint_Playlist">
+   <property name="text">
+    <string>Print Playlist...</string>
+   </property>
+  </action>
+  <action name="actionPrint_Cuesheet">
+   <property name="text">
+    <string>Print Cuesheet...</string>
+   </property>
+  </action>
+  <action name="actionPrint_Sequence">
+   <property name="text">
+    <string>Print Sequence...</string>
    </property>
   </action>
  </widget>

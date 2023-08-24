@@ -1272,12 +1272,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
+    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+
     // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
     QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
 
     if (loadThisPlaylist != "") {
         QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
-        finishLoadingPlaylist(fullPlaylistPath); // load it!
+        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
     }
 
     stopLongSongTableOperation("MainWindow");
@@ -1457,7 +1461,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 //    qDebug() << "allDances, dances: " << allDances << dances;
 
-    QMenu *dancesSubmenu = new QMenu("Dances");
+    QMenu *dancesSubmenu = new QMenu("Load Dance");
     QString lastDance = prefsManager.GetlastDance();
     QAction *matchAction = NULL;	// which item to be made selected
     int whichItem = 0;
@@ -1493,6 +1497,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // TODO: if any frameVisible = {central, sidebar} file is not found, disable all the edit buttons for now
     if (SDtestmode) {
         ui->pushButtonSDSave->setVisible(false);
+        ui->actionSave_Sequence->setEnabled(false);
         ui->pushButtonSDUnlock->setVisible(false);
         ui->pushButtonSDNew->setVisible(false);
     }
@@ -1960,7 +1965,8 @@ void MainWindow::populateMenuSessionOptions()
 void MainWindow::on_menuLyrics_aboutToShow()
 {
     // only allow Save if it's not a template, and the doc was modified
-    ui->actionSave->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
+    ui->actionSave_Playlist_2->setEnabled(ui->textBrowserCueSheet->document()->isModified() && !loadedCuesheetNameWithPath.contains(".template.html"));
+    ui->actionSave_Playlist->setEnabled(hasLyrics);  // Cuesheet > Save Cuesheet As... is enabled if there are lyrics
     ui->actionLyricsCueSheetRevert_Edits->setEnabled(ui->textBrowserCueSheet->document()->isModified());
 }
 
@@ -3820,7 +3826,11 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     ui->pushButtonEditLyrics->setChecked(false); // lyrics/cuesheets of new songs when loaded default to NOT editable
     ui->pushButtonCueSheetEditSave->hide();   // the two save buttons are now invisible
+    ui->actionSave_Cuesheet->setEnabled(false);  // if locked, we can't Cuesheet > Save Cuesheet
+
     ui->pushButtonCueSheetEditSaveAs->hide();
+    ui->actionSave_Cuesheet->setEnabled(false);  // FIX: we can Cuesheet > Save Cuesheet As, if there is a cuesheet
+
     ui->pushButtonEditLyrics->show();  // and the "unlock for editing" button shows up!
     
 
@@ -5134,10 +5144,16 @@ void MainWindow::on_songTable_itemSelectionChanged()
         linesInCurrentPlaylist = playlistItemCount;
 //        qDebug() << "songTableItemSelectionChanged:" << playlistItemCount;
         if ((playlistItemCount > 0) && (lastSavedPlaylist != "")) {
-            ui->actionSave->setEnabled(true);
+//            ui->actionSave->setEnabled(true);
+//            QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
+//            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
+//            ui->actionSave_As->setEnabled(true);
+            ui->actionSave_Playlist_2->setEnabled(true); // Playlist > Save Playlist 'name'
             QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
-            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
-            ui->actionSave_As->setEnabled(true);
+            ui->actionSave_Playlist_2->setText(QString("Save Playlist") + " '" + basefilename + "'"); // and now it has a name
+            ui->actionSave_As->setEnabled(true); // Playlist > Save Playlist As...
+
+            ui->actionPrint_Playlist->setEnabled(true); // Playlist > Print Playlist...
         }
 
         if (currentNumberText == "") {
@@ -5838,7 +5854,7 @@ void MainWindow::on_warningLabelCuesheet_clicked() {
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD"
-        || ui->tabWidget->tabText(index) == "SD 2") {
+        /*|| ui->tabWidget->tabText(index) == "SD 2"*/) {
         // SD Tab ---------------
 
         ui->lineEditSDInput->setFocus();
@@ -5846,60 +5862,61 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 //        ui->actionSave_Lyrics_As->setDisabled(true);
 //        ui->actionPrint_Lyrics->setDisabled(true);
 
-        ui->actionFilePrint->setEnabled(true); // FIX: when sequences can be printed
-        ui->actionFilePrint->setText("Print SD Sequence...");
+//        ui->actionFilePrint->setEnabled(true); // FIX: when sequences can be printed
+//        ui->actionFilePrint->setText("Print SD Sequence...");
 
-        ui->actionSave->setDisabled(true);      // sequences can't be saved (no default filename to save to)
-        ui->actionSave->setText("Save SD Sequence");        // greyed out
-        ui->actionSave_As->setDisabled(false);  // sequences can be saved
-        ui->actionSave_As->setText("Save SD Sequence As...");
+//        ui->actionSave->setDisabled(true);      // sequences can't be saved (no default filename to save to)
+//        ui->actionSave->setText("Save SD Sequence");        // greyed out
+//        ui->actionSave_As->setDisabled(false);  // sequences can be saved
+//        ui->actionSave_As->setText("Save SD Sequence As...");
     } else if (ui->tabWidget->tabText(index) == CUESHEET_TAB_NAME) {
         // Lyrics Tab ---------------
 //        ui->actionPrint_Lyrics->setDisabled(false);
 //        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
 //        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
-        ui->actionFilePrint->setDisabled(false);
 
-        // THIS IS WRONG: enabled iff hasLyrics and editing is enabled
-        bool okToSave = hasLyrics && ui->pushButtonEditLyrics->isChecked();
-        ui->actionSave->setEnabled(okToSave);      // cuesheet can be saved when there are lyrics to save
-        ui->actionSave_As->setEnabled(okToSave);   // cuesheet can be saved as when there are lyrics to save
+//        ui->actionFilePrint->setDisabled(false);
+
+//        // THIS IS WRONG: enabled iff hasLyrics and editing is enabled
+//        bool okToSave = hasLyrics && ui->pushButtonEditLyrics->isChecked();
+//        ui->actionSave->setEnabled(okToSave);      // cuesheet can be saved when there are lyrics to save
+//        ui->actionSave_As->setEnabled(okToSave);   // cuesheet can be saved as when there are lyrics to save
 
 
-        ui->actionSave->setText("Save Cuesheet"); // but greyed out, until modified
-        ui->actionSave_As->setText("Save Cuesheet As...");  // greyed out until modified
+//        ui->actionSave->setText("Save Cuesheet"); // but greyed out, until modified
+//        ui->actionSave_As->setText("Save Cuesheet As...");  // greyed out until modified
         
-        ui->actionFilePrint->setText("Print Cuesheet...");
+//        ui->actionFilePrint->setText("Print Cuesheet...");
 
     } else if (ui->tabWidget->tabText(index) == "Music Player") {
-        bool playlistModified = ui->statusBar->currentMessage().endsWith("*");
+//        bool playlistModified = ui->statusBar->currentMessage().endsWith("*");
 //        qDebug() << "tabWidget" << linesInCurrentPlaylist << lastSavedPlaylist << playlistModified;
 
-        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != "") && playlistModified);      // playlist can be saved if there are >0 lines and it was not current.m3u
-        if (lastSavedPlaylist != "") {
-            QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
-            ui->actionSave->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
-        } else {
-            ui->actionSave->setText(QString("Save Playlist")); // it doesn't have a name yet
-        }
+//        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != "") && playlistModified);      // playlist can be saved if there are >0 lines and it was not current.m3u
+//        if (lastSavedPlaylist != "") {
+//            QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
+//            ui->actionSave_Playlist_2->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
+//        } else {
+//            ui->actionSave_Playlist_2->setText(QString("Save Playlist")); // it doesn't have a name yet
+//        }
 //        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist;
-        ui->actionSave_As->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
-        ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
+//        ui->actionSave_Playlist->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
+//        ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
 
-        ui->actionFilePrint->setEnabled(true);
-        ui->actionFilePrint->setText("Print Playlist...");
+//        ui->actionFilePrint->setEnabled(true);
+//        ui->actionFilePrint->setText("Print Playlist...");
     } else  {
         // dance programs, reference
 //        ui->actionPrint_Lyrics->setDisabled(true);
 //        ui->actionSave_Lyrics->setDisabled(true);
 //        ui->actionSave_Lyrics_As->setDisabled(true);
 
-        ui->actionSave->setDisabled(true);      // dance programs etc can't be saved
-        ui->actionSave->setText("Save"); // but greyed out
-        ui->actionSave_As->setDisabled(true);  // patter can be saved as
-        ui->actionSave_As->setText("Save As...");  // greyed out
+//        ui->actionSave->setDisabled(true);      // dance programs etc can't be saved
+//        ui->actionSave->setText("Save"); // but greyed out
+//        ui->actionSave_As->setDisabled(true);  // patter can be saved as
+//        ui->actionSave_As->setText("Save As...");  // greyed out
 
-        ui->actionFilePrint->setDisabled(true);
+//        ui->actionFilePrint->setDisabled(true);
     }
 
     microphoneStatusUpdate();
@@ -6679,175 +6696,173 @@ QString MainWindow::filepath2SongType(QString MP3Filename)
 
 void MainWindow::on_actionFilePrint_triggered()
 {
-    // this is the only tab that has printable content right now
-    // this is only a double-check (the menu item should be disabled when not on Lyrics/Patter
-    QPrinter printer;
-    QPrintDialog printDialog(&printer, this);
+//    QPrinter printer;
+//    QPrintDialog printDialog(&printer, this);
 
-    int i = ui->tabWidget->currentIndex();
-    if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
-        // PRINT CUESHEET FOR PATTER OR SINGER -------------------------------------------------------
-        if (currentSongType == "singing") {
-            printDialog.setWindowTitle("Print Cuesheet");
-        } else {
-            printDialog.setWindowTitle("Print Patter");
-        }
+//    int i = ui->tabWidget->currentIndex();
+//    if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
+//        // PRINT CUESHEET FOR PATTER OR SINGER -------------------------------------------------------
+//        if (currentSongType == "singing") {
+//            printDialog.setWindowTitle("Print Cuesheet");
+//        } else {
+//            printDialog.setWindowTitle("Print Patter");
+//        }
 
-        if (printDialog.exec() == QDialog::Rejected) {
-            return;
-        }
+//        if (printDialog.exec() == QDialog::Rejected) {
+//            return;
+//        }
 
-        ui->textBrowserCueSheet->print(&printer);
-    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
-        // PRINT SD SEQUENCE -------------------------------------------------------
-        QPrinter printer;
-        QPrintDialog printDialog(&printer, this);
-        printDialog.setWindowTitle("Print SD Sequence");
+//        ui->textBrowserCueSheet->print(&printer);
+//    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+//        // PRINT SD SEQUENCE -------------------------------------------------------
+//        QPrinter printer;
+//        QPrintDialog printDialog(&printer, this);
+//        printDialog.setWindowTitle("Print SD Sequence");
 
-        if (printDialog.exec() == QDialog::Rejected) {
-            return;
-        }
+//        if (printDialog.exec() == QDialog::Rejected) {
+//            return;
+//        }
 
-        QTextDocument doc;
-        QSizeF paperSize;
-        paperSize.setWidth(printer.width());
-        paperSize.setHeight(printer.height());
-        doc.setPageSize(paperSize);
+//        QTextDocument doc;
+//        QSizeF paperSize;
+//        paperSize.setWidth(printer.width());
+//        paperSize.setHeight(printer.height());
+//        doc.setPageSize(paperSize);
         
-        QString contents(get_current_sd_sequence_as_html(true, true));
-        doc.setHtml(contents);
-        doc.print(&printer);
-    } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
-        // PRINT PLAYLIST -------------------------------------------------------
-        QPrinter printer;
-        QPrintDialog printDialog(&printer, this);
-        printDialog.setWindowTitle("Print Playlist");
+//        QString contents(get_current_sd_sequence_as_html(true, true));
+//        doc.setHtml(contents);
+//        doc.print(&printer);
+//    } else if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+//        // PRINT PLAYLIST -------------------------------------------------------
+//        QPrinter printer;
+//        QPrintDialog printDialog(&printer, this);
+//        printDialog.setWindowTitle("Print Playlist");
 
-        if (printDialog.exec() == QDialog::Rejected) {
-            return;
-        }
+//        if (printDialog.exec() == QDialog::Rejected) {
+//            return;
+//        }
 
-        // --------
-        QList<PlaylistExportRecord> exports;
+//        // --------
+//        QList<PlaylistExportRecord> exports;
 
-        // Iterate over the songTable to get all the info about the playlist
-        for (int i=0; i<ui->songTable->rowCount(); i++) {
-            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-            QString playlistIndex = theItem->text();
-            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-//            QString songTitle = getTitleColTitle(ui->songTable, i);
-            QString pitch = ui->songTable->item(i,kPitchCol)->text();
-            QString tempo = ui->songTable->item(i,kTempoCol)->text();
+//        // Iterate over the songTable to get all the info about the playlist
+//        for (int i=0; i<ui->songTable->rowCount(); i++) {
+//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//            QString playlistIndex = theItem->text();
+//            QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+////            QString songTitle = getTitleColTitle(ui->songTable, i);
+//            QString pitch = ui->songTable->item(i,kPitchCol)->text();
+//            QString tempo = ui->songTable->item(i,kTempoCol)->text();
 
-            if (playlistIndex != "") {
-                // item HAS an index (that is, it is on the list, and has a place in the ordering)
-                // TODO: reconcile int here with double elsewhere on insertion
-                PlaylistExportRecord rec;
-                rec.index = playlistIndex.toInt();
-    //            rec.title = songTitle;
-                rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
-                rec.pitch = pitch;
-                rec.tempo = tempo;
-                exports.append(rec);
-            }
-        }
+//            if (playlistIndex != "") {
+//                // item HAS an index (that is, it is on the list, and has a place in the ordering)
+//                // TODO: reconcile int here with double elsewhere on insertion
+//                PlaylistExportRecord rec;
+//                rec.index = playlistIndex.toInt();
+//    //            rec.title = songTitle;
+//                rec.title = pathToMP3;  // NOTE: this is an absolute path that does not survive moving musicDir
+//                rec.pitch = pitch;
+//                rec.tempo = tempo;
+//                exports.append(rec);
+//            }
+//        }
 
-        std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
+//        std::sort(exports.begin(), exports.end(), comparePlaylistExportRecord);  // they are now IN INDEX ORDER
 
-        // GET SHORT NAME FOR PLAYLIST ---------
-        static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
-        QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
-        QString shortPlaylistName("ERROR 7");
+//        // GET SHORT NAME FOR PLAYLIST ---------
+//        static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
+//        QRegularExpressionMatch match = regex1.match(lastSavedPlaylist);
+//        QString shortPlaylistName("ERROR 7");
 
-        if (match.hasMatch())
-        {
-            shortPlaylistName = match.captured(1);
-        }
+//        if (match.hasMatch())
+//        {
+//            shortPlaylistName = match.captured(1);
+//        }
 
-        QString toBePrinted = "<h2>PLAYLIST: " + shortPlaylistName + "</h2>\n"; // TITLE AT TOP OF PAGE
+//        QString toBePrinted = "<h2>PLAYLIST: " + shortPlaylistName + "</h2>\n"; // TITLE AT TOP OF PAGE
 
-        QTextDocument doc;
-        QSizeF paperSize;
-        paperSize.setWidth(printer.width());
-        paperSize.setHeight(printer.height());
-        doc.setPageSize(paperSize);
+//        QTextDocument doc;
+//        QSizeF paperSize;
+//        paperSize.setWidth(printer.width());
+//        paperSize.setHeight(printer.height());
+//        doc.setPageSize(paperSize);
 
-        patterColorString = prefsManager.GetpatterColorString();
-        singingColorString = prefsManager.GetsingingColorString();
-        calledColorString = prefsManager.GetcalledColorString();
-        extrasColorString = prefsManager.GetextrasColorString();
+//        patterColorString = prefsManager.GetpatterColorString();
+//        singingColorString = prefsManager.GetsingingColorString();
+//        calledColorString = prefsManager.GetcalledColorString();
+//        extrasColorString = prefsManager.GetextrasColorString();
 
-        char buf[256];
-        foreach (const PlaylistExportRecord &rec, exports)
-        {
-            QString baseName = rec.title;
-            baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
+//        char buf[256];
+//        foreach (const PlaylistExportRecord &rec, exports)
+//        {
+//            QString baseName = rec.title;
+//            baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
 
-            snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
+//            snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
 
-            QStringList parts = baseName.split("/");
-            QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
-            QString colorString("black");
-            if (songTypeNamesForPatter.contains(folderTypename)) {
-                colorString = patterColorString;
-            } else if (songTypeNamesForSinging.contains(folderTypename)) {
-                colorString = singingColorString;
-            } else if (songTypeNamesForCalled.contains(folderTypename)) {
-                colorString = calledColorString;
-            } else if (songTypeNamesForExtras.contains(folderTypename)) {
-                colorString = extrasColorString;
-            }
-            toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
-        }
+//            QStringList parts = baseName.split("/");
+//            QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
+//            QString colorString("black");
+//            if (songTypeNamesForPatter.contains(folderTypename)) {
+//                colorString = patterColorString;
+//            } else if (songTypeNamesForSinging.contains(folderTypename)) {
+//                colorString = singingColorString;
+//            } else if (songTypeNamesForCalled.contains(folderTypename)) {
+//                colorString = calledColorString;
+//            } else if (songTypeNamesForExtras.contains(folderTypename)) {
+//                colorString = extrasColorString;
+//            }
+//            toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
+//        }
 
-//        qDebug() << "PRINT: " << toBePrinted;
+////        qDebug() << "PRINT: " << toBePrinted;
 
-        doc.setHtml(toBePrinted);
-        doc.print(&printer);
+//        doc.setHtml(toBePrinted);
+//        doc.print(&printer);
 
-    }
+//    }
 }
 
 void MainWindow::on_actionSave_triggered()
 {
 //    qDebug() << "actionSave";
-    int i = ui->tabWidget->currentIndex();
-    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
-        // playlist
-        savePlaylistAgain(); // Now a true SAVE (if one was already saved)
-    } else if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
-        // lyrics/patter
-        saveLyrics();
-    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
-        // sequence
-        saveSequenceAs();  // intentionally ..As()
-    } else {
-        // dance program
-        // reference
-        // timers
-        // intentionally nothing...
-    }
+//    int i = ui->tabWidget->currentIndex();
+//    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+//        // playlist
+//        savePlaylistAgain(); // Now a true SAVE (if one was already saved)
+//    } else if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
+//        // lyrics/patter
+//        saveLyrics();
+//    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+//        // sequence
+//        saveSequenceAs();  // intentionally ..As()
+//    } else {
+//        // dance program
+//        // reference
+//        // timers
+//        // intentionally nothing...
+//    }
 }
 
 void MainWindow::on_actionSave_As_triggered()
 {
 //    qDebug() << "actionSave_As";
-    int i = ui->tabWidget->currentIndex();
-    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
-        // playlist
-        on_actionSave_Playlist_triggered(); // really "Save As..."
-    } else if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
-        // lyrics/patter
-        saveLyricsAs();
-    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
-        // sequence
-        saveSequenceAs();  // intentionally ..As()
-    } else {
-        // dance program
-        // reference
-        // timers
-        // intentionally nothing...
-    }
+//    int i = ui->tabWidget->currentIndex();
+//    if (ui->tabWidget->tabText(i).endsWith("Music Player")) {
+//        // playlist
+//        on_actionSave_Playlist_triggered(); // really "Save As..."
+//    } else if (ui->tabWidget->tabText(i) == CUESHEET_TAB_NAME) {
+//        // lyrics/patter
+//        saveLyricsAs();
+//    } else if (ui->tabWidget->tabText(i).endsWith("SD")) {
+//        // sequence
+//        saveSequenceAs();  // intentionally ..As()
+//    } else {
+//        // dance program
+//        // reference
+//        // timers
+//        // intentionally nothing...
+//    }
 }
 
 
@@ -7419,4 +7434,10 @@ void MainWindow::on_actionNearest_Measure_triggered()
            ui->actionDisabled->setChecked(true);
         }
     }
+}
+
+void MainWindow::on_actionOpen_Audio_File_triggered()
+{
+    // This is Music > Open Audio File
+    on_actionOpen_MP3_file_triggered();
 }

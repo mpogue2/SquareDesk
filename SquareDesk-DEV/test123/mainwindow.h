@@ -694,6 +694,22 @@ private slots:
 
     void on_actionNearest_Measure_triggered();
 
+    void on_actionSave_Playlist_2_triggered();
+
+    void on_actionSave_Cuesheet_triggered();
+
+    void on_actionSave_Cuesheet_As_triggered();
+
+    void on_actionOpen_Audio_File_triggered();
+
+    void on_actionSave_Sequence_triggered();
+
+    void on_actionPrint_Playlist_triggered();
+
+    void on_actionPrint_Cuesheet_triggered();
+
+    void on_actionPrint_Sequence_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

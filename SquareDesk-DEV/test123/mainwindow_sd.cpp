@@ -3732,6 +3732,7 @@ void MainWindow::on_pushButtonSDUnlock_clicked()
     ui->pushButtonSDNew->setVisible(false);
     ui->pushButtonSDUnlock->setVisible(false);
     ui->pushButtonSDSave->setVisible(true);
+    ui->actionSave_Sequence->setEnabled(true);
     ui->pushButtonSDMove->setVisible(false); // arrange menu
     ui->pushButtonSDDelete->setVisible(true);
     ui->pushButtonSDRevert->setVisible(true);
@@ -3766,6 +3767,7 @@ void MainWindow::SDExitEditMode() {
     ui->pushButtonSDNew->setVisible(true);
     ui->pushButtonSDUnlock->setVisible(true);
     ui->pushButtonSDSave->setVisible(false);
+    ui->actionSave_Sequence->setEnabled(false);
     ui->pushButtonSDMove->setVisible(true);  // arrange menu
     ui->pushButtonSDDelete->setVisible(true);
     ui->pushButtonSDRevert->setVisible(false);
@@ -5405,4 +5407,34 @@ void MainWindow::on_actionSave_Current_Dance_As_HTML_triggered()
         stream.flush();
         file.close();
     }
+}
+
+// --------------------------------------------------
+void MainWindow::on_actionSave_Sequence_triggered()
+{
+    // SD > Save Sequence (does the same thing as pressing the SAVE button
+    on_pushButtonSDSave_clicked();
+}
+
+void MainWindow::on_actionPrint_Sequence_triggered()
+{
+    // SD > Print Sequence...
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+
+    printDialog.setWindowTitle("Print SD Sequence");
+
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+
+    QTextDocument doc;
+    QSizeF paperSize;
+    paperSize.setWidth(printer.width());
+    paperSize.setHeight(printer.height());
+    doc.setPageSize(paperSize);
+
+    QString contents(get_current_sd_sequence_as_html(true, true));
+    doc.setHtml(contents);
+    doc.print(&printer);
 }
