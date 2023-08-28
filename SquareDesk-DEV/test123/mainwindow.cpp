@@ -3174,6 +3174,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
 
+    if (!maybeSaveCuesheet(3)) {
+        //        qDebug() << "closeEvent ignored, because user cancelled.";
+        event->ignore();
+        return;
+    }
+
     closeEventHappened = true;
 
     if (/* DISABLES CODE */ (true)) {

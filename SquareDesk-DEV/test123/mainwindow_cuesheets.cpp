@@ -1088,7 +1088,7 @@ bool MainWindow::maybeSaveCuesheet(int optionCount) {
 
         case QMessageBox::Cancel:
 //            qDebug() << "User clicked CANCEL, returning FALSE";
-            return false; // don't load the new song!
+            return false; // don't load the new song or don't quit!
 
         default:
 //            qDebug() << "DON'T SAVE";
