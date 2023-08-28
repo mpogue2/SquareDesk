@@ -298,6 +298,7 @@ public slots:
 
 protected:
     bool maybeSave();
+    bool maybeSaveCuesheet(int optionCount);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
     void on_monoButton_toggled(bool checked);
@@ -865,10 +866,12 @@ private:
 
     void maybeLoadCSSfileIntoTextBrowser();
     void loadCuesheet(const QString &cuesheetFilename);
-    void loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
+    bool loadCuesheets(const QString &MP3FileName, const QString preferredCuesheet = QString());
     void findPossibleCuesheets(const QString &MP3Filename, QStringList &possibleCuesheets);
     bool breakFilenameIntoParts(const QString &s, QString &label, QString &labelnum, QString &labenum_extra,
                                 QString &title, QString &shortTitle );
+
+    bool cuesheetIsUnlockedForEditing;
 
     void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack
     void filterMusic();  // filter them into the songTable

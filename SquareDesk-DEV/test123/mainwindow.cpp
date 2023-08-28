@@ -343,6 +343,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     sd_redo_stack(new SDRedoStack())
 {
 //    sdtest();
+    cuesheetIsUnlockedForEditing = false;
 
     cBass = new flexible_audio();
     //Q_UNUSED(splash)
@@ -1907,8 +1908,18 @@ void MainWindow::on_comboBoxCallListProgram_currentIndexChanged(int currentIndex
 
 void MainWindow::on_comboBoxCuesheetSelector_currentIndexChanged(int currentIndex)
 {
+//    qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged currentIndex = " << currentIndex;
     if (currentIndex != -1 && !cuesheetEditorReactingToCursorMovement) {
+        if (currentIndex < 100) {
+            // revert adds 100 to the currentIndex to force a reload
+            //  the NON-revert cases will all be normal indices
+            maybeSaveCuesheet(2);  // 2 options: don't save or save, no cancel
+        } else {
+            currentIndex -= 100; // revert case
+        }
+
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(currentIndex).toString();
+//        qDebug() << "on_comboBoxCuesheetSelector_currentIndexChanged is about to load: " << cuesheetFilename;
         loadCuesheet(cuesheetFilename);
     }
 }
@@ -1972,7 +1983,7 @@ void MainWindow::on_menuLyrics_aboutToShow()
 
 void MainWindow::on_actionLyricsCueSheetRevert_Edits_triggered(bool /*checked*/)
 {
-    on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex());
+    on_comboBoxCuesheetSelector_currentIndexChanged(ui->comboBoxCuesheetSelector->currentIndex() + 100); // indicate that we do NOT want to check for being edited
 }
 
 void MainWindow::on_actionCompact_triggered(bool checked)
@@ -3794,6 +3805,15 @@ void MainWindow::reloadCurrentMP3File() {
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
     PerfTimer t("loadMP3File", __LINE__);
+
+    if (!loadCuesheets(MP3FileName)) {
+        // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
+        //   A symlink or alias in the Singing folder pointing at the real file in the Patter folder should work now.
+        //   A symlink or alias in the Patter folder pointing at the real file in the Singing folder should also work now.
+        //   In both cases: as Singer, it has lyrics, and as Patter, it has looping and no lyrics.
+        return;  // if the user cancelled the load in the "you have unsaved cuesheet changes" dialog, abort the load.
+    }
+
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
     filewatcherIsTemporarilyDisabled = true;  // disable the FileWatcher for a few seconds to workaround the Ventura extended attribute problem
@@ -3809,11 +3829,6 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     currentSongType = songType;     // save it for session coloring on the analog clock later...
     currentSongLabel = songLabel;   // remember it, in case we need it later
-
-    loadCuesheets(MP3FileName); // load cuesheets up here first, so that the original pathname is used, rather than the pointed-to (rewritten) pathname.
-                                //   A symlink or alias in the Singing folder pointing at the real file in the Patter folder should work now.
-                                //   A symlink or alias in the Patter folder pointing at the real file in the Singing folder should also work now.
-                                //   In both cases: as Singer, it has lyrics, and as Patter, it has looping and no lyrics.
 
     // resolve aliases at load time, rather than findFilesRecursively time, because it's MUCH faster
     QFileInfo fi(MP3FileName);

@@ -143,6 +143,10 @@ void MainWindow::lockForEditing() {
     ui->pushButtonEditLyrics->show();        // and the "unlock for editing" button is now visible
 //    ui->actionSave->setEnabled(false);      // save is disabled now
 //    ui->actionSave_As->setEnabled(false);  // save as... is also disabled now
+
+    ui->comboBoxCuesheetSelector->setDisabled(false); // when we are locked (not editing), we CAN change the cuesheet!
+
+    cuesheetIsUnlockedForEditing = false;
 }
 
 void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
@@ -166,6 +170,10 @@ void MainWindow::on_pushButtonEditLyrics_toggled(bool checkState)
     ui->pushButtonCueSheetClearFormatting->setEnabled(checked);
 
     if (checked) {
+
+        cuesheetIsUnlockedForEditing = true;
+        ui->comboBoxCuesheetSelector->setDisabled(true); // when we are editing, cannot change the cuesheet!
+
         // unlocked now, so must set up button state, too
 //        qDebug() << "setting up button state using lastKnownTextCharFormat...";
         QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
@@ -566,14 +574,13 @@ void MainWindow::on_pushButtonCueSheetEditSave_clicked()
 //    QTextCursor tc = ui->textBrowserCueSheet->textCursor();  // save text cursor
 //    qDebug() << "on_pushButtonCueSheetEditSave_clicked";
 //    if (ui->textBrowserCueSheet->document()->isModified()) {  // FIX: document is always modified.
-
-          saveLyrics();
-
 //        ui->textBrowserCueSheet->document()->setModified(false);  // has not been modified now
 //    }
 
     lockForEditing();    
     setInOutButtonState();
+
+    saveLyrics();
 
 //    ui->textBrowserCueSheet->setTextCursor(tc); // Reset the cursor after a save  // NOTE: THis doesn't seem to work in recent Qt versions. Always sets to end.
 }
@@ -975,6 +982,7 @@ QString MainWindow::txtToHTMLlyrics(QString text, QString filePathname) {
 // LOAD A CUESHEET INTO THE EDITOR -------------------------------------------
 void MainWindow::loadCuesheet(const QString &cuesheetFilename)
 {
+//    qDebug() << "loadCuesheet: " << cuesheetFilename;
     loadedCuesheetNameWithPath = ""; // nothing loaded yet
 
     QUrl cuesheetUrl(QUrl::fromLocalFile(cuesheetFilename));
@@ -1056,7 +1064,10 @@ void MainWindow::saveLyrics()
     // Save cuesheet to the current cuesheet filename...
     RecursionGuard dialog_guard(inPreferencesDialog);
 
-    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+//    QString cuesheetFilename = ui->comboBoxCuesheetSelector->itemData(ui->comboBoxCuesheetSelector->currentIndex()).toString();
+    QString cuesheetFilename = loadedCuesheetNameWithPath;
+//    qDebug() << "******** saveLyrics is saving to:" << cuesheetFilename;
+
     if (!cuesheetFilename.isNull())
     {
         // this needs to be done BEFORE the actual write, because the reload will cause a bogus "are you sure" message
@@ -1076,7 +1087,8 @@ void MainWindow::saveLyrics()
         filewatcherShouldIgnoreOneFileSave = true;  // set flag
         writeCuesheet(cuesheetFilename);            // this will NOT trigger FileWatcher (one time)
 
-        loadCuesheets(currentMP3filenameWithPath, cuesheetFilename);
+//        qDebug() << "saveLyrics is loading it again now...";
+        loadCuesheets(currentMP3filenameWithPath, cuesheetFilename); // ignoring return value
         saveCurrentSongSettings();
     }
     setInOutButtonState();
@@ -1127,7 +1139,8 @@ void MainWindow::saveLyricsAs()
         filewatcherShouldIgnoreOneFileSave = true;  // set flag so that Filewatcher is NOT triggered (one time)
         writeCuesheet(filename);            // this will NOT trigger FileWatcher
 
-        loadCuesheets(currentMP3filenameWithPath, filename);
+//        qDebug() << "saveLyricsAs is loading it again now...";
+        loadCuesheets(currentMP3filenameWithPath, filename); // ignoring return value
         saveCurrentSongSettings();
     }
 }

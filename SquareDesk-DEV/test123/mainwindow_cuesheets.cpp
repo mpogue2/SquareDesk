@@ -439,8 +439,16 @@ void MainWindow::findPossibleCuesheets(const QString &MP3Filename, QStringList &
         }
 }
 
-void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet)
+bool MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCuesheet)
 {
+    // if we're loading cuesheets, check to make sure we were not in the process
+    //  of editing one already, and if so, ask what to do.
+    if (!maybeSaveCuesheet(3))
+    {
+//            qDebug() << "USER CANCELLED LOAD, returning FALSE";
+        return false; // user clicked CANCEL, so do NOT do the load
+    }
+
     hasLyrics = false;
     bool isPatter;
 
@@ -576,6 +584,7 @@ void MainWindow::loadCuesheets(const QString &MP3FileName, const QString prefCue
         } // else (lyrics could not be found)
     } // isPatter
 
+    return true;  // ALL IS WELL
 }
 
 
@@ -1032,3 +1041,60 @@ void MainWindow::on_pushButtonRevertEdits_clicked()
     on_actionLyricsCueSheetRevert_Edits_triggered(true);
 }
 
+// --------------
+// follows this example: https://doc.qt.io/qt-6/qtwidgets-mainwindows-application-example.html
+bool MainWindow::maybeSaveCuesheet(int optionCount) {
+
+//    bool isBeingModified = ui->pushButtonEditLyrics->isChecked();
+    bool isBeingModified = cuesheetIsUnlockedForEditing;
+//    qDebug() << "maybeSaveCuesheet::isBeingModified = " << isBeingModified << optionCount;
+
+    if (!isBeingModified) {
+//        qDebug() << "maybeSaveCuesheet() returning, because cuesheet is not being edited...";
+        return true;
+    }
+
+    QFileInfo fi(loadedCuesheetNameWithPath);
+    QString shortCuesheetName = fi.baseName();
+
+    if (shortCuesheetName == "") {
+//        qDebug() << "maybeSaveCuesheet() returning, because no cuesheet loaded...";
+        return true;
+    }
+
+//    qDebug() << "maybeSaveCuesheet continuing with the save (ask the user):" << shortCuesheetName;
+
+    QMessageBox::StandardButton ret;
+
+    if (optionCount == 3) {
+        ret = QMessageBox::warning(this, "SquareDesk",
+                                   QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
+                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    } else if (optionCount == 2) {
+        ret = QMessageBox::warning(this, "SquareDesk",
+                                   QString("The cuesheet '") + shortCuesheetName + "' is being edited.\n\nDo you want to save your changes?",
+                                   QMessageBox::Save | QMessageBox::Discard );
+    } else {
+        qDebug() << "maybeSaveCuesheet::optionCount error";
+        return false;
+    }
+
+    switch (ret) {
+        case QMessageBox::Save:
+//            qDebug() << "User clicked SAVE";
+            on_actionSave_Cuesheet_triggered(); // Cuesheet > Save 'filename'
+            // TODO: should we provide a Save As option here?
+            return true; // all is well
+
+        case QMessageBox::Cancel:
+//            qDebug() << "User clicked CANCEL, returning FALSE";
+            return false; // don't load the new song!
+
+        default:
+//            qDebug() << "DON'T SAVE";
+            break;
+    }
+
+//    qDebug() << "RETURNING TRUE, ALL IS WELL.";
+    return true;
+}
