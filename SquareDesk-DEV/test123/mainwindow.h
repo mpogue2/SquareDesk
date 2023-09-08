@@ -212,6 +212,9 @@ public:
 // Define this for the new Cool GUI prototyping
 //#define COOLGUI
 
+// Define this for the new DARK MODE prototyping
+//#define DARKMODE
+
 namespace Ui
 {
 class MainWindow;
@@ -712,6 +715,16 @@ private slots:
     void on_actionPrint_Sequence_triggered();
 
     void on_pushButtonRevertEdits_clicked();
+
+    void on_darkStopButton_clicked();
+
+    void on_darkPlayButton_clicked();
+
+    void on_toolButton_clicked();
+
+    void on_toolButton_2_clicked();
+
+    void on_toolButton_3_clicked();
 
 public:
     void on_threadSD_errorString(QString str);

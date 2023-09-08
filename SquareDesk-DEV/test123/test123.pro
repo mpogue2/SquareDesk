@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql network printsupport svg
+QT       += core gui sql network printsupport svg svgwidgets
 unix {
     QT += webenginewidgets
     PRE_TARGETDEPS += $$OUT_PWD/../sdlib/libsdlib.a
@@ -83,6 +83,10 @@ SOURCES += main.cpp\
     soundtouch/source/SoundTouch/cpu_detect_x86.cpp \
     soundtouch/source/SoundTouch/mmx_optimized.cpp \
     soundtouch/source/SoundTouch/sse_optimized.cpp \
+    svgClock.cpp \
+    svgDial.cpp \
+    svgSlider.cpp \
+    svgVUmeter.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
     levelmeter.cpp \
@@ -151,6 +155,10 @@ HEADERS  += mainwindow.h \
     soundtouch/source/SoundTouch/RateTransposer.h \
     soundtouch/source/SoundTouch/TDStretch.h \
     soundtouch/source/SoundTouch/cpu_detect.h \
+    svgClock.h \
+    svgDial.h \
+    svgSlider.h \
+    svgVUmeter.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \

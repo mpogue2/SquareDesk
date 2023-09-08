@@ -458,13 +458,19 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+    ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
+
     ui->stopButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
+    ui->darkStopButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
 
     ui->previousSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
     ui->nextSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
 
     ui->playButton->setEnabled(false);
+    ui->darkPlayButton->setEnabled(false);
+
     ui->stopButton->setEnabled(false);
+    ui->darkStopButton->setEnabled(false);
 
     ui->nextSongButton->setEnabled(false);
     ui->previousSongButton->setEnabled(false);
@@ -871,13 +877,20 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     //   must clear those out, because a song is not loaded yet.
     ui->currentLocLabel->setText("");
     ui->currentLocLabel_2->setText("");
+    ui->currentLocLabel3->setText("");
+
     ui->songLengthLabel->setText("");
+    ui->songLengthLabel2->setText("");
 
     inPreferencesDialog = false;
 
     t.elapsed(__LINE__);
 
+#ifdef DARKMODE
+    ui->tabWidget->setCurrentIndex(5); // DARK MODE tab is primary, regardless of last setting in Qt Designer
+#else
     ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
+#endif
     on_tabWidget_currentChanged(0);     // update the menu item names
 
 //    ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
@@ -1557,6 +1570,161 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     }
 
     minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
+
+#ifdef DARKMODE
+    // DARK MODE UI TESTING --------------------
+//    connect(ui->dial3, &svgDial::knobFileChanged, this,
+//            [this](){qDebug() << "knob3 knobFileChanged: " << this->ui->dial3->getKnobFile();});
+
+//    connect(ui->dial3, &svgDial::needleFileChanged, this,
+//            [this](){qDebug() << "knob3 needleFileChanged: " << this->ui->dial3->getNeedleFile();});
+
+//    connect(ui->dial3, &svgDial::arcColorChanged, this,
+//            [this](){qDebug() << "knob3 arcColorChanged: " << this->ui->dial3->getArcColor();});
+
+    // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
+    ui->dial1->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->dial1->setNeedleFile("knobs/knob_indicator_regular_red.svg");
+    ui->dial1->setArcColor("#ff0000"); // triggers finish of init
+    ui->dial1->setToolTip("Treble\nControls the amount of high frequencies in this song.");
+
+    ui->dial2->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->dial2->setNeedleFile("knobs/knob_indicator_regular_green.svg");
+    ui->dial2->setArcColor("#00FF00"); // triggers finish of init
+    ui->dial2->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
+
+    ui->dial3->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->dial3->setNeedleFile("knobs/knob_indicator_regular_blue.svg");
+    ui->dial3->setArcColor("#028392"); // triggers finish of init
+    ui->dial3->setToolTip("Bass\nControls the amount of low frequencies in this song.");
+
+    // sliders ==========
+
+    // VOLUME:
+    ui->darkVolumeSlider->setBgFile("sliders/slider_volume_deck.svg");
+    ui->darkVolumeSlider->setHandleFile("sliders/knob_volume_deck.svg");
+    ui->darkVolumeSlider->setVeinColor("#00797B");
+    ui->darkVolumeSlider->setDefaultValue(100.0);
+    ui->darkVolumeSlider->setIncrement(1.0);
+    ui->darkVolumeSlider->setCenterVeinType(false);
+    ui->darkVolumeSlider->setToolTip("Volume (in %)\nControls the loudness of this song.");
+
+    connect(ui->darkVolumeSlider, &svgDial::valueChanged, this,
+            [this](int i) {
+                qDebug() << "darkVolumeSlider valueChanged: " << i;
+                QString s = QString::number(i);
+                if (i == 100) {
+                    s = "MAX";
+                } else if (i == 0) {
+                    s = "MIN";
+                }
+                this->ui->darkVolumeLabel->setText(s);
+            });
+
+    // TEMPO:
+    ui->darkTempoSlider->setBgFile("sliders/slider_pitch_deck2.svg");
+    ui->darkTempoSlider->setHandleFile("sliders/knob_volume_deck.svg");
+//    ui->darkTempoSlider->setVeinColor("#792A10");
+    ui->darkTempoSlider->setVeinColor("#CA4E09");
+    ui->darkTempoSlider->setDefaultValue(50.0);
+    ui->darkTempoSlider->setIncrement(10.0);
+    ui->darkTempoSlider->setCenterVeinType(true);
+    ui->darkTempoSlider->setToolTip("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).");
+
+    ui->darkTempoLabel->setText("125");
+
+    connect(ui->darkTempoSlider, &svgDial::valueChanged, this,
+            [this](int i) {
+                qDebug() << "darkTempoSlider valueChanged: " << i;
+                int baseTempo = 125;
+                QString s = QString::number(baseTempo + (i - 50)/10); // tempo slider is 0 - 100 step 10, with 50 == center
+                this->ui->darkTempoLabel->setText(s);
+            });
+
+    // PITCH:
+    ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
+    ui->darkPitchSlider->setHandleFile("sliders/knob_pitch_deck_green.svg");
+    ui->darkPitchSlider->setVeinColor("#177D0F");
+    ui->darkPitchSlider->setDefaultValue(50.0);
+    ui->darkPitchSlider->setIncrement(10.0);
+    ui->darkPitchSlider->setCenterVeinType(true);
+    ui->darkPitchSlider->setToolTip("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).");
+
+    ui->darkPitchLabel->setText("0");
+
+    connect(ui->darkPitchSlider, &svgDial::valueChanged, this,
+            [this](int i) {
+                qDebug() << "darkPitchSlider valueChanged: " << i;
+                QString s = QString::number((i - 50)/10); // pitch slider is 0 - 100 step 10, with 50 == center
+                if (i > 50) {  // 50 is the slider midpoint
+                    s = "+" + s; // leading plus sign (minus sign already taken care of)
+                }
+                this->ui->darkPitchLabel->setText(s);
+            });
+
+    // SONGTABLE:
+    QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
+    verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    ui->darkSongTable->setAlternatingRowColors(true);
+//    ui->darkSongTable->setStyleSheet("alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
+//    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; } alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
+    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; }");
+
+    ui->darkSongTable->resizeColumnToContents(0);  // and force resizing of column widths to match songs
+    ui->darkSongTable->resizeColumnToContents(1);
+    ui->darkSongTable->resizeColumnToContents(2);
+    ui->darkSongTable->resizeColumnToContents(3);
+    ui->darkSongTable->resizeColumnToContents(4);
+
+    for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
+        QTableWidgetItem *type = ui->darkSongTable->item(i, 0);
+        QTableWidgetItem *label = ui->darkSongTable->item(i, 1);
+        QTableWidgetItem *title = ui->darkSongTable->item(i, 2);
+        QTableWidgetItem *age   = ui->darkSongTable->item(i, 3);
+        QTableWidgetItem *pitch = ui->darkSongTable->item(i, 4);
+        QTableWidgetItem *tempo = ui->darkSongTable->item(i, 5);
+
+        QString patterForeground("#A364DC");  // was: #744EFF
+//        QString singerForeground("#00AF5C");  // was: #80B553
+        QString singerForeground("#80B553");
+
+        if (type != nullptr) {
+            if (type->text() == "patter") {
+                if (type != nullptr) type->setForeground(QBrush(QColor(patterForeground)));
+                if (label != nullptr) label->setForeground(QBrush(QColor(patterForeground)));
+                if (title != nullptr) title->setForeground(QBrush(QColor(patterForeground)));
+                if (age != nullptr) age->setForeground(QBrush(QColor(patterForeground)));
+                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(patterForeground)));
+                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(patterForeground)));
+            } else {
+                if (type != nullptr) type->setForeground(QBrush(QColor(singerForeground)));
+                if (label != nullptr) label->setForeground(QBrush(QColor(singerForeground)));
+                if (title != nullptr) title->setForeground(QBrush(QColor(singerForeground)));
+                if (age != nullptr) age->setForeground(QBrush(QColor(singerForeground)));
+                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(singerForeground)));
+                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(singerForeground)));
+            }
+        }
+    }
+
+    // TREEWIDGET:
+    ui->treeWidget->expandAll();
+
+    // STATUSBAR:
+    //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
+    ui->statusBar->setStyleSheet("color: #D9D9D9;");
+
+    // MICLABEL (right hand status):
+//    micStatusLabel->setStyleSheet("color: #AC8F7E");
+
+    // TITLE:
+    // QLabel { color : #C2AC9E; }
+
+
+#else
+    ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
+#endif
 }
 
 
@@ -2141,6 +2309,8 @@ void MainWindow::on_stopButton_clicked()
 //    }
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+    ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
 //    currentState = kStopped;
 
@@ -2257,6 +2427,7 @@ void MainWindow::on_playButton_clicked()
             }
         }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
+        ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
 
 //        ui->songTable->setFocus(); // while playing, songTable has focus
@@ -2277,6 +2448,7 @@ void MainWindow::on_playButton_clicked()
         // currently playing, so pause playback
         cBass->Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+        ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
@@ -2630,13 +2802,16 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             // time remaining in song
             ui->currentLocLabel->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
             ui->currentLocLabel_2->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
+            ui->currentLocLabel3->setText(position2String(fileLen_i - currentPos_i, true));  // pad on the left
         } else {
             // current position in song
             ui->currentLocLabel->setText(position2String(currentPos_i, true));              // pad on the left
             ui->currentLocLabel_2->setText(position2String(currentPos_i, true));              // pad on the left
+            ui->currentLocLabel3->setText(position2String(currentPos_i, true));              // pad on the left
         }
 
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
+        ui->songLengthLabel2->setText(position2String(fileLen_i));          // no padding, intentionally no prefix "/"
 
         // singing call sections
         if (songTypeNamesForSinging.contains(currentSongType) || songTypeNamesForCalled.contains(currentSongType)) {
@@ -3011,6 +3186,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         // if we paused due to FADE, for example...
         // FIX: this could be factored out, it's used twice.
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+        ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
@@ -3103,7 +3279,13 @@ void MainWindow::on_vuMeterTimerTick(void)
     bool isMono = cBass->GetMono();
 
     // TODO: iff music is playing.
-    vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+    if (ui->tabWidget->currentIndex() == 0) {
+//        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
+        vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+    } else if (ui->tabWidget->currentIndex() == 5) {
+//        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
+        ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+    }
 }
 
 // --------------
@@ -3918,7 +4100,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     fileModified = false;
 
     ui->playButton->setEnabled(true);
+    ui->darkPlayButton->setEnabled(true);
     ui->stopButton->setEnabled(true);
+    ui->darkStopButton->setEnabled(true);
 
     ui->actionPlay->setEnabled(true);
     ui->actionStop->setEnabled(true);
@@ -5956,7 +6140,13 @@ void MainWindow::microphoneStatusUpdate() {
 
 //    QString kybdStatus("Audio: " + lastAudioDeviceName + ", SD Level: " + currentSDKeyboardLevel + ", Dance: " + frameName);
     QString kybdStatus("SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName);
+
+#ifdef DARKMODE
+//    micStatusLabel->setStyleSheet("color: #AC8F7E;");
+    micStatusLabel->setStyleSheet("color: #D9D9D9;");
+#else
     micStatusLabel->setStyleSheet("color: black");
+#endif
     micStatusLabel->setText(kybdStatus);
 
 }
@@ -7106,6 +7296,7 @@ void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
     if (ui->nowPlayingLabel->text() != s) {
         // update ONLY if there is a change, to save CPU time in relayout
         ui->nowPlayingLabel->setText(s);
+        ui->darkTitle->setText(s);
     }
 }
 
@@ -7464,4 +7655,34 @@ void MainWindow::on_actionOpen_Audio_File_triggered()
 {
     // This is Music > Open Audio File
     on_actionOpen_MP3_file_triggered();
+}
+
+// DARK MODE CONTROLS ----------------------
+void MainWindow::on_darkStopButton_clicked()
+{
+    on_stopButton_clicked();
+}
+
+
+void MainWindow::on_darkPlayButton_clicked()
+{
+    on_playButton_clicked();
+}
+
+
+void MainWindow::on_toolButton_clicked()
+{
+    on_pushButtonSetIntroTime_clicked();
+}
+
+
+void MainWindow::on_toolButton_2_clicked()
+{
+    on_pushButtonSetOutroTime_clicked();
+}
+
+
+void MainWindow::on_toolButton_3_clicked()
+{
+    on_pushButtonTestLoop_clicked();
 }

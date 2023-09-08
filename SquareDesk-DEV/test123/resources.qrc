@@ -8,5 +8,16 @@
         <file>graphics/go-up.png</file>
         <file>graphics/go-down.png</file>
         <file>graphics/SplashScreen1.png</file>
+        <file>graphics/darkPlay.png</file>
+        <file>graphics/darkStop.png</file>
+        <file>graphics/darkWaveform.png</file>
+        <file>graphics/darkTracks.png</file>
+        <file>graphics/darkHistory.png</file>
+        <file>graphics/darkPlaylists.png</file>
+        <file>graphics/darkiTunes.png</file>
+        <file>graphics/darkVUmeter.png</file>
+        <file>graphics/darkClock.png</file>
+        <file>graphics/darkClock2.png</file>
+        <file>graphics/darkClock3.png</file>
     </qresource>
 </RCC>
