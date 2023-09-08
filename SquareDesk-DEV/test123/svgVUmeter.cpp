@@ -130,6 +130,26 @@ void svgVUmeter::updateMeter() {
     double bottom = vuMeterY-7;
     double top = vuMeterY*0.08;
 
+    // valueL/R are 0-1.0 here
+
+    // mapping to log domain ---
+    double levelL = 20.0 * log10f(valueL);
+    double levelR = 20.0 * log10f(valueR);
+
+    double boxesL = 10.0 + 2.0 * levelL/6.0 + 0.5;
+    double boxesR = 10.0 + 2.0 * levelR/6.0 + 0.5;
+
+    if (boxesL < 4.0) {
+        boxesL = (boxesL + 12.0)/4.0; // map -12 to 4 --> 0 to 4
+    }
+    if (boxesR < 4.0) {
+        boxesR = (boxesR + 12.0)/4.0; // map -12 to 4 --> 0 to 4
+    }
+
+    valueL = boxesL / 10.0; // remap to 0.0 to 1.0 for the darkVUmeter
+    valueR = boxesR / 10.0; // remap to 0.0 to 1.0 for the darkVUmeter
+    // -------------------------
+
     double limitL = bottom - valueL * (bottom - top);
     double limitR = bottom - valueR * (bottom - top);
 
