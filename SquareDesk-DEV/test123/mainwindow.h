@@ -213,7 +213,7 @@ public:
 //#define COOLGUI
 
 // Define this for the new DARK MODE prototyping
-//#define DARKMODE
+#define DARKMODE
 
 namespace Ui
 {
@@ -726,6 +726,8 @@ private slots:
 
     void on_toolButton_3_clicked();
 
+    void on_darkVolumeSlider_valueChanged(int value);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -1223,6 +1225,10 @@ public:
     QStringList highlightedCalls;
 
     bool lastFlashcall;  // cached previous value of flashcall
+
+    QIcon *darkStopIcon;
+    QIcon *darkPlayIcon;
+    QIcon *darkPauseIcon;
 };
 
 // currentState:

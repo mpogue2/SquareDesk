@@ -2768,10 +2768,6 @@
            <bold>true</bold>
           </font>
          </property>
-         <property name="icon">
-          <iconset resource="resources.qrc">
-           <normaloff>:/graphics/darkPlay.png</normaloff>:/graphics/darkPlay.png</iconset>
-         </property>
          <property name="toolButtonStyle">
           <enum>Qt::ToolButtonIconOnly</enum>
          </property>

@@ -458,10 +458,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     this->setWindowTitle(QString("SquareDesk Music Player/Sequence Editor"));
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-    ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));
-
     ui->stopButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
-    ui->darkStopButton->setIcon(style()->standardIcon(QStyle::SP_MediaStop));
 
     ui->previousSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipBackward));
     ui->nextSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
@@ -1584,18 +1581,21 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
     ui->dial1->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->dial1->setNeedleFile("knobs/knob_indicator_regular_red.svg");
-    ui->dial1->setArcColor("#ff0000"); // triggers finish of init
+    ui->dial1->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+//    ui->dial1->setArcColor("#ff0000"); // triggers finish of init
+    ui->dial1->setArcColor("#909090"); // triggers finish of init
     ui->dial1->setToolTip("Treble\nControls the amount of high frequencies in this song.");
 
     ui->dial2->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->dial2->setNeedleFile("knobs/knob_indicator_regular_green.svg");
-    ui->dial2->setArcColor("#00FF00"); // triggers finish of init
+    ui->dial2->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+//    ui->dial2->setArcColor("#00FF00"); // triggers finish of init
+    ui->dial2->setArcColor("#909090"); // triggers finish of init
     ui->dial2->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
 
     ui->dial3->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->dial3->setNeedleFile("knobs/knob_indicator_regular_blue.svg");
-    ui->dial3->setArcColor("#028392"); // triggers finish of init
+    ui->dial3->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+//    ui->dial3->setArcColor("#028392"); // triggers finish of init
+    ui->dial3->setArcColor("#909090"); // triggers finish of init
     ui->dial3->setToolTip("Bass\nControls the amount of low frequencies in this song.");
 
     // sliders ==========
@@ -1611,7 +1611,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     connect(ui->darkVolumeSlider, &svgDial::valueChanged, this,
             [this](int i) {
-                qDebug() << "darkVolumeSlider valueChanged: " << i;
+//                qDebug() << "darkVolumeSlider valueChanged: " << i;
                 QString s = QString::number(i);
                 if (i == 100) {
                     s = "MAX";
@@ -1643,7 +1643,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // PITCH:
     ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
-    ui->darkPitchSlider->setHandleFile("sliders/knob_pitch_deck_green.svg");
+    ui->darkPitchSlider->setHandleFile("sliders/knob_volume_deck.svg");
     ui->darkPitchSlider->setVeinColor("#177D0F");
     ui->darkPitchSlider->setDefaultValue(50.0);
     ui->darkPitchSlider->setIncrement(10.0);
@@ -1721,6 +1721,48 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // TITLE:
     // QLabel { color : #C2AC9E; }
 
+    // TOOLBUTTONS:
+    QString toolButtonIconColor = "#A0A0A0";
+
+    QStyle* style = QApplication::style();
+    QPixmap pixmap = style->standardPixmap(QStyle::SP_MediaPlay);
+    QBitmap mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
+    pixmap.fill((QColor(toolButtonIconColor)));
+    pixmap.setMask(mask);
+
+    pixmap.save("darkPlay.png");
+
+    darkPlayIcon = new QIcon(pixmap);
+
+    pixmap = style->standardPixmap(QStyle::SP_MediaPause);
+    mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
+    pixmap.fill((QColor(toolButtonIconColor)));
+    pixmap.setMask(mask);
+
+    pixmap.save("darkPause.png");
+
+    darkPauseIcon = new QIcon(pixmap);
+
+    pixmap = style->standardPixmap(QStyle::SP_MediaStop);
+    mask = pixmap.createMaskFromColor(QColor("transparent"), Qt::MaskInColor);
+    pixmap.fill((QColor(toolButtonIconColor)));
+    pixmap.setMask(mask);
+
+    pixmap.save("darkStop.png");
+
+    darkStopIcon = new QIcon(pixmap);
+
+    ui->darkStopButton->setIcon(*darkStopIcon);  // SET THE INITIAL STOP BUTTON ICON
+    ui->darkPlayButton->setIcon(*darkPlayIcon);  // SET THE INITIAL PLAY BUTTON ICON
+
+// Note: I don't do it this way below, because changing color then requires editing the resource files.
+//  Instead, the above method allows me to change colors at any time by regenerating the cached icons from pixmaps.
+//    QPixmap pixmap2(":/graphics/darkPlay.png");
+//    QIcon darkPlayPixmap2(pixmap2);
+
+//    QIcon dd(":/graphics/darkPlay.png"); // I can't stick this in the MainWindow object without getting errors either...
+
+// TODO: we can delete darkPlay and darkStop PNG's from the resource file now...
 
 #else
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
@@ -2309,7 +2351,7 @@ void MainWindow::on_stopButton_clicked()
 //    }
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
-    ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+    ui->darkPlayButton->setIcon(*darkPlayIcon);  // change PAUSE to PLAY
 
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
 //    currentState = kStopped;
@@ -2427,7 +2469,7 @@ void MainWindow::on_playButton_clicked()
             }
         }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
-        ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
+        ui->darkPlayButton->setIcon(*darkPauseIcon);  // change PLAY to PAUSE
         ui->actionPlay->setText("Pause");
 
 //        ui->songTable->setFocus(); // while playing, songTable has focus
@@ -2448,7 +2490,7 @@ void MainWindow::on_playButton_clicked()
         // currently playing, so pause playback
         cBass->Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
-        ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+        ui->darkPlayButton->setIcon(*darkPlayIcon);  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
@@ -2566,6 +2608,12 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
     else {
         ui->actionMute->setText("&Mute");
     }
+
+    // update the darkVolumeSlider, if it needs updating
+    if (ui->darkVolumeSlider->value() != value) {
+        ui->darkVolumeSlider->setValue(value);
+    }
+
 }
 
 // ----------------------------------------------------------------------
@@ -3186,7 +3234,7 @@ void MainWindow::on_UIUpdateTimerTick(void)
         // if we paused due to FADE, for example...
         // FIX: this could be factored out, it's used twice.
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
-        ui->darkPlayButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+        ui->darkPlayButton->setIcon(*darkPlayIcon);  // change PAUSE to PLAY
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
@@ -7289,8 +7337,10 @@ void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
         lastFlashcall = flashcall;
         if (flashcall) {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+            ui->darkTitle->setStyleSheet("QLabel { color : #D04040; font-style: italic; }");
         } else {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+            ui->darkTitle->setStyleSheet("QLabel { color : #D9D9D9; font-style: normal; }");
         }
     }
     if (ui->nowPlayingLabel->text() != s) {
@@ -7686,3 +7736,14 @@ void MainWindow::on_toolButton_3_clicked()
 {
     on_pushButtonTestLoop_clicked();
 }
+
+void MainWindow::on_darkVolumeSlider_valueChanged(int value)
+{
+//    qDebug() << "entering on_darkVolumeSlider_valueChanged" << value;
+
+    // update the regular volumeSlider, if it needs updating
+    if (ui->volumeSlider->value() != value) {
+        ui->volumeSlider->setValue(value);
+    }
+}
+

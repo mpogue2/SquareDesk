@@ -43,16 +43,29 @@ double svgSlider::valueFromMouseEvent(QMouseEvent* e) {
 void svgSlider::mouseMoveEvent(QMouseEvent* e) {
     double value;
     value = valueFromMouseEvent(e);
-    this->setValue(m_increment * round(value/m_increment));
+    this->setValue(m_increment * round(value/m_increment));  // calls the overridden setValue() below, which also updates handle
 
-    // update handle
+//    // update handle
+//    double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
+//    handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
+
+//    double endVein = bSize.height()/2.0 + offset + 7;
+//    vein->setLine(21, startVein, 21, endVein);
+////    qDebug() << "mouseMoveEvent: " << e << value;
+}
+
+void svgSlider::setValue(int value) {
+
+    QSlider::setValue(value);  // set the value of the parent class
+
+    // and then update the handle
     double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
     handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
 
     double endVein = bSize.height()/2.0 + offset + 7;
     vein->setLine(21, startVein, 21, endVein);
-//    qDebug() << "mouseMoveEvent: " << e << value;
-}
+};
+
 
 void svgSlider::mousePressEvent(QMouseEvent* e) {
     double value;
@@ -70,7 +83,7 @@ void svgSlider::mousePressEvent(QMouseEvent* e) {
 
         endVein = bSize.height()/2.0 + offset + 7;
         vein->setLine(21, startVein, 21, endVein);
-        qDebug() << "mousePressEvent: " << e << value << m_increment << m_increment * round(value/m_increment);
+//        qDebug() << "mousePressEvent: " << e << value << m_increment << m_increment * round(value/m_increment);
         break;
     case Qt::MiddleButton:
     case Qt::RightButton:
