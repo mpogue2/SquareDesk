@@ -3139,6 +3139,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
+    ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
 
     // set in fractional form
     double frac = position/length;
@@ -3179,6 +3180,7 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
+    ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
 
     // set in fractional form
     double frac = position/length;
@@ -4266,7 +4268,10 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     Info_Seekbar(true);  // update the slider and all the text
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
+    ui->darkStartLoopTime->setTime(QTime(0,0,0,0));
+
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
+    ui->darkEndLoopTime->setTime(QTime(23,59,59,0));
 
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
@@ -6054,7 +6059,10 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
 //        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
+        ui->darkStartLoopTime->setTime(iTime); // milliseconds
+
         ui->dateTimeEditOutroTime->setTime(oTime);
+        ui->darkEndLoopTime->setTime(oTime); // milliseconds
 
         if (cuesheetName.length() > 0)
         {
@@ -7267,6 +7275,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     // set in ms
 //    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
+    ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
     double frac = position_sec/length;
@@ -7297,6 +7306,7 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
     // set in ms
 //    qDebug() << "dateTimeEditOutro changed: " << currentIntroTimeSec << "," << position_sec << time << length;
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
+    ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
 
     // set in fractional form
     double frac = position_sec/length;
@@ -7650,7 +7660,10 @@ void MainWindow::handleDurationBPM() {
     // NOTE: we need to set the bounds BEFORE we set the actual positions
 //    qDebug() << "MainWindow::handleDurationBPM: length_sec = " << length_sec;
     ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+    ui->darkStartLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+
     ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+    ui->darkEndLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar

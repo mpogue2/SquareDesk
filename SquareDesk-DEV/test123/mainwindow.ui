@@ -2833,6 +2833,9 @@
          </property>
         </widget>
         <widget class="myDateTimeEdit" name="darkStartLoopTime">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="geometry">
           <rect>
            <x>90</x>
@@ -2842,10 +2845,10 @@
           </rect>
          </property>
          <property name="currentSection">
-          <enum>QDateTimeEdit::HourSection</enum>
+          <enum>QDateTimeEdit::MinuteSection</enum>
          </property>
          <property name="displayFormat">
-          <string>hh:mm.sss</string>
+          <string>mm:ss.zzz</string>
          </property>
         </widget>
         <widget class="myDateTimeEdit" name="darkEndLoopTime">
@@ -2858,7 +2861,7 @@
           </rect>
          </property>
          <property name="displayFormat">
-          <string>hh:mm.sss</string>
+          <string>mm:ss.zzz</string>
          </property>
         </widget>
         <widget class="svgSlider" name="darkPitchSlider">
