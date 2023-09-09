@@ -720,13 +720,23 @@ private slots:
 
     void on_darkPlayButton_clicked();
 
-    void on_toolButton_clicked();
+    void on_darkStartLoopButton_clicked();
 
-    void on_toolButton_2_clicked();
+    void on_darkEndLoopButton_clicked();
 
-    void on_toolButton_3_clicked();
+    void on_darkTestLoopButton_clicked();
 
     void on_darkVolumeSlider_valueChanged(int value);
+
+    void on_darkTempoSlider_valueChanged(int value);
+
+    void on_darkPitchSlider_valueChanged(int value);
+
+    void on_darkTrebleKnob_valueChanged(int value);
+
+    void on_darkMidKnob_valueChanged(int value);
+
+    void on_darkBassKnob_valueChanged(int value);
 
 public:
     void on_threadSD_errorString(QString str);

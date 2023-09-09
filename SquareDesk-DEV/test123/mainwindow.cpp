@@ -1569,34 +1569,40 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
 
 #ifdef DARKMODE
+
+    QString darkTextColor = "#A0A0A0";
+
     // DARK MODE UI TESTING --------------------
-//    connect(ui->dial3, &svgDial::knobFileChanged, this,
-//            [this](){qDebug() << "knob3 knobFileChanged: " << this->ui->dial3->getKnobFile();});
 
-//    connect(ui->dial3, &svgDial::needleFileChanged, this,
-//            [this](){qDebug() << "knob3 needleFileChanged: " << this->ui->dial3->getNeedleFile();});
-
-//    connect(ui->dial3, &svgDial::arcColorChanged, this,
-//            [this](){qDebug() << "knob3 arcColorChanged: " << this->ui->dial3->getArcColor();});
+    // LOOP CONTROLS =========
+    ui->darkStartLoopTime->setStyleSheet("color: " + darkTextColor);
+    ui->darkEndLoopTime->setStyleSheet("color: " + darkTextColor);
+    ui->darkStartLoopButton->setStyleSheet("color: " + darkTextColor);
+    ui->darkEndLoopButton->setStyleSheet("color: " + darkTextColor);
+    ui->darkTestLoopButton->setStyleSheet("color: " + darkTextColor);
 
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
-    ui->dial1->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->dial1->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
-//    ui->dial1->setArcColor("#ff0000"); // triggers finish of init
-    ui->dial1->setArcColor("#909090"); // triggers finish of init
-    ui->dial1->setToolTip("Treble\nControls the amount of high frequencies in this song.");
+    ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->darkTrebleKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+//    ui->darkTrebleKnob->setArcColor("#ff0000"); // triggers finish of init
+    ui->darkTrebleKnob->setArcColor("#909090"); // triggers finish of init
+    ui->darkTrebleKnob->setToolTip("Treble\nControls the amount of high frequencies in this song.");
 
-    ui->dial2->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->dial2->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->darkMidKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->darkMidKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
 //    ui->dial2->setArcColor("#00FF00"); // triggers finish of init
-    ui->dial2->setArcColor("#909090"); // triggers finish of init
-    ui->dial2->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
+    ui->darkMidKnob->setArcColor("#909090"); // triggers finish of init
+    ui->darkMidKnob->setToolTip("Midrange\nControls the amount of midrange frequencies in this song.");
 
-    ui->dial3->setKnobFile("knobs/knob_bg_regular.svg");
-    ui->dial3->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
+    ui->darkBassKnob->setKnobFile("knobs/knob_bg_regular.svg");
+    ui->darkBassKnob->setNeedleFile("knobs/knob_indicator_regular_grey.svg");
 //    ui->dial3->setArcColor("#028392"); // triggers finish of init
-    ui->dial3->setArcColor("#909090"); // triggers finish of init
-    ui->dial3->setToolTip("Bass\nControls the amount of low frequencies in this song.");
+    ui->darkBassKnob->setArcColor("#909090"); // triggers finish of init
+    ui->darkBassKnob->setToolTip("Bass\nControls the amount of low frequencies in this song.");
+
+    ui->label_T->setStyleSheet("color: " + darkTextColor);
+    ui->label_M->setStyleSheet("color: " + darkTextColor);
+    ui->label_B->setStyleSheet("color: " + darkTextColor);
 
     // sliders ==========
 
@@ -1607,7 +1613,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkVolumeSlider->setDefaultValue(100.0);
     ui->darkVolumeSlider->setIncrement(1.0);
     ui->darkVolumeSlider->setCenterVeinType(false);
-    ui->darkVolumeSlider->setToolTip("Volume (in %)\nControls the loudness of this song.");
+    ui->darkVolumeSlider->setToolTip(QString("Volume (in %)\nControls the loudness of this song.\n\nShortcuts: volume up %1%2, volume down %1%3").arg(QChar(0x2318)).arg(QChar(0x2191)).arg(QChar(0x2193)));
+
+    ui->darkVolumeLabel->setStyleSheet("color: " + darkTextColor);
 
     connect(ui->darkVolumeSlider, &svgDial::valueChanged, this,
             [this](int i) {
@@ -1626,18 +1634,26 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkTempoSlider->setHandleFile("sliders/knob_volume_deck.svg");
 //    ui->darkTempoSlider->setVeinColor("#792A10");
     ui->darkTempoSlider->setVeinColor("#CA4E09");
-    ui->darkTempoSlider->setDefaultValue(50.0);
-    ui->darkTempoSlider->setIncrement(10.0);
+    //    ui->darkTempoSlider->setDefaultValue(50.0);
+    ui->darkTempoSlider->setDefaultValue(0.0);
+    //    ui->darkTempoSlider->setIncrement(10.0);
+    ui->darkTempoSlider->setIncrement(1.0);
     ui->darkTempoSlider->setCenterVeinType(true);
-    ui->darkTempoSlider->setToolTip("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).");
+    ui->darkTempoSlider->setToolTip(QString("Tempo (in BPM)\nControls the tempo of this song (independent from Pitch).\n\nShortcuts: faster %1+, slower %1-").arg(QChar(0x2318)));
 
-    ui->darkTempoLabel->setText("125");
+//    ui->darkTempoLabel->setText("125");
+    ui->darkTempoLabel->setStyleSheet("color: " + darkTextColor);
 
     connect(ui->darkTempoSlider, &svgDial::valueChanged, this,
             [this](int i) {
-                qDebug() << "darkTempoSlider valueChanged: " << i;
-                int baseTempo = 125;
-                QString s = QString::number(baseTempo + (i - 50)/10); // tempo slider is 0 - 100 step 10, with 50 == center
+//                qDebug() << "darkTempoSlider valueChanged: " << i;
+//                int baseTempo = 125;
+//                QString s = QString::number(baseTempo + (i - 50)/10); // tempo slider is 0 - 100 step 10, with 50 == center
+//                QString s = QString::number(baseTempo + i); // tempo slider is -15 to +15 with center 0
+                QString s = QString::number(i); // tempo slider is BPM-15 to BPM+15 with center BPM, OR from 80% to 120% with center 100%
+                if (!this->tempoIsBPM) {
+                    s += "%";
+                }
                 this->ui->darkTempoLabel->setText(s);
             });
 
@@ -1645,19 +1661,27 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkPitchSlider->setBgFile("sliders/slider_pitch_deck2.svg");
     ui->darkPitchSlider->setHandleFile("sliders/knob_volume_deck.svg");
     ui->darkPitchSlider->setVeinColor("#177D0F");
-    ui->darkPitchSlider->setDefaultValue(50.0);
-    ui->darkPitchSlider->setIncrement(10.0);
+//    ui->darkPitchSlider->setDefaultValue(50.0);
+    ui->darkPitchSlider->setDefaultValue(0.0);
+    //    ui->darkPitchSlider->setIncrement(10.0);
+    ui->darkPitchSlider->setIncrement(1.0);
     ui->darkPitchSlider->setCenterVeinType(true);
-    ui->darkPitchSlider->setToolTip("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).");
+//    ui->darkPitchSlider->setToolTip("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).");
+    ui->darkPitchSlider->setToolTip(QString("Pitch (in semitones)\nControls the pitch of this song (relative to song's original pitch).\n\nShortcuts: pitch up %1u, pitch down %1d").arg(QChar(0x2318)));
 
-    ui->darkPitchLabel->setText("0");
+//    ui->darkPitchLabel->setText("0");
+    ui->darkPitchLabel->setStyleSheet("color: " + darkTextColor);
 
     connect(ui->darkPitchSlider, &svgDial::valueChanged, this,
             [this](int i) {
-                qDebug() << "darkPitchSlider valueChanged: " << i;
-                QString s = QString::number((i - 50)/10); // pitch slider is 0 - 100 step 10, with 50 == center
-                if (i > 50) {  // 50 is the slider midpoint
-                    s = "+" + s; // leading plus sign (minus sign already taken care of)
+//                qDebug() << "darkPitchSlider valueChanged: " << i;
+//                QString s = QString::number((i - 50)/10); // pitch slider is 0 - 100 step 10, with 50 == center
+//                if (i > 50) {  // 50 is the slider midpoint
+//                    s = "+" + s; // leading plus sign (minus sign already taken care of)
+//                }
+                QString s = QString::number(i);
+                if (i > 0) {
+                    s = "+" + s;
                 }
                 this->ui->darkPitchLabel->setText(s);
             });
@@ -1713,13 +1737,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
-    ui->statusBar->setStyleSheet("color: #D9D9D9;");
+//    ui->statusBar->setStyleSheet("color: #D9D9D9;");
+    ui->statusBar->setStyleSheet("color: " + darkTextColor);
 
     // MICLABEL (right hand status):
 //    micStatusLabel->setStyleSheet("color: #AC8F7E");
+    micStatusLabel->setStyleSheet("color: " + darkTextColor);
 
     // TITLE:
     // QLabel { color : #C2AC9E; }
+    ui->darkTitle->setStyleSheet("color: "+ darkTextColor);
 
     // TOOLBUTTONS:
     QString toolButtonIconColor = "#A0A0A0";
@@ -1730,7 +1757,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     pixmap.fill((QColor(toolButtonIconColor)));
     pixmap.setMask(mask);
 
-    pixmap.save("darkPlay.png");
+//    pixmap.save("darkPlay.png");
 
     darkPlayIcon = new QIcon(pixmap);
 
@@ -1739,7 +1766,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     pixmap.fill((QColor(toolButtonIconColor)));
     pixmap.setMask(mask);
 
-    pixmap.save("darkPause.png");
+//    pixmap.save("darkPause.png");
 
     darkPauseIcon = new QIcon(pixmap);
 
@@ -1748,7 +1775,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     pixmap.fill((QColor(toolButtonIconColor)));
     pixmap.setMask(mask);
 
-    pixmap.save("darkStop.png");
+//    pixmap.save("darkStop.png");
 
     darkStopIcon = new QIcon(pixmap);
 
@@ -2554,6 +2581,11 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
 //        qDebug() << "current song is on playlist, and PITCH changed!";
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
+
+    // update the darkPitchSlider, if it needs updating
+    if (ui->darkPitchSlider->value() != value) {
+        ui->darkPitchSlider->setValue(value);
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -2671,6 +2703,11 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         // current song is on a playlist, AND we're not doing the initial load
 //        qDebug() << "current song is on playlist, and TEMPO changed!";
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
+    }
+
+    // update the darkTempoSlider, if it needs updating
+    if (ui->darkTempoSlider->value() != value) {
+        ui->darkTempoSlider->setValue(value);
     }
 }
 
@@ -3990,22 +4027,48 @@ void MainWindow::on_bassSlider_valueChanged(int value)
 {
     cBass->SetEq(0, static_cast<double>(value));
     saveCurrentSongSettings();
+
+    // FOR NOW, the darkTrebleKnob range is 0 - 100, so let's translate from -15 to 15 --> 0 to 100
+    int translatedValue = round((value + 15)*(100.0/30.0)); // rounded to nearest int
+
+    // update the darkBassKnob, if it needs updating
+//    qDebug() << "on_bassSlider_valueChanged:" << value << translatedValue << ui->darkBassKnob->value();
+    if (ui->darkBassKnob->value() != translatedValue) {
+            ui->darkBassKnob->setValue(translatedValue);
+    }
 }
 
 void MainWindow::on_midrangeSlider_valueChanged(int value)
 {
     cBass->SetEq(1, static_cast<double>(value));
     saveCurrentSongSettings();
+
+    // FOR NOW, the darkTrebleKnob range is 0 - 100, so let's translate from -15 to 15 --> 0 to 100
+    int translatedValue = round((value + 15)*(100.0/30.0)); // rounded to nearest int
+
+    // update the darkMidKnob, if it needs updating
+//    qDebug() << "on_midrangeSlider_valueChanged:" << value << translatedValue << ui->darkMidKnob->value();
+    if (ui->darkMidKnob->value() != translatedValue) {
+            ui->darkMidKnob->setValue(translatedValue);
+    }
 }
 
 void MainWindow::on_trebleSlider_valueChanged(int value)
 {
     cBass->SetEq(2, static_cast<double>(value));
     saveCurrentSongSettings();
+
+    // FOR NOW, the darkTrebleKnob range is 0 - 100, so let's translate from -15 to 15 --> 0 to 100
+    int translatedValue = round((value + 15)*(100.0/30.0)); // rounded to nearest int
+
+    // update the darkTrebleKnob, if it needs updating
+//    qDebug() << "on_trebleSlider_valueChanged:" << value << translatedValue << ui->darkTrebleKnob->value();
+    if (ui->darkTrebleKnob->value() != translatedValue) {
+            ui->darkTrebleKnob->setValue(translatedValue);
+    }
 }
 
-
-
+// --------------------------------------
 // Extract TBPM tag from ID3v2 to know (for sure) what the BPM is for a song (overrides beat detection) -----
 double MainWindow::getID3BPM(QString MP3FileName) {
     MPEG::File *mp3file;
@@ -6191,7 +6254,8 @@ void MainWindow::microphoneStatusUpdate() {
 
 #ifdef DARKMODE
 //    micStatusLabel->setStyleSheet("color: #AC8F7E;");
-    micStatusLabel->setStyleSheet("color: #D9D9D9;");
+//    micStatusLabel->setStyleSheet("color: #D9D9D9;");
+    micStatusLabel->setStyleSheet("color: #A0A0A0;");
 #else
     micStatusLabel->setStyleSheet("color: black");
 #endif
@@ -7548,10 +7612,16 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
 
+        ui->darkTempoSlider->setMinimum(songBPM-15);
+        ui->darkTempoSlider->setMaximum(songBPM+15);
+
         ui->tempoSlider->setValue(songBPM);  // qDebug() << "handleDurationBPM set tempo slider to: " << songBPM;
         emit ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
 
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
+
+        ui->darkTempoSlider->setDefaultValue(songBPM);  // when double-clicked, goes here
+
         ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
 //                                 ", base tempo: " + QString::number(songBPM) + " BPM");
@@ -7562,9 +7632,16 @@ void MainWindow::handleDurationBPM() {
         ui->currentTempoLabel->setText("100%");
         ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
         ui->tempoSlider->setMaximum(100+20);
+
+        ui->darkTempoSlider->setMinimum(100-20);        // allow +/-20%
+        ui->darkTempoSlider->setMaximum(100+20);
+
         ui->tempoSlider->setValue(100);
         emit ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
+
+        ui->darkTempoSlider->setDefaultValue(100);  // when double-clicked, goes here
+
         ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
 //                                 ", base tempo: 100%");
@@ -7720,19 +7797,19 @@ void MainWindow::on_darkPlayButton_clicked()
 }
 
 
-void MainWindow::on_toolButton_clicked()
+void MainWindow::on_darkStartLoopButton_clicked()
 {
     on_pushButtonSetIntroTime_clicked();
 }
 
 
-void MainWindow::on_toolButton_2_clicked()
+void MainWindow::on_darkEndLoopButton_clicked()
 {
     on_pushButtonSetOutroTime_clicked();
 }
 
 
-void MainWindow::on_toolButton_3_clicked()
+void MainWindow::on_darkTestLoopButton_clicked()
 {
     on_pushButtonTestLoop_clicked();
 }
@@ -7744,6 +7821,72 @@ void MainWindow::on_darkVolumeSlider_valueChanged(int value)
     // update the regular volumeSlider, if it needs updating
     if (ui->volumeSlider->value() != value) {
         ui->volumeSlider->setValue(value);
+    }
+}
+
+void MainWindow::on_darkTempoSlider_valueChanged(int value)
+{
+    //    qDebug() << "entering on_darkTempoSlider_valueChanged" << value;
+
+    // update the regular tempoSlider, if it needs updating
+    if (ui->tempoSlider->value() != value) {
+        ui->tempoSlider->setValue(value);
+    }
+}
+
+void MainWindow::on_darkPitchSlider_valueChanged(int value)
+{
+    //    qDebug() << "entering on_darkPitchSlider_valueChanged" << value;
+
+    // update the regular PitchSlider, if it needs updating
+    if (ui->pitchSlider->value() != value) {
+        ui->pitchSlider->setValue(value);
+    }
+}
+
+void MainWindow::on_darkTrebleKnob_valueChanged(int value)
+{
+    // FOR NOW: the range of the knob is alway 0 - 100
+    //  we translate to -15 to 15 for the regular slider
+
+    int translatedValue = round(-15 + 30 * (value/100.0)); // rounded to nearest int
+
+//    qDebug() << "on_darkTrebleKnob_valueChanged: " << value << translatedValue;
+
+    // update the regular trebleSlider, if it needs updating
+    if (ui->trebleSlider->value() != translatedValue) {
+        ui->trebleSlider->setValue(translatedValue);
+    }
+}
+
+void MainWindow::on_darkMidKnob_valueChanged(int value)
+{
+    // FOR NOW: the range of the knob is alway 0 - 100
+    //  we translate to -15 to 15 for the regular slider
+
+    int translatedValue = round(-15 + 30 * (value/100.0)); // rounded to nearest int
+
+//    qDebug() << "on_darkMidKnob_valueChanged: " << value << translatedValue;
+
+    // update the regular midrangeSlider, if it needs updating
+    if (ui->midrangeSlider->value() != translatedValue) {
+        ui->midrangeSlider->setValue(translatedValue);
+    }
+}
+
+
+void MainWindow::on_darkBassKnob_valueChanged(int value)
+{
+    // FOR NOW: the range of the knob is alway 0 - 100
+    //  we translate to -15 to 15 for the regular slider
+
+    int translatedValue = round(-15 + 30 * (value/100.0)); // rounded to nearest int
+
+//    qDebug() << "on_darkBassKnob_valueChanged: " << value << translatedValue;
+
+    // update the regular bassSlider, if it needs updating
+    if (ui->bassSlider->value() != translatedValue) {
+        ui->bassSlider->setValue(translatedValue);
     }
 }
 

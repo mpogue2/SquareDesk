@@ -26,24 +26,26 @@ void svgSlider::resizeEvent(QResizeEvent *re)
 }
 
 double svgSlider::valueFromMouseEvent(QMouseEvent* e) {
-    double value = e->pos().y() + 3; // 3 - 110
+    double value100 = e->pos().y() + 3; // 3 - 110
     double sliderValue;
 
-    if (value < 14) {
+    if (value100 < 14) {
         sliderValue = 100;
-    } else if (value > 104) {
+    } else if (value100 > 104) {
         sliderValue = 0;
     } else {
-        sliderValue = ((104-14) - (value - 14)) * (100.0/(104-14));
+        sliderValue = ((104-14) - (value100 - 14)) * (100.0/(104-14));
     }
-//    qDebug() << "valueFromMouseEvent: " << sliderValue;
-    return sliderValue;
+    sliderValue = minimum() + (maximum() - minimum()) * sliderValue/100.0;
+//    qDebug() << "valueFromMouseEvent: " << sliderValue << sliderValue;
+    return sliderValue;  // a number between min and max of this slider
 }
 
 void svgSlider::mouseMoveEvent(QMouseEvent* e) {
-    double value;
-    value = valueFromMouseEvent(e);
-    this->setValue(m_increment * round(value/m_increment));  // calls the overridden setValue() below, which also updates handle
+    double value = valueFromMouseEvent(e);
+
+//    this->setValue(m_increment * round(value/m_increment));  // calls the overridden setValue() below, which also updates handle
+    this->setValue(value);  // calls the overridden setValue() below, which also updates handle
 
 //    // update handle
 //    double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
@@ -51,15 +53,22 @@ void svgSlider::mouseMoveEvent(QMouseEvent* e) {
 
 //    double endVein = bSize.height()/2.0 + offset + 7;
 //    vein->setLine(21, startVein, 21, endVein);
-////    qDebug() << "mouseMoveEvent: " << e << value;
+//    qDebug() << "mouseMoveEvent: new value is " << value;
 }
 
 void svgSlider::setValue(int value) {
 
     QSlider::setValue(value);  // set the value of the parent class
 
+    if (bg == nullptr) {
+        return; // slider is not fully initialized yet
+    }
+
+    double value100 = 100.0 * (value - minimum())/(maximum() - minimum());
+
     // and then update the handle
-    double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
+//    double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
+    double offset = bot - (value100/100.0) * (104-14) + 2.5;
     handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
 
     double endVein = bSize.height()/2.0 + offset + 7;
@@ -68,22 +77,27 @@ void svgSlider::setValue(int value) {
 
 
 void svgSlider::mousePressEvent(QMouseEvent* e) {
-    double value;
+    double value, roundedValue;
     double offset;
     double endVein;
+    double value100;  // 0.0 to 100.0
 
     switch (e->button()) {
     case Qt::LeftButton:
         value = valueFromMouseEvent(e);
-        this->setValue(m_increment * round(value/m_increment));
+
+//        this->setValue(m_increment * round(value/m_increment));
+        roundedValue = m_increment * round(value/m_increment);
+        this->setValue(roundedValue);
 
         // update handle
-        offset = bot - (this->value()/100.0) * (104-14) + 2.5;
+        value100 = 100.0 * (roundedValue - minimum())/(maximum() - minimum());
+        offset = bot - (value100/100.0) * (104-14) + 2.5;
         handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
 
         endVein = bSize.height()/2.0 + offset + 7;
         vein->setLine(21, startVein, 21, endVein);
-//        qDebug() << "mousePressEvent: " << e << value << m_increment << m_increment * round(value/m_increment);
+//        qDebug() << "mousePressEvent: " << m_increment << value << roundedValue;
         break;
     case Qt::MiddleButton:
     case Qt::RightButton:
@@ -97,10 +111,16 @@ void svgSlider::mouseDoubleClickEvent(QMouseEvent* e) {
 //    qDebug() << "mouseDoubleClickEvent: " << e;
     Q_UNUSED(e)
 
-    this->setValue(m_increment * round(m_defaultValue/m_increment)); // double click --> (whatever the default value is)
+//    this->setValue(m_increment * round(m_defaultValue/m_increment)); // double click --> (whatever the default value is)
+
+    double value = this->getDefaultValue();
+    double value100;
+    setValue(value);
 
     // update handle
-    double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
+    value100 = 100.0 * (value - minimum())/(maximum() - minimum());
+//    double offset = bot - (this->value()/100.0) * (104-14) + 2.5;
+    double offset = bot - (value100/100.0) * (104-14) + 2.5;
     handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
 
     double endVein = bSize.height()/2.0 + offset + 7;
@@ -134,11 +154,15 @@ void svgSlider::finishInit() {
         //        needle->setPos((k.width()-n.width())/2, (k.height()-n.height())/2);
     }
 
-    this->setMinimum(0);
-    this->setMaximum(100);
-    this->setValue(m_increment * round(m_defaultValue/m_increment));    // initial position
+//    this->setMinimum(0);
+//    this->setMaximum(100);
+//    this->setValue(m_increment * round(m_defaultValue/m_increment));    // initial position
 
-    this->setFixedSize(42,107);
+//    qDebug() << "finishInit:" << getDefaultValue();
+
+    setValue(getDefaultValue());    // initial position and double-click position to return to
+
+    setFixedSize(42,107);
 
     // -56 is at top = position 100
     // -12 is middle
@@ -148,7 +172,10 @@ void svgSlider::finishInit() {
     bot = 32;
     length = bot - top;
 
-    double offset = bot - (this->value()/100.0) * length;
+    double value100 = 100.0 * (getDefaultValue() - minimum())/(maximum() - minimum());
+
+//    double offset = bot - (this->value()/100.0) * length;
+    double offset = bot - (value100/100.0) * length;
     handle->setPos(0, bSize.height()/2.0 + offset);  // initial position of the handle
 
     double endVein = bSize.height()/2.0 + offset + 7;

@@ -2593,7 +2593,7 @@
           </font>
          </property>
          <property name="text">
-          <string>RYL 429 - Royal Billy John</string>
+          <string/>
          </property>
         </widget>
         <widget class="Line" name="line_3">
@@ -2624,7 +2624,7 @@
         <widget class="QLabel" name="currentLocLabel3">
          <property name="geometry">
           <rect>
-           <x>493</x>
+           <x>495</x>
            <y>20</y>
            <width>51</width>
            <height>21</height>
@@ -2633,7 +2633,7 @@
          <property name="font">
           <font>
            <family>Avenir Next</family>
-           <pointsize>16</pointsize>
+           <pointsize>20</pointsize>
           </font>
          </property>
          <property name="text">
@@ -2665,7 +2665,7 @@
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
-        <widget class="QToolButton" name="toolButton">
+        <widget class="QToolButton" name="darkStartLoopButton">
          <property name="geometry">
           <rect>
            <x>60</x>
@@ -2688,7 +2688,7 @@
           <enum>Qt::ToolButtonIconOnly</enum>
          </property>
         </widget>
-        <widget class="QToolButton" name="toolButton_2">
+        <widget class="QToolButton" name="darkEndLoopButton">
          <property name="geometry">
           <rect>
            <x>190</x>
@@ -2708,7 +2708,7 @@
           <string>]</string>
          </property>
         </widget>
-        <widget class="QToolButton" name="toolButton_3">
+        <widget class="QToolButton" name="darkTestLoopButton">
          <property name="geometry">
           <rect>
            <x>320</x>
@@ -2797,6 +2797,15 @@
            <height>108</height>
           </rect>
          </property>
+         <property name="minimum">
+          <number>-10</number>
+         </property>
+         <property name="maximum">
+          <number>10</number>
+         </property>
+         <property name="pageStep">
+          <number>1</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -2823,7 +2832,7 @@
           <set>Qt::AlignCenter</set>
          </property>
         </widget>
-        <widget class="myDateTimeEdit" name="darkStartLoop">
+        <widget class="myDateTimeEdit" name="darkStartLoopTime">
          <property name="geometry">
           <rect>
            <x>90</x>
@@ -2839,7 +2848,7 @@
           <string>hh:mm.sss</string>
          </property>
         </widget>
-        <widget class="myDateTimeEdit" name="darkStartLoop_2">
+        <widget class="myDateTimeEdit" name="darkEndLoopTime">
          <property name="geometry">
           <rect>
            <x>220</x>
@@ -2860,6 +2869,15 @@
            <width>44</width>
            <height>108</height>
           </rect>
+         </property>
+         <property name="minimum">
+          <number>-5</number>
+         </property>
+         <property name="maximum">
+          <number>5</number>
+         </property>
+         <property name="pageStep">
+          <number>1</number>
          </property>
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -2920,7 +2938,7 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="svgDial" name="dial1">
+           <widget class="svgDial" name="darkTrebleKnob">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2938,14 +2956,20 @@
               <width>24</width>
               <height>24</height>
              </size>
+            </property>
+            <property name="minimum">
+             <number>-15</number>
             </property>
             <property name="maximum">
-             <number>100</number>
+             <number>15</number>
+            </property>
+            <property name="pageStep">
+             <number>5</number>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="svgDial" name="dial2">
+           <widget class="svgDial" name="darkMidKnob">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2964,10 +2988,19 @@
               <height>24</height>
              </size>
             </property>
+            <property name="minimum">
+             <number>-15</number>
+            </property>
+            <property name="maximum">
+             <number>15</number>
+            </property>
+            <property name="pageStep">
+             <number>5</number>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="svgDial" name="dial3">
+           <widget class="svgDial" name="darkBassKnob">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -2985,6 +3018,15 @@
               <width>24</width>
               <height>24</height>
              </size>
+            </property>
+            <property name="minimum">
+             <number>-15</number>
+            </property>
+            <property name="maximum">
+             <number>15</number>
+            </property>
+            <property name="pageStep">
+             <number>5</number>
             </property>
            </widget>
           </item>
@@ -3020,7 +3062,7 @@
          <property name="font">
           <font>
            <family>Avenir Next</family>
-           <pointsize>14</pointsize>
+           <pointsize>16</pointsize>
           </font>
          </property>
          <property name="text">
@@ -3060,7 +3102,7 @@
          <property name="font">
           <font>
            <family>Avenir Next</family>
-           <pointsize>14</pointsize>
+           <pointsize>16</pointsize>
           </font>
          </property>
          <property name="frameShape">
@@ -3103,7 +3145,7 @@
          <property name="font">
           <font>
            <family>Avenir Next</family>
-           <pointsize>14</pointsize>
+           <pointsize>16</pointsize>
           </font>
          </property>
          <property name="text">
@@ -3798,6 +3840,12 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>100</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -3828,42 +3876,58 @@
          </property>
         </widget>
        </widget>
-       <widget class="svgClock" name="theSVGClock">
+       <widget class="QFrame" name="frame_4">
         <property name="geometry">
          <rect>
-          <x>868</x>
+          <x>870</x>
           <y>8</y>
-          <width>165</width>
-          <height>165</height>
+          <width>171</width>
+          <height>171</height>
          </rect>
         </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
-        <property name="minimumSize">
-         <size>
-          <width>165</width>
-          <height>165</height>
-         </size>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>9999</width>
-          <height>9999</height>
-         </size>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="resources.qrc">:/graphics/darkClock.png</pixmap>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
-        </property>
+        <widget class="svgClock" name="theSVGClock">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>165</width>
+           <height>165</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>165</width>
+           <height>165</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>9999</width>
+           <height>9999</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="resources.qrc">:/graphics/darkClock.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>false</bool>
+         </property>
+        </widget>
        </widget>
       </widget>
      </widget>

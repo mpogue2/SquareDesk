@@ -21,7 +21,8 @@ void svgDial::paintEvent(QPaintEvent *pe)
 
 void svgDial::resizeEvent(QResizeEvent *re)
 {
-    QDial::resizeEvent(re);
+    Q_UNUSED(re)
+//    QDial::resizeEvent(re);
 }
 
 double svgDial::valueFromMouseEvent(QMouseEvent* e) {
@@ -41,7 +42,7 @@ double svgDial::valueFromMouseEvent(QMouseEvent* e) {
 
     double value = this->value() + dist;
 
-    // Clamp to [0.0, 1.0]
+    // Clamp to [0.0, 100.0]
     value = std::clamp(value, 0.0, 100.0);
 
 //    if (dist != 0) {
@@ -64,6 +65,7 @@ void svgDial::mouseMoveEvent(QMouseEvent* e) {
 }
 
 void svgDial::mousePressEvent(QMouseEvent* e) {
+    Q_UNUSED(e)
 
     switch (e->button()) {
         case Qt::LeftButton:
@@ -144,8 +146,6 @@ void svgDial::finishInit() {
     middle = (this->maximum() - this->minimum())/2;
 
     int position = 50;  // initial position
-    this->setValue(position);
-
     needle->setRotation((position - middle) * degPerPos);
 
     mysize = k.width();
@@ -170,6 +170,8 @@ void svgDial::finishInit() {
     double endAngle = 0.0; // TEST TEST
     arc->setSpanAngle(16.0 * endAngle);
 
+    this->setValue(position);
+
     // ---------------------
     view.setDisabled(true);
     view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -182,3 +184,16 @@ void svgDial::finishInit() {
     view.setScene(&scene);
     view.setParent(this,Qt::FramelessWindowHint);
 }
+
+
+void svgDial::setValue(int value) {
+
+    QDial::setValue(value);  // set the value of the parent class
+
+    // update pointer
+    needle->setRotation((value - middle)*degPerPos);
+
+    // update arc
+    double endAngle = -degPerPos * (value - middle);
+    arc->setSpanAngle(16.0 * endAngle);
+};
