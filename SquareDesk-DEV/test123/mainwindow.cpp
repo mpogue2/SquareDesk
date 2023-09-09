@@ -935,12 +935,28 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // LYRICS TAB ------------
     ui->pushButtonSetIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->pushButtonSetOutroTime->setEnabled(false);
+
+#ifdef DARKMODE
+    ui->darkStartLoopButton->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->darkEndLoopButton->setEnabled(false);
+#endif
+
     ui->dateTimeEditIntroTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
     ui->dateTimeEditOutroTime->setEnabled(false);
+
+#ifdef DARKMODE
+    ui->darkStartLoopTime->setEnabled(false);  // initially not singing call, buttons will be greyed out on Lyrics tab
+    ui->darkEndLoopTime->setEnabled(false);
+#endif
 
     t.elapsed(__LINE__);
     ui->pushButtonTestLoop->setHidden(true);
     ui->pushButtonTestLoop->setEnabled(false);
+
+#ifdef DARKMODE
+//    ui->darkTestLoopButton->setHidden(true);
+    ui->darkTestLoopButton->setEnabled(false);
+#endif
 
     t.elapsed(__LINE__);
 //    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
@@ -1573,7 +1589,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 #ifdef DARKMODE
 
-    QString darkTextColor = "#A0A0A0";
+    QString darkTextColor = "#C0C0C0";
 
     // DARK MODE UI TESTING --------------------
 
@@ -1583,6 +1599,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkStartLoopButton->setStyleSheet("color: " + darkTextColor);
     ui->darkEndLoopButton->setStyleSheet("color: " + darkTextColor);
     ui->darkTestLoopButton->setStyleSheet("color: " + darkTextColor);
+
+    ui->currentLocLabel3->setStyleSheet("color: " + darkTextColor);
+    ui->songLengthLabel2->setStyleSheet("color: " + darkTextColor);
 
     // layout the QDials in QtDesigner, promote to svgDial's, and then make sure to init all 3 parameters (in this order)
     ui->darkTrebleKnob->setKnobFile("knobs/knob_bg_regular.svg");
@@ -1696,7 +1715,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSongTable->setAlternatingRowColors(true);
 //    ui->darkSongTable->setStyleSheet("alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
 //    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; } alternate-background-color: #1F1F1F; background-color: #0A0A0A;");
-    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; }");
+//    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; }");
+    ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
 
     ui->darkSongTable->resizeColumnToContents(0);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(1);
@@ -1705,12 +1725,13 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSongTable->resizeColumnToContents(4);
 
     for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
-        QTableWidgetItem *type = ui->darkSongTable->item(i, 0);
-        QTableWidgetItem *label = ui->darkSongTable->item(i, 1);
-        QTableWidgetItem *title = ui->darkSongTable->item(i, 2);
-        QTableWidgetItem *age   = ui->darkSongTable->item(i, 3);
-        QTableWidgetItem *pitch = ui->darkSongTable->item(i, 4);
-        QTableWidgetItem *tempo = ui->darkSongTable->item(i, 5);
+        QTableWidgetItem *num = ui->darkSongTable->item(i, 0);
+        QTableWidgetItem *type = ui->darkSongTable->item(i, 1);
+        QTableWidgetItem *label = ui->darkSongTable->item(i, 2);
+        QTableWidgetItem *title = ui->darkSongTable->item(i, 3);
+        QTableWidgetItem *age   = ui->darkSongTable->item(i, 4);
+        QTableWidgetItem *pitch = ui->darkSongTable->item(i, 5);
+        QTableWidgetItem *tempo = ui->darkSongTable->item(i, 6);
 
         QString patterForeground("#A364DC");  // was: #744EFF
 //        QString singerForeground("#00AF5C");  // was: #80B553
@@ -1718,6 +1739,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
         if (type != nullptr) {
             if (type->text() == "patter") {
+                if (num != nullptr) num->setForeground(QBrush(QColor(patterForeground)));
                 if (type != nullptr) type->setForeground(QBrush(QColor(patterForeground)));
                 if (label != nullptr) label->setForeground(QBrush(QColor(patterForeground)));
                 if (title != nullptr) title->setForeground(QBrush(QColor(patterForeground)));
@@ -1725,6 +1747,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
                 if (pitch != nullptr) pitch->setForeground(QBrush(QColor(patterForeground)));
                 if (tempo != nullptr) tempo->setForeground(QBrush(QColor(patterForeground)));
             } else {
+                if (num != nullptr) num->setForeground(QBrush(QColor(singerForeground)));
                 if (type != nullptr) type->setForeground(QBrush(QColor(singerForeground)));
                 if (label != nullptr) label->setForeground(QBrush(QColor(singerForeground)));
                 if (title != nullptr) title->setForeground(QBrush(QColor(singerForeground)));
@@ -2263,6 +2286,11 @@ void MainWindow::on_actionCompact_triggered(bool checked)
     }
 
     ui->pushButtonTestLoop->setHidden(!songTypeNamesForPatter.contains(currentSongType)); // this button is PATTER ONLY
+
+#ifdef DARKMODE
+//    ui->darkTestLoopButton->setHidden(!songTypeNamesForPatter.contains(currentSongType)); // this button is PATTER ONLY
+#endif
+
     return;
 }
 
@@ -4317,6 +4345,15 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->pushButtonSetOutroTime->setEnabled(true);
     ui->pushButtonTestLoop->setEnabled(true);
 
+#ifdef DARKMODE
+    ui->darkStartLoopTime->setEnabled(true);
+    ui->darkEndLoopTime->setEnabled(true);
+
+    ui->darkStartLoopButton->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
+    ui->darkEndLoopButton->setEnabled(true);
+    ui->darkTestLoopButton->setEnabled(true);
+#endif
+
     cBass->SetVolume(100);
     currentVolume = 100;
     previousVolume = 100;
@@ -6093,10 +6130,11 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
 //        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
-        ui->darkStartLoopTime->setTime(iTime); // milliseconds
-
         ui->dateTimeEditOutroTime->setTime(oTime);
+#ifdef DARKMODE
+        ui->darkStartLoopTime->setTime(iTime); // milliseconds
         ui->darkEndLoopTime->setTime(oTime); // milliseconds
+#endif
 
         if (cuesheetName.length() > 0)
         {
@@ -7724,6 +7762,9 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonSetIntroTime->setText("Start Loop");
         ui->pushButtonSetOutroTime->setText("End Loop");
         ui->pushButtonTestLoop->setHidden(false);
+#ifdef DARKMODE
+        ui->darkTestLoopButton->setHidden(false);
+#endif
         analogClock->setSingingCallSection("");
     } else {
         // NOTE: if unknown type, it will be treated as a singing call, so as to NOT set looping
@@ -7733,6 +7774,9 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonSetIntroTime->setText("In");
         ui->pushButtonSetOutroTime->setText("Out");
         ui->pushButtonTestLoop->setHidden(true);
+#ifdef DARKMODE
+//        ui->darkTestLoopButton->setHidden(true);
+#endif
     }
 
 }

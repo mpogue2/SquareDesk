@@ -14,7 +14,8 @@ svgClock::svgClock(QWidget *parent) :
     QBrush numberBrush(QColor("#a0a0a0"));
 
     QFont  digitalTimeFont("Arial", 24);
-    QBrush digitalTimeBrush(QColor("#7070d0"));
+//    QBrush digitalTimeBrush(QColor("#7070d0"));
+    QBrush digitalTimeBrush(QColor("#7070B0"));
 
 //    QRect extent = this->geometry();
     double clockSize = 170;
@@ -89,8 +90,10 @@ svgClock::svgClock(QWidget *parent) :
     double hourRotationDegrees = 0.0;
     double minuteRotationDegrees = 0.0;
 
-    QPen hourPen(QColor("#DB384A"), 4, Qt::SolidLine, Qt::RoundCap);
-    QPen minutePen(Qt::white, 2, Qt::SolidLine, Qt::RoundCap);
+//    QPen hourPen(QColor("#DB384A"), 4, Qt::SolidLine, Qt::RoundCap);
+    QPen hourPen(QColor("#606060"), 4, Qt::SolidLine, Qt::RoundCap);
+//    QPen minutePen(QColor("#E0E0E0"), 2, Qt::SolidLine, Qt::RoundCap);
+    QPen minutePen(QColor("#D0D0D0"), 2, Qt::SolidLine, Qt::RoundCap);
 
 #ifdef SHOWSECONDHAND
     double secondRotationDegrees = 0.0;
@@ -101,7 +104,7 @@ svgClock::svgClock(QWidget *parent) :
 #ifdef SHOWSECONDHAND
     lengthOfShortSecondHand = 0.25;
 #endif
-    lengthOfMinuteHand = lengthOfSecondHand * (48.0/52.0);  // was: 46/52
+    lengthOfMinuteHand = lengthOfSecondHand * (50.0/52.0);  // was: 46/52
     lengthOfHourHand   = lengthOfSecondHand * (32.0/52.0);
 
     hourHand = new QGraphicsLineItem(center.rx(),
@@ -205,8 +208,11 @@ void svgClock::updateClock() {
     QLocale myLocale;
     QString theLocaleTimeFormat = myLocale.timeFormat(QLocale::NarrowFormat);
     QString digitalTimeString = theTime.toString(theLocaleTimeFormat).replace(" AM", "").replace(" PM", ""); // Europe uses 24 hour time, US = 12 hr time (no AM/PM)
-
     digitalTime->setText(digitalTimeString);
+
+    // now center it
+    QRectF digitalTimeRect = digitalTime->boundingRect();
+    digitalTime->setPos(center + QPoint(0, 25) - digitalTimeRect.center());
 }
 
 svgClock::~svgClock()
