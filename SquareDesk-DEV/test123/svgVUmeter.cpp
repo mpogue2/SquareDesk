@@ -125,10 +125,19 @@ svgVUmeter::svgVUmeter(QWidget *parent) :
 }
 
 void svgVUmeter::updateMeter() {
+
+    if (valueL < 0 || valueL > 1.0 || valueR < 0 || valueR > 1.0) {
+        return;  // ignore bad values
+    }
+
     double vuMeterX = 21;
     double vuMeterY = 111;
     double bottom = vuMeterY-7;
     double top = vuMeterY*0.08;
+
+//    if (valueL != 0 || valueR != 0) {
+//        qDebug() << "updateMeter:" << valueL << valueR;
+//    }
 
     // valueL/R are 0-1.0 here
 
@@ -180,6 +189,10 @@ void svgVUmeter::resizeEvent(QResizeEvent *re)
 
 void svgVUmeter::levelChanged(double peakL_mono, double peakR, bool isMono) {
     Q_UNUSED(isMono)  // TODO: IMPLEMENT THIS (2 bars --> 1 bar)
+
+//    if (peakL_mono != 0.0 || peakR != 0.0) {
+//        qDebug() << "levelChanged:" << peakL_mono << peakR;
+//    }
     valueL = peakL_mono;
     valueR = peakR;
 }

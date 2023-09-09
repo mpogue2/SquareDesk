@@ -1735,8 +1735,15 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         }
     }
 
+    // VUMETER:
+    ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
+
+    // SONGTABLE:
+    ui->darkSongTable->selectRow(2);
+
     // TREEWIDGET:
     ui->treeWidget->expandAll();
+    ui->treeWidget->itemAt(100,100)->setSelected(true);
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
