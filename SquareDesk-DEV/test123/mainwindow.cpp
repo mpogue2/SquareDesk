@@ -464,11 +464,14 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->nextSongButton->setIcon(style()->standardIcon(QStyle::SP_MediaSkipForward));
 
     ui->playButton->setEnabled(false);
+#ifdef DARKMODE
     ui->darkPlayButton->setEnabled(false);
+#endif
 
     ui->stopButton->setEnabled(false);
+#ifdef DARKMOD
     ui->darkStopButton->setEnabled(false);
-
+#endif
     ui->nextSongButton->setEnabled(false);
     ui->previousSongButton->setEnabled(false);
 
@@ -2378,8 +2381,9 @@ void MainWindow::on_stopButton_clicked()
 //    }
 
     ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+#ifdef DARKMODE
     ui->darkPlayButton->setIcon(*darkPlayIcon);  // change PAUSE to PLAY
-
+#endif
     ui->actionPlay->setText("Play");  // now stopped, press Cmd-P to Play
 //    currentState = kStopped;
 
@@ -2496,7 +2500,9 @@ void MainWindow::on_playButton_clicked()
             }
         }
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPause));  // change PLAY to PAUSE
+#ifdef DARKMODE
         ui->darkPlayButton->setIcon(*darkPauseIcon);  // change PLAY to PAUSE
+#endif
         ui->actionPlay->setText("Pause");
 
 //        ui->songTable->setFocus(); // while playing, songTable has focus
@@ -2517,7 +2523,9 @@ void MainWindow::on_playButton_clicked()
         // currently playing, so pause playback
         cBass->Pause();
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+#ifdef DARKMODE
         ui->darkPlayButton->setIcon(*darkPlayIcon);  // change PAUSE to PLAY
+#endif
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
@@ -2582,10 +2590,12 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
 
+#ifdef DARKMODE
     // update the darkPitchSlider, if it needs updating
     if (ui->darkPitchSlider->value() != value) {
         ui->darkPitchSlider->setValue(value);
     }
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -2641,11 +2651,12 @@ void MainWindow::on_volumeSlider_valueChanged(int value)
         ui->actionMute->setText("&Mute");
     }
 
+#ifdef DARKMODE
     // update the darkVolumeSlider, if it needs updating
     if (ui->darkVolumeSlider->value() != value) {
         ui->darkVolumeSlider->setValue(value);
     }
-
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -2705,10 +2716,12 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
 
+#ifdef DARKMODE
     // update the darkTempoSlider, if it needs updating
     if (ui->darkTempoSlider->value() != value) {
         ui->darkTempoSlider->setValue(value);
     }
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -3139,8 +3152,9 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
 
     // set in ms
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
+#ifdef DARKMODE
     ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
-
+#endif
     // set in fractional form
     double frac = position/length;
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
@@ -3180,8 +3194,9 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
 
     // set in ms
     ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
+#ifdef DARKMODE
     ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position+0.5))); // milliseconds
-
+#endif
     // set in fractional form
     double frac = position/length;
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
@@ -3273,7 +3288,9 @@ void MainWindow::on_UIUpdateTimerTick(void)
         // if we paused due to FADE, for example...
         // FIX: this could be factored out, it's used twice.
         ui->playButton->setIcon(style()->standardIcon(QStyle::SP_MediaPlay));  // change PAUSE to PLAY
+#ifdef DARKMODE
         ui->darkPlayButton->setIcon(*darkPlayIcon);  // change PAUSE to PLAY
+#endif
         ui->actionPlay->setText("Play");
 //        currentState = kPaused;
         setNowPlayingLabelWithColor(currentSongTitle);
@@ -3371,7 +3388,9 @@ void MainWindow::on_vuMeterTimerTick(void)
         vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
     } else if (ui->tabWidget->currentIndex() == 5) {
 //        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
+#ifdef DARKMODE
         ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+#endif
     }
 }
 
@@ -4030,6 +4049,7 @@ void MainWindow::on_bassSlider_valueChanged(int value)
     cBass->SetEq(0, static_cast<double>(value));
     saveCurrentSongSettings();
 
+#ifdef DARKMODE
     // FOR NOW, the darkTrebleKnob range is 0 - 100, so let's translate from -15 to 15 --> 0 to 100
     int translatedValue = round((value + 15)*(100.0/30.0)); // rounded to nearest int
 
@@ -4038,6 +4058,7 @@ void MainWindow::on_bassSlider_valueChanged(int value)
     if (ui->darkBassKnob->value() != translatedValue) {
             ui->darkBassKnob->setValue(translatedValue);
     }
+#endif
 }
 
 void MainWindow::on_midrangeSlider_valueChanged(int value)
@@ -4045,6 +4066,7 @@ void MainWindow::on_midrangeSlider_valueChanged(int value)
     cBass->SetEq(1, static_cast<double>(value));
     saveCurrentSongSettings();
 
+#ifdef DARKMODE
     // FOR NOW, the darkTrebleKnob range is 0 - 100, so let's translate from -15 to 15 --> 0 to 100
     int translatedValue = round((value + 15)*(100.0/30.0)); // rounded to nearest int
 
@@ -4053,6 +4075,7 @@ void MainWindow::on_midrangeSlider_valueChanged(int value)
     if (ui->darkMidKnob->value() != translatedValue) {
             ui->darkMidKnob->setValue(translatedValue);
     }
+#endif
 }
 
 void MainWindow::on_trebleSlider_valueChanged(int value)
@@ -4060,6 +4083,7 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     cBass->SetEq(2, static_cast<double>(value));
     saveCurrentSongSettings();
 
+#ifdef DARKMODE
     // FOR NOW, the darkTrebleKnob range is 0 - 100, so let's translate from -15 to 15 --> 0 to 100
     int translatedValue = round((value + 15)*(100.0/30.0)); // rounded to nearest int
 
@@ -4068,6 +4092,7 @@ void MainWindow::on_trebleSlider_valueChanged(int value)
     if (ui->darkTrebleKnob->value() != translatedValue) {
             ui->darkTrebleKnob->setValue(translatedValue);
     }
+#endif
 }
 
 // --------------------------------------
@@ -4213,10 +4238,12 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     fileModified = false;
 
     ui->playButton->setEnabled(true);
-    ui->darkPlayButton->setEnabled(true);
     ui->stopButton->setEnabled(true);
-    ui->darkStopButton->setEnabled(true);
 
+#ifdef DARKMODE
+    ui->darkPlayButton->setEnabled(true);
+    ui->darkStopButton->setEnabled(true);
+#endif
     ui->actionPlay->setEnabled(true);
     ui->actionStop->setEnabled(true);
     ui->actionSkip_Ahead_15_sec->setEnabled(true);
@@ -7411,16 +7438,22 @@ void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
         lastFlashcall = flashcall;
         if (flashcall) {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
+#ifdef DARKMODE
             ui->darkTitle->setStyleSheet("QLabel { color : #D04040; font-style: italic; }");
+#endif
         } else {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");
+#ifdef DARKMODE
             ui->darkTitle->setStyleSheet("QLabel { color : #D9D9D9; font-style: normal; }");
+#endif
         }
     }
     if (ui->nowPlayingLabel->text() != s) {
         // update ONLY if there is a change, to save CPU time in relayout
         ui->nowPlayingLabel->setText(s);
+#ifdef DARKMODE
         ui->darkTitle->setText(s);
+#endif
     }
 }
 
@@ -7622,15 +7655,19 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->setMinimum(songBPM-15);
         ui->tempoSlider->setMaximum(songBPM+15);
 
+#ifdef DARKMODE
         ui->darkTempoSlider->setMinimum(songBPM-15);
         ui->darkTempoSlider->setMaximum(songBPM+15);
+#endif
 
         ui->tempoSlider->setValue(songBPM);  // qDebug() << "handleDurationBPM set tempo slider to: " << songBPM;
         emit ui->tempoSlider->valueChanged(songBPM);  // fixes bug where second song with same BPM doesn't update songtable::tempo
 
         ui->tempoSlider->SetOrigin(songBPM);    // when double-clicked, goes here (MySlider function)
 
+#ifdef DARKMODE
         ui->darkTempoSlider->setDefaultValue(songBPM);  // when double-clicked, goes here
+#endif
 
         ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
@@ -7643,14 +7680,18 @@ void MainWindow::handleDurationBPM() {
         ui->tempoSlider->setMinimum(100-20);        // allow +/-20%
         ui->tempoSlider->setMaximum(100+20);
 
+#ifdef DARKMODE
         ui->darkTempoSlider->setMinimum(100-20);        // allow +/-20%
         ui->darkTempoSlider->setMaximum(100+20);
+#endif
 
         ui->tempoSlider->setValue(100);
         emit ui->tempoSlider->valueChanged(100);  // fixes bug where second song with same 100% doesn't update songtable::tempo
         ui->tempoSlider->SetOrigin(100);  // when double-clicked, goes here
 
+#ifdef DARKMODE
         ui->darkTempoSlider->setDefaultValue(100);  // when double-clicked, goes here
+#endif
 
         ui->tempoSlider->setEnabled(true);
 //        statusBar()->showMessage(QString("Song length: ") + position2String(length_sec) +
@@ -7660,10 +7701,12 @@ void MainWindow::handleDurationBPM() {
     // NOTE: we need to set the bounds BEFORE we set the actual positions
 //    qDebug() << "MainWindow::handleDurationBPM: length_sec = " << length_sec;
     ui->dateTimeEditIntroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-    ui->darkStartLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
-
     ui->dateTimeEditOutroTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+
+#ifdef DARKMODE
+    ui->darkStartLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
     ui->darkEndLoopTime->setTimeRange(QTime(0,0,0,0), QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*length_sec+0.5)));
+#endif
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
@@ -7797,6 +7840,7 @@ void MainWindow::on_actionOpen_Audio_File_triggered()
     on_actionOpen_MP3_file_triggered();
 }
 
+#ifdef DARKMODE
 // DARK MODE CONTROLS ----------------------
 void MainWindow::on_darkStopButton_clicked()
 {
@@ -7902,4 +7946,4 @@ void MainWindow::on_darkBassKnob_valueChanged(int value)
         ui->bassSlider->setValue(translatedValue);
     }
 }
-
+#endif

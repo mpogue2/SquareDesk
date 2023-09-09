@@ -213,7 +213,7 @@ public:
 //#define COOLGUI
 
 // Define this for the new DARK MODE prototyping
-#define DARKMODE
+//#define DARKMODE
 
 namespace Ui
 {
@@ -715,7 +715,7 @@ private slots:
     void on_actionPrint_Sequence_triggered();
 
     void on_pushButtonRevertEdits_clicked();
-
+#ifdef DARKMODE
     void on_darkStopButton_clicked();
 
     void on_darkPlayButton_clicked();
@@ -737,7 +737,7 @@ private slots:
     void on_darkMidKnob_valueChanged(int value);
 
     void on_darkBassKnob_valueChanged(int value);
-
+#endif
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -1236,9 +1236,11 @@ public:
 
     bool lastFlashcall;  // cached previous value of flashcall
 
+#ifdef DARKMODE
     QIcon *darkStopIcon;
     QIcon *darkPlayIcon;
     QIcon *darkPauseIcon;
+#endif
 };
 
 // currentState:
