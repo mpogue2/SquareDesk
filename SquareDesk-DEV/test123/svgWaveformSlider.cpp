@@ -73,7 +73,7 @@ void svgWaveformSlider::setValue(int val) {
 
 // MOUSE EVENTS ============
 void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
-    qDebug() << "mousePressEvent: " << e;
+//    qDebug() << "mousePressEvent: " << e;
     double val;
 
     switch (e->button()) {
@@ -116,14 +116,50 @@ void svgWaveformSlider::finishInit() {
     QPainter *paint = new QPainter(bgPixmap);
 //    paint->setPen(QColor(0, 0, 0, 255));
 //    paint->setPen(QColor("#707070"));
-    paint->setPen(QColor("#707070"));
 
-    paint->drawLine(0,30,491,30);
+//    QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
+//    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#2eab9c"), QColor("#5368c9")};
+    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
+    int colorMap[] = {1,2,3,1,2,3,1};
+
+//    paint->drawLine(0,30,491,30);
 
     double h;
-    for (int i = 5; i < 491-5; i++) {
-        h = 8 + rand() % 20;
-        paint->drawLine(i,h,i,61-h);
+
+    // DEBUG DEBUG DEBUG ******************
+    singingCall = true;
+    introPosition = 491 * 0.05;
+    outroPosition = 491 * 0.95;
+
+    if (true || singingCall) { // DEBUG DEBUG ***********
+        // Singing call
+        paint->setPen(colors[0]);
+        paint->drawLine(0,30,491,30);
+
+        int whichColor = 0;
+        paint->setPen(colors[whichColor]);
+        for (int i = 5; i < 491-5; i++) {
+
+            if (i < introPosition || i > outroPosition) {
+                whichColor = 0;
+            } else {
+                int inSeg = i - introPosition;
+                int whichSeg = inSeg / ((outroPosition - introPosition)/7.0);
+                whichColor = colorMap[whichSeg];
+            }
+
+            paint->setPen(colors[whichColor]);
+            h = 8 + rand() % 20;
+            paint->drawLine(i,h,i,61-h);
+        }
+    } else {
+        // Patter, etc.
+        paint->setPen(QColor("#707070"));
+        paint->drawLine(0,30,491,30);
+        for (int i = 5; i < 491-5; i++) {
+            h = 8 + rand() % 20;
+            paint->drawLine(i,h,i,61-h);
+        }
     }
 
     delete paint;
@@ -135,10 +171,31 @@ void svgWaveformSlider::finishInit() {
 //    qDebug() << "finishInit with: " << bg->boundingRect();
 
     // CURRENT POSITION MARKER -------
-    QPen currentPosPen(QColor("#00D3FF"), 2);
-    currentPos = new QGraphicsLineItem(0,0, 0,61); // initial position of the line
+//    QPen currentPosPen(QColor("#00D3FF"), 2);
+    QPen currentPosPen(QColor("#00FF33"), 1);
+    QBrush currentPosBrush(QColor("#00FF33"));
+
+    currentPos = new QGraphicsItemGroup();
+
+    QGraphicsLineItem *vLine = new QGraphicsLineItem(0,0, 0,61); // initial position of the line
+    vLine->setPen(currentPosPen);
+
+    QPolygonF p;
+    float d = 5.0;
+    p << QPointF(-d, 0.0) << QPointF(d, 0.0) << QPointF(0.0, d) << QPointF(-d, 0.0);
+    QGraphicsPolygonItem *topTri = new QGraphicsPolygonItem(p);
+    topTri->setBrush(currentPosBrush);
+
+    QPolygonF p2;
+    p2 << QPointF(-d, 60.0) << QPointF(d, 60.0) << QPointF(0.0, 60.0-d) << QPointF(-d, 60.0);
+    QGraphicsPolygonItem *botTri = new QGraphicsPolygonItem(p2);
+    botTri->setBrush(currentPosBrush);
+
+    currentPos->addToGroup(vLine);
+    currentPos->addToGroup(topTri);
+    currentPos->addToGroup(botTri);
+
     currentPos->setPos(value(), 0);
-    currentPos->setPen(currentPosPen);
 
     // LOOP INDICATORS -------
     QPen currentLoopPen(QColor("#00B000"), 2);

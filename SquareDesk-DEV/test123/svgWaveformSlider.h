@@ -131,7 +131,7 @@ private:
     QPixmap *bgPixmap;
     QGraphicsPixmapItem *bg;
 
-    QGraphicsLineItem *currentPos;
+    QGraphicsItemGroup *currentPos;
 
     QGraphicsItemGroup *leftLoopMarker;
     QGraphicsItemGroup *rightLoopMarker;

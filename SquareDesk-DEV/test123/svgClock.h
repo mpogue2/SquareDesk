@@ -15,6 +15,9 @@
 #include <QPoint>
 #include <QTimer>
 
+#include "typetracker.h"
+#include "svgDial.h"  // for QGraphicsArcItem
+
 // ---------
 //#define SHOWSECONDHAND
 //#define SMOOTHROTATION
@@ -27,6 +30,22 @@ class svgClock : public QLabel
 public:
     explicit svgClock(QWidget *parent = 0);
     ~svgClock();
+
+    void setSegment(unsigned int hour, unsigned int minute, unsigned int second, unsigned int type);
+    unsigned int typeInMinute[60]; // remembers the type for this minute
+    unsigned int lastHourSet[60];  // remembers the hour when the type was set for that minute
+
+    void setColorForType(int type, QColor theColor);
+    QColor colorForType[10];
+
+    void setHidden(bool hidden);
+    bool coloringIsHidden;
+
+public slots:
+    void customMenuRequested(QPoint pos);
+
+private slots:
+    void clearClockColoring();
 
 private:
     void updateClock();
@@ -51,6 +70,8 @@ private:
     QGraphicsLineItem *minuteHand;
     QGraphicsLineItem *secondHand;
     QGraphicsEllipseItem *secondDot;
+
+    QGraphicsArcItem *arc[60];  // 60 of these pointers
 
     QTimer secondTimer;
 

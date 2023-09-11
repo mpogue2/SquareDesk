@@ -725,6 +725,14 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     analogClock->setColorForType(SINGING_CALLED, QColor(calledColorString));
     analogClock->setColorForType(XTRAS, QColor(extrasColorString));
 
+#ifdef DARKMODE
+    // Tell the clock what colors to use for session segments
+    ui->theSVGClock->setColorForType(NONE, QColor(Qt::red));
+    ui->theSVGClock->setColorForType(PATTER, QColor(patterColorString));
+    ui->theSVGClock->setColorForType(SINGING, QColor(singingColorString));
+    ui->theSVGClock->setColorForType(SINGING_CALLED, QColor(calledColorString));
+    ui->theSVGClock->setColorForType(XTRAS, QColor(extrasColorString));
+#endif
     // ----------------------------------------------
     // Save the new settings for experimental break and patter timers --------
     tipLengthTimerEnabled = prefsManager.GettipLengthTimerEnabled();
@@ -815,6 +823,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // ----------
     clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
     analogClock->setHidden(clockColoringHidden);
+
+#ifdef DARKMODE
+    ui->theSVGClock->setHidden(clockColoringHidden);
+#endif
 
     // -----------
     ui->actionAutostart_playback->setChecked(prefsManager.Getautostartplayback());
@@ -1594,6 +1606,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
 
 #ifdef DARKMODE
+
+    // CLOCK COLORING =============
+    // FIX: THIS DOES NOT WORK
+    ui->theSVGClock->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->theSVGClock, SIGNAL(customContextMenuRequested(QPoint)), ui->theSVGClock, SLOT(customMenuRequested(QPoint)));
 
     // ============= DARKMODE INIT ================
     QString darkTextColor = "#C0C0C0";
@@ -3414,6 +3431,19 @@ void MainWindow::on_UIUpdateTimerTick(void)
                             static_cast<unsigned int>(time.minute()),
                             static_cast<unsigned int>(time.second()),
                             static_cast<unsigned int>(theType));  // always called once per second
+
+#ifdef DARKMODE
+    ui->theSVGClock->setSegment(static_cast<unsigned int>(time.hour()),
+                                static_cast<unsigned int>(time.minute()),
+                                static_cast<unsigned int>(time.second()),
+                                static_cast<unsigned int>(theType));  // always called once per second
+
+//    ui->theSVGClock->setSegment(static_cast<unsigned int>(time.minute()),  // DEBUG
+//                                static_cast<unsigned int>(time.second()),
+//                                0,
+//                                static_cast<unsigned int>(theType));  // always called once per second
+#endif
+
 #else
 //    analogClock->setSegment(0, time.minute(), time.second(), theType);  // DEBUG DEBUG DEBUG
     analogClock->setSegment(static_cast<unsigned int>(time.minute()),
@@ -5497,6 +5527,10 @@ void MainWindow::on_actionPreferences_triggered()
         // Save the new value for experimentalClockColoringEnabled --------
         clockColoringHidden = !prefsManager.GetexperimentalClockColoringEnabled();
         analogClock->setHidden(clockColoringHidden);
+
+#ifdef DARKMODE
+        ui->theSVGClock->setHidden(clockColoringHidden);
+#endif
 
         SetAnimationSpeed(static_cast<AnimationSpeed>(prefsManager.GetAnimationSpeed()));
         

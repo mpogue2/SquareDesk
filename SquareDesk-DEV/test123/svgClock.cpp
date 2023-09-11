@@ -1,6 +1,9 @@
+#include <QMenu>
 #include <QTime>
 #include "svgClock.h"
 #include "math.h"
+
+//#define DEBUGCLOCK
 
 // -------------------------------------
 // from: https://stackoverflow.com/questions/7537632/custom-look-svg-gui-widgets-in-qt-very-bad-performance
@@ -140,6 +143,21 @@ svgClock::svgClock(QWidget *parent) :
     secondDot->setBrush(QBrush(Qt::white));
     scene.addItem(secondDot);
 
+
+    // CLOCK COLORING ----------
+    clearClockColoring();
+
+    double arcRadius = 60;
+    for (int i = 0; i < 60; i++) {
+        QColor arcColor(Qt::red);
+        // 6 degrees per: 1 open + 4 on + 1 open
+        arc[i] = new QGraphicsArcItem(16, 15, 2 * arcRadius, 2 * arcRadius);
+        arc[i]->setPen(QPen(arcColor, 3.0, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
+        arc[i]->setStartAngle(16.0 * (90.0 - 6 * i - 2.0));  // -2.0 centers the arc[0] at 12:00
+        arc[i]->setSpanAngle(16.0 * 4);
+        scene.addItem(arc[i]);
+    }
+
     // UPDATE TO INITIAL TIME ------
     updateClock();
 
@@ -161,10 +179,18 @@ svgClock::svgClock(QWidget *parent) :
     secondTimer.start(1000); // every second
 #endif
 #else
-    secondTimer.start(60.0 * 1000); // every 60 seconds
+
+#ifdef DEBUGCLOCK
+    secondTimer.start(1.0 * 1000); // every second
+#else
+    secondTimer.start(1.0 * 1000); // every 60 seconds
 #endif
+
+#endif
+
 }
 
+// ========================================================================================================================
 void svgClock::updateClock() {
     // HANDS -----------
     QTime theTime = QTime::currentTime();
@@ -177,9 +203,20 @@ void svgClock::updateClock() {
     double secondRotationDegrees = 360 * ((theTime.second() + theTime.msec()/1000.0)/60.0);
 #endif
 #else
+
+#ifdef DEBUGCLOCK
+    // seconds tick one at a time -----
+    double hourRotationDegrees = 30.0 * (theTime.minute() + (theTime.second()/60.0));
+    double minuteRotationDegrees = 360 * ((theTime.second()/60.0));
+
+//    minuteRotationDegrees = (theTime.second() % 4) * 90.0;
+    qDebug() << "UpdateClock:" << hourRotationDegrees << minuteRotationDegrees;
+#else
     // seconds tick one at a time -----
     double hourRotationDegrees = 30.0 * (theTime.hour() + (theTime.minute()/60.0));
     double minuteRotationDegrees = 360 * ((theTime.minute()/60.0));
+#endif
+
 #ifdef SHOWSECONDHAND
     double secondRotationDegrees = 360 * ((theTime.second())/60.0);
 #endif
@@ -214,6 +251,44 @@ void svgClock::updateClock() {
     // now center it
     QRectF digitalTimeRect = digitalTime->boundingRect();
     digitalTime->setPos(center + QPoint(0, 25) - digitalTimeRect.center());
+
+    // CLOCK COLORING ----------------
+
+    // hide them all to start
+    for (int i = 0; i < 60; i++) {
+        arc[i]->setVisible(false);
+    }
+
+    // time now!
+#ifndef DEBUGCLOCK
+    int startMinute = theTime.minute();
+#else
+    int startMinute = theTime.second();
+#endif
+
+    if (!coloringIsHidden) {
+        for (int i = 0; i < 60; i++) {
+            int currentMinute = startMinute - i;
+            if (currentMinute < 0) {
+                currentMinute += 60;
+            }
+            if (typeInMinute[currentMinute] != NONE) {
+                if (arc[currentMinute] != nullptr) {
+//                    qDebug() << "****** arc[" << currentMinute << "] = " << currentMinute << typeInMinute[currentMinute] << colorForType[typeInMinute[currentMinute]];
+//                    arc[currentMinute]->setBrush(colorForType[typeInMinute[currentMinute]]);
+                    arc[currentMinute]->setPen(QPen(colorForType[typeInMinute[currentMinute]], 3.0, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
+                    arc[currentMinute]->setVisible(true);
+                }
+            } else {
+                // arc is hidden
+                if (arc[currentMinute] != nullptr) {
+//                    qDebug() << "HIDDEN arc[" << currentMinute << "] = " << currentMinute << typeInMinute[currentMinute] << colorForType[typeInMinute[currentMinute]];
+                    arc[currentMinute]->setVisible(false);
+                }
+            }
+        }
+    }
+
 }
 
 svgClock::~svgClock()
@@ -229,4 +304,58 @@ void svgClock::paintEvent(QPaintEvent *pe)
 void svgClock::resizeEvent(QResizeEvent *re)
 {
     QLabel::resizeEvent(re);
+}
+
+// CLOCK COLORING ------
+void svgClock::setSegment(unsigned int hour, unsigned int minute, unsigned int second, unsigned int type)
+{
+//    qDebug() << "svgClock::setSegment:" << hour << minute << second << type;
+
+    // TODO: I have discovered a truly marvelous idea for showing session activity on the clock face,
+    //    which this margin is too narrow to contain....
+    if (type == NONE) {
+        if (hour != lastHourSet[minute]) {
+            lastHourSet[minute] = hour;  // remember that we set this segment for this hour
+            typeInMinute[minute] = NONE; //   clear out the color, as the minute hand goes around, but only ONCE
+        }
+    }
+    else {
+        // normal type, always update the current minute
+        typeInMinute[minute] = type;
+    }
+
+    // TODO: use the timeSegmentList instead of the typeInMinute[] and lastHourSet[] to do Clock Coloring
+
+    Q_UNUSED(second)
+//    typeTracker.addSecond(type);
+    //    typeTracker.printState("AnalogClock::setSegment():");
+}
+
+void svgClock::setColorForType(int type, QColor theColor) {
+    colorForType[type] = theColor;
+}
+
+void svgClock::setHidden(bool hidden) {
+    coloringIsHidden = hidden;
+}
+
+void svgClock::clearClockColoring() {
+    for (int i = 0; i < 60; i++) {
+        typeInMinute[i] = NONE;
+        lastHourSet[i] = -1;     // invalid hour, matches no real hour
+    }
+}
+
+void svgClock::customMenuRequested(QPoint pos){
+    Q_UNUSED(pos)
+
+    QMenu *menu = new QMenu(this);
+    QAction action1("Clear clock coloring", this);
+    connect(&action1, SIGNAL(triggered()), this, SLOT(clearClockColoring()));
+    menu -> addAction(&action1);
+
+    menu->popup(QCursor::pos());
+    menu->exec();
+
+    delete(menu);
 }
