@@ -804,16 +804,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-#ifndef COOLGUI
     ui->pushButtonEditLyrics->setStyleSheet("QToolButton { border: 1px solid #575757; border-radius: 4px; background-color: palette(base); }");  // turn off border
-#else
-    QString toolButtonGradient("QToolButton{background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #F0F0F0, stop: 1 #A0A0A0);border-style: solid;border-color: #909090;border-width: 2px;border-radius: 8px;}");
-
-    ui->previousSongButton->setStyleSheet(toolButtonGradient);
-    ui->nextSongButton->setStyleSheet(toolButtonGradient);
-    ui->playButton->setStyleSheet(toolButtonGradient);
-    ui->stopButton->setStyleSheet(toolButtonGradient);
-#endif
 
     // ----------
     updateSongTableColumnView(); // update the actual view of Age/Pitch/Tempo in the songTable view

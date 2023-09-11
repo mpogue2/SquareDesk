@@ -209,11 +209,8 @@ public:
 
 #define NUMBEREDSOUNDFXFILES 8
 
-// Define this for the new Cool GUI prototyping
-//#define COOLGUI
-
 // Define this for the new DARK MODE prototyping
-#define DARKMODE
+//#define DARKMODE
 
 namespace Ui
 {
