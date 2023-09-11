@@ -90,7 +90,7 @@ public:
         outroPosition = frac * 491;
 //        qDebug() << "*** setOutro:" << outroPosition;
         if (rightLoopMarker != nullptr && rightLoopMarker != nullptr) {
-            rightLoopMarker->setX(outroPosition - 5); // 5 is to compensate for the width of the green bracket
+            rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
             rightLoopCover->setRect(outroPosition,0, 491-outroPosition,61);
         }
     }

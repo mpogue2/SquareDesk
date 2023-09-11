@@ -127,11 +127,11 @@ void svgWaveformSlider::finishInit() {
     double h;
 
     // DEBUG DEBUG DEBUG ******************
-    singingCall = true;
-    introPosition = 491 * 0.05;
-    outroPosition = 491 * 0.95;
+//    singingCall = true;
+//    introPosition = 491 * 0.05;
+//    outroPosition = 491 * 0.95;
 
-    if (true || singingCall) { // DEBUG DEBUG ***********
+    if (singingCall) { // DEBUG DEBUG ***********
         // Singing call
         paint->setPen(colors[0]);
         paint->drawLine(0,30,491,30);
@@ -198,7 +198,7 @@ void svgWaveformSlider::finishInit() {
     currentPos->setPos(value(), 0);
 
     // LOOP INDICATORS -------
-    QPen currentLoopPen(QColor("#00B000"), 2);
+    QPen currentLoopPen(QColor("#26A4ED"), 2);
     QBrush loopDarkeningBrush(QColor("#80000000"));
 
     // left --
