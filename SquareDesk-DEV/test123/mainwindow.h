@@ -213,7 +213,7 @@ public:
 //#define COOLGUI
 
 // Define this for the new DARK MODE prototyping
-#define DARKMODE
+//#define DARKMODE
 
 namespace Ui
 {

@@ -87,6 +87,7 @@ SOURCES += main.cpp\
     svgDial.cpp \
     svgSlider.cpp \
     svgVUmeter.cpp \
+    svgWaveformSlider.cpp \
     tablenumberitem.cpp \
     myslider.cpp \
     levelmeter.cpp \
@@ -159,6 +160,7 @@ HEADERS  += mainwindow.h \
     svgDial.h \
     svgSlider.h \
     svgVUmeter.h \
+    svgWaveformSlider.h \
     utility.h \
     mytablewidget.h \
     tablenumberitem.h \

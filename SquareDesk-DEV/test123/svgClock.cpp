@@ -91,7 +91,8 @@ svgClock::svgClock(QWidget *parent) :
     double minuteRotationDegrees = 0.0;
 
 //    QPen hourPen(QColor("#DB384A"), 4, Qt::SolidLine, Qt::RoundCap);
-    QPen hourPen(QColor("#606060"), 4, Qt::SolidLine, Qt::RoundCap);
+//    QPen hourPen(QColor("#606060"), 4, Qt::SolidLine, Qt::RoundCap);
+    QPen hourPen(QColor("#A0A0A0"), 4, Qt::SolidLine, Qt::RoundCap);
 //    QPen minutePen(QColor("#E0E0E0"), 2, Qt::SolidLine, Qt::RoundCap);
     QPen minutePen(QColor("#D0D0D0"), 2, Qt::SolidLine, Qt::RoundCap);
 

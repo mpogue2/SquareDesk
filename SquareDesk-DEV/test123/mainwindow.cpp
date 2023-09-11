@@ -81,6 +81,8 @@
 #include "songlistmodel.h"
 #include "mytablewidget.h"
 
+#include "svgWaveformSlider.h"
+
 #include "src/communicator.h"
 
 #if defined(Q_OS_MAC) | defined(Q_OS_WIN)
@@ -290,6 +292,10 @@ void MainWindow::haveDuration2(void) {
     cBass->StreamGetLength();  // tell everybody else what the length of the stream is...
     InitializeSeekBar(ui->seekBar);          // and now we can set the max of the seekbars, so they show up
     InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
+
+#ifdef DARKMODE
+    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
+#endif
 
 //    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
 
@@ -1589,6 +1595,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 #ifdef DARKMODE
 
+    // ============= DARKMODE INIT ================
     QString darkTextColor = "#C0C0C0";
 
     // DARK MODE UI TESTING --------------------
@@ -1823,6 +1830,56 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    QIcon dd(":/graphics/darkPlay.png"); // I can't stick this in the MainWindow object without getting errors either...
 
 // TODO: we can delete darkPlay and darkStop PNG's from the resource file now...
+
+// WAVEFORM ---------
+//    QSlider::groove:horizontal {
+//    border: 1px solid #999999;
+//    height: 8px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
+//    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B10000, stop:1 #0000c4);
+//    margin: 2px 0;
+//    }
+
+//    QSlider::handle:horizontal {
+//    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
+//    border: 1px solid #5c5c5c;
+//    width: 18px;
+//    margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
+//        border-radius: 3px;
+//    }
+//    QSlider::add-page:horizontal {
+//    background: white;
+//    }
+
+//    QSlider::sub-page:horizontal {
+//    background: pink;
+//    }
+
+//    QString waveformStylesheet = R"(
+//        QSlider:horizontal {
+//            background-image:url(:/graphics/darkWaveform.png)
+//        }
+
+//        QSlider::groove:horizontal {
+//            background: transparent;
+//            position: absolute; /* absolutely position 4px from the left and right of the widget. setting margins on the widget should work too... */
+//            height: 28px;
+//        }
+
+//        QSlider::handle:horizontal {
+//            border: 1px solid #5c5c5c;
+//            background: #00D3FF;
+//            width: 1px;
+//            height: 4px;
+//            margin: -24px 0; /* expand outside the groove */
+//        }
+
+//    )";
+
+//    ui->darkSeekBar->setStyleSheet(waveformStylesheet); // TEST TEST
+
+    // DARKSEEKBAR =================
+    ui->darkSeekBar->setBgFile(":/graphics/darkWaveform.png");  // just set the background
+    ui->darkSeekBar->finishInit();  // load everything up!
 
 #else
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
@@ -2373,6 +2430,9 @@ void MainWindow::on_loopButton_toggled(bool checked)
         ui->seekBar->SetLoop(true);
         ui->seekBarCuesheet->SetLoop(true);
 
+#ifdef DARKMODE
+        ui->darkSeekBar->setLoop(true);
+#endif
         double songLength = cBass->FileLength;
 //        qDebug() << "songLength: " << songLength << ", Intro: " << ui->seekBar->GetIntro();
 
@@ -2385,6 +2445,9 @@ void MainWindow::on_loopButton_toggled(bool checked)
 
         ui->seekBar->SetLoop(false);
         ui->seekBarCuesheet->SetLoop(false);
+#ifdef DARKMODE
+        ui->darkSeekBar->setLoop(false);
+#endif
 
         cBass->ClearLoop();
     }
@@ -2435,6 +2498,9 @@ void MainWindow::on_stopButton_clicked()
 #else
     ui->seekBar->setValue(0);
     ui->seekBarCuesheet->setValue(0);
+#ifdef DARKMODE
+    ui->darkSeekBar->setValue(0);
+#endif
     Info_Seekbar(false);  // update just the text
 #endif
 
@@ -2820,18 +2886,21 @@ void InitializeSeekBar(MySlider *seekBar)
     seekBar->setTickInterval(10);  // 10 seconds per tick
 }
 
-void SetSeekBarPosition(MySlider *seekBar, int currentPos_i)
+//void SetSeekBarPosition(MySlider *seekBar, int currentPos_i)
+void SetSeekBarPosition(QSlider *seekBar, int currentPos_i)
 {
     seekBar->blockSignals(true); // setValue should NOT initiate a valueChanged()
+//    qDebug() << "setSeekBarPosition about to setValue(): " << seekBar << currentPos_i;
     seekBar->setValue(currentPos_i);
     seekBar->blockSignals(false);
 }
 
-void SetSeekBarNoSongLoaded(MySlider *seekBar)
+//void SetSeekBarNoSongLoaded(MySlider *seekBar)
+void SetSeekBarNoSongLoaded(QSlider *seekBar)
 {
     seekBar->setMinimum(0);
     seekBar->setValue(0);
-    seekBar->ClearMarkers();
+//    seekBar->ClearMarkers();
 }
 
 // ----------------------------------------------------------------------
@@ -2880,9 +2949,13 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 #endif
 
         if (forceSlider) {
+//            qDebug() << "about to setSeekBarPosition()";
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
-
+#ifdef DARKMODE
+//            SetSeekBarPosition(ui->darkSeekBar, currentPos_i);  // I don't know why this doesn't work
+            ui->darkSeekBar->setValue(currentPos_i);
+#endif
             int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
             int maxScroll = ui->textBrowserCueSheet->verticalScrollBar()->maximum();
             int maxSeekbar = ui->seekBar->maximum();  // NOTE: minSeekbar is always 0
@@ -3028,6 +3101,9 @@ void MainWindow::Info_Seekbar(bool forceSlider)
     else {
         SetSeekBarNoSongLoaded(ui->seekBar);
         SetSeekBarNoSongLoaded(ui->seekBarCuesheet);
+#ifdef DARKMODE
+        SetSeekBarNoSongLoaded(ui->darkSeekBar);
+#endif
     }
 }
 
@@ -3194,7 +3270,9 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     double frac = position/length;
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
     ui->seekBar->SetIntro(frac);
-
+#ifdef DARKMODE
+    ui->darkSeekBar->setIntro(frac);
+#endif
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
@@ -4326,6 +4404,10 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     // song is loaded now, so init the seekbar min/max (once)
     InitializeSeekBar(ui->seekBar);
     InitializeSeekBar(ui->seekBarCuesheet);
+
+#ifdef DARKMODE
+    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
+#endif
 
     Info_Seekbar(true);  // update the slider and all the text
 
@@ -6126,6 +6208,12 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         ui->seekBar->SetIntro(intro);
         ui->seekBar->SetOutro(outro);
 
+#ifdef DARKMODE
+        // we need to set this in both places
+        ui->darkSeekBar->setIntro(intro);
+        ui->darkSeekBar->setOutro(outro);
+#endif
+
         QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
 //        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
@@ -7353,7 +7441,9 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
     double frac = position_sec/length;
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
     ui->seekBar->SetIntro(frac);
-
+#ifdef DARKMODE
+    ui->darkSeekBar->setIntro(frac);
+#endif
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
     saveCurrentSongSettings();
 }

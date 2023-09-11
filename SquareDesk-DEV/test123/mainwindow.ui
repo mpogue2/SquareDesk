@@ -2772,22 +2772,6 @@
           <enum>Qt::ToolButtonIconOnly</enum>
          </property>
         </widget>
-        <widget class="QLabel" name="label_5">
-         <property name="geometry">
-          <rect>
-           <x>57</x>
-           <y>62</y>
-           <width>491</width>
-           <height>81</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="pixmap">
-          <pixmap resource="resources.qrc">:/graphics/darkWaveform.png</pixmap>
-         </property>
-        </widget>
         <widget class="svgSlider" name="darkTempoSlider">
          <property name="geometry">
           <rect>
@@ -2906,6 +2890,28 @@
          </property>
          <property name="alignment">
           <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+        <widget class="svgWaveformSlider" name="darkSeekBar">
+         <property name="geometry">
+          <rect>
+           <x>56</x>
+           <y>73</y>
+           <width>491</width>
+           <height>61</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximum">
+          <number>490</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
          </property>
         </widget>
        </widget>
@@ -5966,6 +5972,11 @@
    <class>svgVUmeter</class>
    <extends>QLabel</extends>
    <header location="global">svgVUmeter.h</header>
+  </customwidget>
+  <customwidget>
+   <class>svgWaveformSlider</class>
+   <extends>QSlider</extends>
+   <header>svgWaveformSlider.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
