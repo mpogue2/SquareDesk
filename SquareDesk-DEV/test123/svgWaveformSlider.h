@@ -18,6 +18,8 @@
 //  It has start and end loop indicators, a current position indicator,
 //  and (for future expansion) settable markers.
 
+#define WAVEFORMWIDTH (491.0 - 10.0)
+
 // -----------------------------------
 class svgWaveformSlider : public QSlider
 {
@@ -78,7 +80,7 @@ public:
     }
 
     void setIntro(double frac) {
-        introPosition = frac * 491.0;
+        introPosition = frac * WAVEFORMWIDTH;
 //        qDebug() << "*** setIntro:" << introPosition;
         if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
             leftLoopMarker->setX(introPosition);
@@ -87,11 +89,11 @@ public:
     }
 
     void setOutro(double frac) {
-        outroPosition = frac * 491.0;
+        outroPosition = frac * WAVEFORMWIDTH;
 //        qDebug() << "*** setOutro:" << outroPosition;
         if (rightLoopMarker != nullptr && rightLoopMarker != nullptr) {
             rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
-            rightLoopCover->setRect(outroPosition,0, 491-outroPosition,61);
+            rightLoopCover->setRect(outroPosition,0, WAVEFORMWIDTH-outroPosition,61);
         }
     }
 

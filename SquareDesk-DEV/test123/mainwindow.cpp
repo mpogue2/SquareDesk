@@ -295,7 +295,7 @@ void MainWindow::haveDuration2(void) {
 
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
-    ui->darkSeekBar->setMaximum(491); // don't call InitializeSeekBar (not in svgWaveformSlider)
+    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
 #endif
 
 //    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
@@ -4450,7 +4450,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
-    ui->darkSeekBar->setMaximum(491); // don't call InitializeSeekBar (not in svgWaveformSlider)
+    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
 #endif
 
     Info_Seekbar(true);  // update the slider and all the text
@@ -8137,7 +8137,7 @@ void MainWindow::on_darkBassKnob_valueChanged(int value)
 }
 
 void MainWindow::on_darkSeekBar_valueChanged(int value) {
-    // value is 0 to 491
+    // value is 0 to WAVEFORMWIDTH
 
     if (ui->seekBar->maximum() > 0 && ui->darkSeekBar->maximum() > 0) {
         // if both of the maxima are valid,

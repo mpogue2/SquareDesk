@@ -59,7 +59,7 @@ void svgWaveformSlider::resizeEvent(QResizeEvent *re)
 
 void svgWaveformSlider::setValue(int val) {
     // NO: val goes from 0 to song_length - 1 (seekbar->maximum())
-    // YES: val goes from 0 to 491 and emits the same
+    // YES: val goes from 0 to WAVEFORMWIDTH and emits the same
 
 //    qDebug() << "svgWaveformSlider:setValue: " << val;
     QSlider::setValue(val);  // set the value of the parent class
@@ -69,10 +69,10 @@ void svgWaveformSlider::setValue(int val) {
     }
 
 //    qDebug() << "svgWaveformSlider setting to: " << val;
-//    currentPos->setPos(val * (491.0/maximum()), 0);
-    currentPos->setPos(val, 0);
+//    currentPos->setPos(val * (WAVEFORMWIDTH/maximum()), 0);
+    currentPos->setPos(fmin(WAVEFORMWIDTH,val), 0);  // TEST TEST TEST
 
-//    emit valueChanged(val * (491.0/maximum())); // TEST TEST TEST
+//    emit valueChanged(val * (WAVEFORMWIDTH/maximum())); // TEST TEST TEST
 //    emit valueChanged(val); // TEST TEST TEST
 };
 
@@ -116,7 +116,7 @@ void svgWaveformSlider::finishInit() {
     setFixedSize(491,61);
 
     // BACKGROUND PIXMAP --------
-    bgPixmap = new QPixmap(491, 61); // TODO: get size from current size of widget
+    bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
     bgPixmap->fill(QColor("#1A1A1A"));
 
     // FAKE WAVEFORM ------
@@ -129,23 +129,26 @@ void svgWaveformSlider::finishInit() {
     QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
     int colorMap[] = {1,2,3,1,2,3,1};
 
-//    paint->drawLine(0,30,491,30);
+    // DEBUG -------
+//    paint->setPen(QColor(Qt::red));  // DEBUG
+//    paint->drawLine(0,0,100,100);    // DEBUG
+//    paint->drawLine(WAVEFORMWIDTH,0,WAVEFORMWIDTH-100,100);
 
     double h;
 
     // DEBUG DEBUG DEBUG ******************
 //    singingCall = true;
-//    introPosition = 491 * 0.05;
-//    outroPosition = 491 * 0.95;
+//    introPosition = WAVEFORMWIDTH * 0.05;
+//    outroPosition = WAVEFORMWIDTH * 0.95;
 
     if (singingCall) { // DEBUG DEBUG ***********
         // Singing call
         paint->setPen(colors[0]);
-        paint->drawLine(0,30,491,30);
+        paint->drawLine(0,30,WAVEFORMWIDTH,30);
 
         int whichColor = 0;
         paint->setPen(colors[whichColor]);
-        for (int i = 5; i < 491-5; i++) {
+        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
 
             if (i < introPosition || i > outroPosition) {
                 whichColor = 0;
@@ -162,8 +165,9 @@ void svgWaveformSlider::finishInit() {
     } else {
         // Patter, etc.
         paint->setPen(QColor("#707070"));
-        paint->drawLine(0,30,491,30);
-        for (int i = 5; i < 491-5; i++) {
+//        qDebug() << "WAVEFORMWIDTH: " << WAVEFORMWIDTH;
+        paint->drawLine(0,30,WAVEFORMWIDTH,30);
+        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
             h = 8 + rand() % 20;
             paint->drawLine(i,h,i,61-h);
         }
@@ -244,7 +248,7 @@ void svgWaveformSlider::finishInit() {
     rightLoopMarker->setPos(100,0);
 
     // right cover --
-    rightLoopCover = new QGraphicsRectItem(200,0,491,61);
+    rightLoopCover = new QGraphicsRectItem(200,0,WAVEFORMWIDTH,61);
     rightLoopCover->setBrush(loopDarkeningBrush);
 
     this->setLoop(false);  // turn off to start
