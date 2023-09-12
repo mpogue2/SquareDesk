@@ -70,6 +70,12 @@ void AnalogClock::setTimerLabelColor(QString col) {
         timerLabel->setStyleSheet(style);
         timerLabelSD->setStyleSheet(style);
         timerLabelCuesheet->setStyleSheet(style);
+
+#ifdef DARKMODE
+        timerLabelDark->setAlignment(Qt::AlignRight);
+        timerLabelDark->setStyleSheet(style);
+#endif
+
         lastTimerLabelColor = col;
     }
 }
@@ -133,10 +139,18 @@ void AnalogClock::redrawTimerExpired()
                     timerLabelSD->setVisible(!editModeSD);  // make the timerLabelSD appear if we're NOT in editing mode
                     timerLabelSD->setText(singingCallSection);
                     timerLabelCuesheet->setText(singingCallSection);
+
+#ifdef DARKMODE
+                    timerLabelDark->setVisible(true);  // make the timerLabelDark appear
+                    timerLabelDark->setText(singingCallSection);
+#endif
                     update();
                 } else {
                     if (timerLabel->text() != "") {
                         timerLabel->setText("");
+#ifdef DARKMODE
+                        timerLabelDark->setText("");
+#endif
                     }
                     if (timerLabelSD->text() != "") {
                         timerLabelSD->setText("");
@@ -149,12 +163,21 @@ void AnalogClock::redrawTimerExpired()
                 timerLabel->setVisible(true);
                 timerLabel->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
+#ifdef DARKMODE
+                timerLabelDark->setVisible(true);
+                timerLabelDark->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
+#endif
+
                 timerLabelSD->setVisible(!editModeSD); // make it visible if we are NOT in edit mode
                 timerLabelSD->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
                 timerLabelCuesheet->setText(QString("") + QString("%1").arg(b_mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(b_ss, 2, 10, QChar('0')));
 
+#ifdef DARKMODE
+                setTimerLabelColor("#8080FF");
+#else
                 setTimerLabelColor("blue");
+#endif
 
                 currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
                 currentTimerState &= ~BREAKTIMEREXPIRED;  // clear
@@ -162,6 +185,9 @@ void AnalogClock::redrawTimerExpired()
                 // the break has expired.  We played something before the break, and we're currently in NONE state.
 //                qDebug() << "expired BREAK";
                 timerLabel->setVisible(true);
+#ifdef DARKMODE
+                timerLabelDark->setVisible(true);
+#endif
                 timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
 
                 setTimerLabelColor("red"); // turns red when break is over
@@ -169,6 +195,9 @@ void AnalogClock::redrawTimerExpired()
                 // alternate the time (negative now), and "END BREAK"
                 if (b_ss % 2 == 0) {
                     timerLabel->setText("End BRK");
+#ifdef DARKMODE
+                    timerLabelDark->setText("End BRK");
+#endif
                     timerLabelSD->setText("End BRK");
                     timerLabelCuesheet->setText("End BRK");
                 } else {
@@ -182,6 +211,9 @@ void AnalogClock::redrawTimerExpired()
                 //   we are not in None state right now, and we know what we're doing (e.g. playing Extras or Singers as break music)
 //                qDebug() << "none state";
                 timerLabel->setText("");
+#ifdef DARKMODE
+                timerLabelDark->setText("");
+#endif
                 timerLabelSD->setText("");
             }
         } else if (patterLengthSecs < maxPatterLength) {
@@ -190,13 +222,20 @@ void AnalogClock::redrawTimerExpired()
             timerLabel->setVisible(true);
             timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
+#ifdef DARKMODE
+            timerLabelDark->setVisible(true);
+            timerLabelDark->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+#endif
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
             timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
             timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
+#ifdef DARKMODE
+            setTimerLabelColor("#D0D0D0");
+#else
             setTimerLabelColor("black");
-
+#endif
             currentTimerState &= ~LONGTIPTIMEREXPIRED;  // clear
             currentTimerState &= ~BREAKTIMEREXPIRED;    // clear
 
@@ -213,6 +252,11 @@ void AnalogClock::redrawTimerExpired()
             timerLabel->setVisible(true);
             timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
+#ifdef DARKMODE
+            timerLabelDark->setVisible(true);
+            timerLabelDark->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+#endif
+
             timerLabelSD->setVisible(!editModeSD); // make it visible if SD is NOT in edit mode
             timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
 
@@ -226,17 +270,27 @@ void AnalogClock::redrawTimerExpired()
         } else {
 //            qDebug() << "patter REALLY over the time limit";
             // REALLY OVER THE TIME LIMIT!!  So, flash "LONG TIP" alternately with the time-in-patter.
-            timerLabel->setVisible(true);
+            timerLabel->setVisible(true);            
+#ifdef DARKMODE
+            timerLabelDark->setVisible(true);
+#endif
+
             timerLabelSD->setVisible(!editModeSD); // make visible if SD is NOT in edit mode
 
             setTimerLabelColor("red");
 
             if (ss % 2 == 0) {
                 timerLabel->setText("LONG");
+#ifdef DARKMODE
+                timerLabelDark->setText("LONG");
+#endif
                 timerLabelSD->setText("LONG");
                 timerLabelCuesheet->setText("LONG");
             } else {
                 timerLabel->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+#ifdef DARKMODE
+                timerLabelDark->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
+#endif
                 timerLabelSD->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
                 timerLabelCuesheet->setText(QString("") + QString("%1").arg(mm, 2, 10, QChar('0')) + ":" + QString("%1").arg(ss, 2, 10, QChar('0')));
             }
@@ -438,7 +492,7 @@ void AnalogClock::setSDEditMode(bool e) {
     editModeSD = e; // tell the analog clock whether we're in SD edit or playback mode
 }
 
-void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLabel, QLabel *theSDLabel)
+void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLabel, QLabel *theSDLabel, QLabel *theDarkWarningLabel)
 {
 //    qDebug() << "AnalogClock::setTimerLabel";
     timerLabel = theLabel;
@@ -452,12 +506,26 @@ void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLab
     timerLabelCuesheet = theCuesheetLabel;
     timerLabelCuesheet->setText("");
     timerLabelCuesheet->setVisible(true);
+
+#ifdef DARKMODE
+    timerLabelDark = theDarkWarningLabel;
+    if (timerLabelDark != nullptr) {
+        timerLabelDark->setText("");
+        timerLabelCuesheet->setVisible(true);
+    }
+#endif
+
 }
 
 void AnalogClock::resetPatter(void)
 {
     timerLabel->setText("00:00");
     timerLabelCuesheet->setText("00:00");
+
+#ifdef DARKMODE
+    timerLabelDark->setText("00:00");
+#endif
+
     typeTracker.addStop();
 }
 

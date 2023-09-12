@@ -940,6 +940,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->warningLabelSD->setText("");
     ui->warningLabelSD->setStyleSheet("QLabel { color : red; }");
 
+#ifdef DARKMODE
+    ui->darkWarningLabel->setText("");
+    ui->darkWarningLabel->setStyleSheet("QLabel { color : red; }");
+#endif
+
     t.elapsed(__LINE__);
 
     // LYRICS TAB ------------
@@ -970,7 +975,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 //    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet);  // tell the clock which label to use for the patter timer
-    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet, ui->warningLabelSD);  // tell the clock which labels to use for the main patter timer
+    analogClock->setTimerLabel(ui->warningLabel, ui->warningLabelCuesheet, ui->warningLabelSD, ui->darkWarningLabel);  // tell the clock which labels to use for the main patter timer
 
     t.elapsed(__LINE__);
 
@@ -1608,6 +1613,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QString darkTextColor = "#C0C0C0";
 
     // DARK MODE UI TESTING --------------------
+
+    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) and Section-in-Tip (Singer),\nin MM:SS.");
+    ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
+    ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
 
     // LOOP CONTROLS =========
     ui->darkStartLoopTime->setStyleSheet("color: " + darkTextColor);
@@ -7622,7 +7631,8 @@ void MainWindow::setNowPlayingLabelWithColor(QString s, bool flashcall) {
         if (flashcall) {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : red; font-style: italic; }");
 #ifdef DARKMODE
-            ui->darkTitle->setStyleSheet("QLabel { color : #D04040; font-style: italic; }");
+//            ui->darkTitle->setStyleSheet("QLabel { color : #D04040; font-style: italic; }");
+            ui->darkTitle->setStyleSheet("QLabel { color : red; font-style: italic; }");
 #endif
         } else {
             ui->nowPlayingLabel->setStyleSheet("QLabel { color : black; font-style: normal; }");

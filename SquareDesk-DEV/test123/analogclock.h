@@ -88,6 +88,9 @@
 // set to speed up the clock by 10X
 //#define DEBUGCLOCK 1
 
+// NOTE: THIS IS IN TWO PLACES RIGHT NOW.
+#define DARKMODE
+
 class AnalogClock : public QWidget
 {
     Q_OBJECT
@@ -116,7 +119,7 @@ public:
 
     unsigned int currentTimerState;  // contains bits for the LONG TIP timer and the BREAK TIMER
 
-    void setTimerLabel(clickableLabel *theLabel, QLabel *theLabelCuesheet, QLabel *theLabelSD);
+    void setTimerLabel(clickableLabel *theLabel, QLabel *theLabelCuesheet, QLabel *theLabelSD, QLabel *theLabelDark);
     void setSDEditMode(bool e);
     void setSingingCallSection(QString s);
     QString singingCallSection;
@@ -125,6 +128,10 @@ public:
     QLabel *timerLabelSD; // works just like timerLabel
     bool editModeSD;
     QLabel *timerLabelCuesheet;
+
+#ifdef DARKMODE
+    QLabel *timerLabelDark;
+#endif
 
     TypeTracker typeTracker;
     void resetPatter(void);
