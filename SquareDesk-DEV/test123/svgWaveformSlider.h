@@ -78,7 +78,7 @@ public:
     }
 
     void setIntro(double frac) {
-        introPosition = frac * 491;
+        introPosition = frac * 491.0;
 //        qDebug() << "*** setIntro:" << introPosition;
         if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
             leftLoopMarker->setX(introPosition);
@@ -87,7 +87,7 @@ public:
     }
 
     void setOutro(double frac) {
-        outroPosition = frac * 491;
+        outroPosition = frac * 491.0;
 //        qDebug() << "*** setOutro:" << outroPosition;
         if (rightLoopMarker != nullptr && rightLoopMarker != nullptr) {
             rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket

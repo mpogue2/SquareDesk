@@ -58,17 +58,22 @@ void svgWaveformSlider::resizeEvent(QResizeEvent *re)
 }
 
 void svgWaveformSlider::setValue(int val) {
-    // val goes from 0 to song_length - 1 (seekbar->maximum())
-//    qDebug() << "svgWaveformSlider:setValue: " << val;
+    // NO: val goes from 0 to song_length - 1 (seekbar->maximum())
+    // YES: val goes from 0 to 491 and emits the same
 
-//    QSlider::setValue(val);  // set the value of the parent class
+//    qDebug() << "svgWaveformSlider:setValue: " << val;
+    QSlider::setValue(val);  // set the value of the parent class
 
     if (currentPos == nullptr) {
         return; // slider is not fully initialized yet
     }
 
 //    qDebug() << "svgWaveformSlider setting to: " << val;
-    currentPos->setPos(val * (491.0/maximum()), 0);
+//    currentPos->setPos(val * (491.0/maximum()), 0);
+    currentPos->setPos(val, 0);
+
+//    emit valueChanged(val * (491.0/maximum())); // TEST TEST TEST
+//    emit valueChanged(val); // TEST TEST TEST
 };
 
 // MOUSE EVENTS ============
@@ -78,7 +83,8 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
 
     switch (e->button()) {
     case Qt::LeftButton:
-        val = fmax(0,(e->pos().rx() - 3));
+        val = fmax(0,(e->pos().rx() - 6));
+//        qDebug() << "***** left button press changed darkseekbar to " << val;
         this->setValue(val);
         break;
     case Qt::MiddleButton:
@@ -92,7 +98,8 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
 void svgWaveformSlider::mouseMoveEvent(QMouseEvent* e) {
     //    qDebug() << "mouseMoveEvent: " << e;
 
-    double value = fmax(0,(e->pos().rx() - 3));
+    double value = fmax(0,(e->pos().rx() - 6));
+//    qDebug() << "***** mouse move changed darkseekbar to " << value;
     this->setValue(value);
 }
 

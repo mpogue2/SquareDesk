@@ -294,7 +294,8 @@ void MainWindow::haveDuration2(void) {
     InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
 
 #ifdef DARKMODE
-    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
+//    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
+    ui->darkSeekBar->setMaximum(491); // don't call InitializeSeekBar (not in svgWaveformSlider)
 #endif
 
 //    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
@@ -1889,6 +1890,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSeekBar->setBgFile(":/graphics/darkWaveform.png");  // just set the background
     ui->darkSeekBar->finishInit();  // load everything up!
 
+//    connect(ui->darkSeekBar, SIGNAL(valueChanged(int)), this, SLOT(on_darkSeekBar_valueChanged(int)));
+
 #else
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
 #endif
@@ -2507,6 +2510,7 @@ void MainWindow::on_stopButton_clicked()
     ui->seekBar->setValue(0);
     ui->seekBarCuesheet->setValue(0);
 #ifdef DARKMODE
+//    qDebug() << "XXXXX setting darkSeekBar to zero...";
     ui->darkSeekBar->setValue(0);
 #endif
     Info_Seekbar(false);  // update just the text
@@ -2961,8 +2965,26 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
 #ifdef DARKMODE
-//            SetSeekBarPosition(ui->darkSeekBar, currentPos_i);  // I don't know why this doesn't work
-            ui->darkSeekBar->setValue(currentPos_i);
+
+            // we can't use SetSeekBarPosition() here, or we'll make a loop
+            // so, let's do it manually.
+            // NOTE: This MUST mirror what's done in on_darkSeekBar_valueChanged, to prevent loops,
+            //   if seekBar is being moved, or if darkSeekBar is being moved.
+            if (ui->seekBar->maximum() > 0 && ui->darkSeekBar->maximum() > 0) {
+                // if both of the maxima are valid,
+                double fracSeekBar = (double)currentPos_i/(double)ui->seekBar->maximum();
+                double fracDarkSeekBar = (double)ui->darkSeekBar->value()/(double)ui->darkSeekBar->maximum();
+                double errorPercent = 100.0 * fabs(fracSeekBar - fracDarkSeekBar); // always positive
+                double oneUnitInPercent = 100.0 * (1.0/ui->darkSeekBar->maximum());    // one unit on the darkSeekBarSlider
+                if (errorPercent > oneUnitInPercent) {
+                      int setTo = round(fracSeekBar * (double)ui->darkSeekBar->maximum());
+//                      qDebug() << "setting darkSeekBar to: " << setTo << fracSeekBar << fracDarkSeekBar << errorPercent << oneUnitInPercent;
+                      ui->darkSeekBar->setValue(setTo);
+                }
+            } else {
+                qDebug() << "WARNING: Info_Seekbar does not have both maxima yet";
+            }
+
 #endif
             int minScroll = ui->textBrowserCueSheet->verticalScrollBar()->minimum();
             int maxScroll = ui->textBrowserCueSheet->verticalScrollBar()->maximum();
@@ -4427,14 +4449,15 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     InitializeSeekBar(ui->seekBarCuesheet);
 
 #ifdef DARKMODE
-    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
+//    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
+    ui->darkSeekBar->setMaximum(491); // don't call InitializeSeekBar (not in svgWaveformSlider)
 #endif
 
     Info_Seekbar(true);  // update the slider and all the text
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
-    ui->darkStartLoopTime->setTime(QTime(0,0,0,0));
 
+    ui->darkStartLoopTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
     ui->darkEndLoopTime->setTime(QTime(23,59,59,0));
 
@@ -8112,4 +8135,24 @@ void MainWindow::on_darkBassKnob_valueChanged(int value)
         ui->bassSlider->setValue(translatedValue);
     }
 }
+
+void MainWindow::on_darkSeekBar_valueChanged(int value) {
+    // value is 0 to 491
+
+    if (ui->seekBar->maximum() > 0 && ui->darkSeekBar->maximum() > 0) {
+        // if both of the maxima are valid,
+        double fracSeekBar = (double)ui->seekBar->value()/(double)ui->seekBar->maximum();
+        double fracDarkSeekBar = (double)value/(double)ui->darkSeekBar->maximum();
+        double errorPercent = 100.0 * fabs(fracSeekBar - fracDarkSeekBar); // always positive
+        double oneUnitInPercent = 100.0 * (1.0/(double)ui->seekBar->maximum());    // one unit on the seekBarSlider
+        if (errorPercent > oneUnitInPercent) {
+           int setTo = round(fracDarkSeekBar * (double)ui->seekBar->maximum());
+//           qDebug() << "setting seekBar to: " << setTo << fracSeekBar << fracDarkSeekBar << errorPercent << oneUnitInPercent;
+           ui->seekBar->setValue(setTo);
+        }
+    } else {
+        qDebug() << "WARNING: on_darkSeekBar_valueChanged does not have both maxima yet";
+    }
+}
+
 #endif

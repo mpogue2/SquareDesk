@@ -210,7 +210,7 @@ public:
 #define NUMBEREDSOUNDFXFILES 8
 
 // Define this for the new DARK MODE prototyping
-//#define DARKMODE
+#define DARKMODE
 
 namespace Ui
 {
@@ -734,6 +734,9 @@ private slots:
     void on_darkMidKnob_valueChanged(int value);
 
     void on_darkBassKnob_valueChanged(int value);
+
+    void on_darkSeekBar_valueChanged(int value);
+
 #endif
 public:
     void on_threadSD_errorString(QString str);
