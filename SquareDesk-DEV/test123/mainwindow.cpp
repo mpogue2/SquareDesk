@@ -2558,6 +2558,8 @@ void MainWindow::on_playButton_clicked()
     if (Stream_State != BASS_ACTIVE_PLAYING) {
         cBass->Play();  // currently stopped or paused or stalled, so try to start playing
 
+        on_UIUpdateTimerTick();  // do an update, so we pick up clock coloring quicker
+
         // randomize the Flash Call, if PLAY (but not PAUSE) is pressed
         randomizeFlashCall();
 
@@ -3446,15 +3448,13 @@ void MainWindow::on_UIUpdateTimerTick(void)
                             static_cast<unsigned int>(theType));  // always called once per second
 
 #ifdef DARKMODE
+//    ui->theSVGClock->currentSongType = theType; // tell the clock what the currentType is, so it can set the segment color immediately on minute hand movement
+// TEST: setSegment will be called by the svgClock ticker instead
+
     ui->theSVGClock->setSegment(static_cast<unsigned int>(time.hour()),
                                 static_cast<unsigned int>(time.minute()),
                                 static_cast<unsigned int>(time.second()),
                                 static_cast<unsigned int>(theType));  // always called once per second
-
-//    ui->theSVGClock->setSegment(static_cast<unsigned int>(time.minute()),  // DEBUG
-//                                static_cast<unsigned int>(time.second()),
-//                                0,
-//                                static_cast<unsigned int>(theType));  // always called once per second
 #endif
 
 #else

@@ -36,7 +36,7 @@ svgClock::svgClock(QWidget *parent) :
     t12->setBrush(numberBrush);
     QRectF r12 = t12->boundingRect();
 //    qDebug() << "r12" << r12;
-    t12->setPos(center - QPoint(0, radius) - r12.center());
+    t12->setPos(center - QPoint(0, radius) - r12.center() + QPoint(0, -3)); // 3 pixel correction
     scene.addItem(t12);
 
     t3 = new QGraphicsSimpleTextItem("3");
@@ -52,7 +52,7 @@ svgClock::svgClock(QWidget *parent) :
     t6->setBrush(numberBrush);
     QRectF r6 = t6->boundingRect();
 //    qDebug() << "r6" << r6;
-    t6->setPos(center + QPoint(0, radius) - r6.center());
+    t6->setPos(center + QPoint(0, radius) - r6.center() + QPoint(0, 3)); // 3 pixel correction
     scene.addItem(t6);
 
     t9 = new QGraphicsSimpleTextItem("9");
@@ -89,6 +89,20 @@ svgClock::svgClock(QWidget *parent) :
     digitalTime->setPos(center + QPoint(6, 25) - rD.center());
     scene.addItem(digitalTime);
 
+    // CLOCK COLORING ----------
+#define ARCPENSIZE (6.0)
+
+    double arcRadius = 60;
+    for (int i = 0; i < 60; i++) {
+        QColor arcColor(Qt::red);
+        // 6 degrees per: 1 open + 4 on + 1 open
+        arc[i] = new QGraphicsArcItem(16, 15, 2 * arcRadius, 2 * arcRadius);
+        arc[i]->setPen(QPen(arcColor, ARCPENSIZE, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
+        arc[i]->setStartAngle(16.0 * (90.0 - 6 * i - 2.0));  // -2.0 centers the arc[0] at 12:00
+        arc[i]->setSpanAngle(16.0 * 4);
+        scene.addItem(arc[i]);
+    }
+
     // HANDS ------------
     double hourRotationDegrees = 0.0;
     double minuteRotationDegrees = 0.0;
@@ -108,7 +122,7 @@ svgClock::svgClock(QWidget *parent) :
 #ifdef SHOWSECONDHAND
     lengthOfShortSecondHand = 0.25;
 #endif
-    lengthOfMinuteHand = lengthOfSecondHand * (50.0/52.0);  // was: 46/52
+    lengthOfMinuteHand = lengthOfSecondHand * (49.0/52.0);  // was: 46/52
     lengthOfHourHand   = lengthOfSecondHand * (32.0/52.0);
 
     hourHand = new QGraphicsLineItem(center.rx(),
@@ -143,30 +157,20 @@ svgClock::svgClock(QWidget *parent) :
     secondDot->setBrush(QBrush(Qt::white));
     scene.addItem(secondDot);
 
-
-    // CLOCK COLORING ----------
-    clearClockColoring();
-
-    double arcRadius = 60;
-    for (int i = 0; i < 60; i++) {
-        QColor arcColor(Qt::red);
-        // 6 degrees per: 1 open + 4 on + 1 open
-        arc[i] = new QGraphicsArcItem(16, 15, 2 * arcRadius, 2 * arcRadius);
-        arc[i]->setPen(QPen(arcColor, 3.0, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
-        arc[i]->setStartAngle(16.0 * (90.0 - 6 * i - 2.0));  // -2.0 centers the arc[0] at 12:00
-        arc[i]->setSpanAngle(16.0 * 4);
-        scene.addItem(arc[i]);
-    }
-
-    // UPDATE TO INITIAL TIME ------
-    updateClock();
-
     // ---------------------
     view.setDisabled(true);
 
     view.setScene(&scene);
     view.setParent(this, Qt::FramelessWindowHint);
 
+    //    currentSongType = NONE; // TEST: not sure what the type is yet
+
+    clearClockColoring();  // NOTE: do this only after the arc[] are initialized
+
+    // UPDATE TO INITIAL TIME ------
+    updateClock();
+
+    // update once per second after now...
     connect(&this->secondTimer, &QTimer::timeout,
             this, [this](){
 //                        qDebug() << "TIMER!";
@@ -253,11 +257,12 @@ void svgClock::updateClock() {
     digitalTime->setPos(center + QPoint(0, 25) - digitalTimeRect.center());
 
     // CLOCK COLORING ----------------
+//    setSegment(theTime.hour(), theTime.minute(), theTime.second(), currentSongType); // TEST: whenever the minute hand moves, update the new segment with the right color IMMEDIATELY
 
-    // hide them all to start
-    for (int i = 0; i < 60; i++) {
-        arc[i]->setVisible(false);
-    }
+//    // hide them all to start
+//    for (int i = 0; i < 60; i++) {
+//        arc[i]->setVisible(false);
+//    }
 
     // time now!
 #ifndef DEBUGCLOCK
@@ -276,7 +281,7 @@ void svgClock::updateClock() {
                 if (arc[currentMinute] != nullptr) {
 //                    qDebug() << "****** arc[" << currentMinute << "] = " << currentMinute << typeInMinute[currentMinute] << colorForType[typeInMinute[currentMinute]];
 //                    arc[currentMinute]->setBrush(colorForType[typeInMinute[currentMinute]]);
-                    arc[currentMinute]->setPen(QPen(colorForType[typeInMinute[currentMinute]], 3.0, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
+                    arc[currentMinute]->setPen(QPen(colorForType[typeInMinute[currentMinute]], ARCPENSIZE, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor
                     arc[currentMinute]->setVisible(true);
                 }
             } else {
@@ -284,6 +289,11 @@ void svgClock::updateClock() {
                 if (arc[currentMinute] != nullptr) {
 //                    qDebug() << "HIDDEN arc[" << currentMinute << "] = " << currentMinute << typeInMinute[currentMinute] << colorForType[typeInMinute[currentMinute]];
                     arc[currentMinute]->setVisible(false);
+//#define DEBUGCOLORING
+#ifdef DEBUGCOLORING
+//                    arc[currentMinute]->setPen(QPen(QColor(Qt::red), 3.0, Qt::SolidLine, Qt::FlatCap, Qt::RoundJoin));  // NOTE: arcColor is QColor // DEBUG
+                    arc[currentMinute]->setVisible(true); // DEBUG
+#endif
                 }
             }
         }
@@ -327,7 +337,7 @@ void svgClock::setSegment(unsigned int hour, unsigned int minute, unsigned int s
     // TODO: use the timeSegmentList instead of the typeInMinute[] and lastHourSet[] to do Clock Coloring
 
     Q_UNUSED(second)
-//    typeTracker.addSecond(type);
+//    typeTracker.addSecond(type);  // NOTE: THIS clock doesn't need to call typeTracker here, because analogClock does it
     //    typeTracker.printState("AnalogClock::setSegment():");
 }
 
@@ -344,6 +354,7 @@ void svgClock::clearClockColoring() {
         typeInMinute[i] = NONE;
         lastHourSet[i] = -1;     // invalid hour, matches no real hour
     }
+    updateClock(); // immediately update the clock coloring
 }
 
 void svgClock::customMenuRequested(QPoint pos){

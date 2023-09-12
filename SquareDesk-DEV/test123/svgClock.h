@@ -19,7 +19,7 @@
 #include "svgDial.h"  // for QGraphicsArcItem
 
 // ---------
-//#define SHOWSECONDHAND
+#define SHOWSECONDHAND
 //#define SMOOTHROTATION
 
 // -----------------------------------
@@ -40,6 +40,8 @@ public:
 
     void setHidden(bool hidden);
     bool coloringIsHidden;
+
+//    int currentSongType; // TEST: setType()
 
 public slots:
     void customMenuRequested(QPoint pos);
