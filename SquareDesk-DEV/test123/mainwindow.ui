@@ -2942,7 +2942,7 @@
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="timeSlash">
          <property name="geometry">
           <rect>
            <x>500</x>

@@ -890,6 +890,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->currentLocLabel3->setText("");
 
     ui->songLengthLabel->setText("");
+    ui->timeSlash->setVisible(false);
     ui->songLengthLabel2->setText("");
 
     inPreferencesDialog = false;
@@ -3058,6 +3059,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
         }
 
         ui->songLengthLabel->setText("/ " + position2String(fileLen_i));    // no padding
+        ui->timeSlash->setVisible(true);
         ui->songLengthLabel2->setText(position2String(fileLen_i));          // no padding, intentionally no prefix "/"
 
         // singing call sections
