@@ -8405,11 +8405,17 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
         QTreeWidgetItem *thisItem = items[0];
         QTreeWidgetItem *maybeParentsItem = thisItem->parent();
         if (maybeParentsItem == nullptr) {
-            qDebug() << "PARENT ITEM:" << thisItem->text(0);
+//            qDebug() << "PARENT ITEM:" << thisItem->text(0);
+            ui->darkSearch->setText(""); // clear the search to show all Tracks
         } else {
-            qDebug() << "CHILD ITEM:" << thisItem->text(0);
+//            qDebug() << "CHILD ITEM:" << thisItem->text(0);
+            if (maybeParentsItem != nullptr && maybeParentsItem->text(0) == "Tracks") {
+                ui->darkSearch->setText(thisItem->text(0) + "::"); // just show tracks with the selected item as Type
+            } else {
+                ui->darkSearch->setText(""); // clear the search, if a playlist is clicked on (TODO: FOR NOW)
+            }
         }
     } else {
-        qDebug() << "empty TreeWidget selection";
+//        qDebug() << "empty TreeWidget selection";
     }
 }
