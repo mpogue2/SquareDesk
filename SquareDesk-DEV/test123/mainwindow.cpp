@@ -1802,8 +1802,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSongTable->selectRow(2);
 
     // TREEWIDGET:
-    ui->treeWidget->expandAll();
-    ui->treeWidget->itemAt(100,100)->setSelected(true);
+//    ui->treeWidget->expandAll();
+//    ui->treeWidget->itemAt(100,100)->setSelected(true);
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
@@ -4790,7 +4790,131 @@ void MainWindow::findMusic(QString mainRootDir, bool refreshDatabase)
     rootDir1.setNameFilters(qsl);
 
     findFilesRecursively(rootDir1, pathStack, "", ui, &soundFXfilenames, &soundFXname);  // appends to the pathstack
+
+#ifdef DARKMODE
+    updateTreeWidget();
+#endif
 }
+
+#ifdef DARKMODE
+void MainWindow::updateTreeWidget() {
+
+    // GET LIST OF TYPES AND POPULATE TREEWIDGET > TRACKS -------------
+    QListIterator<QString> iter(*pathStack);
+
+    QStringList types;
+
+    while (iter.hasNext()) {
+        QString s = iter.next();
+        QString type1 = (s.replace(musicRootPath + "/", "").split("/"))[0];
+        QStringList sl1 = type1.split("#!#");
+        QString theType = sl1[0];  // the type (of original pathname, before following aliases)
+
+        if (theType != "" && theType != "lyrics") {
+//            types[theType] += 1;
+            types.append(theType);
+        }
+    }
+
+    types.removeDuplicates();
+    types.sort(Qt::CaseInsensitive);  // sort them
+
+//    qDebug() << "types: " << types;
+
+    QTreeWidgetItem *tracksItem = new QTreeWidgetItem();
+    tracksItem->setText(0, "Tracks");
+    tracksItem->setIcon(0, QIcon(":/graphics/darkiTunes.png"));
+
+//    QMapIterator<QString, int> i(types);
+    QStringListIterator i(types);
+    while (i.hasNext()) {
+        QString s = i.next();
+        QTreeWidgetItem *trackTypeItem = new QTreeWidgetItem(tracksItem); // child of tracksItem
+//        trackTypeItem->setText(0, i.key());
+        trackTypeItem->setText(0, s);
+    }
+
+    ui->treeWidget->clear();
+    ui->treeWidget->insertTopLevelItem(0, tracksItem);
+    tracksItem->setExpanded(true);
+
+    // --------------------------------------------------------------------
+    // GET LIST OF PLAYLISTS AND POPULATE TREEWIDGET > PLAYLISTS ----------
+    QStringList playlists;
+
+    QDirIterator it(musicRootPath, QStringList() << "*.csv", QDir::Files, QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
+
+    while(it.hasNext()) {
+        QString thePath = it.next().replace(musicRootPath + "/", "");
+        QString theType = (thePath.split("/"))[0];
+
+//        qDebug() << "thePath/theType = " << theType << thePath;
+
+        if (theType == "playlists") {
+            QString thePath2 = thePath.replace("playlists/", "");
+            if (thePath2.endsWith("csv")) {
+                playlists.append(thePath2.replace(".csv", ""));
+            }
+        }
+    }
+
+    playlists.sort(Qt::CaseInsensitive);
+
+//    qDebug() << "playlists:" << playlists;
+
+    // top level Playlists item with icon
+    QTreeWidgetItem *playlistsItem = new QTreeWidgetItem();
+    playlistsItem->setText(0, "Playlists");
+    playlistsItem->setIcon(0, QIcon(":/graphics/darkPlaylists.png"));
+    ui->treeWidget->addTopLevelItem(playlistsItem);  // add this one to the tree
+    playlistsItem->setExpanded(true);
+
+    // insert filenames
+    QTreeWidgetItem *topLevelItem = playlistsItem;
+    foreach (const QString &fileName, playlists)
+    {
+        QStringList splitFileName = (QString("Playlists/") + fileName).split("/"); // tack on "Playlists/" so they will populate under the icon item
+
+        // add root folder as top level item if treeWidget doesn't already have it
+        if (ui->treeWidget->findItems(splitFileName[0], Qt::MatchFixedString).isEmpty())
+        {
+            topLevelItem = new QTreeWidgetItem;
+            topLevelItem->setText(0, splitFileName[0]);
+            ui->treeWidget->addTopLevelItem(topLevelItem);
+        }
+
+        QTreeWidgetItem *parentItem = topLevelItem;
+
+        if (splitFileName.length() > 1) {
+            // iterate through non-root directories (file name comes after)
+            for (int i = 1; i < splitFileName.size() - 1; ++i)
+            {
+                // iterate through children of parentItem to see if this directory exists
+                bool thisDirectoryExists = false;
+                for (int j = 0; j < parentItem->childCount(); ++j)
+                {
+                    if (splitFileName[i] == parentItem->child(j)->text(0))
+                    {
+                            thisDirectoryExists = true;
+                            parentItem = parentItem->child(j);
+                            break;
+                    }
+                }
+
+                if (!thisDirectoryExists)
+                {
+                    parentItem = new QTreeWidgetItem(parentItem);
+                    parentItem->setText(0, splitFileName[i]);
+                }
+            }
+
+            QTreeWidgetItem *childItem = new QTreeWidgetItem(parentItem);
+            childItem->setText(0, splitFileName.last());
+        }
+    }
+
+}
+#endif
 
 void addStringToLastRowOfSongTable(QColor &textCol, MyTableWidget *songTable,
                                    QString str, int column)
@@ -8273,3 +8397,19 @@ void MainWindow::on_darkSearch_textChanged(const QString &s)
     }
 }
 
+
+void MainWindow::on_treeWidget_itemSelectionChanged()
+{
+    QList<QTreeWidgetItem *> items = ui->treeWidget->selectedItems();
+    if (items.length() > 0) {
+        QTreeWidgetItem *thisItem = items[0];
+        QTreeWidgetItem *maybeParentsItem = thisItem->parent();
+        if (maybeParentsItem == nullptr) {
+            qDebug() << "PARENT ITEM:" << thisItem->text(0);
+        } else {
+            qDebug() << "CHILD ITEM:" << thisItem->text(0);
+        }
+    } else {
+        qDebug() << "empty TreeWidget selection";
+    }
+}

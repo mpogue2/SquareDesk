@@ -741,6 +741,8 @@ private slots:
 #endif
     void on_darkSearch_textChanged(const QString &arg1);
 
+    void on_treeWidget_itemSelectionChanged();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -902,6 +904,9 @@ private:
     bool cuesheetIsUnlockedForEditing;
 
     void findMusic(QString mainRootDir, bool refreshDatabase);    // get the filenames into pathStack
+#ifdef DARKMODE
+    void updateTreeWidget();
+#endif
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");

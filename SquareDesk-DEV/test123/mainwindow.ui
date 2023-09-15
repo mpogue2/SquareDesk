@@ -3223,7 +3223,7 @@
          <rect>
           <x>10</x>
           <y>220</y>
-          <width>201</width>
+          <width>231</width>
           <height>281</height>
          </rect>
         </property>
@@ -3250,7 +3250,7 @@
          </property>
          <property name="icon">
           <iconset resource="resources.qrc">
-           <normaloff>:/graphics/darkTracks.png</normaloff>:/graphics/darkTracks.png</iconset>
+           <normaloff>:/graphics/darkiTunes.png</normaloff>:/graphics/darkiTunes.png</iconset>
          </property>
          <item>
           <property name="text">
@@ -3283,37 +3283,43 @@
          </property>
          <item>
           <property name="text">
-           <string>Jokers_2023.09.06</string>
+           <string>Jokers</string>
           </property>
+          <item>
+           <property name="text">
+            <string>2023</string>
+           </property>
+           <item>
+            <property name="text">
+             <string>Jokers_2023.09.13</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Jokers_2023.09.06</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Jokers_2023.08.30</string>
+            </property>
+           </item>
+          </item>
          </item>
          <item>
           <property name="text">
-           <string>Jokers_2023.08.30</string>
+           <string>ECR</string>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>ECR_2023.07.21</string>
-          </property>
-         </item>
-        </item>
-        <item>
-         <property name="text">
-          <string>iTunes</string>
-         </property>
-         <property name="icon">
-          <iconset resource="resources.qrc">
-           <normaloff>:/graphics/darkiTunes.png</normaloff>:/graphics/darkiTunes.png</iconset>
-         </property>
-         <item>
-          <property name="text">
-           <string>Beach Playlist</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>ONS Playlist</string>
-          </property>
+          <item>
+           <property name="text">
+            <string>ECR_2023.07.21</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ECR_2023.07.01</string>
+           </property>
+          </item>
          </item>
         </item>
         <item>
@@ -3326,22 +3332,42 @@
          </property>
          <item>
           <property name="text">
-           <string>2023.08.30</string>
+           <string>2023</string>
           </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>2023.08.29</string>
-          </property>
+          <item>
+           <property name="text">
+            <string>2023.08.30</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2023.08.29</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2023.07.13</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2023.06.21</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>2023.05.13</string>
+           </property>
+          </item>
          </item>
         </item>
        </widget>
        <widget class="QTableWidget" name="darkSongTable">
         <property name="geometry">
          <rect>
-          <x>220</x>
+          <x>250</x>
           <y>190</y>
-          <width>821</width>
+          <width>791</width>
           <height>311</height>
          </rect>
         </property>
@@ -4001,7 +4027,7 @@
          <rect>
           <x>10</x>
           <y>191</y>
-          <width>201</width>
+          <width>231</width>
           <height>21</height>
          </rect>
         </property>
