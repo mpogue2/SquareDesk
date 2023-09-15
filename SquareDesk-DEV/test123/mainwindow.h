@@ -460,6 +460,7 @@ private slots:
 
     void on_warningLabel_clicked();
     void on_warningLabelCuesheet_clicked();
+    void on_darkWarningLabel_clicked();
 
     void on_tabWidget_currentChanged(int index);
 

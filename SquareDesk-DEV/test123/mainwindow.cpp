@@ -6397,6 +6397,11 @@ void MainWindow::on_warningLabelCuesheet_clicked() {
     on_warningLabel_clicked();
 }
 
+void MainWindow::on_darkWarningLabel_clicked() {
+    // this one is clickable, too!
+    on_warningLabel_clicked();
+}
+
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
     if (ui->tabWidget->tabText(index) == "SD"

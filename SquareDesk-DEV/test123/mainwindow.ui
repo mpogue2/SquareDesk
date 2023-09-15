@@ -2914,7 +2914,7 @@
           <enum>Qt::Horizontal</enum>
          </property>
         </widget>
-        <widget class="QLabel" name="darkWarningLabel">
+        <widget class="clickableLabel" name="darkWarningLabel">
          <property name="geometry">
           <rect>
            <x>445</x>
