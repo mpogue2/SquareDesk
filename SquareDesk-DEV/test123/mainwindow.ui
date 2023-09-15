@@ -2734,7 +2734,7 @@
            <x>10</x>
            <y>71</y>
            <width>41</width>
-           <height>26</height>
+           <height>30</height>
           </rect>
          </property>
          <property name="font">
@@ -2756,9 +2756,9 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>108</y>
+           <y>107</y>
            <width>41</width>
-           <height>26</height>
+           <height>30</height>
           </rect>
          </property>
          <property name="font">
