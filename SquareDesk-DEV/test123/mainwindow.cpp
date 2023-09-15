@@ -6487,7 +6487,7 @@ void MainWindow::microphoneStatusUpdate() {
 #ifdef DARKMODE
 //    micStatusLabel->setStyleSheet("color: #AC8F7E;");
 //    micStatusLabel->setStyleSheet("color: #D9D9D9;");
-    micStatusLabel->setStyleSheet("color: #A0A0A0;");
+    micStatusLabel->setStyleSheet("color: #C0C0C0;");
 #else
     micStatusLabel->setStyleSheet("color: black");
 #endif
