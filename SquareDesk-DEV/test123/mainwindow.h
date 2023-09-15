@@ -26,6 +26,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "svgWaveformSlider.h"
 #define NO_TIMING_INFO 1
 
 #include <QObject>
@@ -1249,6 +1250,8 @@ public:
     QIcon *darkPlayIcon;
     QIcon *darkPauseIcon;
 #endif
+
+    float *waveform;
 };
 
 // currentState:

@@ -182,6 +182,8 @@ public:
     QTimer *playTimer;
     bool activelyPlaying;
 
+    std::vector<float> waveformMap;  // WAVEFORMWIDTH samples of the power/max of the song for each songLength/WAVEFORMWIDTH second window
+
 signals:
     void done();
 
@@ -190,6 +192,8 @@ public slots:
     void error(QAudioDecoder::Error error);
     void isDecodingChanged(bool isDecoding);
     void finished();
+
+    void updateWaveformMap();
 
 private slots:
     void updateProgress();

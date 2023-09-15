@@ -119,61 +119,61 @@ void svgWaveformSlider::finishInit() {
     bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
     bgPixmap->fill(QColor("#1A1A1A"));
 
-    // FAKE WAVEFORM ------
-    QPainter *paint = new QPainter(bgPixmap);
-//    paint->setPen(QColor(0, 0, 0, 255));
-//    paint->setPen(QColor("#707070"));
+//    // FAKE WAVEFORM ------
+//    QPainter *paint = new QPainter(bgPixmap);
+////    paint->setPen(QColor(0, 0, 0, 255));
+////    paint->setPen(QColor("#707070"));
 
-//    QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
-//    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#2eab9c"), QColor("#5368c9")};
-    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
-    int colorMap[] = {1,2,3,1,2,3,1};
+////    QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
+////    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#2eab9c"), QColor("#5368c9")};
+//    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
+//    int colorMap[] = {1,2,3,1,2,3,1};
 
-    // DEBUG -------
-//    paint->setPen(QColor(Qt::red));  // DEBUG
-//    paint->drawLine(0,0,100,100);    // DEBUG
-//    paint->drawLine(WAVEFORMWIDTH,0,WAVEFORMWIDTH-100,100);
+//    // DEBUG -------
+////    paint->setPen(QColor(Qt::red));  // DEBUG
+////    paint->drawLine(0,0,100,100);    // DEBUG
+////    paint->drawLine(WAVEFORMWIDTH,0,WAVEFORMWIDTH-100,100);
 
-    double h;
+//    double h;
 
-    // DEBUG DEBUG DEBUG ******************
-//    singingCall = true;
-//    introPosition = WAVEFORMWIDTH * 0.05;
-//    outroPosition = WAVEFORMWIDTH * 0.95;
+//    // DEBUG DEBUG DEBUG ******************
+////    singingCall = true;
+////    introPosition = WAVEFORMWIDTH * 0.05;
+////    outroPosition = WAVEFORMWIDTH * 0.95;
 
-    if (singingCall) { // DEBUG DEBUG ***********
-        // Singing call
-        paint->setPen(colors[0]);
-        paint->drawLine(0,30,WAVEFORMWIDTH,30);
+//    if (singingCall) { // DEBUG DEBUG ***********
+//        // Singing call
+//        paint->setPen(colors[0]);
+//        paint->drawLine(0,30,WAVEFORMWIDTH,30);
 
-        int whichColor = 0;
-        paint->setPen(colors[whichColor]);
-        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
+//        int whichColor = 0;
+//        paint->setPen(colors[whichColor]);
+//        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
 
-            if (i < introPosition || i > outroPosition) {
-                whichColor = 0;
-            } else {
-                int inSeg = i - introPosition;
-                int whichSeg = inSeg / ((outroPosition - introPosition)/7.0);
-                whichColor = colorMap[whichSeg];
-            }
+//            if (i < introPosition || i > outroPosition) {
+//                whichColor = 0;
+//            } else {
+//                int inSeg = i - introPosition;
+//                int whichSeg = inSeg / ((outroPosition - introPosition)/7.0);
+//                whichColor = colorMap[whichSeg];
+//            }
 
-            paint->setPen(colors[whichColor]);
-            h = 8 + rand() % 20;
-            paint->drawLine(i,h,i,61-h);
-        }
-    } else {
-        // Patter, etc.
-        paint->setPen(QColor("#707070"));
-//        qDebug() << "WAVEFORMWIDTH: " << WAVEFORMWIDTH;
-        paint->drawLine(0,30,WAVEFORMWIDTH,30);
-        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
-            h = 8 + rand() % 20;
-            paint->drawLine(i,h,i,61-h);
-        }
-    }
+//            paint->setPen(colors[whichColor]);
+//            h = 8 + rand() % 20;
+//            paint->drawLine(i,h,i,61-h);
+//        }
+//    } else {
+//        // Patter, etc.
+//        paint->setPen(QColor("#707070"));
+////        qDebug() << "WAVEFORMWIDTH: " << WAVEFORMWIDTH;
+//        paint->drawLine(0,30,WAVEFORMWIDTH,30);
+//        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
+//            h = 8 + rand() % 20;
+//            paint->drawLine(i,h,i,61-h);
+//        }
+//    }
 
-    delete paint;
+//    delete paint;
 
 //    bgPixmap->save("myPixmap.png");
 //    scene.addPixmap(*bgPixmap);
@@ -335,3 +335,74 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
     }
 }
 
+void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
+    Q_UNUSED(t)
+    // paint some stuff on the existing (correctly-sized pixmap)
+
+//    qDebug() << "svgWaveformSlider::updateBgPixmap" << introPosition << outroPosition;
+
+//    for (int i = 0; i < WAVEFORMWIDTH; i++) {
+//        qDebug() << i << f[i];
+//    }
+
+    // let's make a new one (I hope this isn't a leak...)
+    bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
+    QPainter *paint = new QPainter(bgPixmap);
+
+    bgPixmap->fill(QColor("#1A1A1A"));
+
+    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
+    int colorMap[] = {1,2,3,1,2,3,1};
+
+//    bool singingCall = true;
+    float h;
+
+    // center line always drawn
+    paint->setPen(colors[0]);
+    paint->drawLine(0,30,WAVEFORMWIDTH,30);
+
+    int introP = introPosition; // leftLoopMarker->x();
+    int outroP = outroPosition; // rightLoopMarker->x();
+
+    const double fullScaleInPixels = 25.0;
+
+//    qDebug() << "updateBgPixmap:" << introP << outroP;
+
+    if (singingCall) {
+        // Singing call ---------------------
+//        qDebug() << "it's a singing call...";
+
+        int whichColor = 0;
+        for (int i = 0; i < WAVEFORMWIDTH; i++) {
+
+            if (i < introP || i > outroP) {
+                whichColor = 0;
+            } else {
+                int inSeg = i - introP;
+                int whichSeg = inSeg / ((outroPosition - introP)/7.0);
+                whichColor = colorMap[whichSeg];
+            }
+
+            paint->setPen(colors[whichColor]);
+            h = fullScaleInPixels * f[i];
+            paint->drawLine(i,30.0 + h,i,30.0 - h);
+
+        }
+    } else {
+        // Patter, etc. ----------------------
+
+        // TODO: actually calculate the power by each 1/481 of the duration in seconds (1 pixel at a time)
+        //  by peeking at the actual data.
+        // TODO: Make L and R go up and down respectively?
+        for (int i = 0; i < WAVEFORMWIDTH; i++) {
+            h = fullScaleInPixels * f[i];
+            paint->drawLine(i,30.0 + h,i,30.0 - h);
+        }
+
+    }
+
+    delete paint;
+
+    // and load it
+    bg->setPixmap(*bgPixmap);
+}

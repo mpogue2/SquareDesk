@@ -296,6 +296,9 @@ void MainWindow::haveDuration2(void) {
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
     ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
+
+    cBass->getWaveform(waveform, WAVEFORMWIDTH);
+    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
 #endif
 
 //    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
@@ -1614,6 +1617,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
 
+// DARKMODE INIT
 #ifdef DARKMODE
 
     // CLOCK COLORING =============
@@ -1915,6 +1919,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSeekBar->finishInit();  // load everything up!
 
 //    connect(ui->darkSeekBar, SIGNAL(valueChanged(int)), this, SLOT(on_darkSeekBar_valueChanged(int)));
+
+    waveform = new float[WAVEFORMWIDTH];
 
 #else
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
@@ -3328,6 +3334,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
     ui->seekBar->SetIntro(frac);
 #ifdef DARKMODE
+    qDebug() << "DARKMODE setIntro!";
     ui->darkSeekBar->setIntro(frac);
 #endif
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
@@ -3371,7 +3378,9 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     double frac = position/length;
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
     ui->seekBar->SetOutro(frac);
-
+#ifdef DARKMODE
+    ui->darkSeekBar->setOutro(frac);
+#endif
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
@@ -4526,7 +4535,11 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     ui->darkStartLoopTime->setTime(QTime(0,0,0,0));
     ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
+
+#ifdef DARKMODE
+//    qDebug() << "second half of load!";
     ui->darkEndLoopTime->setTime(QTime(23,59,59,0));
+#endif
 
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
     ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
@@ -4594,6 +4607,11 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     setInOutButtonState();
     loadingSong = false;
 
+    // UPDATE THE WAVEFORM since load is complete! ---------------
+//    qDebug() << "end of second half of load...";
+    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
+
+    // ------------------
     if (ui->actionAutostart_playback->isChecked()) {
 //        qDebug() << "----- AUTO START PRESSING PLAY, BECAUSE SONG IS NOW LOADED";
         on_playButton_clicked();
@@ -7724,6 +7742,10 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
     ui->seekBar->SetOutro(frac);
 
+#ifdef DARKMODE
+    ui->darkSeekBar->setOutro(frac);
+#endif
+
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
     saveCurrentSongSettings();
 }
@@ -8095,6 +8117,11 @@ void MainWindow::handleDurationBPM() {
 
     ui->seekBar->SetSingingCall(isSingingCall); // if singing call, color the seek bar
     ui->seekBarCuesheet->SetSingingCall(isSingingCall); // if singing call, color the seek bar
+
+#ifdef DARKMODE
+//    qDebug() << "handleDurationBPM!";
+    ui->darkSeekBar->setSingingCall(isSingingCall);
+#endif
 
     if (isPatter) {
         on_loopButton_toggled(true); // default is to loop, if type is patter

@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "audiodecoder.h"
+#include "svgWaveformSlider.h"
 #include <QCoreApplication>
 #include <QFile>
 #include <QFileInfo>
@@ -908,7 +909,9 @@ void AudioDecoder::finished()
 
     t->elapsed(__LINE__); // 583ms, so starting up the process takes about 0.6sec every time a song is loaded
 
-    emit done(); // triggers haveDuration, which invokes haveDuration2, which initiates beat detection (ONLY if enabled).
+    updateWaveformMap();
+
+    emit done(); // triggers haveDuration, which invokes haveDuration2, which initiates beat detection and power/max detection (ONLY if enabled).
 }
 
 void AudioDecoder::updateProgress()
@@ -1370,4 +1373,40 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
 
 //    qDebug() << "AudioDecoder::snapToClosest: " << time_sec << granularity << ", returns: " << result_index << result_sec;
     return(result_sec); // normal return
+}
+
+void AudioDecoder::updateWaveformMap()
+{
+    waveformMap.clear();
+
+    unsigned char *p_data = (unsigned char *)(m_data->data());
+    int totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
+    const float *songPointer = (const float *)p_data; // THIS is where the audio data is. They are interleaved floats.  I think.
+    float secondsInSong = totalFramesInSong / 44100.0;
+
+//    qDebug() << "AudioDecoder::updateWaveformMap" << totalFramesInSong << myPlayer.bytesPerFrame << secondsInSong << WAVEFORMWIDTH; // should be 44.1kHz at this point
+
+    int framesPerWaveformPixel = totalFramesInSong / WAVEFORMWIDTH; // truncated down, so as not to overrun
+    int framesInCurrentPixel = 0;
+    float Laccum = 0.0;
+    float Raccum = 0.0;
+    float result = 0.0;
+    for (int i = 0; i < totalFramesInSong; i++) {
+        float L = songPointer[2*i + 0];
+        float R = songPointer[2*i + 1];
+
+        // algorithm: MAX
+        Laccum = max(Laccum, fabs(L));
+        Raccum = max(Raccum, fabs(R));
+        result = max(Laccum, Raccum);
+
+        framesInCurrentPixel++;
+        if (framesInCurrentPixel >= framesPerWaveformPixel) {
+            waveformMap.push_back(result);
+            Laccum = Raccum = 0.0;
+            framesInCurrentPixel = 0;
+        }
+    }
+
+//    qDebug() << "waveformMap: " << waveformMap;
 }

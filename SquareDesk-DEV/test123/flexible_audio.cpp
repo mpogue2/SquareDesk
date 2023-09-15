@@ -28,6 +28,7 @@
 // M1MAC is defined only on Mac's and only on M1 Silicon Macs.
 
 #include "flexible_audio.h"
+#include "svgWaveformSlider.h"
 #include <math.h>
 #include <stdio.h>
 #include <QDebug>
@@ -487,4 +488,12 @@ double flexible_audio::snapToClosest(double time_sec, unsigned char granularity)
 
     double result_sec = decoder.snapToClosest(time_sec, granularity);  // ask the AudioDecoder
     return(result_sec);  // NOTE: could be negative, if error
+}
+
+void flexible_audio::getWaveform(float *f, size_t t) {
+//    qDebug() << "flexible_audio::getWaveform waveform:" << decoder.waveformMap << decoder.waveformMap.size();
+
+    for (size_t i = 0; i < t; i++) {
+        f[i] = decoder.waveformMap[i];  // TODO: eliminate this step
+    }
 }

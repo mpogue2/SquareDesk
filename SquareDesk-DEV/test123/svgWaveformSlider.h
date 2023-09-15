@@ -18,7 +18,8 @@
 //  It has start and end loop indicators, a current position indicator,
 //  and (for future expansion) settable markers.
 
-#define WAVEFORMWIDTH (491.0 - 10.0)
+//#define WAVEFORMWIDTH (491 - 10)
+#define WAVEFORMWIDTH 481
 
 // -----------------------------------
 class svgWaveformSlider : public QSlider
@@ -59,6 +60,7 @@ public:
     }
 
     void setSingingCall(bool b) {
+//        qDebug() << "*** setSingingCall:" << b;
         singingCall = b;
     }
 
@@ -108,6 +110,8 @@ public:
     void setValue(int value);
 
     void finishInit();
+
+    void updateBgPixmap(float *f, size_t t);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event);
