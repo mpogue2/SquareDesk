@@ -925,7 +925,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         )
     );
 
+#ifdef DARKMODE
+    ui->darkSearch->setFocus();  // this should be the intial focus
+#else
     ui->titleSearch->setFocus();  // this should be the intial focus
+#endif
 
 #ifdef DEBUGCLOCK
     analogClock->tipLengthAlarmMinutes = 10;  // FIX FIX FIX
@@ -1340,10 +1344,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QTimer::singleShot(2000, [this]{
 //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
+#ifdef DARKMODE
+            if (!ui->darkSearch->hasFocus()) {
+                //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                ui->darkSearch->setFocus();
+            }
+#else
             if (!ui->titleSearch->hasFocus()) {
-//                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
                 ui->titleSearch->setFocus();
             }
+#endif
 
             // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
             abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
@@ -1802,6 +1813,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // MICLABEL (right hand status):
 //    micStatusLabel->setStyleSheet("color: #AC8F7E");
     micStatusLabel->setStyleSheet("color: " + darkTextColor);
+
+    // SEARCH BOX:
+    ui->darkSearch->setToolTip("Search\nFilter songs by specifying Type:Label:Title.\n\nExamples:\nfoo = any song where title contains 'foo'\nsing::bar = singing calls where title contains 'bar'\np:riv = patter from Riverboat\netc.");
 
     // TITLE:
     // QLabel { color : #C2AC9E; }
@@ -3387,6 +3401,10 @@ void MainWindow::on_clearSearchButton_clicked()
     ui->typeSearch->setText("");
     ui->titleSearch->setText("");
 
+#ifdef DARKMODE
+    ui->darkSearch->setText("");
+#endif
+
     if (row != -1) {
         // if a row was selected, restore it after a clear search
         // FIX: this works much of the time, but it doesn't handle the case where search field is typed, then cleared.  In this case,
@@ -3394,7 +3412,12 @@ void MainWindow::on_clearSearchButton_clicked()
         ui->songTable->selectRow(row);
     }
 
+
+#ifdef DARKMODE
+    ui->darkSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the darkSearch field, so that UP/DOWN works
+#else
     ui->titleSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the titleSearch field, so that UP/DOWN works
+#endif
     filterMusic(); // highlights first visible row (if there are any rows)
 }
 
@@ -3832,6 +3855,9 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
                ui->typeSearch->hasFocus() ||
                ui->titleSearch->hasFocus() ||
+#ifdef DARKMODE
+               ui->darkSearch->hasFocus() ||
+#endif
                (ui->textBrowserCueSheet->hasFocus() && ui->pushButtonEditLyrics->isChecked()) ||
                ui->dateTimeEditIntroTime->hasFocus() ||
                ui->dateTimeEditOutroTime->hasFocus() ||
@@ -3846,7 +3872,11 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
              ( (ui->labelSearch->hasFocus() ||          // OR IF A TEXT HANDLING WIDGET HAS FOCUS AND ESC/` IS PRESSED
                 ui->typeSearch->hasFocus() ||
+#ifdef DARKMODE
+                ui->darkSearch->hasFocus() ||
+#else
                 ui->titleSearch->hasFocus() ||
+#endif
                 ui->dateTimeEditIntroTime->hasFocus() ||
                 ui->dateTimeEditOutroTime->hasFocus() ||
 
@@ -3859,7 +3889,13 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 #endif
                                                           ) )  ||
                   // OR, IF ONE OF THE SEARCH FIELDS HAS FOCUS, AND RETURN/UP/DOWN_ARROW IS PRESSED
-             ( (ui->labelSearch->hasFocus() || ui->typeSearch->hasFocus() || ui->titleSearch->hasFocus()) &&
+             ( (ui->labelSearch->hasFocus() ||
+                     ui->typeSearch->hasFocus() ||
+#ifdef DARKMODE
+                     ui->darkSearch->hasFocus() ||
+#endif
+                     ui->titleSearch->hasFocus()
+               ) &&
                (theKey == Qt::Key_Return || theKey == Qt::Key_Up || theKey == Qt::Key_Down)
              )
                   // These next 3 help work around a problem where going to a different non-SDesk window and coming back
@@ -3872,6 +3908,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                   || (ui->typeSearch->hasFocus() && ui->typeSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
                   || (ui->titleSearch->hasFocus() && ui->titleSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
+#ifdef DARKMODE
+                  // OR, IF THE DARK TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
+                  || (ui->darkSearch->hasFocus() && ui->darkSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
+#endif
                   // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
                   || (ui->dateTimeEditIntroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
                   // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
@@ -4037,7 +4077,13 @@ bool MainWindow::handleKeypress(int key, QString text)
 
             on_clearSearchButton_clicked(); // clears search fields, selects first visible item in songTable
 
-            if (ui->labelSearch->text() != "" || ui->typeSearch->text() != "" || ui->titleSearch->text() != "") {
+            if (ui->labelSearch->text() != "" ||
+                ui->typeSearch->text() != "" ||
+#ifdef DARKMODE
+                ui->darkSearch->text() != "" ||
+#endif
+                ui->titleSearch->text() != ""
+                ) {
                 // clear the search fields, if there was something in them.  (First press of ESCAPE).
 //                ui->labelSearch->setText("");
 //                ui->typeSearch->setText("");
@@ -4088,7 +4134,12 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_Return:
         case Qt::Key_Enter:
 //            qDebug() << "Key RETURN/ENTER detected.";
-            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus() ||
+            if (ui->typeSearch->hasFocus() ||
+                ui->labelSearch->hasFocus() ||
+                ui->titleSearch->hasFocus() ||
+#ifdef DARKMODE
+                ui->darkSearch->hasFocus() ||
+#endif
                     ui->songTable->hasFocus()) { // also now allow pressing Return to load, if songTable has focus
 //                qDebug() << "   and search OR songTable has focus.";
 
@@ -4111,8 +4162,13 @@ bool MainWindow::handleKeypress(int key, QString text)
         case Qt::Key_Down:
         case Qt::Key_Up:
 //            qDebug() << "Key up/down detected.";
-            if (ui->typeSearch->hasFocus() || ui->labelSearch->hasFocus() || ui->titleSearch->hasFocus() ||
-                    ui->songTable->hasFocus()) {
+            if (ui->typeSearch->hasFocus() ||
+                ui->labelSearch->hasFocus() ||
+#ifdef DARKMODE
+                ui->darkSearch->hasFocus() ||
+#endif
+                ui->titleSearch->hasFocus() ||
+                ui->songTable->hasFocus()) {
 //                qDebug() << "   and search OR songTable has focus.";
                 if (key == Qt::Key_Up) {
                     int row = previousVisibleSongRow();
@@ -4841,6 +4897,7 @@ void MainWindow::filterMusic()
     QStringList label = ui->labelSearch->text().split(rx);
     QStringList type = ui->typeSearch->text().split(rx);
     QStringList title = ui->titleSearch->text().split(rx);
+    // No need to involve darkSearch here, because it will set label/type/title search fields
 
 //    qDebug() << "filterMusic: title: " << title;
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
@@ -5106,7 +5163,11 @@ void MainWindow::loadMusicList()
     ui->songTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0 (which is highlighted)
 
 //    qDebug() << "AFTER LOAD MUSIC LIST lastSongTableRowSelected:" << lastSongTableRowSelected;
+#ifdef DARKMODE
+    ui->darkSearch->setFocus();
+#else
     ui->titleSearch->setFocus();
+#endif
 }
 
 
@@ -8173,3 +8234,42 @@ void MainWindow::on_darkSeekBar_valueChanged(int value) {
 }
 
 #endif
+
+void MainWindow::on_darkSearch_textChanged(const QString &s)
+{
+    QStringList pieces = s.split(u':'); // use ":" to delimit type:label:title search fields
+
+//    qDebug() << pieces.length() << pieces;
+    int count = pieces.length();
+
+    // EXAMPLES:
+    //    foo = search for titles containing 'foo'
+    //    s::foo = search for singing calls containing 'foo' (NOTE the double colon, because "label" is blank
+    //    s::riv = search for singing calls from Riverboat
+    //    :riv:world = search for anything (patter or singing etc.) from Riverboat containing 'world'
+    //    p:riv:bar  = search for patter from riverboat containing 'bar'
+
+    switch (count) {
+        case 0:
+            ui->typeSearch->setText("");
+            ui->labelSearch->setText("");
+            ui->titleSearch->setText("");
+            break;
+        case 1:
+            ui->typeSearch->setText("");
+            ui->labelSearch->setText("");
+            ui->titleSearch->setText(pieces[0]);
+            break;
+        case 2:
+            ui->typeSearch->setText(pieces[0]);
+            ui->labelSearch->setText(pieces[1]);
+            ui->titleSearch->setText("");
+            break;
+        default: // 3 or more (only look at first 3 pieces, if 4 or more)
+            ui->typeSearch->setText(pieces[0]);
+            ui->labelSearch->setText(pieces[1]);
+            ui->titleSearch->setText(pieces[2]);
+            break;
+    }
+}
+
