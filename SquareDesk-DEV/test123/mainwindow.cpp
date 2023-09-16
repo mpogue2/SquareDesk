@@ -457,6 +457,20 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->songTable->setColumnWidth(kPitchCol,60);
     ui->songTable->setColumnWidth(kTempoCol,60);
 
+#ifdef DARKMODE
+    ui->darkSongTable->setColumnWidth(kNumberCol,40);  // NOTE: This must remain a fixed width, due to a bug in Qt's tracking of its width.
+    ui->darkSongTable->setColumnWidth(kTypeCol,96);
+    ui->darkSongTable->setColumnWidth(kLabelCol,80);
+
+    ui->darkSongTable->setColumnWidth(kTitleCol,350);
+    //  TODO: kTitleCol should be always expandable, so don't set width here
+
+    ui->darkSongTable->setColumnWidth(kRecentCol, 70);
+    ui->darkSongTable->setColumnWidth(kAgeCol, 36);
+    ui->darkSongTable->setColumnWidth(kPitchCol,60);
+    ui->darkSongTable->setColumnWidth(kTempoCol,60);
+#endif
+
     zoomInOut(0);  // trigger reloading of all fonts, including horizontalHeader of songTable()
 
     t.elapsed(__LINE__);
@@ -1759,45 +1773,48 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    ui->darkSongTable->setStyleSheet("::section { background-color: #393234; color: #C2AC9E; }");
     ui->darkSongTable->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
 
-    ui->darkSongTable->resizeColumnToContents(0);  // and force resizing of column widths to match songs
-    ui->darkSongTable->resizeColumnToContents(1);
-    ui->darkSongTable->resizeColumnToContents(2);
-    ui->darkSongTable->resizeColumnToContents(3);
-    ui->darkSongTable->resizeColumnToContents(4);
+    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
+    ui->darkSongTable->resizeColumnToContents(kTypeCol);
+    ui->darkSongTable->resizeColumnToContents(kLabelCol);
+    ui->darkSongTable->resizeColumnToContents(kPitchCol);
+    ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
-    for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
-        QTableWidgetItem *num = ui->darkSongTable->item(i, 0);
-        QTableWidgetItem *type = ui->darkSongTable->item(i, 1);
-        QTableWidgetItem *label = ui->darkSongTable->item(i, 2);
-        QTableWidgetItem *title = ui->darkSongTable->item(i, 3);
-        QTableWidgetItem *age   = ui->darkSongTable->item(i, 4);
-        QTableWidgetItem *pitch = ui->darkSongTable->item(i, 5);
-        QTableWidgetItem *tempo = ui->darkSongTable->item(i, 6);
+//    for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
+//        QTableWidgetItem *num = ui->darkSongTable->item(i, 0);
+//        QTableWidgetItem *type = ui->darkSongTable->item(i, 1);
+//        QTableWidgetItem *label = ui->darkSongTable->item(i, 2);
+//        QTableWidgetItem *title = ui->darkSongTable->item(i, 3);
+//        QTableWidgetItem *recent  = ui->darkSongTable->item(i, 4);
+//        QTableWidgetItem *age   = ui->darkSongTable->item(i, 5);
+//        QTableWidgetItem *pitch = ui->darkSongTable->item(i, 6);
+//        QTableWidgetItem *tempo = ui->darkSongTable->item(i, 7);
 
-        QString patterForeground("#A364DC");  // was: #744EFF
-//        QString singerForeground("#00AF5C");  // was: #80B553
-        QString singerForeground("#80B553");
+//        QString patterForeground("#A364DC");  // was: #744EFF
+////        QString singerForeground("#00AF5C");  // was: #80B553
+//        QString singerForeground("#80B553");
 
-        if (type != nullptr) {
-            if (type->text() == "patter") {
-                if (num != nullptr) num->setForeground(QBrush(QColor(patterForeground)));
-                if (type != nullptr) type->setForeground(QBrush(QColor(patterForeground)));
-                if (label != nullptr) label->setForeground(QBrush(QColor(patterForeground)));
-                if (title != nullptr) title->setForeground(QBrush(QColor(patterForeground)));
-                if (age != nullptr) age->setForeground(QBrush(QColor(patterForeground)));
-                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(patterForeground)));
-                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(patterForeground)));
-            } else {
-                if (num != nullptr) num->setForeground(QBrush(QColor(singerForeground)));
-                if (type != nullptr) type->setForeground(QBrush(QColor(singerForeground)));
-                if (label != nullptr) label->setForeground(QBrush(QColor(singerForeground)));
-                if (title != nullptr) title->setForeground(QBrush(QColor(singerForeground)));
-                if (age != nullptr) age->setForeground(QBrush(QColor(singerForeground)));
-                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(singerForeground)));
-                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(singerForeground)));
-            }
-        }
-    }
+//        if (type != nullptr) {
+//            if (type->text() == "patter") {
+//                if (num != nullptr) num->setForeground(QBrush(QColor(patterForeground)));
+//                if (type != nullptr) type->setForeground(QBrush(QColor(patterForeground)));
+//                if (label != nullptr) label->setForeground(QBrush(QColor(patterForeground)));
+//                if (title != nullptr) title->setForeground(QBrush(QColor(patterForeground)));
+//                if (recent != nullptr) recent->setForeground(QBrush(QColor(patterForeground)));
+//                if (age != nullptr) age->setForeground(QBrush(QColor(patterForeground)));
+//                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(patterForeground)));
+//                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(patterForeground)));
+//            } else {
+//                if (num != nullptr) num->setForeground(QBrush(QColor(singerForeground)));
+//                if (type != nullptr) type->setForeground(QBrush(QColor(singerForeground)));
+//                if (label != nullptr) label->setForeground(QBrush(QColor(singerForeground)));
+//                if (title != nullptr) title->setForeground(QBrush(QColor(singerForeground)));
+//                if (recent != nullptr) recent->setForeground(QBrush(QColor(singerForeground)));
+//                if (age != nullptr) age->setForeground(QBrush(QColor(singerForeground)));
+//                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(singerForeground)));
+//                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(singerForeground)));
+//            }
+//        }
+//    }
 
     // VUMETER:
     ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
@@ -2459,6 +2476,32 @@ void MainWindow::updateSongTableColumnView()
     ui->songTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->songTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->songTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+
+#ifdef DARKMODE
+    ui->darkSongTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
+    ui->darkSongTable->setColumnHidden(kAgeCol,!prefsManager.GetshowAgeColumn());
+    ui->darkSongTable->setColumnHidden(kPitchCol,!prefsManager.GetshowPitchColumn());
+    ui->darkSongTable->setColumnHidden(kTempoCol,!prefsManager.GetshowTempoColumn());
+
+    // http://www.qtcentre.org/threads/3417-QTableWidget-stretch-a-column-other-than-the-last-one
+    QHeaderView *darkHeaderView = ui->darkSongTable->horizontalHeader();
+    darkHeaderView->setSectionResizeMode(kNumberCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kTypeCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kLabelCol, QHeaderView::Interactive);
+    darkHeaderView->setSectionResizeMode(kTitleCol, QHeaderView::Stretch);
+
+    darkHeaderView->setSectionResizeMode(kRecentCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kAgeCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kPitchCol, QHeaderView::Fixed);
+    darkHeaderView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
+    darkHeaderView->setStretchLastSection(false);
+
+    ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->darkSongTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->darkSongTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->darkSongTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->darkSongTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+#endif
 }
 
 
@@ -5115,6 +5158,8 @@ void MainWindow::loadMusicList()
 //    ui->songTable->clearSelection();  // DEBUG DEBUG
 
     PerfTimer t("loadMusicList", __LINE__);
+    t.start(__LINE__);
+
     startLongSongTableOperation("loadMusicList");  // for performance, hide and sorting off
 
     // Need to remember the PL# mapping here, and reapply it after the filter
@@ -5304,13 +5349,248 @@ void MainWindow::loadMusicList()
 
     ui->songTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0 (which is highlighted)
 
+    t.stop();
+
 //    qDebug() << "AFTER LOAD MUSIC LIST lastSongTableRowSelected:" << lastSongTableRowSelected;
-#ifdef DARKMODE
-    ui->darkSearch->setFocus();
-#else
+
     ui->titleSearch->setFocus();
-#endif
 }
+
+// --------------------------------------------------------------------------------
+void MainWindow::darkLoadMusicList()
+{
+    PerfTimer t("darkLoadMusicList", __LINE__);
+    t.start(__LINE__);
+
+    // for performance ---
+    ui->darkSongTable->hide();
+    ui->darkSongTable->setSortingEnabled(false);
+    ui->darkSongTable->blockSignals(true);  // block signals, so changes are not recursive
+
+    // PLAYLIST HANDLING -----
+    // Need to remember the PL# mapping here, and reapply it after the filter
+    // left = path, right = number string
+    QMap<QString, QString> path2playlistNum;
+
+    // SONGTABLEREFACTOR
+    // Iterate over the songTable, saving the mapping in "path2playlistNum"
+    // TODO: optimization: save this once, rather than recreating each time.
+    for (int i=0; i<ui->songTable->rowCount(); i++) {
+        QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+        QString playlistIndex = theItem->text();  // this is the playlist #
+        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();  // this is the full pathname
+        if (playlistIndex != " " && playlistIndex != "") {
+            // item HAS an index (that is, it is on the list, and has a place in the ordering)
+            // TODO: reconcile int here with double elsewhere on insertion
+            path2playlistNum[pathToMP3] = playlistIndex;
+        }
+    }
+
+    // clear out the table
+    ui->darkSongTable->setRowCount(0);
+    ui->darkSongTable->setColumnCount(8);
+
+    QStringList m_TableHeader;
+    m_TableHeader << "#" << "Type" << "Label" << "Title" << "Recent" << "Age" << "Pitch" << "Tempo";
+    ui->darkSongTable->setHorizontalHeaderLabels(m_TableHeader);
+    ui->darkSongTable->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
+    ui->darkSongTable->horizontalHeader()->setVisible(true);
+
+    QListIterator<QString> iter(*pathStack);
+
+    QColor textCol = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
+    bool show_all_ages = ui->actionShow_All_Ages->isChecked();
+
+    // iterate over every item in the pathStack, and stick songs into the songTable
+    //   with their SQLITE DB info populated later (when songs are visible)
+    static QRegularExpression musicRegex(".*\\.(mp3|m4a|wav|flac)$", QRegularExpression::CaseInsensitiveOption); // match with music extensions
+    QStringList justMusic = pathStack->filter(musicRegex); // only 18ms
+    t.elapsed(__LINE__);
+
+    ui->darkSongTable->setRowCount(justMusic.length()); // make all the rows at once for speed
+    t.elapsed(__LINE__);
+
+    // The font that we'll use for the QLabels that are used to implement the Title-with-Tags field
+    QFont darkSongTableFont("Avenir Next");
+    darkSongTableFont.setPointSize(20);
+
+    int i = 0;
+    for (const auto &s : justMusic) {
+        QStringList sl1 = s.split("#!#");
+        QString type     = sl1[0];  // the type (of original pathname, before following aliases)
+        QString origPath = sl1[1];  // everything else
+
+        // double check that type is non-music type (see Issue #298)
+        if (type == "reference" || type == "soundfx" || type == "sd") {
+            continue;
+        }
+
+        QFileInfo fi(origPath);
+
+        if (fi.canonicalPath() == musicRootPath) {
+            type = "";
+        }
+
+        QString label = "";
+        QString labelnum = "";
+        QString labelnum_extra = "";
+        QString title = "";
+        QString shortTitle = "";
+        QString baseName = fi.completeBaseName();
+
+        // e.g. "/Users/mpogue/__squareDanceMusic/patter/RIV 307 - Going to Ceili (Patter).mp3" --> "RIV 307 - Going to Ceili (Patter)"
+        breakFilenameIntoParts(baseName, label, labelnum, labelnum_extra, title, shortTitle);
+        labelnum += labelnum_extra;
+
+        // User preferences for colors
+        QString cType = type.toLower();  // type for Color purposes
+        if (cType.right(1)=="*") {
+            cType.chop(1);  // remove the "*" for the purposes of coloring
+        }
+
+        if (songTypeNamesForExtras.contains(cType)) {
+            textCol = QColor(extrasColorString);
+        }
+        else if (songTypeNamesForPatter.contains(cType)) {
+            textCol = QColor(patterColorString);
+        }
+        else if (songTypeNamesForSinging.contains(cType)) {
+            textCol = QColor(singingColorString);
+        }
+        else if (songTypeNamesForCalled.contains(cType)) {
+            textCol = QColor(calledColorString);
+        } else {
+            textCol = QColor(QColor("#A0A0A0"));  // if not a recognized type, color it white-ish
+        }
+
+        QBrush textBrush(textCol); // make a brush for most of the widgets
+
+        // PLAYLIST HANDLING -----
+        // look up origPath in the path2playlistNum map, and reset the s2 text to the user's playlist # setting (if any)
+        QString s2("");
+        if (path2playlistNum.contains(origPath)) {
+            s2 = path2playlistNum[origPath];
+        }
+        TableNumberItem *newTableItem4 = new TableNumberItem(s2);
+
+        newTableItem4->setTextAlignment(Qt::AlignHCenter); // editable by default
+        newTableItem4->setForeground(textCol);
+        ui->darkSongTable->setItem(i, kNumberCol, newTableItem4);
+
+        // TYPE FIELD -----
+        QTableWidgetItem *twi1 = new QTableWidgetItem(type);
+        twi1->setForeground(textBrush);
+        ui->darkSongTable->setItem(i, kTypeCol, twi1);
+
+        // LABEL + LABELNUM FIELD -----
+        QTableWidgetItem *twi2 = new QTableWidgetItem(label + " " + labelnum);
+        twi2->setForeground(textBrush);
+        ui->darkSongTable->setItem(i, kLabelCol, twi2);
+
+//         INVISIBLE TABLE WIDGET ITEM -----
+//         FYI: THIS IS FOR SORTING...
+        InvisibleTableWidgetItem *titleItem(new InvisibleTableWidgetItem(title));
+        ui->darkSongTable->setItem(i, kTitleCol, titleItem);
+
+        // TITLE WIDGET (WITH TAGS) -----
+        SongSetting settings;
+        songSettings.loadSettings(origPath, settings);  // get settings from the SQLITE DB --
+        if (settings.isSetTags()) {
+            songSettings.addTags(settings.getTags());
+        }
+
+        // format the title string --
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), textCol.name()));
+        SongTitleLabel *titleLabel = new SongTitleLabel(this);
+        titleLabel->setTextFormat(Qt::RichText);
+        titleLabel->setText(titlePlusTags);
+        titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
+        titleLabel->setFont(darkSongTableFont);
+
+        ui->darkSongTable->setCellWidget(i, kTitleCol, titleLabel);
+
+        // AGE FIELD -----
+        QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath, show_all_ages);
+        QString ageAsIntString = ageToIntString(ageString);
+        QTableWidgetItem *twi4 = new QTableWidgetItem(ageAsIntString);
+        twi4->setForeground(textBrush);
+        twi4->setTextAlignment(Qt::AlignHCenter);
+        ui->darkSongTable->setItem(i, kAgeCol, twi4);
+
+        // RECENT FIELD (must come after AGE field, because it uses age to determine recent string) -----
+        QString recentString = ageToRecent(ageString);  // passed as double string
+        QTableWidgetItem *twi4b = new QTableWidgetItem(recentString);
+        twi4b->setForeground(textBrush);
+        twi4b->setTextAlignment(Qt::AlignHCenter);
+        ui->darkSongTable->setItem(i, kRecentCol, twi4b);
+
+        // PITCH FIELD -----
+        int pitch = 0;
+        if (settings.isSetPitch()) { pitch = settings.getPitch(); }
+
+        QTableWidgetItem *twi5 = new QTableWidgetItem(QString("%1").arg(pitch));
+        twi5->setForeground(textBrush);
+        twi5->setTextAlignment(Qt::AlignHCenter);
+        ui->darkSongTable->setItem(i, kPitchCol, twi5);
+
+        // TEMPO FIELD -----
+        int tempo = 0;
+        bool loadedTempoIsPercent(false);
+        if (settings.isSetTempo()) { tempo = settings.getTempo(); }
+        if (settings.isSetTempoIsPercent()) { loadedTempoIsPercent = settings.getTempoIsPercent(); }
+        QString tempoStr = QString("%1").arg(tempo);
+        if (loadedTempoIsPercent) tempoStr += "%";
+        //        qDebug() << "loadMusicList() is setting the kTempoCol to: " << tempoStr;
+
+        QTableWidgetItem *twi6 = new QTableWidgetItem(QString("%1").arg(tempoStr));
+        twi6->setForeground(textBrush);
+        twi6->setTextAlignment(Qt::AlignHCenter);
+        ui->darkSongTable->setItem(i, kTempoCol, twi6);
+
+        // PATH FIELD (VARIANT SAVED IN INVISIBLE LOCATION) -----
+        // keep the path around, for loading in when we double click on it
+        ui->darkSongTable->item(i, kPathCol)->setData(Qt::UserRole, QVariant(origPath)); // path set on cell in col 0
+
+//        if (i < 10) {
+//            qDebug() << type << label << labelnum << title << shortTitle; // << titlePlusTags;
+//        }
+
+        i++;
+    }
+
+    t.elapsed(__LINE__);
+
+    // performance -----
+    // these must be in "backwards" order to get the right order, which
+    //   is that Type is primary, Title is secondary, Label is tertiary
+    ui->darkSongTable->sortItems(kLabelCol);  // sort last by label/label #
+    ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
+    ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
+
+    ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
+    ui->darkSongTable->resizeColumnToContents(kTypeCol);
+    ui->darkSongTable->resizeColumnToContents(kLabelCol);
+    ui->darkSongTable->resizeColumnToContents(kPitchCol);
+    ui->darkSongTable->resizeColumnToContents(kTempoCol);
+
+    ui->darkSongTable->blockSignals(false);  // unblock signals
+    ui->darkSongTable->setSortingEnabled(true);
+    ui->darkSongTable->show();
+
+    QString msg1 = QString::number(ui->darkSongTable->rowCount()) + QString(" audio files found");
+    ui->statusBar->showMessage(msg1);
+
+    lastSongTableRowSelected = -1;  // don't modify previous one, just set new selected one to color
+//    on_darkSongTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
+    lastSongTableRowSelected = 0; // first row is highlighted now
+
+    ui->darkSongTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0 (which is highlighted)
+
+    ui->darkSearch->setFocus();
+
+    t.stop();
+}
+
 
 
 QStringList MainWindow::getUncheckedItemsFromCurrentCallList()
@@ -7346,6 +7626,9 @@ void MainWindow::on_actionViewTags_toggled(bool /* checked */)
 //    qDebug() << "VIEW TAGS TOGGLED";
     prefsManager.SetshowSongTags(ui->actionViewTags->isChecked());
     loadMusicList();
+#ifdef DARKMODE
+    darkLoadMusicList();
+#endif
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

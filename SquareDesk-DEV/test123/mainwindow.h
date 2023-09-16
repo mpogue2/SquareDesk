@@ -910,6 +910,7 @@ private:
 #endif
     void filterMusic();  // filter them into the songTable
     void loadMusicList();  // filter them into the songTable
+    void darkLoadMusicList();  // filter them into the darkSongTable
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
     void changeTagOnCurrentSongSelection(QString tag, bool add);
     void loadChoreographyList();
