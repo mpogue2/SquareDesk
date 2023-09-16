@@ -3471,6 +3471,9 @@ void MainWindow::on_clearSearchButton_clicked()
     ui->titleSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the titleSearch field, so that UP/DOWN works
 #endif
     filterMusic(); // highlights first visible row (if there are any rows)
+#ifdef DARKMODE
+//    darkFilterMusic();
+#endif
 }
 
 // ----------------------------------------------------------------------
@@ -4652,8 +4655,9 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
     // UPDATE THE WAVEFORM since load is complete! ---------------
 //    qDebug() << "end of second half of load...";
+#ifdef DARKMODE
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
-
+#endif
     // ------------------
     if (ui->actionAutostart_playback->isChecked()) {
 //        qDebug() << "----- AUTO START PRESSING PLAY, BECAUSE SONG IS NOW LOADED";
@@ -5120,6 +5124,65 @@ void MainWindow::filterMusic()
     ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
 }
 
+// --------------------------------------------------------------------------------
+#ifdef DARKMODE
+void MainWindow::darkFilterMusic()
+{
+//    qDebug() << "darkFilterMusic()";
+
+    PerfTimer t("darkFilterMusic", __LINE__);
+    t.start(__LINE__);
+
+    //    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t\\')"); //RegEx for ' ' or ',' or '.' or ':' or '\t', includes ' to handle the "it's" case.
+    static QRegularExpression rx("(\\ |\\,|\\.|\\:|\\t)"); //RegEx for ' ' or ',' or '.' or ':' or '\t', does NOT include ' now
+
+    QStringList label = ui->labelSearch->text().split(rx);
+    QStringList type = ui->typeSearch->text().split(rx);
+    QStringList title = ui->titleSearch->text().split(rx);
+    // No need to involve darkSearch here, because it will set label/type/title search fields
+
+    //    qDebug() << "filterMusic: title: " << title;
+    ui->darkSongTable->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);  // DO NOT SET height of rows (for now)
+
+    ui->darkSongTable->setSortingEnabled(false);
+
+    int initialRowCount = ui->darkSongTable->rowCount();
+    int rowsVisible = initialRowCount;
+    int firstVisibleRow = -1;
+    for (int i=0; i<ui->darkSongTable->rowCount(); i++) {
+//        QString songTitle = getTitleColText(ui->darkSongTable, i);
+        QString songTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+
+        QString songType = ui->darkSongTable->item(i,kTypeCol)->text();
+        QString songLabel = ui->darkSongTable->item(i,kLabelCol)->text();
+
+        bool show = true;
+
+        if (!filterContains(songLabel,label)
+            || !filterContains(songType, type)
+            || !filterContains(songTitle, title))
+        {
+            show = false;
+        }
+        ui->darkSongTable->setRowHidden(i, !show);
+        rowsVisible -= (show ? 0 : 1); // decrement row count, if hidden
+        if (show && firstVisibleRow == -1) {
+            firstVisibleRow = i;
+        }
+    }
+    ui->darkSongTable->setSortingEnabled(true);
+
+    t.elapsed(__LINE__);
+
+    if (rowsVisible > 0) {
+        ui->darkSongTable->selectRow(firstVisibleRow);
+    }
+
+    t.stop();
+
+//    ui->songTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);  // auto set height of rows
+}
+#endif
 
 QString MainWindow::FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor)
 {
@@ -5357,6 +5420,7 @@ void MainWindow::loadMusicList()
 }
 
 // --------------------------------------------------------------------------------
+#ifdef DARKMODE
 void MainWindow::darkLoadMusicList()
 {
     PerfTimer t("darkLoadMusicList", __LINE__);
@@ -5567,6 +5631,8 @@ void MainWindow::darkLoadMusicList()
     ui->darkSongTable->sortItems(kTitleCol);  // sort second by title in alphabetical order
     ui->darkSongTable->sortItems(kTypeCol);   // sort first by type (singing vs patter)
 
+//    darkFilterMusic();
+
     ui->darkSongTable->resizeColumnToContents(kNumberCol);  // and force resizing of column widths to match songs
     ui->darkSongTable->resizeColumnToContents(kTypeCol);
     ui->darkSongTable->resizeColumnToContents(kLabelCol);
@@ -5594,7 +5660,7 @@ void MainWindow::darkLoadMusicList()
 
     t.stop();
 }
-
+#endif
 
 
 QStringList MainWindow::getUncheckedItemsFromCurrentCallList()
@@ -5713,17 +5779,29 @@ void MainWindow::loadDanceProgramList(QString lastDanceProgram)
 
 void MainWindow::on_labelSearch_textChanged()
 {
+#ifdef DARKMODE
+    darkFilterMusic();
+#else
     filterMusic();
+#endif
 }
 
 void MainWindow::on_typeSearch_textChanged()
 {
+#ifdef DARKMODE
+    darkFilterMusic();
+#else
     filterMusic();
+#endif
 }
 
 void MainWindow::on_titleSearch_textChanged()
 {
+#ifdef DARKMODE
+    darkFilterMusic();
+#else
     filterMusic();
+#endif
 }
 
 
@@ -6283,6 +6361,7 @@ int MainWindow::selectedSongRow()
     return row;
 }
 
+#ifdef DARKMODE
 int MainWindow::darkSelectedSongRow()
 {
     QItemSelectionModel *selectionModel = ui->darkSongTable->selectionModel();
@@ -6296,7 +6375,7 @@ int MainWindow::darkSelectedSongRow()
     } // else more than 1 row or no rows, just return -1
     return row;
 }
-
+#endif
 
 // Return the previous visible song row if just one selected, else -1
 int MainWindow::previousVisibleSongRow()
