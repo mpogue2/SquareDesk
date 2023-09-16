@@ -1644,7 +1644,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // DARK MODE UI TESTING --------------------
 
-    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) and Section-in-Tip (Singer),\nin MM:SS.");
+    ui->darkWarningLabel->setToolTip("Shows Time-in-Tip (Patter) in MM:SS, and Section-in-Tip (Singer).");
     ui->currentLocLabel3->setToolTip("Shows Position-in-Song in MM:SS.");
     ui->songLengthLabel2->setToolTip("Shows Length-of-Song in MM:SS.");
 
@@ -1820,11 +1820,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
 
     // SONGTABLE:
-    ui->darkSongTable->selectRow(2);
+//    ui->darkSongTable->selectRow(2);
 
     // TREEWIDGET:
 //    ui->treeWidget->expandAll();
-//    ui->treeWidget->itemAt(100,100)->setSelected(true);
+    ui->treeWidget->itemAt(100,10)->setSelected(true);
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
@@ -5501,7 +5501,7 @@ void MainWindow::darkLoadMusicList()
 
         // format the title string --
         QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), textCol.name()));
-        SongTitleLabel *titleLabel = new SongTitleLabel(this);
+        darkSongTitleLabel *titleLabel = new darkSongTitleLabel(this);
         titleLabel->setTextFormat(Qt::RichText);
         titleLabel->setText(titlePlusTags);
         titleLabel->textColor = textCol.name();  // remember the text color, so we can restore it when deselected
@@ -5584,7 +5584,11 @@ void MainWindow::darkLoadMusicList()
 //    on_darkSongTable_itemSelectionChanged();  // to re-highlight the selection, if music was reloaded while an item was selected
     lastSongTableRowSelected = 0; // first row is highlighted now
 
-    ui->darkSongTable->scrollToItem(ui->songTable->item(0, kNumberCol)); // EnsureVisible row 0 (which is highlighted)
+    ui->darkSongTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->darkSongTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->darkSongTable->selectRow(0);
+
+    ui->darkSongTable->scrollToItem(ui->darkSongTable->item(0, kTypeCol)); // EnsureVisible row 0 (which is highlighted)
 
     ui->darkSearch->setFocus();
 
@@ -5733,6 +5737,19 @@ void MainWindow::titleLabelDoubleClicked(QMouseEvent * /* event */)
     }
     
 }
+
+#ifdef DARKMODE
+void MainWindow::darkTitleLabelDoubleClicked(QMouseEvent * /* event */)
+{
+    int row = darkSelectedSongRow();
+    if (row >= 0) {
+        on_darkSongTable_itemDoubleClicked(ui->songTable->item(row,kPathCol));
+    } else {
+        // more than 1 row or no rows at all selected (BAD)
+    }
+
+}
+#endif
 
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
@@ -6265,6 +6282,21 @@ int MainWindow::selectedSongRow()
     } // else more than 1 row or no rows, just return -1
     return row;
 }
+
+int MainWindow::darkSelectedSongRow()
+{
+    QItemSelectionModel *selectionModel = ui->darkSongTable->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+    return row;
+}
+
 
 // Return the previous visible song row if just one selected, else -1
 int MainWindow::previousVisibleSongRow()
@@ -8729,3 +8761,55 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
 //        qDebug() << "empty TreeWidget selection";
     }
 }
+
+#ifdef DARKMODE
+void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
+{
+    PerfTimer t("on_darkSongTable_itemDoubleClicked", __LINE__);
+
+    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    saveCurrentSongSettings();
+
+    t.elapsed(__LINE__);
+
+    int row = item->row();
+    QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+
+    QString songTitle = getTitleColTitle(ui->darkSongTable, row);
+    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+    QString songType = ui->darkSongTable->item(row,kTypeCol)->text().toLower();
+    QString songLabel = ui->darkSongTable->item(row,kLabelCol)->text().toLower();
+
+    // these must be up here to get the correct values...
+    QString pitch = ui->darkSongTable->item(row,kPitchCol)->text();
+    QString tempo = ui->darkSongTable->item(row,kTempoCol)->text();
+    QString number = ui->darkSongTable->item(row, kNumberCol)->text();
+
+    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
+    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
+    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+
+    //    qDebug() << "on_songTable_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo;
+
+    t.elapsed(__LINE__);
+
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+
+    t.elapsed(__LINE__);
+
+    // these must be down here, to set the correct values...
+    int pitchInt = pitch.toInt();
+    ui->pitchSlider->setValue(pitchInt);
+    ui->darkPitchSlider->setValue(pitchInt);
+
+    on_pitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+        //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
+
+    if (ui->actionAutostart_playback->isChecked()) {
+        on_playButton_clicked();
+    }
+
+    t.elapsed(__LINE__);
+}
+#endif

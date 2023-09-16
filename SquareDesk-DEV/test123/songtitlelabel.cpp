@@ -30,3 +30,10 @@ void SongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
     mw->titleLabelDoubleClicked(e);
 }
+
+#ifdef DARKMODE
+void darkSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    mw->darkTitleLabelDoubleClicked(e);
+}
+#endif

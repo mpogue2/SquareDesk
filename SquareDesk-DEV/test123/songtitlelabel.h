@@ -27,7 +27,9 @@
 #define SONGTITLELABEL_H_INCLUDED
 
 #include <QLabel>
-class MainWindow;
+#include "mainwindow.h"
+
+//class MainWindow;
 
 class SongTitleLabel : public QLabel {
 private:
@@ -37,5 +39,16 @@ public:
     void mouseDoubleClickEvent(QMouseEvent *) override;
     QString textColor;  // saved so that we can restore it when not selected
 };
+
+#ifdef DARKMODE
+class darkSongTitleLabel : public QLabel {
+private:
+    MainWindow *mw;
+public:
+    darkSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
+    void mouseDoubleClickEvent(QMouseEvent *) override;
+    QString textColor;  // saved so that we can restore it when not selected
+};
+#endif
 
 #endif /* ifndef SONGTITLELABEL_H_INCLUDED */

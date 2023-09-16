@@ -373,6 +373,9 @@ private slots:
 
     void on_actionOpen_MP3_file_triggered();
     void on_songTable_itemDoubleClicked(QTableWidgetItem *item);
+#ifdef DARKMODE
+    void on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item);
+#endif
 
     void on_labelSearch_textChanged();
     void on_typeSearch_textChanged();
@@ -760,6 +763,9 @@ public:
     void highlight_sd_replaceables();
     void populateMenuSessionOptions();
     void titleLabelDoubleClicked(QMouseEvent * /* event */);
+#ifdef DARKMODE
+    void darkTitleLabelDoubleClicked(QMouseEvent * /* event */);
+#endif
 #ifndef NO_TIMING_INFO
     void sdSequenceCallLabelDoubleClicked(QMouseEvent * /* event */);
 #endif
@@ -979,6 +985,9 @@ private:
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
     int getSelectionRowForFilename(const QString &filePath);
 
+#ifdef DARKMODE
+    int darkSelectedSongRow();  // returns -1 if none selected
+#endif
     // Song types
     QStringList songTypeNamesForPatter;
     QStringList songTypeNamesForSinging;
