@@ -208,7 +208,7 @@ void svgWaveformSlider::finishInit() {
 bool svgWaveformSlider::eventFilter(QObject *obj, QEvent *event)
 {
     Q_UNUSED(obj)
-    qDebug() << "obj: " << obj << ", event: " << event->type();
+//    qDebug() << "obj: " << obj << ", event: " << event->type();
 
     if (event->type() == QEvent::Wheel || event->type() == QEvent::Scroll) {
         // eat wheel and scroll events

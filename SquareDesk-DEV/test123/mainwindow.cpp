@@ -4110,11 +4110,11 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
-    qDebug() << "handleKeypress(" << key << ")";
+//    qDebug() << "handleKeypress(" << key << ")";
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
         return false;
     }
-    qDebug() << "YES: handleKeypress(" << key << ")";
+//    qDebug() << "YES: handleKeypress(" << key << ")";
 
     switch (key) {
 
@@ -5574,23 +5574,27 @@ void MainWindow::darkLoadMusicList()
         }
         TableNumberItem *newTableItem4 = new TableNumberItem(s2);
 
-        newTableItem4->setTextAlignment(Qt::AlignHCenter); // editable by default
+        newTableItem4->setTextAlignment(Qt::AlignHCenter);
         newTableItem4->setForeground(textCol);
+        // # items are editable by default
         ui->darkSongTable->setItem(i, kNumberCol, newTableItem4);
 
         // TYPE FIELD -----
         QTableWidgetItem *twi1 = new QTableWidgetItem(type);
         twi1->setForeground(textBrush);
+        twi1->setFlags(twi1->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kTypeCol, twi1);
 
         // LABEL + LABELNUM FIELD -----
         QTableWidgetItem *twi2 = new QTableWidgetItem(label + " " + labelnum);
         twi2->setForeground(textBrush);
+        twi2->setFlags(twi2->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kLabelCol, twi2);
 
 //         INVISIBLE TABLE WIDGET ITEM -----
 //         FYI: THIS IS FOR SORTING...
         InvisibleTableWidgetItem *titleItem(new InvisibleTableWidgetItem(title));
+        titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kTitleCol, titleItem);
 
         // TITLE WIDGET (WITH TAGS) -----
@@ -5616,6 +5620,7 @@ void MainWindow::darkLoadMusicList()
         QTableWidgetItem *twi4 = new QTableWidgetItem(ageAsIntString);
         twi4->setForeground(textBrush);
         twi4->setTextAlignment(Qt::AlignHCenter);
+        twi4->setFlags(twi4->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kAgeCol, twi4);
 
         // RECENT FIELD (must come after AGE field, because it uses age to determine recent string) -----
@@ -5623,6 +5628,7 @@ void MainWindow::darkLoadMusicList()
         QTableWidgetItem *twi4b = new QTableWidgetItem(recentString);
         twi4b->setForeground(textBrush);
         twi4b->setTextAlignment(Qt::AlignHCenter);
+        twi4b->setFlags(twi4b->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kRecentCol, twi4b);
 
         // PITCH FIELD -----
@@ -5632,6 +5638,7 @@ void MainWindow::darkLoadMusicList()
         QTableWidgetItem *twi5 = new QTableWidgetItem(QString("%1").arg(pitch));
         twi5->setForeground(textBrush);
         twi5->setTextAlignment(Qt::AlignHCenter);
+        twi5->setFlags(twi5->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kPitchCol, twi5);
 
         // TEMPO FIELD -----
@@ -5646,6 +5653,7 @@ void MainWindow::darkLoadMusicList()
         QTableWidgetItem *twi6 = new QTableWidgetItem(QString("%1").arg(tempoStr));
         twi6->setForeground(textBrush);
         twi6->setTextAlignment(Qt::AlignHCenter);
+        twi6->setFlags(twi6->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kTempoCol, twi6);
 
         // PATH FIELD (VARIANT SAVED IN INVISIBLE LOCATION) -----
