@@ -1764,6 +1764,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
             });
 
     // SONGTABLE:
+    ui->darkSongTable->setAutoScroll(true); // Ensure that selection is always visible
+
     QHeaderView *verticalHeader = ui->darkSongTable->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::ResizeToContents);
 
@@ -3821,8 +3823,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
-
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
+        bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "DarkMode");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
 
@@ -3906,6 +3908,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                  ) {
             ui->textBrowserCueSheet->copy();  // Then let's do the copy to clipboard manually anyway, even though we might not have focus
             return true;
+        }
+        else if (tabIsDarkMode && (theKey == Qt::Key_F) && (KeyEvent->modifiers() & Qt::ControlModifier)) {
+            // CMD-F moves focus to the dark search field, if we're on the DarkMode tab
+            ui->darkSearch->setFocus();
         }
         else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
                ui->typeSearch->hasFocus() ||
@@ -4104,11 +4110,11 @@ bool MainWindow::handleKeypress(int key, QString text)
     Q_UNUSED(text)
     QString tabTitle;
 
-//    qDebug() << "handleKeypress(" << key << ")";
+    qDebug() << "handleKeypress(" << key << ")";
     if (inPreferencesDialog || !trapKeypresses || (prefDialog != nullptr)) {
         return false;
     }
-//    qDebug() << "YES: handleKeypress(" << key << ")";
+    qDebug() << "YES: handleKeypress(" << key << ")";
 
     switch (key) {
 
@@ -4192,12 +4198,9 @@ bool MainWindow::handleKeypress(int key, QString text)
             if (ui->typeSearch->hasFocus() ||
                 ui->labelSearch->hasFocus() ||
                 ui->titleSearch->hasFocus() ||
-#ifdef DARKMODE
-                ui->darkSearch->hasFocus() ||
-#endif
-                    ui->songTable->hasFocus()) { // also now allow pressing Return to load, if songTable has focus
+                ui->songTable->hasFocus()) {
+                // also now allow pressing Return to load, if songTable has focus
 //                qDebug() << "   and search OR songTable has focus.";
-
 //                QWidget *lastWidget = QApplication::focusWidget(); // save current focus (destroyed by itemDoubleClicked) because reasons
 
                 // figure out which row is currently selected
@@ -4212,6 +4215,21 @@ bool MainWindow::handleKeypress(int key, QString text)
 //                lastWidget->setFocus(); // restore focus to widget that had it before
                 ui->songTable->setFocus(); // THIS IS BETTER
             }
+#ifdef DARKMODE
+            else if (ui->darkSearch->hasFocus() || ui->darkSongTable->hasFocus()) {
+                // also now allow pressing Return to load, if darkSongTable or darkSearch field have focus
+                int row = darkSelectedSongRow();
+                if (row < 0) {
+                    // more than 1 row or no rows at all selected (BAD)
+                    return true;
+                }
+
+                on_darkSongTable_itemDoubleClicked(ui->darkSongTable->item(row,1)); // note: alters focus
+
+                //                lastWidget->setFocus(); // restore focus to widget that had it before
+                ui->darkSongTable->setFocus(); // THIS IS BETTER
+            }
+#endif
             break;
 
         case Qt::Key_Down:
@@ -4219,9 +4237,6 @@ bool MainWindow::handleKeypress(int key, QString text)
 //            qDebug() << "Key up/down detected.";
             if (ui->typeSearch->hasFocus() ||
                 ui->labelSearch->hasFocus() ||
-#ifdef DARKMODE
-                ui->darkSearch->hasFocus() ||
-#endif
                 ui->titleSearch->hasFocus() ||
                 ui->songTable->hasFocus()) {
 //                qDebug() << "   and search OR songTable has focus.";
@@ -4242,6 +4257,25 @@ bool MainWindow::handleKeypress(int key, QString text)
                     ui->songTable->selectRow(row); // select new row!
                 }
             }
+#ifdef DARKMODE
+            else if (ui->darkSearch->hasFocus() || ui->darkSongTable->hasFocus()) {
+                if (key == Qt::Key_Up) {
+                    int row = darkPreviousVisibleSongRow();
+                    if (row < 0) {
+                        // more than 1 row or no rows at all selected (BAD)
+                        return true;
+                    }
+                    ui->darkSongTable->selectRow(row); // select new row!
+                } else {
+                    int row = darkNextVisibleSongRow();
+                    if (row < 0) {
+                        // more than 1 row or no rows at all selected (BAD)
+                        return true;
+                    }
+                    ui->darkSongTable->selectRow(row); // select new row!
+                }
+            }
+#endif
             break;
 
     // Bluetooth Remote keys (mapped by Karabiner on Mac OS X to F18/19/20) -----------
@@ -6430,6 +6464,62 @@ int MainWindow::nextVisibleSongRow() {
     
     return row;
 }
+
+#ifdef DARKMODE
+// Return the previous visible song row if just one selected, else -1
+int MainWindow::darkPreviousVisibleSongRow()
+{
+    int row = darkSelectedSongRow();
+    if (row < 0) {
+        // more than 1 row or no rows at all selected (BAD)
+        return row;
+    }
+
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
+    row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+
+    while (ui->darkSongTable->isRowHidden(row) && row > 0) {
+        // keep bumping backwards, until the previous VISIBLE row is found, or we're at the BEGINNING
+        row = (row-1 < 0 ? 0 : row-1); // bump backwards by 1
+    }
+    if (ui->darkSongTable->isRowHidden(row)) {
+        // if we try to go past the beginning of the VISIBLE rows, stick at the first visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
+    return row;
+}
+
+// Return the next visible song row if just one selected, else -1
+int MainWindow::darkNextVisibleSongRow() {
+    int row = darkSelectedSongRow();
+    if (row < 0) {
+        return row;
+    }
+
+    int maxRow = ui->darkSongTable->rowCount() - 1;
+
+    // which is the next VISIBLE row?
+    int lastVisibleRow = row;
+    row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    while (ui->darkSongTable->isRowHidden(row) && row < maxRow) {
+        // keep bumping, until the next VISIBLE row is found, or we're at the END
+        row = (maxRow < row+1 ? maxRow : row+1); // bump up by 1
+    }
+    if (ui->darkSongTable->isRowHidden(row)) {
+        // if we try to go past the end of the VISIBLE rows, stick at the last visible row (which
+        //   was the last one we were on.  Well, that's not always true, but this is a quick and dirty
+        //   solution.  If I go to a row, select it, and then filter all rows out, and hit one of the >>| buttons,
+        //   hilarity will ensue.
+        row = lastVisibleRow;
+    }
+
+    return row;
+}
+#endif
 
 // END OF PLAYLIST SECTION ================
 

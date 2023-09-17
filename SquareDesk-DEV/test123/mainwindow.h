@@ -985,6 +985,10 @@ private:
     int selectedSongRow();  // returns -1 if none selected
     int previousVisibleSongRow();   // previous visible row or -1
     int nextVisibleSongRow();       // return next visible row or -1
+#ifdef DARKMODE
+    int darkPreviousVisibleSongRow();   // previous visible row or -1
+    int darkNextVisibleSongRow();       // return next visible row or -1
+#endif
     int PlaylistItemCount(); // returns the number of items in the currently loaded playlist
     int getSelectionRowForFilename(const QString &filePath);
 
