@@ -9,32 +9,14 @@
 svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
     QSlider(parent)
 {
-    //    qDebug() << "======== svgWaveformSlider default constructor!";
-
-//    QString waveformStylesheet = R"(
-//        QSlider::groove:horizontal {
-//            border: 1px solid #999999;
-//            height: 8px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
-//            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #B1B1B1, stop:1 #c4c4c4);
-//            margin: 2px 0;
-//        }
-
-//        QSlider::handle:horizontal {
-//            background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #b4b4b4, stop:1 #8f8f8f);
-//            border: 1px solid #5c5c5c;
-//            width: 18px;
-//            margin: -2px 0; /* handle is placed by default on the contents rect of the groove. Expand outside the groove */
-//            border-radius: 3px;
-//        }
-//    )";
-
-//    setStyleSheet(waveformStylesheet);
-
     // bare minimum init --------
     drawLoopPoints = false;
     singingCall = false;
     SetDefaultIntroOutroPositions(false, 0.0, 0.0, 0.0, 0.0);
     origin = 0;
+
+    bgPixmap = nullptr; // this is the only one that we throw away dynamically
+    nowDestroying = false; // true when we're in the destructor, shutting everything down (don't want any paint events or updates)
 
     // install the wheel/scroll eater --------
 //    this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
@@ -119,70 +101,21 @@ void svgWaveformSlider::finishInit() {
     bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
     bgPixmap->fill(QColor("#1A1A1A"));
 
-//    // FAKE WAVEFORM ------
-//    QPainter *paint = new QPainter(bgPixmap);
-////    paint->setPen(QColor(0, 0, 0, 255));
-////    paint->setPen(QColor("#707070"));
-
-////    QColor colorEnds = QColor("#e4da20");  // dark yellow, visible on both Mac and Windows
-////    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#2eab9c"), QColor("#5368c9")};
-//    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
-//    int colorMap[] = {1,2,3,1,2,3,1};
-
-//    // DEBUG -------
-////    paint->setPen(QColor(Qt::red));  // DEBUG
-////    paint->drawLine(0,0,100,100);    // DEBUG
-////    paint->drawLine(WAVEFORMWIDTH,0,WAVEFORMWIDTH-100,100);
-
-//    double h;
-
-//    // DEBUG DEBUG DEBUG ******************
-////    singingCall = true;
-////    introPosition = WAVEFORMWIDTH * 0.05;
-////    outroPosition = WAVEFORMWIDTH * 0.95;
-
-//    if (singingCall) { // DEBUG DEBUG ***********
-//        // Singing call
-//        paint->setPen(colors[0]);
-//        paint->drawLine(0,30,WAVEFORMWIDTH,30);
-
-//        int whichColor = 0;
-//        paint->setPen(colors[whichColor]);
-//        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
-
-//            if (i < introPosition || i > outroPosition) {
-//                whichColor = 0;
-//            } else {
-//                int inSeg = i - introPosition;
-//                int whichSeg = inSeg / ((outroPosition - introPosition)/7.0);
-//                whichColor = colorMap[whichSeg];
-//            }
-
-//            paint->setPen(colors[whichColor]);
-//            h = 8 + rand() % 20;
-//            paint->drawLine(i,h,i,61-h);
-//        }
-//    } else {
-//        // Patter, etc.
-//        paint->setPen(QColor("#707070"));
-////        qDebug() << "WAVEFORMWIDTH: " << WAVEFORMWIDTH;
-//        paint->drawLine(0,30,WAVEFORMWIDTH,30);
-//        for (int i = 5; i < WAVEFORMWIDTH-5; i++) {
-//            h = 8 + rand() % 20;
-//            paint->drawLine(i,h,i,61-h);
-//        }
-//    }
-
-//    delete paint;
-
+//    DEBUG: save to a file so we can look at it ----
 //    bgPixmap->save("myPixmap.png");
 //    scene.addPixmap(*bgPixmap);
 
-    bg       = new QGraphicsPixmapItem(*bgPixmap);
-//    qDebug() << "finishInit with: " << bg->boundingRect();
+    bg = new QGraphicsPixmapItem(*bgPixmap);
+
+    //    qDebug() << "finishInit with: " << bg->boundingRect();
+
+    // LOADING MESSAGE --------
+    loadingMessage = new QGraphicsTextItem("Loading...");
+    loadingMessage->setFont(QFont("Avenir Next", 18));
+    loadingMessage->setPos(20, 5);
+    loadingMessage->setVisible(false);
 
     // CURRENT POSITION MARKER -------
-//    QPen currentPosPen(QColor("#00D3FF"), 2);
     QPen currentPosPen(QColor("#00FF33"), 1);
     QBrush currentPosBrush(QColor("#00FF33"));
 
@@ -206,7 +139,7 @@ void svgWaveformSlider::finishInit() {
     currentPos->addToGroup(topTri);
     currentPos->addToGroup(botTri);
 
-    currentPos->setPos(value(), 0);
+    currentPos->setPos(0, 0);
 
     // LOOP INDICATORS -------
     QPen currentLoopPen(QColor("#26A4ED"), 2);
@@ -234,6 +167,7 @@ void svgWaveformSlider::finishInit() {
 
     // right --
     rightLoopMarker = new QGraphicsItemGroup();
+
     QGraphicsLineItem *topR = new QGraphicsLineItem(0,1, 4,1);
     topR->setPen(currentLoopPen);
     QGraphicsLineItem *middleR = new QGraphicsLineItem(4,0, 4,61);
@@ -245,10 +179,10 @@ void svgWaveformSlider::finishInit() {
     rightLoopMarker->addToGroup(middleR);
     rightLoopMarker->addToGroup(botR);
 
-    rightLoopMarker->setPos(100,0);
+    rightLoopMarker->setPos(300,0);
 
     // right cover --
-    rightLoopCover = new QGraphicsRectItem(200,0,WAVEFORMWIDTH,61);
+    rightLoopCover = new QGraphicsRectItem(300,0,WAVEFORMWIDTH,61);
     rightLoopCover->setBrush(loopDarkeningBrush);
 
     this->setLoop(false);  // turn off to start
@@ -259,6 +193,7 @@ void svgWaveformSlider::finishInit() {
     view.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     scene.addItem(bg);  // on BOTTOM
+    scene.addItem(loadingMessage);
     scene.addItem(leftLoopCover);
     scene.addItem(leftLoopMarker);
     scene.addItem(rightLoopCover);
@@ -273,7 +208,6 @@ void svgWaveformSlider::finishInit() {
 bool svgWaveformSlider::eventFilter(QObject *obj, QEvent *event)
 {
     Q_UNUSED(obj)
-
     qDebug() << "obj: " << obj << ", event: " << event->type();
 
     if (event->type() == QEvent::Wheel || event->type() == QEvent::Scroll) {
@@ -338,14 +272,17 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
 void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     Q_UNUSED(t)
     // paint some stuff on the existing (correctly-sized pixmap)
-
 //    qDebug() << "svgWaveformSlider::updateBgPixmap" << introPosition << outroPosition;
 
 //    for (int i = 0; i < WAVEFORMWIDTH; i++) {
 //        qDebug() << i << f[i];
 //    }
 
-    // let's make a new one (I hope this isn't a leak...)
+    // let's make a new pixmap to draw on
+    if (bgPixmap) {
+        delete bgPixmap; // let's throw away the old one before we make a new one
+    }
+
     bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
     QPainter *paint = new QPainter(bgPixmap);
 
@@ -354,7 +291,6 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
     int colorMap[] = {1,2,3,1,2,3,1};
 
-//    bool singingCall = true;
     float h;
 
     // center line always drawn
@@ -368,41 +304,119 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
 //    qDebug() << "updateBgPixmap:" << introP << outroP;
 
-    if (singingCall) {
-        // Singing call ---------------------
-//        qDebug() << "it's a singing call...";
+    if (f != nullptr) { // f == nullptr means "no waveform at all"
+        // show normal waveform ----
+        currentPos->setVisible(true);
+        leftLoopMarker->setVisible(true);
+        rightLoopMarker->setVisible(true);
+        leftLoopCover->setVisible(true);
+        rightLoopCover->setVisible(true);
 
-        int whichColor = 0;
-        for (int i = 0; i < WAVEFORMWIDTH; i++) {
+        loadingMessage->setVisible(false);
 
-            if (i < introP || i > outroP) {
-                whichColor = 0;
-            } else {
-                int inSeg = i - introP;
-                int whichSeg = inSeg / ((outroPosition - introP)/7.0);
-                whichColor = colorMap[whichSeg];
+        if (singingCall) {
+            // Singing call ---------------------
+    //        qDebug() << "it's a singing call...";
+
+            int whichColor = 0;
+            for (int i = 0; i < WAVEFORMWIDTH; i++) {
+
+                if (i < introP || i > outroP) {
+                    whichColor = 0;
+                } else {
+                    int inSeg = i - introP;
+                    int whichSeg = inSeg / ((outroPosition - introP)/7.0);
+                    whichColor = colorMap[whichSeg];
+                }
+
+                paint->setPen(colors[whichColor]);
+                h = fullScaleInPixels * f[i];
+                paint->drawLine(i,30.0 + h,i,30.0 - h);
+
             }
+        } else {
+            // Patter, etc. ----------------------
 
-            paint->setPen(colors[whichColor]);
-            h = fullScaleInPixels * f[i];
-            paint->drawLine(i,30.0 + h,i,30.0 - h);
+            // TODO: actually calculate the power by each 1/481 of the duration in seconds (1 pixel at a time)
+            //  by peeking at the actual data.
+            // TODO: Make L and R go up and down respectively?
+            for (int i = 0; i < WAVEFORMWIDTH; i++) {
+                h = fullScaleInPixels * f[i];
+                paint->drawLine(i,30.0 + h,i,30.0 - h);
+            }
 
         }
     } else {
-        // Patter, etc. ----------------------
+        // show just bg, centerline, and loading message ----
+        currentPos->setVisible(false);
+        leftLoopMarker->setVisible(false);
+        rightLoopMarker->setVisible(false);
+        leftLoopCover->setVisible(false);
+        rightLoopCover->setVisible(false);
 
-        // TODO: actually calculate the power by each 1/481 of the duration in seconds (1 pixel at a time)
-        //  by peeking at the actual data.
-        // TODO: Make L and R go up and down respectively?
-        for (int i = 0; i < WAVEFORMWIDTH; i++) {
-            h = fullScaleInPixels * f[i];
-            paint->drawLine(i,30.0 + h,i,30.0 - h);
-        }
-
+        loadingMessage->setVisible(true);
     }
 
     delete paint;
 
     // and load it
     bg->setPixmap(*bgPixmap);
+}
+
+// ----------------------
+void svgWaveformSlider::setBgFile(QString s) {
+    m_bgFile = s;
+    //        emit bgFileChanged(s);
+}
+
+QString svgWaveformSlider::getBgFile() const {
+    return(m_bgFile);
+}
+
+void svgWaveformSlider::setSingingCall(bool b) {
+    //        qDebug() << "*** setSingingCall:" << b;
+    singingCall = b;
+}
+
+void svgWaveformSlider::setOrigin(int i) {
+    origin = i;
+}
+
+// LOOPS -------
+void svgWaveformSlider::setLoop(bool b) {
+    drawLoopPoints = b;
+
+    if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
+        leftLoopCover->setVisible(drawLoopPoints);
+        leftLoopMarker->setVisible(drawLoopPoints);
+        rightLoopCover->setVisible(drawLoopPoints);
+        rightLoopMarker->setVisible(drawLoopPoints);
+    }
+
+}
+
+void svgWaveformSlider::setIntro(double frac) {
+    introPosition = frac * WAVEFORMWIDTH;
+    //        qDebug() << "*** setIntro:" << introPosition;
+    if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
+        leftLoopMarker->setX(introPosition);
+        leftLoopCover->setRect(0,0, introPosition,61);
+    }
+}
+
+void svgWaveformSlider::setOutro(double frac) {
+    outroPosition = frac * WAVEFORMWIDTH;
+    //        qDebug() << "*** setOutro:" << outroPosition;
+    if (rightLoopMarker != nullptr && rightLoopMarker != nullptr) {
+        rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
+        rightLoopCover->setRect(outroPosition,0, WAVEFORMWIDTH-outroPosition,61);
+    }
+}
+
+double svgWaveformSlider::getIntro() {
+    return(introPosition);
+}
+
+double svgWaveformSlider::getOutro() {
+    return(outroPosition);
 }

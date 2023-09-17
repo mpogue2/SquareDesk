@@ -1382,7 +1382,7 @@ void AudioDecoder::updateWaveformMap()
     unsigned char *p_data = (unsigned char *)(m_data->data());
     int totalFramesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
     const float *songPointer = (const float *)p_data; // THIS is where the audio data is. They are interleaved floats.  I think.
-    float secondsInSong = totalFramesInSong / 44100.0;
+//    float secondsInSong = totalFramesInSong / 44100.0;
 
 //    qDebug() << "AudioDecoder::updateWaveformMap" << totalFramesInSong << myPlayer.bytesPerFrame << secondsInSong << WAVEFORMWIDTH; // should be 44.1kHz at this point
 

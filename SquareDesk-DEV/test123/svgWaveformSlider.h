@@ -27,91 +27,38 @@ class svgWaveformSlider : public QSlider
     Q_OBJECT
     Q_PROPERTY(QString bgFile     READ getBgFile     WRITE setBgFile     NOTIFY bgFileChanged)
 
-//    void SetLoop(bool b);           // turn on loop points
-//    void SetSingingCall(bool b);    // turn on singing call coloring
-//    void SetOrigin(int newOrigin);  // use an origin other than zero, when double-clicked
-//    void SetIntro(double intro);
-//    void SetOutro(double outro);
-//    double GetIntro() const;
-//    double GetOutro() const;
-
-    void SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
-                                       double songStart_sec, double songEnd_sec, double songLength_sec);
-
-    bool eventFilter(QObject *obj, QEvent *event);
-
-// MARKERS ----------
-//    void AddMarker(double markerLoc);
-//    void DeleteMarker(double markerLoc);
-//    QSet<double> GetMarkers();
-//    void ClearMarkers();
-
 public:
     explicit svgWaveformSlider(QWidget *parent = 0);
     ~svgWaveformSlider();
 
-    void setBgFile(QString s) {
-        m_bgFile = s;
-//        emit bgFileChanged(s);
-    }
-
-    QString getBgFile() const {
-        return(m_bgFile);
-    }
-
-    void setSingingCall(bool b) {
-//        qDebug() << "*** setSingingCall:" << b;
-        singingCall = b;
-    }
-
-    void setOrigin(int i) {
-        origin = i;
-    }
+    void setBgFile(QString s);
+    QString getBgFile() const;
+    void setSingingCall(bool b);
+    void setOrigin(int i);
 
     // LOOPS -------
-    void setLoop(bool b) {
-        drawLoopPoints = b;
-
-        if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
-            leftLoopCover->setVisible(drawLoopPoints);
-            leftLoopMarker->setVisible(drawLoopPoints);
-            rightLoopCover->setVisible(drawLoopPoints);
-            rightLoopMarker->setVisible(drawLoopPoints);
-        }
-
-    }
-
-    void setIntro(double frac) {
-        introPosition = frac * WAVEFORMWIDTH;
-//        qDebug() << "*** setIntro:" << introPosition;
-        if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
-            leftLoopMarker->setX(introPosition);
-            leftLoopCover->setRect(0,0, introPosition,61);
-        }
-    }
-
-    void setOutro(double frac) {
-        outroPosition = frac * WAVEFORMWIDTH;
-//        qDebug() << "*** setOutro:" << outroPosition;
-        if (rightLoopMarker != nullptr && rightLoopMarker != nullptr) {
-            rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
-            rightLoopCover->setRect(outroPosition,0, WAVEFORMWIDTH-outroPosition,61);
-        }
-    }
-
-    double getIntro() {
-        return(introPosition);
-    }
-
-    double getOutro() {
-        return(outroPosition);
-    }
+    void setLoop(bool b);
+    void setIntro(double frac);
+    void setOutro(double frac);
+    double getIntro();
+    double getOutro();
 
     void setValue(int value);
 
     void finishInit();
 
     void updateBgPixmap(float *f, size_t t);
+
+    void SetDefaultIntroOutroPositions(bool tempoIsBPM, double estimatedBPM,
+                                       double songStart_sec, double songEnd_sec, double songLength_sec);
+
+    bool eventFilter(QObject *obj, QEvent *event);
+
+    // MARKERS ----------
+    //    void AddMarker(double markerLoc);
+    //    void DeleteMarker(double markerLoc);
+    //    QSet<double> GetMarkers();
+    //    void ClearMarkers();
 
 protected:
     void mouseMoveEvent(QMouseEvent *event);
@@ -137,6 +84,8 @@ private:
     QPixmap *bgPixmap;
     QGraphicsPixmapItem *bg;
 
+    QGraphicsTextItem *loadingMessage;
+
     QGraphicsItemGroup *currentPos;
 
     QGraphicsItemGroup *leftLoopMarker;
@@ -156,6 +105,8 @@ private:
     double outroPosition;
 
     int origin;  // reset to this point when double-clicked
+
+    bool nowDestroying;
 
     // MARKERS ----
 //    bool drawMarkers;

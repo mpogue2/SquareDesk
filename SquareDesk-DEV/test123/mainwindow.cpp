@@ -4507,6 +4507,9 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
     }
     currentSongTitle = ui->nowPlayingLabel->text();  // save, in case we are Flash Calling
 
+    // now clear out the waveform (if there is one)
+    ui->darkSeekBar->updateBgPixmap(nullptr, 0); // this means clear it out!
+
 //    QDir md(MP3FileName);
 //    QString canonicalFN = md.canonicalPath();
 
