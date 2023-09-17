@@ -19,7 +19,7 @@ svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
     nowDestroying = false; // true when we're in the destructor, shutting everything down (don't want any paint events or updates)
 
     // install the wheel/scroll eater --------
-//    this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
+    this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
 
 //    finishInit();
 }
