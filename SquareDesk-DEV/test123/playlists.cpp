@@ -329,6 +329,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 }
 
 void MainWindow::markPlaylistModified(bool isModified) {
+
+    playlistHasBeenModified = isModified; // we don't track this by looking at the status message anymore.
+
 //    qDebug() << "markPlaylistModified: " << isModified;
     QString current = ui->statusBar->currentMessage();
     if (current == "") {

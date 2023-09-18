@@ -816,6 +816,7 @@ private:
     void downloadCuesheetFileIfNeeded(QString cuesheetFilename);
 
     int linesInCurrentPlaylist;      // 0 if no playlist loaded (not likely, because of current.m3u)
+    bool playlistHasBeenModified;
     QString lastSavedPlaylist;       // "" if no playlist was saved in this session
     QString lastFlashcardsUserFile;      // "" if no flashcard file currently
     QString lastFlashcardsUserDirectory;      // "" if no flashcard file currently

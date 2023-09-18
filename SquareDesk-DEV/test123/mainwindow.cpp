@@ -367,6 +367,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lyricsForDifferentSong = false;
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
+    playlistHasBeenModified = false; // playlist hasn't been modified yet
 
     // Recall any previous flashcards file
     lastFlashcardsUserFile = prefsManager.Getlastflashcalluserfile();
@@ -7113,72 +7114,75 @@ void MainWindow::on_darkWarningLabel_clicked() {
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    if (ui->tabWidget->tabText(index) == "SD"
-        /*|| ui->tabWidget->tabText(index) == "SD 2"*/) {
-        // SD Tab ---------------
+    // disable all dynamic menu items
+    ui->actionSave_Playlist_2->setEnabled(false);       // PLAYLIST > SAVE PLAYLIST
+    ui->actionSave_Playlist->setEnabled(false);         // PLAYLIST > SAVE PLAYLIST AS...
+    ui->actionPrint_Playlist->setEnabled(false);        // PLAYLIST > PRINT PLAYLIST...
+
+    ui->actionSave_Cuesheet->setEnabled(false);         // CUESHEET > SAVE CUESHEET
+    ui->actionSave_Cuesheet_As->setEnabled(false);      // CUESHEET > SAVE CUESHEET AS...
+    ui->actionPrint_Cuesheet->setEnabled(false);        // CUESHEET > PRINT CUESHEET...
+
+    ui->actionSave_Sequence->setEnabled(false);         // SD > SAVE SEQUENCE
+    ui->actionSave_Sequence_As->setEnabled(false);      // SD > SAVE SEQUENCE TO FILE...
+    ui->actionPrint_Sequence->setEnabled(false);        // SD > PRINT SEQUENCE...
+
+    // clear shortcuts from all dynamic menu items (Print menu items don't get shortcuts, so don't bother with those)
+    ui->actionSave_Playlist_2->setShortcut(QKeySequence());     // PLAYLIST > SAVE PLAYLIST
+    ui->actionSave_Playlist->setShortcut(QKeySequence());       // PLAYLIST > SAVE PLAYLIST AS...
+
+    ui->actionSave_Cuesheet->setShortcut(QKeySequence());       // CUESHEET > SAVE CUESHEET
+    ui->actionSave_Cuesheet_As->setShortcut(QKeySequence());    // CUESHEET > SAVE CUESHEET AS...
+
+    ui->actionSave_Sequence->setShortcut(QKeySequence());       // SD > SAVE SEQUENCE
+    ui->actionSave_Sequence_As->setShortcut(QKeySequence());    // SD > SAVE SEQUENCE TO FILE...
+
+    QString currentTabName = ui->tabWidget->tabText(index);
+
+//    qDebug() << "on_tabWidget_currentChanged: " << index << currentTabName;
+
+    if (currentTabName == "Music" || currentTabName == "DarkMode") {
+        // MUSIC PLAYER TAB -------------
+//        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist << playlistHasBeenModified;
+        ui->actionSave_Playlist_2->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved if there are >0 lines (this is SAVE PLAYLIST)
+        ui->actionSave_Playlist_2->setShortcut(QKeyCombination(Qt::ControlModifier, Qt::Key_S));  // Cmd-S
+
+        ui->actionSave_Playlist->setEnabled(playlistHasBeenModified); // this is SAVE PLAYLIST AS
+        ui->actionSave_Playlist->setShortcut(QKeyCombination(Qt::ShiftModifier|Qt::ControlModifier, Qt::Key_S)); // SHIFT-Cmd-S
+
+        ui->actionPrint_Playlist->setEnabled(true);
+
+        if (currentTabName == "Music") {
+            ui->titleSearch->setFocus();
+        } else {
+            ui->darkSearch->setFocus();
+        }
+    } else if (currentTabName == CUESHEET_TAB_NAME) {
+        // CUESHEET TAB -----------
+        ui->actionSave_Cuesheet->setEnabled(cuesheetIsUnlockedForEditing); // CUESHEET > SAVE CUESHEET
+        ui->actionSave_Cuesheet->setShortcut(QKeyCombination(Qt::ControlModifier, Qt::Key_S));  // Cmd-S
+
+        ui->actionSave_Cuesheet_As->setEnabled(hasLyrics);
+        ui->actionSave_Cuesheet_As->setShortcut(QKeyCombination(Qt::ShiftModifier|Qt::ControlModifier, Qt::Key_S)); // SHIFT-Cmd-S
+
+        ui->actionPrint_Cuesheet->setEnabled(hasLyrics);
+    } else if (currentTabName == "SD") {
+        // SD TAB ---------------
+        ui->actionSave_Sequence->setEnabled(editSequenceInProgress);
+        ui->actionSave_Sequence->setShortcut(QKeyCombination(Qt::ControlModifier, Qt::Key_S));  // Cmd-S
+
+        ui->actionSave_Sequence_As->setEnabled(true);
+        ui->actionSave_Sequence_As->setShortcut(QKeyCombination(Qt::ShiftModifier|Qt::ControlModifier, Qt::Key_S)); // SHIFT-Cmd-S
+
+        ui->actionPrint_Sequence->setEnabled(true);
 
         ui->lineEditSDInput->setFocus();
-//        ui->actionSave_Lyrics->setDisabled(true);
-//        ui->actionSave_Lyrics_As->setDisabled(true);
-//        ui->actionPrint_Lyrics->setDisabled(true);
-
-//        ui->actionFilePrint->setEnabled(true); // FIX: when sequences can be printed
-//        ui->actionFilePrint->setText("Print SD Sequence...");
-
-//        ui->actionSave->setDisabled(true);      // sequences can't be saved (no default filename to save to)
-//        ui->actionSave->setText("Save SD Sequence");        // greyed out
-//        ui->actionSave_As->setDisabled(false);  // sequences can be saved
-//        ui->actionSave_As->setText("Save SD Sequence As...");
-    } else if (ui->tabWidget->tabText(index) == CUESHEET_TAB_NAME) {
-        // Lyrics Tab ---------------
-//        ui->actionPrint_Lyrics->setDisabled(false);
-//        ui->actionSave_Lyrics->setDisabled(false);      // TODO: enable only when we've made changes
-//        ui->actionSave_Lyrics_As->setDisabled(false);   // always enabled, because we can always save as a different name
-
-//        ui->actionFilePrint->setDisabled(false);
-
-//        // THIS IS WRONG: enabled iff hasLyrics and editing is enabled
-//        bool okToSave = hasLyrics && ui->pushButtonEditLyrics->isChecked();
-//        ui->actionSave->setEnabled(okToSave);      // cuesheet can be saved when there are lyrics to save
-//        ui->actionSave_As->setEnabled(okToSave);   // cuesheet can be saved as when there are lyrics to save
-
-
-//        ui->actionSave->setText("Save Cuesheet"); // but greyed out, until modified
-//        ui->actionSave_As->setText("Save Cuesheet As...");  // greyed out until modified
-        
-//        ui->actionFilePrint->setText("Print Cuesheet...");
-
-    } else if (ui->tabWidget->tabText(index) == "Music Player") {
-//        bool playlistModified = ui->statusBar->currentMessage().endsWith("*");
-//        qDebug() << "tabWidget" << linesInCurrentPlaylist << lastSavedPlaylist << playlistModified;
-
-//        ui->actionSave->setEnabled((linesInCurrentPlaylist != 0) && (lastSavedPlaylist != "") && playlistModified);      // playlist can be saved if there are >0 lines and it was not current.m3u
-//        if (lastSavedPlaylist != "") {
-//            QString basefilename = lastSavedPlaylist.section("/",-1,-1).replace(".csv", "");
-//            ui->actionSave_Playlist_2->setText(QString("Save Playlist") + " '" + basefilename + "'"); // it has a name
-//        } else {
-//            ui->actionSave_Playlist_2->setText(QString("Save Playlist")); // it doesn't have a name yet
-//        }
-//        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist;
-//        ui->actionSave_Playlist->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved as if there are >0 lines
-//        ui->actionSave_As->setText("Save Playlist As...");  // greyed out until modified
-
-//        ui->actionFilePrint->setEnabled(true);
-//        ui->actionFilePrint->setText("Print Playlist...");
-    } else  {
-        // dance programs, reference
-//        ui->actionPrint_Lyrics->setDisabled(true);
-//        ui->actionSave_Lyrics->setDisabled(true);
-//        ui->actionSave_Lyrics_As->setDisabled(true);
-
-//        ui->actionSave->setDisabled(true);      // dance programs etc can't be saved
-//        ui->actionSave->setText("Save"); // but greyed out
-//        ui->actionSave_As->setDisabled(true);  // patter can be saved as
-//        ui->actionSave_As->setText("Save As...");  // greyed out
-
-//        ui->actionFilePrint->setDisabled(true);
+    } else {
+        // DANCE PROGRAMS, REFERENCE TABS --------
+        // nothing, leave everything disabled
     }
 
+    // and update the lower right hand status message
     microphoneStatusUpdate();
 }
 
