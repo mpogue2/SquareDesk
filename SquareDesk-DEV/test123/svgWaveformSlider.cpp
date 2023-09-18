@@ -140,6 +140,7 @@ void svgWaveformSlider::finishInit() {
     currentPos->addToGroup(botTri);
 
     currentPos->setPos(0, 0);
+    currentPos->setVisible(false);  // initially false, since nothing is loaded yet
 
     // LOOP INDICATORS -------
     QPen currentLoopPen(QColor("#26A4ED"), 2);
