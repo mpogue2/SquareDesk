@@ -1261,10 +1261,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lastSongTableRowSelected = -1;  // meaning "no selection"
 
     lockForEditing();
-    ui->pushButtonSetIntroTime->setEnabled(false);
-    ui->pushButtonSetOutroTime->setEnabled(false);
-    ui->dateTimeEditIntroTime->setEnabled(false);
-    ui->dateTimeEditOutroTime->setEnabled(false);
+
+//    ui->pushButtonSetIntroTime->setEnabled(false);  // these are present earlier in this function
+//    ui->pushButtonSetOutroTime->setEnabled(false);
+//    ui->dateTimeEditIntroTime->setEnabled(false);
+//    ui->dateTimeEditOutroTime->setEnabled(false);
 
     cBass->SetIntelBoostEnabled(prefsManager.GetintelBoostIsEnabled());
     cBass->SetIntelBoost(FREQ_KHZ, static_cast<float>(prefsManager.GetintelCenterFreq_KHz()/10.0)); // yes, we have to initialize these manually
@@ -3922,6 +3923,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                (ui->textBrowserCueSheet->hasFocus() && ui->pushButtonEditLyrics->isChecked()) ||
                ui->dateTimeEditIntroTime->hasFocus() ||
                ui->dateTimeEditOutroTime->hasFocus() ||
+#ifdef DARKMODE
+               ui->darkStartLoopTime->hasFocus() ||
+               ui->darkEndLoopTime->hasFocus() ||
+#endif
                ui->lineEditSDInput->hasFocus() ||
 #ifdef EXPERIMENTAL_CHOREOGRAPHY_MANAGEMENT
                ui->lineEditCountDownTimer->hasFocus() ||
@@ -3940,7 +3945,10 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 #endif
                 ui->dateTimeEditIntroTime->hasFocus() ||
                 ui->dateTimeEditOutroTime->hasFocus() ||
-
+#ifdef DARKMODE
+                     ui->darkStartLoopTime->hasFocus() ||
+                     ui->darkEndLoopTime->hasFocus() ||
+#endif
                 ui->lineEditSDInput->hasFocus() || 
                 ui->textBrowserCueSheet->hasFocus()) &&
                 (theKey == Qt::Key_Escape
@@ -3972,11 +3980,17 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 #ifdef DARKMODE
                   // OR, IF THE DARK TITLE SEARCH FIELD HAS FOCUS, AND IT HAS NO CHARACTERS OF TEXT YET, AND SPACE OR PERIOD IS PRESSED
                   || (ui->darkSearch->hasFocus() && ui->darkSearch->text().length() == 0 && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
+#endif \
+                   // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
+                   || (ui->dateTimeEditIntroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
+                   // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
+                   || (ui->dateTimeEditOutroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
+#ifdef DARKMODE
+                   // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
+                   || (ui->darkStartLoopTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
+                   // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
+                   || (ui->darkEndLoopTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
 #endif
-                  // OR, IF THE LYRICS TAB SET INTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->dateTimeEditIntroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
-                  // OR, IF THE LYRICS TAB SET OUTRO FIELD HAS FOCUS, AND SPACE OR PERIOD IS PRESSED
-                  || (ui->dateTimeEditOutroTime->hasFocus() && (theKey == Qt::Key_Space || theKey == Qt::Key_Period))
            ) {
             // call handleKeypress on the Applications's active window ONLY if this is a MainWindow
 //            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << theKey << KeyEvent->text();
@@ -8179,7 +8193,7 @@ void MainWindow::on_actionTest_Loop_triggered()
 
 void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 {
-//    qDebug() << "newIntroTime: " << time;
+//    qDebug() << "on_dateTimeEditIntroTime_timeChanged: " << time;
 
     double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
     double length = cBass->FileLength;
@@ -8196,8 +8210,10 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 
     // set in ms
 //    qDebug() << "dateTimeEditIntro changed: " << currentOutroTimeSec << "," << position_sec;
-    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
-    ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
+    ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds NOTE: THIS ONE MUST BE FIRST
+#ifdef DARKMODE
+    ui->darkStartLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds NOTE: THIS ONE MUST BE SECOND
+#endif
 
     // set in fractional form
     double frac = position_sec/length;
@@ -8212,7 +8228,7 @@ void MainWindow::on_dateTimeEditIntroTime_timeChanged(const QTime &time)
 
 void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 {
-//    qDebug() << "newOutroTime: " << time;
+//    qDebug() << "on_dateTimeEditOutroTime_timeChanged: " << time;
 
     double position_sec = 60*time.minute() + time.second() + time.msec()/1000.0;
     double length = cBass->FileLength;
@@ -8229,8 +8245,10 @@ void MainWindow::on_dateTimeEditOutroTime_timeChanged(const QTime &time)
 
     // set in ms
 //    qDebug() << "dateTimeEditOutro changed: " << currentIntroTimeSec << "," << position_sec << time << length;
-    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
-    ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds
+    ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds NOTE: THIS ONE MUST BE FIRST
+#ifdef DARKMODE
+    ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*position_sec+0.5))); // milliseconds NOTE: THIS ONE MUST BE SECOND
+#endif
 
     // set in fractional form
     double frac = position_sec/length;
@@ -8993,3 +9011,28 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 }
 #endif
+
+void MainWindow::on_darkStartLoopTime_timeChanged(const QTime &time)
+{
+    QTime otherTime = (const QTime)(ui->dateTimeEditIntroTime->time());
+    qint64 dTime_ms = abs(otherTime.msecsTo(time));
+
+//    qDebug() << "on_darkStartLoopTime_timeChanged: " << time << otherTime << dTime_ms;
+
+    if (dTime_ms != 0) {
+        on_dateTimeEditIntroTime_timeChanged(time); // just call over there to set the times on both
+    }
+}
+
+void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
+{
+    QTime otherTime = (const QTime)(ui->dateTimeEditOutroTime->time());
+    qint64 dTime_ms = abs(otherTime.msecsTo(time));
+
+//    qDebug() << "on_darkEndLoopTime_timeChanged: " << time << otherTime << dTime_ms;
+
+    if (dTime_ms != 0) {
+        on_dateTimeEditOutroTime_timeChanged(time); // just call over there to set the times on both
+    }
+}
+

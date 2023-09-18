@@ -747,6 +747,10 @@ private slots:
 
     void on_treeWidget_itemSelectionChanged();
 
+    void on_darkStartLoopTime_timeChanged(const QTime &time);
+
+    void on_darkEndLoopTime_timeChanged(const QTime &time);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
