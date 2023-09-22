@@ -3921,6 +3921,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         else if (tabIsDarkMode && (theKey == Qt::Key_F) && (KeyEvent->modifiers() & Qt::ControlModifier)) {
             // CMD-F moves focus to the dark search field, if we're on the DarkMode tab
             ui->darkSearch->setFocus();
+            ui->darkSearch->setSelection(0, ui->darkSearch->text().length());  // select the whole thing when CMD-F is pressed
         }
         else if ( !(ui->labelSearch->hasFocus() ||      // IF NO TEXT HANDLING WIDGET HAS FOCUS...
                ui->typeSearch->hasFocus() ||
