@@ -1828,7 +1828,14 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // TREEWIDGET:
 //    ui->treeWidget->expandAll();
-    ui->treeWidget->itemAt(100,10)->setSelected(true);
+//    ui->treeWidget->itemAt(100,10)->setSelected(true);
+
+    QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
+    trackItem[0]->setSelected(true);
+
+    // SPLITTER BETWEEN TREEWIDGET AND SONGTABLE:
+    int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
+    ui->splitterH->setSizes(QList<int>({largeWidth , 4 * largeWidth})); // split in 1:4 ratio
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
