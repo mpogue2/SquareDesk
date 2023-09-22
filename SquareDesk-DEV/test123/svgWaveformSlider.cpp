@@ -289,7 +289,8 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
     bgPixmap->fill(QColor("#1A1A1A"));
 
-    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
+//    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
+    QColor colors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")};
     int colorMap[] = {1,2,3,1,2,3,1};
 
     float h;
