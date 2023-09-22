@@ -1852,6 +1852,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // TITLE:
     // QLabel { color : #C2AC9E; }
     ui->darkTitle->setStyleSheet("color: "+ darkTextColor);
+    ui->darkTitle->setText(""); // get rid of the placeholder text
 
     // TOOLBUTTONS:
     QString toolButtonIconColor = "#A0A0A0";
