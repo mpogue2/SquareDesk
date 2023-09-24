@@ -36,7 +36,12 @@ void svgWaveformSlider::paintEvent(QPaintEvent *pe)
 
 void svgWaveformSlider::resizeEvent(QResizeEvent *re)
 {
-    Q_UNUSED(re)
+    myWidth = re->size().width();
+    myHeight = re->size().height();
+
+    qDebug() << "RESIZE:" << myWidth << myHeight;
+
+    updateBgPixmap(0, 1); // stretch/squish the bgPixmap, using cached values
 }
 
 void svgWaveformSlider::setValue(int val) {
@@ -95,17 +100,21 @@ void svgWaveformSlider::mouseReleaseEvent(QMouseEvent* e) {
 
 void svgWaveformSlider::finishInit() {
     setValue(0.0);    // set to beginning
-    setFixedSize(491,61);
+//    setFixedSize(491,61);
 
     // BACKGROUND PIXMAP --------
-    bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
-    bgPixmap->fill(QColor("#1A1A1A"));
+//    bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
+    bgPixmap = new QPixmap(this->geometry().width()-4, 61); // TODO: get size from current size of widget
+//    bgPixmap->fill(QColor("#1A1A1A"));
+    bgPixmap->fill(QColor("#FA0000"));
 
 //    DEBUG: save to a file so we can look at it ----
 //    bgPixmap->save("myPixmap.png");
 //    scene.addPixmap(*bgPixmap);
 
     bg = new QGraphicsPixmapItem(*bgPixmap);
+
+//    bg->setPos(4,4);
 
     //    qDebug() << "finishInit with: " << bg->boundingRect();
 
@@ -270,6 +279,51 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
     }
 }
 
+#if 1
+void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
+    Q_UNUSED(t)
+
+    cachedWaveform = f;
+
+    // let's make a new pixmap to draw on
+    if (bgPixmap) {
+        delete bgPixmap; // let's throw away the old one before we make a new one
+    }
+
+#define WAVEFORMHEIGHT (59)
+
+    int waveformSliderWidth = fmin(myWidth-4, 784); // BUG: don't ask me why it can't do more...
+    int waveformSliderHeight = myHeight;
+
+    qDebug() << "DIMENSIONS: " << WAVEFORMWIDTH << waveformSliderWidth << waveformSliderHeight;
+
+//    bgPixmap = new QPixmap(WAVEFORMWIDTH-1, WAVEFORMHEIGHT); // TODO: get size from current size of widget
+    bgPixmap = new QPixmap(waveformSliderWidth, waveformSliderHeight);
+    QPainter *paint = new QPainter(bgPixmap);
+
+    bgPixmap->fill(QColor("#800000"));
+
+    paint->setPen(QColor("#00FF00"));
+    paint->drawLine(0,0,4,4); // 5 pixels
+    paint->drawLine(0,0,4,0); // 5 pixels
+    paint->drawLine(0,0,0,4); // 5 pixels
+
+//    paint->drawLine(WAVEFORMWIDTH-2,WAVEFORMHEIGHT-1,WAVEFORMWIDTH-2-4,WAVEFORMHEIGHT-1-4); // 5 pixels
+    paint->drawLine(waveformSliderWidth-1,waveformSliderHeight-1,waveformSliderWidth-1-14,waveformSliderHeight-1-14); // 5 pixels
+
+
+    // ------------
+    delete paint;
+    bg->setPixmap(*bgPixmap); // and load it!
+
+    bg->setPos(1,1);
+
+    leftLoopMarker->setVisible(false);
+    rightLoopMarker->setVisible(false);
+    leftLoopCover->setVisible(false);
+    rightLoopCover->setVisible(false);
+}
+#else
 void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     Q_UNUSED(t)
     // paint some stuff on the existing (correctly-sized pixmap)
@@ -364,6 +418,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     // and load it
     bg->setPixmap(*bgPixmap);
 }
+#endif
 
 // ----------------------
 void svgWaveformSlider::setBgFile(QString s) {

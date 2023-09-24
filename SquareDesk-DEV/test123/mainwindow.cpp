@@ -123,6 +123,7 @@ bool InvisibleTableWidgetItem::operator< (const QTableWidgetItem &other) const
 //    than in tree-view click to PARENT QTabWidget and set the layout as for all tabs.
 //    Really this layout appears as new properties for selected tab only. Every tab has own layout.
 //    And, the tab must have at least one widget on it already.
+// https://stackoverflow.com/questions/3492739/auto-expanding-layout-with-qt-designer
 
 #include <iostream>
 #include <sstream>
@@ -295,7 +296,8 @@ void MainWindow::haveDuration2(void) {
 
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
-    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
+//    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
+    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
 
     cBass->getWaveform(waveform, WAVEFORMWIDTH);
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
@@ -1944,7 +1946,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    ui->darkSeekBar->setStyleSheet(waveformStylesheet); // TEST TEST
 
     // DARKSEEKBAR =================
-    ui->darkSeekBar->setBgFile(":/graphics/darkWaveform.png");  // just set the background
+//    ui->darkSeekBar->setBgFile(":/graphics/darkWaveform.png");  // just set the background
     ui->darkSeekBar->finishInit();  // load everything up!
 
 //    connect(ui->darkSeekBar, SIGNAL(valueChanged(int)), this, SLOT(on_darkSeekBar_valueChanged(int)));
@@ -4634,7 +4636,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
-    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
+//    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
+    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
 #endif
 
     Info_Seekbar(true);  // update the slider and all the text

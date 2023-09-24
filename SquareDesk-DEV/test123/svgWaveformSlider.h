@@ -108,6 +108,10 @@ private:
 
     bool nowDestroying;
 
+    int myWidth, myHeight;
+
+    float *cachedWaveform;  // cached pointer to the waveform
+
     // MARKERS ----
 //    bool drawMarkers;
 //    QSet<double> markers;
