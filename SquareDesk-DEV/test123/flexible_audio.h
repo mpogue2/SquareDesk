@@ -168,7 +168,8 @@ public:
     //    BASS_ACTIVE_STOPPED, BASS_ACTIVE_PLAYING, BASS_ACTIVE_STALLED, BASS_ACTIVE_PAUSED
     uint32_t currentStreamState();
 
-    void getWaveform(float f[WAVEFORMWIDTH], size_t t);
+//    void getWaveform(float f[WAVEFORMWIDTH], size_t t);
+    void getWaveform(float f[WAVEFORMSAMPLES], size_t t);
 
     int  currentSoundEffectID;
 

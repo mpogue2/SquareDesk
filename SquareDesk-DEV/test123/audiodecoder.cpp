@@ -1386,7 +1386,8 @@ void AudioDecoder::updateWaveformMap()
 
 //    qDebug() << "AudioDecoder::updateWaveformMap" << totalFramesInSong << myPlayer.bytesPerFrame << secondsInSong << WAVEFORMWIDTH; // should be 44.1kHz at this point
 
-    int framesPerWaveformPixel = totalFramesInSong / WAVEFORMWIDTH; // truncated down, so as not to overrun
+//    int framesPerWaveformPixel = totalFramesInSong / WAVEFORMWIDTH; // truncated down, so as not to overrun
+    int framesPerWaveformPixel = totalFramesInSong / WAVEFORMSAMPLES; // truncated down, so as not to overrun
     int framesInCurrentPixel = 0;
     float Laccum = 0.0;
     float Raccum = 0.0;

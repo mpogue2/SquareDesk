@@ -19,20 +19,24 @@
 //  and (for future expansion) settable markers.
 
 //#define WAVEFORMWIDTH (491 - 10)
-#define WAVEFORMWIDTH 481
+//#define WAVEFORMWIDTH 481
+
+// NOTE: This is because of a bug that limits us to 784-pixel svgWaveformSlider backgrounds.  Much of the time it will be 1:1 mapping to pixels.
+#define WAVEFORMSAMPLES 784
 
 // -----------------------------------
 class svgWaveformSlider : public QSlider
 {
     Q_OBJECT
-    Q_PROPERTY(QString bgFile     READ getBgFile     WRITE setBgFile     NOTIFY bgFileChanged)
+//    Q_PROPERTY(QString bgFile     READ getBgFile     WRITE setBgFile     NOTIFY bgFileChanged)
 
 public:
     explicit svgWaveformSlider(QWidget *parent = 0);
     ~svgWaveformSlider();
 
-    void setBgFile(QString s);
-    QString getBgFile() const;
+//    void setBgFile(QString s);
+//    QString getBgFile() const;
+
     void setSingingCall(bool b);
     void setOrigin(int i);
 
@@ -44,6 +48,7 @@ public:
     double getOutro();
 
     void setValue(int value);
+    void setFloatValue(float f);
 
     void finishInit();
 
@@ -74,13 +79,13 @@ private:
     void paintEvent(QPaintEvent *pe);
     void resizeEvent(QResizeEvent *re);
 
-    QString m_bgFile;
+//    QString m_bgFile;
 
     QGraphicsView view;
     QGraphicsScene scene;
 
 //    QGraphicsSvgItem *bg;
-    QImage  *bgImage;
+//    QImage  *bgImage;
     QPixmap *bgPixmap;
     QGraphicsPixmapItem *bg;
 
@@ -104,11 +109,14 @@ private:
     double introPosition;
     double outroPosition;
 
+    double introFrac;
+    double outroFrac;
+
     int origin;  // reset to this point when double-clicked
 
     bool nowDestroying;
 
-    int myWidth, myHeight;
+//    int myWidth, myHeight;
 
     float *cachedWaveform;  // cached pointer to the waveform
 

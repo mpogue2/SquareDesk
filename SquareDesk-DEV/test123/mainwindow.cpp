@@ -297,10 +297,15 @@ void MainWindow::haveDuration2(void) {
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
 //    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
-    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
+//    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
 
-    cBass->getWaveform(waveform, WAVEFORMWIDTH);
-    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
+    ui->darkSeekBar->setMinimum(0);
+    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // tricky! see InitializeSeekBar
+
+//    cBass->getWaveform(waveform, WAVEFORMWIDTH);  // FIX FIX FIX HOW WIDE SHOULD SAMPLES BE?
+    cBass->getWaveform(waveform, WAVEFORMSAMPLES);
+//    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
+    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
 #endif
 
 //    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
@@ -627,6 +632,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     UIUpdateTimer = new QTimer(this);
     connect(UIUpdateTimer, SIGNAL(timeout()), this, SLOT(on_UIUpdateTimerTick()));
     UIUpdateTimer->start(1000);           //adjust from GUI with timer->setInterval(newValue)
+//    UIUpdateTimer->start(490);           //adjust from GUI with timer->setInterval(newValue)
 
     closeEventHappened = false;
 
@@ -1951,7 +1957,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 //    connect(ui->darkSeekBar, SIGNAL(valueChanged(int)), this, SLOT(on_darkSeekBar_valueChanged(int)));
 
-    waveform = new float[WAVEFORMWIDTH];
+//    waveform = new float[WAVEFORMWIDTH];
+    waveform = new float[WAVEFORMSAMPLES];
 
 #else
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
@@ -3023,6 +3030,7 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             cBass->SetPitch(ui->pitchSlider->value());
         }
 
+        float currentPos_f = static_cast<float>(cBass->Current_Position);
         int currentPos_i = static_cast<int>(cBass->Current_Position);
 
 // to help track down the failure-to-progress error...
@@ -3054,21 +3062,26 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             SetSeekBarPosition(ui->seekBar, currentPos_i);
             SetSeekBarPosition(ui->seekBarCuesheet, currentPos_i);
 #ifdef DARKMODE
-
             // we can't use SetSeekBarPosition() here, or we'll make a loop
             // so, let's do it manually.
             // NOTE: This MUST mirror what's done in on_darkSeekBar_valueChanged, to prevent loops,
             //   if seekBar is being moved, or if darkSeekBar is being moved.
             if (ui->seekBar->maximum() > 0 && ui->darkSeekBar->maximum() > 0) {
                 // if both of the maxima are valid,
-                double fracSeekBar = (double)currentPos_i/(double)ui->seekBar->maximum();
-                double fracDarkSeekBar = (double)ui->darkSeekBar->value()/(double)ui->darkSeekBar->maximum();
-                double errorPercent = 100.0 * fabs(fracSeekBar - fracDarkSeekBar); // always positive
-                double oneUnitInPercent = 100.0 * (1.0/ui->darkSeekBar->maximum());    // one unit on the darkSeekBarSlider
-                if (errorPercent > oneUnitInPercent) {
-                      int setTo = round(fracSeekBar * (double)ui->darkSeekBar->maximum());
-//                      qDebug() << "setting darkSeekBar to: " << setTo << fracSeekBar << fracDarkSeekBar << errorPercent << oneUnitInPercent;
-                      ui->darkSeekBar->setValue(setTo);
+//                double fracSeekBar = (double)currentPos_i/(double)ui->seekBar->maximum();
+//                double fracDarkSeekBar = (double)ui->darkSeekBar->value()/(double)ui->darkSeekBar->maximum();
+//                double errorPercent = 100.0 * fabs(fracSeekBar - fracDarkSeekBar); // always positive
+//                double oneUnitInPercent = 100.0 * (1.0/ui->darkSeekBar->maximum());    // one unit on the darkSeekBarSlider
+//                if (errorPercent > oneUnitInPercent) {
+//                      int setTo = round(fracSeekBar * (double)ui->darkSeekBar->maximum());
+////                      qDebug() << "setting darkSeekBar to: " << setTo << fracSeekBar << fracDarkSeekBar << errorPercent << oneUnitInPercent;
+//                      ui->darkSeekBar->setValue(setTo);
+//                }
+//                if (ui->darkSeekBar->value() != ui->seekBar->value()) {
+//                      ui->darkSeekBar->setValue(ui->seekBar->value());
+//                }
+                if (fabs(ui->darkSeekBar->value() - currentPos_f) > 0.5) {
+                      ui->darkSeekBar->setFloatValue(currentPos_f);
                 }
             } else {
                 qDebug() << "WARNING: Info_Seekbar does not have both maxima yet";
@@ -4637,7 +4650,11 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 #ifdef DARKMODE
 //    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
 //    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
-    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
+//    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
+
+    ui->darkSeekBar->setMinimum(0);
+    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // tricky! see InitializeSeekBar
+
 #endif
 
     Info_Seekbar(true);  // update the slider and all the text
@@ -4721,7 +4738,8 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     // UPDATE THE WAVEFORM since load is complete! ---------------
 //    qDebug() << "end of second half of load...";
 #ifdef DARKMODE
-    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
+//    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
+    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
 #endif
     // ------------------
     if (ui->actionAutostart_playback->isChecked()) {
