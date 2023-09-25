@@ -2794,6 +2794,8 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
     saveCurrentSongSettings();
 // SONGTABLEREFACTOR
     // update the hidden pitch column
+
+
     ui->songTable->setSortingEnabled(false);
     int row = getSelectionRowForFilename(currentMP3filenameWithPath);
     if (row != -1)
@@ -2801,6 +2803,17 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
         ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
     }
     ui->songTable->setSortingEnabled(true);
+
+#ifdef DARKMODE
+    ui->darkSongTable->setSortingEnabled(false);
+    // already have "row" from above calculation
+    if (row != -1)
+    {
+        ui->darkSongTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
+    }
+    ui->darkSongTable->setSortingEnabled(true);
+
+#endif
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
@@ -2913,6 +2926,7 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
     saveCurrentSongSettings();
 // SONGTABLEREFACTOR
     // update the hidden tempo column
+
     ui->songTable->setSortingEnabled(false);
     int row = getSelectionRowForFilename(currentMP3filenameWithPath);
     if (row != -1)
@@ -2927,6 +2941,24 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         }
     }
     ui->songTable->setSortingEnabled(true);
+
+#ifdef DARKMODE
+    ui->darkSongTable->setSortingEnabled(false);
+    // already have "row" from above
+    if (row != -1)
+    {
+        if (tempoIsBPM) {
+            ui->darkSongTable->item(row, kTempoCol)->setText(QString::number(value));
+            //            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value);
+        }
+        else {
+            ui->darkSongTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
+            //            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value) + "%";
+        }
+    }
+    ui->darkSongTable->setSortingEnabled(true);
+
+#endif
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
