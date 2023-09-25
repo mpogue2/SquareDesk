@@ -129,7 +129,7 @@ unix {
 SOURCES += ../qpdfjs/src/communicator.cpp
 
 # this hint from: https://forum.qt.io/topic/74432/os-x-deployment-problem-rpath-framework/5
-QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../,-rpath,@executable_path/../Frameworks
+QMAKE_LFLAGS += -Wl,-rpath,@loader_path/../,-rpath,@executable_path/../ #,-rpath,@executable_path/../Frameworks
 }
 
 HEADERS  += mainwindow.h \
