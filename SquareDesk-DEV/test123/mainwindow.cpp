@@ -1796,26 +1796,34 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
 
     ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
     ui->playlist1Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.07.20");
 
+    // -----
     ui->playlist2Table->resizeColumnToContents(0);
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-
+    ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
 
     ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
     ui->playlist2Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.08.20");
 
+    // -----
     ui->playlist3Table->resizeColumnToContents(0);
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
 
     ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
     ui->playlist3Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.09.20");
+
 
     // VUMETER:
     ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
@@ -1835,13 +1843,16 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->splitter_3->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
 
     // SPLITTER BETWEEN PLAYLISTS AND SONGTABLE:
-    ui->splitter7->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
-    currentSplitterSizes = ui->splitter7->sizes(); // for later restore, if needed
+    ui->toggleShowPaletteTables->setVisible(false);
 
-    ui->toggleShowPaletteTables->setChecked(false);
-    on_toggleShowPaletteTables_toggled(false);  // default is to NOT show the playlist palette
+////    ui->splitter7->setSizes(QList<int>({largeWidth, 6 * largeWidth})); // split in 1:6 ratio to start
+    ui->splitter7->setSizes(QList<int>({0,3000}));
+//    currentSplitterSizes = ui->splitter7->sizes(); // for later restore, if needed
 
-    ui->splitter7->setCollapsible(0, false); // TEST TEST TEST
+//    ui->toggleShowPaletteTables->setChecked(false);
+//    on_toggleShowPaletteTables_toggled(false);  // default is to NOT show the playlist palette
+
+//    ui->splitter7->setCollapsible(0, false); // TEST TEST TEST
     ui->splitter7->setCollapsible(1, false); // TEST TEST TEST
 
     // STATUSBAR:
@@ -9073,23 +9084,25 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
 
 void MainWindow::on_toggleShowPaletteTables_toggled(bool checked)
 {
-    ui->playlist1Table->setVisible(checked);
-    ui->playlist2Table->setVisible(checked);
-    ui->playlist3Table->setVisible(checked);
+//    ui->playlist1Label->setVisible(checked);
+//    ui->playlist2Label->setVisible(checked);
+//    ui->playlist3Label->setVisible(checked);
+//    ui->playlist1Table->setVisible(checked);
+//    ui->playlist2Table->setVisible(checked);
+//    ui->playlist3Table->setVisible(checked);
 
-    if (checked) {
-        // making them visible, so restoring previous sizes
-        ui->splitter7->setEnabled(true);
-        ui->splitter7->setSizes(currentSplitterSizes);
-    } else {
-        // making them invisible, but save previous split, so we can restore it later
-        currentSplitterSizes = ui->splitter7->sizes();
+//    if (checked) {
+//        // making them visible, so restoring previous sizes
+//        ui->splitter7->setEnabled(true);
+//        ui->splitter7->setSizes(currentSplitterSizes);
+//    } else {
+//        // making them invisible, but save previous split, so we can restore it later
+//        currentSplitterSizes = ui->splitter7->sizes();
 
-        int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
-        ui->splitter7->setSizes(QList<int>({largeWidth,20 * largeWidth})); // make playlist section as small as possible
+//        int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
+//        ui->splitter7->setSizes(QList<int>({largeWidth,20 * largeWidth})); // make playlist section as small as possible
 
-        ui->splitter7->setEnabled(false);
-    }
-
+//        ui->splitter7->setEnabled(false);
+//    }
 }
 
