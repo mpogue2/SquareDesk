@@ -9084,6 +9084,7 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
 
 void MainWindow::on_toggleShowPaletteTables_toggled(bool checked)
 {
+    Q_UNUSED(checked)
 //    ui->playlist1Label->setVisible(checked);
 //    ui->playlist2Label->setVisible(checked);
 //    ui->playlist3Label->setVisible(checked);

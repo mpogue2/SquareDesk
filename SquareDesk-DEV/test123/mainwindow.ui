@@ -2545,6 +2545,9 @@
         <string>DarkMode</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_13">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_15">
           <property name="spacing">
@@ -3575,6 +3578,28 @@
          </layout>
         </item>
         <item>
+         <widget class="Line" name="line_4">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>4</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color:#202020</string>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="lineWidth">
+           <number>4</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QSplitter" name="splitter_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -3790,6 +3815,9 @@
              </property>
              <item>
               <layout class="QVBoxLayout" name="Playlist3">
+               <property name="spacing">
+                <number>0</number>
+               </property>
                <item>
                 <widget class="QLabel" name="playlist3Label">
                  <property name="sizePolicy">
@@ -3980,6 +4008,9 @@
              </item>
              <item>
               <layout class="QVBoxLayout" name="Playlist2">
+               <property name="spacing">
+                <number>0</number>
+               </property>
                <item>
                 <widget class="QLabel" name="playlist2Label">
                  <property name="sizePolicy">
@@ -4167,6 +4198,9 @@
              </item>
              <item>
               <layout class="QVBoxLayout" name="Playlist1">
+               <property name="spacing">
+                <number>0</number>
+               </property>
                <item>
                 <widget class="QLabel" name="playlist1Label">
                  <property name="sizePolicy">
