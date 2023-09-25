@@ -9062,6 +9062,13 @@ void MainWindow::on_darkStartLoopTime_timeChanged(const QTime &time)
     QTime otherTime = (const QTime)(ui->dateTimeEditIntroTime->time());
     qint64 dTime_ms = abs(otherTime.msecsTo(time));
 
+    bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+                         songTypeNamesForCalled.contains(currentSongType);
+
+    if (isSingingCall) {
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
+    }
+
 //    qDebug() << "on_darkStartLoopTime_timeChanged: " << time << otherTime << dTime_ms;
 
     if (dTime_ms != 0) {
@@ -9074,7 +9081,14 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
     QTime otherTime = (const QTime)(ui->dateTimeEditOutroTime->time());
     qint64 dTime_ms = abs(otherTime.msecsTo(time));
 
-//    qDebug() << "on_darkEndLoopTime_timeChanged: " << time << otherTime << dTime_ms;
+    bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+                         songTypeNamesForCalled.contains(currentSongType);
+
+    if (isSingingCall) {
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
+    }
+
+    //    qDebug() << "on_darkEndLoopTime_timeChanged: " << time << otherTime << dTime_ms;
 
     if (dTime_ms != 0) {
         on_dateTimeEditOutroTime_timeChanged(time); // just call over there to set the times on both
