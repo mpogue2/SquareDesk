@@ -753,6 +753,8 @@ private slots:
 
     void on_toggleShowPaletteTables_toggled(bool checked);
 
+    void on_darkSongTable_itemSelectionChanged();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

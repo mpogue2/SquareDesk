@@ -3414,7 +3414,7 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
     ui->seekBar->SetIntro(frac);
 #ifdef DARKMODE
-    qDebug() << "DARKMODE setIntro!";
+//    qDebug() << "DARKMODE setIntro!";
     ui->darkSeekBar->setIntro(frac);
 #endif
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
@@ -6317,6 +6317,12 @@ void MainWindow::on_songTable_itemSelectionChanged()
     if (selectedRow != -1) {
         // we've clicked on a real row, which needs its Title text to be highlighted
 
+#ifdef DARKMODE
+        if (darkSelectedSongRow() != selectedRow) {
+            ui->darkSongTable->selectRow(selectedRow);
+        }
+#endif
+
         // first: let's un-highlight the previous SongTitleLabel back to its original color
         if (lastSongTableRowSelected != -1) {
 //            qDebug() << "lastSongTableRowSelected == -1";
@@ -9121,3 +9127,12 @@ void MainWindow::on_toggleShowPaletteTables_toggled(bool checked)
 //    }
 }
 
+
+void MainWindow::on_darkSongTable_itemSelectionChanged()
+{
+    int songTableRow = selectedSongRow();
+    int darkSongTableRow = darkSelectedSongRow();
+    if (songTableRow != darkSongTableRow) {
+        ui->songTable->selectRow(darkSongTableRow);
+    }
+}
