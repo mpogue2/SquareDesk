@@ -751,6 +751,8 @@ private slots:
 
     void on_darkEndLoopTime_timeChanged(const QTime &time);
 
+    void on_toggleShowPaletteTables_toggled(bool checked);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -1274,6 +1276,8 @@ public:
 #endif
 
     float *waveform;
+
+    QList<int> currentSplitterSizes; // save for later restore
 };
 
 // currentState:

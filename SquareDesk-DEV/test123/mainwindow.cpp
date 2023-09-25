@@ -1791,42 +1791,31 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSongTable->resizeColumnToContents(kPitchCol);
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
-//    for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
-//        QTableWidgetItem *num = ui->darkSongTable->item(i, 0);
-//        QTableWidgetItem *type = ui->darkSongTable->item(i, 1);
-//        QTableWidgetItem *label = ui->darkSongTable->item(i, 2);
-//        QTableWidgetItem *title = ui->darkSongTable->item(i, 3);
-//        QTableWidgetItem *recent  = ui->darkSongTable->item(i, 4);
-//        QTableWidgetItem *age   = ui->darkSongTable->item(i, 5);
-//        QTableWidgetItem *pitch = ui->darkSongTable->item(i, 6);
-//        QTableWidgetItem *tempo = ui->darkSongTable->item(i, 7);
+    // PLAYLISTS:
+    ui->playlist1Table->resizeColumnToContents(0);
+    ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
 
-//        QString patterForeground("#A364DC");  // was: #744EFF
-////        QString singerForeground("#00AF5C");  // was: #80B553
-//        QString singerForeground("#80B553");
+    ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+    ui->playlist1Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.07.20");
 
-//        if (type != nullptr) {
-//            if (type->text() == "patter") {
-//                if (num != nullptr) num->setForeground(QBrush(QColor(patterForeground)));
-//                if (type != nullptr) type->setForeground(QBrush(QColor(patterForeground)));
-//                if (label != nullptr) label->setForeground(QBrush(QColor(patterForeground)));
-//                if (title != nullptr) title->setForeground(QBrush(QColor(patterForeground)));
-//                if (recent != nullptr) recent->setForeground(QBrush(QColor(patterForeground)));
-//                if (age != nullptr) age->setForeground(QBrush(QColor(patterForeground)));
-//                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(patterForeground)));
-//                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(patterForeground)));
-//            } else {
-//                if (num != nullptr) num->setForeground(QBrush(QColor(singerForeground)));
-//                if (type != nullptr) type->setForeground(QBrush(QColor(singerForeground)));
-//                if (label != nullptr) label->setForeground(QBrush(QColor(singerForeground)));
-//                if (title != nullptr) title->setForeground(QBrush(QColor(singerForeground)));
-//                if (recent != nullptr) recent->setForeground(QBrush(QColor(singerForeground)));
-//                if (age != nullptr) age->setForeground(QBrush(QColor(singerForeground)));
-//                if (pitch != nullptr) pitch->setForeground(QBrush(QColor(singerForeground)));
-//                if (tempo != nullptr) tempo->setForeground(QBrush(QColor(singerForeground)));
-//            }
-//        }
-//    }
+    ui->playlist2Table->resizeColumnToContents(0);
+    ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+
+
+    ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+    ui->playlist2Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.08.20");
+
+    ui->playlist3Table->resizeColumnToContents(0);
+    ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+
+    ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+    ui->playlist3Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.09.20");
 
     // VUMETER:
     ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
@@ -1843,7 +1832,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // SPLITTER BETWEEN TREEWIDGET AND SONGTABLE:
     int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
-    ui->splitterH->setSizes(QList<int>({largeWidth , 4 * largeWidth})); // split in 1:4 ratio
+    ui->splitter_3->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
+
+    // SPLITTER BETWEEN PLAYLISTS AND SONGTABLE:
+    ui->splitter7->setSizes(QList<int>({largeWidth, 4 * largeWidth})); // split in 1:4 ratio
+    currentSplitterSizes = ui->splitter7->sizes(); // for later restore, if needed
+
+    ui->toggleShowPaletteTables->setChecked(false);
+    on_toggleShowPaletteTables_toggled(false);  // default is to NOT show the playlist palette
+
+    ui->splitter7->setCollapsible(0, false); // TEST TEST TEST
+    ui->splitter7->setCollapsible(1, false); // TEST TEST TEST
 
     // STATUSBAR:
     //    ui->statusBar->setStyleSheet("color: #AC8F7E;");
@@ -9069,5 +9068,28 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
     if (dTime_ms != 0) {
         on_dateTimeEditOutroTime_timeChanged(time); // just call over there to set the times on both
     }
+}
+
+
+void MainWindow::on_toggleShowPaletteTables_toggled(bool checked)
+{
+    ui->playlist1Table->setVisible(checked);
+    ui->playlist2Table->setVisible(checked);
+    ui->playlist3Table->setVisible(checked);
+
+    if (checked) {
+        // making them visible, so restoring previous sizes
+        ui->splitter7->setEnabled(true);
+        ui->splitter7->setSizes(currentSplitterSizes);
+    } else {
+        // making them invisible, but save previous split, so we can restore it later
+        currentSplitterSizes = ui->splitter7->sizes();
+
+        int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
+        ui->splitter7->setSizes(QList<int>({largeWidth,20 * largeWidth})); // make playlist section as small as possible
+
+        ui->splitter7->setEnabled(false);
+    }
+
 }
 
