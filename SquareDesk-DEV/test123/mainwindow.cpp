@@ -1792,6 +1792,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->darkSongTable->resizeColumnToContents(kTempoCol);
 
     // PLAYLISTS:
+    ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+
     ui->playlist1Table->resizeColumnToContents(0);
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
@@ -1799,10 +1804,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
 
-    ui->playlist1Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-    ui->playlist1Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.07.20");
-
     // -----
+    ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+    ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    ui->playlist2Label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+
     ui->playlist2Table->resizeColumnToContents(0);
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
@@ -1810,20 +1817,18 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
 
-    ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-    ui->playlist2Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.08.20");
-
     // -----
+    ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
+    ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");
+    ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist3Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
+
     ui->playlist3Table->resizeColumnToContents(0);
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
-
-    ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
-    ui->playlist3Label->setText("<img src=\":/graphics/darkPlaylists.png\" width=\"10\" height=\"10\">Jokers_2023.09.20");
-
 
     // VUMETER:
     ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
@@ -6353,6 +6358,11 @@ void MainWindow::on_songTable_itemSelectionChanged()
         if (darkSelectedSongRow() != selectedRow) {
             ui->darkSongTable->selectRow(selectedRow);
         }
+
+//        ui->playlist1Table->clearSelection();
+//        ui->playlist2Table->clearSelection();
+//        ui->playlist3Table->clearSelection();
+
 #endif
 
         // first: let's un-highlight the previous SongTitleLabel back to its original color
@@ -9165,6 +9175,161 @@ void MainWindow::on_darkSongTable_itemSelectionChanged()
     int songTableRow = selectedSongRow();
     int darkSongTableRow = darkSelectedSongRow();
     if (songTableRow != darkSongTableRow) {
+        // FIX: This is not right, if either is -1
         ui->songTable->selectRow(darkSongTableRow);
+    }
+
+    ui->playlist1Table->blockSignals(true);
+    ui->playlist2Table->blockSignals(true);
+    ui->playlist3Table->blockSignals(true);
+
+    ui->playlist1Table->clearSelection();
+    ui->playlist2Table->clearSelection();
+    ui->playlist3Table->clearSelection();
+
+    ui->playlist1Table->blockSignals(false);
+    ui->playlist2Table->blockSignals(false);
+    ui->playlist3Table->blockSignals(false);
+}
+
+// ===============================================
+void MainWindow::customPlaylistMenuRequested(QPoint pos) {
+    Q_UNUSED(pos)
+
+//    qDebug() << "customPlaylistMenuRequested:" << sender()->objectName();
+
+    QMenu *plMenu = new QMenu();
+
+    plMenu->addSection(sender()->objectName());
+
+    QAction *act1 = new QAction("Show Header");
+    act1->setCheckable(true);
+    act1->setChecked(true);
+    plMenu->addAction(act1);
+
+    plMenu->addSeparator();
+
+    plMenu->addSection("foobar");
+        plMenu->addAction("hello");
+        plMenu->addAction("world");
+
+    plMenu->popup(QCursor::pos());
+    plMenu->exec();
+
+    delete(plMenu);
+}
+
+void MainWindow::on_playlist1Table_itemSelectionChanged()
+{
+//    qDebug() << "playlist1Table_itemSelectionChanged";
+
+    ui->playlist2Table->blockSignals(true);
+    ui->playlist3Table->blockSignals(true);
+
+    ui->playlist2Table->clearSelection();
+    ui->playlist3Table->clearSelection();
+
+    ui->playlist2Table->blockSignals(false);
+    ui->playlist3Table->blockSignals(false);
+
+    // ------
+    ui->songTable->blockSignals(true);
+    ui->darkSongTable->blockSignals(true);
+
+    ui->songTable->clearSelection();
+    ui->darkSongTable->clearSelection();
+
+    ui->songTable->blockSignals(false);
+    ui->darkSongTable->blockSignals(false);
+
+    // ------
+    QItemSelectionModel *selectionModel = ui->playlist1Table->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+
+    if (row >= 0) {
+        qDebug() << "playlist1 selection changed to: " << row << ui->playlist1Table->item(row, 1)->text();
+    }
+}
+
+void MainWindow::on_playlist2Table_itemSelectionChanged()
+{
+//    qDebug() << "playlist2Table_itemSelectionChanged";
+    ui->playlist1Table->blockSignals(true);
+    ui->playlist3Table->blockSignals(true);
+
+    ui->playlist1Table->clearSelection();
+    ui->playlist3Table->clearSelection();
+
+    ui->playlist1Table->blockSignals(false);
+    ui->playlist3Table->blockSignals(false);
+
+    // ------
+    ui->songTable->blockSignals(true);
+    ui->darkSongTable->blockSignals(true);
+
+    ui->songTable->clearSelection();
+    ui->darkSongTable->clearSelection();
+
+    ui->songTable->blockSignals(false);
+    ui->darkSongTable->blockSignals(false);
+
+    // ------
+    QItemSelectionModel *selectionModel = ui->playlist2Table->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+
+    if (row >= 0) {
+        qDebug() << "playlist2 selection changed to: " << row << ui->playlist2Table->item(row, 1)->text();
+    }
+}
+
+void MainWindow::on_playlist3Table_itemSelectionChanged()
+{
+//    qDebug() << "playlist3Table_itemSelectionChanged";
+    ui->playlist1Table->blockSignals(true);
+    ui->playlist2Table->blockSignals(true);
+
+    ui->playlist1Table->clearSelection();
+    ui->playlist2Table->clearSelection();
+
+    ui->playlist1Table->blockSignals(false);
+    ui->playlist2Table->blockSignals(false);
+
+    // ------
+    ui->songTable->blockSignals(true);
+    ui->darkSongTable->blockSignals(true);
+
+    ui->songTable->clearSelection();
+    ui->darkSongTable->clearSelection();
+
+    ui->songTable->blockSignals(false);
+    ui->darkSongTable->blockSignals(false);
+
+    // ------
+    QItemSelectionModel *selectionModel = ui->playlist3Table->selectionModel();
+    QModelIndexList selected = selectionModel->selectedRows();
+    int row = -1;
+
+    if (selected.count() == 1) {
+        // exactly 1 row was selected (good)
+        QModelIndex index = selected.at(0);
+        row = index.row();
+    } // else more than 1 row or no rows, just return -1
+
+    if (row >= 0) {
+        qDebug() << "playlist3 selection changed to: " << row << ui->playlist3Table->item(row, 1)->text();
     }
 }

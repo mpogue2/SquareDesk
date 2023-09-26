@@ -297,6 +297,8 @@ public slots:
     void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
     void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
 
+    void customPlaylistMenuRequested(QPoint pos);
+
 protected:
     bool maybeSave();
     bool maybeSaveCuesheet(int optionCount);
@@ -754,6 +756,12 @@ private slots:
     void on_toggleShowPaletteTables_toggled(bool checked);
 
     void on_darkSongTable_itemSelectionChanged();
+
+    void on_playlist3Table_itemSelectionChanged();
+
+    void on_playlist2Table_itemSelectionChanged();
+
+    void on_playlist1Table_itemSelectionChanged();
 
 public:
     void on_threadSD_errorString(QString str);

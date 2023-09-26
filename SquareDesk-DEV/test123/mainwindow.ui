@@ -3823,12 +3823,12 @@
               <number>1</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Playlist3">
+              <layout class="QVBoxLayout" name="Playlist1">
                <property name="spacing">
                 <number>0</number>
                </property>
                <item>
-                <widget class="QLabel" name="playlist3Label">
+                <widget class="QLabel" name="playlist1Label">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -3869,7 +3869,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="playlist3Table">
+                <widget class="QTableWidget" name="playlist1Table">
                  <property name="font">
                   <font>
                    <family>Avenir Next</family>
@@ -3880,6 +3880,9 @@
                  </property>
                  <property name="horizontalScrollBarPolicy">
                   <enum>Qt::ScrollBarAlwaysOff</enum>
+                 </property>
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
                  </property>
                  <property name="alternatingRowColors">
                   <bool>true</bool>
@@ -4071,6 +4074,9 @@
                  <property name="horizontalScrollBarPolicy">
                   <enum>Qt::ScrollBarAlwaysOff</enum>
                  </property>
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
+                 </property>
                  <property name="alternatingRowColors">
                   <bool>true</bool>
                  </property>
@@ -4206,12 +4212,12 @@
               </layout>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Playlist1">
+              <layout class="QVBoxLayout" name="Playlist3">
                <property name="spacing">
                 <number>0</number>
                </property>
                <item>
-                <widget class="QLabel" name="playlist1Label">
+                <widget class="QLabel" name="playlist3Label">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -4252,7 +4258,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="playlist1Table">
+                <widget class="QTableWidget" name="playlist3Table">
                  <property name="font">
                   <font>
                    <family>Avenir Next</family>
@@ -4260,6 +4266,9 @@
                  </property>
                  <property name="horizontalScrollBarPolicy">
                   <enum>Qt::ScrollBarAlwaysOff</enum>
+                 </property>
+                 <property name="editTriggers">
+                  <set>QAbstractItemView::NoEditTriggers</set>
                  </property>
                  <property name="alternatingRowColors">
                   <bool>true</bool>
