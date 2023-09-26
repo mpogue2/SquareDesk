@@ -763,6 +763,8 @@ private slots:
 
     void on_playlist1Table_itemSelectionChanged();
 
+    void on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -832,6 +834,8 @@ private:
     QString lastSavedPlaylist;       // "" if no playlist was saved in this session
     QString lastFlashcardsUserFile;      // "" if no flashcard file currently
     QString lastFlashcardsUserDirectory;      // "" if no flashcard file currently
+
+    void openPlaylistFileForEditing(QString filePath);
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;
@@ -963,6 +967,7 @@ private:
     // Playlist stuff ----------
     void savePlaylistAgain();  // saves with the same name we used last time (if there was a last time)
     QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
+    QString loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // returns error song string and songCount
     void finishLoadingPlaylist(QString PlaylistFileName);
 
     void saveCurrentPlaylistToFile(QString PlaylistFileName);

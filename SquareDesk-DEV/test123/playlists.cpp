@@ -273,6 +273,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     int songCount = 0;
 
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
+#ifdef DARKMODE
+    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
+#endif
 
     // simplify path, for the error message case
     firstBadSongLine = firstBadSongLine.split(",")[0].replace("\"", "").replace(musicRootPath, "");
@@ -1338,4 +1341,259 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 
     doc.setHtml(toBePrinted);
     doc.print(&printer);
+}
+
+// ====================================
+// load playlist to palette slot
+
+// returns first song error, and also updates the songCount as it goes (2 return values)
+QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
+    Q_UNUSED(slotNumber)
+
+//    qDebug() << "loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << slotNumber << songCount;
+
+//    addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
+
+    // --------
+    QString firstBadSongLine = "";
+    QFile inputFile(PlaylistFileName);
+    if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
+
+//        // first, clear all the playlist numbers that are there now.
+//        for (int i = 0; i < ui->songTable->rowCount(); i++) {
+//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//            theItem->setText("");
+//        }
+
+        ui->playlist1Table->clear();
+//        ui->playlist1Table->setRowCount(0);  // remove all rows
+
+        //        int lineCount = 1;
+        linesInCurrentPlaylist = 0;
+
+        QTextStream in(&inputFile);
+
+        if (PlaylistFileName.endsWith(".csv", Qt::CaseInsensitive)) {
+            // CSV FILE =================================
+
+            QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
+
+            // V1 playlists use absolute paths, V2 playlists use relative paths
+            // This allows two things:
+            //   - moving an entire Music Directory from one place to another, and playlists still work
+            //   - sharing an entire Music Directory across platforms, and playlists still work
+//            bool v2playlist = header.contains("relpath");
+//            bool v1playlist = !v2playlist;
+
+            songCount = 0;
+
+            while (!in.atEnd()) {
+                QString line = in.readLine();
+
+                if (line == "") {
+                    // ignore, it's a blank line
+                }
+                else {
+                    songCount++;  // it's a real song path
+
+                    QStringList list1 = parseCSV(line);  // This is more robust than split(). Handles commas inside double quotes, double double quotes, etc.
+
+//                    qDebug() << "list1: " << list1;
+
+//                    relpath,pitch,tempo
+//                    "/patter/RR 1323 - Diggy.mp3",0,124
+
+                    // make a new row, if needed
+                    if (songCount > ui->playlist1Table->rowCount()) {
+                        ui->playlist1Table->insertRow(ui->playlist1Table->rowCount());
+                    }
+
+                    // # column
+                    QTableWidgetItem *num = new QTableWidgetItem(QString::number(songCount));
+                    ui->playlist1Table->setItem(songCount-1, 0, num);
+
+                    // TITLE column
+                    QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
+                    QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
+                    ui->playlist1Table->setItem(songCount-1, 1, title);
+
+                    QString absPath = musicRootPath + list1[0];
+                    QFileInfo fi(absPath);
+                    if (!fi.exists()) {
+                        QFont f = title->font();
+                        f.setStrikeOut(true);
+                        title->setFont(f); // strikethrough the text until it's fixed
+
+                        title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
+                        // TODO: provide context menu to get dialog with reasons why
+                        QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv$","");
+                        title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
+                    }
+
+                    // PITCH column
+                    QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
+                    ui->playlist1Table->setItem(songCount-1, 2, pit);
+
+                    // TEMPO column
+                    QTableWidgetItem *tem = new QTableWidgetItem(list1[2]);
+                    ui->playlist1Table->setItem(songCount-1, 3, tem);
+
+                    // PATH column
+                    QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
+                    ui->playlist1Table->setItem(songCount-1, 4, fullPath);
+
+//                    bool match = false;
+//                    // exit the loop early, if we find a match
+//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
+
+//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+
+//                        if ( (v1playlist && (list1[0] == pathToMP3)) ||             // compare absolute pathnames (fragile, old V1 way)
+//                            (v2playlist && compareRelative(list1[0], pathToMP3))   // compare relative pathnames (better, new V2 way)
+//                            ) {
+//                            // qDebug() << "MATCH::" << list1[0] << pathToMP3;
+//                            //                            qDebug() << "loadPlaylistFromFile: " << pathToMP3;
+//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
+//                            theItem->setText(QString::number(songCount));
+//                            //                            qDebug() << "                     number: " << QString::number(songCount);
+
+//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
+//                            theItem2->setText(list1[1].trimmed());
+//                            //                            qDebug() << "                     pitch: " << list1[1].trimmed();
+
+//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
+//                            theItem3->setText(list1[2].trimmed());
+//                            //                            qDebug() << "                     tempo: " << list1[2].trimmed();
+
+//                            match = true;
+//                        }
+//                    }
+//                    // if we had no match, remember the first non-matching song path
+//                    if (!match && firstBadSongLine == "") {
+//                        firstBadSongLine = line;
+//                    }
+
+                }
+
+                //                lineCount++;
+            } // while
+        }
+
+        inputFile.close();
+
+        ui->playlist1Table->resizeColumnToContents(0);
+        ui->playlist1Table->resizeColumnToContents(2);
+        ui->playlist1Table->resizeColumnToContents(3);
+
+        QString playlistShortName = PlaylistFileName.split('/').last().replace(".csv","");
+        ui->playlist1Label->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
+
+
+
+//        linesInCurrentPlaylist += songCount; // when non-zero, this enables saving of the current playlist
+//        //        qDebug() << "linesInCurrentPlaylist:" << linesInCurrentPlaylist;
+
+//        //        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
+//        if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
+//            // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
+//            //            qDebug() << "LOADED CORRECTLY. enabling Save As";
+//            ui->actionSave_Playlist_2->setEnabled(true);  // Playlist > Save Playlist 'name' is enabled, because you can always save a playlist with a diff name
+//            ui->actionSave_Playlist->setEnabled(true);  // Playlist > Save Playlist As...
+//            ui->actionPrint_Playlist->setEnabled(true);  // Playlist > Print Playlist...
+//        }
+    }
+    else {
+        // file didn't open...
+        return("");
+    }
+
+    return(firstBadSongLine);  // return error song (if any)
+}
+
+
+// -------------
+void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
+{
+    PerfTimer t("on_playlist1Table_itemDoubleClicked", __LINE__);
+
+    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    saveCurrentSongSettings();
+
+    t.elapsed(__LINE__);
+
+    int row = item->row();
+    QString pathToMP3 = ui->playlist1Table->item(row,4)->text();
+
+    QFileInfo fi(pathToMP3);
+    if (!fi.exists()) {
+        qDebug() << "ERROR: File does not exist " << pathToMP3;
+        return;  // can't load a file that doesn't exist
+    }
+
+    QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
+    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+//    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
+//    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
+
+    QString songType = "patter";
+    QString songLabel = "RIV 123";
+
+    // these must be up here to get the correct values...
+    QString pitch  = ui->playlist1Table->item(row, 2)->text();
+    QString tempo  = ui->playlist1Table->item(row, 3)->text();
+    QString number = ui->playlist1Table->item(row, 0)->text();
+
+    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
+    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
+    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+
+    qDebug() << "on_playlist1Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
+
+    t.elapsed(__LINE__);
+
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+
+    t.elapsed(__LINE__);
+
+    // these must be down here, to set the correct values...
+    int pitchInt = pitch.toInt();
+    ui->darkPitchSlider->setValue(pitchInt);
+
+    on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+        //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
+
+    if (ui->actionAutostart_playback->isChecked()) {
+        on_playButton_clicked();
+    }
+
+    t.elapsed(__LINE__);
+}
+
+void openPlaylistFileForEditing(QString filePath) {
+    Q_UNUSED(filePath)
+
+//#if defined(Q_OS_MAC)
+//    QStringList args;
+//    args << "-e";
+//    args << "tell application \"TextEdit\"";
+//    args << "-e";
+//    args << "activate";
+//    args << "-e";
+//    args << "open \""+filePath+"\"";
+//    args << "-e";
+//    args << "end tell";
+
+//    //    QProcess::startDetached("osascript", args);
+
+//    // same as startDetached, but suppresses output from osascript to console
+//    //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+//    QProcess process;
+//    process.setProgram("osascript");
+//    process.setArguments(args);
+//    process.setStandardOutputFile(QProcess::nullDevice());
+//    process.setStandardErrorFile(QProcess::nullDevice());
+//    qint64 pid;
+//    process.startDetached(&pid);
+//#endif
 }

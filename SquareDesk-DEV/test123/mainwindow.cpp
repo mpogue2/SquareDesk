@@ -1349,19 +1349,19 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
-    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
-    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
-    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+//    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+//    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+//    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
-    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
-    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+//    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+//    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
 
-    if (loadThisPlaylist != "") {
-        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
-        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
-    }
+//    if (loadThisPlaylist != "") {
+//        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
+//        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
+//    }
 
-    stopLongSongTableOperation("MainWindow");
+//    stopLongSongTableOperation("MainWindow");
 
 //    qDebug() << "selected: " << ui->songTable->selectedItems().first()->row();
 
@@ -1801,8 +1801,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
 
     // -----
     ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
@@ -1978,6 +1981,22 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 #else
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
 #endif
+
+    // PLAYLIST LOADING HERE, SO THAT PLAYLIST1 IS INITIALIZED BY NOW
+    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+
+    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+
+    if (loadThisPlaylist != "") {
+        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
+        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
+    }
+
+    stopLongSongTableOperation("MainWindow");
+
 }
 
 
@@ -9200,18 +9219,53 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
     QMenu *plMenu = new QMenu();
 
-    plMenu->addSection(sender()->objectName());
+//    plMenu->addSection(sender()->objectName());
 
-    QAction *act1 = new QAction("Show Header");
-    act1->setCheckable(true);
-    act1->setChecked(true);
-    plMenu->addAction(act1);
+//    QAction *act1 = new QAction("Show Header");
+//    act1->setCheckable(true);
+//    act1->setChecked(true);
+//    plMenu->addAction(act1);
 
-    plMenu->addSeparator();
+//    plMenu->addSeparator(); // -----------------------------
 
-    plMenu->addSection("foobar");
-        plMenu->addAction("hello");
-        plMenu->addAction("world");
+    QString playlistFilePath = lastSavedPlaylist; // IS THIS RIGHT?
+    QString playlistShortName = playlistFilePath.split('/').last().replace(".csv","");
+
+    plMenu->addAction(QString("Edit '%1' in text editor").arg(playlistShortName),
+                      [playlistFilePath]() {
+//                          qDebug() << "EDIT PLAYLIST MANUALLY: " << playlistFilePath;
+//                          this->openPlaylistFileForEditing(playlistFilePath);
+#if defined(Q_OS_MAC)
+                          QStringList args;
+                          args << "-e";
+                          args << "tell application \"TextEdit\"";
+                          args << "-e";
+                          args << "activate";
+                          args << "-e";
+                          args << "open POSIX file \"" + playlistFilePath + "\"";
+                          args << "-e";
+                          args << "end tell";
+
+                          //    QProcess::startDetached("osascript", args);
+
+                          // same as startDetached, but suppresses output from osascript to console
+                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                          QProcess process;
+                          process.setProgram("osascript");
+                          process.setArguments(args);
+                          process.setStandardOutputFile(QProcess::nullDevice());
+                          process.setStandardErrorFile(QProcess::nullDevice());
+                          qint64 pid;
+                          process.startDetached(&pid);
+#endif
+                      });
+
+    plMenu->addAction(QString("Reload '%1'").arg(playlistShortName),
+                      [this, playlistFilePath]() {
+                          qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
+                          int songCount;
+                          this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, 1, songCount);
+                      });
 
     plMenu->popup(QCursor::pos());
     plMenu->exec();
@@ -9333,3 +9387,4 @@ void MainWindow::on_playlist3Table_itemSelectionChanged()
         qDebug() << "playlist3 selection changed to: " << row << ui->playlist3Table->item(row, 1)->text();
     }
 }
+

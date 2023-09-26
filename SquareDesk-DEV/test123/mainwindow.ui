@@ -3945,10 +3945,57 @@
                   <property name="text">
                    <string>#</string>
                   </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
+                  </property>
                  </column>
                  <column>
                   <property name="text">
                    <string>Title</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
+                  </property>
+                  <property name="textAlignment">
+                   <set>AlignLeading|AlignVCenter</set>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Pitch</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>New Column</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                    <stylestrategy>PreferAntialias</stylestrategy>
+                   </font>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>fullpath</string>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <family>Avenir Next</family>
+                   </font>
                   </property>
                   <property name="textAlignment">
                    <set>AlignLeading|AlignVCenter</set>
