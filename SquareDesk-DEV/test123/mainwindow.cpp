@@ -1807,6 +1807,58 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
 
+    ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
+            this, [this](QPoint q) {
+                        QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                        QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
+
+                        QFileInfo fi(fullPath);
+                        QString menuString = "Show In Enclosing Folder";
+                        QString thingToOpen = fullPath;
+
+                        if (!fi.exists()) {
+                            menuString = "Show Enclosing Folder";
+                            thingToOpen = enclosingFolderName;
+                        }
+
+                        QMenu *plMenu = new QMenu();
+                        plMenu->addAction(QString(menuString),
+                                          [thingToOpen]() {
+                                            // opens either the folder and highlights the file (if file exists), OR
+                                            // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                              QStringList args;
+                                              args << "-e";
+                                              args << "tell application \"Finder\"";
+                                              args << "-e";
+                                              args << "activate";
+                                              args << "-e";
+                                              args << "select POSIX file \"" + thingToOpen + "\"";
+                                              args << "-e";
+                                              args << "end tell";
+
+                                              //    QProcess::startDetached("osascript", args);
+
+                                              // same as startDetached, but suppresses output from osascript to console
+                                              //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                              QProcess process;
+                                              process.setProgram("osascript");
+                                              process.setArguments(args);
+                                              process.setStandardOutputFile(QProcess::nullDevice());
+                                              process.setStandardErrorFile(QProcess::nullDevice());
+                                              qint64 pid;
+                                              process.startDetached(&pid);
+#endif
+
+                                          });
+                        plMenu->popup(QCursor::pos());
+                        plMenu->exec();
+                        delete plMenu; // done with it
+                  }
+            );
+
     // -----
     ui->playlist2Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
     ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Jokers_2023.09.20");

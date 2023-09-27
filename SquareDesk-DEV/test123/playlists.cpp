@@ -1426,7 +1426,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                         title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
                         // TODO: provide context menu to get dialog with reasons why
-                        QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv$","");
+                        QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
                         title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
                     }
 
