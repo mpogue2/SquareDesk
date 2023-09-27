@@ -3148,7 +3148,9 @@ void MainWindow::Info_Seekbar(bool forceSlider)
             cBass->SetPitch(ui->pitchSlider->value());
         }
 
+#ifdef DARKMODE
         float currentPos_f = static_cast<float>(cBass->Current_Position);
+#endif
         int currentPos_i = static_cast<int>(cBass->Current_Position);
 
 // to help track down the failure-to-progress error...
@@ -9061,7 +9063,6 @@ void MainWindow::on_darkSeekBar_valueChanged(int value) {
     }
 }
 
-#endif
 
 void MainWindow::on_darkSearch_textChanged(const QString &s)
 {
@@ -9124,7 +9125,6 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
     }
 }
 
-#ifdef DARKMODE
 void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
 {
     PerfTimer t("on_darkSongTable_itemDoubleClicked", __LINE__);
@@ -9174,7 +9174,6 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 }
-#endif
 
 void MainWindow::on_darkStartLoopTime_timeChanged(const QTime &time)
 {
@@ -9239,7 +9238,6 @@ void MainWindow::on_toggleShowPaletteTables_toggled(bool checked)
 //        ui->splitter7->setEnabled(false);
 //    }
 }
-
 
 void MainWindow::on_darkSongTable_itemSelectionChanged()
 {
@@ -9440,3 +9438,4 @@ void MainWindow::on_playlist3Table_itemSelectionChanged()
     }
 }
 
+#endif

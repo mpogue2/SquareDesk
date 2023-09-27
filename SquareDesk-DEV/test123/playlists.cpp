@@ -1510,7 +1510,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     return(firstBadSongLine);  // return error song (if any)
 }
 
-
+#ifdef DARKMODE
 // -------------
 void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 {
@@ -1558,11 +1558,12 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
+#ifdef DARKMODE
     ui->darkPitchSlider->setValue(pitchInt);
 
     on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
         //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
-
+#endif
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -1597,3 +1598,4 @@ void openPlaylistFileForEditing(QString filePath) {
 //    process.startDetached(&pid);
 //#endif
 }
+#endif

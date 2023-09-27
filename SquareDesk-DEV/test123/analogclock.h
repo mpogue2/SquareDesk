@@ -89,7 +89,7 @@
 //#define DEBUGCLOCK 1
 
 // NOTE: THIS IS IN TWO PLACES RIGHT NOW.
-#define DARKMODE
+//#define DARKMODE
 
 class AnalogClock : public QWidget
 {

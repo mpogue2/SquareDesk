@@ -211,7 +211,7 @@ public:
 #define NUMBEREDSOUNDFXFILES 8
 
 // Define this for the new DARK MODE prototyping
-#define DARKMODE
+//#define DARKMODE
 
 namespace Ui
 {
@@ -297,7 +297,9 @@ public slots:
     void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
     void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
 
+#ifdef DARKMODE
     void customPlaylistMenuRequested(QPoint pos);
+#endif
 
 protected:
     bool maybeSave();
@@ -744,7 +746,6 @@ private slots:
 
     void on_darkSeekBar_valueChanged(int value);
 
-#endif
     void on_darkSearch_textChanged(const QString &arg1);
 
     void on_treeWidget_itemSelectionChanged();
@@ -764,6 +765,7 @@ private slots:
     void on_playlist1Table_itemSelectionChanged();
 
     void on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item);
+#endif
 
 public:
     void on_threadSD_errorString(QString str);
