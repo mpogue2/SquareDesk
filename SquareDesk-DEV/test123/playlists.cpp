@@ -274,7 +274,9 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 #ifdef DARKMODE
-    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
+    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
+    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);  // TEMPORARY! FIX FIX FIX
+    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);  // TEMPORARY! FIX FIX FIX
 #endif
 
     // simplify path, for the error message case
@@ -736,62 +738,13 @@ int MainWindow::PlaylistItemCount() {
 void MainWindow::PlaylistItemToTop() {
 
 #ifdef DARKMODE
-    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
-
-    int whichSlot = -1;
-    int row = -1;
-    if (selectedSlot1.count() > 0) {
-        whichSlot = 0;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot2.count() > 0) {
-        whichSlot = 1;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot3.count() > 0) {
-        whichSlot = 2;
-        row = selectedSlot1.at(0).row();
-    }
-
-    if (whichSlot != -1) {
-        //        qDebug() << "PlaylistItemToTop: " << whichSlot << row;
-
-        if (row == 0) {
-            // already at the top
-            return;
-        }
-
-        // already on the list
-        // Iterate over the entire songTable, incrementing items BELOW this item
-
-        // what's the number of THIS item?
-        QTableWidgetItem *theItem1 = ui->playlist1Table->item(row,0);
-        QString playlistIndexText1 = theItem1->text();  // this is the playlist #
-        int currentNumberInt = playlistIndexText1.toInt();
-
-        // iterate through the entire table, and if number is less than THIS item's number, increment it
-        for (int i=0; i<ui->playlist1Table->rowCount(); i++) {
-            QTableWidgetItem *theItem = ui->playlist1Table->item(i,0);
-            QString playlistIndexText = theItem->text();  // this is the playlist #
-            int playlistIndexInt = playlistIndexText.toInt();
-
-            if (playlistIndexInt < currentNumberInt) {
-                // if a # was less, increment it
-                QString newIndex = QString::number(playlistIndexInt+1);
-                ui->playlist1Table->item(i,0)->setText(newIndex);
-            }
-        }
-
-        theItem1->setText("1");  // this one becomes #1
-
-        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
-
-        ui->playlist1Table->scrollToTop();
-//        ui->playlist1Table->scrollToItem(ui->playlist1Table->item(0, 0)); // EnsureVisible for row 0 (the row we moved to the top)
-
-        return;
-    }
+    ui->playlist1Table->moveSelectedItemToTop();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist2Table->moveSelectedItemToTop();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist3Table->moveSelectedItemToTop();  // if nothing was selected in this slot, this call will do nothing
 #endif
+
+    // drop into this section, if it was the songTable and not one of the playlist slots that was selected
+    // selections in these 4 tables are mutually exclusive
 
 //    PerfTimer t("PlaylistItemToTop", __LINE__);
 //    t.start(__LINE__);
@@ -868,63 +821,13 @@ void MainWindow::PlaylistItemToTop() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemToBottom() {
 #ifdef DARKMODE
-    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
-
-    int whichSlot = -1;
-    int row = -1;
-    if (selectedSlot1.count() > 0) {
-        whichSlot = 0;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot2.count() > 0) {
-        whichSlot = 1;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot3.count() > 0) {
-        whichSlot = 2;
-        row = selectedSlot1.at(0).row();
-    }
-
-    if (whichSlot != -1) {
-        //        qDebug() << "PlaylistItemToBottom: " << whichSlot << row;
-
-        if (row == ui->playlist1Table->rowCount()-1) {
-            // already at the bottom
-            return;
-        }
-
-        // already on the list
-        // Iterate over the entire songTable, decrementing items ABOVE this item
-
-        // what's the number of THIS item?
-        QTableWidgetItem *theItem1 = ui->playlist1Table->item(row,0);
-        QString playlistIndexText1 = theItem1->text();  // this is the playlist #
-        int currentNumberInt = playlistIndexText1.toInt();
-
-        // iterate through the entire table, and if number is greater than THIS item's number, decrement it
-        for (int i=0; i<ui->playlist1Table->rowCount(); i++) {
-            QTableWidgetItem *theItem = ui->playlist1Table->item(i,0);
-            QString playlistIndexText = theItem->text();  // this is the playlist #
-            int playlistIndexInt = playlistIndexText.toInt();
-
-            if (playlistIndexInt > currentNumberInt) {
-                // if a # was less, decrement it
-                QString newIndex = QString::number(playlistIndexInt - 1);
-                ui->playlist1Table->item(i,0)->setText(newIndex);
-            }
-        }
-
-        int theLastNumber = ui->playlist1Table->rowCount();
-        theItem1->setText(QString::number(theLastNumber));  // this one becomes #<last>
-
-        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
-        ui->playlist1Table->scrollToBottom();
-//        ui->playlist1Table->scrollTo(theLastNumber - 1); // EnsureVisible for row <last> (the row we moved to the bot)
-
-        return;
-    }
+    ui->playlist1Table->moveSelectedItemToBottom();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist2Table->moveSelectedItemToBottom();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist3Table->moveSelectedItemToBottom();  // if nothing was selected in this slot, this call will do nothing
 #endif
 
+    // drop into this section, if it was the songTable and not one of the playlist slots that was selected
+    // selections in these 4 tables are mutually exclusive
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -986,48 +889,13 @@ void MainWindow::PlaylistItemToBottom() {
 void MainWindow::PlaylistItemMoveUp() {
 
 #ifdef DARKMODE
-    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
-
-    int whichSlot = -1;
-    int row = -1;
-    if (selectedSlot1.count() > 0) {
-        whichSlot = 0;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot2.count() > 0) {
-        whichSlot = 1;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot3.count() > 0) {
-        whichSlot = 2;
-        row = selectedSlot1.at(0).row();
-    }
-
-    if (whichSlot != -1) {
-//        qDebug() << "PlaylistItemMoveUp: " << whichSlot << row;
-
-        if (row == 0) {
-            // already at the top
-            return;
-        }
-
-        // swap the numbers
-        QTableWidgetItem *theItem      = ui->playlist1Table->item(row,0);    // # column
-        QTableWidgetItem *theItemAbove = ui->playlist1Table->item(row - 1,0);
-
-        QString t = theItem->text();
-        theItem->setText(theItemAbove->text());
-        theItemAbove->setText(t);
-
-        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
-
-        ui->playlist1Table->scrollToItem(ui->playlist1Table->item(row - 1, 0)); // EnsureVisible for the moved-up row
-
-        return;
-    }
+    ui->playlist1Table->moveSelectedItemUp();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist2Table->moveSelectedItemUp();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist3Table->moveSelectedItemUp();  // if nothing was selected in this slot, this call will do nothing
 #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
+    // selections in these 4 tables are mutually exclusive
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -1083,48 +951,13 @@ void MainWindow::PlaylistItemMoveUp() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemMoveDown() {
 #ifdef DARKMODE
-    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
-    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
-
-    int whichSlot = -1;
-    int row = -1;
-    if (selectedSlot1.count() > 0) {
-        whichSlot = 0;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot2.count() > 0) {
-        whichSlot = 1;
-        row = selectedSlot1.at(0).row();
-    } else if (selectedSlot3.count() > 0) {
-        whichSlot = 2;
-        row = selectedSlot1.at(0).row();
-    }
-
-    if (whichSlot != -1) {
-        //        qDebug() << "PlaylistItemMoveUp: " << whichSlot << row;
-
-        if (row == ui->playlist1Table->rowCount()-1) {
-            // already at the bottom
-            return;
-        }
-
-        // swap the numbers
-        QTableWidgetItem *theItem      = ui->playlist1Table->item(row,0);    // # column
-        QTableWidgetItem *theItemBelow = ui->playlist1Table->item(row + 1,0);
-
-        QString t = theItem->text();
-        theItem->setText(theItemBelow->text());
-        theItemBelow->setText(t);
-
-        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
-
-        ui->playlist1Table->scrollToItem(ui->playlist1Table->item(row + 1, 0)); // EnsureVisible for the moved-down row
-
-        return;
-    }
+    ui->playlist1Table->moveSelectedItemDown();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist2Table->moveSelectedItemDown();  // if nothing was selected in this slot, this call will do nothing
+    ui->playlist3Table->moveSelectedItemDown();  // if nothing was selected in this slot, this call will do nothing
 #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
+    // selections in these 4 tables are mutually exclusive
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -1182,6 +1015,12 @@ void MainWindow::PlaylistItemMoveDown() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemRemove() {
+
+#ifdef DARKMODE
+    ui->playlist1Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
+    ui->playlist2Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
+    ui->playlist3Table->removeSelectedItem();  // if nothing was selected in this slot, this call does nothing
+#endif
 
     int selectedRow = selectedSongRow();  // get current row or -1
 
@@ -1551,12 +1390,10 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
-    Q_UNUSED(slotNumber)
-
 //    qDebug() << "loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << slotNumber << songCount;
-
 //    addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
 
+    // NOTE: Slot number is 0 to 2
     // --------
     QString firstBadSongLine = "";
     QFile inputFile(PlaylistFileName);
@@ -1568,8 +1405,16 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 //            theItem->setText("");
 //        }
 
-        ui->playlist1Table->clear();
-//        ui->playlist1Table->setRowCount(0);  // remove all rows
+        QTableWidget *theTableWidget;
+        QLabel *theLabel;
+
+        switch (slotNumber) {
+            case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
+            case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
+            case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+        }
+
+        theTableWidget->clear();
 
         //        int lineCount = 1;
         linesInCurrentPlaylist = 0;
@@ -1603,22 +1448,28 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
 //                    qDebug() << "list1: " << list1;
 
+//                    EXAMPLE PLAYLIST CSV FILE:
 //                    relpath,pitch,tempo
 //                    "/patter/RR 1323 - Diggy.mp3",0,124
 
                     // make a new row, if needed
-                    if (songCount > ui->playlist1Table->rowCount()) {
-                        ui->playlist1Table->insertRow(ui->playlist1Table->rowCount());
+//                    if (songCount > ui->playlist1Table->rowCount()) {
+//                        ui->playlist1Table->insertRow(ui->playlist1Table->rowCount());
+//                    }
+                    if (songCount > theTableWidget->rowCount()) {
+                        theTableWidget->insertRow(theTableWidget->rowCount());
                     }
 
                     // # column
                     QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
-                    ui->playlist1Table->setItem(songCount-1, 0, num);
+//                    ui->playlist1Table->setItem(songCount-1, 0, num);
+                    theTableWidget->setItem(songCount-1, 0, num);
 
                     // TITLE column
                     QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
                     QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
-                    ui->playlist1Table->setItem(songCount-1, 1, title);
+//                    ui->playlist1Table->setItem(songCount-1, 1, title);
+                    theTableWidget->setItem(songCount-1, 1, title);
 
                     QString absPath = musicRootPath + list1[0];
                     QFileInfo fi(absPath);
@@ -1635,47 +1486,20 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
-                    ui->playlist1Table->setItem(songCount-1, 2, pit);
+//                    ui->playlist1Table->setItem(songCount-1, 2, pit);
+                    theTableWidget->setItem(songCount-1, 2, pit);
 
                     // TEMPO column
                     QTableWidgetItem *tem = new QTableWidgetItem(list1[2]);
-                    ui->playlist1Table->setItem(songCount-1, 3, tem);
+//                    ui->playlist1Table->setItem(songCount-1, 3, tem);
+                    theTableWidget->setItem(songCount-1, 3, tem);
 
                     // PATH column
                     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-                    ui->playlist1Table->setItem(songCount-1, 4, fullPath);
+//                    ui->playlist1Table->setItem(songCount-1, 4, fullPath);
+                    theTableWidget->setItem(songCount-1, 4, fullPath);
 
-//                    bool match = false;
-//                    // exit the loop early, if we find a match
-//                    for (int i = 0; (i < ui->songTable->rowCount())&&(!match); i++) {
-
-//                        QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-
-//                        if ( (v1playlist && (list1[0] == pathToMP3)) ||             // compare absolute pathnames (fragile, old V1 way)
-//                            (v2playlist && compareRelative(list1[0], pathToMP3))   // compare relative pathnames (better, new V2 way)
-//                            ) {
-//                            // qDebug() << "MATCH::" << list1[0] << pathToMP3;
-//                            //                            qDebug() << "loadPlaylistFromFile: " << pathToMP3;
-//                            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//                            theItem->setText(QString::number(songCount));
-//                            //                            qDebug() << "                     number: " << QString::number(songCount);
-
-//                            QTableWidgetItem *theItem2 = ui->songTable->item(i,kPitchCol);
-//                            theItem2->setText(list1[1].trimmed());
-//                            //                            qDebug() << "                     pitch: " << list1[1].trimmed();
-
-//                            QTableWidgetItem *theItem3 = ui->songTable->item(i,kTempoCol);
-//                            theItem3->setText(list1[2].trimmed());
-//                            //                            qDebug() << "                     tempo: " << list1[2].trimmed();
-
-//                            match = true;
-//                        }
-//                    }
-//                    // if we had no match, remember the first non-matching song path
-//                    if (!match && firstBadSongLine == "") {
-//                        firstBadSongLine = line;
-//                    }
-
+//                    qDebug() << "     ITEMS: " << pit->text() << tem->text() << fullPath->text();
                 }
 
                 //                lineCount++;
@@ -1684,26 +1508,16 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
         inputFile.close();
 
-        ui->playlist1Table->resizeColumnToContents(0);
-        ui->playlist1Table->resizeColumnToContents(2);
-        ui->playlist1Table->resizeColumnToContents(3);
+//        ui->playlist1Table->resizeColumnToContents(0);
+//        ui->playlist1Table->resizeColumnToContents(2);
+//        ui->playlist1Table->resizeColumnToContents(3);
+        theTableWidget->resizeColumnToContents(0);
+        theTableWidget->resizeColumnToContents(2);
+        theTableWidget->resizeColumnToContents(3);
 
         QString playlistShortName = PlaylistFileName.split('/').last().replace(".csv","");
-        ui->playlist1Label->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
-
-
-
-//        linesInCurrentPlaylist += songCount; // when non-zero, this enables saving of the current playlist
-//        //        qDebug() << "linesInCurrentPlaylist:" << linesInCurrentPlaylist;
-
-//        //        qDebug() << "FBS:" << firstBadSongLine << ", linesInCurrentPL:" << linesInCurrentPlaylist;
-//        if (firstBadSongLine=="" && linesInCurrentPlaylist != 0) {
-//            // a playlist is now loaded, NOTE: side effect of loading a playlist is enabling Save/SaveAs...
-//            //            qDebug() << "LOADED CORRECTLY. enabling Save As";
-//            ui->actionSave_Playlist_2->setEnabled(true);  // Playlist > Save Playlist 'name' is enabled, because you can always save a playlist with a diff name
-//            ui->actionSave_Playlist->setEnabled(true);  // Playlist > Save Playlist As...
-//            ui->actionPrint_Playlist->setEnabled(true);  // Playlist > Print Playlist...
-//        }
+//        ui->playlist1Label->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
+        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
     }
     else {
         // file didn't open...
@@ -1715,6 +1529,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
 #ifdef DARKMODE
 // -------------
+// TODO: FACTOR THESE (DUPLICATED CODE), use pointer to a PlaylistTable
 void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 {
     PerfTimer t("on_playlist1Table_itemDoubleClicked", __LINE__);
@@ -1736,10 +1551,13 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
     // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
 
-//    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
-//    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
+    //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
+    //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
 
     QString songType = "patter";
+    if (pathToMP3.contains("/singing/")) {  // FIX THIS: NEEDS TO LOOK AT ALL THE POSSIBLE TYPE NAMES AND TYPES (THIS IS TEMPORARY)
+        songType = "singing";
+    }
     QString songLabel = "RIV 123";
 
     // these must be up here to get the correct values...
@@ -1751,7 +1569,135 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
     targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
 
-    qDebug() << "on_playlist1Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
+//    qDebug() << "on_playlist1Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
+
+    t.elapsed(__LINE__);
+
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+
+    t.elapsed(__LINE__);
+
+    // these must be down here, to set the correct values...
+    int pitchInt = pitch.toInt();
+#ifdef DARKMODE
+    ui->darkPitchSlider->setValue(pitchInt);
+
+    on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+        //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
+#endif
+    if (ui->actionAutostart_playback->isChecked()) {
+        on_playButton_clicked();
+    }
+
+    t.elapsed(__LINE__);
+}
+
+// -------------
+void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
+{
+    PerfTimer t("on_playlist2Table_itemDoubleClicked", __LINE__);
+
+    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    saveCurrentSongSettings();
+
+    t.elapsed(__LINE__);
+
+    int row = item->row();
+    QString pathToMP3 = ui->playlist2Table->item(row,4)->text();
+
+//    qDebug() << "on_playlist2Table_itemDoubleClicked ROW:" << row << pathToMP3;
+
+    QFileInfo fi(pathToMP3);
+    if (!fi.exists()) {
+        qDebug() << "ERROR: File does not exist " << pathToMP3;
+        return;  // can't load a file that doesn't exist
+    }
+
+    QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
+    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+    //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
+    //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
+
+    QString songType = "patter";
+    if (pathToMP3.contains("/singing/")) {  // FIX THIS: NEEDS TO LOOK AT ALL THE POSSIBLE TYPE NAMES AND TYPES (THIS IS TEMPORARY)
+        songType = "singing";
+    }
+    QString songLabel = "RIV 123";
+
+    // these must be up here to get the correct values...
+    QString pitch  = ui->playlist2Table->item(row, 2)->text();
+    QString tempo  = ui->playlist2Table->item(row, 3)->text();
+    QString number = ui->playlist2Table->item(row, 0)->text();
+
+    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
+    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
+    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+
+//    qDebug() << "on_playlist2Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
+
+    t.elapsed(__LINE__);
+
+    loadMP3File(pathToMP3, songTitle, songType, songLabel);
+
+    t.elapsed(__LINE__);
+
+    // these must be down here, to set the correct values...
+    int pitchInt = pitch.toInt();
+#ifdef DARKMODE
+    ui->darkPitchSlider->setValue(pitchInt);
+
+    on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
+        //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
+#endif
+    if (ui->actionAutostart_playback->isChecked()) {
+        on_playButton_clicked();
+    }
+
+    t.elapsed(__LINE__);
+}
+
+// -------------
+void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
+{
+    PerfTimer t("on_playlist3Table_itemDoubleClicked", __LINE__);
+
+    on_stopButton_clicked();  // if we're loading a new MP3 file, stop current playback
+    saveCurrentSongSettings();
+
+    t.elapsed(__LINE__);
+
+    int row = item->row();
+    QString pathToMP3 = ui->playlist3Table->item(row,4)->text();
+
+    QFileInfo fi(pathToMP3);
+    if (!fi.exists()) {
+        qDebug() << "ERROR: File does not exist " << pathToMP3;
+        return;  // can't load a file that doesn't exist
+    }
+
+    QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
+    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+    //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
+    //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
+
+    QString songType = "patter";
+    if (pathToMP3.contains("/singing/")) {  // FIX THIS: NEEDS TO LOOK AT ALL THE POSSIBLE TYPE NAMES AND TYPES (THIS IS TEMPORARY)
+        songType = "singing";
+    }
+    QString songLabel = "RIV 123";
+
+    // these must be up here to get the correct values...
+    QString pitch  = ui->playlist3Table->item(row, 2)->text();
+    QString tempo  = ui->playlist3Table->item(row, 3)->text();
+    QString number = ui->playlist3Table->item(row, 0)->text();
+
+    targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
+    targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
+    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+
+//    qDebug() << "on_playlist3Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
 
     t.elapsed(__LINE__);
 

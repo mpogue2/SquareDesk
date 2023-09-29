@@ -3869,7 +3869,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="playlist1Table">
+                <widget class="MyTableWidget" name="playlist1Table">
                  <property name="font">
                   <font>
                    <family>Avenir Next</family>
@@ -3979,7 +3979,7 @@
                  </column>
                  <column>
                   <property name="text">
-                   <string>New Column</string>
+                   <string>Tempo</string>
                   </property>
                   <property name="font">
                    <font>
@@ -4112,7 +4112,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="playlist2Table">
+                <widget class="MyTableWidget" name="playlist2Table">
                  <property name="font">
                   <font>
                    <family>Avenir Next</family>
@@ -4189,6 +4189,24 @@
                  <column>
                   <property name="text">
                    <string>Title</string>
+                  </property>
+                  <property name="textAlignment">
+                   <set>AlignLeading|AlignVCenter</set>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Pitch</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Tempo</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>fullpath</string>
                   </property>
                   <property name="textAlignment">
                    <set>AlignLeading|AlignVCenter</set>
@@ -4305,7 +4323,7 @@
                 </widget>
                </item>
                <item>
-                <widget class="QTableWidget" name="playlist3Table">
+                <widget class="MyTableWidget" name="playlist3Table">
                  <property name="font">
                   <font>
                    <family>Avenir Next</family>
@@ -4385,6 +4403,24 @@
                  <column>
                   <property name="text">
                    <string>TItle</string>
+                  </property>
+                  <property name="textAlignment">
+                   <set>AlignLeading|AlignVCenter</set>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Pitch</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>Tempo</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>fullpath</string>
                   </property>
                   <property name="textAlignment">
                    <set>AlignLeading|AlignVCenter</set>

@@ -33,6 +33,19 @@ class MyTableWidget : public QTableWidget
 public:
     MyTableWidget(QWidget *parent);
     bool isEditing();
+
+    bool moveSelectedItemUp();
+    bool moveSelectedItemDown();
+    bool moveSelectedItemToTop();
+    bool moveSelectedItemToBottom();
+    bool removeSelectedItem();
+
+    void moveSelectionUp();
+    void moveSelectionDown();
+    void moveSelectionToTop();
+    void moveSelectionToBottom();
+
+    QString fullPathOfSelectedSong();
 };
 
 #endif // MYTABLEWIDGET_H

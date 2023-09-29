@@ -4387,6 +4387,21 @@ bool MainWindow::handleKeypress(int key, QString text)
 
                 //                lastWidget->setFocus(); // restore focus to widget that had it before
                 ui->darkSongTable->setFocus(); // THIS IS BETTER
+            } else if (ui->playlist1Table->hasFocus() || ui->playlist2Table->hasFocus() || ui->playlist3Table->hasFocus()) {
+//                qDebug() << "ENTER pressed for Playlist slot!  Time to load a song!";
+//                QString songToLoad = ui->playlist1Table->fullPathOfSelectedSong() +
+//                                     ui->playlist2Table->fullPathOfSelectedSong() +
+//                                     ui->playlist3Table->fullPathOfSelectedSong();  // only one of these is not the null string
+//                qDebug() << "songToLoad: " << songToLoad;
+
+                if (ui->playlist1Table->hasFocus()) {
+                    on_playlist1Table_itemDoubleClicked(ui->playlist1Table->selectedItems().at(0));
+                } else if (ui->playlist2Table->hasFocus()) {
+                    on_playlist2Table_itemDoubleClicked(ui->playlist2Table->selectedItems().at(0));
+                } else if (ui->playlist3Table->hasFocus()) {
+                    on_playlist3Table_itemDoubleClicked(ui->playlist3Table->selectedItems().at(0));
+                }
+
             }
 #endif
             break;
@@ -4432,6 +4447,17 @@ bool MainWindow::handleKeypress(int key, QString text)
                         return true;
                     }
                     ui->darkSongTable->selectRow(row); // select new row!
+                }
+            } else if (ui->playlist1Table->hasFocus() || ui->playlist2Table->hasFocus() || ui->playlist3Table->hasFocus()) {
+//                qDebug() << "PLAYLIST HAS FOCUS, and UP/DOWN pressed...";
+                if (key == Qt::Key_Up) {
+                    ui->playlist1Table->moveSelectionUp();  // if this slot doesn't have anything selected, this call will be ignored.
+                    ui->playlist2Table->moveSelectionUp();  // if this slot doesn't have anything selected, this call will be ignored.
+                    ui->playlist3Table->moveSelectionUp();  // if this slot doesn't have anything selected, this call will be ignored.
+                } else {
+                    ui->playlist1Table->moveSelectionDown();  // if this slot doesn't have anything selected, this call will be ignored.
+                    ui->playlist2Table->moveSelectionDown();  // if this slot doesn't have anything selected, this call will be ignored.
+                    ui->playlist3Table->moveSelectionDown();  // if this slot doesn't have anything selected, this call will be ignored.
                 }
             }
 #endif
@@ -9358,7 +9384,7 @@ void MainWindow::on_playlist1Table_itemSelectionChanged()
     } // else more than 1 row or no rows, just return -1
 
     if (row >= 0) {
-        qDebug() << "playlist1 selection changed to: " << row << ui->playlist1Table->item(row, 1)->text();
+//        qDebug() << "playlist1 selection changed to: " << row << ui->playlist1Table->item(row, 1)->text();
     }
 }
 
@@ -9396,7 +9422,7 @@ void MainWindow::on_playlist2Table_itemSelectionChanged()
     } // else more than 1 row or no rows, just return -1
 
     if (row >= 0) {
-        qDebug() << "playlist2 selection changed to: " << row << ui->playlist2Table->item(row, 1)->text();
+//        qDebug() << "playlist2 selection changed to: " << row << ui->playlist2Table->item(row, 1)->text();
     }
 }
 
@@ -9434,7 +9460,7 @@ void MainWindow::on_playlist3Table_itemSelectionChanged()
     } // else more than 1 row or no rows, just return -1
 
     if (row >= 0) {
-        qDebug() << "playlist3 selection changed to: " << row << ui->playlist3Table->item(row, 1)->text();
+//        qDebug() << "playlist3 selection changed to: " << row << ui->playlist3Table->item(row, 1)->text();
     }
 }
 
