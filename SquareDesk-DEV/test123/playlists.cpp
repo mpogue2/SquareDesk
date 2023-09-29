@@ -735,6 +735,64 @@ int MainWindow::PlaylistItemCount() {
 // ----------------------------------------------------------------------
 void MainWindow::PlaylistItemToTop() {
 
+#ifdef DARKMODE
+    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
+
+    int whichSlot = -1;
+    int row = -1;
+    if (selectedSlot1.count() > 0) {
+        whichSlot = 0;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot2.count() > 0) {
+        whichSlot = 1;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot3.count() > 0) {
+        whichSlot = 2;
+        row = selectedSlot1.at(0).row();
+    }
+
+    if (whichSlot != -1) {
+        //        qDebug() << "PlaylistItemToTop: " << whichSlot << row;
+
+        if (row == 0) {
+            // already at the top
+            return;
+        }
+
+        // already on the list
+        // Iterate over the entire songTable, incrementing items BELOW this item
+
+        // what's the number of THIS item?
+        QTableWidgetItem *theItem1 = ui->playlist1Table->item(row,0);
+        QString playlistIndexText1 = theItem1->text();  // this is the playlist #
+        int currentNumberInt = playlistIndexText1.toInt();
+
+        // iterate through the entire table, and if number is less than THIS item's number, increment it
+        for (int i=0; i<ui->playlist1Table->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->playlist1Table->item(i,0);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            int playlistIndexInt = playlistIndexText.toInt();
+
+            if (playlistIndexInt < currentNumberInt) {
+                // if a # was less, increment it
+                QString newIndex = QString::number(playlistIndexInt+1);
+                ui->playlist1Table->item(i,0)->setText(newIndex);
+            }
+        }
+
+        theItem1->setText("1");  // this one becomes #1
+
+        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
+
+        ui->playlist1Table->scrollToTop();
+//        ui->playlist1Table->scrollToItem(ui->playlist1Table->item(0, 0)); // EnsureVisible for row 0 (the row we moved to the top)
+
+        return;
+    }
+#endif
+
 //    PerfTimer t("PlaylistItemToTop", __LINE__);
 //    t.start(__LINE__);
 
@@ -809,6 +867,64 @@ void MainWindow::PlaylistItemToTop() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemToBottom() {
+#ifdef DARKMODE
+    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
+
+    int whichSlot = -1;
+    int row = -1;
+    if (selectedSlot1.count() > 0) {
+        whichSlot = 0;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot2.count() > 0) {
+        whichSlot = 1;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot3.count() > 0) {
+        whichSlot = 2;
+        row = selectedSlot1.at(0).row();
+    }
+
+    if (whichSlot != -1) {
+        //        qDebug() << "PlaylistItemToBottom: " << whichSlot << row;
+
+        if (row == ui->playlist1Table->rowCount()-1) {
+            // already at the bottom
+            return;
+        }
+
+        // already on the list
+        // Iterate over the entire songTable, decrementing items ABOVE this item
+
+        // what's the number of THIS item?
+        QTableWidgetItem *theItem1 = ui->playlist1Table->item(row,0);
+        QString playlistIndexText1 = theItem1->text();  // this is the playlist #
+        int currentNumberInt = playlistIndexText1.toInt();
+
+        // iterate through the entire table, and if number is greater than THIS item's number, decrement it
+        for (int i=0; i<ui->playlist1Table->rowCount(); i++) {
+            QTableWidgetItem *theItem = ui->playlist1Table->item(i,0);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            int playlistIndexInt = playlistIndexText.toInt();
+
+            if (playlistIndexInt > currentNumberInt) {
+                // if a # was less, decrement it
+                QString newIndex = QString::number(playlistIndexInt - 1);
+                ui->playlist1Table->item(i,0)->setText(newIndex);
+            }
+        }
+
+        int theLastNumber = ui->playlist1Table->rowCount();
+        theItem1->setText(QString::number(theLastNumber));  // this one becomes #<last>
+
+        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
+        ui->playlist1Table->scrollToBottom();
+//        ui->playlist1Table->scrollTo(theLastNumber - 1); // EnsureVisible for row <last> (the row we moved to the bot)
+
+        return;
+    }
+#endif
+
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -868,6 +984,50 @@ void MainWindow::PlaylistItemToBottom() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemMoveUp() {
+
+#ifdef DARKMODE
+    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
+
+    int whichSlot = -1;
+    int row = -1;
+    if (selectedSlot1.count() > 0) {
+        whichSlot = 0;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot2.count() > 0) {
+        whichSlot = 1;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot3.count() > 0) {
+        whichSlot = 2;
+        row = selectedSlot1.at(0).row();
+    }
+
+    if (whichSlot != -1) {
+//        qDebug() << "PlaylistItemMoveUp: " << whichSlot << row;
+
+        if (row == 0) {
+            // already at the top
+            return;
+        }
+
+        // swap the numbers
+        QTableWidgetItem *theItem      = ui->playlist1Table->item(row,0);    // # column
+        QTableWidgetItem *theItemAbove = ui->playlist1Table->item(row - 1,0);
+
+        QString t = theItem->text();
+        theItem->setText(theItemAbove->text());
+        theItemAbove->setText(t);
+
+        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
+
+        ui->playlist1Table->scrollToItem(ui->playlist1Table->item(row - 1, 0)); // EnsureVisible for the moved-up row
+
+        return;
+    }
+#endif
+
+    // drop into this section, if it was the songTable and not one of the playlist slots that was selected
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -922,6 +1082,49 @@ void MainWindow::PlaylistItemMoveUp() {
 
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemMoveDown() {
+#ifdef DARKMODE
+    QModelIndexList selectedSlot1 = ui->playlist1Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot2 = ui->playlist2Table->selectionModel()->selectedRows();
+    QModelIndexList selectedSlot3 = ui->playlist3Table->selectionModel()->selectedRows();
+
+    int whichSlot = -1;
+    int row = -1;
+    if (selectedSlot1.count() > 0) {
+        whichSlot = 0;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot2.count() > 0) {
+        whichSlot = 1;
+        row = selectedSlot1.at(0).row();
+    } else if (selectedSlot3.count() > 0) {
+        whichSlot = 2;
+        row = selectedSlot1.at(0).row();
+    }
+
+    if (whichSlot != -1) {
+        //        qDebug() << "PlaylistItemMoveUp: " << whichSlot << row;
+
+        if (row == ui->playlist1Table->rowCount()-1) {
+            // already at the bottom
+            return;
+        }
+
+        // swap the numbers
+        QTableWidgetItem *theItem      = ui->playlist1Table->item(row,0);    // # column
+        QTableWidgetItem *theItemBelow = ui->playlist1Table->item(row + 1,0);
+
+        QString t = theItem->text();
+        theItem->setText(theItemBelow->text());
+        theItemBelow->setText(t);
+
+        ui->playlist1Table->sortItems(0);  // resort, based on column 0 (the #)
+
+        ui->playlist1Table->scrollToItem(ui->playlist1Table->item(row + 1, 0)); // EnsureVisible for the moved-down row
+
+        return;
+    }
+#endif
+
+    // drop into this section, if it was the songTable and not one of the playlist slots that was selected
     int selectedRow = selectedSongRow();  // get current row or -1
 
     if (selectedRow == -1) {
@@ -1409,7 +1612,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     }
 
                     // # column
-                    QTableWidgetItem *num = new QTableWidgetItem(QString::number(songCount));
+                    QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
                     ui->playlist1Table->setItem(songCount-1, 0, num);
 
                     // TITLE column
