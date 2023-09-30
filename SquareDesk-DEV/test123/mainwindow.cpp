@@ -9572,3 +9572,27 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
 
 #endif
 
+
+void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
+{
+    // if treeView playlist is double-clicked, it will be loaded into Palette Slot #1
+    Q_UNUSED(column)
+
+    QString fullPathToLeaf = treeItem->text(0);
+    while (treeItem->parent() != NULL)
+    {
+        fullPathToLeaf = treeItem->parent()->text(0) + "/" + fullPathToLeaf;
+        treeItem = treeItem->parent();
+    }
+
+    fullPathToLeaf = fullPathToLeaf.replace("Playlists", "playlists");  // difference between display "P" and file system "p"
+
+    QString PlaylistFileName = musicRootPath + "/" + fullPathToLeaf + ".csv"; // prefix it with the path to musicDir, suffix it with .csv
+
+    if (fullPathToLeaf.contains("playlists")) {
+        // load Playlists but not Tracks
+        int songCount;
+        loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
+    }
+}
+

@@ -770,6 +770,8 @@ private slots:
     void on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item);
 #endif
 
+    void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
