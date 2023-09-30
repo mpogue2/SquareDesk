@@ -274,9 +274,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
 #ifdef DARKMODE
-    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
-    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);  // TEMPORARY! FIX FIX FIX
-    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);  // TEMPORARY! FIX FIX FIX
+    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount); // also load it into slot 1
 #endif
 
     // simplify path, for the error message case
@@ -1390,20 +1388,11 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
-//    qDebug() << "loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << slotNumber << songCount;
-//    addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
-
     // NOTE: Slot number is 0 to 2
     // --------
     QString firstBadSongLine = "";
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
-
-//        // first, clear all the playlist numbers that are there now.
-//        for (int i = 0; i < ui->songTable->rowCount(); i++) {
-//            QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
-//            theItem->setText("");
-//        }
 
         QTableWidget *theTableWidget;
         QLabel *theLabel;
@@ -1414,9 +1403,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
             case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
         }
 
-        theTableWidget->clear();
+//        theTableWidget->clear();  // this just clears the items/text, it doesn't delete the rows
+        theTableWidget->setRowCount(0); // delete all the rows
 
-        //        int lineCount = 1;
         linesInCurrentPlaylist = 0;
 
         QTextStream in(&inputFile);
@@ -1430,8 +1419,6 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
             // This allows two things:
             //   - moving an entire Music Directory from one place to another, and playlists still work
             //   - sharing an entire Music Directory across platforms, and playlists still work
-//            bool v2playlist = header.contains("relpath");
-//            bool v1playlist = !v2playlist;
 
             songCount = 0;
 
@@ -1446,29 +1433,22 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                     QStringList list1 = parseCSV(line);  // This is more robust than split(). Handles commas inside double quotes, double double quotes, etc.
 
-//                    qDebug() << "list1: " << list1;
-
 //                    EXAMPLE PLAYLIST CSV FILE:
 //                    relpath,pitch,tempo
 //                    "/patter/RR 1323 - Diggy.mp3",0,124
 
                     // make a new row, if needed
-//                    if (songCount > ui->playlist1Table->rowCount()) {
-//                        ui->playlist1Table->insertRow(ui->playlist1Table->rowCount());
-//                    }
                     if (songCount > theTableWidget->rowCount()) {
                         theTableWidget->insertRow(theTableWidget->rowCount());
                     }
 
                     // # column
                     QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
-//                    ui->playlist1Table->setItem(songCount-1, 0, num);
                     theTableWidget->setItem(songCount-1, 0, num);
 
                     // TITLE column
                     QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
                     QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
-//                    ui->playlist1Table->setItem(songCount-1, 1, title);
                     theTableWidget->setItem(songCount-1, 1, title);
 
                     QString absPath = musicRootPath + list1[0];
@@ -1486,38 +1466,29 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
-//                    ui->playlist1Table->setItem(songCount-1, 2, pit);
                     theTableWidget->setItem(songCount-1, 2, pit);
 
                     // TEMPO column
                     QTableWidgetItem *tem = new QTableWidgetItem(list1[2]);
-//                    ui->playlist1Table->setItem(songCount-1, 3, tem);
                     theTableWidget->setItem(songCount-1, 3, tem);
 
                     // PATH column
                     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
-//                    ui->playlist1Table->setItem(songCount-1, 4, fullPath);
                     theTableWidget->setItem(songCount-1, 4, fullPath);
-
-//                    qDebug() << "     ITEMS: " << pit->text() << tem->text() << fullPath->text();
                 }
-
-                //                lineCount++;
             } // while
         }
 
         inputFile.close();
 
-//        ui->playlist1Table->resizeColumnToContents(0);
-//        ui->playlist1Table->resizeColumnToContents(2);
-//        ui->playlist1Table->resizeColumnToContents(3);
         theTableWidget->resizeColumnToContents(0);
         theTableWidget->resizeColumnToContents(2);
         theTableWidget->resizeColumnToContents(3);
 
         QString playlistShortName = PlaylistFileName.split('/').last().replace(".csv","");
-//        ui->playlist1Label->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
+
+        relPathInSlot[slotNumber] = PlaylistFileName.replace(musicRootPath + "/playlists/", "").replace(".csv","");
     }
     else {
         // file didn't open...
@@ -1720,31 +1691,4 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 }
 
-void openPlaylistFileForEditing(QString filePath) {
-    Q_UNUSED(filePath)
-
-//#if defined(Q_OS_MAC)
-//    QStringList args;
-//    args << "-e";
-//    args << "tell application \"TextEdit\"";
-//    args << "-e";
-//    args << "activate";
-//    args << "-e";
-//    args << "open \""+filePath+"\"";
-//    args << "-e";
-//    args << "end tell";
-
-//    //    QProcess::startDetached("osascript", args);
-
-//    // same as startDetached, but suppresses output from osascript to console
-//    //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-//    QProcess process;
-//    process.setProgram("osascript");
-//    process.setArguments(args);
-//    process.setStandardOutputFile(QProcess::nullDevice());
-//    process.setStandardErrorFile(QProcess::nullDevice());
-//    qint64 pid;
-//    process.startDetached(&pid);
-//#endif
-}
 #endif

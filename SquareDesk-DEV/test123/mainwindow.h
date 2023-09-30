@@ -299,6 +299,7 @@ public slots:
 
 #ifdef DARKMODE
     void customPlaylistMenuRequested(QPoint pos);
+    void customTreeWidgetMenuRequested(QPoint pos);
 #endif
 
 protected:
@@ -839,7 +840,7 @@ private:
     QString lastFlashcardsUserFile;      // "" if no flashcard file currently
     QString lastFlashcardsUserDirectory;      // "" if no flashcard file currently
 
-    void openPlaylistFileForEditing(QString filePath);
+    QString relPathInSlot[3]; // playlist slot 1 --> relPathInSlot[0]
 
     int preferredVerySmallFontSize;  // preferred font sizes for UI items
     int preferredSmallFontSize;

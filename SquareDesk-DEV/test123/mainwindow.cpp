@@ -1867,10 +1867,22 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     ui->playlist2Table->resizeColumnToContents(0);
     ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
+    ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+
+    ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
+                this, [this](QPoint q) {
+                    Q_UNUSED(q)
+                    Q_UNUSED(this)
+                    qDebug() << "TO BE IMPLEMENTED!";
+                }
+            );
 
     // -----
     ui->playlist3Label->setStyleSheet("font-size: 11pt; background-color: #404040; color: #AAAAAA;");
@@ -1882,8 +1894,20 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+
+    ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
+            this, [this](QPoint q) {
+                Q_UNUSED(q)
+                Q_UNUSED(this)
+                qDebug() << "TO BE IMPLEMENTED!";
+            }
+            );
 
     // VUMETER:
     ui->darkVUmeter->levelChanged(0, 0, false);  // initialize the VUmeter
@@ -1897,6 +1921,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     QList<QTreeWidgetItem *> trackItem = ui->treeWidget->findItems("Tracks", Qt::MatchExactly);
     trackItem[0]->setSelected(true);
+
+    // enable context menus for TreeWidget
+    ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->treeWidget, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customTreeWidgetMenuRequested(QPoint)));
+
 
     // SPLITTER BETWEEN TREEWIDGET AND SONGTABLE:
     int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
@@ -2034,6 +2063,14 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
 #endif
 
+    // clear out the developer text from the playlistTables and Labels
+    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+    ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+    ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+    ui->playlist1Table->setRowCount(0);
+    ui->playlist2Table->setRowCount(0);
+    ui->playlist3Table->setRowCount(0);
+
     // PLAYLIST LOADING HERE, SO THAT PLAYLIST1 IS INITIALIZED BY NOW
     ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
     ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
@@ -2045,10 +2082,14 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     if (loadThisPlaylist != "") {
         QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
         finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
+
+        // by default, load that single "old" playlist into slot 1 (leftmost slot) --------
+        //  TODO: might want to change this later...
+        int songCount;
+        loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
     }
 
     stopLongSongTableOperation("MainWindow");
-
 }
 
 
@@ -9291,62 +9332,83 @@ void MainWindow::on_darkSongTable_itemSelectionChanged()
 void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     Q_UNUSED(pos)
 
-//    qDebug() << "customPlaylistMenuRequested:" << sender()->objectName();
-
     QMenu *plMenu = new QMenu();
 
-//    plMenu->addSection(sender()->objectName());
+    int whichSlot = 0;
 
-//    QAction *act1 = new QAction("Show Header");
-//    act1->setCheckable(true);
-//    act1->setChecked(true);
-//    plMenu->addAction(act1);
+    if (sender()->objectName() == "playlist2Label") {
+        whichSlot = 1;
+    } else if (sender()->objectName() == "playlist3Label") {
+        whichSlot = 2;
+    }
 
-//    plMenu->addSeparator(); // -----------------------------
+    if (relPathInSlot[whichSlot] != "") {
+        // context menu only available if something is actually in this slot
 
-    QString playlistFilePath = lastSavedPlaylist; // IS THIS RIGHT?
-    QString playlistShortName = playlistFilePath.split('/').last().replace(".csv","");
+        QString playlistFilePath = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + ".csv";
+        QString playlistShortName = playlistFilePath.split('/').last().replace(".csv","");
 
-    plMenu->addAction(QString("Edit '%1' in text editor").arg(playlistShortName),
-                      [playlistFilePath]() {
-//                          qDebug() << "EDIT PLAYLIST MANUALLY: " << playlistFilePath;
-//                          this->openPlaylistFileForEditing(playlistFilePath);
+        plMenu->addAction(QString("Edit '%1' in text editor").arg(relPathInSlot[whichSlot]),
+                          [playlistFilePath]() {
 #if defined(Q_OS_MAC)
-                          QStringList args;
-                          args << "-e";
-                          args << "tell application \"TextEdit\"";
-                          args << "-e";
-                          args << "activate";
-                          args << "-e";
-                          args << "open POSIX file \"" + playlistFilePath + "\"";
-                          args << "-e";
-                          args << "end tell";
+                              QStringList args;
+                              args << "-e";
+                              args << "tell application \"TextEdit\"";
+                              args << "-e";
+                              args << "activate";
+                              args << "-e";
+                              args << "open POSIX file \"" + playlistFilePath + "\"";
+                              args << "-e";
+                              args << "end tell";
 
-                          //    QProcess::startDetached("osascript", args);
+                              //    QProcess::startDetached("osascript", args);
 
-                          // same as startDetached, but suppresses output from osascript to console
-                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
-                          QProcess process;
-                          process.setProgram("osascript");
-                          process.setArguments(args);
-                          process.setStandardOutputFile(QProcess::nullDevice());
-                          process.setStandardErrorFile(QProcess::nullDevice());
-                          qint64 pid;
-                          process.startDetached(&pid);
+                              // same as startDetached, but suppresses output from osascript to console
+                              //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                              QProcess process;
+                              process.setProgram("osascript");
+                              process.setArguments(args);
+                              process.setStandardOutputFile(QProcess::nullDevice());
+                              process.setStandardErrorFile(QProcess::nullDevice());
+                              qint64 pid;
+                              process.startDetached(&pid);
 #endif
-                      });
+                          });
 
-    plMenu->addAction(QString("Reload '%1'").arg(playlistShortName),
-                      [this, playlistFilePath]() {
-                          qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
-                          int songCount;
-                          this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, 1, songCount);
-                      });
+        plMenu->addAction(QString("Reload '%1'").arg(relPathInSlot[whichSlot]),
+                          [this, playlistFilePath]() {
+                              qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
+                              int songCount;
+                              this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, 1, songCount);
+                          });
 
-    plMenu->popup(QCursor::pos());
-    plMenu->exec();
+        plMenu->addSeparator();
 
-    delete(plMenu);
+        plMenu->addAction(QString("Remove from Palette"),
+                          [this, whichSlot]() {
+                              // clear out the label, and delete all the rows from the table
+                              switch (whichSlot) {
+                                  case 0:   ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+                                            ui->playlist1Table->setRowCount(0);
+                                            break;
+                                  case 1:   ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+                                            ui->playlist2Table->setRowCount(0);
+                                            break;
+                                  case 2:   ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+                                            ui->playlist3Table->setRowCount(0);
+                                            break;
+                              }
+                              relPathInSlot[whichSlot] = ""; // no longer anything here
+                          }
+                          );
+
+
+        plMenu->popup(QCursor::pos());
+        plMenu->exec();
+
+        delete(plMenu);
+    }
+
 }
 
 void MainWindow::on_playlist1Table_itemSelectionChanged()
@@ -9464,4 +9526,49 @@ void MainWindow::on_playlist3Table_itemSelectionChanged()
     }
 }
 
+// ===============================================
+void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
+    Q_UNUSED(pos)
+
+    QMenu *twMenu = new QMenu();
+
+    QTreeWidgetItem *treeItem = ui->treeWidget->itemAt(pos);
+
+    QString fullPathToLeaf = treeItem->text(0);
+    while (treeItem->parent() != NULL)
+    {
+        fullPathToLeaf = treeItem->parent()->text(0) + "/" + fullPathToLeaf;
+        treeItem = treeItem->parent();
+    }
+
+    fullPathToLeaf = fullPathToLeaf.replace("Playlists", "playlists");  // difference between display "P" and file system "p"
+
+    QString PlaylistFileName = musicRootPath + "/" + fullPathToLeaf + ".csv"; // prefix it with the path to musicDir, suffix it with .csv
+
+    twMenu->addAction("Show in palette slot #1",
+                      [this, PlaylistFileName](){
+                          int songCount;
+                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
+                      }
+                      );
+    twMenu->addAction("Show in palette slot #2",
+                      [this, PlaylistFileName](){
+                          int songCount;
+                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 1, songCount);
+                      }
+                      );
+    twMenu->addAction("Show in palette slot #3",
+                      [this, PlaylistFileName](){
+                          int songCount;
+                          loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 2, songCount);
+                      }
+                      );
+
+    twMenu->popup(QCursor::pos());
+    twMenu->exec();
+
+    delete(twMenu);
+}
+
 #endif
+
