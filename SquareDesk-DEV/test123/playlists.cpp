@@ -1390,6 +1390,112 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
     // NOTE: Slot number is 0 to 2
     // --------
+    // PlaylistFileName could be either a playlist relPath
+    //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/playlists/Jokers/2018/Jokers_2018.02.14.csv"
+    // OR it could be a FAKE Track filter specifier path
+    //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/Tracks/vocals.csv"
+
+    QString relativePath = PlaylistFileName;
+    relativePath.replace(musicRootPath, "");
+
+//    qDebug() << "loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << relativePath;
+
+    if (relativePath.startsWith("/Tracks")) {
+        relativePath.replace("/Tracks/", "").replace(".csv", "");
+//        qDebug() << "TRACK SPECIFIER:" << relativePath;
+
+        // -------------
+        // now that we have a TRACK FILTER SPECIFIER, let's load THAT into a palette slot
+        QTableWidget *theTableWidget;
+        QLabel *theLabel;
+
+        switch (slotNumber) {
+        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
+        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
+        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+        }
+
+        theTableWidget->setRowCount(0); // delete all the rows in the slot
+
+        // The only way to get here is to RIGHT-CLICK on a Tracks/filterName in the TreeWidget.
+        //  In that case, the darkSongTable has already been loaded with the filtered rows.
+        //  We just need to transfer them up to the playlist.
+
+        static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
+
+        int songCount = 0;
+        for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
+            if (!ui->darkSongTable->isRowHidden(i)) {
+                QString label = ui->darkSongTable->item(i, kLabelCol)->text();
+                QString shortTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+                shortTitle.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+                QString pitch = ui->darkSongTable->item(i, kPitchCol)->text();
+                QString tempo = ui->darkSongTable->item(i, kTempoCol)->text();
+                QString pathToMP3 = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+
+                songCount++;
+//                qDebug() << "ROW: " << songCount << label << " - " << shortTitle << pitch << tempo << pathToMP3;
+
+                // make a new row, if needed
+                if (songCount > theTableWidget->rowCount()) {
+                    theTableWidget->insertRow(theTableWidget->rowCount());
+                }
+
+                // # column
+                QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
+                theTableWidget->setItem(songCount-1, 0, num);
+
+                // TITLE column
+//                QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
+                QString titleString = shortTitle;
+                if (label != "" && label != " ") {
+                    titleString = label + " - " + titleString;
+                }
+                QTableWidgetItem *title = new QTableWidgetItem(titleString);
+                theTableWidget->setItem(songCount-1, 1, title);
+
+                // TRACKS always exist (because they were scanned for earlier at startup)
+//                QString absPath = musicRootPath + list1[0];
+//                QFileInfo fi(absPath);
+//                if (!fi.exists()) {
+//                    QFont f = title->font();
+//                    f.setStrikeOut(true);
+//                    title->setFont(f); // strikethrough the text until it's fixed
+
+//                    title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
+//                    // TODO: provide context menu to get dialog with reasons why
+//                    QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
+//                    title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
+//                }
+
+                // PITCH column
+                QTableWidgetItem *pit = new QTableWidgetItem(pitch);
+                theTableWidget->setItem(songCount-1, 2, pit);
+
+                // TEMPO column
+                QTableWidgetItem *tem = new QTableWidgetItem(tempo);
+                theTableWidget->setItem(songCount-1, 3, tem);
+
+                // PATH column
+                QTableWidgetItem *fullPath = new QTableWidgetItem(pathToMP3); // full ABSOLUTE path
+                theTableWidget->setItem(songCount-1, 4, fullPath);
+            }
+        }
+
+        theTableWidget->resizeColumnToContents(0);
+        theTableWidget->resizeColumnToContents(2);
+        theTableWidget->resizeColumnToContents(3);
+
+        // redo the label, but with an indicator that these are Tracks, not a Playlist
+        QString playlistShortName = relativePath;
+        theLabel->setText(QString("<img src=\":/graphics/darkiTunes.png\" width=\"10\" height=\"9\">") + playlistShortName);
+
+        relPathInSlot[slotNumber] = "/tracks/" + relativePath;
+//        qDebug() << "TRACKS: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
+
+        return ""; // no errors
+    }
+
     QString firstBadSongLine = "";
     QFile inputFile(PlaylistFileName);
     if (inputFile.open(QIODevice::ReadOnly)) { // defaults to Text mode
@@ -1489,6 +1595,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
 
         relPathInSlot[slotNumber] = PlaylistFileName.replace(musicRootPath + "/playlists/", "").replace(".csv","");
+
+//        qDebug() << "PLAYLIST: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
     }
     else {
         // file didn't open...

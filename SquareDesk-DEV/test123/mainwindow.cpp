@@ -5204,7 +5204,8 @@ void MainWindow::updateTreeWidget() {
     // top level Playlists item with icon
     QTreeWidgetItem *playlistsItem = new QTreeWidgetItem();
     playlistsItem->setText(0, "Playlists");
-    playlistsItem->setIcon(0, QIcon(":/graphics/darkPlaylists.png"));
+//    playlistsItem->setIcon(0, QIcon(":/graphics/darkPlaylists.png"));
+    playlistsItem->setIcon(0, QIcon(":/graphics/icons8-menu-64.png"));
     ui->treeWidget->addTopLevelItem(playlistsItem);  // add this one to the tree
     playlistsItem->setExpanded(true);
 
@@ -9349,7 +9350,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
         theTableWidget = ui->playlist3Table;
     }
 
-    if (relPathInSlot[whichSlot] != "") {
+    if (relPathInSlot[whichSlot] != "" && !relPathInSlot[whichSlot].startsWith("/tracks/")) {
         // context menu only available if something is actually in this slot
 
         QString playlistFilePath = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + ".csv";
@@ -9386,7 +9387,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
         plMenu->addAction(QString("Reload '%1'").arg(relPathInSlot[whichSlot]),
                           [this, playlistFilePath, whichSlot]() {
-                              qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
+//                              qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
                               int songCount;
                               this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, whichSlot, songCount);
                           });
@@ -9414,14 +9415,34 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
     } else {
 
-        int playlistRowCount = theTableWidget->rowCount();
+        if (!relPathInSlot[whichSlot].startsWith("/tracks/")) {
+            int playlistRowCount = theTableWidget->rowCount();
 
-        if (playlistRowCount > 0 ) {
-            plMenu->addAction(QString("Save 'Untitled playlist' As..."),
-                              [whichSlot, this]() {
-                                  Q_UNUSED(this)
-                                  qDebug() << "SAVE AS..." << whichSlot;
-                                  saveSlotAsPlaylist(whichSlot);
+            if (playlistRowCount > 0 ) {
+                plMenu->addAction(QString("Save 'Untitled playlist' As..."),
+                                  [whichSlot, this]() {
+                                      Q_UNUSED(this)
+                                      qDebug() << "SAVE AS..." << whichSlot;
+                                      saveSlotAsPlaylist(whichSlot);
+                                  }
+                                  );
+            }
+        } else {
+            plMenu->addAction(QString("Remove from Palette"),
+                              [this, whichSlot]() {
+                                  // clear out the label, and delete all the rows from the table
+                                  switch (whichSlot) {
+                                  case 0:   ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+                                      ui->playlist1Table->setRowCount(0);
+                                      break;
+                                  case 1:   ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+                                      ui->playlist2Table->setRowCount(0);
+                                      break;
+                                  case 2:   ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+                                      ui->playlist3Table->setRowCount(0);
+                                      break;
+                                  }
+                                  relPathInSlot[whichSlot] = ""; // no longer anything here
                               }
                               );
         }
