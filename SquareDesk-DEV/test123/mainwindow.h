@@ -297,6 +297,12 @@ public slots:
     void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
     void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
 
+    void darkAddPlaylistItemToTop(int slot);       // adds a darkSongTable item to the top of playlist in slot n
+    void darkAddPlaylistItemToBottom(int slot);    // adds a darkSongTable item to the bottom of playlist in slot n
+
+    void darkRevealInFinder();
+    void darkRevealAttachedLyricsFileInFinder();
+
 #ifdef DARKMODE
     void customPlaylistMenuRequested(QPoint pos);
     void customTreeWidgetMenuRequested(QPoint pos);
@@ -436,6 +442,9 @@ private slots:
 
     void on_actionLoad_Playlist_triggered();
     void on_actionSave_Playlist_triggered();
+
+    void saveSlotAsPlaylist(int whichSlot); // save a playlist in a slot to a CSV file
+
     void on_actionNext_Playlist_Item_triggered();
     void on_actionPrevious_Playlist_Item_triggered();
 
@@ -447,6 +456,8 @@ private slots:
     void on_actionClear_Playlist_triggered();
 
     void showInFinderOrExplorer(QString s);
+
+    void on_darkSongTable_customContextMenuRequested(const QPoint &pos);
 
     void on_songTable_customContextMenuRequested(const QPoint &pos);
     void editTags();

@@ -1692,3 +1692,96 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
 }
 
 #endif
+
+// ========================
+// TODO: strip off the root directory before saving...
+void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
+{
+    MyTableWidget *theTableWidget;
+    QLabel *theLabel;
+    switch (whichSlot) {
+        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
+        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
+        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+    }
+
+    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+
+    QString startingPlaylistDirectory = prefsManager.MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
+    if (startingPlaylistDirectory.isNull()) {
+        // first time through, start at HOME
+        startingPlaylistDirectory = QDir::homePath();
+    }
+
+    QString preferred("CSV files (*.csv)");
+    trapKeypresses = false;
+
+    QString startHere = startingPlaylistDirectory;  // if we haven't saved yet
+
+    QString PlaylistFileName =
+        QFileDialog::getSaveFileName(this,
+                                     tr("Save Playlist"),
+                                     startHere,
+                                     tr("CSV files (*.csv)"),
+                                     &preferred);  // CSV required now
+    trapKeypresses = true;
+    if (PlaylistFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    QString fullFilePath = PlaylistFileName;
+    qDebug() << "fullFilePath: " << fullFilePath;
+
+    // not null, so save it in Settings (File Dialog will open in same dir next time)
+    QFileInfo fInfo(PlaylistFileName);
+    prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
+
+    QString playlistShortName = PlaylistFileName.replace(musicRootPath,"").split('/').last().replace(".csv",""); // PlaylistFileName is now altered
+    qDebug() << "playlistShortName: " << playlistShortName;
+
+    // ACTUAL SAVE TO FILE ============
+    filewatcherShouldIgnoreOneFileSave = true;  // I don't know why we have to do this, but rootDir is being watched, which causes this to be needed.
+
+    // add on .CSV if user didn't specify (File Options Dialog?)
+    if (!fullFilePath.endsWith(".csv", Qt::CaseInsensitive)) {
+        fullFilePath = fullFilePath + ".csv";
+    }
+
+    QFile file(fullFilePath);
+
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QTextStream stream(&file);
+
+        stream << "relpath,pitch,tempo" << ENDL;  // NOTE: This is now a RELATIVE PATH, and "relpath" is used to detect that.
+
+        for (int i = 0; i < theTableWidget->rowCount(); i++) {
+            QString path = theTableWidget->item(i, 4)->text();
+            path = path.replace(musicRootPath,"");
+            QString pitch = theTableWidget->item(i, 2)->text();
+            QString tempo = theTableWidget->item(i, 3)->text();
+            qDebug() << path + "," + pitch + "," + tempo;
+            stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
+        }
+
+        file.close(); // OK, we're done saving the file, so...
+
+        // now the playlist slot has a name, so update the label on the slot
+        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">%1").arg(playlistShortName));
+
+        // and update the QString array (for later use)
+        QString rel = fullFilePath;
+        relPathInSlot[whichSlot] = rel.replace(musicRootPath + "/playlists/", "").replace(".csv",""); // relative to musicDir/playlists
+        qDebug() << "relPathInSlot set to: " << relPathInSlot[whichSlot];
+
+        // and refresh the TreeWidget, because we have a new playlist now...
+        updateTreeWidget();
+
+        // TODO: should we select the new playlist, too?  This might be clearer to the user...
+
+        ui->statusBar->showMessage(QString("Saved Playlist %1").arg(playlistShortName));
+    } else {
+        ui->statusBar->showMessage(QString("ERROR: could not save playlist to CSV file."));
+    }
+
+}

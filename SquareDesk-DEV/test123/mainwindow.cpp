@@ -1935,8 +1935,12 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->toggleShowPaletteTables->setVisible(false);
 
 ////    ui->splitter7->setSizes(QList<int>({largeWidth, 6 * largeWidth})); // split in 1:6 ratio to start
-    ui->splitter7->setSizes(QList<int>({0,3000}));
-//    currentSplitterSizes = ui->splitter7->sizes(); // for later restore, if needed
+
+//    ui->splitter7->setSizes(QList<int>({0,3000}));
+    ui->splitter7->setSizes(QList<int>({1000,3000}));
+
+
+    //    currentSplitterSizes = ui->splitter7->sizes(); // for later restore, if needed
 
 //    ui->toggleShowPaletteTables->setChecked(false);
 //    on_toggleShowPaletteTables_toggled(false);  // default is to NOT show the playlist palette
@@ -9335,11 +9339,14 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     QMenu *plMenu = new QMenu();
 
     int whichSlot = 0;
+    MyTableWidget *theTableWidget = ui->playlist1Table;
 
     if (sender()->objectName() == "playlist2Label") {
         whichSlot = 1;
+        theTableWidget = ui->playlist2Table;
     } else if (sender()->objectName() == "playlist3Label") {
         whichSlot = 2;
+        theTableWidget = ui->playlist3Table;
     }
 
     if (relPathInSlot[whichSlot] != "") {
@@ -9347,6 +9354,8 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
         QString playlistFilePath = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + ".csv";
         QString playlistShortName = playlistFilePath.split('/').last().replace(".csv","");
+
+        qDebug() << "customPlaylistMenuRequested:" << playlistFilePath << playlistShortName << relPathInSlot[whichSlot];
 
         plMenu->addAction(QString("Edit '%1' in text editor").arg(relPathInSlot[whichSlot]),
                           [playlistFilePath]() {
@@ -9376,10 +9385,10 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                           });
 
         plMenu->addAction(QString("Reload '%1'").arg(relPathInSlot[whichSlot]),
-                          [this, playlistFilePath]() {
+                          [this, playlistFilePath, whichSlot]() {
                               qDebug() << "RELOAD PLAYLIST: " << playlistFilePath;
                               int songCount;
-                              this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, 1, songCount);
+                              this->loadPlaylistFromFileToPaletteSlot(playlistFilePath, whichSlot, songCount);
                           });
 
         plMenu->addSeparator();
@@ -9403,12 +9412,25 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                           );
 
 
-        plMenu->popup(QCursor::pos());
-        plMenu->exec();
+    } else {
 
-        delete(plMenu);
+        int playlistRowCount = theTableWidget->rowCount();
+
+        if (playlistRowCount > 0 ) {
+            plMenu->addAction(QString("Save 'Untitled playlist' As..."),
+                              [whichSlot, this]() {
+                                  Q_UNUSED(this)
+                                  qDebug() << "SAVE AS..." << whichSlot;
+                                  saveSlotAsPlaylist(whichSlot);
+                              }
+                              );
+        }
     }
 
+    plMenu->popup(QCursor::pos());
+    plMenu->exec();
+
+    delete(plMenu);
 }
 
 void MainWindow::on_playlist1Table_itemSelectionChanged()
@@ -9596,3 +9618,279 @@ void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int 
     }
 }
 
+// ======================================================
+void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
+{
+    Q_UNUSED(pos)
+
+    qDebug() << "on_darkSongTable_customContextMenuRequested";
+    QMenu menu(this);
+
+//    QStringList currentTags;
+
+    if (ui->darkSongTable->selectionModel()->hasSelection()) {
+
+        int selectedRow = darkSelectedSongRow();  // get current row or -1
+
+        // submenuMove->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
+
+        if (selectedRow != -1) {
+        // if a single row was selected
+            menu.addAction ( "Add to TOP of playlist in slot #1" ,    this , [this]{ darkAddPlaylistItemToTop(0); } );
+            menu.addAction ( "Add to TOP of playlist in slot #2" ,    this , [this]{ darkAddPlaylistItemToTop(1); } );
+            menu.addAction ( "Add to TOP of playlist in slot #3" ,    this , [this]{ darkAddPlaylistItemToTop(2); } );
+            menu.addAction ( "Add to BOTTOM of playlist in slot #1" , this , [this]{ darkAddPlaylistItemToBottom(0); } ); // TODO: IF these are playlists and not track filters
+            menu.addAction ( "Add to BOTTOM of playlist in slot #2" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
+            menu.addAction ( "Add to BOTTOM of playlist in slot #3" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+            }
+        }
+        menu.addSeparator();
+
+#if defined(Q_OS_MAC)
+        menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
+        menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
+#endif
+
+#if defined(Q_OS_WIN)
+        menu.addAction ( "Show in Explorer" , this , SLOT (darkRevealInFinder()) );
+#endif
+
+#if defined(Q_OS_LINUX)
+        menu.addAction ( "Open containing folder" , this , SLOT (darkRevealInFinder()) );
+#endif
+
+// TAGS STUFF ==================
+//        menu.addSeparator();
+//        menu.addAction( "Edit Tags...", this, SLOT (editTags()) );
+
+//        QMenu *tagsMenu(new QMenu("Tags"));
+//        QHash<QString,QPair<QString,QString>> tagColors(songSettings.getTagColors());
+
+//        QStringList tags(tagColors.keys());
+//        tags.sort(Qt::CaseInsensitive);
+
+//        for (const auto &tagUntrimmed : tags)
+//        {
+//            QString tag(tagUntrimmed.trimmed());
+
+//            if (tag.length() <= 0)
+//                continue;
+
+//            bool set = false;
+//            for (const auto &t : currentTags)
+//            {
+//                if (t.compare(tag, Qt::CaseInsensitive) == 0)
+//                {
+//                    set = true;
+//                }
+//            }
+//            QAction *action(new QAction(tag));
+//            action->setCheckable(true);
+//            action->setChecked(set);
+//            connect(action, &QAction::triggered,
+//                    [this, set, tag]()
+//                    {
+//                        this->changeTagOnCurrentSongSelection(tag, !set);
+//                    });
+//            tagsMenu->addAction(action);
+//        }
+
+//        menu.addMenu(tagsMenu);
+
+    menu.popup(QCursor::pos());
+    menu.exec();
+}
+
+// -----------------------------------------------
+void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
+#ifdef DARKMODE
+
+    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+
+    MyTableWidget *theTableWidget;
+    QString PlaylistFileName = "foobar";
+    switch (whichSlot) {
+        case 0: theTableWidget = ui->playlist1Table; break;
+        case 1: theTableWidget = ui->playlist2Table; break;
+        case 2: theTableWidget = ui->playlist3Table; break;
+    }
+
+    QModelIndexList list = ui->darkSongTable->selectionModel()->selectedRows();
+
+    if (list.count() != 1) {
+            // if it's zero or >= 2 return
+            return; // we did nothing, this was not meant for us
+    }
+
+    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+
+    QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
+    qDebug() << "darkPlaylistItemToBottom: " << whichSlot << theFullPath;
+
+    // make a new row, after all the other ones
+    theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row
+    int songCount = theTableWidget->rowCount();
+
+    // # column
+    QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
+    theTableWidget->setItem(songCount-1, 0, num);
+
+    // TITLE column
+    QString shortTitle = theFullPath.split('/').last().replace(".mp3", "");
+    QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
+    theTableWidget->setItem(songCount-1, 1, title);
+
+    QString absPath = theFullPath; // already is fully qualified
+    QFileInfo fi(absPath);
+    if (!fi.exists()) {
+            QFont f = title->font();
+            f.setStrikeOut(true);
+            title->setFont(f); // strikethrough the text until it's fixed
+
+            title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
+            // TODO: provide context menu to get dialog with reasons why
+            QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
+            title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
+    }
+
+    // PITCH column
+    QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
+    QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
+    theTableWidget->setItem(songCount-1, 2, pit);
+
+    // TEMPO column
+    QString theTempo = ui->darkSongTable->item(row, kTempoCol)->text();
+    QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
+    theTableWidget->setItem(songCount-1, 3, tem);
+
+    // PATH column
+    QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
+    theTableWidget->setItem(songCount-1, 4, fullPath);
+
+    theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
+    theTableWidget->resizeColumnToContents(2);
+    theTableWidget->resizeColumnToContents(3);
+
+#endif
+}
+
+// -----------------------------------------------
+void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
+#ifdef DARKMODE
+
+    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+
+    MyTableWidget *theTableWidget;
+    QString PlaylistFileName = "foobar";
+    switch (whichSlot) {
+        case 0: theTableWidget = ui->playlist1Table; break;
+        case 1: theTableWidget = ui->playlist2Table; break;
+        case 2: theTableWidget = ui->playlist3Table; break;
+    }
+
+    QModelIndexList list = ui->darkSongTable->selectionModel()->selectedRows();
+
+    if (list.count() != 1) {
+            // if it's zero or >= 2 return
+            return; // we did nothing, this was not meant for us
+    }
+
+    int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
+
+    QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
+    qDebug() << "darkPlaylistItemToBottom: " << whichSlot << theFullPath;
+
+
+    // iterate through the entire table, incrementing all existing #'s
+    for (int i=0; i<theTableWidget->rowCount(); i++) {
+            QTableWidgetItem *theItem = theTableWidget->item(i,0);
+            QString playlistIndexText = theItem->text();  // this is the playlist #
+            int playlistIndexInt = playlistIndexText.toInt();
+
+            QString newIndex = QString::number(playlistIndexInt+1);
+            theTableWidget->item(i,0)->setText(newIndex);
+    }
+
+    // make a new row, after all the other ones ------------
+    theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row
+    int songCount = theTableWidget->rowCount();
+
+    // # column
+    QTableWidgetItem *num = new TableNumberItem("1"); // use TableNumberItem so that it sorts numerically, and this is ALWAYS row 1 (adding at TOP)
+    theTableWidget->setItem(songCount-1, 0, num);
+
+    // TITLE column
+    QString shortTitle = theFullPath.split('/').last().replace(".mp3", "");
+    QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
+    theTableWidget->setItem(songCount-1, 1, title);
+
+    QString absPath = theFullPath; // already is fully qualified
+    QFileInfo fi(absPath);
+    if (!fi.exists()) {
+            QFont f = title->font();
+            f.setStrikeOut(true);
+            title->setFont(f); // strikethrough the text until it's fixed
+
+            title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
+            // TODO: provide context menu to get dialog with reasons why
+            QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
+            title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
+    }
+
+    // PITCH column
+    QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
+    QTableWidgetItem *pit = new QTableWidgetItem(thePitch);
+    theTableWidget->setItem(songCount-1, 2, pit);
+
+    // TEMPO column
+    QString theTempo = ui->darkSongTable->item(row, kTempoCol)->text();
+    QTableWidgetItem *tem = new QTableWidgetItem(theTempo);
+    theTableWidget->setItem(songCount-1, 3, tem);
+
+    // PATH column
+    QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
+    theTableWidget->setItem(songCount-1, 4, fullPath);
+
+    theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
+    theTableWidget->resizeColumnToContents(2);
+    theTableWidget->resizeColumnToContents(3);
+
+    theTableWidget->sortItems(0);  // resort, based on column 0 (the #), and the new row will go to the TOP
+    theTableWidget->scrollToTop();
+
+#endif
+}
+
+void MainWindow::darkRevealInFinder()
+{
+    int row = darkSelectedSongRow();
+    if (row >= 0) {
+            // exactly 1 row was selected (good)
+            QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+            showInFinderOrExplorer(pathToMP3);
+    }
+    else {
+            // more than 1 row or no rows at all selected (BAD)
+    }
+}
+
+// --------------
+// invoked from context menu on darkSongTable entry
+void MainWindow::darkRevealAttachedLyricsFileInFinder() {
+
+    int selectedRow = darkSelectedSongRow();  // get current row or -1
+    if (selectedRow == -1) {
+            qDebug() << "Tried to revealAttachedLyricsFile, but no selected row."; // if nothing selected, give up
+            return;
+    }
+
+    QString currentMP3filenameWithPath = ui->darkSongTable->item(selectedRow, kPathCol)->data(Qt::UserRole).toString();
+
+    SongSetting settings1;
+    if (songSettings.loadSettings(currentMP3filenameWithPath, settings1)) {
+            QString cuesheetPath = settings1.getCuesheetName();
+            showInFinderOrExplorer(cuesheetPath);
+    } else {
+            qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
+    }
+}
