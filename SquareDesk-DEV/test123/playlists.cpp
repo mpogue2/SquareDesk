@@ -1400,8 +1400,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
 //    qDebug() << "loadPlaylistFromFileToPaletteSlot: " << PlaylistFileName << relativePath;
 
-    if (relativePath.startsWith("/Tracks")) {
-        relativePath.replace("/Tracks/", "").replace(".csv", "");
+    if (relativePath.startsWith("/Tracks") || relativePath.startsWith("Tracks")) { // FIX: might want to collapse these two later...
+        relativePath.replace("/Tracks/", "").replace("Tracks/", "").replace(".csv", "");
 //        qDebug() << "TRACK SPECIFIER:" << relativePath;
 
         // -------------
@@ -1421,6 +1421,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         //  In that case, the darkSongTable has already been loaded with the filtered rows.
         //  We just need to transfer them up to the playlist.
 
+        static QRegularExpression title_tags_remover("(\\&nbsp\\;)*\\<\\/?span( .*?)?>");
         static QRegularExpression spanPrefixRemover("<span style=\"color:.*\">(.*)</span>", QRegularExpression::InvertedGreedinessOption);
 
         int songCount = 0;
@@ -1429,6 +1430,19 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 QString label = ui->darkSongTable->item(i, kLabelCol)->text();
                 QString shortTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
                 shortTitle.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
+
+                int where = shortTitle.indexOf(title_tags_remover);
+                if (where >= 0) {
+                    shortTitle.truncate(where);
+                }
+
+                shortTitle.replace("&quot;","\"").replace("&amp;","&").replace("&gt;",">").replace("&lt;","<");  // if title contains HTML encoded chars, put originals back
+
+                if (shortTitle.contains("span")) { // DEBUG DEBUG
+                    qDebug() << "FOUND SPAN BEFORE: " << dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+                    qDebug() << "FOUND SPAN AFTER: " << shortTitle;
+                }
+
                 QString pitch = ui->darkSongTable->item(i, kPitchCol)->text();
                 QString tempo = ui->darkSongTable->item(i, kTempoCol)->text();
                 QString pathToMP3 = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
@@ -1483,12 +1497,12 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         }
 
         theTableWidget->resizeColumnToContents(0);
-        theTableWidget->resizeColumnToContents(2);
-        theTableWidget->resizeColumnToContents(3);
+//        theTableWidget->resizeColumnToContents(2);
+//        theTableWidget->resizeColumnToContents(3);
 
         // redo the label, but with an indicator that these are Tracks, not a Playlist
         QString playlistShortName = relativePath;
-        theLabel->setText(QString("<img src=\":/graphics/darkiTunes.png\" width=\"10\" height=\"9\">") + playlistShortName);
+        theLabel->setText(QString("<img src=\":/graphics/icons8-musical-note-60.png\" width=\"15\" height=\"15\">") + playlistShortName);
 
         relPathInSlot[slotNumber] = "/tracks/" + relativePath;
 //        qDebug() << "TRACKS: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
@@ -1588,8 +1602,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         inputFile.close();
 
         theTableWidget->resizeColumnToContents(0);
-        theTableWidget->resizeColumnToContents(2);
-        theTableWidget->resizeColumnToContents(3);
+//        theTableWidget->resizeColumnToContents(2);
+//        theTableWidget->resizeColumnToContents(3);
 
         QString playlistShortName = PlaylistFileName.split('/').last().replace(".csv","");
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);

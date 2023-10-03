@@ -1797,8 +1797,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
-    ui->playlist1Table->resizeColumnToContents(0);
-    ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->playlist1Table->resizeColumnToContents(0); // number
+    ui->playlist1Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    ui->playlist1Table->setColumnWidth(2,20); // pitch
+    ui->playlist1Table->setColumnWidth(3,40); // tempo
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
@@ -1810,9 +1812,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
+                        if (this->ui->playlist1Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
                         QString fullPath = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
                         QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
-                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
+//                        qDebug() << "customContextMenu for playlist1Table" << fullPath << enclosingFolderName;
 
                         QFileInfo fi(fullPath);
                         QString menuString = "Show In Enclosing Folder";
@@ -1865,8 +1869,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist2Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
-    ui->playlist2Table->resizeColumnToContents(0);
-    ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->playlist2Table->resizeColumnToContents(0); // number
+    ui->playlist2Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    ui->playlist2Table->setColumnWidth(2,20); // pitch
+    ui->playlist2Table->setColumnWidth(3,40); // tempo
     ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
@@ -1877,11 +1883,56 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
-                this, [this](QPoint q) {
-                    Q_UNUSED(q)
-                    Q_UNUSED(this)
-                    qDebug() << "TO BE IMPLEMENTED!";
+            this, [this](QPoint q) {
+                if (this->ui->playlist2Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                QString fullPath = this->ui->playlist2Table->item(this->ui->playlist2Table->itemAt(q)->row(), 4)->text();
+                QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+//                qDebug() << "customContextMenu for playlist2Table" << fullPath << enclosingFolderName;
+
+                QFileInfo fi(fullPath);
+                QString menuString = "Show In Enclosing Folder";
+                QString thingToOpen = fullPath;
+
+                if (!fi.exists()) {
+                    menuString = "Show Enclosing Folder";
+                    thingToOpen = enclosingFolderName;
                 }
+
+                QMenu *plMenu = new QMenu();
+                plMenu->addAction(QString(menuString),
+                                  [thingToOpen]() {
+        // opens either the folder and highlights the file (if file exists), OR
+        // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                      QStringList args;
+                                      args << "-e";
+                                      args << "tell application \"Finder\"";
+                                      args << "-e";
+                                      args << "activate";
+                                      args << "-e";
+                                      args << "select POSIX file \"" + thingToOpen + "\"";
+                                      args << "-e";
+                                      args << "end tell";
+
+                                      //    QProcess::startDetached("osascript", args);
+
+                                      // same as startDetached, but suppresses output from osascript to console
+                                      //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                      QProcess process;
+                                      process.setProgram("osascript");
+                                      process.setArguments(args);
+                                      process.setStandardOutputFile(QProcess::nullDevice());
+                                      process.setStandardErrorFile(QProcess::nullDevice());
+                                      qint64 pid;
+                                      process.startDetached(&pid);
+#endif
+
+                                  });
+                plMenu->popup(QCursor::pos());
+                plMenu->exec();
+                delete plMenu; // done with it
+            }
             );
 
     // -----
@@ -1890,8 +1941,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist3Label->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Label, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(customPlaylistMenuRequested(QPoint)));
 
-    ui->playlist3Table->resizeColumnToContents(0);
-    ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->playlist3Table->resizeColumnToContents(0); // number
+    ui->playlist3Table->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch); // title
+    ui->playlist3Table->setColumnWidth(2,20); // pitch
+    ui->playlist3Table->setColumnWidth(3,40); // tempo
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
     ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
@@ -1903,9 +1956,54 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
-                Q_UNUSED(q)
-                Q_UNUSED(this)
-                qDebug() << "TO BE IMPLEMENTED!";
+                if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
+
+                QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
+                QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+//                qDebug() << "customContextMenu for playlist3Table" << fullPath << enclosingFolderName;
+
+                QFileInfo fi(fullPath);
+                QString menuString = "Show In Enclosing Folder";
+                QString thingToOpen = fullPath;
+
+                if (!fi.exists()) {
+                    menuString = "Show Enclosing Folder";
+                    thingToOpen = enclosingFolderName;
+                }
+
+                QMenu *plMenu = new QMenu();
+                plMenu->addAction(QString(menuString),
+                                  [thingToOpen]() {
+        // opens either the folder and highlights the file (if file exists), OR
+        // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                      QStringList args;
+                                      args << "-e";
+                                      args << "tell application \"Finder\"";
+                                      args << "-e";
+                                      args << "activate";
+                                      args << "-e";
+                                      args << "select POSIX file \"" + thingToOpen + "\"";
+                                      args << "-e";
+                                      args << "end tell";
+
+                                      //    QProcess::startDetached("osascript", args);
+
+                                      // same as startDetached, but suppresses output from osascript to console
+                                      //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                      QProcess process;
+                                      process.setProgram("osascript");
+                                      process.setArguments(args);
+                                      process.setStandardOutputFile(QProcess::nullDevice());
+                                      process.setStandardErrorFile(QProcess::nullDevice());
+                                      qint64 pid;
+                                      process.startDetached(&pid);
+#endif
+
+                                  });
+                plMenu->popup(QCursor::pos());
+                plMenu->exec();
+                delete plMenu; // done with it
             }
             );
 
@@ -5162,7 +5260,8 @@ void MainWindow::updateTreeWidget() {
 
     QTreeWidgetItem *tracksItem = new QTreeWidgetItem();
     tracksItem->setText(0, "Tracks");
-    tracksItem->setIcon(0, QIcon(":/graphics/darkiTunes.png"));
+//    tracksItem->setIcon(0, QIcon(":/graphics/darkiTunes.png"));
+    tracksItem->setIcon(0, QIcon(":/graphics/icons8-musical-note-60.png"));
 
 //    QMapIterator<QString, int> i(types);
     QStringListIterator i(types);
@@ -9618,9 +9717,22 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
 
 void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
 {
-    // if treeView playlist is double-clicked, it will be loaded into Palette Slot #1
+    // if treeView Playlist or Track Filter is double-clicked, it will be loaded into the first empty palette slot
+    // if they are all full, it will be loaded into the last palette slot
     Q_UNUSED(column)
 
+    // which slot is the first empty one? -----
+    int firstEmptySlot; // no empty slots, load into slot #2 (0-2)
+
+    if (relPathInSlot[0] == "") {
+        firstEmptySlot = 0;
+    } else if (relPathInSlot[1] == "") {
+        firstEmptySlot = 1;
+    } else {
+        firstEmptySlot = 2;
+    }
+
+    // what did the user double-click on? ---------
     QString fullPathToLeaf = treeItem->text(0);
     while (treeItem->parent() != NULL)
     {
@@ -9630,12 +9742,22 @@ void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int 
 
     fullPathToLeaf = fullPathToLeaf.replace("Playlists", "playlists");  // difference between display "P" and file system "p"
 
+    // At this point, it's either:
+    //  TRACK FILTER: Tracks/<typeName>
+    //  PLAYLIST:     playlists/<playlistPath/.../PlaylistName>
+
+//    qDebug() << "treeWidget item double-clicked: " << firstEmptySlot << fullPathToLeaf;
+
     QString PlaylistFileName = musicRootPath + "/" + fullPathToLeaf + ".csv"; // prefix it with the path to musicDir, suffix it with .csv
 
     if (fullPathToLeaf.contains("playlists")) {
-        // load Playlists but not Tracks
+        // load Playlists
         int songCount;
-        loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount);
+        loadPlaylistFromFileToPaletteSlot(PlaylistFileName, firstEmptySlot, songCount);
+    } else {
+        // load Track Filter
+        int songCount;
+        loadPlaylistFromFileToPaletteSlot(fullPathToLeaf, firstEmptySlot, songCount);
     }
 }
 
@@ -9789,9 +9911,8 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
     theTableWidget->setItem(songCount-1, 4, fullPath);
 
     theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
-    theTableWidget->resizeColumnToContents(2);
-    theTableWidget->resizeColumnToContents(3);
-
+//    theTableWidget->resizeColumnToContents(2);
+//    theTableWidget->resizeColumnToContents(3);
 #endif
 }
 
