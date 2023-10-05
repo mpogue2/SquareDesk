@@ -8681,7 +8681,7 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
     }
 
 //    qDebug() << txt; // inside QtCreator, just log it to the console
-    qDebug() << msg; // inside QtCreator, just log it to the console
+    qDebug().noquote() << msg; // inside QtCreator, just log it to the console
 
 }
 
