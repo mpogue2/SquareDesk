@@ -443,7 +443,8 @@ private slots:
     void on_actionLoad_Playlist_triggered();
     void on_actionSave_Playlist_triggered();
 
-    void saveSlotAsPlaylist(int whichSlot); // save a playlist in a slot to a CSV file
+    void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
+    void saveSlot(int whichSlot);           // SAVE a playlist in a slot to a CSV file
 
     void on_actionNext_Playlist_Item_triggered();
     void on_actionPrevious_Playlist_Item_triggered();
@@ -533,6 +534,8 @@ private slots:
     void musicRootModified(QString s);
     void maybeLyricsChanged();
     void lockForEditing();
+
+    void playlistSlotWatcherTriggered();
 
     void readAbbreviations();
     QString expandAbbreviations(QString s);
@@ -1048,6 +1051,9 @@ private:
 
     QTimer *fileWatcherTimer;           // after all changes are made, THEN reload the songTable.
     QTimer *fileWatcherDisabledTimer;   // disable the filewatcher for 5 sec after a LOAD operation (workaround Ventura problem)
+
+    QTimer *playlistSlotWatcherTimer;   // after all changes are made, THEN auto-save the playlist slot.
+    bool slotModified[3];               // true, if the slot has been modified and needs to be saved
 
     LevelMeter *vuMeter;
 

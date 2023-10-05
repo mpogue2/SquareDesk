@@ -722,6 +722,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     fileWatcherDisabledTimer = new QTimer();    // 5 sec timer for working around the Venture extended attribute problem
     QObject::connect(fileWatcherDisabledTimer, SIGNAL(timeout()), this, SLOT(fileWatcherDisabledTriggered())); // this calls musicRootModified again (one last time!)
 
+    playlistSlotWatcherTimer = new QTimer();            // Retriggerable timer for slot watcher events
+    QObject::connect(playlistSlotWatcherTimer, SIGNAL(timeout()),
+                     this, SLOT(playlistSlotWatcherTriggered()));
+
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
 
@@ -2191,6 +2195,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
     }
 
+    for (int i = 0; i < 3; i++) {
+        slotModified[i] = false;
+    }
+
     stopLongSongTableOperation("MainWindow");
 }
 
@@ -2670,6 +2678,9 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+    playlistSlotWatcherTimer->stop();
+    playlistSlotWatcherTriggered(); // auto-save anything that hasn't been saved yet
+
     SDSetCurrentSeqs(0);  // this doesn't take very long
 
     // bug workaround: https://bugreports.qt.io/browse/QTBUG-56448
@@ -9914,6 +9925,9 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
     theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
 //    theTableWidget->resizeColumnToContents(2);
 //    theTableWidget->resizeColumnToContents(3);
+
+    slotModified[whichSlot] = true;
+    playlistSlotWatcherTimer->start(std::chrono::seconds(10));
 #endif
 }
 
@@ -10001,6 +10015,8 @@ void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
     theTableWidget->sortItems(0);  // resort, based on column 0 (the #), and the new row will go to the TOP
     theTableWidget->scrollToTop();
 
+    slotModified[whichSlot] = true;
+    playlistSlotWatcherTimer->start(std::chrono::seconds(10));
 #endif
 }
 

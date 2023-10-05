@@ -736,9 +736,13 @@ int MainWindow::PlaylistItemCount() {
 void MainWindow::PlaylistItemToTop() {
 
 #ifdef DARKMODE
-    ui->playlist1Table->moveSelectedItemToTop();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist2Table->moveSelectedItemToTop();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist3Table->moveSelectedItemToTop();  // if nothing was selected in this slot, this call will do nothing
+    slotModified[0] = ui->playlist1Table->moveSelectedItemToTop() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[1] = ui->playlist2Table->moveSelectedItemToTop() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[2] = ui->playlist3Table->moveSelectedItemToTop() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+    if (slotModified[0] || slotModified[1] || slotModified[2]) {
+        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+        return; // we changed something, no need to check songTable
+    }
 #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
@@ -819,9 +823,13 @@ void MainWindow::PlaylistItemToTop() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemToBottom() {
 #ifdef DARKMODE
-    ui->playlist1Table->moveSelectedItemToBottom();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist2Table->moveSelectedItemToBottom();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist3Table->moveSelectedItemToBottom();  // if nothing was selected in this slot, this call will do nothing
+    slotModified[0] = ui->playlist1Table->moveSelectedItemToBottom() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[1] = ui->playlist2Table->moveSelectedItemToBottom() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[2] = ui->playlist3Table->moveSelectedItemToBottom() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+    if (slotModified[0] || slotModified[1] || slotModified[2]) {
+        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+        return; // we changed something, no need to check songTable
+    }
 #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
@@ -887,9 +895,13 @@ void MainWindow::PlaylistItemToBottom() {
 void MainWindow::PlaylistItemMoveUp() {
 
 #ifdef DARKMODE
-    ui->playlist1Table->moveSelectedItemUp();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist2Table->moveSelectedItemUp();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist3Table->moveSelectedItemUp();  // if nothing was selected in this slot, this call will do nothing
+    slotModified[0] = ui->playlist1Table->moveSelectedItemUp() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[1] = ui->playlist2Table->moveSelectedItemUp() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[2] = ui->playlist3Table->moveSelectedItemUp() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+    if (slotModified[0] || slotModified[1] || slotModified[2]) {
+        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+        return; // we changed something, no need to check songTable
+    }
 #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
@@ -949,9 +961,13 @@ void MainWindow::PlaylistItemMoveUp() {
 // --------------------------------------------------------------------
 void MainWindow::PlaylistItemMoveDown() {
 #ifdef DARKMODE
-    ui->playlist1Table->moveSelectedItemDown();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist2Table->moveSelectedItemDown();  // if nothing was selected in this slot, this call will do nothing
-    ui->playlist3Table->moveSelectedItemDown();  // if nothing was selected in this slot, this call will do nothing
+    slotModified[0] = ui->playlist1Table->moveSelectedItemDown() || slotModified[0];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[1] = ui->playlist2Table->moveSelectedItemDown() || slotModified[1];  // if nothing was selected in this slot, this call will do nothing
+    slotModified[2] = ui->playlist3Table->moveSelectedItemDown() || slotModified[2];  // if nothing was selected in this slot, this call will do nothing
+    if (slotModified[0] || slotModified[1] || slotModified[2]) {
+        playlistSlotWatcherTimer->start(std::chrono::seconds(10));
+        return; // we changed something, no need to check songTable
+    }
 #endif
 
     // drop into this section, if it was the songTable and not one of the playlist slots that was selected
@@ -1395,6 +1411,13 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     // OR it could be a FAKE Track filter specifier path
     //  e.g. "/Users/mpogue/Library/CloudStorage/Box-Box/__squareDanceMusic_Box/Tracks/vocals.csv"
 
+    if (slotModified[slotNumber]) {
+        // if the current resident of the slot has been modified, and the playlistSlotWatcherTimer
+        //   has gone off yet, and so that playlist hasn't been saved yet, save it now, before we
+        //   overwrite the slot.
+        saveSlot(slotNumber);
+    }
+
     QString relativePath = PlaylistFileName;
     relativePath.replace(musicRootPath, "");
 
@@ -1506,6 +1529,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
         relPathInSlot[slotNumber] = "/tracks/" + relativePath;
 //        qDebug() << "TRACKS: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
+
+        slotModified[slotNumber] = false;
 
         return ""; // no errors
     }
@@ -1822,9 +1847,10 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     MyTableWidget *theTableWidget;
     QLabel *theLabel;
     switch (whichSlot) {
-        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
         case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
         case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+        case 0:
+        default: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
     }
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
@@ -1887,6 +1913,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         }
 
         file.close(); // OK, we're done saving the file, so...
+        slotModified[whichSlot] = false;
 
         // now the playlist slot has a name, so update the label on the slot
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">%1").arg(playlistShortName));
@@ -1906,4 +1933,71 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         ui->statusBar->showMessage(QString("ERROR: could not save playlist to CSV file."));
     }
 
+}
+
+// -----------
+// SAVE a playlist in a slot to a CSV file
+void MainWindow::saveSlot(int whichSlot) {
+
+    if (relPathInSlot[whichSlot] == "") {
+        // nothing in this slot
+        return;
+    }
+
+    QString PlaylistFileName = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + ".csv";
+//    qDebug() << "Let's save this slot:" << whichSlot << ":" << PlaylistFileName;
+
+//    return; // TEST TEST TEST
+
+    // which tableWidget are we dealing with?
+    MyTableWidget *theTableWidget;
+    switch (whichSlot) {
+    case 1: theTableWidget = ui->playlist2Table; break;
+    case 2: theTableWidget = ui->playlist3Table; break;
+    case 0:
+    default: theTableWidget = ui->playlist1Table; break;
+    }
+
+    QString playlistShortName = PlaylistFileName;
+    playlistShortName = playlistShortName.replace(musicRootPath,"").split('/').last().replace(".csv",""); // PlaylistFileName is now altered
+//    qDebug() << "playlistShortName: " << playlistShortName;
+
+    // ACTUAL SAVE TO FILE ============
+    filewatcherShouldIgnoreOneFileSave = true;  // I don't know why we have to do this, but rootDir is being watched, which causes this to be needed.
+
+    QFile file(PlaylistFileName);
+
+    if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QTextStream stream(&file);
+
+        stream << "relpath,pitch,tempo" << ENDL;  // NOTE: This is a RELATIVE PATH, and "relpath" is used to detect that.
+
+        for (int i = 0; i < theTableWidget->rowCount(); i++) {
+            QString path = theTableWidget->item(i, 4)->text();
+            path = path.replace(musicRootPath,"");
+            QString pitch = theTableWidget->item(i, 2)->text();
+            QString tempo = theTableWidget->item(i, 3)->text();
+//            qDebug() << path + "," + pitch + "," + tempo;
+            stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
+        }
+
+        file.close(); // OK, we're done saving the file, so...
+        slotModified[whichSlot] = false;
+    } else {
+        qDebug() << "ERROR: could not save playlist to CSV file.";
+    }
+}
+
+void MainWindow::playlistSlotWatcherTriggered() {
+    // NOTE: This QTimer is retriggerable, so we only get here if there were no
+    //  triggers (modifications to any slots) in the last 10 sec.
+    for (int i = 0; i < 3; i++) {
+        if (slotModified[i]) {
+            saveSlot(i);
+            slotModified[i] = false; // redundant for testing
+        }
+    }
+
+    // for sure, all slots are saved now, so disable the timer until some slot is modified again
+    playlistSlotWatcherTimer->stop();
 }

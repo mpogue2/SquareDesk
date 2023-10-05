@@ -53,7 +53,7 @@ bool MyTableWidget::moveSelectedItemUp() {
 
     if (row == 0) {
         // we are already at the top
-        return true; // we did what was requested
+        return false; // we did what was requested, but no modifications FIX FIX FIX
     }
 
     // swap the numbers
@@ -86,7 +86,7 @@ bool MyTableWidget::moveSelectedItemDown() {
 
     if (row == rowCount()-1) {
         // we are already at the bottom
-        return true; // we did what was requested
+        return false; // we did what was requested, but no changes actually made FIX FIX FIX
     }
 
     // swap the numbers
@@ -121,7 +121,7 @@ bool MyTableWidget::moveSelectedItemToTop() {
 
     if (row == 0) {
         // we are already at the top
-        return true; // we did what was requested
+        return false; // we did what was requested
     }
 
     // Iterate over the entire songTable, incrementing items BELOW this item
@@ -168,7 +168,7 @@ bool MyTableWidget::moveSelectedItemToBottom() {
 
     if (row == rowCount()-1) {
         // we are already at the bottom
-        return true; // we did what was requested
+        return false; // we did what was requested
     }
 
     // Iterate over the entire songTable, incrementing items BELOW this item
