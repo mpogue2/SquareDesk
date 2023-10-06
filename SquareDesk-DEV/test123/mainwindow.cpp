@@ -8687,6 +8687,7 @@ void MainWindow::customMessageOutputQt(QtMsgType type, const QMessageLogContext 
             msg.contains("js:") ||
 //            txt.contains("Warning: #") ||
             msg.startsWith("#") ||
+            msg.startsWith("skipping QEventPoint") ||
             msg.contains("GL Type: core_profile")) {
         return;
     }
