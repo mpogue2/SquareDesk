@@ -26,6 +26,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "globaldefines.h"
+
 #include "svgWaveformSlider.h"
 #define NO_TIMING_INFO 1
 
@@ -210,14 +212,10 @@ public:
 
 #define NUMBEREDSOUNDFXFILES 8
 
-// Define this for the new DARK MODE prototyping
-//#define DARKMODE
-
 namespace Ui
 {
-class MainWindow;
+    class MainWindow;
 }
-
 
 class MainWindow : public QMainWindow
 {
@@ -297,13 +295,13 @@ public slots:
     void PlaylistItemMoveDown();        // moves down one position (must already be on the list)
     void PlaylistItemRemove();      // removes item from the playlist (must already be on the list)
 
+#ifdef DARKMODE
     void darkAddPlaylistItemToTop(int slot);       // adds a darkSongTable item to the top of playlist in slot n
     void darkAddPlaylistItemToBottom(int slot);    // adds a darkSongTable item to the bottom of playlist in slot n
 
     void darkRevealInFinder();
     void darkRevealAttachedLyricsFileInFinder();
 
-#ifdef DARKMODE
     void customPlaylistMenuRequested(QPoint pos);
     void customTreeWidgetMenuRequested(QPoint pos);
 #endif
@@ -443,8 +441,10 @@ private slots:
     void on_actionLoad_Playlist_triggered();
     void on_actionSave_Playlist_triggered();
 
+#ifdef DARKMODE
     void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
     void saveSlot(int whichSlot);           // SAVE a playlist in a slot to a CSV file
+#endif
 
     void on_actionNext_Playlist_Item_triggered();
     void on_actionPrevious_Playlist_Item_triggered();
@@ -458,7 +458,9 @@ private slots:
 
     void showInFinderOrExplorer(QString s);
 
+#ifdef DARKMODE
     void on_darkSongTable_customContextMenuRequested(const QPoint &pos);
+#endif
 
     void on_songTable_customContextMenuRequested(const QPoint &pos);
     void editTags();
@@ -481,7 +483,10 @@ private slots:
 
     void on_warningLabel_clicked();
     void on_warningLabelCuesheet_clicked();
+
+#ifdef DARKMODE
     void on_darkWarningLabel_clicked();
+#endif
 
     void on_tabWidget_currentChanged(int index);
 
@@ -535,7 +540,9 @@ private slots:
     void maybeLyricsChanged();
     void lockForEditing();
 
+#ifdef DARKMODE
     void playlistSlotWatcherTriggered();
+#endif
 
     void readAbbreviations();
     QString expandAbbreviations(QString s);
@@ -782,9 +789,9 @@ private slots:
     void on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item);
     void on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item);
     void on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item);
-#endif
 
     void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
+#endif
 
 public:
     void on_threadSD_errorString(QString str);

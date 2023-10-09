@@ -1401,7 +1401,7 @@ void MainWindow::on_actionPrint_Playlist_triggered()
 
 // ====================================
 // load playlist to palette slot
-
+#ifdef DARKMODE
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount) {
     // NOTE: Slot number is 0 to 2
@@ -1645,7 +1645,6 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     return(firstBadSongLine);  // return error song (if any)
 }
 
-#ifdef DARKMODE
 // -------------
 // TODO: FACTOR THESE (DUPLICATED CODE), use pointer to a PlaylistTable
 void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
@@ -1697,12 +1696,11 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
-#ifdef DARKMODE
+
     ui->darkPitchSlider->setValue(pitchInt);
 
     on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
         //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
-#endif
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -1762,12 +1760,12 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
-#ifdef DARKMODE
+
     ui->darkPitchSlider->setValue(pitchInt);
 
     on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
         //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
-#endif
+
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -1825,12 +1823,12 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
-#ifdef DARKMODE
+
     ui->darkPitchSlider->setValue(pitchInt);
 
     on_darkPitchSlider_valueChanged(pitchInt); // manually call this, in case the setValue() line doesn't call valueChanged() when the value set is
         //   exactly the same as the previous value.  This will ensure that cBass->setPitch() gets called (right now) on the new stream.
-#endif
+
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
@@ -1838,7 +1836,6 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 }
 
-#endif
 
 // ========================
 // TODO: strip off the root directory before saving...
@@ -2001,3 +1998,4 @@ void MainWindow::playlistSlotWatcherTriggered() {
     // for sure, all slots are saved now, so disable the timer until some slot is modified again
     playlistSlotWatcherTimer->stop();
 }
+#endif

@@ -23,7 +23,8 @@
 **
 ****************************************************************************/
 
-#include "analogclock.h"
+#include "globaldefines.h"
+
 #include "mytablewidget.h"
 #include <QDebug>
 

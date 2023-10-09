@@ -23,6 +23,8 @@
 **
 ****************************************************************************/
 
+#include "globaldefines.h"
+
 #include <QtWidgets>
 #include <QLocale>
 
@@ -494,6 +496,10 @@ void AnalogClock::setSDEditMode(bool e) {
 
 void AnalogClock::setTimerLabel(clickableLabel *theLabel, QLabel *theCuesheetLabel, QLabel *theSDLabel, QLabel *theDarkWarningLabel)
 {
+#ifndef DARKMODE
+    Q_UNUSED(theDarkWarningLabel)
+#endif
+
 //    qDebug() << "AnalogClock::setTimerLabel";
     timerLabel = theLabel;
     timerLabel->setText("");

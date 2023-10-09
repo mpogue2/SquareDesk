@@ -22,6 +22,7 @@
 ** $SQUAREDESK_END_LICENSE$
 **
 ****************************************************************************/
+#include "globaldefines.h"
 
 #include <QActionGroup>
 #include <QColorDialog>
@@ -53,8 +54,6 @@
 
 #include <QPrinter>
 #include <QPrintDialog>
-
-#include "analogclock.h"
 
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
 #pragma clang diagnostic push
@@ -722,9 +721,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     fileWatcherDisabledTimer = new QTimer();    // 5 sec timer for working around the Venture extended attribute problem
     QObject::connect(fileWatcherDisabledTimer, SIGNAL(timeout()), this, SLOT(fileWatcherDisabledTriggered())); // this calls musicRootModified again (one last time!)
 
+#ifdef DARKMODE
     playlistSlotWatcherTimer = new QTimer();            // Retriggerable timer for slot watcher events
     QObject::connect(playlistSlotWatcherTimer, SIGNAL(timeout()),
                      this, SLOT(playlistSlotWatcherTriggered()));
+#endif
 
     // make sure that the "downloaded" directory exists, so that when we sync up with the Cloud,
     //   it will cause a rescan of the songTable and dropdown
@@ -2169,6 +2170,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
 #endif
 
+#ifdef DARKMODE
     // clear out the developer text from the playlistTables and Labels
     ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
     ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
@@ -2198,6 +2200,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     for (int i = 0; i < 3; i++) {
         slotModified[i] = false;
     }
+#endif
 
     stopLongSongTableOperation("MainWindow");
 }
@@ -2678,8 +2681,10 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 // ----------------------------------------------------------------------
 MainWindow::~MainWindow()
 {
+#ifdef DARKMODE
     playlistSlotWatcherTimer->stop();
     playlistSlotWatcherTriggered(); // auto-save anything that hasn't been saved yet
+#endif
 
     SDSetCurrentSeqs(0);  // this doesn't take very long
 
@@ -7452,10 +7457,12 @@ void MainWindow::on_warningLabelCuesheet_clicked() {
     on_warningLabel_clicked();
 }
 
+#ifdef DARKMODE
 void MainWindow::on_darkWarningLabel_clicked() {
     // this one is clickable, too!
     on_warningLabel_clicked();
 }
+#endif
 
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
@@ -9725,8 +9732,6 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     delete(twMenu);
 }
 
-#endif
-
 
 void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
 {
@@ -9859,7 +9864,6 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
-#ifdef DARKMODE
 
     qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
 
@@ -9929,12 +9933,10 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
 
     slotModified[whichSlot] = true;
     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-#endif
 }
 
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
-#ifdef DARKMODE
 
     qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
 
@@ -10018,7 +10020,6 @@ void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
 
     slotModified[whichSlot] = true;
     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
-#endif
 }
 
 void MainWindow::darkRevealInFinder()
@@ -10054,3 +10055,4 @@ void MainWindow::darkRevealAttachedLyricsFileInFinder() {
             qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << currentMP3filenameWithPath;
     }
 }
+#endif

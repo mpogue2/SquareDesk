@@ -137,6 +137,7 @@ HEADERS  += mainwindow.h \
     addcommentdialog.h \
     audiodecoder.h \
     flexible_audio.h \
+    globaldefines.h \
     miniBPM/MiniBpm.h \
     myslider.h \
     importdialog.h \

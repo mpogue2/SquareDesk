@@ -76,6 +76,8 @@
 #ifndef ANALOGCLOCK_H
 #define ANALOGCLOCK_H
 
+#include "globaldefines.h"
+
 #include <QWidget>
 #include "clickablelabel.h"
 #include "typetracker.h"
@@ -87,9 +89,6 @@
 
 // set to speed up the clock by 10X
 //#define DEBUGCLOCK 1
-
-// NOTE: THIS IS IN TWO PLACES RIGHT NOW.
-//#define DARKMODE
 
 class AnalogClock : public QWidget
 {
