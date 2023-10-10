@@ -4391,16 +4391,22 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << theKey << KeyEvent->text();
             // THEN HANDLE IT AS A SPECIAL KEY
 
-            if ((theKey == Qt::Key_Up || theKey == Qt::Key_Down) &&
+            if ((theKey == Qt::Key_Up || theKey == Qt::Key_Down || theKey == Qt::Key_Backspace) &&
                     (KeyEvent->modifiers() & Qt::ShiftModifier) &&
                     (KeyEvent->modifiers() & Qt::ControlModifier)) {
 
-                if (theKey == Qt::Key_Up) {
-//                    qDebug() << "SHIFT-CMD-UP detected.";
-                    maybeMainWindow->PlaylistItemMoveUp();
-                } else {
-//                    qDebug() << "SHIFT-CMD-DOWN detected.";
-                    maybeMainWindow->PlaylistItemMoveDown();
+//                if (theKey == Qt::Key_Up) {
+////                    qDebug() << "SHIFT-CMD-UP detected.";
+//                    maybeMainWindow->PlaylistItemMoveUp();
+//                } else {
+////                    qDebug() << "SHIFT-CMD-DOWN detected.";
+//                    maybeMainWindow->PlaylistItemMoveDown();
+//                }
+
+                switch (theKey) {
+                    case Qt::Key_Up:     maybeMainWindow->PlaylistItemMoveUp(); qDebug() << "SHIFT_CMD-KEY UP"; break;
+                    case Qt::Key_Down:   maybeMainWindow->PlaylistItemMoveDown(); qDebug() << "SHIFT_CMD-KEY DOWN"; break;
+                    case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove(); qDebug() << "SHIFT_CMD-KEY DELETE"; break;
                 }
 
                 return true;

@@ -37,7 +37,7 @@ public:
     bool moveSelectedItemUp();
     bool moveSelectedItemDown();
     bool moveSelectedItemToTop();
-    bool moveSelectedItemToBottom();
+    bool moveSelectedItemToBottom(bool scrollWhenDone = true);
     bool removeSelectedItem();
 
     void moveSelectionUp();

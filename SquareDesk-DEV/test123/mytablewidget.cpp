@@ -156,7 +156,7 @@ bool MyTableWidget::moveSelectedItemToTop() {
 }
 
 // -----------------------------------------------
-bool MyTableWidget::moveSelectedItemToBottom() {
+bool MyTableWidget::moveSelectedItemToBottom(bool scrollWhenDone) { // defaults to scrollWhenDone == true
 #ifdef DARKMODE
     QModelIndexList list = selectionModel()->selectedRows();
 
@@ -169,7 +169,7 @@ bool MyTableWidget::moveSelectedItemToBottom() {
 
     if (row == rowCount()-1) {
         // we are already at the bottom
-        return false; // we did what was requested
+        return false || !scrollWhenDone; // no need to scroll, except return true when we're removing the last row
     }
 
     // Iterate over the entire songTable, incrementing items BELOW this item
@@ -197,7 +197,9 @@ bool MyTableWidget::moveSelectedItemToBottom() {
 
     sortItems(0);  // resort, based on column 0 (the #)
 
-    scrollToBottom();
+    if (scrollWhenDone) {
+        scrollToBottom();
+    }
 
     return true; // we did it!
 #endif
@@ -216,7 +218,7 @@ bool MyTableWidget::removeSelectedItem() {
     // OK, remember the row number, because we're going to restore it at the end...
     int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
 
-    if (moveSelectedItemToBottom()) {
+    if (moveSelectedItemToBottom(false)) { // do NOT scroll to the bottom
 
         // if this call was meant for us, then we can remove the row; otherwise, ignore
         removeRow(rowCount()-1);      // and remove the last row
@@ -227,8 +229,9 @@ bool MyTableWidget::removeSelectedItem() {
             row = rowCount()-1;
         }
 
+        qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
         selectRow(row);    // select it
-        scrollToItem(item(row, 0)); // EnsureVisible for the row that was deleted, OR last row in table
+        scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
 
         return true;
     }
