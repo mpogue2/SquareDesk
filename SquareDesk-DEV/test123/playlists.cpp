@@ -116,6 +116,11 @@ QStringList MainWindow::parseCSV(const QString &string)
 // returns first song error, and also updates the songCount as it goes (2 return values)
 QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCount) {
 
+    if (!QFileInfo::exists(PlaylistFileName)) {
+        qDebug() << "loadPlaylistFromFile could not find playlist: " << PlaylistFileName;
+        return("FILE NOT FOUND");
+    }
+
 //    qDebug() << "loadPlaylist: " << PlaylistFileName;
     addFilenameToRecentPlaylist(PlaylistFileName);  // remember it in the Recent list
 
@@ -266,6 +271,7 @@ QString MainWindow::loadPlaylistFromFile(QString PlaylistFileName, int &songCoun
 // PLAYLIST MANAGEMENT ===============================================
 void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 //    qDebug() << "finishLoadingPlaylist::PlaylistFileName: " << PlaylistFileName;
+
     startLongSongTableOperation("finishLoadingPlaylist"); // for performance measurements, hide and sorting off
 
     // --------
@@ -273,6 +279,13 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
     int songCount = 0;
 
     firstBadSongLine = loadPlaylistFromFile(PlaylistFileName, songCount);
+
+    if (firstBadSongLine == "FILE NOT FOUND") {
+        qDebug() << "finishLoadingPlaylist could not find: " << PlaylistFileName;
+        stopLongSongTableOperation("finishLoadingPlaylist");
+        return;
+    }
+
 #ifdef DARKMODE
     loadPlaylistFromFileToPaletteSlot(PlaylistFileName, 0, songCount); // also load it into slot 1
 #endif
@@ -294,14 +307,18 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     // MAKE SHORT NAME FOR PLAYLIST FROM FILENAME -------
 //    qDebug() << "PlaylistFileName: " << PlaylistFileName;
-    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
-    QRegularExpressionMatch match = regex1.match(PlaylistFileName);
-    QString shortPlaylistName("ERROR 7");
 
-    if (match.hasMatch())
-    {
-        shortPlaylistName = match.captured(1);
-    }
+//    static QRegularExpression regex1 = QRegularExpression(".*/(.*).csv$");
+//    QRegularExpressionMatch match = regex1.match(PlaylistFileName);
+//    QString shortPlaylistName("ERROR 7");
+
+//    if (match.hasMatch())
+//    {
+//        shortPlaylistName = match.captured(1);
+//    }
+
+    QString shortPlaylistName = PlaylistFileName;
+    shortPlaylistName = shortPlaylistName.replace(musicRootPath + "/", "").replace(".csv","");
 
     ui->actionSave_Playlist_2->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name, because it was loaded (possibly with errors)
 
@@ -328,6 +345,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded).
 
+//    qDebug() << "finishLoadingPlaylist: calling SetlastPlaylistLoaded with:" << shortPlaylistName;
     prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
 }
 
@@ -380,6 +398,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     QFileInfo fInfo(PlaylistFileName);
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
+//    qDebug() << "on_actionLoad_Playlist_triggered: " << PlaylistFileName;
     finishLoadingPlaylist(PlaylistFileName);
 }
 
@@ -484,6 +503,9 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
             addFilenameToRecentPlaylist(PlaylistFileName);  // add to the MRU list
             markPlaylistModified(false); // turn off the * in the status bar
             lastSavedPlaylist = PlaylistFileName;  // have to save something here to enable File > Save (to same place as loaded) and Auto-load
+
+            qDebug() << "saveCurrentPlaylistToFile calling setlastPlaylistLoaded with:" << shortPlaylistName;
+
             prefsManager.SetlastPlaylistLoaded(shortPlaylistName); // save the name of the playlist, so we can reload at app start time
             ui->actionSave_Playlist_2->setText(QString("Save Playlist '") + shortPlaylistName + "'"); // and now Playlist > Save Playlist 'name' has a name, because it was loaded (possibly with errors)
         }
@@ -1096,6 +1118,7 @@ void MainWindow::loadRecentPlaylist(int i) {
     if (i < recentFilePaths.size()) {
         // then we can do it
         QString filename = recentFilePaths.at(i);
+        qDebug() << "loadRecentPlaylist: " << filename;
         finishLoadingPlaylist(filename);
 
         addFilenameToRecentPlaylist(filename);
@@ -1135,6 +1158,8 @@ void MainWindow::updateRecentPlaylistMenu() {
 }
 
 void MainWindow::addFilenameToRecentPlaylist(QString filename) {
+//    qDebug() << "addFilenameToRecentPlaylist:" << filename;
+
     if (!filename.endsWith(".squaredesk/current.csv")) {  // do not remember the initial persistent playlist
         QStringList recentFilePaths = prefsManager.MySettings.value("recentFiles").toStringList();
 
@@ -1425,6 +1450,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
     if (relativePath.startsWith("/Tracks") || relativePath.startsWith("Tracks")) { // FIX: might want to collapse these two later...
         relativePath.replace("/Tracks/", "").replace("Tracks/", "").replace(".csv", "");
+
 //        qDebug() << "TRACK SPECIFIER:" << relativePath;
 
         // -------------
@@ -1433,9 +1459,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         QLabel *theLabel;
 
         switch (slotNumber) {
-        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
-        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
-        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+            case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; prefsManager.SetlastPlaylistLoaded("tracks/" + relativePath); break;
+            case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; prefsManager.SetlastPlaylistLoaded2("tracks/" + relativePath); break;
+            case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("tracks/" + relativePath); break;
         }
 
         theTableWidget->setRowCount(0); // delete all the rows in the slot
@@ -1540,9 +1566,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
     QString relPath = relativePath;
     relPath = relPath.replace("/playlists/", "").replace(".csv", ""); // relPath is e.g. "5thWed/5thWed_2021.12.29" same as relPathInSlot now
 
-//    qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
-//    qDebug() << "relativePath: " << relativePath;
-//    qDebug() << "relPath: " << relPath;
+//    qDebug() << "PLAYLIST relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
+//    qDebug() << "PLAYLIST relativePath: " << relativePath;
+//    qDebug() << "PLAYLIST relPath: " << relPath;
 
     // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
     //  previous one will be saved, and same one may be loaded into a subsequent slot
@@ -1566,9 +1592,9 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         QLabel *theLabel;
 
         switch (slotNumber) {
-            case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
-            case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
-            case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+            case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; prefsManager.SetlastPlaylistLoaded("playlists/" + relPath); break;
+            case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; prefsManager.SetlastPlaylistLoaded2("playlists/" + relPath); break;
+            case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; prefsManager.SetlastPlaylistLoaded3("playlists/" + relPath); break;
         }
 
 //        theTableWidget->clear();  // this just clears the items/text, it doesn't delete the rows
@@ -1656,9 +1682,11 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         QString playlistShortName = PlaylistFileName.split('/').last().replace(".csv","");
         theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
 
-        relPathInSlot[slotNumber] = PlaylistFileName.replace(musicRootPath + "/playlists/", "").replace(".csv","");
+        relPathInSlot[slotNumber] = PlaylistFileName;
+        relPathInSlot[slotNumber] = relPathInSlot[slotNumber].replace(musicRootPath + "/playlists/", "").replace(".csv","");
+        //  qDebug() << "PLAYLIST: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
 
-//        qDebug() << "PLAYLIST: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
+        addFilenameToRecentPlaylist(PlaylistFileName); // remember it in the Recents menu, full absolute pathname
     }
     else {
         // file didn't open...

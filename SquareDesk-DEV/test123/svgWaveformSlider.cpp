@@ -95,7 +95,7 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
     //        val = fmax(0,(e->pos().rx() - 6));
 //        val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(myWidth-4));
             val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
-        qDebug() << "***** left button press changed darkseekbar to " << val << this->maximum() << e->pos().rx() << width()-4 << (fmax(0,(e->pos().rx() - 6))/(width()-4));
+//        qDebug() << "***** left button press changed darkseekbar to " << val << this->maximum() << e->pos().rx() << width()-4 << (fmax(0,(e->pos().rx() - 6))/(width()-4));
             this->setValue(val);
             break;
         case Qt::MiddleButton:
@@ -115,7 +115,7 @@ void svgWaveformSlider::mouseMoveEvent(QMouseEvent* e) {
 //    this->setValue(value);
 
     double val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
-    qDebug() << "***** left button press changed darkseekbar to " << val << this->maximum() << e->pos().rx() << width()-4 << (fmax(0,(e->pos().rx() - 6))/(width()-4));
+//    qDebug() << "***** left button press changed darkseekbar to " << val << this->maximum() << e->pos().rx() << width()-4 << (fmax(0,(e->pos().rx() - 6))/(width()-4));
     this->setValue(val);
 }
 

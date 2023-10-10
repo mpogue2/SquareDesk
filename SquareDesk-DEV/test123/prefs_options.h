@@ -165,6 +165,8 @@ CONFIG_ATTRIBUTE_BOOLEAN(checkBoxSwapSDTabInputAndAvailableCallsSides, SwapSDTab
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabHorizontalSplitterPosition, "")
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(SDTabVerticalSplitterPosition, "")
 
-CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded, "") // if the user had a playlist loaded, then reload it at next app start time
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded, "") // if the user had a playlist loaded, then reload it at next app start time (THIS IS PLAYLIST #1 = SLOT 0)
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded2, "") // if the user had a playlist loaded, then reload it at next app start time (THIS IS PLAYLIST #2 = SLOT 1)
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastPlaylistLoaded3, "") // if the user had a playlist loaded, then reload it at next app start time (THIS IS PLAYLIST #3 = SLOT 2)
 
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(lastDance,  "")

@@ -2191,15 +2191,58 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
     QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+//    qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
 
     if (loadThisPlaylist != "") {
-        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
-        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
+        if (loadThisPlaylist.startsWith("tracks/")) {
+            // it's a TRACK FILTER
+            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+            fullPlaylistPath.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
+        } else {
+            // it's a PLAYLIST
+            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+            finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 0
+        }
+    }
 
-        // by default, load that single "old" playlist into slot 1 (leftmost slot) --------
-        //  TODO: might want to change this later...
-        int songCount;
-        loadPlaylistFromFileToPaletteSlot(fullPlaylistPath, 0, songCount);
+    // Load up second slot -----
+    QString loadThisPlaylist2 = prefsManager.GetlastPlaylistLoaded2(); // "" if no playlist was loaded
+//    qDebug() << "MainWindow constructor, load playlist and palette slot 1: " << loadThisPlaylist2;
+
+    if (loadThisPlaylist2 != "") {
+        if (loadThisPlaylist2.startsWith("tracks/")) {
+            // it's a TRACK FILTER
+            QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
+            fullPlaylistPath2.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount);
+        } else {
+            // it's a PLAYLIST
+            QString fullPlaylistPath2 = musicRootPath + "/" + loadThisPlaylist2 + ".csv";
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath2, 1, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 1
+        }
+    }
+
+    // Load up third slot -----
+    QString loadThisPlaylist3 = prefsManager.GetlastPlaylistLoaded3(); // "" if no playlist was loaded
+//    qDebug() << "MainWindow constructor, load playlist and palette slot 2: " << loadThisPlaylist3;
+
+    if (loadThisPlaylist3 != "") {
+        if (loadThisPlaylist3.startsWith("tracks/")) {
+            // it's a TRACK FILTER
+            QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
+            fullPlaylistPath3.replace("/tracks/", "/Tracks/"); // create fake file path for track filter
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount);
+        } else {
+            // it's a PLAYLIST
+            QString fullPlaylistPath3 = musicRootPath + "/" + loadThisPlaylist3 + ".csv";
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(fullPlaylistPath3, 2, songCount); // load it! (and enabled Save and Save As and Print) = this also calls loadPlaylistFromFileToPaletteSlot for slot 2
+        }
     }
 
     for (int i = 0; i < 3; i++) {
@@ -9542,6 +9585,12 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 //                              relPathInSlot[whichSlot] = ""; // no longer anything here
                               saveSlotNow(whichSlot);  // if modified, save it now
                               clearSlot(whichSlot);    // clear table and label, mark not modified, and no relPath
+                              switch (whichSlot) {
+                                  case 0: prefsManager.SetlastPlaylistLoaded(""); break;
+                                  case 1: prefsManager.SetlastPlaylistLoaded2(""); break;
+                                  case 2: prefsManager.SetlastPlaylistLoaded3(""); break;
+                                  default: break;
+                              }
                           }
                           );
 
