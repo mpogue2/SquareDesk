@@ -378,8 +378,8 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
 
     // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
-    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
-    QString musicRootPath = prefsManager.GetmusicPath();
+//    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+//    QString musicRootPath = prefsManager.GetmusicPath();
     QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
 
     trapKeypresses = false;
@@ -394,7 +394,7 @@ void MainWindow::on_actionLoad_Playlist_triggered()
     }
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
-    QDir CurrentDir;
+//    QDir CurrentDir;
     QFileInfo fInfo(PlaylistFileName);
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
@@ -419,7 +419,7 @@ void MainWindow::saveCurrentPlaylistToFile(QString PlaylistFileName) {
         QTableWidgetItem *theItem = ui->songTable->item(i,kNumberCol);
         QString playlistIndex = theItem->text();
         QString pathToMP3 = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
-        QString songTitle = getTitleColTitle(ui->songTable, i);
+//        QString songTitle = getTitleColTitle(ui->songTable, i);
         QString pitch = ui->songTable->item(i,kPitchCol)->text();
         QString tempo = ui->songTable->item(i,kTempoCol)->text();
 //        qDebug() << "saveCurrentPlaylistToFile: " << tempo;
@@ -1608,6 +1608,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
             // CSV FILE =================================
 
             QString header = in.readLine();  // read header (and throw away for now), should be "abspath,pitch,tempo"
+            Q_UNUSED(header) // turn off the warning (actually need the readLine to happen);
 
             // V1 playlists use absolute paths, V2 playlists use relative paths
             // This allows two things:
@@ -1655,7 +1656,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                         title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
                         // TODO: provide context menu to get dialog with reasons why
                         QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
-                        title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
+                        title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath, shortPlaylistName));
                     }
 
                     // PITCH column
