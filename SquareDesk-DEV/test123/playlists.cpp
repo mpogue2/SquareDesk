@@ -1732,11 +1732,11 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     // these must be up here to get the correct values...
     QString pitch  = ui->playlist1Table->item(row, 2)->text();
     QString tempo  = ui->playlist1Table->item(row, 3)->text();
-    QString number = ui->playlist1Table->item(row, 0)->text();
+//    QString number = ui->playlist1Table->item(row, 0)->text();
 
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
-    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+//    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
 
 //    qDebug() << "on_playlist1Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
 
@@ -1796,11 +1796,11 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
     // these must be up here to get the correct values...
     QString pitch  = ui->playlist2Table->item(row, 2)->text();
     QString tempo  = ui->playlist2Table->item(row, 3)->text();
-    QString number = ui->playlist2Table->item(row, 0)->text();
+//    QString number = ui->playlist2Table->item(row, 0)->text();
 
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
-    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+//    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
 
 //    qDebug() << "on_playlist2Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
 
@@ -1859,11 +1859,11 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     // these must be up here to get the correct values...
     QString pitch  = ui->playlist3Table->item(row, 2)->text();
     QString tempo  = ui->playlist3Table->item(row, 3)->text();
-    QString number = ui->playlist3Table->item(row, 0)->text();
+//    QString number = ui->playlist3Table->item(row, 0)->text();
 
     targetPitch = pitch;  // save this string, and set pitch slider AFTER base BPM has been figured out
     targetTempo = tempo;  // save this string, and set tempo slider AFTER base BPM has been figured out
-    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
+//    targetNumber = number; // save this, because tempo changes when this is set are playlist modifications, too
 
 //    qDebug() << "on_playlist3Table_itemDoubleClicked: " << songTitle << songType << songLabel << pitch << tempo << pathToMP3;
 

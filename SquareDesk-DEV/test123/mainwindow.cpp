@@ -3096,12 +3096,34 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
     }
     ui->darkSongTable->setSortingEnabled(true);
 
+    // if the pitch changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+    for (int i = 0; i < 3; i++) {
+        QString rPath = relPathInSlot[i];
+        QString rPath2 = rPath;
+        rPath2.replace("/tracks", "");
+        rPath2 = rPath2 + "/";
+
+        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        QTableWidget *theTable = theTables[i];
+
+        if (rPath.contains("/tracks/") &&
+            currentMP3filenameWithPath.contains(rPath2)) {
+            for (int j = 0; j < theTable->rowCount(); j++) {
+                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+                      theTable->item(j, 2)->setText(QString::number(currentPitch)); // update pitch in palette slot table
+                      break; // no need to look further, because only one item can match per track filter
+                }
+            }
+        }
+    }
+
 #endif
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
         // current song is on a playlist, AND we're not doing the initial load
-//        qDebug() << "current song is on playlist, and PITCH changed!";
+//        qDebug() << "current song is on playlist, and PITCH changed!" << targetNumber << loadingSong;
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
 
@@ -3228,25 +3250,45 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
 #ifdef DARKMODE
     ui->darkSongTable->setSortingEnabled(false);
     // already have "row" from above
+
+    QString tempoText = QString::number(value);
     if (row != -1)
     {
-        if (tempoIsBPM) {
-            ui->darkSongTable->item(row, kTempoCol)->setText(QString::number(value));
-            //            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value);
+        if (!tempoIsBPM) {
+            tempoText = tempoText + "%";
         }
-        else {
-            ui->darkSongTable->item(row, kTempoCol)->setText(QString::number(value) + "%");
-            //            qDebug() << "on_tempoSlider_valueChanged: setting text for tempo to: " << QString::number(value) + "%";
-        }
+        ui->darkSongTable->item(row, kTempoCol)->setText(tempoText);
     }
     ui->darkSongTable->setSortingEnabled(true);
+
+    // if the TEMPO changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+    for (int i = 0; i < 3; i++) {
+        QString rPath = relPathInSlot[i];
+        QString rPath2 = rPath;
+        rPath2.replace("/tracks", "");
+        rPath2 = rPath2 + "/";
+
+        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        QTableWidget *theTable = theTables[i];
+
+        if (rPath.contains("/tracks/") &&
+            currentMP3filenameWithPath.contains(rPath2)) {
+            for (int j = 0; j < theTable->rowCount(); j++) {
+                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+                      theTable->item(j, 3)->setText(tempoText); // update TEMPO in palette slot table
+                      break; // no need to look further, because only one item can match per track filter
+                }
+            }
+        }
+    }
 
 #endif
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
         // current song is on a playlist, AND we're not doing the initial load
-//        qDebug() << "current song is on playlist, and TEMPO changed!";
+//        qDebug() << "current song is on playlist, and TEMPO changed!" << targetNumber << loadingSong;
         markPlaylistModified(true); // turn ON the * in the status bar, because a playlist entry changed its tempo
     }
 
