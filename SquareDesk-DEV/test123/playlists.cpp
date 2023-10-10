@@ -1521,7 +1521,24 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
         int songCount = 0;
         for (int i = 0; i < ui->darkSongTable->rowCount(); i++) {
-            if (!ui->darkSongTable->isRowHidden(i)) {
+            if (true || !ui->darkSongTable->isRowHidden(i)) {
+
+                // make sure this song has the "type" that we're looking for...
+                QString pathToMP3 = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+                QString p1 = pathToMP3;
+                p1 = p1.replace(musicRootPath + "/", "");
+
+                QString typeOfFile = p1.split("/").first();
+                //                qDebug() << "TRACK: " << typeOfFile << pathToMP3;
+
+                if (typeOfFile != relativePath) {
+                    continue; // skip this one, if the type is not what we want
+                }
+                //                else {
+                //                    qDebug() << "  ** GOOD";
+                //                }
+
+                // type IS what we want, so add it to the playlist slot -----
                 QString label = ui->darkSongTable->item(i, kLabelCol)->text();
                 QString shortTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
                 shortTitle.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
@@ -1540,7 +1557,6 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                 QString pitch = ui->darkSongTable->item(i, kPitchCol)->text();
                 QString tempo = ui->darkSongTable->item(i, kTempoCol)->text();
-                QString pathToMP3 = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
 
                 songCount++;
 //                qDebug() << "ROW: " << songCount << label << " - " << shortTitle << pitch << tempo << pathToMP3;
