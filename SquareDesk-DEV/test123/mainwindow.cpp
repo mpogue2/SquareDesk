@@ -2172,12 +2172,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
 #ifdef DARKMODE
     // clear out the developer text from the playlistTables and Labels
-    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-    ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-    ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-    ui->playlist1Table->setRowCount(0);
-    ui->playlist2Table->setRowCount(0);
-    ui->playlist3Table->setRowCount(0);
+
+//    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//    ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//    ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//    ui->playlist1Table->setRowCount(0);
+//    ui->playlist2Table->setRowCount(0);
+//    ui->playlist3Table->setRowCount(0);
+
+    clearSlot(0);
+    clearSlot(1);
+    clearSlot(2);
 
     // PLAYLIST LOADING HERE, SO THAT PLAYLIST1 IS INITIALIZED BY NOW
     ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
@@ -9472,10 +9477,11 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
     if (relPathInSlot[whichSlot] != "" && !relPathInSlot[whichSlot].startsWith("/tracks/")) {
         // context menu only available if something is actually in this slot
 
+        // PLAYLIST IS IN SLOT ---------
         QString playlistFilePath = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + ".csv";
         QString playlistShortName = playlistFilePath.split('/').last().replace(".csv","");
 
-        qDebug() << "customPlaylistMenuRequested:" << playlistFilePath << playlistShortName << relPathInSlot[whichSlot];
+//        qDebug() << "customPlaylistMenuRequested:" << playlistFilePath << playlistShortName << relPathInSlot[whichSlot];
 
         plMenu->addAction(QString("Edit '%1' in text editor").arg(relPathInSlot[whichSlot]),
                           [playlistFilePath]() {
@@ -9516,23 +9522,32 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
         plMenu->addAction(QString("Remove from Palette"),
                           [this, whichSlot]() {
                               // clear out the label, and delete all the rows from the table
-                              switch (whichSlot) {
-                                  case 0:   ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-                                            ui->playlist1Table->setRowCount(0);
-                                            break;
-                                  case 1:   ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-                                            ui->playlist2Table->setRowCount(0);
-                                            break;
-                                  case 2:   ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-                                            ui->playlist3Table->setRowCount(0);
-                                            break;
-                              }
-                              relPathInSlot[whichSlot] = ""; // no longer anything here
+//                              switch (whichSlot) {
+//                                  case 0:   // ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//                                            // ui->playlist1Table->setRowCount(0);
+//                                            saveSlotNow(0);  // save it, if it was modified and not yet saved
+//                                            clearSlot(0);    // clear the slot, the table and label, mark it not modified and no relPathToSlot
+//                                            break;
+//                                  case 1:   // ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//                                            // ui->playlist2Table->setRowCount(0);
+//                                            saveSlotNow(1);  // save it, if it was modified and not yet saved
+//                                            clearSlot(1);    // clear the slot, the table and label, mark it not modified and no relPathToSlot
+//                                            break;
+//                                  case 2:   // ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//                                            // ui->playlist3Table->setRowCount(0);
+//                                            saveSlotNow(2);  // save it, if it was modified and not yet saved
+//                                            clearSlot(2);    // clear the slot, the table and label, mark it not modified and no relPathToSlot
+//                                            break;
+//                              }
+//                              relPathInSlot[whichSlot] = ""; // no longer anything here
+                              saveSlotNow(whichSlot);  // if modified, save it now
+                              clearSlot(whichSlot);    // clear table and label, mark not modified, and no relPath
                           }
                           );
 
 
     } else {
+        // NOTHING OR TRACKS FILTER IS IN SLOT ---------
 
         if (!relPathInSlot[whichSlot].startsWith("/tracks/")) {
             int playlistRowCount = theTableWidget->rowCount();
@@ -9550,18 +9565,20 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
             plMenu->addAction(QString("Remove from Palette"),
                               [this, whichSlot]() {
                                   // clear out the label, and delete all the rows from the table
-                                  switch (whichSlot) {
-                                  case 0:   ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-                                      ui->playlist1Table->setRowCount(0);
-                                      break;
-                                  case 1:   ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-                                      ui->playlist2Table->setRowCount(0);
-                                      break;
-                                  case 2:   ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
-                                      ui->playlist3Table->setRowCount(0);
-                                      break;
-                                  }
-                                  relPathInSlot[whichSlot] = ""; // no longer anything here
+//                                  switch (whichSlot) {
+//                                  case 0:   ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//                                            ui->playlist1Table->setRowCount(0);
+//                                            break;
+//                                  case 1:   ui->playlist2Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//                                            ui->playlist2Table->setRowCount(0);
+//                                            break;
+//                                  case 2:   ui->playlist3Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
+//                                            ui->playlist3Table->setRowCount(0);
+//                                            break;
+//                                  }
+//                                  relPathInSlot[whichSlot] = ""; // no longer anything here
+                                  saveSlotNow(whichSlot);  // save contents of that slot, if it was modified
+                                  clearSlot(whichSlot);    // then clear out the slot, mark not modified, and no relPathInSlot
                               }
                               );
         }
@@ -9732,6 +9749,22 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     delete(twMenu);
 }
 
+void MainWindow::clearSlot(int slotNumber) {
+    QTableWidget *theTableWidget;
+    QLabel *theLabel;
+
+    switch (slotNumber) {
+        case 0: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
+        case 1: theTableWidget = ui->playlist2Table; theLabel = ui->playlist2Label; break;
+        case 2: theTableWidget = ui->playlist3Table; theLabel = ui->playlist3Label; break;
+        default: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break; // make the compiler warning go away
+    }
+
+    theTableWidget->setRowCount(0); // delete all the rows in the slot
+    theLabel->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist"); // clear out the label
+    slotModified[slotNumber] = false;  // not modified now
+    relPathInSlot[slotNumber] = "";    // nobody home now
+}
 
 void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int column)
 {
@@ -9770,6 +9803,7 @@ void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int 
 
     if (fullPathToLeaf.contains("playlists")) {
         // load Playlists
+        // now load into the previously-determined empty slot
         int songCount;
         loadPlaylistFromFileToPaletteSlot(PlaylistFileName, firstEmptySlot, songCount);
     } else {

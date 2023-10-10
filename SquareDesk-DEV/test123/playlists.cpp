@@ -1415,7 +1415,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         // if the current resident of the slot has been modified, and the playlistSlotWatcherTimer
         //   has gone off yet, and so that playlist hasn't been saved yet, save it now, before we
         //   overwrite the slot.
-        saveSlot(slotNumber);
+        saveSlotNow(slotNumber);
     }
 
     QString relativePath = PlaylistFileName;
@@ -1533,6 +1533,29 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         slotModified[slotNumber] = false;
 
         return ""; // no errors
+    }
+
+    // WE KNOW IT'S A PLAYLIST ----------------------
+
+    QString relPath = relativePath;
+    relPath = relPath.replace("/playlists/", "").replace(".csv", ""); // relPath is e.g. "5thWed/5thWed_2021.12.29" same as relPathInSlot now
+
+//    qDebug() << "relPathInSlot: " << relPathInSlot[0] << relPathInSlot[1] << relPathInSlot[2];
+//    qDebug() << "relativePath: " << relativePath;
+//    qDebug() << "relPath: " << relPath;
+
+    // ALLOW ONLY ONE COPY OF A PLAYLIST LOADED IN THE SLOT PALETTE AT A TIME ------
+    //  previous one will be saved, and same one may be loaded into a subsequent slot
+    //  so, e.g. starting with no slots filled, double-click loads into slot 1. Double-click same playlist again, MOVES it to slot 2.
+    if (relPath == relPathInSlot[0]) {
+        saveSlotNow(0);  // save it, if it has something in there
+        clearSlot(0);    // clear the table and the label
+    } else if (relPath == relPathInSlot[1]) {
+        saveSlotNow(1);  // save it, if it has something in there
+        clearSlot(1);    // clear the table and the label
+    } else if (relPath == relPathInSlot[2]) {
+        saveSlotNow(2);  // save it, if it has something in there
+        clearSlot(2);    // clear the table and the label
     }
 
     QString firstBadSongLine = "";
@@ -1934,10 +1957,15 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
 
 // -----------
 // SAVE a playlist in a slot to a CSV file
-void MainWindow::saveSlot(int whichSlot) {
+void MainWindow::saveSlotNow(int whichSlot) {
 
     if (relPathInSlot[whichSlot] == "") {
         // nothing in this slot
+        return;
+    }
+
+    if (!slotModified[whichSlot]) {
+        // if there's something in the slot, BUT it has not been modified, don't bother to save it on top of itself (no changes)
         return;
     }
 
@@ -1949,10 +1977,10 @@ void MainWindow::saveSlot(int whichSlot) {
     // which tableWidget are we dealing with?
     MyTableWidget *theTableWidget;
     switch (whichSlot) {
-    case 1: theTableWidget = ui->playlist2Table; break;
-    case 2: theTableWidget = ui->playlist3Table; break;
-    case 0:
-    default: theTableWidget = ui->playlist1Table; break;
+        case 1: theTableWidget = ui->playlist2Table; break;
+        case 2: theTableWidget = ui->playlist3Table; break;
+        case 0:
+        default: theTableWidget = ui->playlist1Table; break;
     }
 
     QString playlistShortName = PlaylistFileName;
@@ -1990,7 +2018,7 @@ void MainWindow::playlistSlotWatcherTriggered() {
     //  triggers (modifications to any slots) in the last 10 sec.
     for (int i = 0; i < 3; i++) {
         if (slotModified[i]) {
-            saveSlot(i);
+            saveSlotNow(i);
             slotModified[i] = false; // redundant for testing
         }
     }

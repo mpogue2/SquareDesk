@@ -443,7 +443,9 @@ private slots:
 
 #ifdef DARKMODE
     void saveSlotAsPlaylist(int whichSlot); // SAVE AS a playlist in a slot to a CSV file
-    void saveSlot(int whichSlot);           // SAVE a playlist in a slot to a CSV file
+    void saveSlotNow(int whichSlot);           // SAVE a playlist in a slot to a CSV file
+
+    void clearSlot(int whichSlot);  // clears out the slot, both table and label
 #endif
 
     void on_actionNext_Playlist_Item_triggered();
