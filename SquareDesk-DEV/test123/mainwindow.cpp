@@ -1354,17 +1354,28 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
-//    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
-//    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
-//    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+#ifndef DARKMODE
+    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
-//    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
-//    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
 
-//    if (loadThisPlaylist != "") {
+//    qDebug() << "CONSTRUCTOR: " << loadThisPlaylist;
+
+    if (loadThisPlaylist != "") {
+
 //        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
-//        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
-//    }
+        if (!loadThisPlaylist.startsWith("playlists/")) {
+            loadThisPlaylist = QString("playlists/") + loadThisPlaylist; // for compatibility with older versions of SquareDesk
+        }
+
+        QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+//        qDebug() << "CONSTRUCTOR: " << fullPlaylistPath;
+        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
+    }
+#endif
 
 //    stopLongSongTableOperation("MainWindow");
 
@@ -4041,7 +4052,7 @@ void MainWindow::on_vuMeterTimerTick(void)
 
 // --------------
 bool MainWindow::maybeSavePlaylist(int whichSlot) {
-
+#ifdef DARKMODE
     if (!slotModified[whichSlot]) {
         // slot has not been modified
 //        qDebug() << "SLOT HAS NOT BEEN MODIFIED" << whichSlot;
@@ -4074,6 +4085,9 @@ bool MainWindow::maybeSavePlaylist(int whichSlot) {
             //            qDebug() << "DEFAULT (DISCARD)";
             break;
     }
+#else
+    Q_UNUSED(whichSlot)
+#endif
 
     //    qDebug() << "RETURNING TRUE, ALL IS WELL.";
     return true;
@@ -4147,6 +4161,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         return;
     }
 
+#ifdef DARKMODE
     // check for unsaved playlists that have been modified, and ask to Save As... each one in turn
     for (int i = 0; i < 3; i++) {
         if (!maybeSavePlaylist(i)) {
@@ -4155,6 +4170,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
             return;
         }
     }
+#endif
 
     if (!maybeSaveCuesheet(3)) {
         //        qDebug() << "closeEvent ignored, because user cancelled.";

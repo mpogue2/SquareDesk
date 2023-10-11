@@ -1164,7 +1164,7 @@ void MainWindow::loadRecentPlaylist(int i) {
     if (i < recentFilePaths.size()) {
         // then we can do it
         QString filename = recentFilePaths.at(i);
-        qDebug() << "loadRecentPlaylist: " << filename;
+//        qDebug() << "loadRecentPlaylist: " << filename;
         finishLoadingPlaylist(filename);
 
         addFilenameToRecentPlaylist(filename);
