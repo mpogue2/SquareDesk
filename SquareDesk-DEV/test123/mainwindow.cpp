@@ -2293,6 +2293,9 @@ void MainWindow::musicRootModified(QString s)
 //        qDebug() << "WE ARE RELOADING THE SONG TABLE NOW ------";
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         loadMusicList(); // and filter them into the songTable
+#ifdef DARKMODE
+        darkLoadMusicList(); // also filter them into the darkSongTable
+#endif
         ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
     }
     filewatcherShouldIgnoreOneFileSave = false;
@@ -6276,27 +6279,24 @@ void MainWindow::on_labelSearch_textChanged()
 {
 #ifdef DARKMODE
     darkFilterMusic();
-#else
-    filterMusic();
 #endif
+    filterMusic();
 }
 
 void MainWindow::on_typeSearch_textChanged()
 {
 #ifdef DARKMODE
     darkFilterMusic();
-#else
-    filterMusic();
 #endif
+    filterMusic();
 }
 
 void MainWindow::on_titleSearch_textChanged()
 {
 #ifdef DARKMODE
     darkFilterMusic();
-#else
-    filterMusic();
 #endif
+    filterMusic();
 }
 
 
