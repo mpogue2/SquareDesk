@@ -6156,6 +6156,22 @@ void MainWindow::darkLoadMusicList()
 
     ui->darkSearch->setFocus();
 
+    t.elapsed(__LINE__);
+
+    // now, if we just loaded the darkMusicList, we have to check the palette slots, to see if they need to
+    //  be reloaded, too.  This normally happens just when the fileWatcher is triggered.
+
+    for (int i = 0; i < 3; i++) {
+//        qDebug() << "TRACKS? " << relPathInSlot[i];
+        if (relPathInSlot[i].startsWith("/tracks")) {
+            QString playlistFilePath = musicRootPath + relPathInSlot[i] + ".csv";
+            playlistFilePath.replace("/tracks/", "/Tracks/"); // FIX: someday I'll make this one capitalization
+//            qDebug() << "NEED TO RELOAD THIS SLOT BECAUSE TRACKS" << i << playlistFilePath;
+            int songCount;
+            loadPlaylistFromFileToPaletteSlot(playlistFilePath, i, songCount);
+        }
+    }
+
     t.stop();
 }
 #endif
