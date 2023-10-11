@@ -1990,14 +1990,14 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     }
 
     QString fullFilePath = PlaylistFileName;
-    qDebug() << "fullFilePath: " << fullFilePath;
+//    qDebug() << "fullFilePath: " << fullFilePath;
 
     // not null, so save it in Settings (File Dialog will open in same dir next time)
     QFileInfo fInfo(PlaylistFileName);
     prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
     QString playlistShortName = PlaylistFileName.replace(musicRootPath,"").split('/').last().replace(".csv",""); // PlaylistFileName is now altered
-    qDebug() << "playlistShortName: " << playlistShortName;
+//    qDebug() << "playlistShortName: " << playlistShortName;
 
     // ACTUAL SAVE TO FILE ============
     filewatcherShouldIgnoreOneFileSave = true;  // I don't know why we have to do this, but rootDir is being watched, which causes this to be needed.
@@ -2019,7 +2019,7 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
             path = path.replace(musicRootPath,"");
             QString pitch = theTableWidget->item(i, 2)->text();
             QString tempo = theTableWidget->item(i, 3)->text();
-            qDebug() << path + "," + pitch + "," + tempo;
+//            qDebug() << path + "," + pitch + "," + tempo;
             stream << "\"" + path + "\"," + pitch + "," + tempo << ENDL; // relative path with quotes, then pitch then tempo (% or bpm)
         }
 
@@ -2032,12 +2032,18 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         // and update the QString array (for later use)
         QString rel = fullFilePath;
         relPathInSlot[whichSlot] = rel.replace(musicRootPath + "/playlists/", "").replace(".csv",""); // relative to musicDir/playlists
-        qDebug() << "relPathInSlot set to: " << relPathInSlot[whichSlot];
+//        qDebug() << "relPathInSlot set to: " << relPathInSlot[whichSlot];
 
         // and refresh the TreeWidget, because we have a new playlist now...
         updateTreeWidget();
 
-        // TODO: should we select the new playlist, too?  This might be clearer to the user...
+        // NOW, make it so at app restart we reload this one that now has a name...
+        switch (whichSlot) {
+            case 0: prefsManager.SetlastPlaylistLoaded( "playlists/" + relPathInSlot[0]); break;
+            case 1: prefsManager.SetlastPlaylistLoaded2("playlists/" + relPathInSlot[1]); break;
+            case 2: prefsManager.SetlastPlaylistLoaded3("playlists/" + relPathInSlot[2]); break;
+            default: break;
+        }
 
         ui->statusBar->showMessage(QString("Saved Playlist %1").arg(playlistShortName));
     } else {
@@ -2110,7 +2116,7 @@ void MainWindow::playlistSlotWatcherTriggered() {
     for (int i = 0; i < 3; i++) {
         if (slotModified[i]) {
             saveSlotNow(i);
-            slotModified[i] = false; // redundant for testing
+//            slotModified[i] = false; // redundant for testing  // THIS SHOULD NOT BE ACTIVE CODE UNDER NORMAL OPERATION
         }
     }
 

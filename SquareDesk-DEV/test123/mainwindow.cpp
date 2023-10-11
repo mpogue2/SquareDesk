@@ -4038,6 +4038,47 @@ void MainWindow::on_vuMeterTimerTick(void)
     }
 }
 
+
+// --------------
+bool MainWindow::maybeSavePlaylist(int whichSlot) {
+
+    if (!slotModified[whichSlot]) {
+        // slot has not been modified
+//        qDebug() << "SLOT HAS NOT BEEN MODIFIED" << whichSlot;
+        return true; // all is well
+    }
+
+    if (relPathInSlot[whichSlot] != "") {
+        // slot has a named something in it
+//        qDebug() << "SLOT HAS A NAMED SOMETHING IN IT" << whichSlot << relPathInSlot[whichSlot];
+        return true; // all is well
+    }
+
+    // unnamed playlist that has been modified, that needs saving and naming
+    const QMessageBox::StandardButton ret
+        = QMessageBox::warning(this, "SquareDesk",
+                               QString("The 'Untitled playlist' in slot ") + QString::number(whichSlot + 1) + " has been modified.\n\nDo you want to save your changes?",
+                               QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+
+    switch (ret) {
+
+        case QMessageBox::Save:
+            saveSlotAsPlaylist(whichSlot); // Save As it gives it a name
+            return true; // all is well
+
+        case QMessageBox::Cancel:
+            //            qDebug() << "User clicked CANCEL, returning FALSE";
+            return false; // STOP THE QUIT!
+
+        default:
+            //            qDebug() << "DEFAULT (DISCARD)";
+            break;
+    }
+
+    //    qDebug() << "RETURNING TRUE, ALL IS WELL.";
+    return true;
+}
+
 // --------------
 // follows this example: https://doc.qt.io/qt-6/qtwidgets-mainwindows-application-example.html
 bool MainWindow::maybeSave() {
@@ -4104,6 +4145,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
 //        qDebug() << "closeEvent ignored, because user cancelled.";
         event->ignore();
         return;
+    }
+
+    // check for unsaved playlists that have been modified, and ask to Save As... each one in turn
+    for (int i = 0; i < 3; i++) {
+        if (!maybeSavePlaylist(i)) {
+            //        qDebug() << "closeEvent ignored, because user cancelled.";
+            event->ignore();
+            return;
+        }
     }
 
     if (!maybeSaveCuesheet(3)) {
@@ -9669,7 +9719,7 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
                 plMenu->addAction(QString("Save 'Untitled playlist' As..."),
                                   [whichSlot, this]() {
                                       Q_UNUSED(this)
-                                      qDebug() << "SAVE AS..." << whichSlot;
+//                                      qDebug() << "SAVE AS..." << whichSlot;
                                       saveSlotAsPlaylist(whichSlot);
                                   }
                                   );
@@ -9931,7 +9981,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 {
     Q_UNUSED(pos)
 
-    qDebug() << "on_darkSongTable_customContextMenuRequested";
+//    qDebug() << "on_darkSongTable_customContextMenuRequested";
     QMenu menu(this);
 
 //    QStringList currentTags;
@@ -10012,7 +10062,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
 
-    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+//    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
 
     MyTableWidget *theTableWidget;
     QString PlaylistFileName = "foobar";
@@ -10032,7 +10082,7 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
     int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
 
     QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
-    qDebug() << "darkPlaylistItemToBottom: " << whichSlot << theFullPath;
+//    qDebug() << "darkPlaylistItemToBottom: " << whichSlot << theFullPath;
 
     // make a new row, after all the other ones
     theTableWidget->insertRow(theTableWidget->rowCount()); // always make a new row
@@ -10085,7 +10135,7 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
 // -----------------------------------------------
 void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
 
-    qDebug() << "darkPlaylistItemToBottom:" << whichSlot;
+//    qDebug() << "darkPlaylistItemToTop:" << whichSlot;
 
     MyTableWidget *theTableWidget;
     QString PlaylistFileName = "foobar";
@@ -10105,7 +10155,7 @@ void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
     int row = list.at(0).row(); // only 1 row can ever be selected, this is its number 0 - N-1
 
     QString theFullPath = ui->darkSongTable->item(row, kPathCol)->data(Qt::UserRole).toString();
-    qDebug() << "darkPlaylistItemToBottom: " << whichSlot << theFullPath;
+//    qDebug() << "darkPlaylistItemToTop: " << whichSlot << theFullPath;
 
 
     // iterate through the entire table, incrementing all existing #'s

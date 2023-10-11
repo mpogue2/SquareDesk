@@ -308,6 +308,7 @@ public slots:
 
 protected:
     bool maybeSave();
+    bool maybeSavePlaylist(int whichSlot);
     bool maybeSaveCuesheet(int optionCount);
     void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
     void on_loopButton_toggled(bool checked);
