@@ -4001,6 +4001,11 @@
                    <set>AlignLeading|AlignVCenter</set>
                   </property>
                  </column>
+                 <column>
+                  <property name="text">
+                   <string>loaded</string>
+                  </property>
+                 </column>
                  <item row="0" column="0">
                   <property name="text">
                    <string>1</string>
@@ -4210,6 +4215,11 @@
                   </property>
                   <property name="textAlignment">
                    <set>AlignLeading|AlignVCenter</set>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>loaded</string>
                   </property>
                  </column>
                  <item row="0" column="0">
@@ -4424,6 +4434,11 @@
                   </property>
                   <property name="textAlignment">
                    <set>AlignLeading|AlignVCenter</set>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                   <string>loaded</string>
                   </property>
                  </column>
                  <item row="0" column="0">

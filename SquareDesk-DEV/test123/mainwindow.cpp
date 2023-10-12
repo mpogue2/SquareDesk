@@ -1824,6 +1824,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
     ui->playlist1Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist1Table, &QTableWidget::customContextMenuRequested,
@@ -1896,6 +1897,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
     ui->playlist2Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist2Table, &QTableWidget::customContextMenuRequested,
@@ -1968,6 +1970,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
     ui->playlist3Table->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
@@ -3070,6 +3073,18 @@ int MainWindow::getSelectionRowForFilename(const QString &filePath)
     return -1;
 }
 
+#ifdef DARKMODE
+int MainWindow::darkGetSelectionRowForFilename(const QString &filePath)
+{
+    for (int i=0; i < ui->darkSongTable->rowCount(); i++) {
+        QString origPath = ui->darkSongTable->item(i,kPathCol)->data(Qt::UserRole).toString();
+        if (filePath == origPath)
+            return i;
+    }
+    return -1;
+}
+#endif
+
 // ----------------------------------------------------------------------
 void MainWindow::on_pitchSlider_valueChanged(int value)
 {
@@ -3088,50 +3103,72 @@ void MainWindow::on_pitchSlider_valueChanged(int value)
     }
     ui->currentPitchLabel->setText(sign + QString::number(currentPitch) +" semitone" + plural);
 
-    saveCurrentSongSettings();
-// SONGTABLEREFACTOR
-    // update the hidden pitch column
-
-
-    ui->songTable->setSortingEnabled(false);
-    int row = getSelectionRowForFilename(currentMP3filenameWithPath);
-    if (row != -1)
-    {
-        ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
-    }
-    ui->songTable->setSortingEnabled(true);
-
 #ifdef DARKMODE
-    ui->darkSongTable->setSortingEnabled(false);
-    // already have "row" from above calculation
-    if (row != -1)
-    {
-        ui->darkSongTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
-    }
-    ui->darkSongTable->setSortingEnabled(true);
+    if (sourceForLoadedSong == nullptr) {
+        // not initialized yet, so just ignore
+//        qDebug() << "sourceForLoadedSong not initialized yet...";
+        return;
+    } else if ((sourceForLoadedSong == ui->playlist1Table && !relPathInSlot[0].startsWith("/tracks")) ||
+               (sourceForLoadedSong == ui->playlist2Table && !relPathInSlot[1].startsWith("/tracks")) ||
+               (sourceForLoadedSong == ui->playlist3Table && !relPathInSlot[2].startsWith("/tracks"))
+               ) {
+        // source was one of the playlists, so we just update this one playlist
+        // first, find which playlist entry is the one that is loaded
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+                // second, update the pitch in the playlist
+                sourceForLoadedSong->item(i,2)->setText(QString::number(currentPitch));
+                break; // and break out of the loop (because we found the one item we were looking for)
+            }
+        }
+    } else {
+        // source was one of the songTables, OR one of the palette slots containing a Track Filter, so update
+        //   both songTables and all the palette slots containing Track Filters
+        //
+        saveCurrentSongSettings();
 
-    // if the pitch changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
-    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
-    for (int i = 0; i < 3; i++) {
-        QString rPath = relPathInSlot[i];
-        QString rPath2 = rPath;
-        rPath2.replace("/tracks", "");
-        rPath2 = rPath2 + "/";
+        ui->songTable->setSortingEnabled(false);
+        int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+        if (row != -1)
+        {
+            ui->songTable->item(row, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
+        }
+        ui->songTable->setSortingEnabled(true);
 
-        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        QTableWidget *theTable = theTables[i];
+        // and update the darkSongTable, too
+        ui->darkSongTable->setSortingEnabled(false);
+        int darkRow = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
+        if (darkRow != -1)
+        {
+            ui->darkSongTable->item(darkRow, kPitchCol)->setText(QString::number(currentPitch)); // already trimmed()
+        }
+        ui->darkSongTable->setSortingEnabled(true);
 
-        if (rPath.contains("/tracks/") &&
-            currentMP3filenameWithPath.contains(rPath2)) {
-            for (int j = 0; j < theTable->rowCount(); j++) {
-                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-                      theTable->item(j, 2)->setText(QString::number(currentPitch)); // update pitch in palette slot table
-                      break; // no need to look further, because only one item can match per track filter
+        // if the pitch changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+        //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+        for (int i = 0; i < 3; i++) {
+            QString rPath = relPathInSlot[i];
+            QString rPath2 = rPath;
+            rPath2.replace("/tracks", "");
+            rPath2 = rPath2 + "/";
+
+            QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+            QTableWidget *theTable = theTables[i];
+
+            if (rPath.contains("/tracks/") &&
+                currentMP3filenameWithPath.contains(rPath2)) {
+                for (int j = 0; j < theTable->rowCount(); j++) {
+                      if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+                        theTable->item(j, 2)->setText(QString::number(currentPitch)); // update pitch in palette slot table
+                        break; // no need to look further, because only one item can match per track filter
+                      }
                 }
             }
         }
     }
 
+#else
+    qDebug() << "MUST IMPLEMENT THIS";
 #endif
 
     // special checking for playlist ------
@@ -3261,43 +3298,119 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
     }
     ui->songTable->setSortingEnabled(true);
 
-#ifdef DARKMODE
-    ui->darkSongTable->setSortingEnabled(false);
-    // already have "row" from above
+//#ifdef DARKMODE
+//    ui->darkSongTable->setSortingEnabled(false);
+//    // already have "row" from above
+//    QString tempoText = QString::number(value);
+//    if (row != -1)
+//    {
+//        if (!tempoIsBPM) {
+//            tempoText = tempoText + "%";
+//        }
+//        ui->darkSongTable->item(row, kTempoCol)->setText(tempoText);
+//    }
+//    ui->darkSongTable->setSortingEnabled(true);
 
+//    // if the TEMPO changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+//    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+//    for (int i = 0; i < 3; i++) {
+//        QString rPath = relPathInSlot[i];
+//        QString rPath2 = rPath;
+//        rPath2.replace("/tracks", "");
+//        rPath2 = rPath2 + "/";
+
+//        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+//        QTableWidget *theTable = theTables[i];
+
+//        if (rPath.contains("/tracks/") &&
+//            currentMP3filenameWithPath.contains(rPath2)) {
+//            for (int j = 0; j < theTable->rowCount(); j++) {
+//                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+//                      theTable->item(j, 3)->setText(tempoText); // update TEMPO in palette slot table
+//                      break; // no need to look further, because only one item can match per track filter
+//                }
+//            }
+//        }
+//    }
+
+//#endif
+
+#ifdef DARKMODE
     QString tempoText = QString::number(value);
     if (row != -1)
     {
         if (!tempoIsBPM) {
             tempoText = tempoText + "%";
         }
-        ui->darkSongTable->item(row, kTempoCol)->setText(tempoText);
     }
-    ui->darkSongTable->setSortingEnabled(true);
 
-    // if the TEMPO changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
-    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
-    for (int i = 0; i < 3; i++) {
-        QString rPath = relPathInSlot[i];
-        QString rPath2 = rPath;
-        rPath2.replace("/tracks", "");
-        rPath2 = rPath2 + "/";
+    if (sourceForLoadedSong == nullptr) {
+        // not initialized yet, so just ignore
+        //        qDebug() << "sourceForLoadedSong not initialized yet...";
+        return;
+    } else if ((sourceForLoadedSong == ui->playlist1Table && !relPathInSlot[0].startsWith("/tracks")) ||
+               (sourceForLoadedSong == ui->playlist2Table && !relPathInSlot[1].startsWith("/tracks")) ||
+               (sourceForLoadedSong == ui->playlist3Table && !relPathInSlot[2].startsWith("/tracks"))
+               ) {
+        // source was one of the playlists, so we just update this one playlist
+        // first, find which playlist entry is the one that is loaded
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+                // second, update the pitch in the playlist
+                sourceForLoadedSong->item(i,3)->setText(tempoText);
+                break; // and break out of the loop (because we found the one item we were looking for)
+            }
+        }
+    } else {
+        // source was one of the songTables, OR one of the palette slots containing a Track Filter, so update
+        //   both songTables and all the palette slots containing Track Filters
+        //
+        saveCurrentSongSettings();
 
-        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        QTableWidget *theTable = theTables[i];
+        ui->songTable->setSortingEnabled(false);
+        int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+        if (row != -1)
+        {
+            ui->songTable->item(row, kTempoCol)->setText(tempoText);
+        }
+        ui->songTable->setSortingEnabled(true);
 
-        if (rPath.contains("/tracks/") &&
-            currentMP3filenameWithPath.contains(rPath2)) {
-            for (int j = 0; j < theTable->rowCount(); j++) {
-                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-                      theTable->item(j, 3)->setText(tempoText); // update TEMPO in palette slot table
-                      break; // no need to look further, because only one item can match per track filter
+        // and update the darkSongTable, too
+        ui->darkSongTable->setSortingEnabled(false);
+        int darkRow = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
+        if (darkRow != -1)
+        {
+            ui->darkSongTable->item(darkRow, kTempoCol)->setText(tempoText);
+        }
+        ui->darkSongTable->setSortingEnabled(true);
+
+        // if the tempo changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+        //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+        for (int i = 0; i < 3; i++) {
+            QString rPath = relPathInSlot[i];
+            QString rPath2 = rPath;
+            rPath2.replace("/tracks", "");
+            rPath2 = rPath2 + "/";
+
+            QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+            QTableWidget *theTable = theTables[i];
+
+            if (rPath.contains("/tracks/") &&
+                currentMP3filenameWithPath.contains(rPath2)) {
+                for (int j = 0; j < theTable->rowCount(); j++) {
+                      if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+                        theTable->item(j, 3)->setText(tempoText); // update tempo in palette slot table
+                        break; // no need to look further, because only one item can match per track filter
+                      }
                 }
             }
         }
     }
 
+#else
+    qDebug() << "MUST IMPLEMENT THIS";
 #endif
+
 
     // special checking for playlist ------
     if (targetNumber != "" && !loadingSong) {
@@ -6441,6 +6554,16 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
+    // set the LOADED flag -----
+    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
+        // clear out that old table first
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+        }
+    }
+
+    sourceForLoadedSong = ui->darkSongTable; // THIS is where we got the currently loaded song (this is the NEW table)
+
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
@@ -6451,6 +6574,8 @@ void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
+
+//    sourceForLoadedSong = ui->songTable; // THIS is where we got the currently loaded song
 
     t.elapsed(__LINE__);
 }
@@ -9529,6 +9654,16 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
+    // set the LOADED flag -----
+    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
+        // clear out that old table first
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+        }
+    }
+
+    sourceForLoadedSong = ui->darkSongTable; // THIS is where we got the currently loaded song (this is the NEW table)
+
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
     ui->pitchSlider->setValue(pitchInt);
@@ -9540,6 +9675,8 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
+
+//    sourceForLoadedSong = ui->darkSongTable; // THIS is where we got the currently loaded song
 
     t.elapsed(__LINE__);
 }

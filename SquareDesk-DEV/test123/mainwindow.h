@@ -28,6 +28,7 @@
 
 #include "globaldefines.h"
 
+#include "mytablewidget.h"
 #include "svgWaveformSlider.h"
 #define NO_TIMING_INFO 1
 
@@ -1046,6 +1047,7 @@ private:
     int getSelectionRowForFilename(const QString &filePath);
 
 #ifdef DARKMODE
+    int darkGetSelectionRowForFilename(const QString &filePath);
     int darkSelectedSongRow();  // returns -1 if none selected
 #endif
     // Song types
@@ -1327,6 +1329,8 @@ public:
     float *waveform;
 
     QList<int> currentSplitterSizes; // save for later restore
+
+    MyTableWidget *sourceForLoadedSong; // points at what the user double-clicked to load a song (4 possible sources)
 };
 
 // currentState:

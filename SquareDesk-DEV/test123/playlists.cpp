@@ -1604,6 +1604,10 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 // PATH column
                 QTableWidgetItem *fullPath = new QTableWidgetItem(pathToMP3); // full ABSOLUTE path
                 theTableWidget->setItem(songCount-1, 4, fullPath);
+
+                // LOADED column
+                QTableWidgetItem *loaded = new QTableWidgetItem("");
+                theTableWidget->setItem(songCount-1, 5, loaded);
             }
         }
 
@@ -1732,6 +1736,10 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     // PATH column
                     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
                     theTableWidget->setItem(songCount-1, 4, fullPath);
+
+                    // LOADED column
+                    QTableWidgetItem *loaded = new QTableWidgetItem("");
+                    theTableWidget->setItem(songCount-1, 5, loaded);
                 }
             } // while
         }
@@ -1808,6 +1816,20 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
+    // set the LOADED flag -----
+    if ((sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
+        // clear out that old table first
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+        }
+    }
+
+    sourceForLoadedSong = ui->playlist1Table; // THIS is where we got the currently loaded song (this is the NEW table)
+
+    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+    }
+
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
 
@@ -1872,6 +1894,20 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
+    // set the LOADED flag -----
+    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist3Table)) {
+        // clear out that old table first
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+        }
+    }
+
+    sourceForLoadedSong = ui->playlist2Table; // THIS is where we got the currently loaded song (this is the NEW table)
+
+    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+    }
+
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
 
@@ -1934,6 +1970,20 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     loadMP3File(pathToMP3, songTitle, songType, songLabel);
 
     t.elapsed(__LINE__);
+
+    // set the LOADED flag -----
+    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table)) {
+        // clear out that old table first
+        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+        }
+    }
+
+    sourceForLoadedSong = ui->playlist3Table; // THIS is where we got the currently loaded song (this is the NEW table)
+
+    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+    }
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
