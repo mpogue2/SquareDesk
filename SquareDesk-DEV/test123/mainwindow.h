@@ -1331,6 +1331,8 @@ public:
     QList<int> currentSplitterSizes; // save for later restore
 
     MyTableWidget *sourceForLoadedSong; // points at what the user double-clicked to load a song (4 possible sources)
+
+    QString editingArrow = "*** ";
 };
 
 // currentState:

@@ -9658,11 +9658,39 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
     if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
         // clear out that old table first
         for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
+                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow); // remove the arrow
+            }
             sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
         }
     }
 
     sourceForLoadedSong = ui->darkSongTable; // THIS is where we got the currently loaded song (this is the NEW table)
+
+    // if we loaded from the darkSongTable, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+    for (int i = 0; i < 3; i++) {
+        QString rPath = relPathInSlot[i];
+        QString rPath2 = rPath;
+        rPath2.replace("/tracks", "");
+        rPath2 = rPath2 + "/";
+
+        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        QTableWidget *theTable = theTables[i];
+
+        if (rPath.contains("/tracks/") &&
+            currentMP3filenameWithPath.contains(rPath2)) {
+            for (int j = 0; j < theTable->rowCount(); j++) {
+                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+                    QString currentTableTextWithoutArrow = theTable->item(j, 1)->text().replace(editingArrow,"");
+                    QString newTableText = editingArrow + currentTableTextWithoutArrow;
+                    theTable->item(j, 1)->setText(newTableText);
+                    break; // no need to look further, because only one item can match per track filter
+                }
+            }
+        }
+    }
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();

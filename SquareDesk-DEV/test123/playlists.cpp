@@ -1817,16 +1817,46 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // set the LOADED flag -----
-    if ((sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
-        // clear out that old table first
-        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+//    if ((sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
+//        // clear out that old table first
+//        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+//            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+//                // clear the arrows out of the other tables
+//                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
+//                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//            }
+
+//            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+//        }
+//    }
+
+    // clear all the "1"s and arrows from palette slots
+    for (int slot = 0; slot < 3; slot++) {
+        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        MyTableWidget *table = tables[slot];
+        for (int i = 0; i < table->rowCount(); i++) {
+            if (table->item(i, 5)->text() == "1") {
+                // clear the arrows out of the other tables
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrow, "");
+                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+            }
+            table->item(i, 5)->setText(""); // clear out the old table
         }
     }
 
     sourceForLoadedSong = ui->playlist1Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+        if (i != row) {
+            // clear the arrows out of this table
+            QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
+            sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
+        } else {
+            // put arrow on the new one
+            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
+            QString newTitleText = editingArrow + currentTitleText;
+            sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+        }
         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
 
@@ -1895,16 +1925,46 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // set the LOADED flag -----
-    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist3Table)) {
-        // clear out that old table first
-        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+//    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist3Table)) {
+//        // clear out that old table first
+//        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+//            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+//                // clear the arrows out of the other tables
+//                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
+//                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//            }
+
+//            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+//        }
+//    }
+
+    // clear all the "1"s and arrows from palette slots
+    for (int slot = 0; slot < 3; slot++) {
+        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        MyTableWidget *table = tables[slot];
+        for (int i = 0; i < table->rowCount(); i++) {
+            if (table->item(i, 5)->text() == "1") {
+                // clear the arrows out of the other tables
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrow, "");
+                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+            }
+            table->item(i, 5)->setText(""); // clear out the old table
         }
     }
 
     sourceForLoadedSong = ui->playlist2Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+        if (i != row) {
+            // clear the arrows out of this table
+            QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
+            sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
+        } else {
+            // put arrow on the new one
+            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
+            QString newTitleText = editingArrow + currentTitleText;
+            sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+        }
         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
 
@@ -1972,16 +2032,46 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // set the LOADED flag -----
-    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table)) {
-        // clear out that old table first
-        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+//    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table)) {
+//        // clear out that old table first
+//        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+//            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
+//                // clear the arrows out of the other tables
+//                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
+//                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//            }
+
+//            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+//        }
+//    }
+
+    // clear all the "1"s and arrows from palette slots
+    for (int slot = 0; slot < 3; slot++) {
+        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        MyTableWidget *table = tables[slot];
+        for (int i = 0; i < table->rowCount(); i++) {
+            if (table->item(i, 5)->text() == "1") {
+                // clear the arrows out of the other tables
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrow, "");
+                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+            }
+            table->item(i, 5)->setText(""); // clear out the old table
         }
     }
 
     sourceForLoadedSong = ui->playlist3Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+        if (i != row) {
+            // clear the arrows out of this table
+            QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
+            sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
+        } else {
+            // put arrow on the new one
+            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
+            QString newTitleText = editingArrow + currentTitleText;
+            sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+        }
         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
 
