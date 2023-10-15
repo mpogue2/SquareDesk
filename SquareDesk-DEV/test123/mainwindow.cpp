@@ -1976,7 +1976,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->playlist3Table, &QTableWidget::customContextMenuRequested,
             this, [this](QPoint q) {
                 if (this->ui->playlist3Table->itemAt(q) == nullptr) { return; } // if mouse right-clicked over a non-existent row, just ignore it
-
                 QString fullPath = this->ui->playlist3Table->item(this->ui->playlist3Table->itemAt(q)->row(), 4)->text();
                 QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
 //                qDebug() << "customContextMenu for playlist3Table" << fullPath << enclosingFolderName;
@@ -9655,14 +9654,25 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // set the LOADED flag -----
-    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
-        // clear out that old table first
-        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
-                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
-                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow); // remove the arrow
+    for (int slot = 0; slot < 3; slot++) {
+        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+        MyTableWidget *table = tables[slot];
+        for (int i = 0; i < table->rowCount(); i++) {
+            if (table->item(i, 5)->text() == "1") {
+                // clear the arrows out of the other tables
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
+                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+
+                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+                currentFont.setBold(false);
+                currentFont.setItalic(false);
+//                    currentFont.setPointSize(currentFont.pointSize() - 1);
+                table->item(i, 0)->setFont(currentFont);
+                table->item(i, 1)->setFont(currentFont);
+                table->item(i, 2)->setFont(currentFont);
+                table->item(i, 3)->setFont(currentFont);
             }
-            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
+            table->item(i, 5)->setText(""); // clear out the old table
         }
     }
 
@@ -9683,9 +9693,21 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
             currentMP3filenameWithPath.contains(rPath2)) {
             for (int j = 0; j < theTable->rowCount(); j++) {
                 if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-                    QString currentTableTextWithoutArrow = theTable->item(j, 1)->text().replace(editingArrow,"");
-                    QString newTableText = editingArrow + currentTableTextWithoutArrow;
+                    QString currentTableTextWithoutArrow = theTable->item(j, 1)->text().replace(editingArrowStart,"");
+                    QString newTableText = editingArrowStart + currentTableTextWithoutArrow;
                     theTable->item(j, 1)->setText(newTableText);
+
+                    QFont currentFont = sourceForLoadedSong->item(j, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+                    currentFont.setBold(true);
+                    currentFont.setItalic(true);
+//                    currentFont.setPointSize(currentFont.pointSize() + 2);
+                    theTable->item(j, 0)->setFont(currentFont);
+                    theTable->item(j, 1)->setFont(currentFont);
+                    theTable->item(j, 2)->setFont(currentFont);
+                    theTable->item(j, 3)->setFont(currentFont);
+
+                    theTable->item(j, 5)->setText("1"); // this one is being edited
+
                     break; // no need to look further, because only one item can match per track filter
                 }
             }

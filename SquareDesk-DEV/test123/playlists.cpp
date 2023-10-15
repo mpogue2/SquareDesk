@@ -26,6 +26,7 @@
 // PLAYLIST MANAGEMENT -------------------------------
 
 // Disable warning, see: https://github.com/llvm/llvm-project/issues/48757
+#include "tablelabelitem.h"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Welaborated-enum-base"
 #include "mainwindow.h"
@@ -1578,20 +1579,7 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 }
                 QTableWidgetItem *title = new QTableWidgetItem(titleString);
                 theTableWidget->setItem(songCount-1, 1, title);
-
-                // TRACKS always exist (because they were scanned for earlier at startup)
-//                QString absPath = musicRootPath + list1[0];
-//                QFileInfo fi(absPath);
-//                if (!fi.exists()) {
-//                    QFont f = title->font();
-//                    f.setStrikeOut(true);
-//                    title->setFont(f); // strikethrough the text until it's fixed
-
-//                    title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
-//                    // TODO: provide context menu to get dialog with reasons why
-//                    QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
-//                    title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
-//                }
+                theTableWidget->setStyleSheet("color:#A0A0A0");
 
                 // PITCH column
                 QTableWidgetItem *pit = new QTableWidgetItem(pitch);
@@ -1816,29 +1804,24 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    // set the LOADED flag -----
-//    if ((sourceForLoadedSong == ui->playlist2Table) || (sourceForLoadedSong == ui->playlist3Table)) {
-//        // clear out that old table first
-//        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-//            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
-//                // clear the arrows out of the other tables
-//                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
-//                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
-//            }
-
-//            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
-//        }
-//    }
-
-    // clear all the "1"s and arrows from palette slots
+    // clear all the "1"s and arrows from palette slots (IF and only IF one of the palette slots is being currently edited
     for (int slot = 0; slot < 3; slot++) {
         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
         MyTableWidget *table = tables[slot];
         for (int i = 0; i < table->rowCount(); i++) {
             if (table->item(i, 5)->text() == "1") {
                 // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrow, "");
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+
+                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+                currentFont.setBold(false);
+                currentFont.setItalic(false);
+//                    currentFont.setPointSize(currentFont.pointSize() - 2);
+                table->item(i, 0)->setFont(currentFont);
+                table->item(i, 1)->setFont(currentFont);
+                table->item(i, 2)->setFont(currentFont);
+                table->item(i, 3)->setFont(currentFont);
             }
             table->item(i, 5)->setText(""); // clear out the old table
         }
@@ -1847,15 +1830,20 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     sourceForLoadedSong = ui->playlist1Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i != row) {
-            // clear the arrows out of this table
-            QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
-            sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
-        } else {
+        if (i == row) {
             // put arrow on the new one
-            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
-            QString newTitleText = editingArrow + currentTitleText;
+            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
+            QString newTitleText = editingArrowStart + currentTitleText;
             sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+
+            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+            currentFont.setBold(true);
+            currentFont.setItalic(true);
+//            currentFont.setPointSize(currentFont.pointSize() + 2);
+            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
         }
         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
@@ -1924,29 +1912,24 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    // set the LOADED flag -----
-//    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist3Table)) {
-//        // clear out that old table first
-//        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-//            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
-//                // clear the arrows out of the other tables
-//                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
-//                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
-//            }
-
-//            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
-//        }
-//    }
-
-    // clear all the "1"s and arrows from palette slots
+    // clear all the "1"s and arrows from palette slots, IF and only IF one of the playlist slots is being edited
     for (int slot = 0; slot < 3; slot++) {
         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
         MyTableWidget *table = tables[slot];
         for (int i = 0; i < table->rowCount(); i++) {
             if (table->item(i, 5)->text() == "1") {
                 // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrow, "");
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+
+                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+                currentFont.setBold(false);
+                currentFont.setItalic(false);
+//                    currentFont.setPointSize(currentFont.pointSize() - 2);
+                table->item(i, 0)->setFont(currentFont);
+                table->item(i, 1)->setFont(currentFont);
+                table->item(i, 2)->setFont(currentFont);
+                table->item(i, 3)->setFont(currentFont);
             }
             table->item(i, 5)->setText(""); // clear out the old table
         }
@@ -1955,15 +1938,20 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
     sourceForLoadedSong = ui->playlist2Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i != row) {
-            // clear the arrows out of this table
-            QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
-            sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
-        } else {
+        if (i == row) {
             // put arrow on the new one
-            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
-            QString newTitleText = editingArrow + currentTitleText;
+            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
+            QString newTitleText = editingArrowStart + currentTitleText;
             sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+
+            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+            currentFont.setBold(true);
+            currentFont.setItalic(true);
+//            currentFont.setPointSize(currentFont.pointSize() + 2);
+            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
         }
         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
@@ -2031,20 +2019,6 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    // set the LOADED flag -----
-//    if ((sourceForLoadedSong == ui->playlist1Table) || (sourceForLoadedSong == ui->playlist2Table)) {
-//        // clear out that old table first
-//        for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-//            if (sourceForLoadedSong->item(i, 5)->text() == "1") {
-//                // clear the arrows out of the other tables
-//                QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
-//                sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
-//            }
-
-//            sourceForLoadedSong->item(i, 5)->setText(""); // clear out the old table
-//        }
-//    }
-
     // clear all the "1"s and arrows from palette slots
     for (int slot = 0; slot < 3; slot++) {
         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
@@ -2052,8 +2026,17 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
         for (int i = 0; i < table->rowCount(); i++) {
             if (table->item(i, 5)->text() == "1") {
                 // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrow, "");
+                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+
+                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+                currentFont.setBold(false);
+                currentFont.setItalic(false);
+//                    currentFont.setPointSize(currentFont.pointSize() - 1);
+                table->item(i, 0)->setFont(currentFont);
+                table->item(i, 1)->setFont(currentFont);
+                table->item(i, 2)->setFont(currentFont);
+                table->item(i, 3)->setFont(currentFont);
             }
             table->item(i, 5)->setText(""); // clear out the old table
         }
@@ -2062,15 +2045,20 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     sourceForLoadedSong = ui->playlist3Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i != row) {
-            // clear the arrows out of this table
-            QString currentTitleTextWithoutArrow = sourceForLoadedSong->item(i, 1)->text().replace(editingArrow, "");
-            sourceForLoadedSong->item(i, 1)->setText(currentTitleTextWithoutArrow);
-        } else {
+        if (i == row) {
             // put arrow on the new one
-            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrow, "");
-            QString newTitleText = editingArrow + currentTitleText;
+            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
+            QString newTitleText = editingArrowStart + currentTitleText;
             sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+
+            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+            currentFont.setBold(true);
+            currentFont.setItalic(true);
+//            currentFont.setPointSize(currentFont.pointSize() + 1);
+            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
+            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
         }
         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
     }
