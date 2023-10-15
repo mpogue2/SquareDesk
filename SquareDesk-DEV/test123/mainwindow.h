@@ -1332,8 +1332,8 @@ public:
 
     MyTableWidget *sourceForLoadedSong; // points at what the user double-clicked to load a song (4 possible sources)
 
-    QString editingArrowStart = "✏";  // indicates that this item can have pitch/tempo edited
-//    QString editingArrowEnd = "✏";  // U+270F pencil (to indicate editing)
+//    QString editingArrowStart = "✏";  // indicates that this item can have pitch/tempo edited
+    QString editingArrowStart = "➡";   // U+27A1
 };
 
 // currentState:
