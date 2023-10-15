@@ -4572,27 +4572,16 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
 //            qDebug() << "eventFilter SPECIAL KEY:" << ui << maybeMainWindow << theKey << KeyEvent->text();
             // THEN HANDLE IT AS A SPECIAL KEY
 
-            if ((KeyEvent->modifiers() & Qt::ControlModifier) &&
-                (KeyEvent->modifiers() & Qt::ShiftModifier) &&
-                (theKey == Qt::Key_Up ||
-                 theKey == Qt::Key_Down ||
-                 theKey == Qt::Key_Backspace ||
-                 theKey == Qt::Key_1 ||
-                 theKey == Qt::Key_2 ||
-                 theKey == Qt::Key_3
-                 )
-                ) {
-
+            if ((KeyEvent->modifiers() & Qt::ControlModifier) && (KeyEvent->modifiers() & Qt::ShiftModifier)) {
                 switch (theKey) {
-                    case Qt::Key_Up:        maybeMainWindow->PlaylistItemMoveUp();           break;
-                    case Qt::Key_Down:      maybeMainWindow->PlaylistItemMoveDown();         break;
-                    case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove();           break;
-                    case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemToBottom(0); break;
-                    case Qt::Key_2:         maybeMainWindow->darkAddPlaylistItemToBottom(1); break;
-                    case Qt::Key_3:         maybeMainWindow->darkAddPlaylistItemToBottom(2); break;
+                    case Qt::Key_Up:        maybeMainWindow->PlaylistItemMoveUp();           return true; break;
+                    case Qt::Key_Down:      maybeMainWindow->PlaylistItemMoveDown();         return true; break;
+                    case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove();           return true; break;
+                    case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemToBottom(0); return true; break;
+                    case Qt::Key_2:         maybeMainWindow->darkAddPlaylistItemToBottom(1); return true; break;
+                    case Qt::Key_3:         maybeMainWindow->darkAddPlaylistItemToBottom(2); return true; break;
+                    default: break;
                 }
-
-                return true;
             }
 
             return (maybeMainWindow->handleKeypress(KeyEvent->key(), KeyEvent->text()));
