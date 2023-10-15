@@ -1579,7 +1579,6 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 }
                 QTableWidgetItem *title = new QTableWidgetItem(titleString);
                 theTableWidget->setItem(songCount-1, 1, title);
-                theTableWidget->setStyleSheet("color:#A0A0A0");
 
                 // PITCH column
                 QTableWidgetItem *pit = new QTableWidgetItem(pitch);
