@@ -401,9 +401,9 @@ DISTFILES += $$PWD/allcalls.csv  # RESOURCE: list of calls, and which level they
 
 # LYRICS AND PATTER TEMPLATES --------------------------------------------
 # Copy the lyrics.template.html and patter.template.html files to the right place
-copydata0a.commands = $(COPY_DIR) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata0b.commands = $(COPY_DIR) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata0a.commands = $(COPY) $$PWD/lyrics.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata0b.commands = $(COPY) $$PWD/cuesheet2.css        $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata0c.commands = $(COPY) $$PWD/patter.template.html $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SD --------------------------------------------
 # Copy the sd executable and the sd_calls.dat data file to the same place as the sd executable
@@ -412,13 +412,13 @@ copydata0c.commands = $(COPY_DIR) $$PWD/patter.template.html $$OUT_PWD/SquareDes
 # This way, it's easy for SDP to find the executable for sd, and it's easy for SDP to start up sd.
 # MAKE SURE THAT MACOS DIRECTORY EXISTS BEFORE TRYING TO COPY
 copydata1dir.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/MacOS
-copydata1.commands = $(COPY_DIR) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
-copydata2.commands = $(COPY_DIR) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata3.commands = $(COPY_DIR) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
-copydata4s.commands = $(COPY_DIR) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata1.commands = $(COPY) $$PWD/sd_calls.dat     $$OUT_PWD/SquareDesk.app/Contents/MacOS
+copydata2.commands = $(COPY) $$PWD/../sdlib/sd_doc.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata3.commands = $(COPY) $$PWD/allcalls.csv     $$OUT_PWD/SquareDesk.app/Contents/Resources
+copydata4s.commands = $(COPY) $$PWD/abbrevs.txt     $$OUT_PWD/SquareDesk.app/Contents/Resources
 
 # SquareDesk Manual (PDF)
-copydata2b.commands = $(COPY_DIR) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
+copydata2b.commands = $(COPY) $$PWD/docs/SquareDeskManual.0.9.1.pdf $$OUT_PWD/SquareDesk.app/Contents/Resources/squaredesk.pdf
 
 # NOTE: If we get an error here, that MacOS already exists, it's probably because we just switched to a new version of
 #  Qt, and we have a new build directory, and within that build directory we have a new squaredesk.app/Contents,
