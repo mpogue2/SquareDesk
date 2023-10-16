@@ -4677,9 +4677,11 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                     case Qt::Key_Up:        maybeMainWindow->PlaylistItemMoveUp();           return true; break;
                     case Qt::Key_Down:      maybeMainWindow->PlaylistItemMoveDown();         return true; break;
                     case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove();           return true; break;
+#ifdef DARKMODE
                     case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemToBottom(0); return true; break;
                     case Qt::Key_2:         maybeMainWindow->darkAddPlaylistItemToBottom(1); return true; break;
                     case Qt::Key_3:         maybeMainWindow->darkAddPlaylistItemToBottom(2); return true; break;
+#endif
                     default: break;
                 }
             }

@@ -3142,7 +3142,7 @@
             <property name="frameShadow">
              <enum>QFrame::Raised</enum>
             </property>
-            <widget class="QWidget" name="layoutWidget">
+            <widget class="QWidget" name="layoutWidget1">
              <property name="geometry">
               <rect>
                <x>12</x>
@@ -3259,7 +3259,7 @@
             <property name="midLineWidth">
              <number>1</number>
             </property>
-            <widget class="QWidget" name="layoutWidget">
+            <widget class="QWidget" name="layoutWidget2">
              <property name="geometry">
               <rect>
                <x>10</x>
@@ -3604,7 +3604,7 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="layoutWidget3">
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <property name="spacing">
              <number>3</number>

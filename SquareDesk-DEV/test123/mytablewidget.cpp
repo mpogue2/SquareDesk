@@ -68,9 +68,9 @@ bool MyTableWidget::moveSelectedItemUp() {
     sortItems(0);  // resort, based on column 0 (the #)
 
     scrollToItem(item(row - 1, 0)); // EnsureVisible for the moved-up row
+#endif
 
     return true; // we did it!
-#endif
 }
 
 // -----------------------------------------------
@@ -102,8 +102,8 @@ bool MyTableWidget::moveSelectedItemDown() {
 
     scrollToItem(item(row + 1, 0)); // EnsureVisible for the moved-down row
 
-    return true; // we did it!
 #endif
+    return true; // we did it!
 }
 
 // -----------------------------------------------
@@ -151,8 +151,8 @@ bool MyTableWidget::moveSelectedItemToTop() {
 
     scrollToTop();
 
-    return true;  // we did it!
 #endif
+    return true;  // we did it!
 }
 
 // -----------------------------------------------
@@ -201,8 +201,10 @@ bool MyTableWidget::moveSelectedItemToBottom(bool scrollWhenDone) { // defaults 
         scrollToBottom();
     }
 
-    return true; // we did it!
+#else
+    Q_UNUSED(scrollWhenDone)
 #endif
+    return true; // we did it!
 }
 
 // -----------------------------------------------
@@ -235,8 +237,8 @@ bool MyTableWidget::removeSelectedItem() {
 
         return true;
     }
-    return false; // not meant for us
 #endif
+    return false; // not meant for us
 }
 
 // -----------------------------------------------
