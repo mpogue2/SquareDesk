@@ -10287,17 +10287,31 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
         // submenuMove->addAction(QString("F1 ") + frameFiles[0] + " ", QKeyCombination(Qt::ShiftModifier, Qt::Key_F1), this, [this]{ SDMoveCurrentSequenceToFrame(0); });
 
         if (selectedRow != -1) {
-        // if a single row was selected
-            menu.addAction ( "Add to TOP of playlist in slot #1" ,    this , [this]{ darkAddPlaylistItemToTop(0); } );
-            menu.addAction ( "Add to TOP of playlist in slot #2" ,    this , [this]{ darkAddPlaylistItemToTop(1); } );
-            menu.addAction ( "Add to TOP of playlist in slot #3" ,    this , [this]{ darkAddPlaylistItemToTop(2); } );
-            menu.addAction ( "Add to BOTTOM of playlist in slot #1" , this , [this]{ darkAddPlaylistItemToBottom(0); } ); // TODO: IF these are playlists and not track filters
-            menu.addAction ( "Add to BOTTOM of playlist in slot #2" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
-            menu.addAction ( "Add to BOTTOM of playlist in slot #3" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+            // if a single row was selected
+            if (!relPathInSlot[0].contains("/tracks/")) {
+                if (relPathInSlot[0] == "") {
+                    menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #1" , this , [this]{ darkAddPlaylistItemToBottom(0); } );
+                } else {
+                    menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[0] + "'" , this , [this]{ darkAddPlaylistItemToBottom(0); } );
+                }
             }
+            if (!relPathInSlot[1].contains("/tracks/")) {
+                if (relPathInSlot[1] == "") {
+                    menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #2" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
+                } else {
+                    menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+                }
+            }
+            if (!relPathInSlot[2].contains("/tracks/")) {
+                if (relPathInSlot[2] == "") {
+                    menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #3" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+                } else {
+                    menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[2] + "'" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+                }
+            }
+            menu.addSeparator();
         }
-        menu.addSeparator();
-
+    }
 #if defined(Q_OS_MAC)
         menu.addAction( "Reveal Audio File in Finder",       this, SLOT (darkRevealInFinder()) );
         menu.addAction( "Reveal Current Cuesheet in Finder", this, SLOT (darkRevealAttachedLyricsFileInFinder()) );
