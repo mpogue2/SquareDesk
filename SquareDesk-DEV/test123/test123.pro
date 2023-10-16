@@ -508,6 +508,29 @@ macx {
     export(copydata4p.commands)
     QMAKE_EXTRA_TARGETS += copydata1p copydata2p copydata3p copydata4p
 
+    # SVG Resources for sliders and knobs -----------------
+    copydata1sk.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/knobs
+    copydata2sk.commands = $(MKDIR) $$OUT_PWD/SquareDesk.app/Contents/Resources/sliders
+    copydata3sk.commands = $(COPY_DIR) $$PWD/graphics/knobs   $$OUT_PWD/SquareDesk.app/Contents/Resources
+    copydata4sk.commands = $(COPY_DIR) $$PWD/graphics/sliders $$OUT_PWD/SquareDesk.app/Contents/Resources
+
+    first.depends += copydata1sk copydata2sk copydata3sk copydata4sk
+    export(first.depends)
+    export(copydata1sk.commands)
+    export(copydata2sk.commands)
+    export(copydata3sk.commands)
+    export(copydata4sk.commands)
+    QMAKE_EXTRA_TARGETS += copydata1sk copydata2sk copydata3sk copydata4sk
+
+    # Binary Resources for VAMP (beat/measure detection) -----------------
+    #  NOTE: These are X86 versions and will run (at least for now) on both M1 and X86 Macs
+    copydata1vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp $$OUT_PWD/SquareDesk.app/Contents/MacOS
+
+    first.depends += copydata1vamp
+    export(first.depends)
+    export(copydata1vamp.commands)
+    QMAKE_EXTRA_TARGETS += copydata1vamp
+
     # For the Beat/Bar Detector (Vamp): modify the VAMPPATH according to where you built the executable and dylib --------------
     #  FIX: THIS PATH IS TEMPORARY AND SPECIFIC TO MY MACHINE (this will change when VAMP is checked into our repo)
     #  For now, for manual VAMP build instructions for MAC OS X, see AudioDecoder.cpp:L1085

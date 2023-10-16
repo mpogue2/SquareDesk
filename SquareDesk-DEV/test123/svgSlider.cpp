@@ -1,3 +1,4 @@
+#include <QCoreApplication>
 #include "svgSlider.h"
 #include "math.h"
 
@@ -132,9 +133,16 @@ void svgSlider::mouseReleaseEvent(QMouseEvent* e) {
 }
 
 void svgSlider::finishInit() {
+
+    QString pathToResources = QCoreApplication::applicationDirPath() + "/";
+
+#if defined(Q_OS_MAC)
+    pathToResources = pathToResources + "../Resources/";
+#endif
+
     // make the graphical items
-    bg     = new QGraphicsSvgItem(m_bgFile);
-    handle = new QGraphicsSvgItem(m_handleFile);
+    bg     = new QGraphicsSvgItem(pathToResources + m_bgFile);
+    handle = new QGraphicsSvgItem(pathToResources + m_handleFile);
     vein   = new QGraphicsLineItem(21, 100, 21, 40);
 
     veinColor.setNamedColor(m_veinColor); // convert string to QColor

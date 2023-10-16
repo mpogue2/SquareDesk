@@ -1,3 +1,4 @@
+#include <QCoreApplication>
 #include "svgDial.h"
 #include "math.h"
 
@@ -122,8 +123,14 @@ void svgDial::mouseReleaseEvent(QMouseEvent* e) {
 void svgDial::finishInit() {
 //    qDebug() << "======== finishing up initialization!";
 
-    knob   = new QGraphicsSvgItem(m_knobFile);
-    needle = new QGraphicsSvgItem(m_needleFile);
+    QString pathToResources = QCoreApplication::applicationDirPath() + "/";
+
+#if defined(Q_OS_MAC)
+    pathToResources = pathToResources + "../Resources/";
+#endif
+
+    knob   = new QGraphicsSvgItem(pathToResources + m_knobFile);
+    needle = new QGraphicsSvgItem(pathToResources + m_needleFile);
 
     view.setStyleSheet("background: transparent; border: none");
 

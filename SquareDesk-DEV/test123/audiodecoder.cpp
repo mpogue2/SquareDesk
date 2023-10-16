@@ -1073,7 +1073,7 @@ int AudioDecoder::beatBarDetection() {
 //    qDebug() << "AudioDecoder::beatBarDetection() START =============";
 
     QString pathNameToVamp(QCoreApplication::applicationDirPath());
-    pathNameToVamp.append("/vamp-simple-host");
+    pathNameToVamp.append("/vamp/vamp-simple-host");
     //    qDebug() << "VAMP path: " << pathNameToVamp;
 
     if (!QFileInfo::exists(pathNameToVamp) ) {
