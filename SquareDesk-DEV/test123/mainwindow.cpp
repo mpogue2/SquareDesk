@@ -3755,13 +3755,19 @@ void MainWindow::Info_Seekbar(bool forceSlider)
 //            qDebug() << "InfoSeekbar()::introLength: " << introLength << ", " << outroTime;
             double outroLength = fileLen_i-outroTime;
 
+            double anticipateSectionChange_sec = 2.5; // change singingCallSection indicator in warningLabel slightly before we actually get there
+
+            if (cBass->isPaused()) {
+                anticipateSectionChange_sec = 0.0; // override, if we're not playing
+            }
+
             int section;
-            if (currentPos_i < introLength) {
+            if (currentPos_i + anticipateSectionChange_sec < introLength) {
                 section = 0; // intro
-            } else if (currentPos_i > outroTime) {
+            } else if (currentPos_i + anticipateSectionChange_sec > outroTime) {
                 section = 8;  // tag
             } else {
-                section = static_cast<int>(1.0 + 7.0*((currentPos_i - introLength)/(fileLen_i-(introLength+outroLength))));
+                section = static_cast<int>(1.0 + 7.0*(((currentPos_i + anticipateSectionChange_sec) - introLength)/(fileLen_i-(introLength+outroLength))));
                 if (section > 8 || section < 0) {
                     section = 0; // needed for the time before fields are fully initialized
                 }
