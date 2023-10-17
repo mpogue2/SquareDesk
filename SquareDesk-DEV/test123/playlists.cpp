@@ -1787,7 +1787,18 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
-    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+    // parse the filename into parts, so we can use the shortTitle -----
+    QString label;
+    QString labelNumber;
+    QString labelExtra;
+    QString realTitle;
+    QString realShortTitle;
+
+    bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
+    if (success) {
+        songTitle = realShortTitle;
+    }
 
     //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
     //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
@@ -1895,7 +1906,18 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
-    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+    // parse the filename into parts, so we can use the shortTitle -----
+    QString label;
+    QString labelNumber;
+    QString labelExtra;
+    QString realTitle;
+    QString realShortTitle;
+
+    bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
+    if (success) {
+        songTitle = realShortTitle;
+    }
 
     //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
     //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
@@ -2002,7 +2024,18 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     }
 
     QString songTitle = pathToMP3.split('/').last().replace(".mp3","");
-    // FIX:  This should grab the title from the MP3 metadata in the file itself instead.
+
+    // parse the filename into parts, so we can use the shortTitle -----
+    QString label;
+    QString labelNumber;
+    QString labelExtra;
+    QString realTitle;
+    QString realShortTitle;
+
+    bool success = breakFilenameIntoParts(songTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
+    if (success) {
+        songTitle = realShortTitle;
+    }
 
     //    QString songType = ui->songTable->item(row,kTypeCol)->text().toLower();
     //    QString songLabel = ui->songTable->item(row,kLabelCol)->text().toLower();
