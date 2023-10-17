@@ -355,14 +355,18 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditSaveAs->setFixedWidth(static_cast<int>(titleButtonW * 1.2));
     ui->pushButtonRevertEdits->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
 
+    ui->label_4->setFont(currentFont);
+    ui->comboBoxCallListProgram->setFont(currentFont);
+
+    ui->tableWidgetCallList->setFont(currentFont);
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFixedHeight(searchBoxHeight); // protected against index == -1
 //    qDebug() << "setting font to: " << currentFont;
 
-    ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(67*(currentMacPointSize/13.0)));
-    ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, static_cast<int>(34*(currentMacPointSize/13.0)));
-    ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, static_cast<int>(100*(currentMacPointSize/13.0)));
+    ui->tableWidgetCallList->setColumnWidth(kCallListOrderCol,static_cast<int>(32*(currentMacPointSize/13.0)));
+    ui->tableWidgetCallList->setColumnWidth(kCallListCheckedCol, static_cast<int>(24*(currentMacPointSize/13.0)));
+    ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, static_cast<int>(75*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, static_cast<int>(200*(currentMacPointSize/13.0)));
 
     // these are special -- don't want them to get too big, even if user requests huge fonts
