@@ -59,9 +59,17 @@ AnalogClock::AnalogClock(QWidget *parent)
     singingCallSection = "";
 }
 
-void AnalogClock::setTimerLabelColor(QString col) {
-    if (lastTimerLabelColor != col) {
+void AnalogClock::setTimerLabelColor(QString col1) {
+    if (lastTimerLabelColor != col1) {
         // only change it, if it is actually changing
+
+        QString col = col1;
+#ifdef DARKMODE
+        if (col == "red") {
+            col = "#F04040"; // dark mode "red" is more muted, so as not to blind the user
+        }
+#endif
+
 //        qDebug() << "setting TimerLabelColors to: " << col;
         QString style = "QLabel { color : " + col + "; }";
 
@@ -78,7 +86,7 @@ void AnalogClock::setTimerLabelColor(QString col) {
         timerLabelDark->setStyleSheet(style);
 #endif
 
-        lastTimerLabelColor = col;
+        lastTimerLabelColor = col1;
     }
 }
 
