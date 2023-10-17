@@ -369,7 +369,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     lastAudioDeviceName = "";
 
     lyricsCopyIsAvailable = false;
-    lyricsTabNumber = 1;
+    lyricsTabNumber = 2;
     lyricsForDifferentSong = false;
 
     lastSavedPlaylist = "";  // no playlists saved yet in this session
@@ -928,12 +928,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-#ifdef DARKMODE
-    ui->tabWidget->setCurrentIndex(5); // DARK MODE tab is primary, regardless of last setting in Qt Designer
-#else
-    ui->tabWidget->setCurrentIndex(0); // Music Player tab is primary, regardless of last setting in Qt Designer
-#endif
-    on_tabWidget_currentChanged(0);     // update the menu item names
+    ui->tabWidget->setCurrentIndex(0); // DARK MODE tab is primary, regardless of last setting in Qt Designer
+    on_tabWidget_currentChanged(0);    // update the menu item names
 
 //    ui->tabWidget->setTabText(lyricsTabNumber, "Lyrics");  // c.f. Preferences
 
@@ -1657,8 +1653,15 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     minimumVolume = prefsManager.GetlimitVolume(); // initialize the limiting of the volume control
 
-// DARKMODE INIT
+// DARKMODE INIT ===============
+
+    // CHANGE TAB ORDERING (now different from that in QtCreator) =======
+    ui->tabWidget->tabBar()->moveTab(5,0);
+    ui->tabWidget->setTabText(0, "DarkMusic");
+
 #ifdef DARKMODE
+    ui->tabWidget->setTabVisible(1, false); // hide the MUSIC tab, leaving the DarkMusic tab visible
+    ui->tabWidget->setCurrentIndex(0);
 
     // CLOCK COLORING =============
     // FIX: THIS DOES NOT WORK
@@ -2279,11 +2282,6 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 //    waveform = new float[WAVEFORMWIDTH];
     waveform = new float[WAVEFORMSAMPLES];
 
-#else
-    ui->tabWidget->setTabVisible(5, false);  // hide the DARKMODE tab, if we're not testing it
-#endif
-
-#ifdef DARKMODE
     // clear out the developer text from the playlistTables and Labels
 
 //    ui->playlist1Label->setText("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">Untitled playlist");
@@ -2361,6 +2359,9 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     for (int i = 0; i < 3; i++) {
         slotModified[i] = false;
     }
+#else
+    ui->tabWidget->setTabVisible(0, false);  // hide the DARKMODE tab, if we're not testing it
+    ui->tabWidget->setCurrentIndex(1);
 #endif
 
     stopLongSongTableOperation("MainWindow");
@@ -3098,7 +3099,7 @@ void MainWindow::on_playButton_clicked()
                 // switch to Lyrics tab ONLY for singing calls or vocals
               if (currentSongType == "singing")  // do not switch if patter (using Cuesheet tab for written Patter)
                     {
-                      ui->tabWidget->setCurrentIndex(1);
+                      ui->tabWidget->setCurrentIndex(lyricsTabNumber);
                     }
             }
             ui->songTable->setSortingEnabled(true);
@@ -4250,10 +4251,11 @@ void MainWindow::on_vuMeterTimerTick(void)
     bool isMono = cBass->GetMono();
 
     // TODO: iff music is playing.
-    if (ui->tabWidget->currentIndex() == 0) {
+    QString currentTabName = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
+    if (currentTabName == "Music") {
 //        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
         vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
-    } else if (ui->tabWidget->currentIndex() == 5) {
+    } else if (currentTabName == "DarkMusic") {
 //        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
 #ifdef DARKMODE
         ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
@@ -4500,7 +4502,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
-        bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "DarkMode");
+        bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "DarkMusic");
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
 
@@ -7888,7 +7890,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 //    qDebug() << "on_tabWidget_currentChanged: " << index << currentTabName;
 
-    if (currentTabName == "Music" || currentTabName == "DarkMode") {
+    if (currentTabName == "Music" || currentTabName == "DarkMusic") {
         // MUSIC PLAYER TAB -------------
 //        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist << playlistHasBeenModified;
         ui->actionSave_Playlist_2->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved if there are >0 lines (this is SAVE PLAYLIST)

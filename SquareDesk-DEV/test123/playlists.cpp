@@ -328,8 +328,7 @@ void MainWindow::finishLoadingPlaylist(QString PlaylistFileName) {
 
     int currentTab = ui->tabWidget->currentIndex();
     QString currentTabName = ui->tabWidget->tabText(currentTab);
-
-    if (currentTabName != "DarkMode") {
+    if (currentTabName != "DarkMusic") {
         // suppress playlist error messages when on DarkMode tab, because they are handled
         //   by coloring the bad entries instead.
         if (firstBadSongLine != "") {
