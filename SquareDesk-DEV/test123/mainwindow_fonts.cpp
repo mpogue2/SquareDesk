@@ -369,6 +369,10 @@ void MainWindow::adjustFontSizes()
     ui->tableWidgetCallList->setColumnWidth(kCallListWhenCheckedCol, static_cast<int>(75*(currentMacPointSize/13.0)));
     ui->tableWidgetCallList->setColumnWidth(kCallListTimingCol, static_cast<int>(200*(currentMacPointSize/13.0)));
 
+    ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListNameCol,        QHeaderView::Interactive);
+    ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListWhenCheckedCol, QHeaderView::Interactive);
+    ui->tableWidgetCallList->horizontalHeader()->setSectionResizeMode(kCallListTimingCol,      QHeaderView::Interactive);
+
     // these are special -- don't want them to get too big, even if user requests huge fonts
     currentFont.setPointSize(currentFontPointSize > maxEQsize ? static_cast<int>(maxEQsize) : currentFontPointSize);  // no bigger than 20pt
     ui->bassLabel->setFont(currentFont);
