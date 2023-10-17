@@ -322,6 +322,7 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditArtist->setFont(currentFont);
     ui->pushButtonCueSheetEditHeader->setFont(currentFont);
     ui->pushButtonCueSheetEditLyrics->setFont(currentFont);
+    ui->pushButtonCueSheetClearFormatting->setFont(currentFont);
 
     ui->pushButtonEditLyrics->setFont(currentFont);
     ui->pushButtonCueSheetEditSave->setFont(currentFont);
@@ -333,6 +334,9 @@ void MainWindow::adjustFontSizes()
 
     ui->pushButtonClearTaughtCalls->setFont(currentFont);
 
+    ui->pushButtonSetIntroTime->setFont(currentFont);
+    ui->pushButtonSetOutroTime->setFont(currentFont);
+
     unsigned int titleButtonW = (index != -1 ? TitleButtonWidth[index] : TitleButtonWidth[2]); // if error, use something in the middle
     ui->pushButtonClearTaughtCalls->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
 
@@ -342,7 +346,14 @@ void MainWindow::adjustFontSizes()
     ui->pushButtonCueSheetEditHeader->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
     ui->pushButtonCueSheetEditLyrics->setFixedWidth(static_cast<int>(titleButtonW));
 
-    ui->pushButtonCueSheetClearFormatting->setFixedWidth(static_cast<int>(titleButtonW * 2.25));
+    ui->pushButtonCueSheetEditBold->setFixedWidth(static_cast<int>(titleButtonW/2));
+    ui->pushButtonCueSheetEditItalic->setFixedWidth(static_cast<int>(titleButtonW/2));
+    ui->pushButtonCueSheetClearFormatting->setFixedWidth(static_cast<int>(titleButtonW * 2));
+
+    ui->pushButtonEditLyrics->setFixedWidth(static_cast<int>(titleButtonW * 2));
+    ui->pushButtonCueSheetEditSave->setFixedWidth(static_cast<int>(titleButtonW * 0.7));
+    ui->pushButtonCueSheetEditSaveAs->setFixedWidth(static_cast<int>(titleButtonW * 1.2));
+    ui->pushButtonRevertEdits->setFixedWidth(static_cast<int>(titleButtonW * 1.5));
 
     ui->tableWidgetCallList->horizontalHeader()->setFont(currentFont);
     ui->songTable->horizontalHeader()->setFont(currentFont);
