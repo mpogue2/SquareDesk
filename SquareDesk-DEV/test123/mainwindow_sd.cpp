@@ -118,6 +118,7 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
 
     QGraphicsTextItem *label = sdscene.addText(QString("  %1  ").arg(number + 1), // exactly 3 characters wide when numbers used (sets the hjust)
                                                dancerLabelFont);
+    label->setDefaultTextColor(Qt::black);
 
     QRectF labelBounds(label->boundingRect());
     QTransform labelTransform;
@@ -465,11 +466,12 @@ static void initialize_scene(QGraphicsScene &sdscene, QList<SDDancer> &sdpeople,
 #else
     dancerLabelFont = QFont("Arial",8);
 #endif
-    
+
     QPen backgroundPen(Qt::black);
     QPen gridPen(Qt::black,0.25,Qt::DotLine);
     QPen axisPen(Qt::darkGray,0.5);
     QBrush backgroundBrush(QColor(240,240,240));
+
     QRectF backgroundRect(-halfBackgroundSize,
                           -halfBackgroundSize,
                           halfBackgroundSize * 2,
@@ -650,7 +652,7 @@ void MainWindow::initialize_internal_sd_tab()
     verticalHeader->setDefaultSectionSize(static_cast<int>(currentSequenceIconSize));
 
     verticalHeader->setVisible(false); // turn off row numbers in the current sequence pane
-    const QString gridStyle = "QTableWidget { gridline-color: #000000; }";
+    const QString gridStyle = "QTableWidget { gridline-color: #000000; color: #000000; font-size: 18pt;}";
 //    const QString gridStyle = "QTableWidget { font-family: \"Courier New\"; gridline-color: #000000; }";  // how to change font
     ui->tableWidgetCurrentSequence->setStyleSheet(gridStyle);
 }
@@ -717,6 +719,9 @@ void MainWindow::set_sd_last_formation_name(const QString &str)
             graphicsTextItemSDStatusBarText_animated->setPlainText(sdLastFormationName);
         }
     }
+
+    graphicsTextItemSDStatusBarText_fixed->setDefaultTextColor(Qt::black);
+    graphicsTextItemSDStatusBarText_animated->setDefaultTextColor(Qt::black);
 }
 
 void MainWindow::set_sd_last_groupness() {
@@ -3312,7 +3317,15 @@ void MainWindow::refreshSDframes() {
 //    qDebug() << "refreshSDframes frameMaxSeq: " << frameMaxSeq;
 
     int whichSidebar = 0;
-    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
+
+    QString FColor = "#0433ff"; // BLUE for non-dark mode
+
+#ifdef DARKMODE
+    FColor = "#6493ff";
+#endif
+
+//    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:#0433ff;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
+    QString frameTitleString("<html><head/><body><p><span style=\"font-weight:700; color:%7;\">F%1</span><span style=\"font-weight:700;\"> %2%5 [%06%3/%4]</span></p></body></html>"); // %06 is intentional, do not use just %6
     QString editingInProgressIndicator = (newSequenceInProgress || editSequenceInProgress ? "*" : "");
 
     for (int i = 0; i < frameFiles.length(); i++) {
@@ -3321,15 +3334,15 @@ void MainWindow::refreshSDframes() {
             whichSidebar += 1;
             switch (whichSidebar) {
                 case 1:
-                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg(""));
+                    ui->labelEasy->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listEasy);
                     break;
                 case 2:
-                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg(""));
+                    ui->labelMedium->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listMedium);
                     break;
                 case 3:
-                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg(""));
+                    ui->labelHard->setText(frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg("").arg("").arg(FColor));
                     loadFrame(i, frameFiles[i], fmin(frameCurSeq[i], frameMaxSeq[i]), ui->listHard);
                     break;
                 default: break; // by design, only the first 3 sidebar frames found are loaded (FIX)
@@ -3352,7 +3365,7 @@ void MainWindow::refreshSDframes() {
                 case 1:  statusString = "<span style=\"font-weight:700; color:#008000;\">GOOD: </span>"; break;  // dark green
                 default: statusString = "<span style=\"font-weight:700; color:#C00000;\">BAD: </span>";  break;  // red
             }
-            QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator).arg(statusString);
+                QString html1 = frameTitleString.arg(i+1).arg(frameFiles[i]).arg(frameCurSeq[i]).arg(frameMaxSeq[i]).arg(editingInProgressIndicator).arg(statusString).arg(FColor);
             currentFrameNumber = i;
             currentFrameTextName = frameFiles[i]; // save just the name of the frame
             currentFrameHTMLName = html1;         // save fancy string
