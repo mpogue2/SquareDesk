@@ -1696,6 +1696,19 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                     // TITLE column
                     QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
                     QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
+
+                    QString label;
+                    QString labelNumber;
+                    QString labelExtra;
+                    QString realTitle;
+                    QString realShortTitle;
+
+                    bool success = breakFilenameIntoParts(shortTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
+                    if (success) {
+                        title->setText(label + " " + labelNumber + labelExtra + " - " + realShortTitle); // display playlist items in canonical single-string format (for now until we have separate columns)
+                    }
+//                    qDebug() << "shortTitle:" << shortTitle << title->text();
+
                     theTableWidget->setItem(songCount-1, 1, title);
 
                     QString absPath = musicRootPath + list1[0];
