@@ -401,8 +401,8 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     paint->setPen(colors[0]);
     paint->drawLine(0,30,waveformSliderWidth,30);
 
-    int introP = introPosition; // leftLoopMarker->x();
-    int outroP = outroPosition; // rightLoopMarker->x();
+//    int introP = introPosition; // leftLoopMarker->x();
+//    int outroP = outroPosition; // rightLoopMarker->x();
 
     const double fullScaleInPixels = 25.0;
 
@@ -435,20 +435,33 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     //        qDebug() << "it's a singing call...";
 
             int whichColor = 0;
-            float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
-            for (int i = 0; i < width(); i++) {
+            int currentWidth = width();
+            float currentRatio = (float)WAVEFORMSAMPLES/(float)currentWidth;
 
-                if (i < introP || i > outroP) {
+            // single snapshot of these variables prevents intro/outro coloring from moving around when window resized
+            int introP2 = (int)(introFrac * currentWidth);
+            int outroP2 = (int)(outroFrac * currentWidth);
+
+            for (int i = 0; i < currentWidth; i++) {
+
+                if (i <= introP2 || i >= outroP2) {
                     whichColor = 0;
                 } else {
-                    int inSeg = i - introP;
-                    int whichSeg = inSeg / ((outroPosition - introP)/7.0);
+                    int inSeg = i - introP2;
+                    int whichSeg = inSeg / ((outroP2 - introP2)/7.0);
                     whichColor = colorMap[whichSeg];
                 }
 
                 paint->setPen(colors[whichColor]);
-//                h = fullScaleInPixels * f[i];
-                h = fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+//                h = fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+
+                // let's do some smoothing instead...much less sparkly when resizing!
+                int baseI = (int)(i*currentRatio); // truncates downward
+                int baseIminus1 = (baseI >= 1 ? baseI - 1 : baseI);
+                int baseIplus1  = (baseI <= WAVEFORMSAMPLES - 2 ? baseI + 1 : baseI);
+                float h = fullScaleInPixels * (0.25 * f[baseIminus1] + 0.5 * f[baseI] + 0.25 * f[baseIplus1]); // simple 3-point gaussian
+
                 paint->drawLine(i,30.0 + h,i,30.0 - h);
             }
             // singing calls don't show the loop markers, because intro/outro in a singing call are not loop start/end
