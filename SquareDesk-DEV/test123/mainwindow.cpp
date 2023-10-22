@@ -2359,6 +2359,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     for (int i = 0; i < 3; i++) {
         slotModified[i] = false;
     }
+
+    // Hide the Dance Programs tab (we might do something else later) -----
+    ui->tabWidget->setTabVisible(4, false);  // hide the DANCE PROGRAMS tab for now
+
 #else
     ui->tabWidget->setTabVisible(0, false);  // hide the DARKMODE tab, if we're not testing it
     ui->tabWidget->setCurrentIndex(1);
