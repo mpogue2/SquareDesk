@@ -4456,20 +4456,31 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::aboutBox()
 {
     QMessageBox msgBox;
+#if defined(Q_OS_MAC)
+    // as of Qt6.5, links and rich text no longer work in QMessageBoxes
+    msgBox.setText("SquareDesk, V" + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")"));
+    msgBox.setInformativeText(QString("Visit our website at\n") +
+                              "http://squaredesk.net\n\n" +
+                              "Uses: sd, wpdfjs, minibpm, QM Vamp, Icons8, kfr, and SoundTouch.\n\n" +
+                              "Thanks to: all8.com"
+                             );
+#else
     msgBox.setText(QString("<p><h2>SquareDesk, V") + QString(VERSIONSTRING) + QString(" (Qt") + QString(QT_VERSION_STR) + QString(")") + QString("</h2>") +
                    QString("<p>Visit our website at <a href=\"http://squaredesk.net\">squaredesk.net</a></p>") +
                    QString("Uses: ") +
                    QString("<a href=\"http://www.lynette.org/sd\">sd</a>, ") +
-//                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
                    QString("<a href=\"https://github.com/yshurik/qpdfjs\">qpdfjs</a>, ") +
                    QString("<a href=\"https://github.com/breakfastquay/minibpm\">miniBPM</a>, ") +
-//                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
-//                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
                    QString("<a href=\"https://vamp-plugins.org/plugin-doc/qm-vamp-plugins.html\">QM Vamp</a>, ") +
                    QString("<a href=\"https://icons8.com\">Icons8</a>, ") +
                    QString("<a href=\"https://www.kfrlib.com\">kfr</a>, and ") +
                    QString("<a href=\"https://www.surina.net/soundtouch/\">SoundTouch</a>.") +
                    QString("<p>Thanks to: <a href=\"http://all8.com\">all8.com</a>"));
+
+//                   QString("<a href=\"http://cmusphinx.sourceforge.net\">PocketSphinx</a>, ") +
+//                   QString("<a href=\"http://tidy.sourceforge.net\">tidy-html5</a>, ") +
+//                   QString("<a href=\"http://quazip.sourceforge.net\">QuaZIP</a>, ") +
+#endif
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.exec();
