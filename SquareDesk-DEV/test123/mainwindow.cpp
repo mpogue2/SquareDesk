@@ -1657,7 +1657,7 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
 
     // CHANGE TAB ORDERING (now different from that in QtCreator) =======
     ui->tabWidget->tabBar()->moveTab(5,0);
-    ui->tabWidget->setTabText(0, "DarkMusic");
+    ui->tabWidget->setTabText(0, DARKMUSICTABNAME);
 
 #ifdef DARKMODE
     ui->tabWidget->setTabVisible(1, false); // hide the MUSIC tab, leaving the DarkMusic tab visible
@@ -4265,7 +4265,7 @@ void MainWindow::on_vuMeterTimerTick(void)
     if (currentTabName == "Music") {
 //        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
         vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
-    } else if (currentTabName == "DarkMusic") {
+    } else if (currentTabName == DARKMUSICTABNAME) {
 //        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
 #ifdef DARKMODE
         ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
@@ -4512,7 +4512,7 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
         int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
         bool tabIsCuesheet = (ui->tabWidget->tabText(cindex) == CUESHEET_TAB_NAME);
         bool tabIsSD = (ui->tabWidget->tabText(cindex) == "SD");
-        bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == "DarkMusic");
+        bool tabIsDarkMode = (ui->tabWidget->tabText(cindex) == DARKMUSICTABNAME);
 
         bool cmdC_KeyPressed = (KeyEvent->modifiers() & Qt::ControlModifier) && KeyEvent->key() == Qt::Key_C;
 
@@ -7979,7 +7979,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 //    qDebug() << "on_tabWidget_currentChanged: " << index << currentTabName;
 
-    if (currentTabName == "Music" || currentTabName == "DarkMusic") {
+    if (currentTabName == "Music" || currentTabName == DARKMUSICTABNAME) {
         // MUSIC PLAYER TAB -------------
 //        qDebug() << "linesInCurrentPlaylist: " << linesInCurrentPlaylist << playlistHasBeenModified;
         ui->actionSave_Playlist_2->setEnabled(linesInCurrentPlaylist != 0);  // playlist can be saved if there are >0 lines (this is SAVE PLAYLIST)
