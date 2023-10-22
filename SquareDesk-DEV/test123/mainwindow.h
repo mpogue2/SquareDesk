@@ -467,7 +467,10 @@ private slots:
 #endif
 
     void on_songTable_customContextMenuRequested(const QPoint &pos);
+
     void editTags();
+    void darkEditTags();
+
     void loadSong();
     void revealInFinder();
     void revealLyricsFileInFinder();
@@ -974,7 +977,10 @@ private:
     void darkLoadMusicList();  // filter them into the darkSongTable
 #endif
     QString FormatTitlePlusTags(const QString &title, bool setTags, const QString &strtags, QString titleColor = "");
+
     void changeTagOnCurrentSongSelection(QString tag, bool add);
+    void darkChangeTagOnCurrentSongSelection(QString tag, bool add);
+
     void loadChoreographyList();
     void filterChoreography();
     QStringList getUncheckedItemsFromCurrentCallList();

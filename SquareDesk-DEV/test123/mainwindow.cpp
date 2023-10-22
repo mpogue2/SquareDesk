@@ -7453,6 +7453,41 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
     }
 }
 
+void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
+{
+    int row = darkSelectedSongRow();
+    if (row >= 0) {
+        // exactly 1 row was selected (good)
+        QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+        QStringList tags;
+        QString oldTags;
+        if (settings.isSetTags())
+        {
+            oldTags = settings.getTags();
+            tags = oldTags.split(" ");
+            songSettings.removeTags(oldTags);
+        }
+
+        if (add && !tags.contains(tag, Qt::CaseInsensitive))
+            tags.append(tag);
+        if (!add)
+        {
+            int i = tags.indexOf(tag, Qt::CaseInsensitive);
+            if (i >= 0)
+                tags.removeAt(i);
+        }
+        settings.setTags(tags.join(" "));
+        songSettings.saveSettings(pathToMP3, settings);
+        QString title = getTitleColTitle(ui->darkSongTable, row);
+        // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
+        QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
+
+        dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
+    }
+}
+
 void MainWindow::editTags()
 {
     int row = selectedSongRow();
@@ -7478,6 +7513,50 @@ void MainWindow::editTags()
             QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
 
             dynamic_cast<QLabel*>(ui->songTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
+        }
+    }
+    else {
+        // more than 1 row or no rows at all selected (BAD)
+    }
+}
+
+void MainWindow::darkEditTags()
+{
+    int row = darkSelectedSongRow();
+    if (row >= 0) {
+        // exactly 1 row was selected (good)
+        QString pathToMP3 = ui->darkSongTable->item(row,kPathCol)->data(Qt::UserRole).toString();
+        SongSetting settings;
+        songSettings.loadSettings(pathToMP3, settings);
+        QString tags;
+        bool ok(false);
+        QString title = getTitleColTitle(ui->darkSongTable, row);
+        if (settings.isSetTags()) {
+            tags = settings.getTags();
+        }
+
+        // dialog needs to be bigger, so we have to do all this...
+        QString newtags;
+        QInputDialog *dialog = new QInputDialog();
+        dialog->setWindowTitle("Edit Tags for '" + title + "'");
+        dialog->setInputMode(QInputDialog::TextInput);
+        dialog->setLabelText("Note: separate tags by spaces.\n");
+        dialog->setTextValue(tags);
+        dialog->resize(500,200);
+        dialog->exec();
+
+        ok = dialog->result();
+
+        if (ok) {
+            newtags = dialog->textValue();
+            songSettings.removeTags(tags);
+            settings.setTags(newtags);
+            songSettings.saveSettings(pathToMP3, settings);
+            songSettings.addTags(newtags);
+
+            // we know for sure that this item is selected (because that's how we got here), so let's highlight text color accordingly
+            QString titlePlusTags(FormatTitlePlusTags(title, settings.isSetTags(), settings.getTags(), "white"));
+            dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
         }
     }
     else {
@@ -10284,6 +10363,7 @@ void MainWindow::on_treeWidget_itemDoubleClicked(QTreeWidgetItem *treeItem, int 
 void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 {
     Q_UNUSED(pos)
+    QStringList currentTags;
 
 //    qDebug() << "on_darkSongTable_customContextMenuRequested";
     QMenu menu(this);
@@ -10298,6 +10378,16 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 
         if (selectedRow != -1) {
             // if a single row was selected
+
+            QString pathToMP3 = ui->darkSongTable->item(selectedRow,kPathCol)->data(Qt::UserRole).toString();
+
+            SongSetting settings;
+            songSettings.loadSettings(pathToMP3, settings);
+            if (settings.isSetTags())
+            {
+                currentTags = settings.getTags().split(" ");
+            }
+
             if (!relPathInSlot[0].contains("/tracks/")) {
                 if (relPathInSlot[0] == "") {
                     menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #1" , this , [this]{ darkAddPlaylistItemToBottom(0); } );
@@ -10336,42 +10426,42 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
 #endif
 
 // TAGS STUFF ==================
-//        menu.addSeparator();
-//        menu.addAction( "Edit Tags...", this, SLOT (editTags()) );
+        menu.addSeparator();
+        menu.addAction( "Edit Tags...", this, SLOT (darkEditTags()) );
 
-//        QMenu *tagsMenu(new QMenu("Tags"));
-//        QHash<QString,QPair<QString,QString>> tagColors(songSettings.getTagColors());
+        QMenu *tagsMenu(new QMenu("Tags"));
+        QHash<QString,QPair<QString,QString>> tagColors(songSettings.getTagColors());
 
-//        QStringList tags(tagColors.keys());
-//        tags.sort(Qt::CaseInsensitive);
+        QStringList tags(tagColors.keys());
+        tags.sort(Qt::CaseInsensitive);
 
-//        for (const auto &tagUntrimmed : tags)
-//        {
-//            QString tag(tagUntrimmed.trimmed());
+        for (const auto &tagUntrimmed : tags)
+        {
+            QString tag(tagUntrimmed.trimmed());
 
-//            if (tag.length() <= 0)
-//                continue;
+            if (tag.length() <= 0)
+                continue;
 
-//            bool set = false;
-//            for (const auto &t : currentTags)
-//            {
-//                if (t.compare(tag, Qt::CaseInsensitive) == 0)
-//                {
-//                    set = true;
-//                }
-//            }
-//            QAction *action(new QAction(tag));
-//            action->setCheckable(true);
-//            action->setChecked(set);
-//            connect(action, &QAction::triggered,
-//                    [this, set, tag]()
-//                    {
-//                        this->changeTagOnCurrentSongSelection(tag, !set);
-//                    });
-//            tagsMenu->addAction(action);
-//        }
+            bool set = false;
+            for (const auto &t : currentTags)
+            {
+                if (t.compare(tag, Qt::CaseInsensitive) == 0)
+                {
+                    set = true;
+                }
+            }
+            QAction *action(new QAction(tag));
+            action->setCheckable(true);
+            action->setChecked(set);
+            connect(action, &QAction::triggered,
+                    [this, set, tag]()
+                    {
+                        this->darkChangeTagOnCurrentSongSelection(tag, !set);
+                    });
+            tagsMenu->addAction(action);
+        }
 
-//        menu.addMenu(tagsMenu);
+        menu.addMenu(tagsMenu);
 
     menu.popup(QCursor::pos());
     menu.exec();
