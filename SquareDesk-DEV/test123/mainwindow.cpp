@@ -10547,6 +10547,10 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
     theTableWidget->setItem(songCount-1, 4, fullPath);
 
+    // LOADED column
+    QTableWidgetItem *loaded = new QTableWidgetItem("");
+    theTableWidget->setItem(songCount-1, 5, loaded);
+
     theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
 //    theTableWidget->resizeColumnToContents(2);
 //    theTableWidget->resizeColumnToContents(3);
@@ -10630,6 +10634,10 @@ void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
     // PATH column
     QTableWidgetItem *fullPath = new QTableWidgetItem(absPath); // full ABSOLUTE path
     theTableWidget->setItem(songCount-1, 4, fullPath);
+
+    // LOADED column
+    QTableWidgetItem *loaded = new QTableWidgetItem("");
+    theTableWidget->setItem(songCount-1, 5, loaded);
 
     theTableWidget->resizeColumnToContents(0); // FIX: perhaps only if this is the first row?
     theTableWidget->resizeColumnToContents(2);
