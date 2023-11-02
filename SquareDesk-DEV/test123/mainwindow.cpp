@@ -7468,6 +7468,7 @@ void MainWindow::changeTagOnCurrentSongSelection(QString tag, bool add)
     }
 }
 
+#ifdef DARKMODE
 void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
 {
     int row = darkSelectedSongRow();
@@ -7502,6 +7503,7 @@ void MainWindow::darkChangeTagOnCurrentSongSelection(QString tag, bool add)
         dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(row,kTitleCol))->setText(titlePlusTags);
     }
 }
+#endif
 
 void MainWindow::editTags()
 {
@@ -7535,6 +7537,7 @@ void MainWindow::editTags()
     }
 }
 
+#ifdef DARKMODE
 void MainWindow::darkEditTags()
 {
     int row = darkSelectedSongRow();
@@ -7578,6 +7581,7 @@ void MainWindow::darkEditTags()
         // more than 1 row or no rows at all selected (BAD)
     }
 }
+#endif
 
 void MainWindow::loadSong()
 {
