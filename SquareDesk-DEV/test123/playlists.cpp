@@ -1266,11 +1266,15 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
 //    itemText.toInt(&ok);  // just sets ok or not, throw away the itemInteger intentionally
     int itemRow = ((TableNumberItem *)item)->row();
 
-    if (itemInteger <= 0) {
+//    qDebug() << "tableItemChanged: " << itemText << ok << itemInteger << itemRow;
+
+    if (ok && itemInteger < 0) {
         // user: don't try anything funny...
         itemText = "1";
         itemInteger = 1;
+        ui->songTable->blockSignals(true);  // block signals, so changes are not recursive
         item->setText("1");
+        ui->songTable->blockSignals(false);  // block signals, so changes are not recursive
     }
 
     if ((itemText == "") || (ok && itemInteger >= 1)) { // if item was deleted by clearing it out manually, or if it was an integer, then renumber
@@ -1317,7 +1321,7 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
 
         // Step 3: figure out what to renumber each of the existing numbers to, to
         //   have no dups and no gaps
-//        qDebug() << "numNums,minNum,maxNum = " << numNums << minNum << maxNum;
+//        qDebug() << "minNum,maxNum = " << minNum << maxNum;
         int j = 1;
         for (int i = minNum; i <= maxNum; i++) {
             switch (count[i]) {
@@ -1350,6 +1354,7 @@ void MainWindow::tableItemChanged(QTableWidgetItem* item) {
                         // dup, so what the user typed in was correct, do nothing
                     } else {
                         // NOT a dup, so what the user typed in might NOT be correct, so renumber it
+//                        qDebug() << "setText to:" << renumberTo[thisInteger];
                         p->setText(QString::number(renumberTo[thisInteger]));
                     }
                 }
