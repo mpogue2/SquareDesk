@@ -9137,7 +9137,10 @@ void MainWindow::customMessageOutput(QtMsgType type, const QMessageLogContext &c
         return;
     }
 
-    if (msg.contains("js:")) {
+    if (msg.contains("js:") ||
+        txt.contains("minified/web/pdf.viewer.js") ||
+        txt.contains("Warning: Populating font family aliases")
+        ) {
 //         Suppressing lots of javascript noise from the debug.log file.
         return;
     }
