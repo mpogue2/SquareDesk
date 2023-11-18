@@ -294,16 +294,10 @@ void MainWindow::haveDuration2(void) {
     InitializeSeekBar(ui->seekBarCuesheet);  // and now we can set the max of the seekbars, so they show up
 
 #ifdef DARKMODE
-//    ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // don't call InitializeSeekBar (not in svgWaveformSlider)
-//    ui->darkSeekBar->setMaximum(WAVEFORMWIDTH); // don't call InitializeSeekBar (not in svgWaveformSlider)
-//    ui->darkSeekBar->setMaximum(ui->darkSeekBar->geometry().width()-4); // don't call InitializeSeekBar (not in svgWaveformSlider)
-
     ui->darkSeekBar->setMinimum(0);
     ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // tricky! see InitializeSeekBar
 
-//    cBass->getWaveform(waveform, WAVEFORMWIDTH);  // FIX FIX FIX HOW WIDE SHOULD SAMPLES BE?
     cBass->getWaveform(waveform, WAVEFORMSAMPLES);
-//    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
 #endif
 
@@ -329,7 +323,7 @@ void MainWindow::haveDuration2(void) {
 }
 
 // ----------------------------------------------------------------------
-MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
+MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     oldFocusWidget(nullptr),
@@ -358,6 +352,8 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     shortcutSDCurrentSequenceCopy(nullptr),
     sd_redo_stack(new SDRedoStack())
 {
+    darkmode = dark; // true if we're using the new dark UX
+
 //    sdtest();
     cuesheetIsUnlockedForEditing = false;
 
@@ -952,11 +948,11 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
         )
     );
 
-#ifdef DARKMODE
-    ui->darkSearch->setFocus();  // this should be the intial focus
-#else
-    ui->titleSearch->setFocus();  // this should be the intial focus
-#endif
+    if (darkmode) {
+        ui->darkSearch->setFocus();  // this should be the intial focus
+    } else {
+        ui->titleSearch->setFocus();  // this should be the intial focus
+    }
 
 #ifdef DEBUGCLOCK
     analogClock->tipLengthAlarmMinutes = 10;  // FIX FIX FIX
@@ -1350,28 +1346,28 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     connect(ui->textBrowserCueSheet, SIGNAL(copyAvailable(bool)),
             this, SLOT(LyricsCopyAvailable(bool)));
 
-#ifndef DARKMODE
-    ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
-    ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
-    ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
+    if (!darkmode) {
+        ui->actionSave_Playlist_2->setEnabled(false); // Playlist > Save Playlist...
+        ui->actionSave_Playlist->setEnabled(false); // Playlist > Save Playlist As...
+        ui->actionPrint_Playlist->setEnabled(false);  // Playlist > Print Playlist...
 
-    // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
-    QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
+        // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
+        QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
 
-//    qDebug() << "CONSTRUCTOR: " << loadThisPlaylist;
+    //    qDebug() << "CONSTRUCTOR: " << loadThisPlaylist;
 
-    if (loadThisPlaylist != "") {
+        if (loadThisPlaylist != "") {
 
-//        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
-        if (!loadThisPlaylist.startsWith("playlists/")) {
-            loadThisPlaylist = QString("playlists/") + loadThisPlaylist; // for compatibility with older versions of SquareDesk
+    //        QString fullPlaylistPath = musicRootPath + "/playlists/" + loadThisPlaylist + ".csv";
+            if (!loadThisPlaylist.startsWith("playlists/")) {
+                loadThisPlaylist = QString("playlists/") + loadThisPlaylist; // for compatibility with older versions of SquareDesk
+            }
+
+            QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
+    //        qDebug() << "CONSTRUCTOR: " << fullPlaylistPath;
+            finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
         }
-
-        QString fullPlaylistPath = musicRootPath + "/" + loadThisPlaylist + ".csv";
-//        qDebug() << "CONSTRUCTOR: " << fullPlaylistPath;
-        finishLoadingPlaylist(fullPlaylistPath); // load it! (and enabled Save and Save As and Print
     }
-#endif
 
 //    stopLongSongTableOperation("MainWindow");
 
@@ -1383,17 +1379,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     QTimer::singleShot(2000, [this]{
 //            qDebug("Starting up FileWatcher now (intentionally delayed from app startup, to avoid Box.net locks retriggering loadMusicList)");
             QObject::connect(&musicRootWatcher, SIGNAL(directoryChanged(QString)), this, SLOT(musicRootModified(QString)));
-#ifdef DARKMODE
-            if (!ui->darkSearch->hasFocus()) {
-                //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-                ui->darkSearch->setFocus();
+            if (darkmode) {
+                if (!ui->darkSearch->hasFocus()) {
+                    //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                    ui->darkSearch->setFocus();
+                }
+            } else {
+                if (!ui->titleSearch->hasFocus()) {
+                    //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
+                    ui->titleSearch->setFocus();
+                }
             }
-#else
-            if (!ui->titleSearch->hasFocus()) {
-                //                qDebug() << "HACK: TITLE SEARCH DOES NOT HAVE FOCUS. FIXING THIS.";
-                ui->titleSearch->setFocus();
-            }
-#endif
 
             // also watch the abbrevs.txt file for changes, and reload the abbreviations if it changed
             abbrevsWatcher.addPath(musicRootPath + "/sd/abbrevs.txt");
@@ -1660,8 +1656,10 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     ui->tabWidget->setTabText(0, DARKMUSICTABNAME);
 
 #ifdef DARKMODE
-    ui->tabWidget->setTabVisible(1, false); // hide the MUSIC tab, leaving the DarkMusic tab visible
-    ui->tabWidget->setCurrentIndex(0);
+    if (darkmode) {
+        ui->tabWidget->setTabVisible(1, false); // hide the MUSIC tab, leaving the DarkMusic tab visible
+        ui->tabWidget->setCurrentIndex(0);
+    }
 
     // CLOCK COLORING =============
     // FIX: THIS DOES NOT WORK
@@ -2363,9 +2361,17 @@ MainWindow::MainWindow(QSplashScreen *splash, QWidget *parent) :
     // Hide the Dance Programs tab (we might do something else later) -----
     ui->tabWidget->setTabVisible(4, false);  // hide the DANCE PROGRAMS tab for now
 
-#else
-    ui->tabWidget->setTabVisible(0, false);  // hide the DARKMODE tab, if we're not testing it
-    ui->tabWidget->setCurrentIndex(1);
+    // -------------------------------
+    if (!darkmode) {
+        ui->tabWidget->setTabVisible(0, false);  // hide the DARKMODE tab, if we're not testing it
+        ui->tabWidget->setCurrentIndex(1);
+    }
+
+    if (darkmode) {
+        ui->actionSwitch_to_Light_Mode->setText("Switch to Light Mode");
+    } else {
+        ui->actionSwitch_to_Light_Mode->setText("Switch to Dark Mode");
+    }
 #endif
 
     stopLongSongTableOperation("MainWindow");
@@ -2412,7 +2418,9 @@ void MainWindow::musicRootModified(QString s)
         findMusic(musicRootPath, true);  // get the filenames from the user's directories
         loadMusicList(); // and filter them into the songTable
 #ifdef DARKMODE
-        darkLoadMusicList(); // also filter them into the darkSongTable
+        if (darkmode) {
+            darkLoadMusicList(); // also filter them into the darkSongTable
+        }
 #endif
         ui->songTable->horizontalHeader()->setSortIndicator(sortSection, sortOrder);
     }
@@ -2851,8 +2859,10 @@ void MainWindow::on_actionShow_All_Ages_triggered(bool checked)
 MainWindow::~MainWindow()
 {
 #ifdef DARKMODE
-    playlistSlotWatcherTimer->stop();
-    playlistSlotWatcherTriggered(); // auto-save anything that hasn't been saved yet
+    if (darkmode) {
+        playlistSlotWatcherTimer->stop();
+        playlistSlotWatcherTriggered(); // auto-save anything that hasn't been saved yet
+    }
 #endif
 
     SDSetCurrentSeqs(0);  // this doesn't take very long
@@ -3018,10 +3028,13 @@ void MainWindow::on_stopButton_clicked()
     ui->seekBar->setValue(0);
     ui->seekBarCuesheet->setValue(0);
 #ifdef DARKMODE
-//    qDebug() << "XXXXX setting darkSeekBar to zero...";
-    ui->darkSeekBar->setValue(0);
+    if (darkmode) {
+        //    qDebug() << "XXXXX setting darkSeekBar to zero...";
+        ui->darkSeekBar->setValue(0);
+    } else {
+        Info_Seekbar(false);  // update just the text
+    }
 #endif
-    Info_Seekbar(false);  // update just the text
 #endif
 
     int cindex = ui->tabWidget->currentIndex();  // get index of tab, so we can see which it is
@@ -3401,43 +3414,6 @@ void MainWindow::on_tempoSlider_valueChanged(int value)
         }
     }
     ui->songTable->setSortingEnabled(true);
-
-//#ifdef DARKMODE
-//    ui->darkSongTable->setSortingEnabled(false);
-//    // already have "row" from above
-//    QString tempoText = QString::number(value);
-//    if (row != -1)
-//    {
-//        if (!tempoIsBPM) {
-//            tempoText = tempoText + "%";
-//        }
-//        ui->darkSongTable->item(row, kTempoCol)->setText(tempoText);
-//    }
-//    ui->darkSongTable->setSortingEnabled(true);
-
-//    // if the TEMPO changed, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
-//    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
-//    for (int i = 0; i < 3; i++) {
-//        QString rPath = relPathInSlot[i];
-//        QString rPath2 = rPath;
-//        rPath2.replace("/tracks", "");
-//        rPath2 = rPath2 + "/";
-
-//        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-//        QTableWidget *theTable = theTables[i];
-
-//        if (rPath.contains("/tracks/") &&
-//            currentMP3filenameWithPath.contains(rPath2)) {
-//            for (int j = 0; j < theTable->rowCount(); j++) {
-//                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-//                      theTable->item(j, 3)->setText(tempoText); // update TEMPO in palette slot table
-//                      break; // no need to look further, because only one item can match per track filter
-//                }
-//            }
-//        }
-//    }
-
-//#endif
 
 #ifdef DARKMODE
     QString tempoText = QString::number(value);
@@ -4099,14 +4075,14 @@ void MainWindow::on_clearSearchButton_clicked()
 
 
 #ifdef DARKMODE
-    ui->darkSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the darkSearch field, so that UP/DOWN works
+    if (darkmode) {
+        ui->darkSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the darkSearch field, so that UP/DOWN works
+    } else {
+        ui->titleSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the titleSearch field, so that UP/DOWN works
+    }
 #else
-    ui->titleSearch->setFocus();  // When Clear Search is clicked (or ESC ESC), set focus to the titleSearch field, so that UP/DOWN works
 #endif
     filterMusic(); // highlights first visible row (if there are any rows)
-#ifdef DARKMODE
-//    darkFilterMusic();
-#endif
 }
 
 // ----------------------------------------------------------------------
@@ -4639,8 +4615,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 ui->typeSearch->hasFocus() ||
 #ifdef DARKMODE
                 ui->darkSearch->hasFocus() ||
-#else
                 ui->titleSearch->hasFocus() ||
+#else
 #endif
                 ui->dateTimeEditIntroTime->hasFocus() ||
                 ui->dateTimeEditOutroTime->hasFocus() ||
@@ -8051,14 +8027,14 @@ void MainWindow::microphoneStatusUpdate() {
     QString kybdStatus("SD (Level: " + currentSDKeyboardLevel + ", Dance: " + frameName + "), Audio: " + lastAudioDeviceName);
 
 #ifdef DARKMODE
-//    micStatusLabel->setStyleSheet("color: #AC8F7E;");
-//    micStatusLabel->setStyleSheet("color: #D9D9D9;");
-    micStatusLabel->setStyleSheet("color: #C0C0C0;");
+    if (darkmode) {
+        micStatusLabel->setStyleSheet("color: #C0C0C0;");
+    } else {
+        micStatusLabel->setStyleSheet("color: black");
+    }
 #else
-    micStatusLabel->setStyleSheet("color: black");
 #endif
     micStatusLabel->setText(kybdStatus);
-
 }
 
 // ---------------------------------------------
@@ -9972,26 +9948,6 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
 void MainWindow::on_toggleShowPaletteTables_toggled(bool checked)
 {
     Q_UNUSED(checked)
-//    ui->playlist1Label->setVisible(checked);
-//    ui->playlist2Label->setVisible(checked);
-//    ui->playlist3Label->setVisible(checked);
-//    ui->playlist1Table->setVisible(checked);
-//    ui->playlist2Table->setVisible(checked);
-//    ui->playlist3Table->setVisible(checked);
-
-//    if (checked) {
-//        // making them visible, so restoring previous sizes
-//        ui->splitter7->setEnabled(true);
-//        ui->splitter7->setSizes(currentSplitterSizes);
-//    } else {
-//        // making them invisible, but save previous split, so we can restore it later
-//        currentSplitterSizes = ui->splitter7->sizes();
-
-//        int largeWidth = QGuiApplication::primaryScreen ()->virtualSize ().width ();
-//        ui->splitter7->setSizes(QList<int>({largeWidth,20 * largeWidth})); // make playlist section as small as possible
-
-//        ui->splitter7->setEnabled(false);
-//    }
 }
 
 void MainWindow::on_darkSongTable_itemSelectionChanged()
@@ -10688,3 +10644,34 @@ void MainWindow::darkRevealAttachedLyricsFileInFinder() {
     }
 }
 #endif
+
+void MainWindow::on_actionSwitch_to_Light_Mode_triggered()
+{
+    QString newMode = "Dark";
+    if (darkmode) {
+        newMode = "Light";
+    }
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Switch to " + newMode + " Mode",
+                                  "Switching to " + newMode + " Mode requires restarting SquareDesk.\n\nOK to restart?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    // OK to switch!
+    // set prefs so we come up in the right mode next time ----
+    if (darkmode) {
+        // switch to LIGHT mode (OLD)
+        prefsManager.SetdarkMode(false);
+    } else {
+        // switch to DARK mode (NEW)
+        prefsManager.SetdarkMode(true);
+    }
+
+    // now restart the app
+    qApp->exit(RESTART_SQUAREDESK); // special exit code understood by main.cpp
+}
+

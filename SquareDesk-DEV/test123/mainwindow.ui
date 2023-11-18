@@ -5491,6 +5491,9 @@
     <addaction name="menuFlash_Call_Timing"/>
     <addaction name="separator"/>
     <addaction name="actionViewTags"/>
+    <addaction name="separator"/>
+    <addaction name="actionSwitch_to_Light_Mode"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -6999,6 +7002,11 @@
   <action name="actionPrint_Sequence">
    <property name="text">
     <string>Print Sequence...</string>
+   </property>
+  </action>
+  <action name="actionSwitch_to_Light_Mode">
+   <property name="text">
+    <string>Switch to Light Mode</string>
    </property>
   </action>
  </widget>

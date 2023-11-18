@@ -213,6 +213,8 @@ public:
 
 #define NUMBEREDSOUNDFXFILES 8
 
+#define RESTART_SQUAREDESK (-123)
+
 namespace Ui
 {
     class MainWindow;
@@ -223,7 +225,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QSplashScreen *splash, QWidget *parent = nullptr);
+    explicit MainWindow(QSplashScreen *splash, bool dark, QWidget *parent = nullptr);
     ~MainWindow() override;
 
 //    double songLoadedReplayGain_dB;
@@ -802,6 +804,8 @@ private slots:
     void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
 #endif
 
+    void on_actionSwitch_to_Light_Mode_triggered();
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);
@@ -1328,6 +1332,8 @@ public:
     QStringList highlightedCalls;
 
     bool lastFlashcall;  // cached previous value of flashcall
+
+    bool darkmode; // true if we're using the new dark UX
 
 #ifdef DARKMODE
     QIcon *darkStopIcon;

@@ -26,15 +26,15 @@
 #include "mainwindow.h"
 #include <QApplication>
 #include <QSplashScreen>
+#include "prefsmanager.h"
 
 //#include "startupwizard.h"
-
 //#include <execinfo.h>  // for debugging using backtrace()
 
+// ==============================================================================================================
 int main(int argc, char *argv[])
 {
-    // From: https://stackoverflow.com/questions/4954140/how-to-redirect-qdebug-qwarning-qcritical-etc-output
-
+// From: https://stackoverflow.com/questions/4954140/how-to-redirect-qdebug-qwarning-qcritical-etc-output
 //    QCoreApplication::addLibraryPath(".");  // for windows
 
     QApplication a(argc, argv);
@@ -42,46 +42,43 @@ int main(int argc, char *argv[])
     a.setOrganizationName("Zenstar Software");
     a.setOrganizationDomain("zenstarstudio.com");
 
-//    QFont font("Avenir Next");
-//    font.setKerning(true);
-//    font.setLetterSpacing(QFont::PercentageSpacing, 95.0);
+    PreferencesManager prefsManager;
 
-//    QApplication::setFont(font);
+//    prefsManager.SetdarkMode(false);
 
-//    QFont font1 = QApplication::font();
-//    QFontMetrics fm1(font1);
-//    qDebug() << "metrics:" << fm1.height() << fm1.leading() << fm1.boundingRect("THIS IS A TEST.");
+    bool darkmode = prefsManager.GetdarkMode();
+//    qDebug() << "DARKMODE: " << darkmode;
 
-#ifdef DARKMODE
-    // DARK MODE ======================================
-    // from: https://gist.github.com/QuantumCD/6245215
-    a.setStyle(QStyleFactory::create("Fusion"));
+    if (darkmode) {
+        // DARK MODE ======================================
+        // from: https://gist.github.com/QuantumCD/6245215
+        a.setStyle(QStyleFactory::create("Fusion"));
 
-    QPalette newPalette;
-    newPalette.setColor(QPalette::Window,          QColor( 37,  37,  37));
-    newPalette.setColor(QPalette::WindowText,      QColor(212, 212, 212));
-    newPalette.setColor(QPalette::Base,            QColor( 60,  60,  60));
-    newPalette.setColor(QPalette::AlternateBase,   QColor( 45,  45,  45));
-    newPalette.setColor(QPalette::PlaceholderText, QColor(127, 127, 127));
-    newPalette.setColor(QPalette::Text,            QColor(212, 212, 212));
-    newPalette.setColor(QPalette::Button,          QColor( 45,  45,  45));
-    newPalette.setColor(QPalette::ButtonText,      QColor(212, 212, 212));
-    newPalette.setColor(QPalette::BrightText,      QColor(240, 240, 240));
-    newPalette.setColor(QPalette::Highlight,       QColor( 38,  79, 120));
-    newPalette.setColor(QPalette::HighlightedText, QColor(240, 240, 240));
+        QPalette newPalette;
+        newPalette.setColor(QPalette::Window,          QColor( 37,  37,  37));
+        newPalette.setColor(QPalette::WindowText,      QColor(212, 212, 212));
+        newPalette.setColor(QPalette::Base,            QColor( 60,  60,  60));
+        newPalette.setColor(QPalette::AlternateBase,   QColor( 45,  45,  45));
+        newPalette.setColor(QPalette::PlaceholderText, QColor(127, 127, 127));
+        newPalette.setColor(QPalette::Text,            QColor(212, 212, 212));
+        newPalette.setColor(QPalette::Button,          QColor( 45,  45,  45));
+        newPalette.setColor(QPalette::ButtonText,      QColor(212, 212, 212));
+        newPalette.setColor(QPalette::BrightText,      QColor(240, 240, 240));
+        newPalette.setColor(QPalette::Highlight,       QColor( 38,  79, 120));
+        newPalette.setColor(QPalette::HighlightedText, QColor(240, 240, 240));
 
-    newPalette.setColor(QPalette::Light,           QColor( 60,  60,  60));
-    newPalette.setColor(QPalette::Midlight,        QColor( 52,  52,  52));
-    newPalette.setColor(QPalette::Dark,            QColor( 30,  30,  30) );
-    newPalette.setColor(QPalette::Mid,             QColor( 37,  37,  37));
-    newPalette.setColor(QPalette::Shadow,          QColor( 0,    0,   0));
+        newPalette.setColor(QPalette::Light,           QColor( 60,  60,  60));
+        newPalette.setColor(QPalette::Midlight,        QColor( 52,  52,  52));
+        newPalette.setColor(QPalette::Dark,            QColor( 30,  30,  30) );
+        newPalette.setColor(QPalette::Mid,             QColor( 37,  37,  37));
+        newPalette.setColor(QPalette::Shadow,          QColor( 0,    0,   0));
 
-    newPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+        newPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
 
-    a.setPalette(newPalette);
+        a.setPalette(newPalette);
 
-    a.setStyleSheet("QToolTip{border: 1px solid orange; padding: 2px; border-radius: 3px; opacity: 200; background-color:#121113; color:#ABA7AC; }");
-#endif
+        a.setStyleSheet("QToolTip{border: 1px solid orange; padding: 2px; border-radius: 3px; opacity: 200; background-color:#121113; color:#ABA7AC; }");
+    }
 
     // splash screen ------
     QPixmap pixmap(":/graphics/SplashScreen1.png");
@@ -108,7 +105,7 @@ int main(int argc, char *argv[])
 
 //    a.processEvents();
 
-    MainWindow w(&splash);  // setMessage() will be called several times in here while loading...
+    MainWindow w(&splash, darkmode);  // setMessage() will be called several times in here while loading...
 //    a.processEvents();  // force events to be processed, before closing the window
 
     splash.finish(&w); // tell splash screen to go away when window is up
@@ -143,5 +140,20 @@ int main(int argc, char *argv[])
 //    free(strs);
 //    // DEBUG ========================================================
 
-    return a.exec();
+    int ret = a.exec();
+    if (ret == RESTART_SQUAREDESK)
+    {
+        //restart application
+
+        w.close();
+
+        QString program = qApp->arguments()[0];
+        QStringList arguments = qApp->arguments().mid(1);
+//        qDebug() << "Restarting: " << program << ";" << arguments;
+        QProcess::startDetached(program, arguments);
+
+        // NOTE: This will NOT work from within QtCreator (for some unknown reason), but it does work
+        //   when the executable is run normally by a user.
+    }
+    return ret;
 }
