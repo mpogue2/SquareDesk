@@ -8,6 +8,11 @@ svgSlider::svgSlider(QWidget *parent) :
     QSlider(parent)
 {
 //    qDebug() << "======== svgSlider default constructor!";
+    // these are all explicitly uninitialized until the call to finishInit()
+    //   which is initiated by setCenterVeinType(), called LAST.
+    bg = nullptr;
+    handle = nullptr;
+    vein = nullptr;
 }
 
 svgSlider::~svgSlider()
@@ -207,4 +212,60 @@ void svgSlider::finishInit() {
     view.setScene(&scene);
     //    view.setParent(this, Qt::FramelessWindowHint);
     view.setParent(this);
+}
+
+void svgSlider::setBgFile(QString s) {
+    m_bgFile = s;
+    emit bgFileChanged(s);
+}
+
+QString svgSlider::getBgFile() const {
+    return(m_bgFile);
+}
+
+void svgSlider::setHandleFile(QString s) {
+    m_handleFile = s;
+    emit handleFileChanged(s);
+}
+
+QString svgSlider::getHandleFile() const {
+    return(m_handleFile);
+}
+
+void svgSlider::setVeinColor(QString s) {
+    m_veinColor = s;
+    emit veinColorChanged(s);
+}
+
+QString svgSlider::getVeinColor() const {
+    return(m_veinColor);
+}
+
+void svgSlider::setDefaultValue(double d) {
+    m_defaultValue = d;
+    emit defaultValueChanged(d);
+}
+
+double svgSlider::getDefaultValue() const {
+    return(m_defaultValue);
+}
+
+void svgSlider::setIncrement(double d) {
+    m_increment = d;
+    emit incrementChanged(d);
+}
+
+double svgSlider::getIncrement() const {
+    return(m_increment);
+}
+
+void svgSlider::setCenterVeinType(bool s) {
+    m_centerVeinType = s;
+    emit centerVeinTypeChanged(s);
+
+    finishInit(); // after parameters are set, finish up the init stuff, before slider is visible for the first time
+}
+
+bool svgSlider::getCenterVeinType() const {
+    return(m_centerVeinType);
 }

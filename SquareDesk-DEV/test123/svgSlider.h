@@ -29,61 +29,23 @@ public:
     explicit svgSlider(QWidget *parent = 0);
     ~svgSlider();
 
-    void setBgFile(QString s) {
-        m_bgFile = s;
-        emit bgFileChanged(s);
-    }
+    void setBgFile(QString s);
+    QString getBgFile() const;
 
-    QString getBgFile() const {
-        return(m_bgFile);
-    }
+    void setHandleFile(QString s);
+    QString getHandleFile() const;
 
-    void setHandleFile(QString s) {
-        m_handleFile = s;
-        emit handleFileChanged(s);
-    }
+    void setVeinColor(QString s);
+    QString getVeinColor() const;
 
-    QString getHandleFile() const {
-        return(m_handleFile);
-    }
+    void setDefaultValue(double d);
+    double getDefaultValue() const;
 
-    void setVeinColor(QString s) {
-        m_veinColor = s;
-        emit veinColorChanged(s);
-    }
+    void setIncrement(double d);
+    double getIncrement() const;
 
-    QString getVeinColor() const {
-        return(m_veinColor);
-    }
-
-    void setDefaultValue(double d) {
-        m_defaultValue = d;
-        emit defaultValueChanged(d);
-    }
-
-    double getDefaultValue() const {
-        return(m_defaultValue);
-    }
-
-    void setIncrement(double d) {
-        m_increment = d;
-        emit incrementChanged(d);
-    }
-
-    double getIncrement() const {
-        return(m_increment);
-    }
-
-    void setCenterVeinType(bool s) {
-        m_centerVeinType = s;
-        emit centerVeinTypeChanged(s);
-
-        finishInit(); // after parameters are set, finish up the init stuff, before slider is visible for the first time
-    }
-
-    bool getCenterVeinType() const {
-        return(m_centerVeinType);
-    }
+    void setCenterVeinType(bool s);
+    bool getCenterVeinType() const;
 
     void setValue(int value);
 
