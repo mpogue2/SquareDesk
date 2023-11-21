@@ -4239,13 +4239,11 @@ void MainWindow::on_vuMeterTimerTick(void)
     // TODO: iff music is playing.
     QString currentTabName = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
     if (currentTabName == "Music") {
-//        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
-        vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
-    } else if (currentTabName == DARKMUSICTABNAME) {
-//        vuMeterTimer->setInterval(100);           // adjust from GUI with timer->setInterval(newValue)
-#ifdef DARKMODE
-        ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
-#endif
+        if (darkmode) {
+            ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+        } else {
+            vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+        }
     }
 }
 
