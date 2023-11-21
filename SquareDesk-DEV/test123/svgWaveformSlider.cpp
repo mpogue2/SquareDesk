@@ -9,13 +9,21 @@
 svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
     QSlider(parent)
 {
+    bgPixmap = nullptr;
+    bg = nullptr;
+    loadingMessage = nullptr;
+    currentPos = nullptr;
+    leftLoopMarker = nullptr;
+    rightLoopMarker = nullptr;
+    leftLoopCover = nullptr;
+    rightLoopCover = nullptr;
+
     // bare minimum init --------
     drawLoopPoints = false;
     singingCall = false;
     SetDefaultIntroOutroPositions(false, 0.0, 0.0, 0.0, 0.0);
     origin = 0;
 
-    bgPixmap = nullptr; // this is the only one that we throw away dynamically
     nowDestroying = false; // true when we're in the destructor, shutting everything down (don't want any paint events or updates)
 
     // install the wheel/scroll eater --------

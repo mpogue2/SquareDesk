@@ -8,6 +8,9 @@ svgDial::svgDial(QWidget *parent) :
     QDial(parent)
 {
 //    qDebug() << "======== svgDial default constructor!";
+    knob = nullptr;
+    needle = nullptr;
+    arc = nullptr;
 }
 
 svgDial::~svgDial()
@@ -204,3 +207,32 @@ void svgDial::setValue(int value) {
     double endAngle = -degPerPos * (value - middle);
     arc->setSpanAngle(16.0 * endAngle);
 };
+
+void svgDial::setKnobFile(QString s) {
+    m_knobFile = s;
+    emit knobFileChanged(s);
+}
+
+QString svgDial::getKnobFile() const {
+    return(m_knobFile);
+}
+
+void svgDial::setNeedleFile(QString s) {
+    m_needleFile = s;
+    emit needleFileChanged(s);
+}
+
+QString svgDial::getNeedleFile() const {
+    return(m_needleFile);
+}
+
+void svgDial::setArcColor(QString s) {
+    m_arcColor = s;
+    emit arcColorChanged(s);
+
+    finishInit(); // after knobFile, needleFile, and arcColor are set, finish up the init stuff, before knob is visible for the first time
+}
+
+QString svgDial::getArcColor() const {
+    return(m_arcColor);
+}

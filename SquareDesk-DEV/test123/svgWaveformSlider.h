@@ -79,13 +79,9 @@ private:
     void paintEvent(QPaintEvent *pe);
     void resizeEvent(QResizeEvent *re);
 
-//    QString m_bgFile;
-
     QGraphicsView view;
     QGraphicsScene scene;
 
-//    QGraphicsSvgItem *bg;
-//    QImage  *bgImage;
     QPixmap *bgPixmap;
     QGraphicsPixmapItem *bg;
 

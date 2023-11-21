@@ -49,34 +49,14 @@ public:
     explicit svgDial(QWidget *parent = 0);
     ~svgDial();
 
-    void setKnobFile(QString s) {
-        m_knobFile = s;
-        emit knobFileChanged(s);
-    }
+    void setKnobFile(QString s);
+    QString getKnobFile() const;
 
-    QString getKnobFile() const {
-        return(m_knobFile);
-    }
+    void setNeedleFile(QString s);
+    QString getNeedleFile() const;
 
-    void setNeedleFile(QString s) {
-        m_needleFile = s;
-        emit needleFileChanged(s);
-    }
-
-    QString getNeedleFile() const {
-        return(m_needleFile);
-    }
-
-    void setArcColor(QString s) {
-        m_arcColor = s;
-        emit arcColorChanged(s);
-
-        finishInit(); // after knobFile, needleFile, and arcColor are set, finish up the init stuff, before knob is visible for the first time
-    }
-
-    QString getArcColor() const {
-        return(m_arcColor);
-    }
+    void setArcColor(QString s);
+    QString getArcColor() const;
 
     void setValue(int value);
 
