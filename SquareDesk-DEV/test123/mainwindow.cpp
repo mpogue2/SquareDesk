@@ -10375,7 +10375,7 @@ void MainWindow::on_darkSongTable_customContextMenuRequested(const QPoint &pos)
                 if (relPathInSlot[1] == "") {
                     menu.addAction ( "Add to BOTTOM of Untitled playlist in slot #2" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
                 } else {
-                    menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemToBottom(2); } );
+                    menu.addAction ( QString("Add to BOTTOM of playlist '") + relPathInSlot[1] + "'" , this , [this]{ darkAddPlaylistItemToBottom(1); } );
                 }
             }
             if (!relPathInSlot[2].contains("/tracks/")) {
