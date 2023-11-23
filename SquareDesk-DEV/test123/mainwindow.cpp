@@ -6961,7 +6961,12 @@ void MainWindow::on_actionPreferences_triggered()
 
         if (prefDialog->songTableReloadNeeded) {
 //            qDebug() << "LOAD MUSIC LIST TRIGGERED FROM PREFERENCES TRIGGERED";
-            loadMusicList();
+
+            if (darkmode) {
+                darkLoadMusicList();
+            } else {
+                loadMusicList();
+            }
         }
 
         if (prefsManager.GetenableAutoAirplaneMode()) {
