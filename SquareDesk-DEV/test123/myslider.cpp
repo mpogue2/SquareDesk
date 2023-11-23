@@ -387,7 +387,11 @@ void MySlider::paintEvent(QPaintEvent *e)
     // LOOP POINTS ----------------
     if (drawLoopPoints) {
         QPen pen;  //   = (QApplication::palette().dark().color());
-        pen.setColor(Qt::blue);
+        if (!fusionMode) {
+            pen.setColor(Qt::blue); // Light mode is fine with regular blue
+        } else {
+            pen.setColor(QColor("#26A4ED")); // Dark Mode needs to be much brighter
+        }
         painter.setPen(pen);
 
         // double to = 0.1f;

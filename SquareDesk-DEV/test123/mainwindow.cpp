@@ -1181,7 +1181,11 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     t.elapsed(__LINE__);
 
-    ui->pushButtonCueSheetEditArtist->setStyleSheet("color: #0000FF");
+    if (!darkmode) {
+        ui->pushButtonCueSheetEditArtist->setStyleSheet("color: #0000FF");
+    } else {
+        ui->pushButtonCueSheetEditArtist->setStyleSheet("color: #26A4ED"); // QColor("#26A4ED")
+    }
 
     t.elapsed(__LINE__);
 
