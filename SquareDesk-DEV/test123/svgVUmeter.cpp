@@ -113,6 +113,8 @@ svgVUmeter::svgVUmeter(QWidget *parent) :
 
     VUmeterTimer.start(100); // looks sluggish @ 200ms, pretty good @ 100ms, no real improvement @ 50ms, so 100ms it is
 
+    oldLimitL = oldLimitR = -10.0;  // force update on first encounter
+
 //    // measure time -----------
 //    timer.start();
 //    QPixmap px(200,200);
@@ -128,6 +130,14 @@ void svgVUmeter::updateMeter() {
 
     if (valueL < 0 || valueL > 1.0 || valueR < 0 || valueR > 1.0) {
         return;  // ignore bad values
+    }
+
+    // if small, just make it zero
+    if (valueL < 0.001) {
+        valueL = 0.00000001;
+    }
+    if (valueR < 0.001) {
+        valueR = 0.00000001;
     }
 
     double vuMeterX = 21;
@@ -162,13 +172,20 @@ void svgVUmeter::updateMeter() {
     double limitL = bottom - valueL * (bottom - top);
     double limitR = bottom - valueR * (bottom - top);
 
-    greenBarL->setLine(0.3*vuMeterX,vuMeterY-7,0.3*vuMeterX,fmax(limitL,32));
-    yellowBarL->setLine(0.3*vuMeterX,vuMeterY*0.288,0.3*vuMeterX,fmin(fmax(limitL, vuMeterY*0.19),vuMeterY*0.288));
-    redBarL->setLine(0.3*vuMeterX,vuMeterY*0.18,0.3*vuMeterX,fmin(fmax(limitL,vuMeterY*0.08),vuMeterY*0.18));
+    if (fabs(limitL - oldLimitL) > 1.0) {
+        greenBarL->setLine(0.3*vuMeterX,vuMeterY-7, 0.3*vuMeterX,fmin(limitL,vuMeterY-7));
+        yellowBarL->setLine(0.3*vuMeterX,vuMeterY*0.288, 0.3*vuMeterX,fmin(fmax(limitL, vuMeterY*0.19),vuMeterY*0.288));
+        redBarL->setLine(0.3*vuMeterX,vuMeterY*0.18, 0.3*vuMeterX,fmin(fmax(limitL,vuMeterY*0.08),vuMeterY*0.18));
+        oldLimitL = limitL;
+    }
 
-    greenBarR->setLine(0.7*vuMeterX,vuMeterY-7,0.7*vuMeterX,fmax(limitR,32));
-    yellowBarR->setLine(0.7*vuMeterX,vuMeterY*0.288,0.7*vuMeterX,fmin(fmax(limitR, vuMeterY*0.19),vuMeterY*0.288));
-    redBarR->setLine(0.7*vuMeterX,vuMeterY*0.18,0.7*vuMeterX,fmin(fmax(limitR,vuMeterY*0.08),vuMeterY*0.18));
+    if (fabs(limitR - oldLimitR) > 1.0) {
+        greenBarR->setLine(0.7*vuMeterX,vuMeterY-7,0.7*vuMeterX,fmin(limitR,vuMeterY-7));
+        yellowBarR->setLine(0.7*vuMeterX,vuMeterY*0.288,0.7*vuMeterX,fmin(fmax(limitR, vuMeterY*0.19),vuMeterY*0.288));
+        redBarR->setLine(0.7*vuMeterX,vuMeterY*0.18,0.7*vuMeterX,fmin(fmax(limitR,vuMeterY*0.08),vuMeterY*0.18));
+        oldLimitR = limitR;
+    }
+
 }
 
 svgVUmeter::~svgVUmeter()

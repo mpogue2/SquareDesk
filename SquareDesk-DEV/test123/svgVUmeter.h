@@ -54,6 +54,7 @@ private:
     QPoint center;
 
     double valueL, valueR;
+    double oldLimitL, oldLimitR; // old values, to prevent updating the lines too often
 };
 
 #endif // SVGVUMETER_H
