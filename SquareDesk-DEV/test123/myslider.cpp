@@ -27,6 +27,8 @@
 #include "QDebug"
 #include <QEvent>
 #include <QStyle>
+#include <QMouseEvent>
+#include <QStyleOptionSlider>
 
 // ==========================================================================================
 MySlider::MySlider(QWidget *parent) : QSlider(parent)
@@ -51,6 +53,9 @@ MySlider::MySlider(QWidget *parent) : QSlider(parent)
 
     // install the wheel/scroll eater for ALL MySlider's
     this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
+
+    fusionMode = false;
+    setMouseTracking(false);
 }
 
 bool MySlider::eventFilter(QObject *obj, QEvent *event)
@@ -155,6 +160,51 @@ void MySlider::SetSingingCall(bool b)
 void MySlider::SetOrigin(int newOrigin)
 {
     origin = newOrigin;
+}
+
+// when clicking inside the mySlider, jump directly there
+void MySlider::mousePressEvent(QMouseEvent *event)
+{
+    if (!fusionMode) {
+        // Light Mode works correctly, because it's NOT Fusion
+        return QSlider::mousePressEvent(event);
+    }
+
+    // DARK MODE:
+
+    // from: https://stackoverflow.com/questions/52689047/moving-qslider-to-mouse-click-position
+    QStyleOptionSlider opt = QStyleOptionSlider();
+    initStyleOption(&opt);
+
+    QRect gr = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderGroove, this);
+    QRect sr = style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderHandle, this);
+
+    int sliderLength;
+    int sliderMin;
+    int sliderMax;
+    int p;
+
+    QPoint pr = event->pos() - sr.center() + sr.topLeft();
+
+    if (orientation() == Qt::Horizontal) {
+        sliderLength = sr.width();
+        sliderMin = gr.x();
+        sliderMax = gr.right() - sliderLength + 1;
+        p = pr.x();
+    } else {
+        sliderLength = sr.height();
+        sliderMin = gr.y();
+        sliderMax = gr.bottom() - sliderLength + 1;
+        p = pr.y();
+    }
+
+    int value = QStyle::sliderValueFromPosition(minimum(), maximum(), p - sliderMin, sliderMax - sliderMin, opt.upsideDown);
+
+    if (event->button() == Qt::LeftButton) {
+        setValue(value);
+    } else {
+        return QSlider::mousePressEvent(event);
+    }
 }
 
 void MySlider::mouseDoubleClickEvent(QMouseEvent *event)  // FIX: this doesn't work
@@ -368,3 +418,6 @@ void MySlider::paintEvent(QPaintEvent *e)
 #endif // ifndef Q_OS_LINUX
 }
 
+void MySlider::setFusionMode(bool b) {
+    fusionMode = b;
+}

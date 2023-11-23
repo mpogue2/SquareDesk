@@ -54,7 +54,11 @@ public:
     QSet<double> GetMarkers();
     void ClearMarkers();
 
+    void setFusionMode(bool b);
+
 protected:
+    void mousePressEvent(QMouseEvent *event);
+//    void mouseMoveEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *event);
 
@@ -69,6 +73,8 @@ private:
     QSet<double> markers;
 
     QString singer1, else1, s2;  // stylesheets for coloring sliders
+
+    bool fusionMode;  // slider acts differently in Fusion mode, so we need to know this
 };
 
 #endif // MYSLIDER_H

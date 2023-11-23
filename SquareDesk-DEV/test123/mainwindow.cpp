@@ -2374,6 +2374,14 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     }
 #endif
 
+    // I'm not sure why I need to do this here.  The mySlider constructor call to setMouseTracking doesn't seem to work.
+//    ui->seekBar->setMouseTracking(false);
+//    ui->seekBarCuesheet->setMouseTracking(false);
+
+    if (darkmode) {
+        ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
+    }
+
     stopLongSongTableOperation("MainWindow");
 }
 
@@ -9714,8 +9722,7 @@ void MainWindow::on_darkBassKnob_valueChanged(int value)
 }
 
 void MainWindow::on_darkSeekBar_valueChanged(int value) {
-    // value is 0 to WAVEFORMWIDTH
-
+    // value is 0 to fileLengthInSeconds
     if (ui->seekBar->maximum() > 0 && ui->darkSeekBar->maximum() > 0) {
         // if both of the maxima are valid,
         double fracSeekBar = (double)ui->seekBar->value()/(double)ui->seekBar->maximum();
