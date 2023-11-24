@@ -319,8 +319,14 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
         //        qDebug() << "MySlider::loopEnd_frac" << loopEnd_frac;
         ////        qDebug() << "--------------";
 
-        introPosition = loopStart_frac;
-        outroPosition = loopEnd_frac;
+//        introPosition = loopStart_frac;
+//        outroPosition = loopEnd_frac;
+
+         // we need to keep both updated, updateBgPixmap uses Frac's
+        introFrac = loopStart_frac;
+        outroFrac = loopEnd_frac;
+        introPosition = introFrac * (width()-4);
+        outroPosition = outroFrac * (width()-4);
     }
 }
 

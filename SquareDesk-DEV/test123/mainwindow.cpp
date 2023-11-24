@@ -298,7 +298,8 @@ void MainWindow::haveDuration2(void) {
     ui->darkSeekBar->setMaximum(static_cast<int>(cBass->FileLength)-1); // tricky! see InitializeSeekBar
 
     cBass->getWaveform(waveform, WAVEFORMSAMPLES);
-    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
+//    qDebug() << "updateBgPixmap called from haveDuration2";
+//    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);  // don't need this, because we call it in secondHalfOfLoad, too
 #endif
 
 //    qDebug() << "haveDuration2 BPM = " << cBass->Stream_BPM;
@@ -3996,11 +3997,14 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     // set in fractional form
     double frac = position/length;
     ui->seekBarCuesheet->SetIntro(frac);  // after the events are done, do this.
-    ui->seekBar->SetIntro(frac);
-#ifdef DARKMODE
-//    qDebug() << "DARKMODE setIntro!";
-    ui->darkSeekBar->setIntro(frac);
-#endif
+
+    if (darkmode) {
+        ui->darkSeekBar->setIntro(frac);
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
+    } else {
+        ui->seekBar->SetIntro(frac);
+    }
+
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
@@ -4041,10 +4045,14 @@ void MainWindow::on_pushButtonSetOutroTime_clicked()
     // set in fractional form
     double frac = position/length;
     ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
-    ui->seekBar->SetOutro(frac);
-#ifdef DARKMODE
-    ui->darkSeekBar->setOutro(frac);
-#endif
+
+    if (darkmode) {
+        ui->darkSeekBar->setOutro(frac);
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
+    } else {
+        ui->seekBar->SetOutro(frac);
+    }
+
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
 }
 
@@ -5233,6 +5241,7 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     // now clear out the waveform (if there is one)
 #ifdef DARKMODE
+//    qDebug() << "updateBgPixmap called from loadMP3File with nullptr, 0 to clear out";
     ui->darkSeekBar->updateBgPixmap(nullptr, 0); // this means clear it out!
 #endif
 //    QDir md(MP3FileName);
@@ -5345,18 +5354,41 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     Info_Seekbar(true);  // update the slider and all the text
 
     ui->dateTimeEditIntroTime->setTime(QTime(0,0,0,0));
-
     ui->darkStartLoopTime->setTime(QTime(0,0,0,0));
-    ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 
+    ui->dateTimeEditOutroTime->setTime(QTime(23,59,59,0));
 #ifdef DARKMODE
 //    qDebug() << "second half of load!";
     ui->darkEndLoopTime->setTime(QTime(23,59,59,0));
 #endif
 
     ui->seekBarCuesheet->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
-    ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
 
+    // set the defaults, but only for one of the two seekBars
+    if (darkmode) {
+        ui->darkSeekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+    } else {
+        ui->seekBar->SetDefaultIntroOutroPositions(tempoIsBPM, cBass->Stream_BPM, startOfSong_sec, endOfSong_sec, cBass->FileLength);
+    }
+
+    // in case loadSettings fails (no settings on the very first load!), we need to set these edit fields
+//    qDebug() << "*** secondHalfOfLoad now needs to set these default times into edit fields:" << ui->seekBarCuesheet->GetIntro() << ui->seekBarCuesheet->GetOutro();
+    double introFrac = ui->seekBarCuesheet->GetIntro();
+    double outroFrac = ui->seekBarCuesheet->GetOutro();
+    double length = cBass->FileLength;
+
+    QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*introFrac*length+0.5));
+    QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outroFrac*length+0.5));
+
+    ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds --> cuesheet edit fields
+    ui->dateTimeEditOutroTime->setTime(oTime);
+
+    if (darkmode) {
+        ui->darkStartLoopTime->setTime(iTime); // milliseconds
+        ui->darkEndLoopTime->setTime(oTime);   // milliseconds
+    }
+
+    // -------------------
     ui->dateTimeEditIntroTime->setEnabled(true);
     ui->dateTimeEditOutroTime->setEnabled(true);
 
@@ -5379,6 +5411,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     Info_Volume();
 
 //    qDebug() << "**** NOTE: currentSongTitle = " << currentSongTitle;
+//    qDebug() << "secondHalfOfLoad is calling loadSettingsForSong";
     loadSettingsForSong(songTitle); // also loads replayGain, if song has one; also loads tempo from DB (not necessarily same as songTable if playlist loaded)
 
     loadGlobalSettingsForSong(songTitle); // sets global eq (e.g. Intelligibility Boost), AFTER song is loaded
@@ -5424,6 +5457,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 //    qDebug() << "end of second half of load...";
 #ifdef DARKMODE
 //    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
+//    qDebug() << "updateBgPixmap called from secondHalfOfLoad";
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
 #endif
     // ------------------
@@ -7765,6 +7799,7 @@ void MainWindow::saveCurrentSongSettings()
 
 void MainWindow::loadSettingsForSong(QString songTitle)
 {
+//    qDebug() << "loadSettingsForSong";
     int pitch = ui->pitchSlider->value();
     int tempo = ui->tempoSlider->value();  // qDebug() << "loadSettingsForSong, current tempo slider: " << tempo;
     int volume = ui->volumeSlider->value();
@@ -7790,6 +7825,7 @@ void MainWindow::loadSettingsForSong(QString songTitle)
         if (settings.isSetVolume()) { volume = settings.getVolume(); }
         if (settings.isSetIntroPos()) { intro = settings.getIntroPos(); }
         if (settings.isSetOutroPos()) { outro = settings.getOutroPos(); }
+
         if (settings.isSetCuesheetName()) { cuesheetName = settings.getCuesheetName(); } // ADDED *****
 
         // double length = (double)(ui->seekBarCuesheet->maximum());  // This is not correct, results in non-round-tripping
@@ -7813,21 +7849,19 @@ void MainWindow::loadSettingsForSong(QString songTitle)
 
         ui->seekBarCuesheet->SetIntro(intro);
         ui->seekBarCuesheet->SetOutro(outro);
-//        qDebug() << "MainWindow::loadSettingsForSong 1: outro,intro = " << outro << intro;
 
-        // we need to set this in both places
-        ui->seekBar->SetIntro(intro);
-        ui->seekBar->SetOutro(outro);
-
-#ifdef DARKMODE
-        // we need to set this in both places
-        ui->darkSeekBar->setIntro(intro);
-        ui->darkSeekBar->setOutro(outro);
-#endif
+        if (darkmode) {
+            // we need to set this in both places
+            ui->darkSeekBar->setIntro(intro);
+            ui->darkSeekBar->setOutro(outro);
+        } else {
+            // we need to set this in both places
+            ui->seekBar->SetIntro(intro);
+            ui->seekBar->SetOutro(outro);
+        }
 
         QTime iTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*intro*length+0.5));
         QTime oTime = QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outro*length+0.5));
-//        qDebug() << "MainWindow::loadSettingsForSong 2: intro,outro,length = " << iTime << ", " << oTime << "," << length;
         ui->dateTimeEditIntroTime->setTime(iTime); // milliseconds
         ui->dateTimeEditOutroTime->setTime(oTime);
 #ifdef DARKMODE
@@ -9931,14 +9965,12 @@ void MainWindow::on_darkStartLoopTime_timeChanged(const QTime &time)
     bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
                          songTypeNamesForCalled.contains(currentSongType);
 
-    if (isSingingCall) {
-        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
-    }
-
-//    qDebug() << "on_darkStartLoopTime_timeChanged: " << time << otherTime << dTime_ms;
-
     if (dTime_ms != 0) {
         on_dateTimeEditIntroTime_timeChanged(time); // just call over there to set the times on both
+    }
+
+    if (isSingingCall && !loadingSong) {
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
     }
 }
 
@@ -9950,14 +9982,12 @@ void MainWindow::on_darkEndLoopTime_timeChanged(const QTime &time)
     bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
                          songTypeNamesForCalled.contains(currentSongType);
 
-    if (isSingingCall) {
-        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
-    }
-
-    //    qDebug() << "on_darkEndLoopTime_timeChanged: " << time << otherTime << dTime_ms;
-
     if (dTime_ms != 0) {
         on_dateTimeEditOutroTime_timeChanged(time); // just call over there to set the times on both
+    }
+
+    if (isSingingCall && !loadingSong) {
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
     }
 }
 
