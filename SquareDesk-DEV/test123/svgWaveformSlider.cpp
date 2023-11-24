@@ -463,7 +463,11 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
                 } else {
                     int inSeg = i - introP2;
                     int whichSeg = inSeg / ((outroP2 - introP2)/7.0);
-                    whichColor = colorMap[whichSeg];
+                    if (whichSeg < 0 || whichSeg > 6) {
+                        whichColor = 0; // if outroP2 == introP2, e.g. not initialized, or something else bad, then this protects us
+                    } else {
+                        whichColor = colorMap[whichSeg];
+                    }
                 }
 
                 paint->setPen(colors[whichColor]);
