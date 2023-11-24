@@ -2141,14 +2141,16 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
         default: theTableWidget = ui->playlist1Table; theLabel = ui->playlist1Label; break;
     }
 
-    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
-    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+    // // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    // const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
 
-    QString startingPlaylistDirectory = prefsManager.MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
-    if (startingPlaylistDirectory.isNull()) {
-        // first time through, start at HOME
-        startingPlaylistDirectory = QDir::homePath();
-    }
+    // QString startingPlaylistDirectory = prefsManager.MySettings.value(DEFAULT_PLAYLIST_DIR_KEY).toString();
+    // if (startingPlaylistDirectory.isNull()) {
+    //     // first time through, start at HOME
+    //     startingPlaylistDirectory = QDir::homePath();
+    // }
+
+    QString startingPlaylistDirectory = musicRootPath + "/playlists/" + relPathInSlot[whichSlot] + "_copy.csv";
 
     QString preferred("CSV files (*.csv)");
     trapKeypresses = false;
@@ -2169,9 +2171,9 @@ void MainWindow::saveSlotAsPlaylist(int whichSlot)  // slots 0 - 2
     QString fullFilePath = PlaylistFileName;
 //    qDebug() << "fullFilePath: " << fullFilePath;
 
-    // not null, so save it in Settings (File Dialog will open in same dir next time)
-    QFileInfo fInfo(PlaylistFileName);
-    prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
+    // // not null, so save it in Settings (File Dialog will open in same dir next time)
+    // QFileInfo fInfo(PlaylistFileName);
+    // prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
 
     QString playlistShortName = PlaylistFileName.replace(musicRootPath,"").split('/').last().replace(".csv",""); // PlaylistFileName is now altered
 //    qDebug() << "playlistShortName: " << playlistShortName;
@@ -2301,3 +2303,114 @@ void MainWindow::playlistSlotWatcherTriggered() {
     playlistSlotWatcherTimer->stop();
 }
 #endif
+
+void MainWindow::loadPlaylistFromFileToSlot(int whichSlot)
+{
+    // on_stopButton_clicked();  // if we're loading a new PLAYLIST file, stop current playback
+
+    // http://stackoverflow.com/questions/3597900/qsettings-file-chooser-should-remember-the-last-directory
+    //    const QString DEFAULT_PLAYLIST_DIR_KEY("default_playlist_dir");
+    //    QString musicRootPath = prefsManager.GetmusicPath();
+    QString startingPlaylistDirectory = prefsManager.Getdefault_playlist_dir();
+
+    trapKeypresses = false;
+    QString PlaylistFileName =
+        QFileDialog::getOpenFileName(this,
+                                     tr("Load Playlist"),
+                                     startingPlaylistDirectory,
+                                     tr("Playlist Files (*.csv)"));
+    trapKeypresses = true;
+    if (PlaylistFileName.isNull()) {
+        return;  // user cancelled...so don't do anything, just return
+    }
+
+    // not null, so save it in Settings (File Dialog will open in same dir next time)
+    //    QDir CurrentDir;
+    QFileInfo fInfo(PlaylistFileName);
+    prefsManager.Setdefault_playlist_dir(fInfo.absolutePath());
+
+    int songCount;
+    loadPlaylistFromFileToPaletteSlot(PlaylistFileName, whichSlot, songCount);
+}
+
+// ----------------------------
+void MainWindow::printPlaylistFromSlot(int whichSlot)
+{
+    // Playlist > Print Playlist...
+    QPrinter printer;
+    QPrintDialog printDialog(&printer, this);
+    printDialog.setWindowTitle("Print Playlist");
+
+    if (printDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+
+    // --------
+    QList<PlaylistExportRecord> exports;
+
+    // iterate over the playlist to get all the info
+    MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+    MyTableWidget *table = tables[whichSlot];
+
+    for (int i = 0; i < table->rowCount(); i++) {
+        // qDebug() << "TABLE ITEM:" << table->item(i,0)->text() << table->item(i,1)->text()  << table->item(i,2)->text()  << table->item(i,3)->text()  << table->item(i,4)->text()  << table->item(i,5)->text();
+        // 0: i
+        // 1: title
+        // 2: pitch
+        // 3: tempo
+        // 4: fullPath
+        // 5: editingIndicator (1 = editing)
+
+        PlaylistExportRecord rec;
+        rec.index = i+1;
+        rec.title = table->item(i,4)->text(); // fullPath
+        rec.pitch = table->item(i,2)->text();
+        rec.tempo = table->item(i,3)->text();
+
+        exports.append(rec);
+    }
+
+    QString shortPlaylistName = relPathInSlot[whichSlot];
+
+    QString toBePrinted = "<h2>PLAYLIST: " + shortPlaylistName + "</h2>\n"; // TITLE AT TOP OF PAGE
+
+    QTextDocument doc;
+    QSizeF paperSize;
+    paperSize.setWidth(printer.width());
+    paperSize.setHeight(printer.height());
+    doc.setPageSize(paperSize);
+
+    patterColorString = prefsManager.GetpatterColorString();
+    singingColorString = prefsManager.GetsingingColorString();
+    calledColorString = prefsManager.GetcalledColorString();
+    extrasColorString = prefsManager.GetextrasColorString();
+
+    char buf[256];
+    foreach (const PlaylistExportRecord &rec, exports)
+    {
+        QString baseName = rec.title;
+        baseName.replace(QRegularExpression("^" + musicRootPath),"");  // delete musicRootPath at beginning of string
+
+        snprintf(buf, sizeof(buf), "%02d: %s\n", rec.index, baseName.toLatin1().data());
+
+        QStringList parts = baseName.split("/");
+        QString folderTypename = parts[1]; // /patter/foo.mp3 --> "patter"
+
+        QString colorString("black");
+        if (songTypeNamesForPatter.contains(folderTypename)) {
+            colorString = patterColorString;
+        } else if (songTypeNamesForSinging.contains(folderTypename)) {
+            colorString = singingColorString;
+        } else if (songTypeNamesForCalled.contains(folderTypename)) {
+            colorString = calledColorString;
+        } else if (songTypeNamesForExtras.contains(folderTypename)) {
+            colorString = extrasColorString;
+        }
+        toBePrinted += "<span style=\"color:" + colorString + "\">" + QString(buf) + "</span><BR>\n";
+    }
+
+    //        qDebug() << "PRINT: " << toBePrinted;
+
+    doc.setHtml(toBePrinted);
+    doc.print(&printer);
+}

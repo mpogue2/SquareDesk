@@ -1013,6 +1013,9 @@ private:
     void savePlaylistAgain();  // saves with the same name we used last time (if there was a last time)
     QString loadPlaylistFromFile(QString PlaylistFileName, int &songCount); // returns error song string and songCount
     QString loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, int slotNumber, int &songCount); // returns error song string and songCount
+    void loadPlaylistFromFileToSlot(int whichSlot);   // ask user which file, load file into slot
+    void printPlaylistFromSlot(int whichSlot);        // show print dialog to user, print this playlist (not tracks)
+
     void finishLoadingPlaylist(QString PlaylistFileName);
 
     void saveCurrentPlaylistToFile(QString PlaylistFileName);

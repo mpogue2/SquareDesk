@@ -10036,6 +10036,13 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
         theTableWidget = ui->playlist3Table;
     }
 
+    plMenu->addAction(QString("Load Playlist..."), // to THIS slot
+                      [whichSlot, this]() {
+                          Q_UNUSED(this)
+                          loadPlaylistFromFileToSlot(whichSlot);
+                      }
+                      );
+
     if (relPathInSlot[whichSlot] != "" && !relPathInSlot[whichSlot].startsWith("/tracks/")) {
         // context menu only available if something is actually in this slot
 
@@ -10044,6 +10051,24 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
         QString playlistShortName = playlistFilePath.split('/').last().replace(".csv","");
 
 //        qDebug() << "customPlaylistMenuRequested:" << playlistFilePath << playlistShortName << relPathInSlot[whichSlot];
+
+        plMenu->addAction(QString("Save Playlist As..."), // from THIS slot
+                          [whichSlot, this]() {
+                              Q_UNUSED(this)
+                              // qDebug() << "Save Playlist As..." << whichSlot;
+                              saveSlotAsPlaylist(whichSlot);
+                          }
+                          );
+
+        plMenu->addAction(QString("Print Playlist..."), // to THIS slot
+                          [whichSlot, this]() {
+                              Q_UNUSED(this)
+                              // qDebug() << "Print Playlist..." << whichSlot;
+                              printPlaylistFromSlot(whichSlot);
+                          }
+                          );
+
+        plMenu->addSeparator();
 
         plMenu->addAction(QString("Edit '%1' in text editor").arg(relPathInSlot[whichSlot]),
                           [playlistFilePath]() {
@@ -10116,6 +10141,8 @@ void MainWindow::customPlaylistMenuRequested(QPoint pos) {
 
     } else {
         // NOTHING OR TRACKS FILTER IS IN SLOT ---------
+
+        plMenu->addSeparator();
 
         if (!relPathInSlot[whichSlot].startsWith("/tracks/")) {
             int playlistRowCount = theTableWidget->rowCount();
