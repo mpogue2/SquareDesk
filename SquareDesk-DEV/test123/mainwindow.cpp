@@ -3542,7 +3542,12 @@ void MainWindow::on_mixSlider_valueChanged(int value)
     QString s = QString::number(Lpercent) + "%L/" + QString::number(Rpercent) + "%R ";
 
     ui->currentMixLabel->setText(s);
-    cBass->SetPan(value/100.0);
+
+    if (darkmode) {
+        cBass->SetPan(0.0); // no PAN control in DarkMode
+    } else {
+        cBass->SetPan(value/100.0);
+    }
 
     saveCurrentSongSettings();  // MIX should be persisted when changed
 }

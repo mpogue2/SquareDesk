@@ -362,23 +362,25 @@ public:
         bq[3] = biquad_peak(1000.0 * intelligibilityBoost_fKHz/44100.0, Q, intelligibilityBoost_dB);
 
         newFilterNeeded = true;
-//        qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << ")";
+
+        EQdisabled = bassBoost_dB == 0.0 && midBoost_dB == 0.0 && trebleBoost_dB == 0.0;
+        // qDebug() << "\tbiquad's are updated: ("<< bassBoost_dB << midBoost_dB << trebleBoost_dB << intelligibilityBoost_dB << EQdisabled << ")";
     }
 
     void setBassBoost(double b) {
-//        qDebug() << "new BASS EQ value: " << b;
+        // qDebug() << "new BASS EQ value: " << b;
         bassBoost_dB = b;
         updateEQ();
     }
 
     void setMidBoost(double m) {
-//        qDebug() << "new MID EQ value: " << m;
+        // qDebug() << "new MID EQ value: " << m;
         midBoost_dB = m;
         updateEQ();
     }
 
     void setTrebleBoost(double t) {
-//        qDebug() << "new TREBLE EQ value: " << t;
+        // qDebug() << "new TREBLE EQ value: " << t;
         trebleBoost_dB = t;
         updateEQ();
     }
@@ -437,11 +439,30 @@ public:
 //        qDebug() << "inOutRatio:" << inOutRatio;
 
         // PAN/VOLUME/FORCE MONO/EQ --------
+        float KL, KR;
+
+// #define SINCOSPANLAW
+#ifdef SINCOSPANLAW
+        // -3dB @ center sin/cos constant power pan law (the original one that SquareDesk used)
         const float PI_OVER_2 = 3.14159265f/2.0f;
         float theta = PI_OVER_2 * (m_pan + 1.0f)/2.0f;  // convert to 0-PI/2
-        float KL = cos(theta);
-        float KR = sin(theta);
-//        qDebug() << "KL/R: " << KL << KR;
+        KL = cos(theta);
+        KR = sin(theta);
+#else
+        // 0dB @ center stereo balance control
+        if (fabs(m_pan) < 0.01) {
+            KL = KR = 1.0;
+        } else if (m_pan < 0.0) {
+            // panning to the left
+            KL = 1.0;
+            KR = (1 + m_pan);
+        } else {
+            // panning to the right
+            KR = 1.0;
+            KL = (1 - m_pan);
+        }
+#endif
+        // qDebug() << "KL/R: " << m_pan << KL << KR;
         float scaleFactor;  // volume and mono scaling
 
         // EQ -----------
@@ -481,7 +502,9 @@ public:
 //            }
 
             // APPLY EQ TO MONO (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
-            filter->apply(outDataFloat, scaled_inLength_frames);   // NOTE: applies IN PLACE
+            if (!EQdisabled) {
+                filter->apply(outDataFloat, scaled_inLength_frames);   // NOTE: applies IN PLACE
+            }
 
 //            if (outDataFloat[0] != 0.0) {
 //                for (int i = 0; i < 40; i++) { // DEBUG DEBUG DEBUG
@@ -496,6 +519,7 @@ public:
         } else {
             // stereo (Force Mono is DISABLED)
             scaleFactor = currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
+            // qDebug() << "scaleFactor:" << scaleFactor;
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
 //                outDataFloat[2*i]   = (float)(scaleFactor*KL*inDataFloat[2*i]);   // L: stereo to 2ch stereo + volume + pan
@@ -504,9 +528,10 @@ public:
                 outDataFloatR[i] = (float)(scaleFactor*KR*inDataFloat[2*i+1]); // R:
             }
             // APPLY EQ TO EACH CHANNEL SEPARATELY (4 biquads, including B/M/T and Intelligibility Boost) ----------------------
-            filter->apply(outDataFloat,   scaled_inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
-            filterR->apply(outDataFloatR, scaled_inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
-
+            if (!EQdisabled) {
+                filter->apply(outDataFloat,   scaled_inLength_frames);    // NOTE: applies L filter IN PLACE (filter and storage used for mono and L)
+                filterR->apply(outDataFloatR, scaled_inLength_frames);    // NOTE: applies R filter IN PLACE (separate filter for R, because has separate state)
+            }
             // output data is INTERLEAVED STEREO (normal LR stereo) -- re-interleave to the outDataFloat buffer (which is the final output buffer)
             for (int i = scaled_inLength_frames-1; i >= 0; i--) {
                 outDataFloat[2*i]   = max(min(1.0f, outDataFloat[i]),-1.0);  // L + hard limiter
@@ -586,6 +611,8 @@ public:
     float bassBoost_dB = 0.0;
     float midBoost_dB = 0.0;
     float trebleBoost_dB = 0.0;
+
+    bool EQdisabled; // true if bassBoost/midBoost/trebleBoost are all at zero
 
     // INTELLIGIBILITY BOOST ----------
     float intelligibilityBoost_fKHz = 1.6;
