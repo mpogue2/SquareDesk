@@ -18,6 +18,8 @@ svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
     leftLoopCover = nullptr;
     rightLoopCover = nullptr;
 
+    cachedWaveform = nullptr;
+
     // bare minimum init --------
     drawLoopPoints = false;
     singingCall = false;
@@ -47,9 +49,6 @@ void svgWaveformSlider::paintEvent(QPaintEvent *pe)
 void svgWaveformSlider::resizeEvent(QResizeEvent *re)
 {
     Q_UNUSED(re)
-//    myWidth = re->size().width();
-//    myHeight = re->size().height();
-
 //    qDebug() << "RESIZE:" << re->size().width() << re->size().height();
 
     updateBgPixmap((float*)1, 1); // stretch/squish the bgPixmap, using cached values
@@ -65,47 +64,28 @@ void svgWaveformSlider::setFloatValue(float val) {
     // note that position is float here, so that currentPosition can move by a smaller number of pixels at a time
     int currentPositionX = round((float)val * ((float)(width()-4)/(float)maximum()));
 
-//    qDebug() << "svgWaveformSlider setting to: " << val << maximum() << val/maximum() << width()-4 << currentPositionX;
     currentPos->setPos(currentPositionX, 0);
 }
 
 void svgWaveformSlider::setValue(int val) {
-    // YES! NO: val goes from 0 to song_length - 1 (seekbar->maximum())
-    // NO! YES: val goes from 0 to WAVEFORMWIDTH and emits the same
-
-//    qDebug() << "svgWaveformSlider:setValue: " << val;
     QSlider::setValue(val);  // set the value of the parent class
 
     if (currentPos == nullptr) {
         return; // slider is not fully initialized yet
     }
 
-//    qDebug() << "svgWaveformSlider setting to: " << val;
-//    currentPos->setPos(val * (WAVEFORMWIDTH/maximum()), 0);
-//    currentPos->setPos(fmin(WAVEFORMWIDTH,val), 0);  // TEST TEST TEST
-
-
-//    int currentPositionX = (float)val * ((float)(myWidth-4)/(float)maximum());
     int currentPositionX = round((float)val * ((float)(width()-4)/(float)maximum()));
 
-//    qDebug() << "svgWaveformSlider setting to: " << val << maximum() << val/maximum() << width()-4 << currentPositionX;
     currentPos->setPos(currentPositionX, 0);
-
-//    emit valueChanged(val * (WAVEFORMWIDTH/maximum())); // TEST TEST TEST
-//    emit valueChanged(val); // TEST TEST TEST
 };
 
 // MOUSE EVENTS ============
 void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
-//    qDebug() << "mousePressEvent: " << e;
     double val;
 
     switch (e->button()) {
         case Qt::LeftButton:
-    //        val = fmax(0,(e->pos().rx() - 6));
-//        val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(myWidth-4));
             val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
-//        qDebug() << "***** left button press changed darkseekbar to " << val << this->maximum() << e->pos().rx() << width()-4 << (fmax(0,(e->pos().rx() - 6))/(width()-4));
             this->setValue(val);
             break;
         case Qt::MiddleButton:
@@ -118,14 +98,7 @@ void svgWaveformSlider::mousePressEvent(QMouseEvent* e) {
 
 void svgWaveformSlider::mouseMoveEvent(QMouseEvent* e) {
     Q_UNUSED(e)
-//    //    qDebug() << "mouseMoveEvent: " << e;
-
-//    double value = fmax(0,(e->pos().rx() - 6));
-////    qDebug() << "***** mouse move changed darkseekbar to " << value;
-//    this->setValue(value);
-
     double val = this->maximum() * (fmax(0,(e->pos().rx() - 6))/(width()-4));
-//    qDebug() << "***** left button press changed darkseekbar to " << val << this->maximum() << e->pos().rx() << width()-4 << (fmax(0,(e->pos().rx() - 6))/(width()-4));
     this->setValue(val);
 }
 
@@ -139,19 +112,10 @@ void svgWaveformSlider::mouseReleaseEvent(QMouseEvent* e) {
 
 void svgWaveformSlider::finishInit() {
     setValue(0.0);    // set to beginning
-//    setFixedSize(491,61);
     setFixedHeight(61);
 
     // BACKGROUND PIXMAP --------
-//    bgPixmap = new QPixmap(WAVEFORMWIDTH, 61); // TODO: get size from current size of widget
-//    bgPixmap = new QPixmap(this->geometry().width()-4, 61); // TODO: get size from current size of widget
-
-//    qDebug() << "finishInit(): " << width();
-//    bgPixmap = new QPixmap(width(), 61);
     bgPixmap = new QPixmap(WAVEFORMSAMPLES, 61);  // NOTE: we gotta make this bug to start, or the QSlider will never figure out that it can draw bigger.
-
-
-//    bgPixmap->fill(QColor("#1A1A1A"));
     bgPixmap->fill(QColor("#FA0000"));
 
 //    DEBUG: save to a file so we can look at it ----
@@ -159,10 +123,6 @@ void svgWaveformSlider::finishInit() {
 //    scene.addPixmap(*bgPixmap);
 
     bg = new QGraphicsPixmapItem(*bgPixmap);
-
-//    bg->setPos(4,4);
-
-    //    qDebug() << "finishInit with: " << bg->boundingRect();
 
     // LOADING MESSAGE --------
     loadingMessage = new QGraphicsTextItem("Loading...");
@@ -321,9 +281,6 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
         //        qDebug() << "MySlider::loopEnd_frac" << loopEnd_frac;
         ////        qDebug() << "--------------";
 
-//        introPosition = loopStart_frac;
-//        outroPosition = loopEnd_frac;
-
          // we need to keep both updated, updateBgPixmap uses Frac's
         introFrac = loopStart_frac;
         outroFrac = loopEnd_frac;
@@ -332,59 +289,9 @@ void svgWaveformSlider::SetDefaultIntroOutroPositions(bool tempoIsBPM, double es
     }
 }
 
-#if 0
+// ================================================================
 void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     Q_UNUSED(t)
-
-    cachedWaveform = f;
-
-    // let's make a new pixmap to draw on
-    if (bgPixmap) {
-        delete bgPixmap; // let's throw away the old one before we make a new one
-    }
-
-#define WAVEFORMHEIGHT (59)
-
-    int waveformSliderWidth = fmin(myWidth-4, 784); // BUG: don't ask me why it can't do more...
-    int waveformSliderHeight = myHeight;
-
-    qDebug() << "DIMENSIONS: " << WAVEFORMWIDTH << waveformSliderWidth << waveformSliderHeight;
-
-//    bgPixmap = new QPixmap(WAVEFORMWIDTH-1, WAVEFORMHEIGHT); // TODO: get size from current size of widget
-    bgPixmap = new QPixmap(waveformSliderWidth, waveformSliderHeight);
-    QPainter *paint = new QPainter(bgPixmap);
-
-    bgPixmap->fill(QColor("#800000"));
-
-    paint->setPen(QColor("#00FF00"));
-    paint->drawLine(0,0,4,4); // 5 pixels
-    paint->drawLine(0,0,4,0); // 5 pixels
-    paint->drawLine(0,0,0,4); // 5 pixels
-
-//    paint->drawLine(WAVEFORMWIDTH-2,WAVEFORMHEIGHT-1,WAVEFORMWIDTH-2-4,WAVEFORMHEIGHT-1-4); // 5 pixels
-    paint->drawLine(waveformSliderWidth-1,waveformSliderHeight-1,waveformSliderWidth-1-14,waveformSliderHeight-1-14); // 5 pixels
-
-
-    // ------------
-    delete paint;
-    bg->setPixmap(*bgPixmap); // and load it!
-
-    bg->setPos(1,1);
-
-    leftLoopMarker->setVisible(false);
-    rightLoopMarker->setVisible(false);
-    leftLoopCover->setVisible(false);
-    rightLoopCover->setVisible(false);
-}
-#else
-void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
-    Q_UNUSED(t)
-    // paint some stuff on the existing (correctly-sized pixmap)
-//    qDebug() << "svgWaveformSlider::updateBgPixmap" << introPosition << outroPosition;
-
-//    for (int i = 0; i < WAVEFORMWIDTH; i++) {
-//        qDebug() << i << f[i];
-//    }
 
     // Normalization
     double normalizationScaleFactor = 1.0;
@@ -403,9 +310,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
         cachedWaveform = f;  // squirrel this away
     }
 
-//    int waveformSliderWidth = fmin(myWidth-4, 784); // BUG: don't ask me why it can't do more...
     int waveformSliderWidth = fmin(width()-4, 784); // BUG: don't ask me why it can't do more...
-//    int waveformSliderHeight = myHeight;
     int waveformSliderHeight = height();
 
 //    qDebug() << "DIMENSIONS: " << waveformSliderWidth << waveformSliderHeight;
@@ -415,7 +320,6 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
     bgPixmap->fill(QColor("#1A1A1A"));
 
-//    QColor colors[4] = { Qt::darkGray, QColor("#bf312c"), QColor("#24a494"), QColor("#5368c9")};
     QColor colors[4] = { QColor("#8868A1BB"), QColor("#88bf312c"), QColor("#8824a494"), QColor("#885368c9")};
     int colorMap[] = {1,2,3,1,2,3,1};
 
@@ -425,12 +329,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     paint->setPen(colors[0]);
     paint->drawLine(0,30,waveformSliderWidth,30);
 
-//    int introP = introPosition; // leftLoopMarker->x();
-//    int outroP = outroPosition; // rightLoopMarker->x();
-
     const double fullScaleInPixels = 25.0;
-
-//    qDebug() << "updateBgPixmap:" << introP << outroP;
 
     if (f != nullptr) { // f == nullptr means "no waveform at all"
 
@@ -448,18 +347,16 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
         }
 
         // show normal waveform ----
-        currentPos->setVisible(true);
-        leftLoopMarker->setVisible(true);
-        rightLoopMarker->setVisible(true);
-        leftLoopCover->setVisible(true);
-        rightLoopCover->setVisible(true);
+        if (currentPos != nullptr) currentPos->setVisible(true);
+        if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(true);
+        if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(true);
+        if (leftLoopCover != nullptr) leftLoopCover->setVisible(true);
+        if (rightLoopCover != nullptr) rightLoopCover->setVisible(true);
 
-        loadingMessage->setVisible(false);
+        if (loadingMessage != nullptr) loadingMessage->setVisible(false);
 
         if (singingCall) {
             // Singing call ---------------------
-    //        qDebug() << "it's a singing call...";
-
             int whichColor = 0;
             int currentWidth = width();
             float currentRatio = (float)WAVEFORMSAMPLES/(float)currentWidth;
@@ -495,12 +392,13 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
                 paint->drawLine(i,30.0 + h,i,30.0 - h);
             }
             // singing calls don't show the loop markers, because intro/outro in a singing call are not loop start/end
-            leftLoopMarker->setVisible(false);
-            rightLoopMarker->setVisible(false);
-            leftLoopCover->setVisible(false);
-            rightLoopCover->setVisible(false);
+            if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(false);
+            if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(false);
+            if (leftLoopCover != nullptr) leftLoopCover->setVisible(false);
+            if (rightLoopCover != nullptr) rightLoopCover->setVisible(false);
         } else {
             // Patter, etc. ----------------------
+//            qDebug() << "updateBgPixmap 9" << WAVEFORMSAMPLES << width() << normalizationScaleFactor << fullScaleInPixels << f;
 
             // TODO: actually calculate the power by each 1/481 of the duration in seconds (1 pixel at a time)
             //  by peeking at the actual data.
@@ -514,37 +412,26 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
         }
     } else {
         // show just bg, centerline, and loading message ----
-        currentPos->setVisible(false);
-        leftLoopMarker->setVisible(false);
-        rightLoopMarker->setVisible(false);
-        leftLoopCover->setVisible(false);
-        rightLoopCover->setVisible(false);
+        if (currentPos != nullptr) currentPos->setVisible(false);
+        if (leftLoopMarker != nullptr) leftLoopMarker->setVisible(false);
+        if (rightLoopMarker != nullptr) rightLoopMarker->setVisible(false);
+        if (leftLoopCover != nullptr) leftLoopCover->setVisible(false);
+        if (rightLoopCover != nullptr) rightLoopCover->setVisible(false);
 
-        loadingMessage->setVisible(true);
+        if (loadingMessage != nullptr) loadingMessage->setVisible(true);
     }
 
-//    delete paint;
     paint->end();
 
     // and load it
-    bg->setPixmap(*bgPixmap);
+    if (bg != nullptr) bg->setPixmap(*bgPixmap);
 
     setIntro(introFrac); // refresh the [
     setOutro(outroFrac); // refresh the ]
     setValue(value());   // refresh the |
 }
-#endif
 
 // ----------------------
-//void svgWaveformSlider::setBgFile(QString s) {
-//    m_bgFile = s;
-//    //        emit bgFileChanged(s);
-//}
-
-//QString svgWaveformSlider::getBgFile() const {
-//    return(m_bgFile);
-//}
-
 void svgWaveformSlider::setSingingCall(bool b) {
     //        qDebug() << "*** setSingingCall:" << b;
     singingCall = b;
@@ -573,21 +460,19 @@ void svgWaveformSlider::setIntro(double frac) {
     introFrac = frac;
 
     //        qDebug() << "*** setIntro:" << introPosition;
-    if (leftLoopMarker != nullptr && leftLoopMarker != nullptr) {
+    if (leftLoopMarker != nullptr && leftLoopCover != nullptr) {
         leftLoopMarker->setX(introPosition);
         leftLoopCover->setRect(0,0, introPosition,61);
     }
 }
 
 void svgWaveformSlider::setOutro(double frac) {
-//    outroPosition = frac * WAVEFORMWIDTH;
     outroPosition = frac * (width()-4);
     outroFrac = frac;
 
     //        qDebug() << "*** setOutro:" << outroPosition;
-    if (rightLoopMarker != nullptr && rightLoopMarker != nullptr) {
+    if (rightLoopMarker != nullptr && rightLoopCover != nullptr) {
         rightLoopMarker->setX(outroPosition - 3); // 3 is to compensate for the width of the green bracket
-//        rightLoopCover->setRect(outroPosition,0, WAVEFORMWIDTH-outroPosition,61);
         rightLoopCover->setRect(outroPosition,0, width()-4-outroPosition,61);
     }
 }
