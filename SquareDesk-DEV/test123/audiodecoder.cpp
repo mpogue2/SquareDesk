@@ -336,8 +336,11 @@ public:
     }
 
     double getPeakLevelR() { // ALWAYS CALL THIS FIRST, BECAUSE IT WILL NOT RESET THE PEAK DETECTOR
-        // m_resetPeakDetector = true;  // we've used it, so start a new accumulation
-        return(m_peakLevelR);           // for VU meter, calculated when music is playing in DSP
+        if (m_mono) {
+            return(m_peakLevelL_mono);           // if it's mono, R == L
+        } else {
+            return(m_peakLevelR);           // for VU meter, calculated when music is playing in DSP
+        }
     }
 
     void setLoop(double from_sec, double to_sec) {
