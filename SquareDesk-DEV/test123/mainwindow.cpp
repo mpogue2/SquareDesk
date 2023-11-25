@@ -2383,8 +2383,13 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 //    ui->seekBar->setMouseTracking(false);
 //    ui->seekBarCuesheet->setMouseTracking(false);
 
+
     if (darkmode) {
         ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
+//#define NOPLAYLISTMENU
+#ifdef NOPLAYLISTMENU
+        ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
+#endif
     }
 
     stopLongSongTableOperation("MainWindow");
