@@ -8052,10 +8052,12 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
         ui->actionPrint_Playlist->setEnabled(true);
 
-        if (currentTabName == "Music") {
-            ui->titleSearch->setFocus();
-        } else {
-            ui->darkSearch->setFocus();
+        if (cBass->isPaused()) {
+            if (!darkmode) {
+                ui->titleSearch->setFocus();
+            } else {
+                ui->darkSearch->setFocus();
+            }
         }
     } else if (currentTabName == CUESHEET_TAB_NAME) {
         // CUESHEET TAB -----------
