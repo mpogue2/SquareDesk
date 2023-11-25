@@ -183,6 +183,15 @@ void flexible_audio::SetEq(int band, double val)
     }
 }
 
+void flexible_audio::SetNormalizeTrackAudio(bool b)
+{
+    decoder.setNormalizeTrack(b);
+}
+
+double flexible_audio::GetWholeTrackPeak() {
+    return(decoder.getWholeTrackPeak());
+}
+
 // ------------------------------------------------------------------
 // which = (FREQ_KHZ, BW_OCT, GAIN_DB)
 void flexible_audio::SetIntelBoost(unsigned int which, float val)

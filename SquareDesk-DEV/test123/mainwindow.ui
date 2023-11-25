@@ -5263,6 +5263,7 @@
     <addaction name="menuSnap_Loop_Points"/>
     <addaction name="separator"/>
     <addaction name="actionForce_Mono_Aahz_mode"/>
+    <addaction name="actionNormalize_Track_Audio"/>
     <addaction name="actionAutostart_playback"/>
     <addaction name="separator"/>
     <addaction name="menuSound_FX"/>
@@ -7007,6 +7008,14 @@
   <action name="actionSwitch_to_Light_Mode">
    <property name="text">
     <string>Switch to Light Mode</string>
+   </property>
+  </action>
+  <action name="actionNormalize_Track_Audio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Normalize Track Audio</string>
    </property>
   </action>
  </widget>

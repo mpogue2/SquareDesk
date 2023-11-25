@@ -116,6 +116,9 @@ public:
     void SetTempo(int newTempo);  // 100 = normal, 95 = 5% slower than normal
     void SetEq(int band, double val);  // band = 0,1,2; val = -15.0 .. 15.0 (double ) nominal 0.0
 
+    void SetNormalizeTrackAudio(bool b);  // true to normalize peaks to 0.0dB (1.0)
+    double GetWholeTrackPeak();
+
     void SetIntelBoost(unsigned int which, float val);    // Global intelligibility boost parameters
     void SetIntelBoostEnabled(bool enable);               // Global intelligibility boost parameters
 

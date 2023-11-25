@@ -26,6 +26,8 @@ svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
 
     nowDestroying = false; // true when we're in the destructor, shutting everything down (don't want any paint events or updates)
 
+    wholeTrackPeak = 1.0; // disable waveform scaling by default
+
     // install the wheel/scroll eater --------
     this->installEventFilter(this);  // eventFilter() is called, where wheel/touchpad scroll events are eaten
 
@@ -384,6 +386,14 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 //        qDebug() << i << f[i];
 //    }
 
+    // Normalization
+    double normalizationScaleFactor = 1.0;
+    if (wholeTrackPeak > 0.1) {
+        normalizationScaleFactor = 1.0/wholeTrackPeak; // 1.0 = disabled, else > 1.0
+    }
+
+    // qDebug() << "normalizationScaleFactor:" << normalizationScaleFactor;
+
     // let's make a new pixmap to draw on
     if (bgPixmap) {
         delete bgPixmap; // let's throw away the old one before we make a new one
@@ -429,7 +439,9 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
             if (cachedWaveform == nullptr) {
                 // BUT, if we don't have a cachedWaveform yet, just return
                 paint->end();
-                bg->setPixmap(*bgPixmap);
+                if (bg != nullptr) {
+                    bg->setPixmap(*bgPixmap);
+                }
                 return;
             }
             f = cachedWaveform;
@@ -478,7 +490,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
                 int baseI = (int)(i*currentRatio); // truncates downward
                 int baseIminus1 = (baseI >= 1 ? baseI - 1 : baseI);
                 int baseIplus1  = (baseI <= WAVEFORMSAMPLES - 2 ? baseI + 1 : baseI);
-                float h = fullScaleInPixels * (0.25 * f[baseIminus1] + 0.5 * f[baseI] + 0.25 * f[baseIplus1]); // simple 3-point gaussian
+                float h = normalizationScaleFactor * fullScaleInPixels * (0.25 * f[baseIminus1] + 0.5 * f[baseI] + 0.25 * f[baseIplus1]); // simple 3-point gaussian
 
                 paint->drawLine(i,30.0 + h,i,30.0 - h);
             }
@@ -496,7 +508,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
 
             float currentRatio = (float)WAVEFORMSAMPLES/(float)width();
             for (int i = 0; i < width(); i++) {
-                h = fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
+                h = normalizationScaleFactor * fullScaleInPixels * f[(int)(i * currentRatio)];  // truncates downward
                 paint->drawLine(i,30.0 + h,i,30.0 - h);
             }
         }
@@ -586,4 +598,9 @@ double svgWaveformSlider::getIntro() {
 
 double svgWaveformSlider::getOutro() {
     return(outroPosition);
+}
+
+void svgWaveformSlider::setWholeTrackPeak(double p) {
+    // qDebug() << "wholeTrackPeak is now:" << p;
+    wholeTrackPeak = p;
 }

@@ -89,6 +89,8 @@ CONFIG_ATTRIBUTE_BOOLEAN(useTimeRemainingCheckbox,useTimeRemaining, false)
 
 //CONFIG_ATTRIBUTE_BOOLEAN(enableFlashCallsCheckbox,enableFlashCalls, false)
 
+CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(normalizeTrackAudio, false);
+
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(autostartplayback, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(forcemono, false);
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(startplaybackoncountdowntimer, false)

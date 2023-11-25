@@ -50,6 +50,9 @@ public:
     void setValue(int value);
     void setFloatValue(float f);
 
+    // NORMALIZATION ----
+    void setWholeTrackPeak(double p);
+
     void finishInit();
 
     void updateBgPixmap(float *f, size_t t);
@@ -107,6 +110,8 @@ private:
 
     double introFrac;
     double outroFrac;
+
+    double wholeTrackPeak;
 
     int origin;  // reset to this point when double-clicked
 

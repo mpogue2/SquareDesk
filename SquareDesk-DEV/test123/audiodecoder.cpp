@@ -385,6 +385,16 @@ public:
         updateEQ();
     }
 
+    void setTrackPeak(double t) {
+        // qDebug() << "new TRACK PEAK value: " << t;
+        trackPeak = t;
+    }
+
+    void setNormalizeTrack(bool b) {
+        // qDebug() << "new NORMALIZE TRACK value: " << b;
+        normalizeTrack = b;
+    }
+
     void SetIntelBoost(unsigned int which, float val) {
 //        qDebug() << "INTEL BOOST: (" << which << ", " << val << ")";
 
@@ -464,6 +474,15 @@ public:
 #endif
         // qDebug() << "KL/R: " << m_pan << KL << KR;
         float scaleFactor;  // volume and mono scaling
+        float currentNormalizeFactor = 1.0;
+
+        if (normalizeTrack && trackPeak > 0.1) {
+            // if user told us to normalize, AND the track peak is > 0.1, then bump up the scaleFactor
+            //  the 0.1 is protection against divide-by-zero and trying to normalize tracks that
+            //  consist of silence (or near-silence).  In those cases, there's probably something else gone wrong.
+            currentNormalizeFactor = (1.0 / trackPeak);
+            // qDebug() << "currentNormalizeFactor:" << trackPeak << currentNormalizeFactor;
+        }
 
         // EQ -----------
         // if the EQ has changed, make a new filter, but do it here only, just before it's used,
@@ -488,7 +507,8 @@ public:
         float thePeakLevelR = 0.0;
         if (m_mono) {
             // Force Mono is ENABLED
-            scaleFactor = currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
+            scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0 * 2.0);  // divide by 2, to avoid overflow; fade factor goes from 1.0 -> 0.0
+
 //    qDebug() << "scaleFactor: " << scaleFactor;
             for (int i = 0; i < (int)scaled_inLength_frames; i++) {
                 // output data is MONO (de-interleaved)
@@ -518,7 +538,7 @@ public:
             }
         } else {
             // stereo (Force Mono is DISABLED)
-            scaleFactor = currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
+            scaleFactor = currentNormalizeFactor * currentPanEQFactor * currentDuckingFactor * currentFadeFactor * m_volume / (100.0);
             // qDebug() << "scaleFactor:" << scaleFactor;
             for (unsigned int i = 0; i < scaled_inLength_frames; i++) {
                 // output data is de-interleaved into first and second half of outDataFloat buffer
@@ -614,6 +634,9 @@ public:
 
     bool EQdisabled; // true if bassBoost/midBoost/trebleBoost are all at zero
 
+    double trackPeak = 0.0; // always calculated
+    bool normalizeTrack = false; // true if user preference said to normalize (based on PEAK)
+
     // INTELLIGIBILITY BOOST ----------
     float intelligibilityBoost_fKHz = 1.6;
     float intelligibilityBoost_widthOctaves = 2.0;
@@ -692,6 +715,8 @@ AudioDecoder::AudioDecoder()
 
     myPlayer.start();  // starts the playback thread (in STOPPED mode)
     myPlayer.setPriority(QThread::TimeCriticalPriority);  // this stops audio dropouts on older X86 macbook when screensaver kicks in
+
+    wholeTrackPeak = 0.0;
 }
 
 AudioDecoder::~AudioDecoder()
@@ -1023,6 +1048,14 @@ void AudioDecoder::setMidBoost(float m) {
 
 void AudioDecoder::setTrebleBoost(float t) {
     myPlayer.setTrebleBoost(t);
+}
+
+void AudioDecoder::setNormalizeTrack(bool b) {
+    myPlayer.setNormalizeTrack(b);
+}
+
+double AudioDecoder::getWholeTrackPeak() {
+    return(wholeTrackPeak);
 }
 
 void AudioDecoder::SetIntelBoost(unsigned int which, float val) {
@@ -1418,7 +1451,10 @@ void AudioDecoder::updateWaveformMap()
     int framesInCurrentPixel = 0;
     float Laccum = 0.0;
     float Raccum = 0.0;
-    float result = 0.0;
+    float result = 0.0; // peak for this audio segment
+
+    float wholeSongPeak = 0.0; // peak for the whole song
+
     for (int i = 0; i < totalFramesInSong; i++) {
         float L = songPointer[2*i + 0];
         float R = songPointer[2*i + 1];
@@ -1431,10 +1467,15 @@ void AudioDecoder::updateWaveformMap()
         framesInCurrentPixel++;
         if (framesInCurrentPixel >= framesPerWaveformPixel) {
             waveformMap.push_back(result);
+            wholeSongPeak = max(wholeSongPeak, result);
             Laccum = Raccum = 0.0;
             framesInCurrentPixel = 0;
         }
     }
+
+    // qDebug() << "wholeSongPeak:" << wholeSongPeak;
+    myPlayer.setTrackPeak(wholeSongPeak);
+    wholeTrackPeak = wholeSongPeak;
 
 //    qDebug() << "waveformMap: " << waveformMap;
 }

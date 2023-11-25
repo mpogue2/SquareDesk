@@ -854,6 +854,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     // -------
     on_monoButton_toggled(prefsManager.Getforcemono());
+    on_actionNormalize_Track_Audio_toggled(prefsManager.GetnormalizeTrackAudio());
 
     on_actionRecent_toggled(prefsManager.GetshowRecentColumn());
     on_actionAge_toggled(prefsManager.GetshowAgeColumn());
@@ -5196,6 +5197,8 @@ void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString son
 
     songLoaded = false;  // seekBar updates are disabled, while we are loading
 
+    ui->darkSeekBar->setWholeTrackPeak(1.0); // disable waveform scaling until after we know scale
+
     filewatcherIsTemporarilyDisabled = true;  // disable the FileWatcher for a few seconds to workaround the Ventura extended attribute problem
     fileWatcherDisabledTimer->start(std::chrono::milliseconds(5000)); // re-enable the FileWatcher after 5s
 //    qDebug() << "***** filewatcher is disabled for 5 seconds!";
@@ -5467,7 +5470,13 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
 //    qDebug() << "end of second half of load...";
 #ifdef DARKMODE
 //    ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMWIDTH);
-//    qDebug() << "updateBgPixmap called from secondHalfOfLoad";
+    // qDebug() << "updateBgPixmap called from secondHalfOfLoad";
+    if (ui->actionNormalize_Track_Audio->isChecked()) {
+        ui->darkSeekBar->setWholeTrackPeak(cBass->GetWholeTrackPeak()); // scale the waveform
+    } else {
+        ui->darkSeekBar->setWholeTrackPeak(1.0); // don't scale the waveform
+    }
+    // qDebug() << "now updating BgPixmap";
     ui->darkSeekBar->updateBgPixmap(waveform, WAVEFORMSAMPLES);
 #endif
     // ------------------
@@ -10757,5 +10766,27 @@ void MainWindow::on_actionSwitch_to_Light_Mode_triggered()
 
     // now restart the app
     qApp->exit(RESTART_SQUAREDESK); // special exit code understood by main.cpp
+}
+
+
+void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
+{
+    if (checked) {
+        ui->actionNormalize_Track_Audio->setChecked(true);
+        cBass->SetNormalizeTrackAudio(true);
+        ui->darkSeekBar->setWholeTrackPeak(cBass->GetWholeTrackPeak()); // scale the waveform
+    }
+    else {
+        ui->actionNormalize_Track_Audio->setChecked(false);
+        cBass->SetNormalizeTrackAudio(false);
+        ui->darkSeekBar->setWholeTrackPeak(1.0); // disables waveform scaling
+    }
+
+    // the Normalize Track Audio setting is persistent across restarts of the application
+    prefsManager.SetnormalizeTrackAudio(ui->actionNormalize_Track_Audio->isChecked());
+
+    if (cBass->GetWholeTrackPeak() != 1.0) {
+        ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
+    }
 }
 

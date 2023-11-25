@@ -806,6 +806,8 @@ private slots:
 
     void on_actionSwitch_to_Light_Mode_triggered();
 
+    void on_actionNormalize_Track_Audio_toggled(bool arg1);
+
 public:
     void on_threadSD_errorString(QString str);
     void on_sd_set_window_title(QString str);

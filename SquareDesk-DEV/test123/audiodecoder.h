@@ -149,6 +149,9 @@ public:
     void setMidBoost(float m);
     void setTrebleBoost(float t);
 
+    void setNormalizeTrack(bool b); // true if we want to normalize highest peak in song to 1.0
+    double getWholeTrackPeak(); // returns current peak value
+
     void SetIntelBoost(unsigned int which, float val);
     void SetIntelBoostEnabled(bool enable);
 
@@ -220,6 +223,8 @@ private:
     QProcess vamp;
     QString WAVfilename;        // these are in the temp directory, and when done, need to be deleted
     QString resultsFilename;
+
+    double wholeTrackPeak;
 
     PerfTimer *t;
 };
