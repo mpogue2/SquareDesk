@@ -173,14 +173,16 @@ void svgVUmeter::updateMeter() {
     double limitR = bottom - valueR * (bottom - top);
 
     if (fabs(limitL - oldLimitL) > 1.0) {
-        greenBarL->setLine(0.3*vuMeterX,vuMeterY-7, 0.3*vuMeterX,fmin(limitL,vuMeterY-7));
+        // greenBarL->setLine(0.3*vuMeterX,vuMeterY-7, 0.3*vuMeterX,fmin(limitL,vuMeterY-7));
+        greenBarL->setLine(0.3*vuMeterX,vuMeterY-7, 0.3*vuMeterX,fmin(fmax(limitL, vuMeterY*0.1),vuMeterY-7));
         yellowBarL->setLine(0.3*vuMeterX,vuMeterY*0.288, 0.3*vuMeterX,fmin(fmax(limitL, vuMeterY*0.19),vuMeterY*0.288));
         redBarL->setLine(0.3*vuMeterX,vuMeterY*0.18, 0.3*vuMeterX,fmin(fmax(limitL,vuMeterY*0.08),vuMeterY*0.18));
         oldLimitL = limitL;
     }
 
     if (fabs(limitR - oldLimitR) > 1.0) {
-        greenBarR->setLine(0.7*vuMeterX,vuMeterY-7,0.7*vuMeterX,fmin(limitR,vuMeterY-7));
+        // greenBarR->setLine(0.7*vuMeterX,vuMeterY-7,0.7*vuMeterX,fmin(limitR,vuMeterY-7));
+        greenBarR->setLine(0.7*vuMeterX,vuMeterY-7,0.7*vuMeterX,fmin(fmax(limitR, vuMeterY*0.1),vuMeterY-7));
         yellowBarR->setLine(0.7*vuMeterX,vuMeterY*0.288,0.7*vuMeterX,fmin(fmax(limitR, vuMeterY*0.19),vuMeterY*0.288));
         redBarR->setLine(0.7*vuMeterX,vuMeterY*0.18,0.7*vuMeterX,fmin(fmax(limitR,vuMeterY*0.08),vuMeterY*0.18));
         oldLimitR = limitR;

@@ -4262,6 +4262,8 @@ void MainWindow::on_vuMeterTimerTick(void)
     int levelR      = cBass->StreamGetVuMeterR();        // do not reset peak detector
     int levelL_mono = cBass->StreamGetVuMeterL_mono();   // get AND reset peak detector
 
+    levelL_mono = 32768.0; // DEBUG DEBUG DEBUG
+
     double levelL_monof = (currentVolumeSlider/100.0)*levelL_mono/32768.0;
     double levelRf      = (currentVolumeSlider/100.0)*levelR/32768.0;
 
@@ -4272,6 +4274,7 @@ void MainWindow::on_vuMeterTimerTick(void)
     if (currentTabName == "Music") {
         if (darkmode) {
             ui->darkVUmeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
+            // qDebug() << "levels: " << levelL_monof << currentVolumeSlider/100.0 << levelRf;
         } else {
             vuMeter->levelChanged(levelL_monof, levelRf, isMono);  // 10X/sec, update the vuMeter
         }
