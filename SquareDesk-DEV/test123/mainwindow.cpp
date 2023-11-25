@@ -2387,7 +2387,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
     if (darkmode) {
         ui->seekBarCuesheet->setFusionMode(true); // allow click-to-move-there
-//#define NOPLAYLISTMENU
+#define NOPLAYLISTMENU
 #ifdef NOPLAYLISTMENU
         ui->menuPlaylist->menuAction()->setVisible(false); // Menu Bar > Playlist not relevant in Dark Mode
 #endif
