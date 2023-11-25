@@ -1762,6 +1762,10 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
         //  qDebug() << "PLAYLIST: Setting relPath[" << slotNumber << "] to: " << relPathInSlot[slotNumber];
 
         addFilenameToRecentPlaylist(PlaylistFileName); // remember it in the Recents menu, full absolute pathname
+
+        // qDebug() << "setting focus item to item 0 in slot" << slotNumber;
+        theTableWidget->setCurrentItem(theTableWidget->item(0,0)); // select first item
+        theTableWidget->setFocus();
     }
     else {
         // file didn't open...
@@ -1886,6 +1890,8 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
         on_playButton_clicked();
     }
 
+    ui->playlist1Table->setFocus();
+
     t.elapsed(__LINE__);
 }
 
@@ -2006,6 +2012,8 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
         on_playButton_clicked();
     }
 
+    ui->playlist2Table->setFocus();
+
     t.elapsed(__LINE__);
 }
 
@@ -2123,6 +2131,8 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
     if (ui->actionAutostart_playback->isChecked()) {
         on_playButton_clicked();
     }
+
+    ui->playlist3Table->setFocus();
 
     t.elapsed(__LINE__);
 }

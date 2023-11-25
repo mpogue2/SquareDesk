@@ -9857,8 +9857,10 @@ void MainWindow::on_treeWidget_itemSelectionChanged()
 //            qDebug() << "CHILD ITEM:" << thisItem->text(0);
             if (maybeParentsItem != nullptr && maybeParentsItem->text(0) == "Tracks") {
                 ui->darkSearch->setText(thisItem->text(0) + "::"); // just show tracks with the selected item as Type
+                ui->darkSongTable->setFocus();
             } else {
                 ui->darkSearch->setText(""); // clear the search, if a playlist is clicked on (TODO: FOR NOW)
+                ui->treeWidget->setFocus();  // focus remains in the TreeWidget so arrows work (FIX: DOES NOT WORK)
             }
         }
     } else {
