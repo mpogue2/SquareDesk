@@ -791,7 +791,15 @@ void SongSettings::getSongAges(QHash<QString,QString> &ages, bool show_all_sessi
 
 QString SongSettings::getSongAge(const QString &filename, const QString &filenameWithPath, bool show_all_sessions)
 {
+    Q_UNUSED(filename)
+    Q_UNUSED(filenameWithPath)
+    Q_UNUSED(show_all_sessions)
+
+    return(QString("999")); // I don't think the return value is actually used anywhere nowadays, so let's avoid making 2 sqlite queries per songTable entry
+                            // Using "999" in case this shows up somewhere.  (So far, I don't see any...)
+#if 0
     QString filenameWithPathNormalized = removeRootDirs(filenameWithPath);
+    // qDebug() << "getSongAge" << filename << filenameWithPath << show_all_sessions << filenameWithPathNormalized;
     QString sql = "SELECT julianday('now') - julianday(played_on) FROM song_plays JOIN songs ON songs.rowid = song_plays.song_rowid WHERE ";
     if (!show_all_sessions)
     {
@@ -828,10 +836,13 @@ QString SongSettings::getSongAge(const QString &filename, const QString &filenam
 //            int age = q.value(0).toInt();
 //            QString str(QString("%1").arg(age, 3));
             QString str = q.value(0).toString();  // leave it as a float string
+            // qDebug() << "found it 2" << str;
             return str;
         }
     }
+    // qDebug() << "    nope. did not find it 3";
     return QString("");
+#endif
 }
 
 

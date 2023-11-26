@@ -134,7 +134,7 @@ CONFIG_ATTRIBUTE_STRING_NO_PREFS(default_flashcards_file, "");
 CONFIG_ATTRIBUTE_STRING_NO_PREFS(snap, "measure"); // three values: disabled, beat, measure
 
 CONFIG_ATTRIBUTE_BOOLEAN_NO_PREFS(showSongTags, true);
-CONFIG_ATTRIBUTE_STRING_NO_PREFS(recentFenceDateTime, "2018-01-01T00:00:00Z"); // songs played earlier than this date are not "recently played", ISO8601
+CONFIG_ATTRIBUTE_STRING_NO_PREFS(recentFenceDateTime, "2023-01-01T00:00:00Z"); // songs played earlier than this date are not "recently played", ISO8601
 
 CONFIG_ATTRIBUTE_COLOR(pushButtonTagsBackgroundColor,  tagsBackgroundColorString,  DEFAULTTAGSBACKGROUNDCOLOR)
 CONFIG_ATTRIBUTE_COLOR(pushButtonTagsForegroundColor,  tagsForegroundColorString,  DEFAULTTAGSFOREGROUNDCOLOR)

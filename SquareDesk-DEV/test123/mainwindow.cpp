@@ -406,6 +406,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     recentFenceDateTime = QDateTime::fromString(prefsManager.GetrecentFenceDateTime(),
                                                           "yyyy-MM-dd'T'hh:mm:ss'Z'");
     recentFenceDateTime.setTimeSpec(Qt::UTC);  // set timezone (all times are UTC)
+    // qDebug() << "recent fence time (definition of 'recent'): " << recentFenceDateTime;
 
     t.elapsed(__LINE__);
 
@@ -457,7 +458,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->songTable->setColumnWidth(kLabelCol,80);
 //  kTitleCol is always expandable, so don't set width here
     ui->songTable->setColumnWidth(kRecentCol, 70);
-    ui->songTable->setColumnWidth(kAgeCol, 36);
+    ui->songTable->setColumnWidth(kAgeCol, 60);
     ui->songTable->setColumnWidth(kPitchCol,60);
     ui->songTable->setColumnWidth(kTempoCol,60);
 
@@ -470,7 +471,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     //  TODO: kTitleCol should be always expandable, so don't set width here
 
     ui->darkSongTable->setColumnWidth(kRecentCol, 70);
-    ui->darkSongTable->setColumnWidth(kAgeCol, 36);
+    ui->darkSongTable->setColumnWidth(kAgeCol, 60);
     ui->darkSongTable->setColumnWidth(kPitchCol,60);
     ui->darkSongTable->setColumnWidth(kTempoCol,60);
 #endif
@@ -2496,26 +2497,47 @@ QString MainWindow::ageToRecent(QString ageInDaysFloatString) {
 // SONGTABLEREFACTOR
 void MainWindow::reloadSongAges(bool show_all_ages)  // also reloads Recent columns entries
 {
+    // qDebug() << "================ reloadSongAges" << show_all_ages;
     PerfTimer t("reloadSongAges", __LINE__);
     QHash<QString,QString> ages;
     songSettings.getSongAges(ages, show_all_ages);
 
-    ui->songTable->setSortingEnabled(false);
-    ui->songTable->hide();
+    if (darkmode) {
+        ui->darkSongTable->setSortingEnabled(false);
+        ui->darkSongTable->hide();
+    } else {
+        ui->songTable->setSortingEnabled(false);
+        ui->songTable->hide();
+    }
 
     for (int i=0; i<ui->songTable->rowCount(); i++) {
         QString origPath = ui->songTable->item(i,kPathCol)->data(Qt::UserRole).toString();
         QString path = songSettings.removeRootDirs(origPath);
         QHash<QString,QString>::const_iterator age = ages.constFind(path);
+        // qDebug() << "reloadSongAges age.value()" << (age == ages.constEnd() ? "" : ageToIntString(age.value()));
 
-        ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
-        ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
+        if (darkmode) {
+            ui->darkSongTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
+            ui->darkSongTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-        ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : ageToRecent(age.value()));
-        ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
+            ui->darkSongTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : ageToRecent(age.value()));
+            ui->darkSongTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
+        } else {
+            ui->songTable->item(i,kAgeCol)->setText(age == ages.constEnd() ? "" : ageToIntString(age.value()));
+            ui->songTable->item(i,kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+            ui->songTable->item(i,kRecentCol)->setText(age == ages.constEnd() ? "" : ageToRecent(age.value()));
+            ui->songTable->item(i,kRecentCol)->setTextAlignment(Qt::AlignCenter);
+        }
     }
-    ui->songTable->show();
-    ui->songTable->setSortingEnabled(true);
+
+    if (darkmode) {
+        ui->darkSongTable->show();
+        ui->darkSongTable->setSortingEnabled(true);
+    } else {
+        ui->songTable->show();
+        ui->songTable->setSortingEnabled(true);
+    }
 }
 
 void MainWindow::setCurrentSessionIdReloadSongAges(int id)
@@ -3118,14 +3140,27 @@ void MainWindow::on_playButton_clicked()
                 ui->songTable->setSortingEnabled(false);
 
 // SONGTABLEREFACTOR
-                int row = getSelectionRowForFilename(currentMP3filenameWithPath);
+                int row;
+                if (darkmode) {
+                    row = darkGetSelectionRowForFilename(currentMP3filenameWithPath);
+                } else {
+                    row = getSelectionRowForFilename(currentMP3filenameWithPath);
+                }
                 if (row != -1)
                 {
-                    ui->songTable->item(row, kAgeCol)->setText("0");
-                    ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+                    if (darkmode) {
+                        ui->darkSongTable->item(row, kAgeCol)->setText("0");
+                        ui->darkSongTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
 
-                    ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
-                    ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                        ui->darkSongTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                        ui->darkSongTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                    } else {
+                        ui->songTable->item(row, kAgeCol)->setText("0");
+                        ui->songTable->item(row, kAgeCol)->setTextAlignment(Qt::AlignCenter);
+
+                        ui->songTable->item(row, kRecentCol)->setText(ageToRecent("0"));
+                        ui->songTable->item(row, kRecentCol)->setTextAlignment(Qt::AlignCenter);
+                    }
                 }
             }
 
@@ -6190,7 +6225,7 @@ void MainWindow::loadMusicList()
                                                     show_all_ages);
 
         QString ageAsIntString = ageToIntString(ageString);
-
+        // qDebug() << "***** loadMusicList:" << ageString << ageAsIntString;
         addStringToLastRowOfSongTable(textCol, ui->songTable, ageAsIntString, kAgeCol);
         QString recentString = ageToRecent(ageString);  // passed as double string
         addStringToLastRowOfSongTable(textCol, ui->songTable, recentString, kRecentCol);
@@ -6406,10 +6441,11 @@ void MainWindow::darkLoadMusicList()
         // AGE FIELD -----
         QString ageString = songSettings.getSongAge(fi.completeBaseName(), origPath, show_all_ages);
         QString ageAsIntString = ageToIntString(ageString);
-        QTableWidgetItem *twi4 = new QTableWidgetItem(ageAsIntString);
+        QTableWidgetItem *twi4 = new TableNumberItem(ageAsIntString); // TableNumberItem so it's numerically sortable
         twi4->setForeground(textBrush);
         twi4->setTextAlignment(Qt::AlignHCenter);
         twi4->setFlags(twi4->flags() & ~Qt::ItemIsEditable);      // not editable
+        // qDebug() << "TITLE/AGE:" << title << ageString << ageAsIntString;
         ui->darkSongTable->setItem(i, kAgeCol, twi4);
 
         // RECENT FIELD (must come after AGE field, because it uses age to determine recent string) -----
