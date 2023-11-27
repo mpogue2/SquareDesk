@@ -728,6 +728,13 @@ AudioDecoder::~AudioDecoder()
         myPlayer.Stop();
     }
     myPlayer.quit();
+
+    if (m_data) {
+        delete m_data;
+    }
+    if (m_input) {
+        delete m_input;
+    }
 }
 
 void AudioDecoder::newSystemAudioOutputDevice() {

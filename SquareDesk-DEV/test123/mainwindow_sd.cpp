@@ -95,7 +95,7 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
     QGraphicsItem *girlItem = dynamic_cast<QGraphicsItem*>(sdscene.addEllipse(rect, pen, coupleColorBrushes[number]));
 
 // HEXAGON style:
-    QGraphicsPolygonItem *hex = new QGraphicsPolygonItem();
+    // QGraphicsPolygonItem *hex = new QGraphicsPolygonItem();
     QPolygonF hexagon;
     qreal side = rectSize/2;
     qreal dx = qSqrt(3)/2 * side;
@@ -106,8 +106,8 @@ static QGraphicsItemGroup *generateDancer(QGraphicsScene &sdscene, SDDancer &dan
         << QPointF(-dx, side/2)
         << QPointF(0, side)
         << QPointF(dx, side/2);
-    hex->setPolygon(hexagon);
-    hex->setPen(pen);
+    // hex->setPolygon(hexagon);
+    // hex->setPen(pen);
     QGraphicsItem *hexItem = dynamic_cast<QGraphicsItem*>(sdscene.addPolygon(hexagon, pen, coupleColorBrushes[number]));
 
     boyItem->setVisible(boy);

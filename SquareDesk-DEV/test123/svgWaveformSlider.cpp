@@ -338,6 +338,8 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
             if (cachedWaveform == nullptr) {
                 // BUT, if we don't have a cachedWaveform yet, just return
                 paint->end();
+                delete paint;
+
                 if (bg != nullptr) {
                     bg->setPixmap(*bgPixmap);
                 }
@@ -422,6 +424,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     }
 
     paint->end();
+    delete paint;
 
     // and load it
     if (bg != nullptr) bg->setPixmap(*bgPixmap);

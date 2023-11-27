@@ -2928,6 +2928,27 @@ MainWindow::~MainWindow()
         airplaneMode(false);
     }
 
+    if (pathStack) {
+        delete pathStack;
+    }
+
+    delete darkStopIcon;
+    delete darkPlayIcon;
+    delete darkPauseIcon;
+
+    if (fileWatcherTimer) {
+        fileWatcherTimer->stop();
+        delete fileWatcherTimer;
+    }
+    if (fileWatcherDisabledTimer) {
+        fileWatcherDisabledTimer->stop();
+        delete fileWatcherDisabledTimer;
+    }
+    if (playlistSlotWatcherTimer) {
+        playlistSlotWatcherTimer->stop();
+        delete playlistSlotWatcherTimer;
+    }
+
     delete[] danceProgramActions;
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;
