@@ -2949,6 +2949,8 @@ MainWindow::~MainWindow()
         delete playlistSlotWatcherTimer;
     }
 
+    if (waveform) { delete waveform; }
+
     delete[] danceProgramActions;
     delete sessionActionGroup;
     delete sdActionGroupDanceProgram;

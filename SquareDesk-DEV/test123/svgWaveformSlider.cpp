@@ -38,6 +38,16 @@ svgWaveformSlider::svgWaveformSlider(QWidget *parent) :
 
 svgWaveformSlider::~svgWaveformSlider()
 {
+    if (bgPixmap)       delete bgPixmap;
+    if (bg)             delete bg;
+    if (loadingMessage) delete loadingMessage;
+    if (currentPos)     delete currentPos;
+    if (leftLoopMarker) delete leftLoopMarker;
+    if (rightLoopMarker) delete rightLoopMarker;
+    if (leftLoopCover)  delete leftLoopCover;
+    if (rightLoopCover) delete rightLoopCover;
+
+    if (cachedWaveform) delete cachedWaveform;
 }
 
 // ------------------------------------
