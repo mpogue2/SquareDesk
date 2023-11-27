@@ -24,6 +24,7 @@
 ****************************************************************************/
 
 #include "macUtils.h"
+
 //#import <AppKit/AppKit.h>
 
 // https://forum.qt.io/topic/38504/solved-qdialog-in-fullscreen-disable-os-screensaver/27
@@ -50,3 +51,33 @@ void MacUtils::disableWindowTabbing() {
 //        NSWindow.allowsAutomaticWindowTabbing = NO;
 //    }
 }
+
+// This code doesn't work right now, but I'm leaving it here for somebody smarter than me to figure out why...
+// #define THISCODEWORKS
+#ifdef THISCODEWORKS
+// ---------------------------
+// sample code from: https://github.com/owncloud/client/commit/4041ff7ebe17b25a242b1d1ff410743f97133bb1
+
+#include "QtCore/qtpreprocessorsupport.h" // for Q_UNUSED
+
+#import <AppKit/NSApplication.h>
+
+@interface OwnAppDelegate : NSObject <NSApplicationDelegate>
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app;
+@end
+
+@implementation OwnAppDelegate {
+}
+
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app
+{
+    Q_UNUSED(app)
+
+    printf("******** YES YES YES ***********");  // proof of execution
+
+    // We do not use `NSCoder` classes (nor does Qt), nor override the `initWithCoder` method, so we are fine with SecureCoding.
+    return YES;
+}
+
+@end
+#endif
