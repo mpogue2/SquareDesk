@@ -2007,6 +2007,8 @@ void MainWindow::submit_lineEditSDInput_contents_to_sd(QString s, int firstCall)
 
     cmd.replace("1/2 square thru", "square thru 2"); // must be first for "1/2 square thru"
 
+    cmd.replace("scootback", "scoot back");
+
     // handle "square thru" -> "square thru 4"
     //  and "heads square thru" --> "heads square thru 4"
     //  and "sides..."
