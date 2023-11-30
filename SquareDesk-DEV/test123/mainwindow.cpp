@@ -4775,6 +4775,8 @@ bool GlobalEventFilter::eventFilter(QObject *Object, QEvent *Event)
                 switch (theKey) {
                     case Qt::Key_Up:        maybeMainWindow->PlaylistItemMoveUp();           return true; break;
                     case Qt::Key_Down:      maybeMainWindow->PlaylistItemMoveDown();         return true; break;
+                    case Qt::Key_Left:      maybeMainWindow->PlaylistItemToTop();            return true; break;
+                    case Qt::Key_Right:     maybeMainWindow->PlaylistItemToBottom();         return true; break;
                     case Qt::Key_Backspace: maybeMainWindow->PlaylistItemRemove();           return true; break;
 #ifdef DARKMODE
                     case Qt::Key_1:         maybeMainWindow->darkAddPlaylistItemToBottom(0); return true; break;
@@ -5083,10 +5085,12 @@ bool MainWindow::handleKeypress(int key, QString text)
                     ui->playlist1Table->moveSelectionUp();  // if this slot doesn't have anything selected, this call will be ignored.
                     ui->playlist2Table->moveSelectionUp();  // if this slot doesn't have anything selected, this call will be ignored.
                     ui->playlist3Table->moveSelectionUp();  // if this slot doesn't have anything selected, this call will be ignored.
-                } else {
+                } else if (key == Qt::Key_Down){
                     ui->playlist1Table->moveSelectionDown();  // if this slot doesn't have anything selected, this call will be ignored.
                     ui->playlist2Table->moveSelectionDown();  // if this slot doesn't have anything selected, this call will be ignored.
                     ui->playlist3Table->moveSelectionDown();  // if this slot doesn't have anything selected, this call will be ignored.
+                } else {
+                    // nothing
                 }
             }
 #endif
