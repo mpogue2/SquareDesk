@@ -47,7 +47,7 @@ svgWaveformSlider::~svgWaveformSlider()
     if (leftLoopCover)  delete leftLoopCover;
     if (rightLoopCover) delete rightLoopCover;
 
-    if (cachedWaveform) delete cachedWaveform;
+    // if (cachedWaveform) delete cachedWaveform; // NO, DO NOT DELETE THIS.  The float* is owned by the mainWindow, we just have a copy of the pointer.
 }
 
 // ------------------------------------
@@ -317,7 +317,7 @@ void svgWaveformSlider::updateBgPixmap(float *f, size_t t) {
     }
 
     if (f != nullptr && f != (float*)1) {
-        cachedWaveform = f;  // squirrel this away
+        cachedWaveform = f;  // squirrel this away (but we don't own it, so do NOT delete it in the destructor!)
     }
 
     int waveformSliderWidth = fmin(width()-4, 784); // BUG: don't ask me why it can't do more...

@@ -2959,7 +2959,9 @@ MainWindow::~MainWindow()
         delete playlistSlotWatcherTimer;
     }
 
-    if (waveform) { delete waveform; }
+    if (waveform) { delete waveform;
+                    waveform = nullptr;
+    }
 
     delete[] danceProgramActions;
     delete sessionActionGroup;
