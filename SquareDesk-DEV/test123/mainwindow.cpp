@@ -10405,13 +10405,13 @@ void MainWindow::on_playlist3Table_itemSelectionChanged()
 void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
     Q_UNUSED(pos)
 
-    QMenu *twMenu = new QMenu();
-
     QTreeWidgetItem *treeItem = ui->treeWidget->itemAt(pos);
 
     if (treeItem == nullptr) {
         return; // if you didn't click on an item, fuggedabout it
     }
+
+    QMenu *twMenu = new QMenu();
 
     QString fullPathToLeaf = treeItem->text(0);
     while (treeItem->parent() != NULL)
