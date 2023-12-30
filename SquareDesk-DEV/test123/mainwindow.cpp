@@ -10409,6 +10409,10 @@ void MainWindow::customTreeWidgetMenuRequested(QPoint pos) {
 
     QTreeWidgetItem *treeItem = ui->treeWidget->itemAt(pos);
 
+    if (treeItem == nullptr) {
+        return; // if you didn't click on an item, fuggedabout it
+    }
+
     QString fullPathToLeaf = treeItem->text(0);
     while (treeItem->parent() != NULL)
     {
