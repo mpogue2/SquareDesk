@@ -2310,7 +2310,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 
         // Finally, if there was a playlist loaded the last time we ran SquareDesk, load it again
         QString loadThisPlaylist = prefsManager.GetlastPlaylistLoaded(); // "" if no playlist was loaded
-        qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
+        // qDebug() << "MainWindow constructor, load playlist and palette slot 0: " << loadThisPlaylist;
 
         if (loadThisPlaylist != "") {
             if (loadThisPlaylist.startsWith("tracks/")) {
