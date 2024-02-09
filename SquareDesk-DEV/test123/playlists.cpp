@@ -1754,8 +1754,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 //        theTableWidget->resizeColumnToContents(2);
 //        theTableWidget->resizeColumnToContents(3);
 
-        QString playlistShortName = PlaylistFileName.split('/').last().replace(".csv","");
-        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + playlistShortName);
+        QString theRelativePath = relativePath.replace("/playlists/","").replace(".csv","");
+        theLabel->setText(QString("<img src=\":/graphics/icons8-menu-64.png\" width=\"10\" height=\"9\">") + theRelativePath);
 
         relPathInSlot[slotNumber] = PlaylistFileName;
         relPathInSlot[slotNumber] = relPathInSlot[slotNumber].replace(musicRootPath + "/playlists/", "").replace(".csv","");
