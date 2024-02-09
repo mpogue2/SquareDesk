@@ -1686,7 +1686,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkStartLoopTime->setStyleSheet("color: " + darkTextColor);
     ui->darkEndLoopTime->setStyleSheet("color: " + darkTextColor);
     ui->darkStartLoopButton->setStyleSheet("color: " + darkTextColor);
+    ui->darkStartLoopButton->setToolTip(QString("Sets start point of a loop (Patter) or Intro point (Singing Call)\n\nShortcuts: set Start [, set Start and End: %1[").arg(QChar(0x21e7)));
     ui->darkEndLoopButton->setStyleSheet("color: " + darkTextColor);
+    ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
     ui->darkTestLoopButton->setStyleSheet("color: " + darkTextColor);
 
     ui->currentLocLabel3->setStyleSheet("color: " + darkTextColor);
@@ -4065,8 +4067,8 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     position = cBass->snapToClosest(position, granularity);
 
     if (position < 0) {
-//        qDebug() << "on_pushButtonSetIntroTime_clicked: snap failed, turning off snapping!";
-        ui->actionDisabled->setChecked(true); // turn off snapping
+        qDebug() << "***** on_pushButtonSetIntroTime_clicked: snap failed, turning off snapping!";
+        // ui->actionDisabled->setChecked(true); // turn off snapping
         position *= -1; // and make it positive
     }
 
@@ -4087,6 +4089,50 @@ void MainWindow::on_pushButtonSetIntroTime_clicked()
     }
 
     on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
+
+    Qt::KeyboardModifiers modifiers = QGuiApplication::keyboardModifiers();
+
+    if (modifiers & Qt::ShiftModifier) {
+        // SHIFT-[ also sets the end point of the loop to:
+        //   singer: position + 7 * 64 beats = 448 beats later
+
+        bool isSingingCall = songTypeNamesForSinging.contains(currentSongType) ||
+                             songTypeNamesForCalled.contains(currentSongType);
+
+        if (!isSingingCall) {
+            qDebug() << "***** INFO: We have not implemented SHIFT-[ for Patter yet.";
+            return;  // we're done here.
+        }
+
+        double outroPosition;
+        outroPosition = cBass->snapToClosest(position + (7 * 64 * (60.0/baseBPM)), granularity); // Always 7 sections of 64 beats in a singer
+                                                                                                 //  If it's a weird singer that's different, don't use this feature.
+
+        if (outroPosition < 0) {
+            qDebug() << "***** setting outroPosition: snap failed, turning off snapping!";
+            outroPosition *= -1; // and make it positive
+        }
+
+        // qDebug() << "SETTING THE OUTRO POSITION BECAUSE THIS IS A SINGING CALL! " << baseBPM << outroPosition;
+
+        // set in ms
+        ui->dateTimeEditOutroTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outroPosition+0.5))); // milliseconds
+    #ifdef DARKMODE
+        ui->darkEndLoopTime->setTime(QTime(0,0,0,0).addMSecs(static_cast<int>(1000.0*outroPosition+0.5))); // milliseconds
+    #endif
+        // set in fractional form
+        double frac = outroPosition/length;
+        ui->seekBarCuesheet->SetOutro(frac);  // after the events are done, do this.
+
+        if (darkmode) {
+            ui->darkSeekBar->setOutro(frac);
+            ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
+        } else {
+            ui->seekBar->SetOutro(frac);
+        }
+
+        on_loopButton_toggled(ui->actionLoop->isChecked()); // then finally do this, so that cBass is told what the loop points are (or they are cleared)
+    }
 }
 
 // --------------------------------1--------------------------------------
