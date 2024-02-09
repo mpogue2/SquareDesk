@@ -138,6 +138,7 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::Key_A).toString()] = &keyaction_KeyActionAutoscrollToggle;
 
     keyMappings[QKeySequence(Qt::Key_BracketLeft).toString()] = &keyaction_KeyActionStartLoop;
+    keyMappings[QKeySequence(Qt::Key_BraceLeft).toString()] = &keyaction_KeyActionStartLoop; // this means set Start, and End (+7*16 beats)
     keyMappings[QKeySequence(Qt::Key_BracketRight).toString()] = &keyaction_KeyActionEndLoop;
 
     if (revisionNumber > 1)
