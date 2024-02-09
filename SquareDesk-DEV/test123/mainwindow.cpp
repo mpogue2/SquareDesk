@@ -10740,6 +10740,17 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
 //    theTableWidget->resizeColumnToContents(2);
 //    theTableWidget->resizeColumnToContents(3);
 
+    QTimer::singleShot(250, [theTableWidget]{
+        // NOTE: We have to do it this way with a single-shot timer, because you can't scroll immediately to a new item, until it's been processed
+        //   after insertion by the table.  So, there's a delay.  Yeah, this is kludgey, but it works.
+
+        // theTableWidget->selectRow(songCount-1); // for some reason this has to be here, or it won't scroll all the way to the bottom.
+        // theTableWidget->scrollToItem(theTableWidget->item(songCount-1,1), QAbstractItemView::PositionAtCenter); // ensure that the new item is visible
+
+        // same thing, but without forcing us to select the last item in the playlist
+        theTableWidget->verticalScrollBar()->setSliderPosition(theTableWidget->verticalScrollBar()->maximum());
+        });
+
     slotModified[whichSlot] = true;
     playlistSlotWatcherTimer->start(std::chrono::seconds(10));
 }

@@ -231,7 +231,7 @@ bool MyTableWidget::removeSelectedItem() {
             row = rowCount()-1;
         }
 
-        qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
+        // qDebug() << "SELECTING AND SCROLLING TO ROW:" << row;
         selectRow(row);    // select it
         scrollToItem(item(row-1, 0)); // EnsureVisible for the row that was deleted, OR last row in table
 
