@@ -137,6 +137,9 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
 
     keyMappings[QKeySequence(Qt::Key_A).toString()] = &keyaction_KeyActionAutoscrollToggle;
 
+    keyMappings[QKeySequence(Qt::Key_BracketLeft).toString()] = &keyaction_KeyActionStartLoop;
+    keyMappings[QKeySequence(Qt::Key_BracketRight).toString()] = &keyaction_KeyActionEndLoop;
+
     if (revisionNumber > 1)
         return keyMappings;
     
@@ -168,7 +171,6 @@ QHash<QString, KeyAction *> KeyAction::defaultKeyToActionMappings(int revisionNu
     keyMappings[QKeySequence(Qt::Key_S).toString()] = &keyaction_KeyActionStopSong;
     keyMappings[QKeySequence(Qt::Key_T).toString()] = &keyaction_KeyActionNextTab;
     keyMappings[QKeySequence(Qt::Key_U).toString()] = &keyaction_KeyActionPitchPlus;
-    keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
     keyMappings[QKeySequence(Qt::Key_Y).toString()] = &keyaction_KeyActionFadeOut;
 
     return keyMappings;

@@ -56,6 +56,10 @@ KEYACTION(PitchPlus, "Pitch +", mw->on_actionPitch_Up_triggered())
 KEYACTION(PitchMinus, "Pitch -", mw->on_actionPitch_Down_triggered())
 KEYACTION(FadeOut , "Fade Out", mw->actionFadeOutAndPause())
 KEYACTION(LoopToggle, "Loop Toggle", mw->on_loopButton_toggled(!mw->ui->actionLoop->isChecked()))
+
+KEYACTION(StartLoop, "Start Loop", mw->on_darkStartLoopButton_clicked())
+KEYACTION(EndLoop,   "End Loop",   mw->on_darkEndLoopButton_clicked())
+
 KEYACTION(TestLoop, "Test Loop", mw->on_actionTest_Loop_triggered())
 KEYACTION(NextTab, "Toggle Music/Cuesheet Tab ", mw->actionNextTab())
 KEYACTION(PlaySong, "Play/Pause Song", mw->on_playButton_clicked())

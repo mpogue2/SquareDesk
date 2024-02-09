@@ -31,10 +31,13 @@ Z Undo/Redo [editing, SD]
 - Tempo DOWN
 . STOP
 
+[ Start Loop (Start Intro)
+] End Loop (Start Outro)
+
 / Clear Search
 ESC Clear Search/Stop
 
 HOME Restart song
-UP Volume UP
-DOWN Volume DOWN
+#UP Volume UP
+#DOWN Volume DOWN  # arrows without Cmd are now reserved for SD
 SP Play/Pause
