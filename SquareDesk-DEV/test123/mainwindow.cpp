@@ -1833,6 +1833,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
+    ui->playlist1Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
     ui->playlist1Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist1Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
@@ -1939,6 +1941,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
+    ui->playlist2Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
     ui->playlist2Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist2Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
@@ -2045,6 +2049,8 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
+    ui->playlist3Table->horizontalHeader()->setSectionHidden(3, true); // hide tempo
     ui->playlist3Table->horizontalHeader()->setSectionHidden(4, true); // hide fullpath
     ui->playlist3Table->horizontalHeader()->setSectionHidden(5, true); // hide loaded
 
@@ -6796,7 +6802,6 @@ void MainWindow::darkTitleLabelDoubleClicked(QMouseEvent * /* event */)
 
 }
 #endif
-
 void MainWindow::on_songTable_itemDoubleClicked(QTableWidgetItem *item)
 {
     PerfTimer t("on_songTable_itemDoubleClicked", __LINE__);
@@ -10027,65 +10032,65 @@ void MainWindow::on_darkSongTable_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // set the LOADED flag -----
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//     for (int slot = 0; slot < 3; slot++) {
+//         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+//         MyTableWidget *table = tables[slot];
+//         for (int i = 0; i < table->rowCount(); i++) {
+//             if (table->item(i, 5)->text() == "1") {
+//                 // clear the arrows out of the other tables
+//                 QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
+//                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
 
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
-                currentFont.setBold(false);
-                currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 1);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
-            }
-            table->item(i, 5)->setText(""); // clear out the old table
-        }
-    }
+//                 QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+//                 currentFont.setBold(false);
+//                 currentFont.setItalic(false);
+// //                    currentFont.setPointSize(currentFont.pointSize() - 1);
+//                 table->item(i, 0)->setFont(currentFont);
+//                 table->item(i, 1)->setFont(currentFont);
+//                 table->item(i, 2)->setFont(currentFont);
+//                 table->item(i, 3)->setFont(currentFont);
+//             }
+//             table->item(i, 5)->setText(""); // clear out the old table
+//         }
+//     }
 
     sourceForLoadedSong = ui->darkSongTable; // THIS is where we got the currently loaded song (this is the NEW table)
 
-    // if we loaded from the darkSongTable, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
-    //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
-    for (int i = 0; i < 3; i++) {
-        QString rPath = relPathInSlot[i];
-        QString rPath2 = rPath;
-        rPath2.replace("/tracks", "");
-        rPath2 = rPath2 + "/";
+//     // if we loaded from the darkSongTable, update it in all palette slots that have TRACK FILTERS that contain the currently loaded song
+//     //   NOTE: Only one track filter can match, because track filters are mutually exclusive...
+//     for (int i = 0; i < 3; i++) {
+//         QString rPath = relPathInSlot[i];
+//         QString rPath2 = rPath;
+//         rPath2.replace("/tracks", "");
+//         rPath2 = rPath2 + "/";
 
-        QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        QTableWidget *theTable = theTables[i];
+//         QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+//         QTableWidget *theTable = theTables[i];
 
-        if (rPath.contains("/tracks/") &&
-            currentMP3filenameWithPath.contains(rPath2)) {
-            for (int j = 0; j < theTable->rowCount(); j++) {
-                if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
-                    QString currentTableTextWithoutArrow = theTable->item(j, 1)->text().replace(editingArrowStart,"");
-                    QString newTableText = editingArrowStart + currentTableTextWithoutArrow;
-                    theTable->item(j, 1)->setText(newTableText);
+//         if (rPath.contains("/tracks/") &&
+//             currentMP3filenameWithPath.contains(rPath2)) {
+//             for (int j = 0; j < theTable->rowCount(); j++) {
+//                 if (theTable->item(j, 4)->text() == currentMP3filenameWithPath) {
+//                     QString currentTableTextWithoutArrow = theTable->item(j, 1)->text().replace(editingArrowStart,"");
+//                     QString newTableText = editingArrowStart + currentTableTextWithoutArrow;
+//                     theTable->item(j, 1)->setText(newTableText);
 
-                    QFont currentFont = sourceForLoadedSong->item(j, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
-                    currentFont.setBold(true);
-                    currentFont.setItalic(true);
-//                    currentFont.setPointSize(currentFont.pointSize() + 2);
-                    theTable->item(j, 0)->setFont(currentFont);
-                    theTable->item(j, 1)->setFont(currentFont);
-                    theTable->item(j, 2)->setFont(currentFont);
-                    theTable->item(j, 3)->setFont(currentFont);
+//                     QFont currentFont = sourceForLoadedSong->item(j, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+//                     currentFont.setBold(true);
+//                     currentFont.setItalic(true);
+// //                    currentFont.setPointSize(currentFont.pointSize() + 2);
+//                     theTable->item(j, 0)->setFont(currentFont);
+//                     theTable->item(j, 1)->setFont(currentFont);
+//                     theTable->item(j, 2)->setFont(currentFont);
+//                     theTable->item(j, 3)->setFont(currentFont);
 
-                    theTable->item(j, 5)->setText("1"); // this one is being edited
+//                     theTable->item(j, 5)->setText("1"); // this one is being edited
 
-                    break; // no need to look further, because only one item can match per track filter
-                }
-            }
-        }
-    }
+//                     break; // no need to look further, because only one item can match per track filter
+//                 }
+//             }
+//         }
+//     }
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();

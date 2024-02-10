@@ -36,6 +36,7 @@
 #include "utility.h"
 #include "songlistmodel.h"
 #include "tablenumberitem.h"
+#include "songtitlelabel.h"
 
 #if defined(Q_OS_LINUX)
 #define OS_FALLTHROUGH [[fallthrough]]
@@ -1546,6 +1547,8 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 // type IS what we want, so add it to the playlist slot -----
                 QString label = ui->darkSongTable->item(i, kLabelCol)->text();
                 QString shortTitle = dynamic_cast<QLabel*>(ui->darkSongTable->cellWidget(i, kTitleCol))->text();
+                QString coloredTitle = shortTitle; // title with coloring AND tags with coloring
+
                 shortTitle.replace(spanPrefixRemover, "\\1"); // remove <span style="color:#000000"> and </span> title string coloring
 
                 int where = shortTitle.indexOf(title_tags_remover);
@@ -1575,14 +1578,94 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                 QTableWidgetItem *num = new TableNumberItem(QString::number(songCount)); // use TableNumberItem so that it sorts numerically
                 theTableWidget->setItem(songCount-1, 0, num);
 
-                // TITLE column
-//                QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
-                QString titleString = shortTitle;
-                if (label != "" && label != " ") {
-                    titleString = label + " - " + titleString;
-                }
-                QTableWidgetItem *title = new QTableWidgetItem(titleString);
-                theTableWidget->setItem(songCount-1, 1, title);
+                // TITLE column ================================
+                // darkSongTitleLabel *titleLabel = new darkSongTitleLabel(this);
+                darkPaletteSongTitleLabel *titleLabel = new darkPaletteSongTitleLabel(this, (MyTableWidget *)theTableWidget);
+
+                titleLabel->setTextFormat(Qt::RichText);
+
+                coloredTitle.replace(shortTitle, label + " - " + shortTitle); // add the label back in here
+                // qDebug() << "coloredTitle: " << label << shortTitle << coloredTitle;
+
+                titleLabel->setText(coloredTitle);
+                // titleLabel->textColor = "red";  // remember the text color, so we can restore it when deselected
+
+                theTableWidget->setCellWidget(songCount-1, 1, titleLabel);
+
+                // context menu for palette slot items that are TRACKS -----
+                titleLabel->setContextMenuPolicy(Qt::CustomContextMenu);
+                connect(titleLabel, &QLabel::customContextMenuRequested,
+                        this, [theTableWidget](QPoint q) {
+                            Q_UNUSED(q)
+                            // qDebug() << "TRACK FILTER CONTEXT MENU!";
+
+                            QMenu *plMenu = new QMenu();
+
+                            // Reveal Audio File and Cuesheet in Finder
+                            // First, let's figure out which row was clicked.  It's the row that is currently selected.
+                            //   NOTE: This is a kludge, but I don't know how better to get the row number of a double-clicked
+                            //   cellWidget inside a QTableWidget.
+
+                            QItemSelectionModel *selectionModel = theTableWidget->selectionModel();
+                            QModelIndexList selected = selectionModel->selectedRows();
+                            int theRow = -1;
+
+                            if (selected.count() == 1) {
+                                // exactly 1 row was selected (good)
+                                QModelIndex index = selected.at(0);
+                                theRow = index.row();
+                                // qDebug() << "the row was: " << theRow;
+                            }
+
+                            QString fullPath = theTableWidget->item(theRow,4)->text();
+                            QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+
+                            // qDebug() << "customContextMenu: " << theRow << fullPath << enclosingFolderName;
+
+                            QFileInfo fi(fullPath);
+                            QString menuString = "Reveal Audio File In Finder";
+                            QString thingToOpen = fullPath;
+
+                            if (!fi.exists()) {
+                                menuString = "Reveal Enclosing Folder In Finder";
+                                thingToOpen = enclosingFolderName;
+                            }
+
+                            plMenu->addAction(QString(menuString),
+                                              [thingToOpen]() {
+                    // opens either the folder and highlights the file (if file exists), OR
+                    // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                                  QStringList args;
+                                                  args << "-e";
+                                                  args << "tell application \"Finder\"";
+                                                  args << "-e";
+                                                  args << "activate";
+                                                  args << "-e";
+                                                  args << "select POSIX file \"" + thingToOpen + "\"";
+                                                  args << "-e";
+                                                  args << "end tell";
+
+                                                  //    QProcess::startDetached("osascript", args);
+
+                                                  // same as startDetached, but suppresses output from osascript to console
+                                                  //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                                  QProcess process;
+                                                  process.setProgram("osascript");
+                                                  process.setArguments(args);
+                                                  process.setStandardOutputFile(QProcess::nullDevice());
+                                                  process.setStandardErrorFile(QProcess::nullDevice());
+                                                  qint64 pid;
+                                                  process.startDetached(&pid);
+#endif
+
+                                              });
+
+                            plMenu->popup(QCursor::pos());
+                            plMenu->exec();
+                            delete plMenu; // done with it
+                        }
+                        );
 
                 // PITCH column
                 QTableWidgetItem *pit = new QTableWidgetItem(pitch);
@@ -1700,21 +1783,71 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
 
                     // TITLE column
                     QString shortTitle = list1[0].split('/').last().replace(".mp3", "");
-                    QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
 
-                    QString label;
-                    QString labelNumber;
-                    QString labelExtra;
-                    QString realTitle;
-                    QString realShortTitle;
+                    // qDebug() << "list1[0] = " << list1[0];
 
-                    bool success = breakFilenameIntoParts(shortTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
-                    if (success) {
-                        title->setText(label + " " + labelNumber + labelExtra + " - " + realShortTitle); // display playlist items in canonical single-string format (for now until we have separate columns)
+                    // example:
+                    // list1[0] = "/singing/BS 2641H - I'm Beginning To See The Light.mp3"
+                    // type = "singing"
+                    QString cType = list1[0].split('/').at(1).toLower();
+                    // qDebug() << "cType:" << cType;
+
+                    QColor textCol; // = QColor::fromRgbF(0.0/255.0, 0.0/255.0, 0.0/255.0);  // defaults to Black
+                    if (songTypeNamesForExtras.contains(cType)) {
+                        textCol = QColor(extrasColorString);
                     }
+                    else if (songTypeNamesForPatter.contains(cType)) {
+                        textCol = QColor(patterColorString);
+                    }
+                    else if (songTypeNamesForSinging.contains(cType)) {
+                        textCol = QColor(singingColorString);
+                    }
+                    else if (songTypeNamesForCalled.contains(cType)) {
+                        textCol = QColor(calledColorString);
+                    } else {
+                        textCol = QColor("#A0A0A0");  // if not a recognized type, color it white-ish (dark mode!)
+                    }
+
+                    darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this, (MyTableWidget *)theTableWidget);
+                    // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(slotNumber);
+                    title->setTextFormat(Qt::RichText);
+                    // title->textColor = "red";  // remember the text color, so we can restore it when deselected
+
+                    // figure out colors
+                    SongSetting settings;
+                    QString origPath = musicRootPath + list1[0];
+                    songSettings.loadSettings(origPath,
+                                              settings);
+                    if (settings.isSetTags())
+                        songSettings.addTags(settings.getTags());
+                    // qDebug() << "origPath:" << origPath << settings;
+
+                    // format the title string -----
+                    QString titlePlusTags(FormatTitlePlusTags(shortTitle, settings.isSetTags(), settings.getTags(), textCol.name()));
+
+                    title->setText(titlePlusTags);
+
+                    // qDebug() << "titlePlusTags: " << titlePlusTags;
+
+                    // theTableWidget->setCellWidget(songCount-1, 1, titleLabel); // NOT NEEDED HERE< SEE BELOW
+
+                    // QString label;
+                    // QString labelNumber;
+                    // QString labelExtra;
+                    // QString realTitle;
+                    // QString realShortTitle;
+
+                    // bool success = breakFilenameIntoParts(shortTitle, label, labelNumber, labelExtra, realTitle, realShortTitle);
+                    // if (success) {
+                    //     title->setText(label + " " + labelNumber + labelExtra + " - " + realShortTitle); // display playlist items in canonical single-string format (for now until we have separate columns)
+                    // }
 //                    qDebug() << "shortTitle:" << shortTitle << title->text();
 
-                    theTableWidget->setItem(songCount-1, 1, title);
+                    // theTableWidget->setItem(songCount-1, 1, title);
+                    QTableWidgetItem *blankItem = new QTableWidgetItem;
+                    theTableWidget->setItem(songCount-1, 1, blankItem); // null item so I can get the row() later
+
+                    theTableWidget->setCellWidget(songCount-1, 1, title);
 
                     QString absPath = musicRootPath + list1[0];
                     QFileInfo fi(absPath);
@@ -1723,11 +1856,127 @@ QString MainWindow::loadPlaylistFromFileToPaletteSlot(QString PlaylistFileName, 
                         f.setStrikeOut(true);
                         title->setFont(f); // strikethrough the text until it's fixed
 
-                        title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
+                        // set background color of the title portion to RED
+                        QString badText = title->text(); // e.g. <span style="color: #a364dc;">ESP 450 - Ricochet2</span>
+
+                        int colonLoc = badText.indexOf(":");
+                        badText.remove(colonLoc, 10); // <span style="color">ESP 450 - Ricochet2</span>
+                        badText.insert(colonLoc, ":black;background-color:red;"); // now: <span style="color:black;background-color:red;">ESP 450 - Ricochet2</span>
+
+                        title->setText(badText);
+
+                        // title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!  // FIX FIX FIX NEED TO ADD THIS TO OUR WIDGET *******
                         // TODO: provide context menu to get dialog with reasons why
                         QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
                         title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath, shortPlaylistName));
                     }
+
+                    // context menu for palette slot items that are PLAYLISTS -----
+                    title->setContextMenuPolicy(Qt::CustomContextMenu);
+                    connect(title, &QLabel::customContextMenuRequested,
+                                this, [this, theTableWidget](QPoint q) {
+                                    Q_UNUSED(q)
+                                    // qDebug() << "PLAYLIST CONTEXT MENU!";
+
+                                    QMenu *plMenu = new QMenu();
+
+                                    // Move up/down/top/bottom in playlist
+                                    plMenu->addAction(QString("Move to TOP of playlist"),    [this]() { this->PlaylistItemToTop();    } );
+                                    plMenu->addAction(QString("Move UP in playlist"),        [this]() { this->PlaylistItemMoveUp();   } );
+                                    plMenu->addAction(QString("Move DOWN in playlist"),      [this]() { this->PlaylistItemMoveDown(); } );
+                                    plMenu->addAction(QString("Move to BOTTOM of playlist"), [this]() { this->PlaylistItemToBottom(); } );
+                                    plMenu->addSeparator();
+                                    plMenu->addAction(QString("Remove from playlist"),       [this]() { this->PlaylistItemRemove(); } );
+                                    plMenu->addSeparator();
+
+                                    // Reveal Audio File and Cuesheet in Finder
+                                    // First, let's figure out which row was clicked.  It's the row that is currently selected.
+                                    //   NOTE: This is a kludge, but I don't know how better to get the row number of a double-clicked
+                                    //   cellWidget inside a QTableWidget.
+
+                                    QItemSelectionModel *selectionModel = theTableWidget->selectionModel();
+                                    QModelIndexList selected = selectionModel->selectedRows();
+                                    int theRow = -1;
+
+                                    if (selected.count() == 1) {
+                                        // exactly 1 row was selected (good)
+                                        QModelIndex index = selected.at(0);
+                                        theRow = index.row();
+                                        // qDebug() << "the row was: " << theRow;
+                                    }
+
+                                    QString fullPath = theTableWidget->item(theRow,4)->text();
+                                    QString enclosingFolderName = QFileInfo(fullPath).absolutePath();
+
+                                    // qDebug() << "customContextMenu: " << theRow << fullPath << enclosingFolderName;
+
+                                    QFileInfo fi(fullPath);
+                                    QString menuString = "Reveal Audio File In Finder";
+                                    QString thingToOpen = fullPath;
+
+                                    if (!fi.exists()) {
+                                        menuString = "Reveal Enclosing Folder In Finder";
+                                        thingToOpen = enclosingFolderName;
+                                    }
+
+                                    plMenu->addAction(QString(menuString),
+                                                      [thingToOpen]() {
+                                                        // opens either the folder and highlights the file (if file exists), OR
+                                                        // opens the folder where the file was SUPPOSED to exist.
+#if defined(Q_OS_MAC)
+                                                          QStringList args;
+                                                          args << "-e";
+                                                          args << "tell application \"Finder\"";
+                                                          args << "-e";
+                                                          args << "activate";
+                                                          args << "-e";
+                                                          args << "select POSIX file \"" + thingToOpen + "\"";
+                                                          args << "-e";
+                                                          args << "end tell";
+
+                                                          //    QProcess::startDetached("osascript", args);
+
+                                                          // same as startDetached, but suppresses output from osascript to console
+                                                          //   as per: https://www.qt.io/blog/2017/08/25/a-new-qprocessstartdetached
+                                                          QProcess process;
+                                                          process.setProgram("osascript");
+                                                          process.setArguments(args);
+                                                          process.setStandardOutputFile(QProcess::nullDevice());
+                                                          process.setStandardErrorFile(QProcess::nullDevice());
+                                                          qint64 pid;
+                                                          process.startDetached(&pid);
+#endif
+
+                                                      });
+
+                                    // if the current song has a cuesheet, offer to show it to the user -----
+                                    // QString fullMP3Path = this->ui->playlist1Table->item(this->ui->playlist1Table->itemAt(q)->row(), 4)->text();
+                                    QString fullMP3Path = fullPath;
+                                    QString cuesheetPath;
+
+                                    SongSetting settings1;
+                                    if (songSettings.loadSettings(fullMP3Path, settings1)) {
+                                        // qDebug() << "here are the settings: " << settings1;
+                                        cuesheetPath = settings1.getCuesheetName();
+                                    } else {
+                                        qDebug() << "Tried to revealAttachedLyricsFile, but could not get settings for: " << fullMP3Path;
+                                    }
+
+                                    // qDebug() << "cuesheetPath: " << cuesheetPath;
+
+                                    if (cuesheetPath != "") {
+                                        plMenu->addAction(QString("Reveal Current Cuesheet in Finder"),
+                                                          [this, cuesheetPath]() {
+                                                              showInFinderOrExplorer(cuesheetPath);
+                                                          }
+                                                          );
+                                    }
+
+                                    plMenu->popup(QCursor::pos());
+                                    plMenu->exec();
+                                    delete plMenu; // done with it
+                                }
+                            );
 
                     // PITCH column
                     QTableWidgetItem *pit = new QTableWidgetItem(list1[1]);
@@ -1789,6 +2038,8 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
     int row = item->row();
     QString pathToMP3 = ui->playlist1Table->item(row,4)->text();
 
+    // qDebug() << "Playlist #1 double clicked: " << row << pathToMP3;
+
     QFileInfo fi(pathToMP3);
     if (!fi.exists()) {
         qDebug() << "ERROR: File does not exist " << pathToMP3;
@@ -1835,49 +2086,49 @@ void MainWindow::on_playlist1Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    // clear all the "1"s and arrows from palette slots (IF and only IF one of the palette slots is being currently edited
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//     // clear all the "1"s and arrows from palette slots (IF and only IF one of the palette slots is being currently edited
+//     for (int slot = 0; slot < 3; slot++) {
+//         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+//         MyTableWidget *table = tables[slot];
+//         for (int i = 0; i < table->rowCount(); i++) {
+//             if (table->item(i, 5)->text() == "1") {
+//                 // clear the arrows out of the other tables
+//                 QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
+//                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
 
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
-                currentFont.setBold(false);
-                currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 2);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
-            }
-            table->item(i, 5)->setText(""); // clear out the old table
-        }
-    }
+//                 QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+//                 currentFont.setBold(false);
+//                 currentFont.setItalic(false);
+// //                    currentFont.setPointSize(currentFont.pointSize() - 2);
+//                 table->item(i, 0)->setFont(currentFont);
+//                 table->item(i, 1)->setFont(currentFont);
+//                 table->item(i, 2)->setFont(currentFont);
+//                 table->item(i, 3)->setFont(currentFont);
+//             }
+//             table->item(i, 5)->setText(""); // clear out the old table
+//         }
+//     }
 
     sourceForLoadedSong = ui->playlist1Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
-    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i == row) {
-            // put arrow on the new one
-            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
-            QString newTitleText = editingArrowStart + currentTitleText;
-            sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+//     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+//         if (i == row) {
+//             // put arrow on the new one
+//             QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
+//             QString newTitleText = editingArrowStart + currentTitleText;
+//             sourceForLoadedSong->item(row, 1)->setText(newTitleText);
 
-            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
-            currentFont.setBold(true);
-            currentFont.setItalic(true);
-//            currentFont.setPointSize(currentFont.pointSize() + 2);
-            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
-        }
-        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
-    }
+//             QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+//             currentFont.setBold(true);
+//             currentFont.setItalic(true);
+// //            currentFont.setPointSize(currentFont.pointSize() + 2);
+//             sourceForLoadedSong->item(i, 0)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 1)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 2)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 3)->setFont(currentFont);
+//         }
+//         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+//     }
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
@@ -1957,48 +2208,48 @@ void MainWindow::on_playlist2Table_itemDoubleClicked(QTableWidgetItem *item)
     t.elapsed(__LINE__);
 
     // clear all the "1"s and arrows from palette slots, IF and only IF one of the playlist slots is being edited
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//     for (int slot = 0; slot < 3; slot++) {
+//         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+//         MyTableWidget *table = tables[slot];
+//         for (int i = 0; i < table->rowCount(); i++) {
+//             if (table->item(i, 5)->text() == "1") {
+//                 // clear the arrows out of the other tables
+//                 QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
+//                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
 
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
-                currentFont.setBold(false);
-                currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 2);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
-            }
-            table->item(i, 5)->setText(""); // clear out the old table
-        }
-    }
+//                 QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+//                 currentFont.setBold(false);
+//                 currentFont.setItalic(false);
+// //                    currentFont.setPointSize(currentFont.pointSize() - 2);
+//                 table->item(i, 0)->setFont(currentFont);
+//                 table->item(i, 1)->setFont(currentFont);
+//                 table->item(i, 2)->setFont(currentFont);
+//                 table->item(i, 3)->setFont(currentFont);
+//             }
+//             table->item(i, 5)->setText(""); // clear out the old table
+//         }
+//     }
 
     sourceForLoadedSong = ui->playlist2Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
-    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i == row) {
-            // put arrow on the new one
-            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
-            QString newTitleText = editingArrowStart + currentTitleText;
-            sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+//     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+//         if (i == row) {
+//             // put arrow on the new one
+//             QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
+//             QString newTitleText = editingArrowStart + currentTitleText;
+//             sourceForLoadedSong->item(row, 1)->setText(newTitleText);
 
-            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
-            currentFont.setBold(true);
-            currentFont.setItalic(true);
-//            currentFont.setPointSize(currentFont.pointSize() + 2);
-            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
-        }
-        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
-    }
+//             QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+//             currentFont.setBold(true);
+//             currentFont.setItalic(true);
+// //            currentFont.setPointSize(currentFont.pointSize() + 2);
+//             sourceForLoadedSong->item(i, 0)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 1)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 2)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 3)->setFont(currentFont);
+//         }
+//         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+//     }
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
@@ -2076,49 +2327,49 @@ void MainWindow::on_playlist3Table_itemDoubleClicked(QTableWidgetItem *item)
 
     t.elapsed(__LINE__);
 
-    // clear all the "1"s and arrows from palette slots
-    for (int slot = 0; slot < 3; slot++) {
-        MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
-        MyTableWidget *table = tables[slot];
-        for (int i = 0; i < table->rowCount(); i++) {
-            if (table->item(i, 5)->text() == "1") {
-                // clear the arrows out of the other tables
-                QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
-                table->item(i, 1)->setText(currentTitleTextWithoutArrow);
+//     // clear all the "1"s and arrows from palette slots
+//     for (int slot = 0; slot < 3; slot++) {
+//         MyTableWidget *tables[] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+//         MyTableWidget *table = tables[slot];
+//         for (int i = 0; i < table->rowCount(); i++) {
+//             if (table->item(i, 5)->text() == "1") {
+//                 // clear the arrows out of the other tables
+//                 QString currentTitleTextWithoutArrow = table->item(i, 1)->text().replace(editingArrowStart, "");
+//                 table->item(i, 1)->setText(currentTitleTextWithoutArrow);
 
-                QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
-                currentFont.setBold(false);
-                currentFont.setItalic(false);
-//                    currentFont.setPointSize(currentFont.pointSize() - 1);
-                table->item(i, 0)->setFont(currentFont);
-                table->item(i, 1)->setFont(currentFont);
-                table->item(i, 2)->setFont(currentFont);
-                table->item(i, 3)->setFont(currentFont);
-            }
-            table->item(i, 5)->setText(""); // clear out the old table
-        }
-    }
+//                 QFont currentFont = table->item(i, 1)->font(); // font goes to neutral (not bold or italic, and normal size) for NOT-loaded items
+//                 currentFont.setBold(false);
+//                 currentFont.setItalic(false);
+// //                    currentFont.setPointSize(currentFont.pointSize() - 1);
+//                 table->item(i, 0)->setFont(currentFont);
+//                 table->item(i, 1)->setFont(currentFont);
+//                 table->item(i, 2)->setFont(currentFont);
+//                 table->item(i, 3)->setFont(currentFont);
+//             }
+//             table->item(i, 5)->setText(""); // clear out the old table
+//         }
+//     }
 
     sourceForLoadedSong = ui->playlist3Table; // THIS is where we got the currently loaded song (this is the NEW table)
 
-    for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
-        if (i == row) {
-            // put arrow on the new one
-            QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
-            QString newTitleText = editingArrowStart + currentTitleText;
-            sourceForLoadedSong->item(row, 1)->setText(newTitleText);
+//     for (int i = 0; i < sourceForLoadedSong->rowCount(); i++) {
+//         if (i == row) {
+//             // put arrow on the new one
+//             QString currentTitleText = sourceForLoadedSong->item(row, 1)->text().replace(editingArrowStart, "");
+//             QString newTitleText = editingArrowStart + currentTitleText;
+//             sourceForLoadedSong->item(row, 1)->setText(newTitleText);
 
-            QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
-            currentFont.setBold(true);
-            currentFont.setItalic(true);
-//            currentFont.setPointSize(currentFont.pointSize() + 1);
-            sourceForLoadedSong->item(i, 0)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 1)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 2)->setFont(currentFont);
-            sourceForLoadedSong->item(i, 3)->setFont(currentFont);
-        }
-        sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
-    }
+//             QFont currentFont = sourceForLoadedSong->item(i, 1)->font();  // font goes to BOLD ITALIC BIGGER for loaded items
+//             currentFont.setBold(true);
+//             currentFont.setItalic(true);
+// //            currentFont.setPointSize(currentFont.pointSize() + 1);
+//             sourceForLoadedSong->item(i, 0)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 1)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 2)->setFont(currentFont);
+//             sourceForLoadedSong->item(i, 3)->setFont(currentFont);
+//         }
+//         sourceForLoadedSong->item(i, 5)->setText((i == row) ? "1" : ""); // and this is the one being edited (clear out others)
+//     }
 
     // these must be down here, to set the correct values...
     int pitchInt = pitch.toInt();
@@ -2423,4 +2674,44 @@ void MainWindow::printPlaylistFromSlot(int whichSlot)
 
     doc.setHtml(toBePrinted);
     doc.print(&printer);
+}
+
+// ----------------------------------------------
+void MainWindow::darkPaletteTitleLabelDoubleClicked(QMouseEvent * e)
+{
+    Q_UNUSED(e)
+    // qDebug() << "SOME PALETTE TITLE FIELD HAS BEEN DOUBLE-CLICKED.";
+
+    // Let's figure out which palette slot has a selected item. THAT is the double-clicked one.
+    QTableWidget *theTables[3] = {ui->playlist1Table, ui->playlist2Table, ui->playlist3Table};
+
+    for (int i = 0; i < 3; i++) {
+        // qDebug() << "LOOK AT SLOT:" << i;
+        QTableWidget *theTable = theTables[i];
+
+        QItemSelectionModel *selectionModel = theTable->selectionModel();
+        QModelIndexList selected = selectionModel->selectedRows();
+        int row = -1;
+
+        if (selected.count() == 1) {
+            // exactly 1 row was selected (good)
+            QModelIndex index = selected.at(0);
+            row = index.row();
+
+            // qDebug() << "Table:" << i << ", Row:" << row << " DOUBLE CLICKED";
+
+            QString path = theTable->item(row, 4)->text();
+            // qDebug() << "Path: " << path;
+
+            // pretend we clicked on the tempo label of that row, and let the existing functions do the work...
+            switch (i) {
+                case 0: on_playlist1Table_itemDoubleClicked(theTable->item(row, 3)); break;
+                case 1: on_playlist2Table_itemDoubleClicked(theTable->item(row, 3)); break;
+                case 2: on_playlist3Table_itemDoubleClicked(theTable->item(row, 3)); break;
+            }
+
+            break; // break out of the for loop, because we found what was clicked on
+        } // else more than 1 row or no rows, just return -1
+
+    }
 }

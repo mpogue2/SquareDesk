@@ -36,4 +36,12 @@ void darkSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
 {
     mw->darkTitleLabelDoubleClicked(e);
 }
+
+void darkPaletteSongTitleLabel::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    // tell the tableWidget that this item was double-clicked (it should be selected)
+    // mtw->darkPaletteTitleLabelDoubleClicked(e);
+    mw->darkPaletteTitleLabelDoubleClicked(e);
+}
+
 #endif

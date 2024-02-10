@@ -28,6 +28,7 @@
 
 #include <QLabel>
 #include "mainwindow.h"
+#include "mytablewidget.h"
 
 //class MainWindow;
 
@@ -48,6 +49,18 @@ public:
     darkSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
     QString textColor;  // saved so that we can restore it when not selected
+};
+
+// when a MyTableWidget is in a palette slot, we need different handling for double-clicking
+class darkPaletteSongTitleLabel : public QLabel {
+private:
+    MainWindow *mw;
+    MyTableWidget *mtw;
+public:
+    darkPaletteSongTitleLabel(MainWindow *mw, MyTableWidget *mtw) : QLabel(), mw(mw), mtw(mtw) {}
+    // darkPaletteSongTitleLabel(int slot) : QLabel(), slotNumber(slot) {}
+    void mouseDoubleClickEvent(QMouseEvent *) override;
+//    QString textColor;  // saved so that we can restore it when not selected
 };
 #endif
 

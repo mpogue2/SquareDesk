@@ -836,6 +836,7 @@ public:
     QMap<QString, QString> abbrevs;
 
     QString musicRootPath; // needed by sd to do output_prefix
+
 private:
 
     QString lastAudioDeviceName;
@@ -1179,6 +1180,7 @@ private:
     void AddHotkeyMappingsFromShortcuts(QHash<QString, KeyAction *> &hotkeyMappings);
 public:
 
+    void darkPaletteTitleLabelDoubleClicked(QMouseEvent *e);
 
     // Key actions:
 #define KEYACTION(NAME, STRNAME, ACTION) friend class KeyAction##NAME;
