@@ -10706,22 +10706,11 @@ void MainWindow::darkAddPlaylistItemToBottom(int whichSlot) { // slot is 0 - 2
     theTableWidget->setItem(songCount-1, 0, num);
 
     // TITLE column
-    QString shortTitle = theFullPath.split('/').last().replace(".mp3", "");
-    QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
-    theTableWidget->setItem(songCount-1, 1, title);
-
+    QString theRelativePath = theFullPath;
     QString absPath = theFullPath; // already is fully qualified
-    QFileInfo fi(absPath);
-    if (!fi.exists()) {
-            QFont f = title->font();
-            f.setStrikeOut(true);
-            title->setFont(f); // strikethrough the text until it's fixed
 
-            title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
-            // TODO: provide context menu to get dialog with reasons why
-            QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
-            title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
-    }
+    theRelativePath.replace(musicRootPath, "");
+    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
     // PITCH column
     QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
@@ -10805,22 +10794,11 @@ void MainWindow::darkAddPlaylistItemToTop(int whichSlot) { // slot is 0 - 2
     theTableWidget->setItem(songCount-1, 0, num);
 
     // TITLE column
-    QString shortTitle = theFullPath.split('/').last().replace(".mp3", "");
-    QTableWidgetItem *title = new QTableWidgetItem(shortTitle);
-    theTableWidget->setItem(songCount-1, 1, title);
-
+    QString theRelativePath = theFullPath;
     QString absPath = theFullPath; // already is fully qualified
-    QFileInfo fi(absPath);
-    if (!fi.exists()) {
-            QFont f = title->font();
-            f.setStrikeOut(true);
-            title->setFont(f); // strikethrough the text until it's fixed
 
-            title->setBackground(QBrush(Qt::red));  // does not exist, tell the user!
-            // TODO: provide context menu to get dialog with reasons why
-            QString shortPlaylistName = PlaylistFileName.split('/').last().replace(".csv","");
-            title->setToolTip(QString("File '%1'\nin playlist '%2' does not exist.\n\nFIX: RIGHT CLICK in the playlist header, and select 'Edit %2 in text editor' to edit manually.\nWhen done editing, save it, and then reload the playlist.").arg(absPath).arg(shortPlaylistName));
-    }
+    theRelativePath.replace(musicRootPath, "");
+    setTitleField(theTableWidget, songCount-1, theRelativePath, true, PlaylistFileName); // whichTable, whichRow, fullPath, bool isPlaylist, PlaylistFilename (for errors)
 
     // PITCH column
     QString thePitch = ui->darkSongTable->item(row, kPitchCol)->text();
