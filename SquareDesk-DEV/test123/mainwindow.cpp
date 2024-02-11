@@ -1833,9 +1833,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist1Table->setColumnWidth(2,20); // pitch
     ui->playlist1Table->setColumnWidth(3,40); // tempo
     ui->playlist1Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist1Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter);
+    ui->playlist1Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter);
     ui->playlist1Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist1Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist1Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
@@ -1941,9 +1941,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist2Table->setColumnWidth(2,20); // pitch
     ui->playlist2Table->setColumnWidth(3,40); // tempo
     ui->playlist2Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist2Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist2Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
     ui->playlist2Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist2Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist2Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
@@ -2049,9 +2049,9 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->playlist3Table->setColumnWidth(2,20); // pitch
     ui->playlist3Table->setColumnWidth(3,40); // tempo
     ui->playlist3Table->setStyleSheet("::section { background-color: #393939; color: #A0A0A0; }");
-    ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->playlist3Table->horizontalHeaderItem(0)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(2)->setTextAlignment( Qt::AlignCenter );
+    ui->playlist3Table->horizontalHeaderItem(3)->setTextAlignment( Qt::AlignCenter );
     ui->playlist3Table->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->playlist3Table->verticalHeader()->setMaximumSectionSize(28);
     ui->playlist3Table->horizontalHeader()->setSectionHidden(2, true); // hide pitch
@@ -3005,11 +3005,11 @@ void MainWindow::updateSongTableColumnView()
     headerView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
     headerView->setStretchLastSection(false);
 
-    ui->songTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->songTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->songTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->songTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->songTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->songTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter );
+    ui->songTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter );
+    ui->songTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter );
+    ui->songTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter );
+    ui->songTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter );
 
 #ifdef DARKMODE
     ui->darkSongTable->setColumnHidden(kRecentCol,!prefsManager.GetshowRecentColumn());
@@ -3030,11 +3030,11 @@ void MainWindow::updateSongTableColumnView()
     darkHeaderView->setSectionResizeMode(kTempoCol, QHeaderView::Fixed);
     darkHeaderView->setStretchLastSection(false);
 
-    ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->darkSongTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->darkSongTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->darkSongTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
-    ui->darkSongTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter | Qt::AlignVCenter );
+    ui->darkSongTable->horizontalHeaderItem(kNumberCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kRecentCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kAgeCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kPitchCol)->setTextAlignment( Qt::AlignCenter );
+    ui->darkSongTable->horizontalHeaderItem(kTempoCol)->setTextAlignment( Qt::AlignCenter );
 #endif
 }
 
@@ -6497,7 +6497,7 @@ void MainWindow::darkLoadMusicList()
         }
         TableNumberItem *newTableItem4 = new TableNumberItem(s2);
 
-        newTableItem4->setTextAlignment(Qt::AlignHCenter);
+        newTableItem4->setTextAlignment(Qt::AlignCenter);
         newTableItem4->setForeground(textCol);
         // # items are editable by default
         ui->darkSongTable->setItem(i, kNumberCol, newTableItem4);
@@ -6542,7 +6542,7 @@ void MainWindow::darkLoadMusicList()
         QString ageAsIntString = ageToIntString(ageString);
         QTableWidgetItem *twi4 = new TableNumberItem(ageAsIntString); // TableNumberItem so it's numerically sortable
         twi4->setForeground(textBrush);
-        twi4->setTextAlignment(Qt::AlignHCenter);
+        twi4->setTextAlignment(Qt::AlignCenter);
         twi4->setFlags(twi4->flags() & ~Qt::ItemIsEditable);      // not editable
         // qDebug() << "TITLE/AGE:" << title << ageString << ageAsIntString;
         ui->darkSongTable->setItem(i, kAgeCol, twi4);
@@ -6551,7 +6551,7 @@ void MainWindow::darkLoadMusicList()
         QString recentString = ageToRecent(ageString);  // passed as double string
         QTableWidgetItem *twi4b = new QTableWidgetItem(recentString);
         twi4b->setForeground(textBrush);
-        twi4b->setTextAlignment(Qt::AlignHCenter);
+        twi4b->setTextAlignment(Qt::AlignCenter);
         twi4b->setFlags(twi4b->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kRecentCol, twi4b);
 
@@ -6561,7 +6561,7 @@ void MainWindow::darkLoadMusicList()
 
         QTableWidgetItem *twi5 = new QTableWidgetItem(QString("%1").arg(pitch));
         twi5->setForeground(textBrush);
-        twi5->setTextAlignment(Qt::AlignHCenter);
+        twi5->setTextAlignment(Qt::AlignCenter);
         twi5->setFlags(twi5->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kPitchCol, twi5);
 
@@ -6576,7 +6576,7 @@ void MainWindow::darkLoadMusicList()
 
         QTableWidgetItem *twi6 = new QTableWidgetItem(QString("%1").arg(tempoStr));
         twi6->setForeground(textBrush);
-        twi6->setTextAlignment(Qt::AlignHCenter);
+        twi6->setTextAlignment(Qt::AlignCenter);
         twi6->setFlags(twi6->flags() & ~Qt::ItemIsEditable);      // not editable
         ui->darkSongTable->setItem(i, kTempoCol, twi6);
 
