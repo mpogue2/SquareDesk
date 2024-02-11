@@ -55,9 +55,9 @@ public:
 class darkPaletteSongTitleLabel : public QLabel {
 private:
     MainWindow *mw;
-    MyTableWidget *mtw;
+    // MyTableWidget *mtw;
 public:
-    darkPaletteSongTitleLabel(MainWindow *mw, MyTableWidget *mtw) : QLabel(), mw(mw), mtw(mtw) {}
+    darkPaletteSongTitleLabel(MainWindow *mw) : QLabel(), mw(mw) {}
     // darkPaletteSongTitleLabel(int slot) : QLabel(), slotNumber(slot) {}
     void mouseDoubleClickEvent(QMouseEvent *) override;
 //    QString textColor;  // saved so that we can restore it when not selected

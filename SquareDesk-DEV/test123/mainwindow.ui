@@ -2914,6 +2914,19 @@
                       </widget>
                      </item>
                      <item>
+                      <widget class="QToolButton" name="darkSegmentButton">
+                       <property name="font">
+                        <font>
+                         <family>Avenir Next</family>
+                         <pointsize>14</pointsize>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Segment</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
                       <spacer name="horizontalSpacer_3">
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>

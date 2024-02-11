@@ -499,6 +499,11 @@ double flexible_audio::snapToClosest(double time_sec, unsigned char granularity)
     return(result_sec);  // NOTE: could be negative, if error
 }
 
+int flexible_audio::segmentDetection() {
+    int e = decoder.segmentDetection();  // ask the AudioDecoder to start the VAMP segmentino segmenter
+    return(e);
+}
+
 void flexible_audio::getWaveform(float *f, size_t t) {
 //    qDebug() << "flexible_audio::getWaveform waveform:" << decoder.waveformMap << decoder.waveformMap.size();
 

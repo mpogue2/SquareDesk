@@ -170,7 +170,12 @@ public:
     double getBPM();
 
     float BPMsample(float sampleStart_sec, float sampleLength_sec, float BPMbase, float BPMtolerance);
+
+    QString makeExternalAudioFile(QString filename);  // used by beatBarDetection and segmentDetection
+    QString runVamp(QString whichModule, QString WAVfilename, QString resultsFilename);
+
     int beatBarDetection(); // returns -1 if no Vamp
+    int segmentDetection();
 
 #define GRANULARITY_NONE 0
 #define GRANULARITY_BEAT 1
@@ -217,10 +222,14 @@ private:
 
     QString m_currentAudioOutputDeviceName;
 
-    std::vector<double> beatMap;    // contains all beats
-    std::vector<double> measureMap; // contains all the beat 1's
+    std::vector<double> beatMap;         // contains all beat times
+    std::vector<double> measureMap;      // contains all the beat_1 times
+    std::vector<double> segmentMap;      // contains all the segment times
+    std::vector<QString> segmentMapName; // contains all the segment names (e.g. A, B, C...)
 
-    QProcess vamp;
+    QProcess vamp;          // for beat/bar processing
+    QProcess vampSegment;   // for segment processing
+
     QString WAVfilename;        // these are in the temp directory, and when done, need to be deleted
     QString resultsFilename;
 

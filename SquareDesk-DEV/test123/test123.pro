@@ -528,12 +528,14 @@ macx {
 
     copydata1vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/vamp-simple-host $$OUT_PWD/SquareDesk.app/Contents/MacOS
     copydata2vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/qm-vamp-plugins.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
+    copydata3vamp.commands = $(COPY_DIR) $$PWD/../local_macosx/vamp/segmentino.dylib $$OUT_PWD/SquareDesk.app/Contents/MacOS
 
-    first.depends += copydata1vamp copydata2vamp
+    first.depends += copydata1vamp copydata2vamp copydata3vamp
     export(first.depends)
     export(copydata1vamp.commands)
     export(copydata2vamp.commands)
-    QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp
+    export(copydata3vamp.commands)
+    QMAKE_EXTRA_TARGETS += copydata1vamp copydata2vamp copydata3vamp
 
     # For the Beat/Bar Detector (Vamp): modify the VAMPPATH according to where you built the executable and dylib --------------
     #  FIX: THIS PATH IS TEMPORARY AND SPECIFIC TO MY MACHINE (this will change when VAMP is checked into our repo)

@@ -1132,35 +1132,19 @@ void AudioDecoder::StopVolumeDucking() {
     myPlayer.StopVolumeDucking();
 }
 
-int AudioDecoder::beatBarDetection() {
-// NOTE: this can only be called after the file is completely loaded into memory!
-// returns -1 if no vamp
 
-// set to 1 to enable beat detection
-#define DOBEATDETECTION 1
+// ========================================================================================================================
+// ========================================================================================================================
+// set to 0 to persist the in/out files to/from vamp, for debugging purposes
+#define USETEMPFILES 1
 
-#if DOBEATDETECTION==1
-//    qDebug() << "AudioDecoder::beatBarDetection() START =============";
+// ========================================================================================================================
+QString AudioDecoder::makeExternalAudioFile(QString WAVfilename) {
+    // makes an audio file on disk, for external processing with VAMP (beat/bar detection or segmentation)
+    //  returns the pathname to that file (it might be a temp file or the one specified)
+    // qDebug() << "makeExternalAudioFile" << WAVfilename;
 
-    QString pathNameToVamp(QCoreApplication::applicationDirPath());
-    // pathNameToVamp.append("/vamp/vamp-simple-host");
-    pathNameToVamp.append("/vamp-simple-host");
-    // qDebug() << "VAMP path: " << pathNameToVamp;
-
-    if (!QFileInfo::exists(pathNameToVamp) ) {
-
-        QMessageBox msgBox;
-        msgBox.setText(QString("ERROR: Could not find Vamp executable.<P>Snapping is disabled."));
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        msgBox.setDefaultButton(QMessageBox::Ok);
-        msgBox.exec();
-
-        return(-1); // ERROR, VAMP DOES NOT EXIST
-    }
-
-    t->elapsed(__LINE__);
-
-    // CREATE MONO VERSION OF AUDIO DATA =============================================
+    // CREATE MONO VERSION OF AUDIO DATA -------------------------------------
     unsigned char *p_data = (unsigned char *)(m_data->data());
     unsigned int framesInSong = m_data->size()/myPlayer.bytesPerFrame; // pre-mixdown is 2 floats per frame = 8
     const float *songPointer = (const float *)p_data;  // these are floats, range: -1.0 to 1.0
@@ -1173,7 +1157,7 @@ int AudioDecoder::beatBarDetection() {
 
     t->elapsed(__LINE__); // toMono takes 11ms
 
-    // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK =======================
+    // LOW PASS FILTER IT, TO ELIMINATE THE CHUCK of BOOM-CHUCK -------------------------------------
     biquad_params<float> bq[1];
     bq[0] = biquad_lowpass(1500.0 / 44100.0, 0.5); // Q = 0.5
     biquad_filter<float> *filter = new biquad_filter<float>(bq);  // init the filter
@@ -1184,8 +1168,7 @@ int AudioDecoder::beatBarDetection() {
 
     t->elapsed(__LINE__); // LPF takes 57ms
 
-    // WRITE MONO VERSION OF FILE OUT TO DISK ==========================================
-#define USETEMPFILES 1
+// WRITE MONO VERSION OF FILE OUT TO DISK -------------------------------------
     // Make a temp file name (or not) -----------
 #if USETEMPFILES==1
     QTemporaryFile temp1;           // use a temporary file
@@ -1198,19 +1181,18 @@ int AudioDecoder::beatBarDetection() {
     if (!errOpen) {
         qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
         delete[] monoBuffer;
-        return(-2); // ERROR
+        return("error: beatBarDetection could not open temporary WAV file!"); // ERROR
     }
 #else
-    WAVfilename = "/Users/mpogue/beatDetect.wav";
     QFile temp1(WAVfilename);  // use a file in a known location
     if (!temp1.open(QIODevice::WriteOnly)) {
         qDebug() << "ERROR: beatBarDetection could not open temporary WAV file!" << WAVfilename;
         delete[] monoBuffer;
-        return(-2);
+        return("error: beatBarDetection could not open temporary WAV file!");
     }
 #endif
 
-//    qDebug() << "Temp WAV filename: " << WAVfilename;
+    // qDebug() << "Temp WAV filename: " << WAVfilename;
 
     WAV_FILE_INFO wavInfo2 = wav_set_info(44100, framesInSong,1,16,2,1);   // assumes 44.1KHz sample rate, floats, range: -1.0 to 1.0
     wav_write_file_float1(monoBuffer, WAVfilename.toStdString().c_str(), wavInfo2, framesInSong);   // write entire song as mono to a file
@@ -1219,36 +1201,150 @@ int AudioDecoder::beatBarDetection() {
 
     t->elapsed(__LINE__); // write WAV file takes 484ms (these can be pretty big, 27Mb or so)
 
-    // NOW DO BAR/BEAT DETECTION ON THAT WAV FILE VIA EXTERNAL VAMP PROCESS =============
+    return(WAVfilename);
+}
 
-    // Make a file for the results ----------
-#if USETEMPFILES==1
-    QTemporaryFile temp2;  // use a temporary file
-    bool errOpen2 = temp2.open();
-    resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
-    temp2.setAutoRemove(false);  // don't remove it until after we process it asynchronously
+// ========================================================================================================================
+QString AudioDecoder::runVamp(QString whichModule, QString WAVfilename, QString resultsFilename) {
+    // qDebug() << "runVamp" << WAVfilename << resultsFilename;
 
-//    qDebug() << "resultsFilename: " << resultsFilename;
+    QString pathNameToVamp(QCoreApplication::applicationDirPath());
+    pathNameToVamp.append("/vamp-simple-host");
 
-    if (!errOpen2) {
-        resultsFilename = temp2.fileName(); // the open created it, if it's a temp file
-        qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
-        return(-3); // ERROR
+    // qDebug() << "VAMP path: " << pathNameToVamp;
+
+    if (!QFileInfo::exists(pathNameToVamp) ) {
+
+        QMessageBox msgBox;
+        msgBox.setText(QString("ERROR: Could not find Vamp executable.<P>Snapping is disabled."));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setDefaultButton(QMessageBox::Ok);
+        msgBox.exec();
+
+        return("error: vamp does not exist"); // ERROR, VAMP DOES NOT EXIST
     }
-#else
-    resultsFilename = "/Users/mpogue/beatDetect.results.txt";
-    // QFile temp2(resultsFilename); // use a file in a known location
-    // if (!temp2.open(QIODevice::WriteOnly)) {
-    //     resultsFilename = temp2.fileName();
-    //     qDebug() << "ERROR: beatBarDetection could not open temporary RESULTS file!" << resultsFilename;
-    //     return(-3);
-    // }
-#endif
 
-//    qDebug() << "Temp RESULTS filename: " << resultsFilename;
+    t->elapsed(__LINE__);
+
+    if (whichModule == "beatbardetect") {
+        vamp.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
+        vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
+
+        // // SYNCHRONOUS: wait for vamp to finish
+        // if (!vamp.waitForFinished()) {
+        //     return;
+        // }
+    } else if (whichModule == "segmentdetect") {
+        vampSegment.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
+        vampSegment.start(pathNameToVamp, QStringList() << "-s" << "segmentino:segmentino" << WAVfilename << "-o" << resultsFilename);
+
+        // // SYNCHRONOUS: wait for vamp to finish
+        // if (!vamp.waitForFinished()) {
+        //     return;
+        // }
+    }
+
+    return(resultsFilename); // return where we will put the results (when it is finished)
+}
+
+// ========================================================================================================================
+// splits the patter record into segments, for better loop creation
+int AudioDecoder::segmentDetection() {
+    // NOTE: this can only be called after the file is completely loaded into memory!
+    // returns -1 if no vamp
+
+    QString infile = makeExternalAudioFile("/Users/mpogue/segmentDetect.wav");                              // last argument used only if USETEMPFILES is 0
+    // qDebug() << "***** segmentDetection" << infile;
+
+    QString resultsFilename = runVamp("segmentdetect", infile, "/Users/mpogue/segmentDetect.results.txt");  // last argument used only if USETEMPFILES is 0
+
+
+    if (resultsFilename.contains("error")) {
+        qDebug() << "ERROR IN SEGMENT DETECTION: " << infile << resultsFilename;
+        return(-1);
+    }
+
+    QObject::connect(&vampSegment, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+                     [=](int exitCode, QProcess::ExitStatus exitStatus)
+                     {
+                         // qDebug() << "***** VAMP SEGMENTATION FINISHED:" << exitCode << exitStatus;
+
+                         if (exitStatus == QProcess::NormalExit && exitCode == 0) {
+                             // READ IN THE RESULTS, AND SETUP THE SEGMENT MAPs =====================
+
+                             // qDebug() << "Processing:" << resultsFilename;
+
+                             QFile resultsFile(resultsFilename);
+                             if (!resultsFile.open(QFile::ReadOnly | QFile::Text)) {
+                                 qDebug() << "ERROR 7: Could not open results of Vamp from file:" << resultsFilename;
+                                 return; // ERROR from lambda
+                             }
+                             // qDebug() << "OPEN SUCCEEDED:" << resultsFilename;
+
+                             QTextStream in(&resultsFile);
+                             for (QString line = in.readLine(); !line.isNull(); line = in.readLine()) {
+                                 // example: "168960,945152: 2 B"
+                                 QStringList p1 = line.split(":");              // [0] = "168960,945152", [1] = " 2 B"
+                                 QStringList p2 = p1[0].split(",");             // [0] = 168960, [1] = 945152
+                                 QStringList p3 = p1[1].trimmed().split(" ");   // [0] = "2", [1] "B"
+
+                                 bool ok1;
+                                 unsigned long start_s    = p2[0].toULong(&ok1);    // start of segment, in samples
+                                 //unsigned long duration_s = p2[1].toULong(&ok2);    // duration of segment, in samples
+                                 QString segmentName = p3[1][0];                    // name, e.g. "A", "B", "N", etc. (NOTE: N7 --> N)
+
+                                 // qDebug() << "Line: " << line << start_s << segmentName;
+
+                                 if (ok1) {
+                                     // qDebug() << "OK" << line;
+                                     segmentMap.push_back(start_s/44100.0); // time_sec
+                                     segmentMapName.push_back(segmentName); // "A", "B", "N", etc.
+                                 } else {
+                                     qDebug() << "ERROR IN CONVERSION: " << line << ok1;
+                                 }
+                             }
+
+                             resultsFile.close();  // done with it, so close it
+
+                             // qDebug() << "segmentMap:" << segmentMap;
+                             // qDebug() << "segmentMapName:" << segmentMapName;
+
+#if USETEMPFILES==1
+                             // delete the temp files
+                             QFile WAVfile(infile);
+                             if (!WAVfile.remove()) {
+                                 qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
+                                 return; // ERROR from lambda
+                             }
+
+                             if (!resultsFile.remove()) {
+                                 qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
+                                 return; // ERROR from lambda
+                             }
+#endif
+                             t->elapsed(__LINE__);
+                         } else {
+                             qDebug() << "ERROR: BAD EXIT FROM VAMP: " << exitCode << exitStatus;
+                             return; // ERROR from lambda
+                         }
+
+                         return;  // NO ERROR from lambda
+                     });
+
+    return(0);
+}
+
+// ========================================================================================================================
+int AudioDecoder::beatBarDetection() {
+// NOTE: this can only be called after the file is completely loaded into memory!
+// returns -1 if no vamp
+
+    QString infile = makeExternalAudioFile("/Users/mpogue/beatDetect.wav");
+    // qDebug() << "***** beatBarDetection: " << infile;
+
+    QString resultsFilename = runVamp("beatbardetect", infile, "/Users/mpogue/beatDetect.results.txt");
 
     // TEST: ./vamp-simple-host -s qm-vamp-plugins:qm-barbeattracker hawk_LPF1500.wav -o beats.lpf1500.txt
-//    QString pathNameToVamp("/Users/mpogue/_____BarBeatDetect/qm-vamp-plugins-1.8.0/lib/vamp-plugin-sdk/host/vamp-simple-host");  // TODO: stick vamp-simple-host into SquareDesk_1.0.5.app/Contents/MacOS
 
     // TO BUILD VAMP ON MAC OS X:
     //   add "." to path list on PluginHostAdapter.cpp:L87  <-- this allows the vamp-simple-host to find the .dylib, if in the same folder as the executable
@@ -1282,24 +1378,12 @@ int AudioDecoder::beatBarDetection() {
 
     // by this point, we know that the Vamp executable exists -----
 
-//    QProcess vamp;
-
-    // qDebug() << "pathName: " << pathNameToVamp << WAVfilename << resultsFilename;
-
-    vamp.disconnect();  // disconnect all previous connections, so we can start up a new one below (just one)
-    vamp.start(pathNameToVamp, QStringList() << "-s" << "qm-vamp-plugins:qm-barbeattracker" << WAVfilename << "-o" << resultsFilename);
-
-   // // SYNCHRONOUS: wait for vamp to finish
-   // if (!vamp.waitForFinished()) {
-   //     return;
-   // }
-
     // ASYNCHRONOUS: beatMap and measureMap will have non-zero lengths when we're done processing.
     QObject::connect(&vamp, static_cast<void (QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
                      [=](int exitCode, QProcess::ExitStatus exitStatus)
                      {
         // Q_UNUSED(exitCode)
-        // qDebug() << "***** VAMP FINISHED:" << exitCode << exitStatus;
+        // qDebug() << "***** VAMP BEAT DETECTION FINISHED:" << exitCode << exitStatus;
 
         t->elapsed(__LINE__); // 1600ms to have VAMP process the file
 
@@ -1323,11 +1407,18 @@ int AudioDecoder::beatBarDetection() {
                 unsigned int beatNum = pieces[1].trimmed().toUInt(&ok2);
                 // qDebug() << "Line: " << line << sampleNum << beatNum;
 
-                beatMap.push_back(sampleNum/44100.0); // time_sec
-                if (beatNum == 1) {
-                    measureMap.push_back(sampleNum/44100.0); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
+                if (ok1 && ok2) {
+                    // qDebug() << "OK" << line;
+                    beatMap.push_back(sampleNum/44100.0); // time_sec
+                    if (beatNum == 1) {
+                        measureMap.push_back(sampleNum/44100.0); // time_sec for beat 1's of each measure (NOTE: TODO assumes 4/4 time for all!)
+                    }
+                } else {
+                    qDebug() << "ERROR IN CONVERSION: " << line << ok1 << ok2;
                 }
             }
+
+            resultsFile.close();  // done with it, so close it
 
            //  // DEBUG: show me the results -----
            // for (unsigned long i = 0; i < beatMap.size(); i+=4)
@@ -1342,18 +1433,19 @@ int AudioDecoder::beatBarDetection() {
 
             t->elapsed(__LINE__);
 
-            // delete the temp files
-            QFile WAVfile(WAVfilename);
-            if (!WAVfile.remove()) {
-                qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
-                return; // ERROR from lambda
-            }
+#if USETEMPFILES==1
+            // // delete the temp files
+            // QFile WAVfile(WAVfilename);
+            // if (!WAVfile.remove()) {
+            //     qDebug() << "ERROR: Had trouble removing the WAV file:" << WAVfile.fileName();
+            //     return; // ERROR from lambda
+            // }
 
-            if (!resultsFile.remove()) {
-                qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
-                return; // ERROR from lambda
-            }
-
+            // if (!resultsFile.remove()) {
+            //     qDebug() << "ERROR: Had trouble removing the RESULTS file:" << resultsFile.fileName();
+            //     return; // ERROR from lambda
+            // }
+#endif
             t->elapsed(__LINE__);
         } else {
             qDebug() << "ERROR: BAD EXIT FROM VAMP: " << exitCode << exitStatus;
@@ -1364,8 +1456,6 @@ int AudioDecoder::beatBarDetection() {
                      });
 
     return(0);  // no error from beatBarDetection()
-
-#endif
 }
 
 // Helper function (only used below in this file)
@@ -1406,7 +1496,7 @@ double AudioDecoder::snapToClosest(double time_sec, unsigned char granularity) {
     if (beatMap.empty()) {
        // qDebug() << "AudioDecoder::snapToClosest, beatMap is empty, so calculating it now...";
         int maybeError = beatBarDetection(); // calculate both the beatMap and the measureMap
-       // qDebug() << "AudioDecoder::snapToClosest maybeError:" << maybeError;
+
         if (maybeError != 0) {
             return(-time_sec);
         }

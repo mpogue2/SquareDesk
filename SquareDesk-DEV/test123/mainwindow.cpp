@@ -1002,6 +1002,10 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
 #ifdef DARKMODE
 //    ui->darkTestLoopButton->setHidden(true);
     ui->darkTestLoopButton->setEnabled(false);
+
+    ui->darkSegmentButton->setHidden(true);
+    ui->darkSegmentButton->setEnabled(false);
+    ui->darkSegmentButton->setToolTip("EXPERIMENTAL: Click to segment a patter recording, to help set loops.\nCan take up to 30 seconds to complete.");
 #endif
 
     t.elapsed(__LINE__);
@@ -1690,6 +1694,7 @@ MainWindow::MainWindow(QSplashScreen *splash, bool dark, QWidget *parent) :
     ui->darkEndLoopButton->setStyleSheet("color: " + darkTextColor);
     ui->darkEndLoopButton->setToolTip(QString("Sets end point of a loop (Patter) or Outro point (Singing Call)\n\nShortcuts: set End ]"));
     ui->darkTestLoopButton->setStyleSheet("color: " + darkTextColor);
+    ui->darkSegmentButton->setStyleSheet("color: " + darkTextColor);
 
     ui->currentLocLabel3->setStyleSheet("color: " + darkTextColor);
     ui->songLengthLabel2->setStyleSheet("color: " + darkTextColor);
@@ -5314,6 +5319,8 @@ void MainWindow::reloadCurrentMP3File() {
 
 void MainWindow::loadMP3File(QString MP3FileName, QString songTitle, QString songType, QString songLabel)
 {
+    ui->darkSegmentButton->setHidden(true);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
+
     PerfTimer t("loadMP3File", __LINE__);
 
     if (!loadCuesheets(MP3FileName)) {
@@ -5545,6 +5552,7 @@ void MainWindow::secondHalfOfLoad(QString songTitle) {
     ui->darkStartLoopButton->setEnabled(true);  // always enabled now, because anything CAN be looped now OR it has an intro/outro
     ui->darkEndLoopButton->setEnabled(true);
     ui->darkTestLoopButton->setEnabled(true);
+    ui->darkSegmentButton->setEnabled(true);
 #endif
 
     cBass->SetVolume(100);
@@ -9680,6 +9688,7 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(false);
 #ifdef DARKMODE
         ui->darkTestLoopButton->setHidden(false);
+        ui->darkSegmentButton->setHidden(false);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
 #endif
         analogClock->setSingingCallSection("");
     } else {
@@ -10914,5 +10923,23 @@ void MainWindow::on_actionNormalize_Track_Audio_toggled(bool checked)
     if (cBass->GetWholeTrackPeak() != 1.0) {
         ui->darkSeekBar->updateBgPixmap((float*)1, 1);  // update the bg pixmap, in case it was a singing call
     }
+}
+
+
+void MainWindow::on_darkSegmentButton_clicked()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Begin Experimental Segmentation",
+                                  "Segmentation might take up to 30 seconds. You can keep working while it runs.\n\nOK to start it now?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::No) {
+        return;
+    }
+
+    // qDebug() << "***** Starting SEGMENTATION.";
+    // int e =
+    cBass->segmentDetection(); // Gentlemen, start your engines... cBass will have the results in its decoder
+    // qDebug() << "   " << e;
 }
 

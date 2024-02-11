@@ -1510,7 +1510,8 @@ void MainWindow::setTitleField(QTableWidget *whichTable, int whichRow, QString r
         textCol = QColor("#A0A0A0");  // if not a recognized type, color it white-ish (dark mode!)
     }
 
-    darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this, (MyTableWidget *)whichTable);
+    // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this, (MyTableWidget *)whichTable);
+    darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(this);
     // darkPaletteSongTitleLabel *title = new darkPaletteSongTitleLabel(slotNumber);
     title->setTextFormat(Qt::RichText);
     // title->textColor = "red";  // remember the text color, so we can restore it when deselected

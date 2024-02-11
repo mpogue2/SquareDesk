@@ -143,7 +143,8 @@ public:
     void StreamSetPosition(double Position);
     void StreamGetPosition(void);
 
-    double snapToClosest(double time_sec, unsigned char granularity);
+    double snapToClosest(double time_sec, unsigned char granularity);   // does beatbar detection
+    int segmentDetection();                                             // does segment detection
 
     bool isPaused(void); // returns true if paused, false if playing
 
