@@ -9688,7 +9688,7 @@ void MainWindow::handleDurationBPM() {
         ui->pushButtonTestLoop->setHidden(false);
 #ifdef DARKMODE
         ui->darkTestLoopButton->setHidden(false);
-        ui->darkSegmentButton->setHidden(false);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
+//        ui->darkSegmentButton->setHidden(false);  // COMMENT THIS OUT FOR NORMAL OPERATION, IN FOR DEBUGGING SEGMENTATION
 #endif
         analogClock->setSingingCallSection("");
     } else {
